@@ -1,6 +1,9 @@
 # Revisores por defecto segun el area del cambio.
+
 # Reemplaza los usuarios de ejemplo por los usuarios reales de GitHub de cada equipo.
 
-/backend/   @equipo-backend
-/frontend/  @equipo-frontend
-/docs/      @equipo-docs
+/backend/ @the-dibujitos-dp2/backend
+/frontend/ @the-dibujitos-dp2/frontend
+/docs/ @the-dibujitos-dp2/docs
+/qa/ @the-dibujitos-dp2/qa
+/devsecops/ @the-dibujitos-dp2/devsecops
