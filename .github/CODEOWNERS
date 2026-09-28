@@ -1,0 +1,6 @@
+# Revisores por defecto segun el area del cambio.
+# Reemplaza los usuarios de ejemplo por los usuarios reales de GitHub de cada equipo.
+
+/backend/   @equipo-backend
+/frontend/  @equipo-frontend
+/docs/      @equipo-docs

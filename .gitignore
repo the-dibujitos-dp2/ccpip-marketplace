@@ -1,0 +1,27 @@
+# Node / React
+node_modules/
+frontend/build/
+frontend/dist/
+frontend/.env
+npm-debug.log*
+
+# Java / Spring Boot / Maven
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/.env
+*.class
+*.jar
+*.war
+
+# Gradle (si se usa en vez de Maven)
+backend/build/
+backend/.gradle/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
