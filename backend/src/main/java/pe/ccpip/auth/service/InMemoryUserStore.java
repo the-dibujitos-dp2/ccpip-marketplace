@@ -25,7 +25,10 @@ public class InMemoryUserStore implements UserStore {
         String hash = passwordEncoder.encode(DEMO_PASSWORD);
         add(new AuthUser("u-1", "consumidor@ccpip.test", hash, "Consumidor de Prueba", "CONSUMIDOR"));
         add(new AuthUser("u-2", "productor@ccpip.test", hash, "Productor de Prueba", "PRODUCTOR"));
-        add(new AuthUser("u-3", "admin@ccpip.test", hash, "Administrador de Prueba", "SUPER_ADMIN"));
+        add(new AuthUser("u-3", "sudo@ccpip.test", hash, "Super Administrador de Prueba", "SUPER ADMIN"));
+        add(new AuthUser("u-4", "admin_acopio@ccpip.test", hash, "Administrador de Acopio de Prueba", "ADMIN DE ACOPIO"));
+        add(new AuthUser("u-5", "sub_admin@ccpip.test", hash, "Sub-Administrador de Prueba", "SUB-ADMINISTRADOR"));
+        add(new AuthUser("u-6", "distribuidor@ccpip.test", hash, "Distribuidor de Prueba", "DISTRIBUIDOR"));
     }
 
     private void add(AuthUser user) {
