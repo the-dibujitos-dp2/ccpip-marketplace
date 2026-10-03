@@ -1,0 +1,17 @@
+# CCPIP-23: base de datos de DESARROLLO local (separada de la del ambiente desplegado).
+#   docker compose up -d
+# Conexion: localhost:5432, base ccpip_dev, usuario/clave ccpip/ccpip (solo desarrollo)
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ccpip_dev
+      POSTGRES_USER: ccpip
+      POSTGRES_PASSWORD: ccpip
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
+
+volumes:
+  pgdata-dev:

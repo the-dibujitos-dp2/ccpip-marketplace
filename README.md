@@ -15,6 +15,8 @@ ccpip-marketplace/
 ├── frontend/          React
 ├── backend/           Spring Boot
 ├── docs/              Modelo de datos, decisiones técnicas, actas
+├── infra/terraform/   Infraestructura en AWS Academy
+├── deploy/            docker-compose del ambiente desplegado
 ├── .github/           Plantilla de PR, workflows de CI, CODEOWNERS
 ```
 
@@ -37,7 +39,7 @@ cd backend
 ./mvnw spring-boot:run
 ```
 
-Requiere Java 17 o superior y PostgreSQL corriendo localmente. Copia `backend/.env.example` a `backend/.env` y completa las variables.
+Requiere Java 21. La base de datos de desarrollo se levanta con `docker compose up -d` desde la raíz. Copia `backend/.env.example` a `backend/.env` y completa las variables.
 
 ### Frontend
 
@@ -61,3 +63,7 @@ Cada rama debe abrir un Pull Request hacia `main` usando la plantilla de este re
 ## Contribuir
 
 Ver [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Ambientes y despliegue
+
+Cada merge a `main` se despliega automáticamente tras pasar las pruebas y los análisis de seguridad. Ver [docs/devsecops.md](docs/devsecops.md).

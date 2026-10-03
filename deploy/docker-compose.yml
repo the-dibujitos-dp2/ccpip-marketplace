@@ -1,0 +1,53 @@
+# CCPIP-23: stack del ambiente desplegado (EC2). El pipeline copia este archivo
+# a /opt/ccpip y escribe /opt/ccpip/.env con las variables de abajo.
+name: ccpip
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ccpip
+      POSTGRES_USER: ccpip
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?falta DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ccpip -d ccpip"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Sin puertos publicados: solo el backend llega a la base por la red interna
+
+  backend:
+    image: ${BACKEND_IMAGE:?falta BACKEND_IMAGE}
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/ccpip  # trufflehog:ignore (sin credenciales)
+      SPRING_DATASOURCE_USERNAME: ccpip
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 1g
+
+  web:
+    image: ${FRONTEND_IMAGE:?falta FRONTEND_IMAGE}
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?falta SITE_ADDRESS}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy_data:/caddy/data
+      - caddy_config:/caddy/config
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
