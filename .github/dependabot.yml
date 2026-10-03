@@ -1,21 +1,32 @@
-# CCPIP-23: PRs semanales con actualizaciones de dependencias (incluye parches de seguridad)
+# CCPIP-23: PRs semanales con actualizaciones de dependencias (incluye parches de seguridad).
+# Los saltos de version mayor (Spring Boot 4, Java 25, Node 26...) se ignoran: se planifican
+# como historia aparte. Las alertas de seguridad de Dependabot siguen llegando igual.
 version: 2
 updates:
   - package-ecosystem: maven
     directory: /backend
     schedule: { interval: weekly }
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       menores: { update-types: [minor, patch] }
 
   - package-ecosystem: npm
     directory: /frontend
     schedule: { interval: weekly }
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       menores: { update-types: [minor, patch] }
 
   - package-ecosystem: docker
     directories: [/backend, /frontend]
     schedule: { interval: weekly }
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
@@ -26,3 +37,6 @@ updates:
   - package-ecosystem: terraform
     directory: /infra/terraform
     schedule: { interval: weekly }
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
