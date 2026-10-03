@@ -1,5 +1,5 @@
 # CCPIP-23: build de Vite y servidor Caddy (HTTPS automatico + proxy de /api)
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
