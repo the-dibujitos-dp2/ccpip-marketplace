@@ -34,6 +34,17 @@ jobs:
         working-directory: backend
         run: ./mvnw -B verify
 
+      # El escaneo del pom.xml no ve las versiones que hereda de Spring Boot; el jar si
+      - name: CVEs en el jar empaquetado (Trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: rootfs
+          scan-ref: backend/target
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
       - name: Analisis SonarQube Cloud
         if: env.SONAR_TOKEN != ''
         uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
