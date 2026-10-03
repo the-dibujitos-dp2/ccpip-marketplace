@@ -1,0 +1,24 @@
+.logotipo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logotipo__isotipo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--color-bg-brand);
+}
+
+.logotipo__texto {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+}
+
+.logotipo__nombre { font-weight: 600; font-size: 16px; line-height: 24px; }
+.logotipo__lema { font-size: 12px; line-height: 16px; color: var(--color-text-secondary); }

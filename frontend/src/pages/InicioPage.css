@@ -1,0 +1,18 @@
+.inicio__contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1216px;
+  margin: 0 auto;
+  padding: 48px 16px;
+}
+
+.inicio__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-l);
+  background: var(--color-bg-surface);
+}

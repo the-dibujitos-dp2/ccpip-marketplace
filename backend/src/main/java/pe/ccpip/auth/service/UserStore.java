@@ -1,17 +1,19 @@
 package pe.ccpip.auth.service;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import pe.ccpip.auth.model.AuthUser;
 
-/**
- * Contrato de acceso a usuarios. Hoy lo implementa {@link InMemoryUserStore};
- * cuando exista la base de datos (CCPIP-19) se implementa contra PostgreSQL
- * sin cambiar controllers ni filtros.
- */
+/** Acceso a las cuentas de usuario. La implementacion real es {@link JdbcUserStore}. */
 public interface UserStore {
 
     Optional<AuthUser> findByEmail(String email);
 
-    Optional<AuthUser> findById(String id);
+    Optional<AuthUser> findById(long id);
+
+    /** Guarda el conteo de intentos fallidos y, si corresponde, hasta cuando queda bloqueada. */
+    void recordFailedAttempts(long userId, int failedAttempts, Instant lockedUntil);
+
+    void resetFailedAttempts(long userId);
 }

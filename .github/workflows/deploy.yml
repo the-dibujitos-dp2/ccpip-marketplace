@@ -135,7 +135,7 @@ jobs:
           for i in $(seq 1 12); do
             curl -fsS -X POST "$url/api/auth/login" \
               -H 'Content-Type: application/json' \
-              -d '{"email":"consumidor@ccpip.test","password":"Demo1234!"}' | grep -q '"token"' && ok=1 && break
+              -d '{"email":"consumidor@ccpip.test","password":"Demo1234!"}' | grep -q '"email":"consumidor@ccpip.test"' && ok=1 && break
             echo "Esperando backend ($i/12)..."; sleep 5
           done
           test "${ok:-0}" = 1 || { echo "::error::El login de demo no respondio"; exit 1; }

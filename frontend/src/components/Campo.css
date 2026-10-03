@@ -1,0 +1,53 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.campo__etiqueta {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-text-primary);
+}
+
+.campo__control {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-m);
+  background: var(--color-bg-surface);
+  font: inherit;
+  color: var(--color-text-primary);
+}
+
+.campo__control::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* Foco: borde verde de 2px. Se compensa el padding para que el texto no salte. */
+.campo__control:focus {
+  outline: none;
+  border: 2px solid var(--color-border-focus);
+  padding: 11px 15px;
+}
+
+.campo__control--error,
+.campo__control--error:focus {
+  border: 2px solid var(--color-border-error);
+  padding: 11px 15px;
+}
+
+.campo__ayuda {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-tertiary);
+}
+
+.campo__ayuda--error {
+  color: var(--color-status-error-fg);
+}

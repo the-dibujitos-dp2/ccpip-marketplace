@@ -11,6 +11,7 @@
 Las bases estan separadas: la de prod solo es accesible desde la red interna de Docker en la EC2 (no publica puerto) y su clave vive en el secreto `DB_PASSWORD`.
 
 Usuarios de demostracion (uno por rol, clave `Demo1234!`): `consumidor@`, `productor@`, `sudo@`, `admin_acopio@`, `sub_admin@`, `distribuidor@` con dominio `ccpip.test`.
+Ademas `sin_confirmar@ccpip.test` tiene el correo sin confirmar, para probar que el inicio de sesion lo rechaza (CCPIP-27).
 
 ## Arquitectura de prod
 
