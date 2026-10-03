@@ -12,6 +12,7 @@ export default function App() {
     useEffect(() => {
         fetchMe()
             .then(setUser)
+            .catch(() => setUser(null))
             .finally(() => setLoading(false));
     }, []);
 

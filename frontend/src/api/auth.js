@@ -1,13 +1,15 @@
 // Cliente de los endpoints de sesion del backend (CCPIP-27)
 
 const TOKEN_KEY = 'ccpip.token'
+// El backend emite tokens opacos UUID; cualquier otra cosa no se guarda
+const TOKEN_FORMAT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export function getToken() {
   return sessionStorage.getItem(TOKEN_KEY)
 }
 
 function setToken(token) {
-  if (token) sessionStorage.setItem(TOKEN_KEY, token)
+  if (typeof token === 'string' && TOKEN_FORMAT.test(token)) sessionStorage.setItem(TOKEN_KEY, token)
   else sessionStorage.removeItem(TOKEN_KEY)
 }
 
