@@ -117,8 +117,7 @@ jobs:
           ssh "$SSH_TARGET" 'set -e
             cd /opt/ccpip
             docker compose pull
-            # --wait: no termina hasta que db y backend reporten healthy (o vence el plazo)
-            docker compose up -d --remove-orphans --wait --wait-timeout 180
+            docker compose up -d --remove-orphans
             docker logout ghcr.io
             docker image prune -af --filter "until=168h"'
 
@@ -131,21 +130,16 @@ jobs:
             echo "Esperando $url ($i/30)..."; sleep 10
           done
           curl -fsS -o /dev/null "$url/"
-          # Reintentos cortos por si el backend aun esta terminando de arrancar
-          for i in $(seq 1 12); do
-            curl -fsS -X POST "$url/api/auth/login" \
-              -H 'Content-Type: application/json' \
-              -d '{"email":"consumidor@ccpip.test","password":"Demo1234!"}' | grep -q '"token"' && ok=1 && break
-            echo "Esperando backend ($i/12)..."; sleep 5
-          done
-          test "${ok:-0}" = 1 || { echo "::error::El login de demo no respondio"; exit 1; }
+          curl -fsS -X POST "$url/api/auth/login" \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"consumidor@ccpip.test","password":"Demo1234!"}' | grep -q '"token"'
           echo "### Desplegado en $url (commit \`${GITHUB_SHA::7}\`)" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Volver a la version anterior si fallo
         if: failure()
         run: |
           ssh "$SSH_TARGET" 'cd /opt/ccpip && if [ -f .env.previous ]; then
-            mv .env.previous .env && docker compose up -d --remove-orphans --wait --wait-timeout 180 && echo "Rollback aplicado"; fi' || true
+            mv .env.previous .env && docker compose up -d --remove-orphans && echo "Rollback aplicado"; fi' || true
 
   dast:
     name: DAST (OWASP ZAP baseline)
