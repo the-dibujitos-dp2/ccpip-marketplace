@@ -1,80 +1,113 @@
-import { useEffect, useState } from "react";
-import { fetchMe, login, logout } from "./api/auth.js";
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { fetchMe, logout } from './api/auth.js'
+import { armIdleTimer, disarmIdleTimer, onSessionLost } from './api/http.js'
+import IngresarPage from './pages/IngresarPage.jsx'
+import InicioPage from './pages/InicioPage.jsx'
+import { navigate, RUTAS, usePath } from './router.js'
 
 export default function App() {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [message, setMessage] = useState("");
+  const path = usePath()
+  const [sesion, setSesion] = useState(null) // { user, expiresInSeconds }
+  const [cargando, setCargando] = useState(true)
+  const [aviso, setAviso] = useState(null)
+  const [cerrando, setCerrando] = useState(false)
+  const minutos = useRef(30)
 
-    // Si ya habia un token guardado, recuperar la sesion al recargar
-    useEffect(() => {
-        fetchMe()
-            .then(setUser)
-            .catch(() => setUser(null))
-            .finally(() => setLoading(false));
-    }, []);
+  const terminarSesion = useCallback((nuevoAviso) => {
+    disarmIdleTimer()
+    setSesion(null)
+    setAviso(nuevoAviso)
+    navigate(RUTAS.ingresar, { replace: true })
+  }, [])
 
-    async function handleLogin(e) {
-        e.preventDefault();
-        setMessage("");
-        try {
-            setUser(await login(email, password));
-            setPassword("");
-        } catch (err) {
-            setMessage(err.message);
+  // La sesion se confirma siempre con el servidor, nunca con datos guardados en el navegador
+  const verificar = useCallback(async () => {
+    try {
+      setSesion(await fetchMe())
+    } catch {
+      setSesion(null)
+    } finally {
+      setCargando(false)
+    }
+  }, [])
+
+  // Si el servidor rechaza la sesion en cualquier peticion, se vuelve al inicio de sesion
+  useEffect(
+    () =>
+      onSessionLost((code) => {
+        if (code === 'SESION_EXPIRADA') {
+          terminarSesion({
+            tono: 'aviso',
+            titulo: 'Tu sesión expiró',
+            descripcion: `La cerramos tras ${minutos.current} minutos sin actividad. Vuelve a ingresar para continuar.`,
+          })
+        } else {
+          terminarSesion(null)
         }
+      }),
+    [terminarSesion],
+  )
+
+  // Al cargar y al volver a una pantalla protegida con "atras", se vuelve a preguntar al servidor
+  useEffect(() => {
+    if (cargando || path === RUTAS.inicio) verificar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [path])
+
+  // Pagina restaurada desde la cache de atras/adelante del navegador (bfcache)
+  useEffect(() => {
+    const onPageShow = (e) => e.persisted && verificar()
+    window.addEventListener('pageshow', onPageShow)
+    return () => window.removeEventListener('pageshow', onPageShow)
+  }, [verificar])
+
+  // Expiracion por inactividad: sin peticiones durante el plazo, se consulta /me y el
+  // servidor responde SESION_EXPIRADA
+  useEffect(() => {
+    if (!sesion) return
+    minutos.current = Math.round(sesion.expiresInSeconds / 60)
+    armIdleTimer(sesion.expiresInSeconds, () => fetchMe())
+  }, [sesion])
+
+  // Cada estado tiene su ruta
+  useEffect(() => {
+    if (cargando) return
+    if (sesion && path !== RUTAS.inicio) navigate(RUTAS.inicio, { replace: true })
+    if (!sesion && path !== RUTAS.ingresar) navigate(RUTAS.ingresar, { replace: true })
+  }, [cargando, sesion, path])
+
+  async function handleCerrarSesion() {
+    setCerrando(true)
+    try {
+      await logout()
+    } catch {
+      // Aunque falle la red, la pantalla se cierra; la cookie expira sola en el servidor
     }
+    setCerrando(false)
+    terminarSesion({ tono: 'exito', titulo: 'Cerraste sesión', descripcion: 'Vuelve cuando quieras.' })
+  }
 
-    async function handleLogout() {
-        await logout();
-        setUser(null);
-        setMessage("Sesión cerrada.");
-    }
+  if (cargando) return <p className="visually-hidden">Cargando…</p>
 
-    if (loading) return <p>Cargando...</p>;
-
-    if (user) {
-        return (
-            <main>
-                <h1>Hola, {user.fullName}</h1>
-                <p>Correo: {user.email}</p>
-                <p>Rol: {user.role}</p>
-                <button onClick={handleLogout}>Cerrar sesión</button>
-            </main>
-        );
-    }
-
+  if (sesion) {
     return (
-        <main>
-            <h1>Iniciar sesión</h1>
-            <form onSubmit={handleLogin}>
-                <p>
-                    <label>
-                        Correo{" "}
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </label>
-                </p>
-                <p>
-                    <label>
-                        Contraseña{" "}
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </label>
-                </p>
-                <button type="submit">Ingresar</button>
-            </form>
-            {message && <p>{message}</p>}
-        </main>
-    );
+      <InicioPage
+        user={sesion.user}
+        minutosInactividad={Math.round(sesion.expiresInSeconds / 60)}
+        onCerrarSesion={handleCerrarSesion}
+        cerrando={cerrando}
+      />
+    )
+  }
+
+  return (
+    <IngresarPage
+      aviso={aviso}
+      onCerrarAviso={() => setAviso(null)}
+      onIngreso={(nueva) => {
+        setAviso(null)
+        setSesion(nueva)
+      }}
+    />
+  )
 }

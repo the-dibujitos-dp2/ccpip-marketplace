@@ -23,8 +23,9 @@
       "parameters": {
         "strict_required_status_checks_policy": true,
         "required_status_checks": [
-          { "context": "Backend (tests + SonarQube)", "integration_id": 15368 },
-          { "context": "Frontend (build + audit)", "integration_id": 15368 },
+          { "context": "Backend (tests)", "integration_id": 15368 },
+          { "context": "SonarQube (Quality Gate)", "integration_id": 15368 },
+          { "context": "Frontend (tests + build + audit)", "integration_id": 15368 },
           { "context": "Secretos filtrados (TruffleHog)", "integration_id": 15368 },
           { "context": "Dependencias, Dockerfiles y Terraform (Trivy)", "integration_id": 15368 }
         ]

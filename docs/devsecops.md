@@ -11,6 +11,7 @@
 Las bases estan separadas: la de prod solo es accesible desde la red interna de Docker en la EC2 (no publica puerto) y su clave vive en el secreto `DB_PASSWORD`.
 
 Usuarios de demostracion (uno por rol, clave `Demo1234!`): `consumidor@`, `productor@`, `sudo@`, `admin_acopio@`, `sub_admin@`, `distribuidor@` con dominio `ccpip.test`.
+Ademas `sin_confirmar@ccpip.test` tiene el correo sin confirmar, para probar que el inicio de sesion lo rechaza (CCPIP-27).
 
 ## Arquitectura de prod
 
@@ -29,7 +30,7 @@ Internet ──443──▶ web (Caddy: HTTPS automatico, archivos de React, cab
 
 | Workflow | Cuando | Que hace |
 |---|---|---|
-| `ci.yml` | Cada PR a `main`, antes de cada deploy, y los lunes | Tests + cobertura JaCoCo, SonarQube Cloud (Quality Gate), build del frontend, `npm audit`, TruffleHog (secretos), Trivy (CVEs en dependencias, Dockerfiles y Terraform) |
+| `ci.yml` | Cada PR a `main`, antes de cada deploy, y los lunes | Tests del backend (JaCoCo) y del frontend (Vitest) con cobertura, SonarQube Cloud (Quality Gate con ambas coberturas), build del frontend, `npm audit`, TruffleHog (secretos), Trivy (CVEs en dependencias, Dockerfiles y Terraform) |
 | `deploy.yml` | Push a `main` | Corre CI → construye imagenes → Trivy sobre la imagen (bloquea HIGH/CRITICAL con parche) → publica en GHCR → SSH a la EC2 → `docker compose up` → prueba de humo (home + login de demo) → rollback automatico si falla → OWASP ZAP baseline (reporte en artefactos) |
 | `terraform.yml` | PR que toca `infra/terraform/`, o manual | `fmt`, `validate`; manual: `plan`/`apply` con credenciales de Learner Lab |
 | `dependabot.yml` | Semanal | PRs de actualizacion de Maven, npm, imagenes Docker, Actions y Terraform |

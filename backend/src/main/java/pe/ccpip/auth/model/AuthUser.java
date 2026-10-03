@@ -1,14 +1,24 @@
 package pe.ccpip.auth.model;
 
+import java.time.Instant;
+
 /**
- * Usuario autenticable. Temporal hasta que CCPIP-19 defina el modelo de datos real
- * (usuario y rol); entonces se mapea desde la entidad persistida.
+ * Usuario autenticable, leido de la tabla usuario (CCPIP-19).
+ *
+ * @param role      codigo del rol (CONSUMIDOR, PRODUCTOR...), el que se valida en el servidor
+ * @param roleName  nombre del rol para mostrar en pantalla
+ * @param lockedUntil fin del bloqueo temporal por intentos fallidos, o null si no esta bloqueado
  */
 public record AuthUser(
-        String id,
+        long id,
         String email,
         String passwordHash,
         String fullName,
-        String role
+        Rol role,
+        String roleName,
+        boolean active,
+        boolean emailConfirmed,
+        int failedAttempts,
+        Instant lockedUntil
 ) {
 }

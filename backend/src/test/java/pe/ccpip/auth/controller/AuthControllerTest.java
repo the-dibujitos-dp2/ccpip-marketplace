@@ -1,51 +1,53 @@
 package pe.ccpip.auth.controller;
 
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.HttpHeaders;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
+import pe.ccpip.auth.config.SessionCookies;
+import pe.ccpip.support.IntegrationTest;
 
-import pe.ccpip.auth.service.InMemoryUserStore;
-
-@SpringBootTest
-@AutoConfigureMockMvc
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class AuthControllerTest {
+class AuthControllerTest extends IntegrationTest {
 
     private static final String EMAIL = "consumidor@ccpip.test";
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    // --- Inicio de sesion ---
 
     @Test
-    void loginCorrectoDevuelveTokenYUsuario() throws Exception {
-        mockMvc.perform(login(EMAIL, InMemoryUserStore.DEMO_PASSWORD))
+    void loginCorrectoEntregaCookieHttpOnlyYNoExponeElToken() throws Exception {
+        mockMvc.perform(login(EMAIL, DEMO_PASSWORD))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token", notNullValue()))
+                .andExpect(cookie().httpOnly(SessionCookies.NAME, true))
+                .andExpect(cookie().secure(SessionCookies.NAME, true))
+                .andExpect(cookie().path(SessionCookies.NAME, "/api"))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("SameSite=Strict")))
+                .andExpect(jsonPath("$.token").doesNotExist())
                 .andExpect(jsonPath("$.expiresInSeconds").value(1800))
                 .andExpect(jsonPath("$.user.email").value(EMAIL))
+                .andExpect(jsonPath("$.user.role").value("CONSUMIDOR"))
+                .andExpect(jsonPath("$.user.roleName").value("Consumidor final"))
                 .andExpect(jsonPath("$.user.passwordHash").doesNotExist());
+    }
+
+    @Test
+    void elCorreoNoDistingueMayusculas() throws Exception {
+        mockMvc.perform(login("CONSUMIDOR@CCPIP.test", DEMO_PASSWORD)).andExpect(status().isOk());
     }
 
     @Test
     void contrasenaIncorrectaDevuelve401() throws Exception {
         mockMvc.perform(login(EMAIL, "incorrecta"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("CREDENCIALES_INVALIDAS"));
     }
 
     @Test
@@ -57,8 +59,22 @@ class AuthControllerTest {
 
     @Test
     void datosInvalidosDevuelven400() throws Exception {
-        mockMvc.perform(login("no-es-correo", ""))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(login("no-es-correo", "")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void correoSinConfirmarNoPuedeIngresar() throws Exception {
+        mockMvc.perform(login("sin_confirmar@ccpip.test", DEMO_PASSWORD))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("CORREO_NO_CONFIRMADO"))
+                .andExpect(cookie().doesNotExist(SessionCookies.NAME));
+    }
+
+    @Test
+    void conClaveIncorrectaNoSeRevelaQueElCorreoNoEstaConfirmado() throws Exception {
+        mockMvc.perform(login("sin_confirmar@ccpip.test", "incorrecta"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("CREDENCIALES_INVALIDAS"));
     }
 
     @Test
@@ -66,50 +82,84 @@ class AuthControllerTest {
         for (int i = 0; i < 5; i++) {
             mockMvc.perform(login(EMAIL, "incorrecta")).andExpect(status().isUnauthorized());
         }
-        mockMvc.perform(login(EMAIL, InMemoryUserStore.DEMO_PASSWORD))
+        mockMvc.perform(login(EMAIL, DEMO_PASSWORD))
                 .andExpect(status().isLocked())
-                .andExpect(jsonPath("$.lockedUntil", notNullValue()));
+                .andExpect(jsonPath("$.code").value("CUENTA_BLOQUEADA"))
+                .andExpect(jsonPath("$.lockedUntil").exists());
+
+        // El bloqueo vive en la base: sobrevive a reinicios y despliegues
+        Integer intentos = jdbc.queryForObject(
+                "SELECT intentos_fallidos FROM usuario WHERE correo = ?", Integer.class, EMAIL);
+        assertThat(intentos).isEqualTo(5);
     }
 
     @Test
-    void meDevuelveElUsuarioDeLaSesion() throws Exception {
-        String token = loginAndGetToken();
-        mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
+    void elTokenNoSeGuardaEnClaroEnLaBase() throws Exception {
+        Cookie cookie = loginAs(EMAIL);
+        String guardado = jdbc.queryForObject("SELECT token_hash FROM sesion", String.class);
+        assertThat(guardado).hasSize(64).isNotEqualTo(cookie.getValue());
+    }
+
+    // --- Sesion activa ---
+
+    @Test
+    void meDevuelveElUsuarioDeLaSesionSinCache() throws Exception {
+        mockMvc.perform(get("/api/auth/me").cookie(loginAs(EMAIL)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value(EMAIL))
-                .andExpect(jsonPath("$.role").value("CONSUMIDOR"));
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
+                .andExpect(jsonPath("$.user.email").value(EMAIL))
+                .andExpect(jsonPath("$.expiresInSeconds").value(1800));
     }
 
     @Test
-    void sinTokenOTokenInvalidoDevuelve401() throws Exception {
-        mockMvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized());
-        mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer inventado"))
+    void sinCookieOConCookieInventadaDevuelve401() throws Exception {
+        mockMvc.perform(get("/api/auth/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("SIN_SESION"));
+        mockMvc.perform(get("/api/auth/me").cookie(new Cookie(SessionCookies.NAME, "inventado")))
                 .andExpect(status().isUnauthorized());
         mockMvc.perform(get("/api/cualquier-cosa")).andExpect(status().isUnauthorized());
     }
 
+    // --- Cierre de sesion manual ---
+
     @Test
-    void logoutInvalidaElTokenEnElServidor() throws Exception {
-        String token = loginAndGetToken();
+    void logoutInvalidaLaSesionEnElServidorYBorraLaCookie() throws Exception {
+        Cookie cookie = loginAs(EMAIL);
 
-        mockMvc.perform(post("/api/auth/logout").header("Authorization", "Bearer " + token))
-                .andExpect(status().isNoContent());
+        mockMvc.perform(post("/api/auth/logout").cookie(cookie))
+                .andExpect(status().isNoContent())
+                .andExpect(cookie().maxAge(SessionCookies.NAME, 0));
 
-        mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
-                .andExpect(status().isUnauthorized());
+        // Aunque alguien conserve la cookie vieja, el servidor ya no la acepta
+        mockMvc.perform(get("/api/auth/me").cookie(cookie))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("SIN_SESION"));
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM sesion", Integer.class)).isZero();
     }
 
-    private String loginAndGetToken() throws Exception {
-        String body = mockMvc.perform(login(EMAIL, InMemoryUserStore.DEMO_PASSWORD))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-        JsonNode json = objectMapper.readTree(body);
-        return json.get("token").asText();
+    @Test
+    void logoutSinSesionTambienResponde204() throws Exception {
+        mockMvc.perform(post("/api/auth/logout")).andExpect(status().isNoContent());
     }
 
-    private org.springframework.test.web.servlet.RequestBuilder login(String email, String password)
-            throws Exception {
-        String body = objectMapper.writeValueAsString(new AuthController.LoginRequest(email, password));
-        return post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(body);
+    // --- Expiracion automatica por inactividad (independiente del cierre manual) ---
+
+    @Test
+    void sesionInactivaExpiraConUnCodigoPropio() throws Exception {
+        Cookie cookie = loginAs(EMAIL);
+        jdbc.update("UPDATE sesion SET ultimo_acceso = now() - interval '31 minutes'");
+
+        mockMvc.perform(get("/api/auth/me").cookie(cookie))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("SESION_EXPIRADA"));
+    }
+
+    @Test
+    void sesionConActividadRecienteSigueVigente() throws Exception {
+        Cookie cookie = loginAs(EMAIL);
+        jdbc.update("UPDATE sesion SET ultimo_acceso = now() - interval '29 minutes'");
+
+        mockMvc.perform(get("/api/auth/me").cookie(cookie)).andExpect(status().isOk());
     }
 }

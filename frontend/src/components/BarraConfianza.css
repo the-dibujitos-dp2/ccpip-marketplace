@@ -1,0 +1,10 @@
+.barra-confianza {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px max(16px, calc((100% - 1216px) / 2));
+  background: var(--color-bg-inverse);
+  color: var(--color-text-on-brand);
+  font-size: 12px;
+  line-height: 16px;
+}

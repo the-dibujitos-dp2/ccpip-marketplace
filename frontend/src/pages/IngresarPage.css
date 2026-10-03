@@ -1,0 +1,45 @@
+.ingresar {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.ingresar__contenido {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 48px 16px;
+}
+
+.ingresar__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 440px;
+  padding: 40px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-l);
+  background: var(--color-bg-surface);
+}
+
+.ingresar__encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ingresar__formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (max-width: 480px) {
+  .ingresar__contenido { padding: 24px 16px; justify-content: flex-start; }
+  .ingresar__tarjeta { padding: 24px; }
+  .display-l { font-size: 28px; line-height: 36px; }
+}

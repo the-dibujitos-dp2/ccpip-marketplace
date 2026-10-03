@@ -1,0 +1,46 @@
+/* Tokens del sistema de diseno "Monte" (Figma: DP2 - Los Dibujitos, pagina 01 · Design System). */
+:root {
+  /* Texto */
+  --color-text-primary: #1f1812;
+  --color-text-secondary: #5f4c3b;
+  --color-text-tertiary: #7d6650;
+  --color-text-disabled: #cbbba6;
+  --color-text-brand: #175a38;
+  --color-text-accent: #a33f17;
+  --color-text-on-brand: #ffffff;
+
+  /* Fondos */
+  --color-bg-canvas: #faf7f2;
+  --color-bg-surface: #ffffff;
+  --color-bg-disabled: #f2ece3;
+  --color-bg-brand: #175a38;
+  --color-bg-brand-subtle: #eef5f0;
+  --color-bg-inverse: #082617;
+
+  /* Bordes */
+  --color-border-default: #e3d9cb;
+  --color-border-strong: #cbbba6;
+  --color-border-focus: #3f8b5f;
+  --color-border-error: #b42318;
+  --color-border-brand: #175a38;
+
+  /* Estados */
+  --color-status-info-bg: #e8f0f8;
+  --color-status-info-fg: #1f4e79;
+  --color-status-success-bg: #eef5f0;
+  --color-status-success-fg: #12482d;
+  --color-status-warning-bg: #fef6dc;
+  --color-status-warning-fg: #8a5a00;
+  --color-status-error-bg: #fdecea;
+  --color-status-error-fg: #b42318;
+
+  /* Tipografia */
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "DM Sans", system-ui, sans-serif;
+
+  /* Forma */
+  --radius-m: 8px;
+  --radius-l: 12px;
+  --radius-pill: 999px;
+  --shadow-menu: 0 4px 12px rgba(31, 23, 18, 0.1), 0 2px 4px rgba(31, 23, 18, 0.06);
+}

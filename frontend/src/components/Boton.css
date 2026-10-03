@@ -1,0 +1,34 @@
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: var(--radius-m);
+  font-family: var(--font-body);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.boton--L { height: 48px; padding: 0 24px; font-size: 16px; line-height: 24px; }
+.boton--M { height: 40px; padding: 0 20px; font-size: 14px; line-height: 20px; }
+.boton--S { height: 32px; padding: 0 14px; font-size: 14px; line-height: 20px; }
+.boton--ancho { width: 100%; }
+
+.boton--primario { background: var(--color-bg-brand); color: var(--color-text-on-brand); }
+.boton--acento { background: #c4501f; color: var(--color-text-on-brand); }
+.boton--destructivo { background: var(--color-status-error-fg); color: var(--color-text-on-brand); }
+.boton--secundario {
+  background: var(--color-bg-surface);
+  color: var(--color-text-brand);
+  border: 1.5px solid var(--color-border-brand);
+}
+.boton--terciario { background: transparent; color: var(--color-text-brand); }
+
+.boton:disabled {
+  background: var(--color-bg-disabled);
+  color: var(--color-text-disabled);
+  border-color: transparent;
+  cursor: not-allowed;
+}

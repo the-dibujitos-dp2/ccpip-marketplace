@@ -1,0 +1,39 @@
+.cabecera {
+  background: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.cabecera__principal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px max(16px, calc((100% - 1216px) / 2));
+}
+
+.cabecera__acciones {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cabecera__usuario {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cabecera__datos {
+  display: flex;
+  flex-direction: column;
+}
+
+.cabecera__nombre {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+@media (max-width: 640px) {
+  .cabecera__usuario { display: none; }
+}
