@@ -26,6 +26,7 @@ El proyecto se organiza en subequipos, pero cualquier persona puede apoyar en cu
 - Frontend
 - QA
 - Documentacion
+- DevSecOps
 
 ## Como empezar
 
