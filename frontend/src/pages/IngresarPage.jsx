@@ -8,7 +8,8 @@ import Campo from '../components/Campo.jsx'
 import Logotipo from '../components/Logotipo.jsx'
 import './IngresarPage.css'
 
-const CORREO_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// Partes separadas por puntos literales: sin retroceso exponencial (Sonar S8786)
+const CORREO_VALIDO = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/
 
 function alertaPorError(error) {
   if (!(error instanceof ApiError)) {

@@ -30,7 +30,7 @@ Internet ──443──▶ web (Caddy: HTTPS automatico, archivos de React, cab
 
 | Workflow | Cuando | Que hace |
 |---|---|---|
-| `ci.yml` | Cada PR a `main`, antes de cada deploy, y los lunes | Tests + cobertura JaCoCo, SonarQube Cloud (Quality Gate), build del frontend, `npm audit`, TruffleHog (secretos), Trivy (CVEs en dependencias, Dockerfiles y Terraform) |
+| `ci.yml` | Cada PR a `main`, antes de cada deploy, y los lunes | Tests del backend (JaCoCo) y del frontend (Vitest) con cobertura, SonarQube Cloud (Quality Gate con ambas coberturas), build del frontend, `npm audit`, TruffleHog (secretos), Trivy (CVEs en dependencias, Dockerfiles y Terraform) |
 | `deploy.yml` | Push a `main` | Corre CI → construye imagenes → Trivy sobre la imagen (bloquea HIGH/CRITICAL con parche) → publica en GHCR → SSH a la EC2 → `docker compose up` → prueba de humo (home + login de demo) → rollback automatico si falla → OWASP ZAP baseline (reporte en artefactos) |
 | `terraform.yml` | PR que toca `infra/terraform/`, o manual | `fmt`, `validate`; manual: `plan`/`apply` con credenciales de Learner Lab |
 | `dependabot.yml` | Semanal | PRs de actualizacion de Maven, npm, imagenes Docker, Actions y Terraform |
