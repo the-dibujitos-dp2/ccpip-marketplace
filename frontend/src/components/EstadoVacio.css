@@ -1,0 +1,23 @@
+.estado-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 420px;
+  margin: 24px auto;
+  padding: 32px 24px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 16px;
+  background: var(--color-bg-surface);
+  text-align: center;
+}
+
+.estado-vacio__icono {
+  display: flex;
+  padding: 16px;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-brand-subtle);
+}
+
+.estado-vacio__titulo { font-weight: 600; font-size: 18px; line-height: 26px; }
+.estado-vacio__descripcion { font-size: 14px; line-height: 20px; color: var(--color-text-secondary); }

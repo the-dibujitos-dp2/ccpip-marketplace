@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
 import { fetchPanel } from '../api/panel.js'
 import Alerta from '../components/Alerta.jsx'
-import Cabecera from '../components/Cabecera.jsx'
 import './InicioPage.css'
 
 /** Pantalla de inicio de cada rol. El contenido lo entrega el servidor segun el rol. */
-export default function InicioPage({ user, minutosInactividad, onCerrarSesion, cerrando }) {
+export default function InicioPage({ user, minutosInactividad }) {
   const [panel, setPanel] = useState(null)
   const [error, setError] = useState(null)
 
@@ -22,7 +21,6 @@ export default function InicioPage({ user, minutosInactividad, onCerrarSesion, c
 
   return (
     <div className="inicio">
-      <Cabecera user={user} onCerrarSesion={onCerrarSesion} cerrando={cerrando} />
       <main className="inicio__contenido">
         <p className="overline">{user.roleName}</p>
         <h1 className="display-l">Hola, {nombre}</h1>

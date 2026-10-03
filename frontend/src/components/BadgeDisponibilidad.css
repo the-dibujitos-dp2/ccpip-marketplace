@@ -1,0 +1,13 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px 4px 8px;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.badge--disponible { background: var(--color-bg-brand-subtle); color: var(--color-text-brand); }
+.badge--agotado { background: var(--color-bg-disabled); color: var(--color-text-secondary); }

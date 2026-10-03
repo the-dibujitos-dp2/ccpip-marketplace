@@ -33,3 +33,21 @@ export function servidor(rutas) {
 export function llamadas(fetchMock, clave) {
   return fetchMock.mock.calls.filter(([url, o = {}]) => `${o.method || 'GET'} ${url}` === clave)
 }
+
+export const PRODUCTOR = { id: 1, comunidad: 'Comunidad Shipibo Konibo', region: 'Ucayali', origenVerificado: true }
+
+export function producto(id, nombre, extra = {}) {
+  return {
+    id,
+    nombre,
+    precio: 48,
+    unidad: { codigo: 'ML', nombre: 'Mililitro' },
+    linea: { codigo: 'ACEITES', nombre: 'Aceites' },
+    productor: PRODUCTOR,
+    ...extra,
+  }
+}
+
+export function pagina(items, { pagina = 0, tamano = 12, total = items.length } = {}) {
+  return [200, { items, pagina, tamano, total, totalPaginas: Math.ceil(total / tamano) }]
+}

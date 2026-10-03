@@ -1,0 +1,23 @@
+.catalogo {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1216px;
+  margin: 0 auto;
+  padding: 40px 16px 64px;
+}
+
+.catalogo__encabezado { display: flex; flex-direction: column; gap: 8px; }
+
+.catalogo__grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 32px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 480px) {
+  .catalogo__grilla { grid-template-columns: repeat(2, 1fr); gap: 24px 12px; }
+}

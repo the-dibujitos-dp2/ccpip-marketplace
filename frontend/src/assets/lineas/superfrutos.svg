@@ -1,0 +1,22 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Imagen">
+<g clip-path="url(#clip0_0_93)">
+<rect width="160" height="160" rx="12" fill="url(#paint0_linear_0_93)"/>
+<circle id="Ellipse" cx="130" cy="40" r="70" fill="white" fill-opacity="0.08"/>
+<circle id="Ellipse_2" cx="15" cy="145" r="45" fill="white" fill-opacity="0.06"/>
+<g id="Motivo">
+<path id="Vector" d="M78 96C74.4881 96.0106 71.1005 94.701 68.509 92.3308C65.9176 89.9607 64.3115 86.7031 64.0095 83.2042C63.7074 79.7053 64.7314 76.2207 66.8783 73.4415C69.0252 70.6622 72.1383 68.7914 75.6 68.2C87 66 90 64.96 94 60C96 64 98 68.36 98 76C98 87 88.44 96 78 96Z" stroke="white" stroke-opacity="0.35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_2" d="M60 98C60 92 63.7 87.28 70.16 86C75 85.04 80 82 82 80" stroke="white" stroke-opacity="0.35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_93" x1="22.8571" y1="22.8571" x2="137.143" y2="137.143" gradientUnits="userSpaceOnUse">
+<stop stop-color="#7A1A2A"/>
+<stop offset="1" stop-color="#D9534F"/>
+</linearGradient>
+<clipPath id="clip0_0_93">
+<rect width="160" height="160" rx="12" fill="white"/>
+</clipPath>
+</defs>
+</svg>
