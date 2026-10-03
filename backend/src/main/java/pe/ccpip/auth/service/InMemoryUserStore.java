@@ -16,8 +16,11 @@ import pe.ccpip.auth.model.AuthUser;
 @Component
 public class InMemoryUserStore implements UserStore {
 
-    /** Contrasena comun de los usuarios de prueba (solo desarrollo). */
-    public static final String DEMO_PASSWORD = "Demo1234!";
+    /**
+     * Contrasena comun de los usuarios de prueba. Es publica a proposito: CCPIP-23 pide un
+     * usuario de demostracion por rol para las revisiones de sprint.
+     */
+    public static final String DEMO_PASSWORD = "Demo1234!"; // NOSONAR java:S2068 credencial de demo intencional
 
     private final Map<String, AuthUser> usersByEmail = new ConcurrentHashMap<>();
 
