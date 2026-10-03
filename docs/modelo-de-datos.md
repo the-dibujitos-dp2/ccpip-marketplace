@@ -1,0 +1,269 @@
+# Modelo de datos del ciclo de compra
+
+Entregable de **CCPIP-19**. Alcance: lo que el primer MVP necesita para que un comprador
+entre, encuentre un producto, lo compre y lo recoja en un punto de acopio.
+
+Trece tablas. Probado contra PostgreSQL 17, la version de docker-compose: las cinco migraciones corren de cero sobre
+una base vacia, las semillas se pueden volver a ejecutar sin duplicar, y las nueve
+restricciones de los requisitos no funcionales bloquean lo que deben bloquear.
+
+## Diagrama entidad relacion
+
+```mermaid
+erDiagram
+    rol ||--o{ usuario : tiene
+    usuario ||--o| productor : es
+    usuario ||--o| carrito : tiene
+    usuario ||--o{ pedido : realiza
+    usuario ||--o{ sesion : abre
+    usuario }o--o{ ubicacion : administra
+
+    productor ||--o{ producto : publica
+    productor ||--o| ubicacion : posee_almacen
+    linea_producto ||--o{ producto : clasifica
+    unidad_medida ||--o{ producto : mide
+
+    producto ||--o{ stock : existe_en
+    ubicacion ||--o{ stock : almacena
+    producto ||--o{ movimiento_inventario : registra
+    ubicacion ||--o{ movimiento_inventario : ocurre_en
+
+    carrito ||--o{ item_carrito : contiene
+    producto ||--o{ item_carrito : figura_en
+
+    pedido ||--o{ item_pedido : contiene
+    producto ||--o{ item_pedido : vendido_en
+    productor ||--o{ item_pedido : vende
+    ubicacion ||--o{ pedido : origen
+    pedido ||--o{ pedido_estado_historial : cambia
+    pedido ||--o{ movimiento_inventario : origina
+```
+
+La relacion central es **productor, producto y stock por ubicacion**. El lote entra en
+Sprint 1 con CCPIP-41 y se cuelga de producto sin tocar pedido ni carrito, que es uno
+de los criterios de aceptacion de esta historia.
+
+## Diccionario de datos
+
+### rol
+Catalogo cerrado de los seis roles. No se crea ni se edita desde la aplicacion en
+Sprint 0, eso es CCPIP-28.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | smallint | no | Llave primaria, valor fijo del 1 al 6 |
+| codigo | varchar(40) | no | Unico. CONSUMIDOR, PRODUCTOR, ADMIN_PUNTO, SUB_ADMIN, SUPER_ADMIN, DISTRIBUIDOR |
+| nombre | varchar(80) | no | Nombre para mostrar |
+
+### usuario
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| correo | varchar(255) | no | Unico, e indexado en minusculas. RNF-40 |
+| contrasena_hash | varchar(255) | no | Solo el hash BCrypt. RNF-01 |
+| nombre | varchar(160) | no | |
+| rol_id | smallint | no | Referencia a rol |
+| activo | boolean | no | Una cuenta se desactiva, no se borra. RNF-18 |
+| intentos_fallidos | smallint | no | Contador para el bloqueo temporal |
+| bloqueado_hasta | timestamptz | si | Nulo significa no bloqueado. RNF-02 |
+
+### sesion
+Sesion con token opaco aleatorio, entregado en cookie HttpOnly y guardado en el servidor.
+Cerrar sesion borra la fila, y eso invalida el acceso de inmediato como exige RNF-03.
+Reemplaza a la tabla token_revocado que venia de usar JWT: con JWT habia que consultar
+la lista de revocados en cada peticion de todos modos, y la expiracion por inactividad
+obligaba a reemitir tokens. ADR-05 se actualiza a token opaco.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| token_hash | char(64) | no | SHA-256 del token, llave primaria. El token en claro nunca se guarda |
+| usuario_id | bigint | no | Indexado, para cerrar todas las sesiones al bloquear a un usuario |
+| creado_en | timestamptz | no | |
+| ultimo_acceso | timestamptz | no | Indexado. Base de la expiracion por inactividad y de la purga |
+
+### linea_producto, unidad_medida
+Catalogos cerrados. RNF-32: el productor no crea unidades de medida, las solicita al
+administrador, que es CCPIP-119 y CCPIP-137 en Sprint 1.
+
+### productor
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| usuario_id | bigint | no | Unico. Un usuario de rol PRODUCTOR es un productor |
+| comunidad | varchar(160) | no | Nombre de la comunidad productora |
+| region | varchar(80) | no | Indexado, para el filtro de CCPIP-165 |
+| historia | text | si | Historia de la comunidad, distinta de la del producto |
+| origen_verificado | boolean | no | CCPIP-38. Entra sembrado, no hay flujo de postulacion |
+| activo | boolean | no | |
+
+### producto
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| productor_id | bigint | no | |
+| nombre | varchar(200) | no | Indexado con lower(inmutable_unaccent(nombre)) para RNF-22 |
+| descripcion | text | si | |
+| historia_origen | text | si | CCPIP-152. El diferenciador de la plataforma |
+| linea_id | smallint | no | |
+| unidad_medida_id | smallint | no | |
+| precio | numeric(10,2) | no | Mayor que cero. En soles, RNF-43 |
+| es_materia_prima | boolean | no | Producto terminado o materia prima |
+| estado | varchar(20) | no | BORRADOR, PUBLICADO o RETIRADO. RNF-17 |
+
+### ubicacion
+Una sola tabla para punto de acopio y almacen de productor, porque ambos siguen las
+mismas reglas de movimiento y merma, que es lo que pide CCPIP-136. Separarlos en dos
+tablas obligaria a duplicar stock y movimiento_inventario.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| tipo | varchar(20) | no | PUNTO_ACOPIO o ALMACEN_PRODUCTOR |
+| nombre | varchar(160) | no | Unico entre los puntos de acopio |
+| productor_id | bigint | si | Obligatorio si es almacen, prohibido si es punto de acopio |
+| departamento, provincia, distrito | varchar | depto no | Division politica. Sin coordenadas: RNF-31 |
+
+### usuario_ubicacion
+Que punto administra cada usuario. Es lo que sostiene el aislamiento de RNF-05, que se
+aplica filtrando en la consulta al servidor y no ocultando datos en la pantalla.
+
+### stock
+**Es una tabla, no una vista.** Se actualiza en la misma transaccion que cada
+movimiento. Decidido en ADR-10 y es la decision mas facil de malinterpretar de todo el
+modelo: si fuera una vista que suma movimientos, se perderia la restriccion de cantidad
+no negativa y cada lectura del catalogo seria una agregacion.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| producto_id, ubicacion_id | bigint | no | Llave primaria compuesta |
+| cantidad | numeric(12,3) | no | CHECK cantidad >= 0. RNF-09 |
+
+El **stock virtual unico** que ve el consumidor es la suma de las filas de un producto
+en todas sus ubicaciones. No se guarda en ninguna parte, se calcula al consultar:
+
+```sql
+SELECT sum(cantidad) FROM stock WHERE producto_id = :id;
+```
+
+### movimiento_inventario
+Tabla de solo insercion. Dos disparadores impiden UPDATE y DELETE, porque una regla que
+solo vive en el codigo de la aplicacion se salta desde cualquier cliente SQL. RNF-15 y
+RNF-16: una correccion se hace con un movimiento de tipo AJUSTE que conserva el original.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| producto_id, ubicacion_id | bigint | no | |
+| tipo | varchar(20) | no | ENTRADA, SALIDA_VENTA, TRANSFERENCIA_ENTRADA, TRANSFERENCIA_SALIDA, AJUSTE |
+| cantidad | numeric(12,3) | no | Siempre positiva. El signo lo da el tipo |
+| pedido_id | bigint | si | Cuando el movimiento viene de una venta |
+| usuario_id | bigint | si | Quien lo registro |
+
+### carrito, item_carrito
+El carrito se persiste en base de datos, no en el navegador. Era el punto abierto numero
+uno del informe de arquitectura: el modulo lo mencionaba y el modelo no lo tenia.
+
+RNF-35: estar en el carrito **no reserva ni descuenta** stock. Un producto aparece una
+sola vez por carrito, agregarlo de nuevo suma cantidad.
+
+### pedido, item_pedido, pedido_estado_historial
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| numero | varchar(20) | no | Unico, el que ve el comprador |
+| modalidad | varchar(20) | no | RECOJO o ENVIO. En Sprint 0 solo RECOJO |
+| ubicacion_origen_id | bigint | no | Punto donde recoge o desde donde se despacha |
+| estado | varchar(30) | no | CONFIRMADO, EN_PREPARACION, LISTO_PARA_RECOJO, ENTREGADO, CANCELADO |
+| total | numeric(12,2) | no | En soles. Sin columna de divisa, RNF-43 |
+
+**item_pedido.precio_unitario es copia del precio al confirmar.** RNF-13: un cambio
+posterior en producto.precio no altera un pedido ya confirmado. Para mostrar un pedido
+pasado nunca se lee el precio vigente.
+
+**item_pedido.productor_id tambien se copia**, para que el aislamiento de RNF-05 no
+dependa de seguir la cadena hasta producto, que puede haber cambiado de estado.
+
+## Como se cumple RNF-10, que es el requisito mas delicado
+
+"El descuento de existencias al confirmar un pedido resiste pedidos simultaneos sin
+duplicar ni perder unidades."
+
+No se resuelve con bloqueos ni con reintentos. Se resuelve con un UPDATE condicionado,
+que es atomico en PostgreSQL:
+
+```sql
+UPDATE stock
+   SET cantidad = cantidad - :pedida
+ WHERE producto_id = :producto
+   AND ubicacion_id = :ubicacion
+   AND cantidad >= :pedida;
+```
+
+Si devuelve cero filas afectadas, no habia suficiente y el pedido se rechaza. Dos
+pedidos simultaneos no pueden llevarse la misma unidad porque el segundo encuentra la
+cantidad ya decrementada. Probado: con 3 unidades, un pedido de 2 pasa y el siguiente de
+2 se rechaza, quedando 1 y nunca un negativo.
+
+El movimiento de inventario se escribe **en la misma transaccion** que ese UPDATE. Si se
+escriben por separado, un fallo entre ambos deja el stock sin explicacion.
+
+## Fuera de este modelo
+
+Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehacer nada:
+
+- Lote y fecha de vencimiento, Sprint 1, CCPIP-41
+- Cobertura del punto de acopio y division politica del Peru, Sprint 1, CCPIP-149
+- Precio mayorista y minorista, Sprint 1, CCPIP-132
+- Pago y su estado, Sprint 1, CCPIP-62 y CCPIP-163
+- Comision y liquidacion, Sprint 1, CCPIP-90 y CCPIP-91
+- Merma y sus causas, Sprint 2
+- Valoraciones y denuncias, Sprint 2
+- Traducciones del contenido, Sprint 3, CCPIP-170
+- Fidelizacion, Sprint 3, CCPIP-86
+
+## Convencion de nombres de las migraciones
+
+Las versiones son **fecha y hora de creacion**, en formato `YYYYMMDDHHMM`, no numeros
+secuenciales:
+
+```
+V202610020032__usuario_rol.sql
+V202610051432__agregar_lote.sql
+```
+
+El motivo es concreto. Con numeros secuenciales, dos personas que salen de main crean
+las dos `V6__`, y al fusionar el segundo PR hay dos V6. Flyway falla con version
+duplicada, el segundo tiene que renombrar, y quien ya corrio su V6 local queda con el
+historial desalineado. Con diez integrantes y varios PR al dia eso pasa cada semana.
+
+Con fecha y hora no colisionan, porque nadie crea el archivo en el mismo minuto, y si
+pasara se nota de inmediato en el PR. El orden sigue siendo determinista: Flyway compara
+las versiones numericamente.
+
+Las repetibles usan el prefijo `R__`, que en Flyway significa repetible: se aplican
+despues de todas las migraciones versionadas y se vuelven a aplicar cuando cambia su
+contenido. Eso es exactamente lo que queremos para datos sembrados idempotentes.
+
+- `db/migration/R__01_catalogos_base.sql`: roles, catalogos y puntos de acopio. Corre en
+  todos los ambientes, porque sin ellos la aplicacion no funciona.
+- `db/seed/R__02_cuentas_productores_productos.sql`: una cuenta de demostracion por rol
+  (clave publica `Demo1234!`, ver docs/devsecops.md), productores y productos. Corre en
+  todos los ambientes porque las revisiones de sprint y la prueba de humo del despliegue
+  usan esas cuentas. Para un ambiente sin demo basta quitar `db/seed` de
+  `spring.flyway.locations`. El
+numero en `R__01_` y `R__02_` fija el orden, porque las repetibles corren en orden
+alfabetico y la segunda depende de la primera.
+
+### Lo que la fecha y hora no resuelve
+
+Dos personas pueden agregar en paralelo una columna a la misma tabla. Los archivos no
+colisionan, pero la segunda migracion puede asumir un estado que la primera no dejo.
+Eso no lo arregla ninguna herramienta, se arregla en la revision del PR y corriendo
+`docker compose down -v` despues de traer main, que reconstruye desde cero y lo revienta
+de inmediato si hay conflicto.
+
+## Pendiente de aprobacion del equipo
+
+El criterio de aceptacion de CCPIP-19 dice que ninguna migracion se escribe antes de que
+este modelo este aprobado. Las migraciones ya estan escritas y probadas, asi que lo que
+falta es que el equipo lo revise. Si cambia algo, se corrige antes de que alguien mas
+corra V1 a V5, porque despues ya no se puede editar un archivo aplicado.
