@@ -1,0 +1,156 @@
+# CCPIP-23: despliegue continuo. Cada merge a main pasa por CI, construye y escanea
+# las imagenes, las publica en GHCR y las levanta en la EC2 de AWS Academy.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Un despliegue a la vez; uno nuevo espera al anterior en vez de cancelarlo a medias
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/ccpip
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  images:
+    name: Imagen ${{ matrix.app }}
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        app: [backend, frontend]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Construir
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ${{ matrix.app }}
+          load: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:${{ github.sha }}
+            ${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:latest
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
+
+      - name: Escanear imagen (bloquea si hay CVEs HIGH/CRITICAL con parche)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:${{ github.sha }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Publicar en GHCR
+        run: docker push --all-tags "$IMAGE_PREFIX-${{ matrix.app }}"
+
+  deploy:
+    name: Desplegar en EC2
+    needs: images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+      SSH_TARGET: ec2-user@${{ vars.DEPLOY_HOST }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Preparar SSH
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          test -n "$DEPLOY_HOST" || { echo "::error::Falta la variable DEPLOY_HOST"; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          if ! ssh-keyscan -T 15 "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null; then
+            echo "::error::No se pudo conectar a $DEPLOY_HOST. ¿Esta iniciada la sesion de AWS Academy Learner Lab?"
+            exit 1
+          fi
+          printf 'Host *\n  IdentityFile ~/.ssh/id_deploy\n  ServerAliveInterval 30\n' > ~/.ssh/config
+
+      - name: Subir configuracion
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          test -n "$DB_PASSWORD" || { echo "::error::Falta el secreto DB_PASSWORD"; exit 1; }
+          umask 077
+          cat > .env <<ENV
+          BACKEND_IMAGE=$IMAGE_PREFIX-backend:$GITHUB_SHA
+          FRONTEND_IMAGE=$IMAGE_PREFIX-frontend:$GITHUB_SHA
+          SITE_ADDRESS=$DEPLOY_HOST
+          DB_PASSWORD=$DB_PASSWORD
+          ENV
+          ssh "$SSH_TARGET" 'cd /opt/ccpip && if [ -f .env ]; then cp -p .env .env.previous; fi'
+          scp deploy/docker-compose.yml "$SSH_TARGET:/opt/ccpip/docker-compose.yml"
+          scp .env "$SSH_TARGET:/opt/ccpip/.env"
+          rm .env
+
+      - name: Levantar contenedores
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # El token viaja por stdin para que no quede en la linea de comandos del servidor
+          ssh "$SSH_TARGET" "docker login ghcr.io -u ${{ github.actor }} --password-stdin" <<< "$GHCR_TOKEN"
+          ssh "$SSH_TARGET" 'set -e
+            cd /opt/ccpip
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker logout ghcr.io
+            docker image prune -af --filter "until=168h"'
+
+      - name: Prueba de humo
+        run: |
+          url="https://$DEPLOY_HOST"
+          # La primera vez Caddy tarda en obtener el certificado y Spring en arrancar
+          for i in $(seq 1 30); do
+            curl -fsS -o /dev/null "$url/" && break
+            echo "Esperando $url ($i/30)..."; sleep 10
+          done
+          curl -fsS -o /dev/null "$url/"
+          curl -fsS -X POST "$url/api/auth/login" \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"consumidor@ccpip.test","password":"Demo1234!"}' | grep -q '"token"'
+          echo "### Desplegado en $url (commit \`${GITHUB_SHA::7}\`)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Volver a la version anterior si fallo
+        if: failure()
+        run: |
+          ssh "$SSH_TARGET" 'cd /opt/ccpip && if [ -f .env.previous ]; then
+            mv .env.previous .env && docker compose up -d --remove-orphans && echo "Rollback aplicado"; fi' || true
+
+  dast:
+    name: DAST (OWASP ZAP baseline)
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
+        with:
+          target: https://${{ vars.DEPLOY_HOST }}
+          allow_issue_writing: false
+          fail_action: false
+          artifact_name: zap-report

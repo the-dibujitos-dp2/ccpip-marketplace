@@ -1,0 +1,28 @@
+# CCPIP-23: PRs semanales con actualizaciones de dependencias (incluye parches de seguridad)
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /backend
+    schedule: { interval: weekly }
+    groups:
+      menores: { update-types: [minor, patch] }
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule: { interval: weekly }
+    groups:
+      menores: { update-types: [minor, patch] }
+
+  - package-ecosystem: docker
+    directories: [/backend, /frontend]
+    schedule: { interval: weekly }
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      actions: { patterns: ["*"] }
+
+  - package-ecosystem: terraform
+    directory: /infra/terraform
+    schedule: { interval: weekly }

@@ -7,3 +7,6 @@
 /docs/ @the-dibujitos-dp2/docs
 /qa/ @the-dibujitos-dp2/qa
 /devsecops/ @the-dibujitos-dp2/devsecops
+/.github/ @the-dibujitos-dp2/devsecops
+/infra/ @the-dibujitos-dp2/devsecops
+/deploy/ @the-dibujitos-dp2/devsecops
