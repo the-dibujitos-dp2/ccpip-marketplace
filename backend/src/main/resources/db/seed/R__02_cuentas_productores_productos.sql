@@ -17,7 +17,10 @@ INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
     ('sudo@ccpip.test',         '$2a$10$2ln4nR8G1zpHwBRRCSr9yufhBT9pGqQk7bXZDe5PfVR0nQivfBxM.', 'Super Administrador de Prueba',     5, true),
     ('distribuidor@ccpip.test', '$2a$10$2ln4nR8G1zpHwBRRCSr9yufhBT9pGqQk7bXZDe5PfVR0nQivfBxM.', 'Distribuidor de Prueba',            6, true),
     -- CCPIP-27: cuenta sin confirmar para probar que el acceso se rechaza
-    ('sin_confirmar@ccpip.test', '$2a$10$2ln4nR8G1zpHwBRRCSr9yufhBT9pGqQk7bXZDe5PfVR0nQivfBxM.', 'Consumidor sin Confirmar',          1, false)
+    ('sin_confirmar@ccpip.test', '$2a$10$2ln4nR8G1zpHwBRRCSr9yufhBT9pGqQk7bXZDe5PfVR0nQivfBxM.', 'Consumidor sin Confirmar',          1, false),
+    -- Productor incorporado por la camara pero con la tienda aun sin armar: prueba el flujo
+    -- completo de crear la tienda y publicar el primer producto (PW-08, PW-04)
+    ('productor_nuevo@ccpip.test', '$2a$10$2ln4nR8G1zpHwBRRCSr9yufhBT9pGqQk7bXZDe5PfVR0nQivfBxM.', 'Rosa Ancón',                       2, true)
 ON CONFLICT (correo) DO NOTHING;
 
 -- El administrador de punto queda ligado al centro nacional (RNF-05).
@@ -82,3 +85,70 @@ SELECT pr.id, l.id, 100
 FROM producto pr, ubicacion l
 WHERE l.nombre = 'Centro Nacional Lima'
 ON CONFLICT (producto_id, ubicacion_id) DO NOTHING;
+
+-- ---------------------------------------------------------------------------------------
+-- Tienda, almacen, lotes, lineas e historia (CCPIP-30, CCPIP-41, CCPIP-45, CCPIP-49).
+-- Agregado con el flujo del productor. Todo es idempotente y nunca pisa lo que el
+-- productor ya edito desde la plataforma.
+-- ---------------------------------------------------------------------------------------
+
+INSERT INTO productor (usuario_id, comunidad, region, origen_verificado, verificado_en)
+SELECT u.id, 'Comunidad Kukama de Nauta', 'Loreto', true, current_date
+FROM usuario u
+WHERE u.correo = 'productor_nuevo@ccpip.test'
+  AND NOT EXISTS (SELECT 1 FROM productor p WHERE p.usuario_id = u.id);
+
+UPDATE productor p SET
+    nombre_tienda = d.tienda,
+    descripcion_corta = d.descripcion,
+    cita = d.cita,
+    pueblo = d.pueblo,
+    localidad = d.localidad,
+    socios = d.socios,
+    verificado_en = coalesce(p.verificado_en, current_date - 120),
+    tienda_publicada = true,
+    tienda_publicada_en = coalesce(p.tienda_publicada_en, now())
+FROM usuario u
+JOIN (VALUES
+    ('productor@ccpip.test', 'Asoc. Nii Joi', 'Aceites, superfrutos y textiles de mujeres shipibo de Yarinacocha.',
+     'Las plantas del monte curan y alimentan.', 'Shipibo-Konibo', 'Yarinacocha', 34),
+    ('productor2@ccpip.test', 'C.N. Yarina', 'Cacao fino de aroma e infusiones del Alto Marañón.',
+     'Sembramos cacao donde antes hubo tala.', 'Awajún', 'Alto Marañón', 20),
+    ('productor3@ccpip.test', 'Coop. Río Ene', 'Café de altura y artesanías asháninka de Chanchamayo.',
+     'Nuestro café crece bajo sombra de bosque.', 'Asháninka', 'Chanchamayo', 45)
+) AS d(correo, tienda, descripcion, cita, pueblo, localidad, socios) ON d.correo = u.correo
+WHERE p.usuario_id = u.id AND p.nombre_tienda IS NULL;
+
+-- Cada productor tiene su almacen, desde donde luego transfiere a un punto de acopio
+INSERT INTO ubicacion (tipo, nombre, productor_id, departamento, distrito, direccion)
+SELECT 'ALMACEN_PRODUCTOR', 'Almacén ' || p.comunidad, p.id, p.region, p.localidad, 'Almacén de la comunidad'
+FROM productor p
+WHERE NOT EXISTS (
+    SELECT 1 FROM ubicacion x WHERE x.productor_id = p.id AND x.tipo = 'ALMACEN_PRODUCTOR');
+
+-- Los productos sembrados ya estan publicados y en su linea
+UPDATE producto SET publicado_en = creado_en WHERE estado = 'PUBLICADO' AND publicado_en IS NULL;
+
+INSERT INTO producto_linea (producto_id, linea_id)
+SELECT id, linea_id FROM producto WHERE linea_id IS NOT NULL
+ON CONFLICT DO NOTHING;
+
+-- La historia sembrada cuenta como escrita y aprobada por la comunidad (CCPIP-49)
+INSERT INTO producto_historia (producto_id, texto_final, aprobada_en)
+SELECT id, historia_origen, now() FROM producto
+WHERE historia_origen IS NOT NULL AND btrim(historia_origen) <> ''
+ON CONFLICT (producto_id) DO NOTHING;
+
+-- Un lote vigente por producto sembrado, que explica el stock de demostracion (RNF-15).
+-- Las artesanias no vencen (la linea lo decide).
+INSERT INTO lote (producto_id, ubicacion_id, codigo, cantidad_inicial, cantidad_actual,
+                  fecha_produccion, fecha_vencimiento, registrado_en)
+SELECT s.producto_id, s.ubicacion_id, 'L-' || lpad(s.producto_id::text, 4, '0'), s.cantidad, s.cantidad,
+       current_date - 30,
+       CASE WHEN l.requiere_vencimiento THEN current_date + 365 END,
+       now()
+FROM stock s
+JOIN producto pr ON pr.id = s.producto_id
+JOIN linea_producto l ON l.id = pr.linea_id
+WHERE s.cantidad > 0
+  AND NOT EXISTS (SELECT 1 FROM lote x WHERE x.producto_id = s.producto_id);

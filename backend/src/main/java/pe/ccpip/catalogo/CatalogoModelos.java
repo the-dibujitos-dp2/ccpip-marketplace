@@ -1,11 +1,15 @@
 package pe.ccpip.catalogo;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-/** Respuestas publicas del catalogo (CCPIP-52, CCPIP-53, CCPIP-152). Nunca exponen lotes ni cantidades. */
+/**
+ * Respuestas publicas del catalogo (CW-01 a CW-04). Nunca exponen codigos de lote ni
+ * cantidades de stock: solo si hay o no disponibilidad (CCPIP-53, CCPIP-41).
+ */
 public final class CatalogoModelos {
 
     private CatalogoModelos() {
@@ -14,26 +18,71 @@ public final class CatalogoModelos {
     public record Codigo(String codigo, String nombre) {
     }
 
-    public record ProductorResumen(long id, String comunidad, String region, boolean origenVerificado) {
+    public record TiendaResumen(long id, String nombre, String pueblo, String comunidad, String region, String localidad,
+                                boolean origenVerificado) {
     }
 
-    public record ProductoResumen(long id, String nombre, BigDecimal precio, Codigo unidad, Codigo linea,
-                                  ProductorResumen productor) {
+    public record ProductoResumen(long id, String nombre, String modalidad, BigDecimal precio, BigDecimal precioMayorista,
+                                  String contenido, Codigo unidad, Codigo linea, String imagen, boolean disponible,
+                                  TiendaResumen tienda) {
     }
 
-    public record Pagina<T>(List<T> items, int pagina, int tamano, long total, int totalPaginas) {
-        static <T> Pagina<T> of(List<T> items, int pagina, int tamano, long total) {
-            return new Pagina<>(items, pagina, tamano, total, (int) ((total + tamano - 1) / tamano));
-        }
+    public record Faceta(String codigo, String nombre, long total) {
     }
 
-    /**
-     * Ficha del producto. {@code disponible} dice si hay stock sin revelar cuanto ni en que lote.
-     * {@code historiaOrigen} se omite si el productor no la cargo (CCPIP-152).
-     */
+    public record Facetas(List<Faceta> lineas, List<Faceta> regiones, List<Faceta> modalidades, List<Faceta> comunidades) {
+    }
+
+    public record Busqueda(List<ProductoResumen> items, int pagina, int tamano, long total, int totalPaginas,
+                           long totalComunidades, Facetas facetas) {
+    }
+
+    public record Imagen(String id, String url, String miniatura) {
+    }
+
+    /** Las cuatro respuestas de la historia, presentadas en CW-03 como "Del bosque a tu mesa". */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record ProductoDetalle(long id, String nombre, String descripcion, String historiaOrigen,
-                                  BigDecimal precio, Codigo unidad, Codigo linea, ProductorResumen productor,
-                                  boolean disponible) {
+    public record PartesHistoria(String comunidad, String cultivo, String proceso, String significado) {
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record HistoriaPublica(String titulo, String texto, boolean asistida, PartesHistoria partes) {
+    }
+
+    /** Datos de la cosecha que se venden hoy, sin el codigo tecnico del lote. */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record Cosecha(LocalDate produccion, LocalDate consumirAntesDe) {
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record ProductoDetalle(long id, String nombre, String descripcion, String contenido, Codigo unidad,
+                                  Codigo linea, List<Codigo> lineas, String modalidad, BigDecimal precio,
+                                  BigDecimal precioMayorista, Integer cantidadMinimaMayorista, boolean disponible,
+                                  List<Imagen> imagenes, TiendaResumen tienda, HistoriaPublica historia, Cosecha cosecha,
+                                  List<ProductoResumen> relacionados) {
+    }
+
+    public record TiendaTarjeta(long id, String nombre, String pueblo, String comunidad, String region, String localidad,
+                                String cita, boolean origenVerificado, String portada, long productos) {
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record TiendaDetalle(long id, String nombre, String descripcion, String historia, String cita, String pueblo,
+                                String comunidad, String region, String localidad, Integer socios, boolean origenVerificado,
+                                Integer desde, String portada, List<GaleriaItem> galeria, List<Faceta> lineas,
+                                List<ProductoResumen> productos, List<Long> destacados) {
+    }
+
+    public record GaleriaItem(String id, String categoria, String url, String miniatura) {
+    }
+
+    public record Inicio(List<TiendaTarjeta> tiendas, List<Faceta> lineas, List<ProductoResumen> destacados,
+                         List<ProductoResumen> novedades) {
+    }
+
+    public record LineaCatalogo(String codigo, String nombre, boolean requiereVencimiento, String unidadSugerida) {
+    }
+
+    public record Catalogos(List<LineaCatalogo> lineas, List<Codigo> unidades) {
     }
 }
