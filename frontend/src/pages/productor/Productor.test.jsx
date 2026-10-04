@@ -299,8 +299,8 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
     expect(screen.getByLabelText('Descripción')).toHaveValue(DATOS.edicion.descripcion)
     await user.click(screen.getByRole('button', { name: 'Aceptar descripción' }))
     expect(screen.getByLabelText('Descripción (borrador asistido por IA, editable)')).toHaveValue('Aceite prensado en frío por mujeres shipibo.')
-    await user.click(screen.getByRole('button', { name: 'Guardar borrador' }))
-    expect(await screen.findByText('Borrador guardado')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+    expect(await screen.findByText('Cambios guardados')).toBeInTheDocument()
     expect(cuerpo(fetchMock, 'PUT /api/productor/productos/9')).toMatchObject({ descripcionAsistida: true })
   })
 
@@ -352,6 +352,26 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
     expect(await screen.findAllByText('Escribe el nombre del producto antes de agregar fotos')).toHaveLength(2)
     expect(screen.getByLabelText('Nombre del producto')).toHaveAttribute('aria-invalid', 'true')
     expect(llamadas(fetchMock, 'POST /api/productor/imagenes')).toHaveLength(0)
+  })
+
+  it('la primera foto crea el borrador y se ve al terminar de subir, sin perder lo escrito', async () => {
+    let conFoto = false
+    const creado = { ...copia(DATOS.edicion), id: 31, estado: 'BORRADOR', nombre: 'Miel de abeja nativa', imagenes: [], historia: null }
+    productor({
+      'POST /api/productor/productos': [201, creado],
+      'GET /api/productor/productos/31': () => [200, { ...copia(creado), imagenes: conFoto ? [{ id: 'f', urlMiniatura: '/api/imagenes/f?tam=min', principal: true }] : [] }],
+      'POST /api/productor/imagenes': () => {
+        conFoto = true
+        return [201, { id: 'f' }]
+      },
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/nuevo')
+    await user.type(await screen.findByLabelText('Nombre del producto'), 'Miel de abeja nativa')
+    await user.upload(screen.getByLabelText('Arrastra fotos aquí o selecciónalas'), foto())
+    expect(await screen.findByAltText('Foto del producto')).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/productor/productos/31')
+    expect(screen.getByLabelText('Nombre del producto')).toHaveValue('Miel de abeja nativa')
   })
 
   it('una foto que pesa mas de 10 MB no se envia', async () => {

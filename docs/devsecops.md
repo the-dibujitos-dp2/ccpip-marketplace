@@ -4,13 +4,15 @@
 
 | Ambiente | Donde corre | Base de datos | Se actualiza |
 |---|---|---|---|
-| **local** | Laptop de cada integrante (`./mvnw spring-boot:run` + `npm run dev`) | PostgreSQL de `docker-compose.yml` en la raiz (`ccpip_dev`) | A mano |
+| **local** | Laptop de cada integrante (`./mvnw spring-boot:run` + `npm run dev`) | PostgreSQL y S3Mock de `docker-compose.yml` en la raiz (`ccpip_dev`) | A mano |
+| **e2e** | `e2e/docker-compose.yml`, local o en CI | PostgreSQL en memoria (tmpfs) y S3Mock, se borran al bajar el stack | En cada corrida |
 | **ci** | Runners de GitHub Actions, efimero | Ninguna persistente | En cada PR |
 | **prod** (demo para cliente y jefes de laboratorio) | EC2 en AWS Academy Learner Lab, `https://<ip-con-guiones>.sslip.io` | PostgreSQL en contenedor dentro de la EC2 (`ccpip`), volumen propio | Automatico en cada merge a `main` |
 
 Las bases estan separadas: la de prod solo es accesible desde la red interna de Docker en la EC2 (no publica puerto) y su clave vive en el secreto `DB_PASSWORD`.
 
 Usuarios de demostracion (uno por rol, clave `Demo1234!`): `consumidor@`, `productor@`, `sudo@`, `admin_acopio@`, `sub_admin@`, `distribuidor@` con dominio `ccpip.test`.
+`productor_nuevo@ccpip.test` tiene la tienda vacia, para probar que una comunidad la arma desde cero (PW-08).
 Ademas `sin_confirmar@ccpip.test` tiene el correo sin confirmar, para probar que el inicio de sesion lo rechaza (CCPIP-27).
 
 ## Arquitectura de prod
@@ -18,7 +20,26 @@ Ademas `sin_confirmar@ccpip.test` tiene el correo sin confirmar, para probar que
 ```
 Internet ──443──▶ web (Caddy: HTTPS automatico, archivos de React, cabeceras de seguridad)
                     └── /api/* ──▶ backend (Spring Boot, perfil prod) ──▶ db (PostgreSQL 17)
+                                        └──▶ S3 (bucket privado de imagenes, con el rol de la EC2)
 ```
+
+### Imagenes (CCPIP-30, CCPIP-44)
+
+- Las fotos van a un bucket S3 **privado** (`ccpip-imagenes-<cuenta>`, cifrado, versionado). El
+  navegador nunca ve el bucket: el backend las sirve en `/api/imagenes/{id}` con cache de un ano.
+- El backend usa las credenciales del `LabInstanceProfile` de la EC2 (no hay llaves en el codigo
+  ni en secretos). Para que los contenedores lleguen a esas credenciales, la instancia tiene
+  `http_put_response_hop_limit = 2` en Terraform.
+- Cada foto se valida (JPG, PNG o WebP, maximo 10 MB y 40 MP), se endereza segun su EXIF y se
+  guarda en 1600 px mas una miniatura de 480 px.
+- En desarrollo y en e2e se usa **S3Mock** (`adobe/s3mock`), que imita la API de S3.
+
+### Redaccion asistida por IA (CCPIP-48, CCPIP-49)
+
+El backend ya tiene el punto de enchufe (`AsistenteRedaccion`) y la pantalla completa. Se elige con
+`CCPIP_IA_PROVEEDOR`: `ninguno` en produccion (responde `503 IA_NO_DISPONIBLE` y el productor
+escribe a mano) y `simulado` solo en pruebas. El modelo real se agrega como otro proveedor; su
+llave ira como secreto del servidor, nunca al navegador.
 
 - `infra/terraform/`: EC2 (Amazon Linux 2023, IMDSv2, disco cifrado), Security Group, Elastic IP.
 - `deploy/docker-compose.yml`: los tres contenedores.
@@ -30,7 +51,7 @@ Internet ──443──▶ web (Caddy: HTTPS automatico, archivos de React, cab
 
 | Workflow | Cuando | Que hace |
 |---|---|---|
-| `ci.yml` | Cada PR a `main`, antes de cada deploy, y los lunes | Tests del backend (JaCoCo) y del frontend (Vitest) con cobertura, SonarQube Cloud (Quality Gate con ambas coberturas), build del frontend, `npm audit`, TruffleHog (secretos), Trivy (CVEs en dependencias, Dockerfiles y Terraform) |
+| `ci.yml` | Cada PR a `main`, antes de cada deploy, y los lunes | Tests del backend (JaCoCo) y del frontend (Vitest) con cobertura, SonarQube Cloud (Quality Gate con ambas coberturas), build del frontend, `npm audit`, TruffleHog (secretos), Trivy (CVEs en dependencias, Dockerfiles y Terraform), **e2e con Playwright** sobre las imagenes de produccion |
 | `deploy.yml` | Push a `main` | Corre CI → construye imagenes → Trivy sobre la imagen (bloquea HIGH/CRITICAL con parche) → publica en GHCR → SSH a la EC2 → `docker compose up` → prueba de humo (home + login de demo) → rollback automatico si falla → OWASP ZAP baseline (reporte en artefactos) |
 | `terraform.yml` | PR que toca `infra/terraform/`, o manual | `fmt`, `validate`; manual: `plan`/`apply` con credenciales de Learner Lab |
 | `dependabot.yml` | Semanal | PRs de actualizacion de Maven, npm, imagenes Docker, Actions y Terraform |
@@ -67,6 +88,7 @@ Todas las Actions estan fijadas por SHA (evita ataques de cadena de suministro p
 | `SONAR_TOKEN` | Secret | sonarcloud.io → *My Account → Security → Generate Token*. Si falta, CI salta el analisis sin fallar. |
 | `DEPLOY_HOST` | Variable | Salida `app_domain` de Terraform. |
 | `TF_STATE_BUCKET` | Variable | Nombre del bucket del paso 1.3 (solo para el workflow de Terraform). |
+| `IMAGES_BUCKET` | Variable | Salida `images_bucket` de Terraform. Sin ella el deploy se detiene antes de tocar el servidor. |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN` | Secret | Learner Lab → **AWS Details** → **AWS CLI: Show**. **Vencen al cerrar la sesion**; solo se usan para `terraform.yml`, actualizalos justo antes de correrlo. |
 
 ### 3. SonarQube Cloud
@@ -85,6 +107,26 @@ El plan Free de GitHub no permite reglas de rama en repos privados. Opciones:
   gh api -X POST repos/the-dibujitos-dp2/ccpip-marketplace/rulesets --input docs/ruleset-main.json
   ```
   Exige PR con 1 aprobacion (CODEOWNERS), checks de CI en verde, historial lineal y bloquea force-push y borrado de `main`.
+
+## Pruebas de punta a punta (Playwright)
+
+`e2e/` levanta el stack con **las mismas imagenes que van a produccion** (backend con perfil
+`prod`, Caddy con su CSP) mas PostgreSQL y S3Mock, y recorre el flujo del prototipo como una
+persona: la comunidad arma su tienda y publica un producto con fotos, historia y lote; el
+comprador lo busca, filtra y lee su historia; edicion, despublicar y volver a publicar; reglas
+de seguridad (otro productor recibe 404, no se publica sin lote vendible, no se borra);
+sesion (CCPIP-27); accesibilidad con axe (WCAG 2.1 AA) y celular a 375 px sin scroll horizontal.
+
+```
+cd e2e
+npm ci && npx playwright install chromium
+npm run stack          # construye y levanta el stack en http://localhost:4173
+npx playwright test    # ~3 min (incluye esperar la expiracion de sesion de 2 min)
+npm run stack:down     # borra todo; el flujo necesita una base nueva en cada corrida
+```
+
+Para comparar pantallas con el Figma: `CAPTURAS=1 npx playwright test tests/capturas.spec.js`
+guarda capturas en `e2e/capturas/`.
 
 ## Operacion diaria
 

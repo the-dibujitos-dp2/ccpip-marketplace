@@ -24,6 +24,8 @@ export default defineConfig({
     {
       name: 'web',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 }, channel: process.env.CI ? undefined : 'chrome' },
+      // Las capturas para comparar con el Figma se toman a pedido: CAPTURAS=1 npx playwright test
+      testIgnore: process.env.CAPTURAS ? /movil\.spec\.js/ : [/movil\.spec\.js/, /capturas\.spec\.js/],
     },
     {
       name: 'movil',

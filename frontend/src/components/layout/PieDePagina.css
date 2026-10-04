@@ -8,5 +8,5 @@
 .pie__legal { margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.15); font-size: 12px; }
 
 @media (max-width: 640px) {
-  .pie__columnas { grid-template-columns: 1fr; }
+  .pie__columnas { grid-template-columns: minmax(0, 1fr); }
 }

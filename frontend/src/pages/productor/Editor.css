@@ -92,10 +92,10 @@
 .editor__faltan { margin: 0; padding-left: 20px; font-size: 14px; line-height: 22px; color: var(--color-text-secondary); }
 
 @media (max-width: 1100px) {
-  .editor__datos, .editor__historia, .editor__lote { grid-template-columns: 1fr; }
+  .editor__datos, .editor__historia, .editor__lote { grid-template-columns: minmax(0, 1fr); }
   .editor__vista-previa { position: static; }
 }
 
 @media (max-width: 520px) {
-  .editor__fila { grid-template-columns: 1fr; }
+  .editor__fila { grid-template-columns: minmax(0, 1fr); }
 }

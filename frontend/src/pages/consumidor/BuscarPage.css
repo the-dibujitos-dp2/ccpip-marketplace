@@ -57,7 +57,7 @@
 .buscar__grilla { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 
 @media (max-width: 860px) {
-  .buscar__cuerpo { grid-template-columns: 1fr; }
+  .buscar__cuerpo { grid-template-columns: minmax(0, 1fr); }
   .filtros { position: static; }
   .buscar__encabezado { flex-direction: column; align-items: flex-start; }
 }

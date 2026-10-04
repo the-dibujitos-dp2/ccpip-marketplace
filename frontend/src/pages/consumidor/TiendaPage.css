@@ -27,6 +27,6 @@
 .tienda-publica__destacados .icono { color: var(--color-text-accent); }
 
 @media (max-width: 860px) {
-  .tienda-publica__historia--galeria { grid-template-columns: 1fr; }
+  .tienda-publica__historia--galeria { grid-template-columns: minmax(0, 1fr); }
   .tienda-publica__portada { height: 180px; }
 }

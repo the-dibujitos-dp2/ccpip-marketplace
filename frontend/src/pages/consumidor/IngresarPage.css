@@ -25,7 +25,7 @@
 .ingresar__pie { margin-top: 12px; text-align: center; }
 
 @media (max-width: 860px) {
-  .ingresar { grid-template-columns: 1fr; }
+  .ingresar { grid-template-columns: minmax(0, 1fr); }
   .ingresar__marca { padding: 24px; gap: 16px; }
   .ingresar__titular { font-size: 26px; line-height: 34px; }
   .ingresar__fotos, .ingresar__bajada { display: none; }

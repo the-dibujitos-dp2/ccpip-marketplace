@@ -32,9 +32,10 @@ export default function EditorProductoPage({ path, id, search }) {
   const [publicando, setPublicando] = useState(false)
   const [alerta, setAlerta] = useState(null)
 
-  const cargar = useCallback(async () => {
-    if (!id) return null
-    const p = await obtenerProducto(id)
+  // `cual` permite recargar un borrador recien creado aunque este render aun tenga id null
+  const cargar = useCallback(async (cual = id) => {
+    if (!cual) return null
+    const p = await obtenerProducto(cual)
     setProducto(p)
     return p
   }, [id])
@@ -126,7 +127,7 @@ export default function EditorProductoPage({ path, id, search }) {
           asegurarProducto={asegurarProducto}
           onGuardar={guardarDatos}
           onSiguiente={() => irA(1, producto?.id ?? id)}
-          onImagenes={() => cargar()}
+          onImagenes={(cual) => cargar(cual)}
         />
       )}
 

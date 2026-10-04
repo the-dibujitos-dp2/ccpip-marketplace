@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -45,7 +46,9 @@ public class S3ImagenStorage implements ImagenStorage {
 
     @PostConstruct
     void iniciar() {
-        S3ClientBuilder builder = S3Client.builder().region(Region.of(region));
+        S3ClientBuilder builder = S3Client.builder()
+                .region(Region.of(region))
+                .httpClientBuilder(UrlConnectionHttpClient.builder());
         if (!endpoint.isBlank()) {
             // S3Mock y otros emuladores necesitan direcciones con el bucket en la ruta
             builder.endpointOverride(URI.create(endpoint)).forcePathStyle(true);

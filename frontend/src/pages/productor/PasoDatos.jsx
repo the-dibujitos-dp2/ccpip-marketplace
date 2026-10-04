@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import iconoCamara from '../../assets/icons/camara.svg'
 import iconoCerrar from '../../assets/icons/cerrar.svg'
 import iconoIa from '../../assets/icons/ia.svg'
@@ -87,9 +87,22 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
   useEffect(() => {
     obtenerCatalogos().then(setCatalogos).catch(() => {})
   }, [])
-  useEffect(() => setD(datosIniciales(producto)), [producto?.id])
+  // Al pasar a otro producto se limpia lo pendiente; no al nacer el borrador (de nuevo a :id)
+  const anterior = useRef(producto?.id)
+  useEffect(() => {
+    setD(datosIniciales(producto))
+    if (anterior.current !== undefined) {
+      setSubidas([])
+      setAlerta(null)
+      setIa({ estado: 'inicial' })
+    }
+    anterior.current = producto?.id
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [producto?.id])
 
   const imagenes = producto?.imagenes ?? []
+  // Un producto publicado no vuelve a borrador: lo que se guarda se ve al instante (CCPIP-47)
+  const publicado = producto?.estado === 'PUBLICADO'
   const set = (campo) => (e) => setD({ ...d, [campo]: e?.target ? (e.target.type === 'checkbox' ? e.target.checked : e.target.value) : e })
 
   function elegirLineas(lineas) {
@@ -110,6 +123,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
     try {
       await onGuardar(aCuerpo(d))
       if (siguiente) onSiguiente()
+      else if (publicado) setAlerta({ tono: 'exito', titulo: 'Cambios guardados', descripcion: 'Ya se ven en el catálogo y en tu tienda.' })
       else setAlerta({ tono: 'exito', titulo: 'Borrador guardado', descripcion: 'Puedes seguir más tarde desde Mis productos.' })
     } catch (err) {
       setErrores(err.body?.campos ?? {})
@@ -138,7 +152,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
     for (const archivo of tomados) {
       await subirUno(id, archivo)
     }
-    onImagenes()
+    onImagenes(id)
   }
 
   async function subirUno(id, archivo, clave = `${archivo.name}-${archivo.size}-${Date.now()}`) {
@@ -158,17 +172,17 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
   async function reintentar(s) {
     const id = await asegurarProducto(aCuerpo(d))
     await subirUno(id, s.archivo, s.clave)
-    onImagenes()
+    onImagenes(id)
   }
 
   async function quitar(imagen) {
     await eliminarImagen(imagen.id)
-    onImagenes()
+    onImagenes(producto.id)
   }
 
   async function principal(imagen) {
     await marcarPrincipal(imagen.id)
-    onImagenes()
+    onImagenes(producto.id)
   }
 
   // ---------- Descripcion asistida (CCPIP-48, RNF-29) ----------
@@ -344,7 +358,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
 
         <div className="editor__botones">
           <Boton tipo="secundario" onClick={() => guardar(false)} disabled={guardando}>
-            Guardar borrador
+            {publicado ? 'Guardar cambios' : 'Guardar borrador'}
           </Boton>
           <Boton onClick={() => guardar(true)} disabled={guardando}>
             Siguiente: historia
@@ -354,7 +368,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
 
       <aside className="editor__vista-previa" aria-label="Vista previa en el catálogo">
         <h2 className="heading-h4">Vista previa en el catálogo</h2>
-        <div className="editor__tarjeta-previa" aria-hidden="true" inert="">
+        <div className="editor__tarjeta-previa" aria-hidden="true" inert>
           <TarjetaProducto
             producto={{
               id: producto?.id ?? 0,

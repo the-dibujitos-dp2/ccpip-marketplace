@@ -153,7 +153,11 @@ export default function App() {
     else if (path === RUTAS.productorTienda) pagina = <TiendaEditorPage path={path} />
     else if (path === RUTAS.productorProductos) pagina = <ProductosPage path={path} search={search} />
     else if (path === RUTAS.productorLotes) pagina = <LotesPage path={path} search={search} />
-    else if (editor) pagina = <EditorProductoPage key={editor[1]} path={RUTAS.productorProductos} id={editor[1] === 'nuevo' ? null : editor[1]} search={search} />
+    else if (editor) {
+      // Sin key por producto: al subir la primera foto el borrador nace y la URL pasa de /nuevo a
+      // /:id; si el editor se montara de nuevo, perderia las fotos que se estan subiendo
+      pagina = <EditorProductoPage path={RUTAS.productorProductos} id={editor[1] === 'nuevo' ? null : editor[1]} search={search} />
+    }
     else pagina = <PanelPage path={RUTAS.productor} />
   } else if (path === RUTAS.catalogo) {
     pagina = <InicioPage />

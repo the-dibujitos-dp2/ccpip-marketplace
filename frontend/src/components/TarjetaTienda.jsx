@@ -14,7 +14,7 @@ export default function TarjetaTienda({ tienda }) {
         <p className="caption">{[tienda.pueblo, tienda.region].filter(Boolean).join(' · ')}</p>
         {tienda.cita && <p className="tarjeta-tienda__cita">“{tienda.cita}”</p>}
         <Enlace to={`/tiendas/${tienda.id}`} className="enlace-marca tarjeta-tienda__enlace">
-          Visitar tienda →<span className="visually-hidden"> de {tienda.nombre}</span>
+          Visitar tienda<span className="visually-hidden"> de {tienda.nombre}</span> <span aria-hidden="true">→</span>
         </Enlace>
       </div>
     </article>

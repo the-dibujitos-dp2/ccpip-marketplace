@@ -151,7 +151,7 @@ export default function ProductoPage({ id }) {
             {historia && (
               <blockquote className="ficha__cita">
                 <p>“{historia.titulo ?? resumen(historia.texto)}”</p>
-                <a href="#historia" className="enlace-marca">Leer su historia ↓</a>
+                <a href="#historia" className="enlace-marca">Leer su historia <span aria-hidden="true">↓</span></a>
               </blockquote>
             )}
 

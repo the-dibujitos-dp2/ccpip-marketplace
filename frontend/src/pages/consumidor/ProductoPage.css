@@ -49,7 +49,7 @@ div.ficha__precio { cursor: default; }
 
 .historia__img { width: 100%; aspect-ratio: 4 / 5; max-height: 520px; object-fit: cover; border-radius: var(--radius-xl); }
 .historia__texto { display: flex; flex-direction: column; gap: 16px; }
-.historia__overline { color: var(--color-text-on-brand); opacity: 0.8; }
+.historia .historia__overline { color: var(--color-text-accent-inverse); }
 .historia__titulo { font-family: var(--font-display); font-weight: 600; font-size: 32px; line-height: 40px; }
 .historia__pasos { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
 .historia__paso { display: flex; gap: 14px; padding: 14px 16px; border-radius: var(--radius-l); background: rgba(255, 255, 255, 0.06); }
@@ -71,7 +71,7 @@ div.ficha__precio { cursor: default; }
 .ficha__volumen dl { width: 100%; }
 
 @media (max-width: 900px) {
-  .ficha__principal, .historia, .ficha__confianza { grid-template-columns: 1fr; }
+  .ficha__principal, .historia, .ficha__confianza { grid-template-columns: minmax(0, 1fr); }
   .historia { padding: 28px; }
 }
 

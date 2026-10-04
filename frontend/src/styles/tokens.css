@@ -7,6 +7,8 @@
   --color-text-disabled: #cbbba6;
   --color-text-brand: #175a38;
   --color-text-accent: #a33f17;
+  /* Terracota clara para textos de acento sobre fondos oscuros (contraste AA) */
+  --color-text-accent-inverse: #f2a57c;
   --color-text-on-brand: #ffffff;
 
   /* Fondos */

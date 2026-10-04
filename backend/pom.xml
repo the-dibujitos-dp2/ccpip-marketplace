@@ -78,6 +78,22 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
+            <!-- Solo se usa el cliente sincrono: fuera Netty (asincrono) y Apache 5, que traen CVEs
+                 y no hacen falta. El cliente HTTP es el del JDK (url-connection-client). -->
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache5-client</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>url-connection-client</artifactId>
         </dependency>
         <!-- Lectura de WebP y orientacion EXIF de las fotos tomadas con celular -->
         <dependency>
