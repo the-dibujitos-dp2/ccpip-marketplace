@@ -28,9 +28,12 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
   const h = producto.historia ?? {}
   const [respuestas, setRespuestas] = useState({ quienes: h.quienes ?? '', como: h.como ?? '', significado: h.significado ?? '', cuidado: h.cuidado ?? '' })
   const [abierta, setAbierta] = useState(() => PREGUNTAS.find((p) => !h[p.campo])?.campo ?? null)
-  // Solo se lleva el foco a una pregunta cuando el productor la abre; si se abre sola al salir
-  // de otra, robaria el foco del campo donde acaba de hacer clic
-  const [enfocar, setEnfocar] = useState(true)
+  // Solo se lleva el foco a una pregunta cuando el productor la abre con su boton; si se abre
+  // sola al salir de otra o al cargar, robaria el foco del campo donde esta escribiendo
+  const [enfocar, setEnfocar] = useState(false)
+  useEffect(() => {
+    if (enfocar && abierta) document.getElementById(`respuesta-${abierta}`)?.focus()
+  }, [enfocar, abierta])
   const [propuesta, setPropuesta] = useState(h.textoPropuesto && !h.aprobada ? { titulo: h.titulo, texto: h.textoPropuesto } : null)
   const [modo, setModo] = useState(h.aprobada ? 'aprobada' : h.textoPropuesto ? 'ia' : 'inicial')
   const [editando, setEditando] = useState(false)
@@ -133,7 +136,7 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
                     placeholder={p.ejemplo}
                     maxLength={1000}
                     value={respuestas[p.campo]}
-                    autoFocus={enfocar}
+                    id={`respuesta-${p.campo}`}
                     onChange={(e) => setRespuestas({ ...respuestas, [p.campo]: e.target.value })}
                     onBlur={() => {
                       setEnfocar(false)

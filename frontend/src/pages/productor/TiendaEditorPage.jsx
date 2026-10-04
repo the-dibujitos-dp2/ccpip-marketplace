@@ -109,12 +109,25 @@ export default function TiendaEditorPage({ path }) {
       }
     }
     setSubiendo(null)
-    aplicar(await obtenerTienda())
+    await recargar()
   }
 
   async function quitar(imagen) {
-    await eliminarImagen(imagen.id)
-    aplicar(await obtenerTienda())
+    try {
+      await eliminarImagen(imagen.id)
+    } catch (err) {
+      setAlerta({ tono: 'error', titulo: err.message ?? 'No pudimos quitar la foto' })
+    }
+    await recargar()
+  }
+
+  /** Vuelve a leer la tienda tras subir o quitar fotos; si falla, lo dice sin romper la pantalla. */
+  async function recargar() {
+    try {
+      aplicar(await obtenerTienda())
+    } catch {
+      setAlerta({ tono: 'error', titulo: 'No pudimos actualizar tus fotos', descripcion: 'Recarga la página para verlas.' })
+    }
   }
 
   function alternarDestacado(id) {
@@ -164,7 +177,7 @@ export default function TiendaEditorPage({ path }) {
             <label className="tienda-editor__cambiar-portada">
               <Icono src={iconoCamara} tamano={16} />
               {tienda.portada ? 'Cambiar portada' : 'Subir portada'}
-              <input className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { subir(Array.from(e.target.files ?? []).slice(0, 1), 'PORTADA'); e.target.value = '' }} />
+              <input className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { void subir(Array.from(e.target.files ?? []).slice(0, 1), 'PORTADA'); e.target.value = '' }} />
             </label>
           </div>
 
@@ -234,7 +247,7 @@ export default function TiendaEditorPage({ path }) {
               <li key={g.id}>
                 <img src={g.urlMiniatura} alt={`Foto de ${CATEGORIAS.find((c) => c.valor === g.categoria)?.etiqueta ?? 'la galería'}`} />
                 <Badge tono="neutro" conPunto={false}>{CATEGORIAS.find((c) => c.valor === g.categoria)?.etiqueta}</Badge>
-                <button type="button" className="editor__quitar" aria-label="Quitar foto" onClick={() => quitar(g)}>
+                <button type="button" className="editor__quitar" aria-label="Quitar foto" onClick={() => void quitar(g)}>
                   <Icono src={iconoCerrar} tamano={14} />
                 </button>
               </li>
@@ -244,7 +257,7 @@ export default function TiendaEditorPage({ path }) {
                 <label>
                   <Icono src={iconoCamara} tamano={20} />
                   {subiendo ? 'Subiendo…' : 'Agregar foto'}
-                  <input className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => { subir(Array.from(e.target.files ?? []), 'GALERIA'); e.target.value = '' }} />
+                  <input className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => { void subir(Array.from(e.target.files ?? []), 'GALERIA'); e.target.value = '' }} />
                 </label>
               </li>
             )}

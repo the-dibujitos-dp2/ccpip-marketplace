@@ -180,7 +180,7 @@ export default function ProductosPage({ path, search }) {
                           </>
                         )}
                         {f.estado !== 'PUBLICADO' && (
-                          <button type="button" role="menuitem" onClick={() => { setMenu(null); cambiarEstado(f, 'publicar') }}>
+                          <button type="button" role="menuitem" onClick={() => { setMenu(null); void cambiarEstado(f, 'publicar') }}>
                             {f.estado === 'RETIRADO' ? 'Volver a publicar' : 'Publicar'}
                           </button>
                         )}

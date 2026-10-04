@@ -374,6 +374,19 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
     expect(screen.getByLabelText('Nombre del producto')).toHaveValue('Miel de abeja nativa')
   })
 
+  it('si no se puede quitar una foto lo avisa y la lista sigue', async () => {
+    const conFoto = { ...copia(DATOS.edicion), imagenes: [{ id: 'a', urlMiniatura: '/api/imagenes/a?tam=min', principal: true }] }
+    productor({
+      'GET /api/productor/productos/9': () => [200, copia(conFoto)],
+      'DELETE /api/productor/imagenes/a': [500, { error: 'No pudimos quitar la foto' }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.click(await screen.findByRole('button', { name: 'Quitar foto' }))
+    expect(await screen.findByText('No pudimos quitar la foto')).toBeInTheDocument()
+    expect(screen.getByAltText('Foto del producto')).toBeInTheDocument()
+  })
+
   it('una foto que pesa mas de 10 MB no se envia', async () => {
     const fetchMock = productor()
     const user = userEvent.setup()
@@ -409,9 +422,13 @@ describe('PW-05 Historia asistida (CCPIP-49)', () => {
     await user.click(await screen.findByRole('button', { name: 'Generar borrador con IA' }))
     expect(screen.getByText('Responde al menos una pregunta')).toBeInTheDocument()
 
-    // Una pregunta abierta a la vez: al salir de una se abre la siguiente sin responder
-    await user.click(screen.getByRole('button', { name: 'Responder: ¿Quiénes lo elaboran?' }))
+    // La primera pregunta sigue abierta: nada le quito el foco
     await user.type(screen.getByRole('textbox', { name: '¿Quiénes lo elaboran?' }), '34 mujeres shipibo')
+    // Al salir de ella se abre la siguiente sin responder, sin robar el foco
+    await user.tab()
+    expect(screen.getByRole('textbox', { name: '¿Cómo lo hacen?' })).not.toHaveFocus()
+    await user.click(screen.getByRole('button', { name: 'Responder: ¿Quiénes lo elaboran?' }))
+    expect(screen.getByRole('textbox', { name: '¿Quiénes lo elaboran?' })).toHaveFocus()
     await user.click(screen.getByRole('button', { name: 'Generar borrador con IA' }))
     expect(await screen.findByRole('heading', { name: 'Del agua a tu mesa' })).toBeInTheDocument()
     expect(cuerpo(fetchMock, 'POST /api/productor/productos/9/historia/propuesta')).toMatchObject({ respuestas: { quienes: '34 mujeres shipibo' }, variante: 'NORMAL' })
@@ -631,6 +648,18 @@ describe('PW-08 Editar mi tienda (CCPIP-30, 153, 154)', () => {
     abrirEn('/productor/tienda')
     await user.upload(await screen.findByLabelText('Agregar foto'), foto('pesada.jpg'))
     expect(await screen.findByText('No se subió “pesada.jpg”')).toBeInTheDocument()
+  })
+
+  it('si tras subir una foto no se puede recargar la tienda, lo dice', async () => {
+    let lecturas = 0
+    productor({
+      'GET /api/productor/tienda': () => (++lecturas > 2 ? new TypeError('Failed to fetch') : [200, copia(DATOS.tiendaProductor)]),
+      'POST /api/productor/imagenes': [201, {}],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/tienda')
+    await user.upload(await screen.findByLabelText('Agregar foto'), foto('chacra.jpg'))
+    expect(await screen.findByText('No pudimos actualizar tus fotos')).toBeInTheDocument()
   })
 
   it('si no carga la tienda lo dice', async () => {

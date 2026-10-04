@@ -175,15 +175,18 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
     onImagenes(id)
   }
 
-  async function quitar(imagen) {
-    await eliminarImagen(imagen.id)
+  /** Quitar una foto o hacerla principal: si el servidor falla, se avisa y la lista se recarga. */
+  async function accionFoto(accion, mensaje) {
+    try {
+      await accion()
+    } catch (err) {
+      setAlerta({ tono: 'error', titulo: err.message ?? mensaje })
+    }
     onImagenes(producto.id)
   }
 
-  async function principal(imagen) {
-    await marcarPrincipal(imagen.id)
-    onImagenes(producto.id)
-  }
+  const quitar = (imagen) => accionFoto(() => eliminarImagen(imagen.id), 'No pudimos quitar la foto')
+  const principal = (imagen) => accionFoto(() => marcarPrincipal(imagen.id), 'No pudimos cambiar la foto principal')
 
   // ---------- Descripcion asistida (CCPIP-48, RNF-29) ----------
 
@@ -227,11 +230,11 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
                 {img.principal ? (
                   <span className="editor__principal">Principal</span>
                 ) : (
-                  <button type="button" className="editor__accion-foto editor__accion-foto--principal" onClick={() => principal(img)}>
+                  <button type="button" className="editor__accion-foto editor__accion-foto--principal" onClick={() => void principal(img)}>
                     Hacer principal
                   </button>
                 )}
-                <button type="button" className="editor__quitar" aria-label="Quitar foto" onClick={() => quitar(img)}>
+                <button type="button" className="editor__quitar" aria-label="Quitar foto" onClick={() => void quitar(img)}>
                   <Icono src={iconoCerrar} tamano={14} />
                 </button>
               </li>
@@ -240,7 +243,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
               <li key={s.clave} className={`editor__miniatura editor__miniatura--${s.estado}`}>
                 <span className="caption">{s.estado === 'subiendo' ? 'Subiendo…' : s.mensaje}</span>
                 {s.estado === 'error' && (
-                  <button type="button" className="editor__accion-foto" onClick={() => reintentar(s)}>
+                  <button type="button" className="editor__accion-foto" onClick={() => void reintentar(s)}>
                     Reintentar
                   </button>
                 )}
@@ -251,7 +254,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
                 <label>
                   <Icono src={iconoCamara} tamano={20} />
                   Agregar
-                  <input className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => { subir(Array.from(e.target.files ?? [])); e.target.value = '' }} />
+                  <input className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => { void subir(Array.from(e.target.files ?? [])); e.target.value = '' }} />
                 </label>
               </li>
             )}

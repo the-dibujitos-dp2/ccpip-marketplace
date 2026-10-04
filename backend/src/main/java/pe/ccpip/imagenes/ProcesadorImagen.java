@@ -8,8 +8,10 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.imageio.IIOImage;
@@ -44,6 +46,23 @@ public class ProcesadorImagen {
     private static final Set<String> FORMATOS = Set.of("jpeg", "png", "webp");
 
     public record Procesada(byte[] imagen, byte[] miniatura, int ancho, int alto) {
+
+        // Un record compara los arreglos por referencia: se compara su contenido
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof Procesada p && ancho == p.ancho && alto == p.alto
+                    && Arrays.equals(imagen, p.imagen) && Arrays.equals(miniatura, p.miniatura);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(Arrays.hashCode(imagen), Arrays.hashCode(miniatura), ancho, alto);
+        }
+
+        @Override
+        public String toString() {
+            return "Procesada[" + ancho + "x" + alto + ", " + imagen.length + " bytes, miniatura " + miniatura.length + " bytes]";
+        }
     }
 
     public Procesada procesar(byte[] archivo) {

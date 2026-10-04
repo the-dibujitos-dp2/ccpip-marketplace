@@ -120,6 +120,8 @@ export default function EditorProductoPage({ path, id, search }) {
         )}
       </div>
 
+      {alerta && paso !== 2 && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
+
       {paso === 0 && (
         <PasoDatos
           producto={producto}
@@ -127,7 +129,7 @@ export default function EditorProductoPage({ path, id, search }) {
           asegurarProducto={asegurarProducto}
           onGuardar={guardarDatos}
           onSiguiente={() => irA(1, producto?.id ?? id)}
-          onImagenes={(cual) => cargar(cual)}
+          onImagenes={(cual) => cargar(cual).catch(() => setAlerta({ tono: 'error', titulo: 'No pudimos actualizar las fotos', descripcion: 'Recarga la página para verlas.' }))}
         />
       )}
 
