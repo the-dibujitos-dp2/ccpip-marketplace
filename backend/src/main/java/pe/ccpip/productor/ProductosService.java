@@ -62,7 +62,7 @@ public class ProductosService {
     public ListaProductos listar(long productorId, Estado estado, String q) {
         String termino = q == null || q.isBlank() ? null : "%" + q.trim().replace("%", "\\%").replace("_", "\\_") + "%";
         List<ProductoFila> filas = jdbc.query("""
-                SELECT p.id, p.nombre, p.modalidad, p.precio, p.precio_mayorista, p.estado, l.nombre AS linea,
+                SELECT p.id, p.nombre, p.modalidad, p.precio, p.precio_mayorista, p.estado, l.nombre AS linea, l.codigo AS linea_codigo,
                        (SELECT i.id FROM imagen i WHERE i.producto_id = p.id AND i.principal) AS imagen,
                        %s AS en_venta,
                        EXISTS (SELECT 1 FROM lote x JOIN ubicacion u ON u.id = x.ubicacion_id
@@ -280,6 +280,7 @@ public class ProductosService {
         Object imagen = rs.getObject("imagen");
         return new ProductoFila(rs.getLong("id"), rs.getString("nombre"),
                 imagen == null ? null : ImagenService.urlMiniatura((java.util.UUID) imagen), rs.getString("linea"),
+                rs.getString("linea_codigo"),
                 Modalidad.valueOf(rs.getString("modalidad")), rs.getBigDecimal("precio"),
                 rs.getBigDecimal("precio_mayorista"), enVenta, stock, estado, alerta);
     }

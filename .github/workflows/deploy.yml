@@ -94,14 +94,17 @@ jobs:
       - name: Subir configuracion
         env:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          IMAGES_BUCKET: ${{ vars.IMAGES_BUCKET }}
         run: |
           test -n "$DB_PASSWORD" || { echo "::error::Falta el secreto DB_PASSWORD"; exit 1; }
+          test -n "$IMAGES_BUCKET" || { echo "::error::Falta la variable IMAGES_BUCKET (salida images_bucket de Terraform)"; exit 1; }
           umask 077
           cat > .env <<ENV
           BACKEND_IMAGE=$IMAGE_PREFIX-backend:$GITHUB_SHA
           FRONTEND_IMAGE=$IMAGE_PREFIX-frontend:$GITHUB_SHA
           SITE_ADDRESS=$DEPLOY_HOST
           DB_PASSWORD=$DB_PASSWORD
+          IMAGES_BUCKET=$IMAGES_BUCKET
           ENV
           ssh "$SSH_TARGET" 'cd /opt/ccpip && if [ -f .env ]; then cp -p .env .env.previous; fi'
           scp deploy/docker-compose.yml "$SSH_TARGET:/opt/ccpip/docker-compose.yml"

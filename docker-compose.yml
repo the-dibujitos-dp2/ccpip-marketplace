@@ -1,6 +1,7 @@
-# CCPIP-23: base de datos de DESARROLLO local (separada de la del ambiente desplegado).
+# Servicios de DESARROLLO local (separados de los del ambiente desplegado).
 #   docker compose up -d
-# Conexion: localhost:5432, base ccpip_dev, usuario/clave ccpip/ccpip (solo desarrollo)
+# - Base de datos: jdbc:postgresql://localhost:5432/ccpip_dev, usuario/clave ccpip/ccpip
+# - Imagenes: S3Mock en http://localhost:9090 (el backend crea el bucket al arrancar)
 services:
   db:
     image: postgres:17-alpine
@@ -12,6 +13,11 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
+
+  s3:
+    image: adobe/s3mock:5.2.3
+    ports:
+      - "127.0.0.1:9090:9090"
 
 volumes:
   pgdata-dev:

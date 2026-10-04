@@ -1,4 +1,17 @@
 import { vi } from 'vitest'
+// Respuestas reales del backend (stack de e2e), para que las simulaciones no se desvien del contrato
+import catalogos from './fixtures/catalogos.json'
+import inicio from './fixtures/inicio.json'
+import buscar from './fixtures/buscar.json'
+import detalle from './fixtures/productos-1.json'
+import tiendas from './fixtures/tiendas.json'
+import tienda from './fixtures/tiendas-2.json'
+import panelProductor from './fixtures/productor-panel.json'
+import tiendaProductor from './fixtures/productor-tienda.json'
+import productosProductor from './fixtures/productor-productos-estado-PUBLICADO.json'
+import edicion from './fixtures/productor-productos-9.json'
+import lotes from './fixtures/productor-productos-9-lotes.json'
+import ubicaciones from './fixtures/productor-ubicaciones.json'
 
 export const USUARIO = {
   id: 1,
@@ -8,6 +21,14 @@ export const USUARIO = {
   roleName: 'Consumidor final',
 }
 export const SESION = { user: USUARIO, expiresInSeconds: 120 }
+export const SESION_ACOPIO = {
+  user: { id: 4, email: 'admin_acopio@ccpip.test', fullName: 'Admin Acopio', role: 'ADMIN_PUNTO', roleName: 'Administrador de punto de acopio' },
+  expiresInSeconds: 120,
+}
+export const SESION_PRODUCTOR = {
+  user: { id: 2, email: 'productor@ccpip.test', fullName: 'Comunidad Shipibo Konibo', role: 'PRODUCTOR', roleName: 'Productor' },
+  expiresInSeconds: 120,
+}
 export const PANEL = { titulo: 'Tu mercado', descripcion: 'Explora productos con historia.' }
 export const SIN_SESION = [401, { code: 'SIN_SESION' }]
 export const EXPIRADA = [401, { code: 'SESION_EXPIRADA' }]
@@ -19,7 +40,8 @@ export const EXPIRADA = [401, { code: 'SESION_EXPIRADA' }]
 export function servidor(rutas) {
   const fetchMock = vi.fn(async (url, opciones = {}) => {
     const clave = `${opciones.method || 'GET'} ${url}`
-    let respuesta = rutas[clave]
+    // Si no hay una ruta exacta, vale la misma ruta sin query string
+    let respuesta = rutas[clave] ?? rutas[clave.split('?')[0]]
     if (typeof respuesta === 'function') respuesta = respuesta(opciones)
     if (respuesta instanceof Error) throw respuesta
     if (!respuesta) throw new Error(`Ruta no simulada: ${clave}`)
@@ -50,4 +72,30 @@ export function producto(id, nombre, extra = {}) {
 
 export function pagina(items, { pagina = 0, tamano = 12, total = items.length } = {}) {
   return [200, { items, pagina, tamano, total, totalPaginas: Math.ceil(total / tamano) }]
+}
+
+export const DATOS = {
+  catalogos,
+  inicio,
+  buscar,
+  detalle,
+  tiendas,
+  tienda,
+  panelProductor,
+  tiendaProductor,
+  productosProductor,
+  edicion,
+  lotes,
+  ubicaciones,
+}
+
+/** Copia profunda para que cada prueba pueda modificar los datos sin afectar a otras. */
+export const copia = (x) => structuredClone(x)
+
+/** Rutas publicas que usan la cabecera y las paginas del consumidor. */
+export const PUBLICAS = {
+  'GET /api/catalogos': () => [200, copia(catalogos)],
+  'GET /api/inicio': () => [200, copia(inicio)],
+  'GET /api/productos': () => [200, copia(buscar)],
+  'GET /api/tiendas': () => [200, copia(tiendas)],
 }

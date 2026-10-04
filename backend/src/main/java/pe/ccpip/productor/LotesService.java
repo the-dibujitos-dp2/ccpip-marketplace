@@ -74,7 +74,8 @@ public class LotesService {
                 .map(Lote::cantidadActual).reduce(BigDecimal.ZERO, BigDecimal::add);
         String miniatura = producto.imagenes().stream().filter(i -> i.principal()).map(i -> i.urlMiniatura())
                 .findFirst().orElse(null);
-        return new Lotes(productoId, producto.nombre(), miniatura, requiereVencimiento(productoId), total,
+        String linea = producto.lineas().isEmpty() ? null : producto.lineas().get(0);
+        return new Lotes(productoId, producto.nombre(), miniatura, linea, requiereVencimiento(productoId), total,
                 producto.enVenta(), items);
     }
 

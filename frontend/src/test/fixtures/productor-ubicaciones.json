@@ -1,0 +1,44 @@
+[
+    {
+        "id": 1,
+        "nombre": "Centro Nacional Lima",
+        "tipo": "PUNTO_ACOPIO",
+        "departamento": "Lima"
+    },
+    {
+        "id": 3,
+        "nombre": "Centro Regional Cusco",
+        "tipo": "PUNTO_ACOPIO",
+        "departamento": "Cusco"
+    },
+    {
+        "id": 6,
+        "nombre": "Centro Regional Junin",
+        "tipo": "PUNTO_ACOPIO",
+        "departamento": "Junin"
+    },
+    {
+        "id": 2,
+        "nombre": "Centro Regional Loreto",
+        "tipo": "PUNTO_ACOPIO",
+        "departamento": "Loreto"
+    },
+    {
+        "id": 5,
+        "nombre": "Centro Regional San Martin",
+        "tipo": "PUNTO_ACOPIO",
+        "departamento": "San Martin"
+    },
+    {
+        "id": 4,
+        "nombre": "Centro Regional Ucayali",
+        "tipo": "PUNTO_ACOPIO",
+        "departamento": "Ucayali"
+    },
+    {
+        "id": 8,
+        "nombre": "Almac\u00e9n Comunidad Shipibo Konibo de Yarinacocha",
+        "tipo": "ALMACEN_PRODUCTOR",
+        "departamento": "Ucayali"
+    }
+]

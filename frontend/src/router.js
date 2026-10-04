@@ -1,7 +1,18 @@
-// Navegacion minima con la History API.
+// Navegacion con la History API.
 import { useEffect, useState } from 'react'
 
-export const RUTAS = { catalogo: '/', ingresar: '/ingresar', inicio: '/inicio' }
+export const RUTAS = {
+  catalogo: '/',
+  buscar: '/buscar',
+  comunidades: '/comunidades',
+  ingresar: '/ingresar',
+  inicio: '/inicio',
+  productor: '/productor',
+  productorTienda: '/productor/tienda',
+  productorProductos: '/productor/productos',
+  productorNuevo: '/productor/productos/nuevo',
+  productorLotes: '/productor/lotes',
+}
 
 export function navigate(path, { replace = false } = {}) {
   if (replace) window.history.replaceState(null, '', path)

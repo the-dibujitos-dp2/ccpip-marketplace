@@ -1,0 +1,120 @@
+{
+    "id": 2,
+    "nombre": "C.N. Yarina",
+    "descripcion": "Cacao fino de aroma e infusiones del Alto Mara\u00f1\u00f3n.",
+    "historia": "Nuestro cacao crece bajo la sombra del bosque, sin tumbar un solo arbol. Lo fermentamos en cajones de madera durante seis dias, como nos enseno la abuela.",
+    "cita": "Sembramos cacao donde antes hubo tala.",
+    "pueblo": "Awaj\u00fan",
+    "comunidad": "Comunidad Awajun del Alto Maranon",
+    "region": "Amazonas",
+    "localidad": "Alto Mara\u00f1\u00f3n",
+    "socios": 20,
+    "origenVerificado": true,
+    "desde": 2026,
+    "galeria": [],
+    "lineas": [
+        {
+            "codigo": "CACAO",
+            "nombre": "Cacao y chocolates",
+            "total": 2
+        },
+        {
+            "codigo": "INFUSIONES",
+            "nombre": "Infusiones",
+            "total": 1
+        }
+    ],
+    "productos": [
+        {
+            "id": 1,
+            "nombre": "Cacao en grano fermentado 1 kg",
+            "modalidad": "MINORISTA",
+            "precio": 42.0,
+            "precioMayorista": null,
+            "contenido": null,
+            "unidad": {
+                "codigo": "KG",
+                "nombre": "Kilogramo"
+            },
+            "linea": {
+                "codigo": "CACAO",
+                "nombre": "Cacao y chocolates"
+            },
+            "lineas": [
+                "CACAO"
+            ],
+            "imagen": null,
+            "disponible": true,
+            "tienda": {
+                "id": 2,
+                "nombre": "C.N. Yarina",
+                "pueblo": "Awaj\u00fan",
+                "comunidad": "Comunidad Awajun del Alto Maranon",
+                "region": "Amazonas",
+                "localidad": "Alto Mara\u00f1\u00f3n",
+                "origenVerificado": true
+            }
+        },
+        {
+            "id": 3,
+            "nombre": "Infusion de guayusa 80 g",
+            "modalidad": "MINORISTA",
+            "precio": 28.0,
+            "precioMayorista": null,
+            "contenido": null,
+            "unidad": {
+                "codigo": "G",
+                "nombre": "Gramo"
+            },
+            "linea": {
+                "codigo": "INFUSIONES",
+                "nombre": "Infusiones"
+            },
+            "lineas": [
+                "INFUSIONES"
+            ],
+            "imagen": null,
+            "disponible": true,
+            "tienda": {
+                "id": 2,
+                "nombre": "C.N. Yarina",
+                "pueblo": "Awaj\u00fan",
+                "comunidad": "Comunidad Awajun del Alto Maranon",
+                "region": "Amazonas",
+                "localidad": "Alto Mara\u00f1\u00f3n",
+                "origenVerificado": true
+            }
+        },
+        {
+            "id": 4,
+            "nombre": "Pasta de cacao 500 g",
+            "modalidad": "MINORISTA",
+            "precio": 55.0,
+            "precioMayorista": null,
+            "contenido": null,
+            "unidad": {
+                "codigo": "G",
+                "nombre": "Gramo"
+            },
+            "linea": {
+                "codigo": "CACAO",
+                "nombre": "Cacao y chocolates"
+            },
+            "lineas": [
+                "CACAO"
+            ],
+            "imagen": null,
+            "disponible": true,
+            "tienda": {
+                "id": 2,
+                "nombre": "C.N. Yarina",
+                "pueblo": "Awaj\u00fan",
+                "comunidad": "Comunidad Awajun del Alto Maranon",
+                "region": "Amazonas",
+                "localidad": "Alto Mara\u00f1\u00f3n",
+                "origenVerificado": true
+            }
+        }
+    ],
+    "destacados": []
+}

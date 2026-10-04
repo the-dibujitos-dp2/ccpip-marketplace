@@ -1,0 +1,12 @@
+.pie { margin-top: auto; padding: 56px 0 32px; background: var(--color-bg-inverse); color: var(--color-text-on-brand); }
+.pie__columnas { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr)); gap: 32px; }
+.pie__marca { display: flex; flex-direction: column; gap: 20px; max-width: 380px; font-size: 14px; line-height: 20px; }
+.pie nav { display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+.pie nav a { text-decoration: none; }
+.pie nav a:hover { text-decoration: underline; }
+.pie__titulo { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
+.pie__legal { margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.15); font-size: 12px; }
+
+@media (max-width: 640px) {
+  .pie__columnas { grid-template-columns: 1fr; }
+}

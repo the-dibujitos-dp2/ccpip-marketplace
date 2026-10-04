@@ -52,6 +52,8 @@ public class CatalogoRepository {
             p.id, p.nombre, p.modalidad, p.precio, p.precio_mayorista, p.contenido,
             um.codigo AS um_codigo, um.nombre AS um_nombre, l.codigo AS l_codigo, l.nombre AS l_nombre,
             (SELECT i.id FROM imagen i WHERE i.producto_id = p.id AND i.principal) AS imagen,
+            (SELECT array_agg(x.codigo ORDER BY x.orden) FROM producto_linea pl JOIN linea_producto x ON x.id = pl.linea_id
+             WHERE pl.producto_id = p.id) AS lineas,
             %s > 0 AS disponible,
             pr.id AS pr_id, coalesce(pr.nombre_tienda, pr.comunidad) AS pr_nombre, pr.pueblo, pr.comunidad,
             pr.region, pr.localidad, pr.origen_verificado
@@ -278,6 +280,10 @@ public class CatalogoRepository {
         return texto.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
+    private static List<String> lineas(java.sql.Array arreglo) throws SQLException {
+        return arreglo == null ? List.of() : List.of((String[]) arreglo.getArray());
+    }
+
     static ProductoResumen resumen(ResultSet rs, int row) throws SQLException {
         Object imagen = rs.getObject("imagen");
         return new ProductoResumen(
@@ -289,6 +295,7 @@ public class CatalogoRepository {
                 rs.getString("contenido"),
                 rs.getString("um_codigo") == null ? null : new Codigo(rs.getString("um_codigo"), rs.getString("um_nombre")),
                 rs.getString("l_codigo") == null ? null : new Codigo(rs.getString("l_codigo"), rs.getString("l_nombre")),
+                lineas(rs.getArray("lineas")),
                 imagen == null ? null : ImagenService.urlMiniatura((UUID) imagen),
                 rs.getBoolean("disponible"),
                 new TiendaResumen(rs.getLong("pr_id"), rs.getString("pr_nombre"), rs.getString("pueblo"),

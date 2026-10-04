@@ -22,9 +22,10 @@ public final class CatalogoModelos {
                                 boolean origenVerificado) {
     }
 
+    /** {@code lineas}: todas las lineas del producto (CCPIP-45); {@code linea} es la principal. */
     public record ProductoResumen(long id, String nombre, String modalidad, BigDecimal precio, BigDecimal precioMayorista,
-                                  String contenido, Codigo unidad, Codigo linea, String imagen, boolean disponible,
-                                  TiendaResumen tienda) {
+                                  String contenido, Codigo unidad, Codigo linea, List<String> lineas, String imagen,
+                                  boolean disponible, TiendaResumen tienda) {
     }
 
     public record Faceta(String codigo, String nombre, long total) {
@@ -83,6 +84,7 @@ public final class CatalogoModelos {
     public record LineaCatalogo(String codigo, String nombre, boolean requiereVencimiento, String unidadSugerida) {
     }
 
-    public record Catalogos(List<LineaCatalogo> lineas, List<Codigo> unidades) {
+    /** {@code comisionPorcentaje}: comision de la Camara para la vista previa de PW-04 (valor de ejemplo, configurable). */
+    public record Catalogos(List<LineaCatalogo> lineas, List<Codigo> unidades, BigDecimal comisionPorcentaje) {
     }
 }

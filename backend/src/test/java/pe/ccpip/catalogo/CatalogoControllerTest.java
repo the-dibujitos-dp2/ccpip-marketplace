@@ -232,7 +232,8 @@ class CatalogoControllerTest extends IntegrationTest {
         mockMvc.perform(get("/api/catalogos"))
                 .andExpect(jsonPath("$.unidades[*].codigo").value(hasItem("BOTELLA")))
                 .andExpect(jsonPath("$.lineas[?(@.codigo == 'ARTESANIA')].requiereVencimiento").value(hasItem(false)))
-                .andExpect(jsonPath("$.lineas[?(@.codigo == 'ACEITES')].unidadSugerida").value(hasItem("BOTELLA")));
+                .andExpect(jsonPath("$.lineas[?(@.codigo == 'ACEITES')].unidadSugerida").value(hasItem("BOTELLA")))
+                .andExpect(jsonPath("$.comisionPorcentaje").value(10));
     }
 
     private long idDe(String nombre) {

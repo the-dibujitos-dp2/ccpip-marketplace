@@ -14,3 +14,8 @@ output "app_url" {
 output "ssh_command" {
   value = "ssh -i labsuser.pem ec2-user@${aws_eip.app.public_ip}"
 }
+
+output "images_bucket" {
+  description = "Valor para la variable IMAGES_BUCKET del repositorio"
+  value       = aws_s3_bucket.imagenes.bucket
+}

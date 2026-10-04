@@ -1,0 +1,35 @@
+{
+    "id": 9,
+    "estado": "PUBLICADO",
+    "nombre": "Camu camu en polvo 150 g",
+    "descripcion": "Deshidratado a baja temperatura.",
+    "descripcionAsistida": false,
+    "descripcionPropuesta": null,
+    "lineas": [
+        "SUPERFRUTOS"
+    ],
+    "unidad": "G",
+    "contenido": null,
+    "modalidad": "MINORISTA",
+    "precio": 39.0,
+    "precioMayorista": null,
+    "cantidadMinimaMayorista": null,
+    "esMateriaPrima": false,
+    "imagenes": [],
+    "historia": {
+        "quienes": null,
+        "como": null,
+        "significado": null,
+        "cuidado": null,
+        "titulo": null,
+        "textoPropuesto": null,
+        "textoFinal": "Crece silvestre en las orillas inundables del rio.",
+        "asistida": false,
+        "aprobada": true
+    },
+    "enVenta": 100.0,
+    "publicable": {
+        "listo": true,
+        "faltan": []
+    }
+}

@@ -1,0 +1,89 @@
+{
+    "items": [
+        {
+            "id": 9,
+            "nombre": "Camu camu en polvo 150 g",
+            "miniatura": null,
+            "lineaPrincipal": "Superfrutos",
+            "lineaCodigo": "SUPERFRUTOS",
+            "modalidad": "MINORISTA",
+            "precio": 39.0,
+            "precioMayorista": null,
+            "enVenta": 100.0,
+            "stock": [
+                {
+                    "ubicacion": "Centro Nacional Lima",
+                    "tipo": "PUNTO_ACOPIO",
+                    "cantidad": 100.0
+                }
+            ],
+            "estado": "PUBLICADO",
+            "alerta": null
+        },
+        {
+            "id": 8,
+            "nombre": "Aceite de aguaje 250 ml",
+            "miniatura": null,
+            "lineaPrincipal": "Aceites",
+            "lineaCodigo": "ACEITES",
+            "modalidad": "MINORISTA",
+            "precio": 52.0,
+            "precioMayorista": null,
+            "enVenta": 100.0,
+            "stock": [
+                {
+                    "ubicacion": "Centro Nacional Lima",
+                    "tipo": "PUNTO_ACOPIO",
+                    "cantidad": 100.0
+                }
+            ],
+            "estado": "PUBLICADO",
+            "alerta": null
+        },
+        {
+            "id": 7,
+            "nombre": "Aceite de ungurahui 250 ml",
+            "miniatura": null,
+            "lineaPrincipal": "Aceites",
+            "lineaCodigo": "ACEITES",
+            "modalidad": "MINORISTA",
+            "precio": 48.0,
+            "precioMayorista": null,
+            "enVenta": 100.0,
+            "stock": [
+                {
+                    "ubicacion": "Centro Nacional Lima",
+                    "tipo": "PUNTO_ACOPIO",
+                    "cantidad": 100.0
+                }
+            ],
+            "estado": "PUBLICADO",
+            "alerta": null
+        },
+        {
+            "id": 5,
+            "nombre": "Textil bordado shipibo",
+            "miniatura": null,
+            "lineaPrincipal": "Textiles",
+            "lineaCodigo": "TEXTIL",
+            "modalidad": "MINORISTA",
+            "precio": 180.0,
+            "precioMayorista": null,
+            "enVenta": 100.0,
+            "stock": [
+                {
+                    "ubicacion": "Centro Nacional Lima",
+                    "tipo": "PUNTO_ACOPIO",
+                    "cantidad": 100.0
+                }
+            ],
+            "estado": "PUBLICADO",
+            "alerta": null
+        }
+    ],
+    "conteo": {
+        "BORRADOR": 0,
+        "PUBLICADO": 4,
+        "RETIRADO": 0
+    }
+}

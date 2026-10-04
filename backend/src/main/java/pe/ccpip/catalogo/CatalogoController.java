@@ -36,11 +36,14 @@ public class CatalogoController {
     private final CatalogoRepository catalogo;
     private final TiendasRepository tiendas;
     private final JdbcTemplate jdbc;
+    private final BigDecimal comision;
 
-    public CatalogoController(CatalogoRepository catalogo, TiendasRepository tiendas, JdbcTemplate jdbc) {
+    public CatalogoController(CatalogoRepository catalogo, TiendasRepository tiendas, JdbcTemplate jdbc,
+                              @org.springframework.beans.factory.annotation.Value("${ccpip.comision.porcentaje:10}") BigDecimal comision) {
         this.catalogo = catalogo;
         this.tiendas = tiendas;
         this.jdbc = jdbc;
+        this.comision = comision;
     }
 
     /**
@@ -118,7 +121,7 @@ public class CatalogoController {
                         rs.getBoolean("requiere_vencimiento"), rs.getString("unidad")));
         List<Codigo> unidades = jdbc.query("SELECT codigo, nombre FROM unidad_medida ORDER BY nombre",
                 (rs, row) -> new Codigo(rs.getString("codigo"), rs.getString("nombre")));
-        return new Catalogos(lineas, unidades);
+        return new Catalogos(lineas, unidades, comision);
     }
 
     private static List<String> limpiar(List<String> valores) {

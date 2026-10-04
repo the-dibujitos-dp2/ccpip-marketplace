@@ -30,6 +30,11 @@ export function disarmIdleTimer() {
   onIdle = null
 }
 
+/** Cualquier actividad con el servidor reinicia el plazo de inactividad. */
+export function restartIdle() {
+  restartIdleTimer()
+}
+
 function restartIdleTimer() {
   clearTimeout(idleTimer)
   if (idleMs) idleTimer = setTimeout(() => onIdle?.(), idleMs)

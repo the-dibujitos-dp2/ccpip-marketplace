@@ -73,3 +73,50 @@ p {
   outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
 }
+
+.heading-h3 { font-weight: 600; font-size: 18px; line-height: 26px; }
+.heading-h4 { font-weight: 600; font-size: 16px; line-height: 24px; }
+.body-m { font-size: 16px; line-height: 24px; color: var(--color-text-secondary); }
+.body-s { font-size: 14px; line-height: 20px; color: var(--color-text-secondary); }
+.label-m { font-weight: 600; font-size: 14px; line-height: 20px; }
+
+/* Contenedor de 1216 px de la tienda web (CW, grilla de 12 columnas) */
+.contenedor {
+  width: 100%;
+  max-width: calc(var(--contenedor) + 32px);
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 16px;
+  padding-left: 16px;
+}
+
+a { color: inherit; }
+
+button { font: inherit; }
+
+.layout-tienda { display: flex; min-height: 100vh; flex-direction: column; }
+.layout-tienda > main { flex: 1; }
+
+/* Seccion de pagina publica con titulo y accion a la derecha (CW-01) */
+.seccion { display: flex; flex-direction: column; gap: 20px; }
+.seccion__encabezado { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.seccion__titulo { font-family: var(--font-display); font-weight: 600; font-size: 28px; line-height: 36px; }
+.enlace-marca { font-weight: 600; font-size: 14px; color: var(--color-text-brand); text-decoration: none; }
+.enlace-marca:hover { text-decoration: underline; }
+
+.grilla-productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 32px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 520px) {
+  .grilla-productos { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 12px; }
+  .seccion__titulo { font-size: 24px; line-height: 32px; }
+}
+
+.comunidades { display: flex; flex-direction: column; gap: 24px; padding-top: 28px; padding-bottom: 72px; }
+.comunidades__grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }

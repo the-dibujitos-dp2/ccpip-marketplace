@@ -2,7 +2,7 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import App from './App.jsx'
-import { EXPIRADA, llamadas, PANEL, servidor, SESION, SIN_SESION } from './test/servidor.js'
+import { EXPIRADA, llamadas, PANEL, PUBLICAS, servidor, SESION, SESION_ACOPIO, SIN_SESION } from './test/servidor.js'
 
 function abrirEn(ruta) {
   window.history.replaceState(null, '', ruta)
@@ -10,29 +10,34 @@ function abrirEn(ruta) {
 }
 
 async function ingresar(user, correo = 'consumidor@ccpip.test', clave = 'Demo1234!') {
-  await user.type(await screen.findByLabelText('Correo'), correo)
+  await user.type(await screen.findByLabelText('Correo electrónico'), correo)
   await user.type(screen.getByLabelText('Contraseña'), clave)
-  await user.click(screen.getByRole('button', { name: 'Ingresar' }))
+  await user.click(screen.getByRole('button', { name: 'Iniciar sesión' }))
+}
+
+async function cerrarSesion(user) {
+  await user.click(await screen.findByRole('button', { name: 'Mi cuenta' }))
+  await user.click(screen.getByRole('menuitem', { name: 'Cerrar sesión' }))
 }
 
 describe('Inicio de sesion (CCPIP-27)', () => {
   it('sin sesion, una pantalla protegida lleva al inicio de sesion', async () => {
-    servidor({ 'GET /api/auth/me': SIN_SESION })
+    servidor({ ...PUBLICAS, 'GET /api/auth/me': SIN_SESION })
     abrirEn('/inicio')
     expect(await screen.findByRole('heading', { name: 'Ingresa a tu cuenta' })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/ingresar')
   })
 
   it('valida los campos antes de llamar al servidor', async () => {
-    const fetchMock = servidor({ 'GET /api/auth/me': SIN_SESION })
+    const fetchMock = servidor({ ...PUBLICAS, 'GET /api/auth/me': SIN_SESION })
     const user = userEvent.setup()
     abrirEn('/ingresar')
-    await user.type(await screen.findByLabelText('Correo'), 'no-es-correo')
-    await user.click(screen.getByRole('button', { name: 'Ingresar' }))
+    await user.type(await screen.findByLabelText('Correo electrónico'), 'no-es-correo')
+    await user.click(screen.getByRole('button', { name: 'Iniciar sesión' }))
 
     expect(screen.getByText(/Escribe un correo válido/)).toBeInTheDocument()
     expect(screen.getByText('Escribe tu contraseña')).toBeInTheDocument()
-    expect(screen.getByLabelText('Correo')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText('Correo electrónico')).toHaveAttribute('aria-invalid', 'true')
     expect(llamadas(fetchMock, 'POST /api/auth/login')).toHaveLength(0)
   })
 
@@ -42,7 +47,7 @@ describe('Inicio de sesion (CCPIP-27)', () => {
     [[403, { code: 'CUENTA_INACTIVA' }], 'Cuenta desactivada'],
     [[423, { code: 'CUENTA_BLOQUEADA', lockedUntil: '2026-10-03T23:45:00Z' }], 'Cuenta bloqueada temporalmente'],
   ])('muestra el motivo cuando el servidor rechaza el ingreso (%j)', async (respuesta, titulo) => {
-    servidor({ 'GET /api/auth/me': SIN_SESION, 'POST /api/auth/login': respuesta })
+    servidor({ ...PUBLICAS, 'GET /api/auth/me': SIN_SESION, 'POST /api/auth/login': respuesta })
     const user = userEvent.setup()
     abrirEn('/ingresar')
     await ingresar(user)
@@ -53,37 +58,64 @@ describe('Inicio de sesion (CCPIP-27)', () => {
   })
 
   it('avisa si no hay conexion con el servidor', async () => {
-    servidor({ 'GET /api/auth/me': SIN_SESION, 'POST /api/auth/login': new TypeError('Failed to fetch') })
+    servidor({ ...PUBLICAS, 'GET /api/auth/me': SIN_SESION, 'POST /api/auth/login': new TypeError('Failed to fetch') })
     const user = userEvent.setup()
     abrirEn('/ingresar')
     await ingresar(user)
     expect(await screen.findByText('No pudimos conectar')).toBeInTheDocument()
   })
 
-  it('con credenciales correctas entra al inicio de su rol', async () => {
+  it('el consumidor entra a la tienda y los demas roles a su inicio', async () => {
     let conSesion = false
     servidor({
+      ...PUBLICAS,
       'GET /api/auth/me': () => (conSesion ? [200, SESION] : SIN_SESION),
       'POST /api/auth/login': () => {
         conSesion = true
         return [200, SESION]
       },
-      'GET /api/panel/consumidor': [200, PANEL],
     })
     const user = userEvent.setup()
     abrirEn('/ingresar')
     await ingresar(user)
 
-    expect(await screen.findByRole('heading', { name: 'Hola, Consumidor' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /Productos con historia/ })).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/')
+    expect(screen.getByRole('button', { name: 'Mi cuenta' })).toBeInTheDocument()
+  })
+
+  it('un rol sin tienda entra a su inicio con el aviso de inactividad', async () => {
+    let conSesion = false
+    servidor({
+      ...PUBLICAS,
+      'GET /api/auth/me': () => (conSesion ? [200, SESION_ACOPIO] : SIN_SESION),
+      'POST /api/auth/login': () => {
+        conSesion = true
+        return [200, SESION_ACOPIO]
+      },
+      'GET /api/panel/acopio': [200, PANEL],
+    })
+    const user = userEvent.setup()
+    abrirEn('/ingresar')
+    await ingresar(user, 'admin_acopio@ccpip.test')
+
+    expect(await screen.findByRole('heading', { name: 'Hola, Admin' })).toBeInTheDocument()
     expect(await screen.findByText('Tu mercado')).toBeInTheDocument()
     expect(screen.getByText(/se cierra tras 2 minutos sin actividad/)).toBeInTheDocument()
     expect(window.location.pathname).toBe('/inicio')
   })
 
+  it('vuelve a la pagina que pidio antes de ingresar, solo si es interna', async () => {
+    servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION] })
+    abrirEn('/ingresar?volver=//sitio-malicioso.com')
+    await waitFor(() => expect(window.location.pathname).toBe('/'))
+  })
+
   it('si ya habia sesion entra directo y muestra error si el panel falla', async () => {
     servidor({
-      'GET /api/auth/me': [200, SESION],
-      'GET /api/panel/consumidor': [403, { code: 'SIN_PERMISO', error: 'No tienes permiso para esta accion' }],
+      ...PUBLICAS,
+      'GET /api/auth/me': [200, SESION_ACOPIO],
+      'GET /api/panel/acopio': [403, { code: 'SIN_PERMISO', error: 'No tienes permiso para esta accion' }],
     })
     abrirEn('/ingresar')
     expect(await screen.findByText('No pudimos cargar tu panel')).toBeInTheDocument()
@@ -91,7 +123,7 @@ describe('Inicio de sesion (CCPIP-27)', () => {
   })
 
   it('la alerta se puede cerrar', async () => {
-    servidor({ 'GET /api/auth/me': SIN_SESION, 'POST /api/auth/login': [401, {}] })
+    servidor({ ...PUBLICAS, 'GET /api/auth/me': SIN_SESION, 'POST /api/auth/login': [401, {}] })
     const user = userEvent.setup()
     abrirEn('/ingresar')
     await ingresar(user)
@@ -103,13 +135,14 @@ describe('Inicio de sesion (CCPIP-27)', () => {
 describe('Cierre de sesion manual (CCPIP-27)', () => {
   it('cierra la sesion en el servidor y vuelve al inicio de sesion', async () => {
     const fetchMock = servidor({
-      'GET /api/auth/me': [200, SESION],
-      'GET /api/panel/consumidor': [200, PANEL],
+      ...PUBLICAS,
+      'GET /api/auth/me': [200, SESION_ACOPIO],
+      'GET /api/panel/acopio': [200, PANEL],
       'POST /api/auth/logout': [204],
     })
     const user = userEvent.setup()
     abrirEn('/inicio')
-    await user.click(await screen.findByRole('button', { name: 'Cerrar sesión' }))
+    await cerrarSesion(user)
 
     expect(await screen.findByText('Cerraste sesión')).toBeInTheDocument()
     expect(llamadas(fetchMock, 'POST /api/auth/logout')).toHaveLength(1)
@@ -118,21 +151,23 @@ describe('Cierre de sesion manual (CCPIP-27)', () => {
 
   it('aunque falle la red, la pantalla se cierra', async () => {
     servidor({
-      'GET /api/auth/me': [200, SESION],
-      'GET /api/panel/consumidor': [200, PANEL],
+      ...PUBLICAS,
+      'GET /api/auth/me': [200, SESION_ACOPIO],
+      'GET /api/panel/acopio': [200, PANEL],
       'POST /api/auth/logout': new TypeError('Failed to fetch'),
     })
     const user = userEvent.setup()
     abrirEn('/inicio')
-    await user.click(await screen.findByRole('button', { name: 'Cerrar sesión' }))
+    await cerrarSesion(user)
     expect(await screen.findByText('Cerraste sesión')).toBeInTheDocument()
   })
 
   it('volver atras a una pantalla del rol consulta al servidor y no da acceso', async () => {
     let conSesion = true
     servidor({
-      'GET /api/auth/me': () => (conSesion ? [200, SESION] : SIN_SESION),
-      'GET /api/panel/consumidor': [200, PANEL],
+      ...PUBLICAS,
+      'GET /api/auth/me': () => (conSesion ? [200, SESION_ACOPIO] : SIN_SESION),
+      'GET /api/panel/acopio': [200, PANEL],
       'POST /api/auth/logout': () => {
         conSesion = false
         return [204]
@@ -140,7 +175,7 @@ describe('Cierre de sesion manual (CCPIP-27)', () => {
     })
     const user = userEvent.setup()
     abrirEn('/inicio')
-    await user.click(await screen.findByRole('button', { name: 'Cerrar sesión' }))
+    await cerrarSesion(user)
     await screen.findByText('Cerraste sesión')
 
     // Simula el boton "atras" del navegador hacia /inicio
@@ -149,13 +184,13 @@ describe('Cierre de sesion manual (CCPIP-27)', () => {
       window.dispatchEvent(new PopStateEvent('popstate'))
     })
     await waitFor(() => expect(window.location.pathname).toBe('/ingresar'))
-    expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Mi cuenta' })).not.toBeInTheDocument()
   })
 
   it('al restaurar la pagina desde la cache del navegador vuelve a verificar la sesion', async () => {
-    const fetchMock = servidor({ 'GET /api/auth/me': SIN_SESION })
+    const fetchMock = servidor({ ...PUBLICAS, 'GET /api/auth/me': SIN_SESION })
     abrirEn('/ingresar')
-    await screen.findByLabelText('Correo')
+    await screen.findByLabelText('Correo electrónico')
     const antes = llamadas(fetchMock, 'GET /api/auth/me').length
 
     const evento = new Event('pageshow')
@@ -170,8 +205,9 @@ describe('Expiracion automatica por inactividad (CCPIP-27)', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     let expirada = false
     servidor({
-      'GET /api/auth/me': () => (expirada ? EXPIRADA : [200, SESION]),
-      'GET /api/panel/consumidor': [200, PANEL],
+      ...PUBLICAS,
+      'GET /api/auth/me': () => (expirada ? EXPIRADA : [200, SESION_ACOPIO]),
+      'GET /api/panel/acopio': [200, PANEL],
     })
     abrirEn('/inicio')
     await screen.findByText('Tu mercado')
@@ -185,7 +221,7 @@ describe('Expiracion automatica por inactividad (CCPIP-27)', () => {
   })
 
   it('cualquier peticion rechazada por expiracion tambien cierra la pantalla', async () => {
-    servidor({ 'GET /api/auth/me': [200, SESION], 'GET /api/panel/consumidor': EXPIRADA })
+    servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_ACOPIO], 'GET /api/panel/acopio': EXPIRADA })
     abrirEn('/inicio')
     expect(await screen.findByText('Tu sesión expiró')).toBeInTheDocument()
   })

@@ -51,3 +51,9 @@
 .campo__ayuda--error {
   color: var(--color-status-error-fg);
 }
+
+.campo__control--area { min-height: 112px; resize: vertical; line-height: 24px; }
+
+.campo__selector { position: relative; }
+.campo__selector select { appearance: none; padding-right: 44px; cursor: pointer; }
+.campo__chevron { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); color: var(--color-text-secondary); pointer-events: none; }

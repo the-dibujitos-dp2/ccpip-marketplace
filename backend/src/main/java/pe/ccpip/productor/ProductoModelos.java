@@ -44,7 +44,7 @@ public final class ProductoModelos {
     }
 
     /** Fila de PW-03. {@code alerta}: LOTE_POR_VENCER, STOCK_BAJO o SIN_STOCK. */
-    public record ProductoFila(long id, String nombre, String miniatura, String lineaPrincipal, Modalidad modalidad,
+    public record ProductoFila(long id, String nombre, String miniatura, String lineaPrincipal, String lineaCodigo, Modalidad modalidad,
                                BigDecimal precio, BigDecimal precioMayorista, BigDecimal enVenta,
                                List<Ubicado> stock, Estado estado, String alerta) {
     }
@@ -100,7 +100,7 @@ public final class ProductoModelos {
                        String tipoUbicacion, EstadoLote estado) {
     }
 
-    public record Lotes(long productoId, String producto, String miniatura, boolean requiereVencimiento,
+    public record Lotes(long productoId, String producto, String miniatura, String lineaCodigo, boolean requiereVencimiento,
                         BigDecimal stockTotal, BigDecimal enVenta, List<Lote> items) {
     }
 

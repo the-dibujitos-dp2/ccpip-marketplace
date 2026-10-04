@@ -1,0 +1,33 @@
+.ingresar { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); min-height: 100vh; }
+
+.ingresar__marca {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 56px;
+  background: var(--color-bg-inverse);
+  color: var(--color-text-on-brand);
+}
+
+.ingresar__logo { align-self: flex-start; text-decoration: none; }
+.ingresar__mensaje { display: flex; flex-direction: column; gap: 16px; max-width: 520px; }
+.ingresar__titular { font-family: var(--font-display); font-weight: 600; font-size: 40px; line-height: 48px; letter-spacing: -0.5px; }
+.ingresar__bajada { font-size: 16px; line-height: 24px; opacity: 0.9; }
+.ingresar__fotos { display: flex; gap: 12px; margin-top: 12px; }
+.ingresar__foto { width: 92px; height: 92px; border-radius: var(--radius-l); object-fit: cover; }
+.ingresar__confianza { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 13px; }
+
+.ingresar__formulario-zona { display: flex; align-items: center; justify-content: center; padding: 48px 24px; background: var(--color-bg-surface); }
+.ingresar__tarjeta { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 380px; }
+.ingresar__titulo { margin-top: 4px; }
+.ingresar__formulario { display: flex; flex-direction: column; gap: 18px; }
+.ingresar__pie { margin-top: 12px; text-align: center; }
+
+@media (max-width: 860px) {
+  .ingresar { grid-template-columns: 1fr; }
+  .ingresar__marca { padding: 24px; gap: 16px; }
+  .ingresar__titular { font-size: 26px; line-height: 34px; }
+  .ingresar__fotos, .ingresar__bajada { display: none; }
+  .ingresar__formulario-zona { align-items: flex-start; padding: 28px 16px; }
+}

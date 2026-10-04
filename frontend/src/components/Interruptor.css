@@ -1,0 +1,28 @@
+.interruptor { position: relative; display: inline-flex; align-items: center; gap: 12px; font-size: 16px; cursor: pointer; }
+.interruptor input { position: absolute; opacity: 0; width: 40px; height: 24px; margin: 0; cursor: pointer; }
+
+.interruptor__pista {
+  position: relative;
+  width: 40px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-border-strong);
+  transition: background 0.15s;
+}
+
+.interruptor__pista::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-bg-surface);
+  transition: transform 0.15s;
+}
+
+.interruptor input:checked + .interruptor__pista { background: var(--color-bg-brand); }
+.interruptor input:checked + .interruptor__pista::after { transform: translateX(16px); }
+.interruptor input:focus-visible + .interruptor__pista { outline: 2px solid var(--color-border-focus); outline-offset: 2px; }

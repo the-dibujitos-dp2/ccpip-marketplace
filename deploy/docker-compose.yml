@@ -27,6 +27,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/ccpip  # trufflehog:ignore (sin credenciales)
       SPRING_DATASOURCE_USERNAME: ccpip
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      # Bucket real de S3; las credenciales salen del perfil de la EC2 (sin llaves)
+      CCPIP_IMAGENES_BUCKET: ${IMAGES_BUCKET:?falta IMAGES_BUCKET}
+      AWS_REGION: us-east-1
     depends_on:
       db:
         condition: service_healthy
