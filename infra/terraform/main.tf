@@ -116,20 +116,21 @@ resource "aws_eip" "app" {
 # Imagenes de tiendas y productos (CCPIP-30, CCPIP-44). Bucket privado: las imagenes se
 # sirven por el backend (/api/imagenes), nunca con la URL del bucket. El backend accede con
 # el perfil LabInstanceProfile de la EC2, sin llaves.
+#
+# El bucket se crea UNA vez con la CLI (docs/devsecops.md), igual que el del estado: en AWS
+# Academy una politica de la organizacion niega s3:GetBucketObjectLockConfiguration, y el
+# recurso aws_s3_bucket la consulta en cada plan. Terraform lo lee como data source (que no
+# la consulta) y administra toda su configuracion.
 # ---------------------------------------------------------------------------------------
 
 data "aws_caller_identity" "actual" {}
 
-resource "aws_s3_bucket" "imagenes" {
+data "aws_s3_bucket" "imagenes" {
   bucket = "ccpip-imagenes-${data.aws_caller_identity.actual.account_id}"
-
-  tags = {
-    Name = "ccpip-imagenes-${var.environment}"
-  }
 }
 
 resource "aws_s3_bucket_public_access_block" "imagenes" {
-  bucket                  = aws_s3_bucket.imagenes.id
+  bucket                  = data.aws_s3_bucket.imagenes.id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -137,7 +138,7 @@ resource "aws_s3_bucket_public_access_block" "imagenes" {
 }
 
 resource "aws_s3_bucket_versioning" "imagenes" {
-  bucket = aws_s3_bucket.imagenes.id
+  bucket = data.aws_s3_bucket.imagenes.id
   versioning_configuration {
     status = "Enabled"
   }
@@ -147,7 +148,7 @@ resource "aws_s3_bucket_versioning" "imagenes" {
 # catalogo publico y AWS Academy limita la gestion de llaves.
 # trivy:ignore:AVD-AWS-0132
 resource "aws_s3_bucket_server_side_encryption_configuration" "imagenes" {
-  bucket = aws_s3_bucket.imagenes.id
+  bucket = data.aws_s3_bucket.imagenes.id
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
@@ -157,7 +158,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "imagenes" {
 
 # Las versiones viejas (fotos reemplazadas o borradas) se limpian a los 30 dias
 resource "aws_s3_bucket_lifecycle_configuration" "imagenes" {
-  bucket = aws_s3_bucket.imagenes.id
+  bucket = data.aws_s3_bucket.imagenes.id
   rule {
     id     = "limpiar-versiones-viejas"
     status = "Enabled"

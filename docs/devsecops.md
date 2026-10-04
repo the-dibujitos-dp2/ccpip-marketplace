@@ -69,13 +69,19 @@ Todas las Actions estan fijadas por SHA (evita ataques de cadena de suministro p
    aws s3 mb s3://ccpip-tfstate-<algo-unico> --region us-east-1
    aws s3api put-bucket-versioning --bucket ccpip-tfstate-<algo-unico> --versioning-configuration Status=Enabled
    ```
-4. Crea la infraestructura (local o con el workflow *Terraform → apply*):
+4. Crea el bucket de imagenes (una sola vez). Terraform no puede crearlo: AWS Academy niega
+   `s3:GetBucketObjectLockConfiguration`, que el recurso `aws_s3_bucket` consulta en cada plan.
+   Terraform lo lee y administra su bloqueo publico, cifrado, versionado y limpieza:
+   ```
+   aws s3api create-bucket --bucket ccpip-imagenes-$(aws sts get-caller-identity --query Account --output text) --region us-east-1
+   ```
+5. Crea la infraestructura (local o con el workflow *Terraform → apply*):
    ```
    cd infra/terraform
    terraform init -backend-config="bucket=ccpip-tfstate-<algo-unico>"
    terraform apply
    ```
-5. Anota la salida `app_domain` (ej. `3-91-10-20.sslip.io`).
+6. Anota las salidas `app_domain` (ej. `3-91-10-20.sslip.io`) e `images_bucket`.
 
 ### 2. Secretos y variables de GitHub
 
