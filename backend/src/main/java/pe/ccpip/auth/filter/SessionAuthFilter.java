@@ -32,8 +32,11 @@ public class SessionAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI().substring(request.getContextPath().length());
-        return HttpMethod.OPTIONS.matches(request.getMethod()) || !path.startsWith("/api/");
+        return HttpMethod.OPTIONS.matches(request.getMethod()) || !path(request).startsWith("/api/");
+    }
+
+    private static String path(HttpServletRequest request) {
+        return request.getRequestURI().substring(request.getContextPath().length());
     }
 
     @Override
@@ -41,7 +44,10 @@ public class SessionAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         // Ninguna respuesta de la API se guarda en cache: tras cerrar sesion,
         // el boton "atras" no puede mostrar datos del rol desde la cache del navegador.
-        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+        // Las imagenes publicas son la excepcion: no tienen datos de sesion y nunca cambian.
+        if (!path(request).startsWith("/api/imagenes/")) {
+            response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+        }
 
         SessionService.Validation validation = sessionService.validate(SessionCookies.read(request));
         switch (validation.status()) {

@@ -1,0 +1,72 @@
+{
+    "id": 1,
+    "nombre": "Cacao en grano fermentado 1 kg",
+    "descripcion": "Fermentado seis dias en cajones de madera.",
+    "unidad": {
+        "codigo": "KG",
+        "nombre": "Kilogramo"
+    },
+    "linea": {
+        "codigo": "CACAO",
+        "nombre": "Cacao y chocolates"
+    },
+    "lineas": [
+        {
+            "codigo": "CACAO",
+            "nombre": "Cacao y chocolates"
+        }
+    ],
+    "modalidad": "MINORISTA",
+    "precio": 42.0,
+    "disponible": true,
+    "imagenes": [],
+    "tienda": {
+        "id": 2,
+        "nombre": "C.N. Yarina",
+        "pueblo": "Awaj\u00fan",
+        "comunidad": "Comunidad Awajun del Alto Maranon",
+        "region": "Amazonas",
+        "localidad": "Alto Mara\u00f1\u00f3n",
+        "origenVerificado": true
+    },
+    "historia": {
+        "texto": "Crece bajo sombra de bosque primario, sin deforestar.",
+        "asistida": false
+    },
+    "cosecha": {
+        "produccion": "2026-09-04",
+        "consumirAntesDe": "2027-10-04"
+    },
+    "relacionados": [
+        {
+            "id": 4,
+            "nombre": "Pasta de cacao 500 g",
+            "modalidad": "MINORISTA",
+            "precio": 55.0,
+            "precioMayorista": null,
+            "contenido": null,
+            "unidad": {
+                "codigo": "G",
+                "nombre": "Gramo"
+            },
+            "linea": {
+                "codigo": "CACAO",
+                "nombre": "Cacao y chocolates"
+            },
+            "lineas": [
+                "CACAO"
+            ],
+            "imagen": null,
+            "disponible": true,
+            "tienda": {
+                "id": 2,
+                "nombre": "C.N. Yarina",
+                "pueblo": "Awaj\u00fan",
+                "comunidad": "Comunidad Awajun del Alto Maranon",
+                "region": "Amazonas",
+                "localidad": "Alto Mara\u00f1\u00f3n",
+                "origenVerificado": true
+            }
+        }
+    ]
+}

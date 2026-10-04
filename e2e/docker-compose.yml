@@ -1,0 +1,55 @@
+# CCPIP: stack de pruebas de punta a punta con las MISMAS imagenes que van a produccion
+# (backend con perfil prod y Caddy sirviendo el frontend), mas Postgres y S3Mock.
+#   docker compose -f e2e/docker-compose.yml up -d --build --wait
+# La IA usa el proveedor "simulado" (determinista) para probar toda la pantalla de PW-05.
+name: ccpip-e2e
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ccpip
+      POSTGRES_USER: ccpip
+      POSTGRES_PASSWORD: e2e-solo-pruebas
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ccpip -d ccpip"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  s3:
+    image: adobe/s3mock:5.2.3
+
+  backend:
+    build: ../backend
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/ccpip
+      SPRING_DATASOURCE_USERNAME: ccpip
+      SPRING_DATASOURCE_PASSWORD: e2e-solo-pruebas
+      CCPIP_IMAGENES_BUCKET: ccpip-e2e
+      CCPIP_IMAGENES_ENDPOINT: http://s3:9090
+      CCPIP_IMAGENES_CREAR_BUCKET: "true"
+      CCPIP_IA_PROVEEDOR: simulado
+      # Expiracion corta para probar la expiracion por inactividad sin esperar 30 minutos
+      CCPIP_AUTH_SESSION_TIMEOUT: 2m
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_REGION: us-east-1
+    depends_on:
+      db:
+        condition: service_healthy
+      s3:
+        condition: service_started
+
+  web:
+    build: ../frontend
+    environment:
+      SITE_ADDRESS: ":80"
+    ports:
+      - "127.0.0.1:4173:80"
+    depends_on:
+      backend:
+        condition: service_healthy

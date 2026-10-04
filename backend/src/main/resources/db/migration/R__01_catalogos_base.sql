@@ -14,25 +14,43 @@ INSERT INTO rol (id, codigo, nombre) VALUES
     (6, 'DISTRIBUIDOR',      'Distribuidor')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO linea_producto (codigo, nombre) VALUES
-    ('ACEITES',     'Aceites'),
-    ('SUPERFRUTOS', 'Superfrutos'),
-    ('CAFE',        'Cafe'),
-    ('CACAO',       'Cacao'),
-    ('INFUSIONES',  'Infusiones'),
-    ('ARTESANIA',   'Artesania'),
-    ('TEXTIL',      'Textiles')
+-- Unidades del catalogo cerrado (RNF-32). Las presentaciones (botella, bolsa...) se
+-- agregaron con PW-04, donde el productor elige "Botella" y aparte escribe "250 ml".
+INSERT INTO unidad_medida (codigo, nombre) VALUES
+    ('UNIDAD',  'Unidad'),
+    ('KG',      'Kilogramo'),
+    ('G',       'Gramo'),
+    ('L',       'Litro'),
+    ('ML',      'Mililitro'),
+    ('SACO',    'Saco'),
+    ('JABA',    'Jaba'),
+    ('BOTELLA', 'Botella'),
+    ('FRASCO',  'Frasco'),
+    ('BOLSA',   'Bolsa'),
+    ('PAQUETE', 'Paquete'),
+    ('CAJA',    'Caja'),
+    ('SOBRE',   'Sobre')
 ON CONFLICT (codigo) DO NOTHING;
 
-INSERT INTO unidad_medida (codigo, nombre) VALUES
-    ('UNIDAD', 'Unidad'),
-    ('KG',     'Kilogramo'),
-    ('G',      'Gramo'),
-    ('L',      'Litro'),
-    ('ML',     'Mililitro'),
-    ('SACO',   'Saco'),
-    ('JABA',   'Jaba')
-ON CONFLICT (codigo) DO NOTHING;
+-- CCPIP-45: cada linea sugiere su unidad y decide si el lote vence. Las artesanias y los
+-- textiles no vencen. Nombres y orden segun el prototipo (CW-01, CW-02).
+INSERT INTO linea_producto (codigo, nombre, requiere_vencimiento, unidad_sugerida_id, orden)
+SELECT d.codigo, d.nombre, d.vence, u.id, d.orden
+FROM (VALUES
+    ('CACAO',       'Cacao y chocolates', true,  'BOLSA',   1),
+    ('CAFE',        'Café',               true,  'BOLSA',   2),
+    ('SUPERFRUTOS', 'Superfrutos',        true,  'BOLSA',   3),
+    ('ACEITES',     'Aceites',            true,  'BOTELLA', 4),
+    ('INFUSIONES',  'Infusiones',         true,  'SOBRE',   5),
+    ('ARTESANIA',   'Artesanías',         false, 'UNIDAD',  6),
+    ('TEXTIL',      'Textiles',           false, 'UNIDAD',  7)
+) AS d(codigo, nombre, vence, unidad, orden)
+JOIN unidad_medida u ON u.codigo = d.unidad
+ON CONFLICT (codigo) DO UPDATE SET
+    nombre = EXCLUDED.nombre,
+    requiere_vencimiento = EXCLUDED.requiere_vencimiento,
+    unidad_sugerida_id = EXCLUDED.unidad_sugerida_id,
+    orden = EXCLUDED.orden;
 
 -- CCPIP-24: los cinco centros regionales y el centro nacional de Lima.
 INSERT INTO ubicacion (tipo, nombre, departamento, provincia, distrito, direccion) VALUES

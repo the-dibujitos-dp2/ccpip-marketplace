@@ -12,6 +12,7 @@
   height: 36px;
   border-radius: 10px;
   background: var(--color-bg-brand);
+  color: var(--color-text-on-brand);
 }
 
 .logotipo__texto {
@@ -22,3 +23,8 @@
 
 .logotipo__nombre { font-weight: 600; font-size: 16px; line-height: 24px; }
 .logotipo__lema { font-size: 12px; line-height: 16px; color: var(--color-text-secondary); }
+
+/* Sobre fondo oscuro (pie de pagina, CW-08): isotipo blanco con hoja verde */
+.logotipo--inverso .logotipo__isotipo { background: var(--color-bg-surface); color: var(--color-text-brand); }
+.logotipo--inverso .logotipo__nombre,
+.logotipo--inverso .logotipo__lema { color: var(--color-text-on-brand); }

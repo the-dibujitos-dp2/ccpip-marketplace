@@ -26,6 +26,7 @@
           { "context": "Backend (tests)", "integration_id": 15368 },
           { "context": "SonarQube (Quality Gate)", "integration_id": 15368 },
           { "context": "Frontend (tests + build + audit)", "integration_id": 15368 },
+          { "context": "Punta a punta (Playwright)", "integration_id": 15368 },
           { "context": "Secretos filtrados (TruffleHog)", "integration_id": 15368 },
           { "context": "Dependencias, Dockerfiles y Terraform (Trivy)", "integration_id": 15368 }
         ]

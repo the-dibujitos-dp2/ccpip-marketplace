@@ -1,30 +1,51 @@
-import { useId } from "react";
-import iconoAlerta from "../assets/icons/alerta-campo.svg";
-import "./Campo.css";
+import { useId } from 'react'
+import iconoAlerta from '../assets/icons/alerta-campo.svg'
+import iconoChevron from '../assets/icons/chevron-abajo.svg'
+import Icono from './Icono.jsx'
+import './Campo.css'
 
-/** Campo de formulario con etiqueta persistente. Error = borde rojo 2px + icono + mensaje. */
-export default function Campo({ etiqueta, ayuda, error, ...inputProps }) {
-  const id = useId();
-  const idAyuda = `${id}-ayuda`;
-  const mensaje = error || ayuda;
+/**
+ * Campo de formulario con etiqueta persistente. Error = borde rojo 2px + icono + mensaje.
+ * tipo: texto (por defecto) | area | selector. Para selector, `opciones`: [{ valor, etiqueta }].
+ */
+export default function Campo({ etiqueta, ayuda, error, tipo = 'texto', opciones = [], placeholder, className = '', id: idPropio, ...props }) {
+  const generado = useId()
+  const id = idPropio ?? generado
+  const idAyuda = `${id}-ayuda`
+  const mensaje = error || ayuda
+  const control = {
+    id,
+    className: `campo__control${error ? ' campo__control--error' : ''}${tipo === 'area' ? ' campo__control--area' : ''}`,
+    'aria-invalid': error ? 'true' : undefined,
+    'aria-describedby': mensaje ? idAyuda : undefined,
+    ...props,
+  }
   return (
-    <div className="campo">
+    <div className={`campo ${className}`}>
       <label className="campo__etiqueta" htmlFor={id}>
         {etiqueta}
       </label>
-      <input
-        id={id}
-        className={`campo__control${error ? " campo__control--error" : ""}`}
-        aria-invalid={error ? "true" : undefined}
-        aria-describedby={mensaje ? idAyuda : undefined}
-        {...inputProps}
-      />
+      {tipo === 'area' && <textarea rows={4} placeholder={placeholder} {...control} />}
+      {tipo === 'selector' && (
+        <div className="campo__selector">
+          <select {...control}>
+            <option value="">{placeholder ?? 'Elige una opción'}</option>
+            {opciones.map((o) => (
+              <option key={o.valor} value={o.valor}>
+                {o.etiqueta}
+              </option>
+            ))}
+          </select>
+          <Icono src={iconoChevron} tamano={20} className="campo__chevron" />
+        </div>
+      )}
+      {tipo === 'texto' && <input placeholder={placeholder} {...control} />}
       {mensaje && (
-        <p id={idAyuda} className={`campo__ayuda${error ? " campo__ayuda--error" : ""}`}>
+        <p id={idAyuda} className={`campo__ayuda${error ? ' campo__ayuda--error' : ''}`}>
           {error && <img src={iconoAlerta} width="16" height="16" alt="" />}
           {mensaje}
         </p>
       )}
     </div>
-  );
+  )
 }

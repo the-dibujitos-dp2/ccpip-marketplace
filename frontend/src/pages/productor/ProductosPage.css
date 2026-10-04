@@ -1,0 +1,61 @@
+.productos__barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+
+.productos__buscador {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(320px, 100%);
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+}
+
+.productos__buscador:focus-within { border: 2px solid var(--color-border-focus); padding: 0 15px; }
+.productos__buscador input { flex: 1; min-width: 0; border: 0; background: none; font: inherit; color: var(--color-text-primary); }
+.productos__buscador input:focus { outline: none; }
+
+.productos__lista { margin: 0; padding: 0; list-style: none; }
+.productos__col-precio, .productos__col-venta { width: 100px; }
+.productos__col-modalidad { width: 110px; }
+.productos__col-ubicacion { width: 200px; }
+.productos__col-estado { width: 150px; }
+.productos__col-acciones { display: flex; width: 70px; gap: 8px; }
+
+.productos__icono-boton { display: inline-flex; padding: 4px; border: 0; border-radius: var(--radius-m); background: none; color: var(--color-text-secondary); cursor: pointer; }
+.productos__icono-boton:hover { background: var(--color-bg-surface-alt); color: var(--color-text-primary); }
+
+.productos__menu { position: relative; }
+.productos__menu-lista {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  padding: 6px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-l);
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-menu);
+}
+
+.productos__menu-lista a,
+.productos__menu-lista button {
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: none;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.productos__menu-lista a:hover,
+.productos__menu-lista button:hover { background: var(--color-bg-canvas); }

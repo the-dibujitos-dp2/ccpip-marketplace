@@ -1,0 +1,36 @@
+{
+    "id": 1,
+    "comunidad": "Comunidad Shipibo Konibo de Yarinacocha",
+    "region": "Ucayali",
+    "origenVerificado": true,
+    "verificadoEn": "2026-06-06",
+    "nombreTienda": "Asoc. Nii Joi",
+    "descripcionCorta": "Aceites, superfrutos y textiles de mujeres shipibo de Yarinacocha.",
+    "historia": "Trabajamos el aceite de ungurahui desde hace cuatro generaciones. La cosecha se hace a mano, subiendo la palmera sin cortarla, para que siga dando fruto el ano siguiente.",
+    "cita": "Las plantas del monte curan y alimentan.",
+    "pueblo": "Shipibo-Konibo",
+    "localidad": "Yarinacocha",
+    "socios": 34,
+    "publicada": true,
+    "portada": null,
+    "galeria": [],
+    "destacados": [],
+    "productosPublicados": [
+        {
+            "id": 8,
+            "nombre": "Aceite de aguaje 250 ml"
+        },
+        {
+            "id": 7,
+            "nombre": "Aceite de ungurahui 250 ml"
+        },
+        {
+            "id": 9,
+            "nombre": "Camu camu en polvo 150 g"
+        },
+        {
+            "id": 5,
+            "nombre": "Textil bordado shipibo"
+        }
+    ]
+}

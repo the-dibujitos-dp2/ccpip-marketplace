@@ -1,0 +1,101 @@
+{
+    "lineas": [
+        {
+            "codigo": "CACAO",
+            "nombre": "Cacao y chocolates",
+            "requiereVencimiento": true,
+            "unidadSugerida": "BOLSA"
+        },
+        {
+            "codigo": "CAFE",
+            "nombre": "Caf\u00e9",
+            "requiereVencimiento": true,
+            "unidadSugerida": "BOLSA"
+        },
+        {
+            "codigo": "SUPERFRUTOS",
+            "nombre": "Superfrutos",
+            "requiereVencimiento": true,
+            "unidadSugerida": "BOLSA"
+        },
+        {
+            "codigo": "ACEITES",
+            "nombre": "Aceites",
+            "requiereVencimiento": true,
+            "unidadSugerida": "BOTELLA"
+        },
+        {
+            "codigo": "INFUSIONES",
+            "nombre": "Infusiones",
+            "requiereVencimiento": true,
+            "unidadSugerida": "SOBRE"
+        },
+        {
+            "codigo": "ARTESANIA",
+            "nombre": "Artesan\u00edas",
+            "requiereVencimiento": false,
+            "unidadSugerida": "UNIDAD"
+        },
+        {
+            "codigo": "TEXTIL",
+            "nombre": "Textiles",
+            "requiereVencimiento": false,
+            "unidadSugerida": "UNIDAD"
+        }
+    ],
+    "unidades": [
+        {
+            "codigo": "BOLSA",
+            "nombre": "Bolsa"
+        },
+        {
+            "codigo": "BOTELLA",
+            "nombre": "Botella"
+        },
+        {
+            "codigo": "CAJA",
+            "nombre": "Caja"
+        },
+        {
+            "codigo": "FRASCO",
+            "nombre": "Frasco"
+        },
+        {
+            "codigo": "G",
+            "nombre": "Gramo"
+        },
+        {
+            "codigo": "JABA",
+            "nombre": "Jaba"
+        },
+        {
+            "codigo": "KG",
+            "nombre": "Kilogramo"
+        },
+        {
+            "codigo": "L",
+            "nombre": "Litro"
+        },
+        {
+            "codigo": "ML",
+            "nombre": "Mililitro"
+        },
+        {
+            "codigo": "PAQUETE",
+            "nombre": "Paquete"
+        },
+        {
+            "codigo": "SACO",
+            "nombre": "Saco"
+        },
+        {
+            "codigo": "SOBRE",
+            "nombre": "Sobre"
+        },
+        {
+            "codigo": "UNIDAD",
+            "nombre": "Unidad"
+        }
+    ],
+    "comisionPorcentaje": 10
+}

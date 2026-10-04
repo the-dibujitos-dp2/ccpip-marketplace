@@ -206,13 +206,78 @@ cantidad ya decrementada. Probado: con 3 unidades, un pedido de 2 pasa y el sigu
 El movimiento de inventario se escribe **en la misma transaccion** que ese UPDATE. Si se
 escriben por separado, un fallo entre ambos deja el stock sin explicacion.
 
+## Tienda, publicacion, lotes e imagenes (Sprint 1)
+
+Migraciones `V202610041200` a `V202610041204`. Agregan lo que necesita el flujo del prototipo:
+la comunidad arma su tienda, publica productos con fotos e historia, registra lotes, y el
+comprador ve solo lo que de verdad se puede vender.
+
+```mermaid
+erDiagram
+    productor ||--o{ imagen : sube
+    producto ||--o{ imagen : muestra
+    producto ||--o{ producto_linea : pertenece
+    linea_producto ||--o{ producto_linea : agrupa
+    producto ||--o{ lote : ingresa
+    ubicacion ||--o{ lote : guarda
+    lote ||--o{ movimiento_inventario : origina
+    producto ||--o| producto_historia : cuenta
+    producto ||--o{ producto_auditoria : registra
+```
+
+### productor (columnas de tienda, CCPIP-30, 56, 153, 154)
+La tienda vive en la fila del productor: hay exactamente una por productor. `nombre_tienda`,
+`descripcion_corta`, `cita`, `pueblo`, `localidad`, `socios`, `verificado_en`,
+`tienda_publicada` y `tienda_publicada_en`. Una tienda publicada siempre tiene nombre (CHECK).
+Solo las tiendas publicadas aparecen en `/api/tiendas` y sus productos en el catalogo.
+
+### producto (columnas nuevas, CCPIP-40, 45, 47, 132, 143)
+Un producto nace como borrador desde PW-04, por eso `linea_id`, `unidad_medida_id` y `precio`
+pasan a aceptar nulos; publicar los exige (servidor). Nuevas: `contenido` ("250 ml"),
+`modalidad` (MINORISTA, MAYORISTA, AMBAS), `precio_mayorista` (menor que el minorista, CHECK),
+`cantidad_minima_mayorista` (2 o mas), `destacado_tienda`, `descripcion_propuesta` y
+`descripcion_asistida` (IA, RNF-29), `publicado_en`, `creado_por` y `actualizado_por`.
+No hay columna de descuento (CCPIP-87) ni forma de borrar un producto (RNF-17): se despublica.
+
+### producto_linea (CCPIP-45)
+Un producto puede estar en varias lineas. `producto.linea_id` queda como la principal, la que
+muestra la tarjeta. `linea_producto` gana `requiere_vencimiento` (una artesania no vence),
+`unidad_sugerida_id` y `orden`.
+
+### lote (CCPIP-41)
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| producto_id, ubicacion_id | bigint | no | Ubicacion: almacen del productor o punto de acopio |
+| codigo | varchar(40) | no | Unico por producto. Interno: nunca se muestra al comprador |
+| cantidad_inicial, cantidad_actual | numeric(12,3) | no | 0 ≤ actual ≤ inicial (RNF-09) |
+| fecha_produccion, fecha_vencimiento | date | si | Vencimiento posterior a la produccion; no anterior a hoy (servidor) |
+
+Registrar un lote escribe el lote, su movimiento `ENTRADA` (`movimiento_inventario.lote_id`) y
+suma al `stock` en una sola transaccion (ADR-10). **Lo que el comprador ve como disponible es
+la suma de los lotes no vencidos en puntos de acopio**; lo que esta en el almacen del productor
+se vende recien cuando se transfiera.
+
+### imagen (CCPIP-30, 44)
+Referencia a un objeto del bucket S3 (`clave` y `clave_miniatura`), con `tipo` PORTADA,
+GALERIA o PRODUCTO, `categoria` de galeria, dimensiones y `principal`. Una sola portada por
+tienda y una sola principal por producto (indices unicos parciales). Se sirve por
+`/api/imagenes/{id}`, nunca con la URL del bucket, que es privado.
+
+### producto_historia (CCPIP-48, 49)
+Las cuatro respuestas del productor (`quienes`, `como`, `significado`, `cuidado`), el texto
+que propuso la IA (`texto_propuesto`) y el aprobado (`texto_final`), con `asistida`,
+`proveedor_ia`, `aprobada_en` y `aprobada_por`. La ficha solo muestra historias aprobadas.
+
+### producto_auditoria (CCPIP-47)
+Quien cambio que y cuando: `accion` (CREAR, EDITAR, PUBLICAR, RETIRAR, REPUBLICAR, HISTORIA,
+LOTE, IMAGEN) y `cambios` en jsonb con el antes y el despues. Solo insercion: un trigger
+rechaza UPDATE y DELETE, igual que en `movimiento_inventario`.
+
 ## Fuera de este modelo
 
 Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehacer nada:
 
-- Lote y fecha de vencimiento, Sprint 1, CCPIP-41
 - Cobertura del punto de acopio y division politica del Peru, Sprint 1, CCPIP-149
-- Precio mayorista y minorista, Sprint 1, CCPIP-132
 - Pago y su estado, Sprint 1, CCPIP-62 y CCPIP-163
 - Comision y liquidacion, Sprint 1, CCPIP-90 y CCPIP-91
 - Merma y sus causas, Sprint 2

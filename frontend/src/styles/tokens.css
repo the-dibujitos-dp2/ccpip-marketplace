@@ -7,6 +7,8 @@
   --color-text-disabled: #cbbba6;
   --color-text-brand: #175a38;
   --color-text-accent: #a33f17;
+  /* Terracota clara para textos de acento sobre fondos oscuros (contraste AA) */
+  --color-text-accent-inverse: #f2a57c;
   --color-text-on-brand: #ffffff;
 
   /* Fondos */
@@ -16,6 +18,10 @@
   --color-bg-brand: #175a38;
   --color-bg-brand-subtle: #eef5f0;
   --color-bg-inverse: #082617;
+  --color-bg-accent: #c4501f;
+  --color-bg-accent-subtle: #fdf1ec;
+  --color-bg-surface-alt: #f2ece3;
+  --color-bg-sand: #f3ece2;
 
   /* Bordes */
   --color-border-default: #e3d9cb;
@@ -43,4 +49,7 @@
   --radius-l: 12px;
   --radius-pill: 999px;
   --shadow-menu: 0 4px 12px rgba(31, 23, 18, 0.1), 0 2px 4px rgba(31, 23, 18, 0.06);
+  --shadow-tarjeta: 0 1px 1.5px rgba(31, 23, 18, 0.08), 0 1px 1px rgba(31, 23, 18, 0.06);
+  --radius-xl: 16px;
+  --contenedor: 1216px;
 }

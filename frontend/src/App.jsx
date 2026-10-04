@@ -1,16 +1,33 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { consultarSesion, fetchMe, logout } from './api/auth.js'
 import { armIdleTimer, disarmIdleTimer, onSessionLost } from './api/http.js'
-import Cabecera from './components/Cabecera.jsx'
-import CatalogoPage from './pages/CatalogoPage.jsx'
-import IngresarPage from './pages/IngresarPage.jsx'
-import InicioPage from './pages/InicioPage.jsx'
-import ProductoPage from './pages/ProductoPage.jsx'
-import ProductorPage from './pages/ProductorPage.jsx'
+import { invalidarTiendaActual } from './api/tiendaActual.js'
+import LayoutTienda from './components/layout/LayoutTienda.jsx'
+import CuentaPage from './pages/CuentaPage.jsx'
+import BuscarPage from './pages/consumidor/BuscarPage.jsx'
+import ComunidadesPage from './pages/consumidor/ComunidadesPage.jsx'
+import IngresarPage from './pages/consumidor/IngresarPage.jsx'
+import InicioPage from './pages/consumidor/InicioPage.jsx'
+import ProductoPage from './pages/consumidor/ProductoPage.jsx'
+import TiendaPage from './pages/consumidor/TiendaPage.jsx'
+import EditorProductoPage from './pages/productor/EditorProductoPage.jsx'
+import LotesPage from './pages/productor/LotesPage.jsx'
+import PanelPage from './pages/productor/PanelPage.jsx'
+import ProductosPage from './pages/productor/ProductosPage.jsx'
+import TiendaEditorPage from './pages/productor/TiendaEditorPage.jsx'
 import { navigate, RUTAS, rutaInterna, useLocation } from './router.js'
+import { SesionContexto } from './sesion.js'
 
 const RUTA_PRODUCTO = /^\/productos\/(\d+)$/
-const RUTA_PRODUCTOR = /^\/productores\/(\d+)$/
+const RUTA_TIENDA = /^\/tiendas\/(\d+)$/
+const RUTA_EDITOR = /^\/productor\/productos\/(\d+|nuevo)$/
+
+/** A donde va cada rol al ingresar si no venia de ninguna pagina. */
+function destinoPorRol(user) {
+  if (user?.role === 'PRODUCTOR') return RUTAS.productor
+  if (user?.role === 'CONSUMIDOR') return RUTAS.catalogo
+  return RUTAS.inicio
+}
 
 export default function App() {
   const { path, search } = useLocation()
@@ -23,6 +40,7 @@ export default function App() {
 
   const terminarSesion = useCallback((nuevoAviso) => {
     disarmIdleTimer()
+    invalidarTiendaActual()
     setSesion(null)
     setAviso(nuevoAviso)
     navigate(RUTAS.ingresar, { replace: true })
@@ -56,9 +74,13 @@ export default function App() {
     [terminarSesion],
   )
 
+  // "/productores/1" (enlace antiguo) no es del panel: se compara por segmento
+  const delProductor = path === RUTAS.productor || path.startsWith(`${RUTAS.productor}/`)
+  const protegida = path === RUTAS.inicio || delProductor
+
   // Al cargar y al volver a una pantalla protegida con "atras", se vuelve a preguntar al servidor
   useEffect(() => {
-    if (cargando || path === RUTAS.inicio) verificar()
+    if (cargando || protegida) verificar()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [path])
 
@@ -77,15 +99,19 @@ export default function App() {
     armIdleTimer(sesion.expiresInSeconds, () => fetchMe())
   }, [sesion])
 
-  // Rutas que dependen de la sesion
-  const volver = rutaInterna(params.get('volver'), RUTAS.inicio)
+  const user = sesion?.user ?? null
+  const volver = rutaInterna(params.get('volver'), destinoPorRol(user))
+
+  // Reglas de acceso de cada ruta. El servidor valida igual (CCPIP-151); esto solo evita pantallas vacias.
   useEffect(() => {
     if (cargando) return
     if (sesion && path === RUTAS.ingresar) navigate(volver, { replace: true })
-    if (!sesion && path === RUTAS.inicio) navigate(RUTAS.ingresar, { replace: true })
-  }, [cargando, sesion, path, volver])
+    else if (!sesion && protegida) navigate(`${RUTAS.ingresar}?volver=${encodeURIComponent(path + search)}`, { replace: true })
+    else if (sesion && delProductor && user.role !== 'PRODUCTOR') navigate(RUTAS.inicio, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cargando, sesion, path])
 
-  async function handleCerrarSesion() {
+  const handleCerrarSesion = useCallback(async () => {
     setCerrando(true)
     try {
       await logout()
@@ -94,18 +120,15 @@ export default function App() {
     }
     setCerrando(false)
     terminarSesion({ tono: 'exito', titulo: 'Cerraste sesión', descripcion: 'Vuelve cuando quieras.' })
-  }
+  }, [terminarSesion])
+
+  const contexto = useMemo(() => ({ user, cerrarSesion: handleCerrarSesion, cerrando }), [user, handleCerrarSesion, cerrando])
 
   if (cargando) return <p className="visually-hidden">Cargando…</p>
 
-  const user = sesion?.user ?? null
-  const cabecera = (
-    <Cabecera user={user} onCerrarSesion={handleCerrarSesion} cerrando={cerrando} termino={params.get('q') ?? ''} />
-  )
-
+  let pagina
   if (path === RUTAS.ingresar) {
-    if (sesion) return null
-    return (
+    pagina = sesion ? null : (
       <IngresarPage
         aviso={aviso}
         onCerrarAviso={() => setAviso(null)}
@@ -115,46 +138,45 @@ export default function App() {
         }}
       />
     )
-  }
-
-  if (path === RUTAS.inicio) {
-    if (!sesion) return null
-    return (
-      <>
-        {cabecera}
-        <InicioPage user={user} minutosInactividad={Math.round(sesion.expiresInSeconds / 60)} />
-      </>
+  } else if (protegida && !sesion) {
+    pagina = null
+  } else if (path === RUTAS.inicio) {
+    pagina = (
+      <LayoutTienda>
+        <CuentaPage user={user} minutosInactividad={Math.round(sesion.expiresInSeconds / 60)} />
+      </LayoutTienda>
     )
-  }
-
-  const producto = path.match(RUTA_PRODUCTO)
-  if (producto) {
-    return (
-      <>
-        {cabecera}
-        <ProductoPage id={producto[1]} user={user} />
-      </>
-    )
-  }
-
-  if (RUTA_PRODUCTOR.test(path)) {
-    return (
-      <>
-        {cabecera}
-        <ProductorPage />
-      </>
-    )
-  }
-
-  if (path !== RUTAS.catalogo) {
+  } else if (delProductor) {
+    const editor = path.match(RUTA_EDITOR)
+    if (user.role !== 'PRODUCTOR') pagina = null
+    else if (path === RUTAS.productor) pagina = <PanelPage path={path} />
+    else if (path === RUTAS.productorTienda) pagina = <TiendaEditorPage path={path} />
+    else if (path === RUTAS.productorProductos) pagina = <ProductosPage path={path} search={search} />
+    else if (path === RUTAS.productorLotes) pagina = <LotesPage path={path} search={search} />
+    else if (editor) {
+      // Sin key por producto: al subir la primera foto el borrador nace y la URL pasa de /nuevo a
+      // /:id; si el editor se montara de nuevo, perderia las fotos que se estan subiendo
+      pagina = <EditorProductoPage path={RUTAS.productorProductos} id={editor[1] === 'nuevo' ? null : editor[1]} search={search} />
+    }
+    else pagina = <PanelPage path={RUTAS.productor} />
+  } else if (path === RUTAS.catalogo) {
+    pagina = <InicioPage />
+  } else if (path === RUTAS.buscar) {
+    pagina = <BuscarPage search={search} />
+  } else if (path === RUTAS.comunidades) {
+    pagina = <ComunidadesPage />
+  } else if (RUTA_PRODUCTO.test(path)) {
+    pagina = <ProductoPage id={path.match(RUTA_PRODUCTO)[1]} />
+  } else if (RUTA_TIENDA.test(path)) {
+    pagina = <TiendaPage id={path.match(RUTA_TIENDA)[1]} />
+  } else if (/^\/productores\/(\d+)$/.test(path)) {
+    // Enlace antiguo al perfil del productor: ahora es la tienda de la comunidad
+    navigate(path.replace('/productores/', '/tiendas/'), { replace: true })
+    pagina = null
+  } else {
     navigate(RUTAS.catalogo, { replace: true })
-    return null
+    pagina = null
   }
 
-  return (
-    <>
-      {cabecera}
-      <CatalogoPage q={(params.get('q') ?? '').trim()} pagina={Math.max(0, Number(params.get('pagina')) || 0)} />
-    </>
-  )
+  return <SesionContexto.Provider value={contexto}>{pagina}</SesionContexto.Provider>
 }

@@ -1,0 +1,16 @@
+.tarjeta-tienda {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-surface);
+}
+
+.tarjeta-tienda__portada { display: block; width: 100%; height: 160px; object-fit: cover; }
+.tarjeta-tienda__cuerpo { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 16px 20px 20px; }
+.tarjeta-tienda__nombre { margin: 4px 0 0; font-family: var(--font-display); font-weight: 600; font-size: 22px; line-height: 30px; }
+.tarjeta-tienda__cita { font-family: var(--font-display); font-style: italic; font-size: 15px; line-height: 22px; color: var(--color-text-secondary); }
+.tarjeta-tienda__enlace { margin-top: 8px; }
+.tarjeta-tienda__enlace::after { content: ''; position: absolute; inset: 0; }

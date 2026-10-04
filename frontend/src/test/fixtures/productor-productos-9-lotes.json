@@ -1,0 +1,23 @@
+{
+    "productoId": 9,
+    "producto": "Camu camu en polvo 150 g",
+    "miniatura": null,
+    "lineaCodigo": "SUPERFRUTOS",
+    "requiereVencimiento": true,
+    "stockTotal": 100.0,
+    "enVenta": 100.0,
+    "items": [
+        {
+            "id": 9,
+            "codigo": "L-0009",
+            "cantidadInicial": 100.0,
+            "cantidadActual": 100.0,
+            "fechaProduccion": "2026-09-04",
+            "fechaVencimiento": "2027-10-04",
+            "ubicacionId": 1,
+            "ubicacion": "Centro Nacional Lima",
+            "tipoUbicacion": "PUNTO_ACOPIO",
+            "estado": "VENDE_PRIMERO"
+        }
+    ]
+}

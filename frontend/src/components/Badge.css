@@ -1,0 +1,21 @@
+.badge-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.badge-estado__punto { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.badge-estado--neutro { background: var(--color-bg-surface-alt); color: var(--color-text-secondary); }
+.badge-estado--marca { background: var(--color-bg-brand-subtle); color: var(--color-text-brand); }
+.badge-estado--acento { background: var(--color-bg-accent-subtle); color: var(--color-text-accent); }
+.badge-estado--exito { background: var(--color-status-success-bg); color: var(--color-status-success-fg); }
+.badge-estado--aviso { background: var(--color-status-warning-bg); color: var(--color-status-warning-fg); }
+.badge-estado--error { background: var(--color-status-error-bg); color: var(--color-status-error-fg); }
+.badge-estado--info { background: var(--color-status-info-bg); color: var(--color-status-info-fg); }

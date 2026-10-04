@@ -1,0 +1,51 @@
+.pasos { display: flex; align-items: center; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.pasos__item { display: flex; align-items: center; gap: 12px; }
+.pasos__linea { width: 56px; height: 2px; background: var(--color-border-default); }
+.pasos__item--hecho + .pasos__item .pasos__linea,
+.pasos__item--actual .pasos__linea { background: var(--color-bg-brand); }
+
+.pasos__boton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+}
+
+.pasos__boton:disabled { cursor: default; }
+
+.pasos__circulo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-bg-surface-alt);
+  font-size: 13px;
+}
+
+.pasos__item--actual .pasos__boton,
+.pasos__item--hecho .pasos__boton { color: var(--color-text-primary); }
+.pasos__item--actual .pasos__circulo { background: var(--color-bg-surface); border: 2px solid var(--color-border-brand); color: var(--color-text-brand); }
+.pasos__item--hecho .pasos__circulo { background: var(--color-bg-brand); color: var(--color-text-on-brand); }
+
+/* En el celular solo se lee el nombre del paso actual; los demas quedan para el lector de pantalla */
+@media (max-width: 520px) {
+  .pasos, .pasos__item { gap: 8px; }
+  .pasos__linea { width: 16px; }
+  .pasos__item:not(.pasos__item--actual) .pasos__nombre {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

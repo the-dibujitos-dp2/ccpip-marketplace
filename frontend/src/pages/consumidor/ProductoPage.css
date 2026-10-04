@@ -1,0 +1,83 @@
+.ficha { display: flex; flex-direction: column; gap: 48px; padding-top: 28px; padding-bottom: 72px; }
+
+.ficha__principal { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+
+.ficha__galeria { display: flex; flex-direction: column; gap: 12px; }
+.ficha__foto { position: relative; aspect-ratio: 5 / 4; overflow: hidden; border-radius: var(--radius-xl); background: var(--color-bg-surface-alt); }
+.ficha__foto-img { width: 100%; height: 100%; object-fit: cover; }
+.ficha__contador { position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: var(--radius-pill); background: rgba(8, 38, 23, 0.75); color: var(--color-text-on-brand); font-size: 12px; font-weight: 600; }
+
+.ficha__miniaturas { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ficha__miniatura { display: block; width: 100%; aspect-ratio: 1; padding: 0; overflow: hidden; border: 2px solid transparent; border-radius: var(--radius-m); background: none; cursor: pointer; }
+.ficha__miniatura img { width: 100%; height: 100%; object-fit: cover; }
+.ficha__miniatura--activa { border-color: var(--color-border-brand); }
+
+.ficha__datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 4px 0 0; }
+.ficha__datos div { padding: 12px 14px; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); background: var(--color-bg-surface); }
+.ficha__datos dt { font-size: 12px; color: var(--color-text-tertiary); }
+.ficha__datos dd { margin: 2px 0 0; font-weight: 600; font-size: 14px; }
+
+.ficha__info { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.ficha__titulo { font-family: var(--font-display); font-weight: 600; font-size: 36px; line-height: 44px; letter-spacing: -0.5px; }
+.ficha__productor { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; color: var(--color-text-secondary); }
+.ficha__tienda { font-weight: 600; color: var(--color-text-brand); }
+
+.ficha__cita { width: 100%; margin: 4px 0; padding: 16px 18px; border-radius: var(--radius-l); background: var(--color-bg-sand); }
+.ficha__cita p { font-family: var(--font-display); font-style: italic; font-size: 18px; line-height: 26px; margin-bottom: 8px; }
+
+.ficha__compra { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; width: 100%; padding: 16px; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); background: var(--color-bg-surface); }
+.ficha__precios { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; width: 100%; }
+
+.ficha__precio { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px 14px; border: 1px solid var(--color-border-strong); border-radius: var(--radius-l); background: var(--color-bg-surface); text-align: left; cursor: pointer; }
+div.ficha__precio { cursor: default; }
+.ficha__precio--activo { border: 2px solid var(--color-border-brand); padding: 11px 13px; background: var(--color-bg-brand-subtle); }
+.ficha__monto { font-family: var(--font-display); font-weight: 600; font-size: 24px; line-height: 32px; }
+
+.ficha__descripcion { margin-top: 4px; }
+
+.historia {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 48px;
+  align-items: center;
+  padding: 48px;
+  border-radius: 24px;
+  background: var(--color-bg-inverse);
+  color: var(--color-text-on-brand);
+  scroll-margin-top: 16px;
+}
+
+.historia__img { width: 100%; aspect-ratio: 4 / 5; max-height: 520px; object-fit: cover; border-radius: var(--radius-xl); }
+.historia__texto { display: flex; flex-direction: column; gap: 16px; }
+.historia .historia__overline { color: var(--color-text-accent-inverse); }
+.historia__titulo { font-family: var(--font-display); font-weight: 600; font-size: 32px; line-height: 40px; }
+.historia__pasos { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.historia__paso { display: flex; gap: 14px; padding: 14px 16px; border-radius: var(--radius-l); background: rgba(255, 255, 255, 0.06); }
+.historia__paso:nth-child(2) { background: var(--color-bg-brand); }
+.historia__numero { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; width: 26px; height: 26px; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 50%; font-size: 13px; }
+.historia__paso-titulo { display: block; font-weight: 600; }
+.historia__paso-texto { display: block; font-size: 14px; line-height: 20px; opacity: 0.85; }
+.historia__relato { font-size: 17px; line-height: 27px; opacity: 0.92; }
+.historia__nota { display: flex; align-items: center; gap: 6px; font-size: 12px; opacity: 0.75; }
+
+.ficha__confianza { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 24px; align-items: start; }
+.ficha__cosecha { padding: 20px 24px; border-radius: var(--radius-xl); background: var(--color-bg-sand); }
+.ficha__cosecha dl, .ficha__volumen dl { display: grid; gap: 10px; margin: 12px 0 0; }
+.ficha__cosecha dl div, .ficha__volumen dl div { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--color-border-default); font-size: 14px; }
+.ficha__cosecha dt, .ficha__volumen dt { color: var(--color-text-secondary); }
+.ficha__cosecha dd, .ficha__volumen dd { margin: 0; font-weight: 600; }
+
+.ficha__volumen { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 720px; padding: 24px; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
+.ficha__volumen dl { width: 100%; }
+
+@media (max-width: 900px) {
+  .ficha__principal, .historia, .ficha__confianza { grid-template-columns: minmax(0, 1fr); }
+  .historia { padding: 28px; }
+}
+
+@media (max-width: 520px) {
+  .ficha__titulo { font-size: 28px; line-height: 36px; }
+  .historia { padding: 20px; border-radius: 20px; }
+  .historia__titulo { font-size: 26px; line-height: 34px; }
+  .ficha__miniaturas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

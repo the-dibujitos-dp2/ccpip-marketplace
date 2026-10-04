@@ -1,0 +1,26 @@
+.formulario-lote { display: flex; flex-direction: column; gap: 18px; padding: 24px; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
+.formulario-lote__fila { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.lotes__col { width: 92px; }
+.lotes__col-corta { width: 52px; }
+.lotes__col-estado { width: 128px; }
+.tabla__celda--flex.lotes__punto { flex: 1 1 96px; min-width: 96px; color: var(--color-text-secondary); }
+@media (min-width: 640px) {
+  .tabla--lotes .tabla__fila { display: grid; grid-template-columns: 84px 92px 52px minmax(96px, 1fr) 128px; min-width: 0; padding-left: 16px; padding-right: 16px; }
+  .tabla--lotes .tabla__celda { width: auto; min-width: 0; }
+}
+
+@media (max-width: 520px) {
+  .formulario-lote__fila { grid-template-columns: minmax(0, 1fr); }
+}
+
+.lotes__selector { max-width: 560px; }
+.tarjeta-panel.lotes__producto { flex-direction: row; align-items: center; gap: 16px; padding: 16px 20px; }
+.lotes__producto-texto { flex: 1; min-width: 0; }
+.lotes__cuerpo { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 24px; align-items: start; }
+
+@media (max-width: 1100px) {
+  .lotes__cuerpo { grid-template-columns: minmax(0, 1fr); }
+}
+.lotes__miniatura { width: 48px; height: 48px; }
+.lotes__producto-nombre { font-weight: 600; font-size: 16px; line-height: 24px; color: var(--color-text-primary); }
+.tabla__fila--encabezado .tabla__celda--flex { color: inherit; }

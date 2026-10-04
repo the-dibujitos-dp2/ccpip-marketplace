@@ -6,8 +6,9 @@ export default defineConfig({
   server: {
     port: 5173,
     // En desarrollo, /api se redirige al backend Spring Boot (evita configurar CORS)
+    // API_PROXY permite apuntar a otro backend, p. ej. el stack de e2e (http://localhost:4173)
     proxy: {
-      '/api': 'http://localhost:8080',
+      '/api': process.env.API_PROXY ?? 'http://localhost:8080',
     },
   },
   // CCPIP-27: pruebas con Vitest + Testing Library. La cobertura (lcov) la lee SonarQube.

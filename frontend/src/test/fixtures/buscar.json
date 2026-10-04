@@ -1,0 +1,99 @@
+{
+    "items": [
+        {
+            "id": 1,
+            "nombre": "Cacao en grano fermentado 1 kg",
+            "modalidad": "MINORISTA",
+            "precio": 42.0,
+            "precioMayorista": null,
+            "contenido": null,
+            "unidad": {
+                "codigo": "KG",
+                "nombre": "Kilogramo"
+            },
+            "linea": {
+                "codigo": "CACAO",
+                "nombre": "Cacao y chocolates"
+            },
+            "lineas": [
+                "CACAO"
+            ],
+            "imagen": null,
+            "disponible": true,
+            "tienda": {
+                "id": 2,
+                "nombre": "C.N. Yarina",
+                "pueblo": "Awaj\u00fan",
+                "comunidad": "Comunidad Awajun del Alto Maranon",
+                "region": "Amazonas",
+                "localidad": "Alto Mara\u00f1\u00f3n",
+                "origenVerificado": true
+            }
+        },
+        {
+            "id": 4,
+            "nombre": "Pasta de cacao 500 g",
+            "modalidad": "MINORISTA",
+            "precio": 55.0,
+            "precioMayorista": null,
+            "contenido": null,
+            "unidad": {
+                "codigo": "G",
+                "nombre": "Gramo"
+            },
+            "linea": {
+                "codigo": "CACAO",
+                "nombre": "Cacao y chocolates"
+            },
+            "lineas": [
+                "CACAO"
+            ],
+            "imagen": null,
+            "disponible": true,
+            "tienda": {
+                "id": 2,
+                "nombre": "C.N. Yarina",
+                "pueblo": "Awaj\u00fan",
+                "comunidad": "Comunidad Awajun del Alto Maranon",
+                "region": "Amazonas",
+                "localidad": "Alto Mara\u00f1\u00f3n",
+                "origenVerificado": true
+            }
+        }
+    ],
+    "pagina": 0,
+    "tamano": 12,
+    "total": 2,
+    "totalPaginas": 1,
+    "totalComunidades": 1,
+    "facetas": {
+        "lineas": [
+            {
+                "codigo": "CACAO",
+                "nombre": "Cacao y chocolates",
+                "total": 2
+            }
+        ],
+        "regiones": [
+            {
+                "codigo": "Amazonas",
+                "nombre": "Amazonas",
+                "total": 2
+            }
+        ],
+        "modalidades": [
+            {
+                "codigo": "MINORISTA",
+                "nombre": "Minorista (por unidad)",
+                "total": 2
+            }
+        ],
+        "comunidades": [
+            {
+                "codigo": "2",
+                "nombre": "C.N. Yarina",
+                "total": 2
+            }
+        ]
+    }
+}

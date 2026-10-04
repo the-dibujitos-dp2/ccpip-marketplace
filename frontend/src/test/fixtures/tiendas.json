@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "nombre": "Asoc. Nii Joi",
+        "pueblo": "Shipibo-Konibo",
+        "comunidad": "Comunidad Shipibo Konibo de Yarinacocha",
+        "region": "Ucayali",
+        "localidad": "Yarinacocha",
+        "cita": "Las plantas del monte curan y alimentan.",
+        "origenVerificado": true,
+        "portada": null,
+        "productos": 4
+    },
+    {
+        "id": 2,
+        "nombre": "C.N. Yarina",
+        "pueblo": "Awaj\u00fan",
+        "comunidad": "Comunidad Awajun del Alto Maranon",
+        "region": "Amazonas",
+        "localidad": "Alto Mara\u00f1\u00f3n",
+        "cita": "Sembramos cacao donde antes hubo tala.",
+        "origenVerificado": true,
+        "portada": null,
+        "productos": 3
+    },
+    {
+        "id": 3,
+        "nombre": "Coop. R\u00edo Ene",
+        "pueblo": "Ash\u00e1ninka",
+        "comunidad": "Comunidad Ash\u00e1ninka de Chanchamayo",
+        "region": "Junin",
+        "localidad": "Chanchamayo",
+        "cita": "Nuestro caf\u00e9 crece bajo sombra de bosque.",
+        "origenVerificado": true,
+        "portada": null,
+        "productos": 3
+    }
+]

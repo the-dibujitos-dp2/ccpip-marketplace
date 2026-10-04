@@ -8,6 +8,7 @@
   font-family: var(--font-body);
   font-weight: 600;
   white-space: nowrap;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -17,7 +18,7 @@
 .boton--ancho { width: 100%; }
 
 .boton--primario { background: var(--color-bg-brand); color: var(--color-text-on-brand); }
-.boton--acento { background: #c4501f; color: var(--color-text-on-brand); }
+.boton--acento { background: var(--color-bg-accent); color: var(--color-text-on-brand); }
 .boton--destructivo { background: var(--color-status-error-fg); color: var(--color-text-on-brand); }
 .boton--secundario {
   background: var(--color-bg-surface);
@@ -32,3 +33,7 @@
   border-color: transparent;
   cursor: not-allowed;
 }
+
+.boton--primario:not(:disabled):hover { background: #12482d; }
+.boton--secundario:not(:disabled):hover { background: var(--color-bg-brand-subtle); }
+.boton--terciario:not(:disabled):hover { text-decoration: underline; }

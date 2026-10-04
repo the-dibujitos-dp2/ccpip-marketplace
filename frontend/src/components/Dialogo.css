@@ -1,0 +1,4 @@
+.dialogo { width: min(480px, calc(100vw - 32px)); padding: 0; border: 0; border-radius: var(--radius-xl); background: var(--color-bg-surface); box-shadow: var(--shadow-menu); color: var(--color-text-primary); }
+.dialogo::backdrop { background: rgba(8, 38, 23, 0.45); }
+.dialogo__contenido { display: flex; flex-direction: column; gap: 12px; padding: 24px; }
+.dialogo__acciones { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
