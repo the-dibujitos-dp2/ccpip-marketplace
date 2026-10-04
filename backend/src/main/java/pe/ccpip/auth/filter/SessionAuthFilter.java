@@ -1,11 +1,9 @@
 package pe.ccpip.auth.filter;
 
 import java.io.IOException;
-import java.util.Set;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.FilterChain;
@@ -16,14 +14,15 @@ import pe.ccpip.auth.config.SessionCookies;
 import pe.ccpip.auth.service.SessionService;
 
 /**
- * Protege todo /api/** con la cookie de sesion. Solo login y logout quedan fuera: el logout
- * debe poder limpiar la cookie aunque la sesion ya haya expirado.
- * Que rol puede llamar a cada endpoint lo decide {@link pe.ccpip.auth.access.AccessInterceptor}.
+ * Identifica la sesion de cada peticion a /api a partir de la cookie, pero no rechaza nada:
+ * quien puede llamar a cada endpoint lo decide {@link pe.ccpip.auth.access.AccessInterceptor}
+ * segun sus anotaciones. Asi el catalogo publico y las rutas protegidas comparten el mismo filtro.
  */
 public class SessionAuthFilter extends OncePerRequestFilter {
 
     public static final String SESSION_ATTRIBUTE = "ccpip.session";
-    private static final Set<String> PUBLIC_PATHS = Set.of("/api/auth/login", "/api/auth/logout");
+    /** Motivo por el que no hay sesion: SESION_EXPIRADA o SIN_SESION. */
+    public static final String SESSION_STATUS_ATTRIBUTE = "ccpip.session.status";
 
     private final SessionService sessionService;
 
@@ -33,38 +32,23 @@ public class SessionAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = path(request);
-        return HttpMethod.OPTIONS.matches(request.getMethod())
-                || !path.startsWith("/api/")
-                || PUBLIC_PATHS.contains(path);
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+        return HttpMethod.OPTIONS.matches(request.getMethod()) || !path.startsWith("/api/");
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        // Ninguna respuesta con datos de sesion se guarda en cache: tras cerrar sesion,
+        // Ninguna respuesta de la API se guarda en cache: tras cerrar sesion,
         // el boton "atras" no puede mostrar datos del rol desde la cache del navegador.
         response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
 
         SessionService.Validation validation = sessionService.validate(SessionCookies.read(request));
         switch (validation.status()) {
-            case VALIDA -> {
-                request.setAttribute(SESSION_ATTRIBUTE, validation.session());
-                chain.doFilter(request, response);
-            }
-            case EXPIRADA -> reject(response, "SESION_EXPIRADA", "Tu sesion expiro por inactividad");
-            case INVALIDA -> reject(response, "SIN_SESION", "Sesion invalida o inexistente");
+            case VALIDA -> request.setAttribute(SESSION_ATTRIBUTE, validation.session());
+            case EXPIRADA -> request.setAttribute(SESSION_STATUS_ATTRIBUTE, "SESION_EXPIRADA");
+            case INVALIDA -> request.setAttribute(SESSION_STATUS_ATTRIBUTE, "SIN_SESION");
         }
-    }
-
-    private static void reject(HttpServletResponse response, String code, String message) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write("{\"code\":\"" + code + "\",\"error\":\"" + message + "\"}");
-    }
-
-    private static String path(HttpServletRequest request) {
-        return request.getRequestURI().substring(request.getContextPath().length());
+        chain.doFilter(request, response);
     }
 }

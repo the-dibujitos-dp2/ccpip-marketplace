@@ -10,7 +10,20 @@ export function login(email, password) {
   })
 }
 
-/** Devuelve { user, expiresInSeconds } o null si no hay sesion. */
+/**
+ * Pregunta si hay sesion sin exigirla: en paginas publicas (catalogo, ficha) no tener
+ * sesion es normal y no debe mandar al inicio de sesion.
+ */
+export async function consultarSesion() {
+  try {
+    return await apiFetch('/api/auth/me', { sessionRequired: false })
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) return null
+    throw error
+  }
+}
+
+/** Devuelve { user, expiresInSeconds } o null si no hay sesion. Si expiro, avisa a la app. */
 export async function fetchMe() {
   try {
     return await apiFetch('/api/auth/me')

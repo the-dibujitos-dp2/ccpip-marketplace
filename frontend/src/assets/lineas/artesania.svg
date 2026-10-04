@@ -1,0 +1,24 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Imagen">
+<g clip-path="url(#clip0_0_79)">
+<rect width="160" height="160" rx="12" fill="url(#paint0_linear_0_79)"/>
+<circle id="Ellipse" cx="130" cy="40" r="70" fill="white" fill-opacity="0.08"/>
+<circle id="Ellipse_2" cx="15" cy="145" r="45" fill="white" fill-opacity="0.06"/>
+<g id="Motivo">
+<path id="Vector" d="M78 84H82C83.0609 84 84.0783 83.5786 84.8284 82.8284C85.5786 82.0783 86 81.0609 86 80C86 78.9391 85.5786 77.9217 84.8284 77.1716C84.0783 76.4214 83.0609 76 82 76H76C74.8 76 73.8 76.4 73.2 77.2L62 88" stroke="white" stroke-opacity="0.35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_2" d="M70 96L73.2 93.2C73.8 92.4 74.8 92 76 92H84C86.2 92 88.2 91.2 89.6 89.6L98.8 80.8C99.5718 80.0707 100.022 79.0646 100.052 78.0031C100.082 76.9417 99.6893 75.9118 98.96 75.14C98.2307 74.3682 97.2246 73.9178 96.1631 73.8878C95.1017 73.8578 94.0718 74.2507 93.3 74.98L84.9 82.78" stroke="white" stroke-opacity="0.35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_3" d="M60 86L72 98" stroke="white" stroke-opacity="0.35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_4" d="M95 73C96.4 71.6 98 69.8 98 67.6C98.1398 66.3779 97.8628 65.1443 97.2139 64.0993C96.565 63.0542 95.5822 62.2589 94.4248 61.8423C93.2674 61.4256 92.0032 61.412 90.8371 61.8036C89.671 62.1953 88.6713 62.9692 88 64C87.2861 63.0492 86.2861 62.3522 85.1469 62.0116C84.0077 61.6709 82.7893 61.7044 81.6706 62.1071C80.5518 62.5099 79.5916 63.2607 78.931 64.2493C78.2704 65.2379 77.9441 66.4123 78 67.6C78 70 79.6 71.6 81 73.2L88 80L95 73Z" stroke="white" stroke-opacity="0.35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_79" x1="22.8571" y1="22.8571" x2="137.143" y2="137.143" gradientUnits="userSpaceOnUse">
+<stop stop-color="#822F11"/>
+<stop offset="1" stop-color="#E0A200"/>
+</linearGradient>
+<clipPath id="clip0_0_79">
+<rect width="160" height="160" rx="12" fill="white"/>
+</clipPath>
+</defs>
+</svg>

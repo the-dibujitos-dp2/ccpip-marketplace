@@ -1,7 +1,7 @@
-// Navegacion minima con la History API (dos pantallas por ahora).
+// Navegacion minima con la History API.
 import { useEffect, useState } from 'react'
 
-export const RUTAS = { ingresar: '/ingresar', inicio: '/inicio' }
+export const RUTAS = { catalogo: '/', ingresar: '/ingresar', inicio: '/inicio' }
 
 export function navigate(path, { replace = false } = {}) {
   if (replace) window.history.replaceState(null, '', path)
@@ -9,12 +9,19 @@ export function navigate(path, { replace = false } = {}) {
   window.dispatchEvent(new PopStateEvent('popstate'))
 }
 
-export function usePath() {
-  const [path, setPath] = useState(window.location.pathname)
+/** Ruta y query string actuales; se actualizan con navigate() y con atras/adelante. */
+export function useLocation() {
+  const leer = () => ({ path: window.location.pathname, search: window.location.search })
+  const [location, setLocation] = useState(leer)
   useEffect(() => {
-    const update = () => setPath(window.location.pathname)
+    const update = () => setLocation(leer())
     window.addEventListener('popstate', update)
     return () => window.removeEventListener('popstate', update)
   }, [])
-  return path
+  return location
+}
+
+/** Solo rutas internas: evita que ?volver= lleve a otro sitio (open redirect). */
+export function rutaInterna(valor, porDefecto) {
+  return typeof valor === 'string' && valor.startsWith('/') && !valor.startsWith('//') ? valor : porDefecto
 }

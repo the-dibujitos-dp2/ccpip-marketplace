@@ -1,0 +1,10 @@
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--color-border-default);
+}
+
+.paginacion__botones { display: flex; gap: 8px; }

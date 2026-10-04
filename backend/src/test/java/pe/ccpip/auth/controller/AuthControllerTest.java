@@ -118,7 +118,11 @@ class AuthControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.code").value("SIN_SESION"));
         mockMvc.perform(get("/api/auth/me").cookie(new Cookie(SessionCookies.NAME, "inventado")))
                 .andExpect(status().isUnauthorized());
-        mockMvc.perform(get("/api/cualquier-cosa")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void unaRutaDeLaApiQueNoExisteRespondeNoEncontrada() throws Exception {
+        mockMvc.perform(get("/api/cualquier-cosa")).andExpect(status().isNotFound());
     }
 
     // --- Cierre de sesion manual ---

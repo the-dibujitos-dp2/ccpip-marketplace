@@ -1,0 +1,23 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Imagen">
+<g clip-path="url(#clip0_0_28)">
+<rect width="160" height="160" rx="12" fill="url(#paint0_linear_0_28)"/>
+<circle id="Ellipse" cx="130" cy="40" r="70" fill="white" fill-opacity="0.08"/>
+<circle id="Ellipse_2" cx="15" cy="145" r="45" fill="white" fill-opacity="0.06"/>
+<g id="Motivo">
+<path id="Vector" d="M76 76V76.4C77.3116 76.9044 78.4046 77.8532 79.0884 79.081C79.7721 80.3087 80.0032 81.7375 79.7413 83.1182C79.4795 84.4989 78.7413 85.7438 77.6555 86.636C76.5697 87.5281 75.2053 88.0109 73.8 88H66C64.6115 87.9655 63.2781 87.4503 62.227 86.5424C61.176 85.6344 60.4725 84.39 60.2365 83.0213C60.0005 81.6526 60.2467 80.2444 60.933 79.037C61.6193 77.8295 62.7033 76.8975 64 76.4V76C64 74.4087 64.6321 72.8826 65.7574 71.7574C66.8826 70.6321 68.4087 70 70 70C71.5913 70 73.1174 70.6321 74.2426 71.7574C75.3679 72.8826 76 74.4087 76 76Z" stroke="white" stroke-opacity="0.35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_2" d="M70 88V100M82 94V100" stroke="white" stroke-opacity="0.35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_3" d="M80 94H96.6C96.9914 93.9945 97.3727 93.8742 97.6964 93.6541C98.0202 93.434 98.2722 93.1237 98.4213 92.7617C98.5703 92.3997 98.6099 92.0019 98.535 91.6176C98.4601 91.2334 98.2741 90.8795 98 90.6L92 84H92.6C92.9914 83.9945 93.3727 83.8742 93.6964 83.6541C94.0202 83.434 94.2722 83.1237 94.4213 82.7617C94.5703 82.3997 94.6099 82.0019 94.535 81.6176C94.4601 81.2334 94.2741 80.8795 94 80.6L88 74H88.4C88.8085 74.0369 89.2185 73.9472 89.5743 73.7432C89.9301 73.5393 90.2147 73.2308 90.3893 72.8597C90.564 72.4886 90.6203 72.0727 90.5506 71.6685C90.481 71.2643 90.2888 70.8913 90 70.6L82 62L79.2 65" stroke="white" stroke-opacity="0.35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_28" x1="22.8571" y1="22.8571" x2="137.143" y2="137.143" gradientUnits="userSpaceOnUse">
+<stop stop-color="#082617"/>
+<stop offset="1" stop-color="#3F8B5F"/>
+</linearGradient>
+<clipPath id="clip0_0_28">
+<rect width="160" height="160" rx="12" fill="white"/>
+</clipPath>
+</defs>
+</svg>

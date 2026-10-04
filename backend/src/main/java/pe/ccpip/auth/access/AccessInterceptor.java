@@ -20,6 +20,7 @@ import pe.ccpip.auth.model.AuthenticatedSession;
  * CCPIP-151: cada endpoint de /api declara quien puede llamarlo con {@link Publico},
  * {@link Autenticado} o {@link RolesPermitidos}. Un endpoint sin declaracion se niega
  * (falla cerrado). Todo acceso denegado queda en el log con usuario, rol y ruta.
+ * Sin sesion responde 401 indicando si expiro (SESION_EXPIRADA) o si no habia (SIN_SESION).
  */
 @Component
 public class AccessInterceptor implements HandlerInterceptor {
@@ -39,8 +40,8 @@ public class AccessInterceptor implements HandlerInterceptor {
         AuthenticatedSession session =
                 (AuthenticatedSession) request.getAttribute(SessionAuthFilter.SESSION_ATTRIBUTE);
         if (session == null) {
-            // No deberia pasar: el filtro ya rechaza sin sesion. Se niega por si acaso.
-            return deny(request, response, null, HttpServletResponse.SC_UNAUTHORIZED, "SIN_SESION");
+            Object status = request.getAttribute(SessionAuthFilter.SESSION_STATUS_ATTRIBUTE);
+            return unauthenticated(response, "SESION_EXPIRADA".equals(status));
         }
         if (has(method, Autenticado.class)) {
             return true;
@@ -55,6 +56,16 @@ public class AccessInterceptor implements HandlerInterceptor {
             return true;
         }
         return deny(request, response, session, HttpServletResponse.SC_FORBIDDEN, "SIN_PERMISO");
+    }
+
+    private static boolean unauthenticated(HttpServletResponse response, boolean expired) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(expired
+                ? "{\"code\":\"SESION_EXPIRADA\",\"error\":\"Tu sesion expiro por inactividad\"}"
+                : "{\"code\":\"SIN_SESION\",\"error\":\"Sesion invalida o inexistente\"}");
+        return false;
     }
 
     private static boolean deny(HttpServletRequest request, HttpServletResponse response,

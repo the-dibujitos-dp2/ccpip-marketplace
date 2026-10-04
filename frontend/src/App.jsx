@@ -1,12 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { fetchMe, logout } from './api/auth.js'
+import { consultarSesion, fetchMe, logout } from './api/auth.js'
 import { armIdleTimer, disarmIdleTimer, onSessionLost } from './api/http.js'
+import Cabecera from './components/Cabecera.jsx'
+import CatalogoPage from './pages/CatalogoPage.jsx'
 import IngresarPage from './pages/IngresarPage.jsx'
 import InicioPage from './pages/InicioPage.jsx'
-import { navigate, RUTAS, usePath } from './router.js'
+import ProductoPage from './pages/ProductoPage.jsx'
+import ProductorPage from './pages/ProductorPage.jsx'
+import { navigate, RUTAS, rutaInterna, useLocation } from './router.js'
+
+const RUTA_PRODUCTO = /^\/productos\/(\d+)$/
+const RUTA_PRODUCTOR = /^\/productores\/(\d+)$/
 
 export default function App() {
-  const path = usePath()
+  const { path, search } = useLocation()
+  const params = new URLSearchParams(search)
   const [sesion, setSesion] = useState(null) // { user, expiresInSeconds }
   const [cargando, setCargando] = useState(true)
   const [aviso, setAviso] = useState(null)
@@ -23,7 +31,7 @@ export default function App() {
   // La sesion se confirma siempre con el servidor, nunca con datos guardados en el navegador
   const verificar = useCallback(async () => {
     try {
-      setSesion(await fetchMe())
+      setSesion(await consultarSesion())
     } catch {
       setSesion(null)
     } finally {
@@ -31,7 +39,7 @@ export default function App() {
     }
   }, [])
 
-  // Si el servidor rechaza la sesion en cualquier peticion, se vuelve al inicio de sesion
+  // Si el servidor rechaza la sesion en una peticion que la exige, se vuelve al inicio de sesion
   useEffect(
     () =>
       onSessionLost((code) => {
@@ -69,12 +77,13 @@ export default function App() {
     armIdleTimer(sesion.expiresInSeconds, () => fetchMe())
   }, [sesion])
 
-  // Cada estado tiene su ruta
+  // Rutas que dependen de la sesion
+  const volver = rutaInterna(params.get('volver'), RUTAS.inicio)
   useEffect(() => {
     if (cargando) return
-    if (sesion && path !== RUTAS.inicio) navigate(RUTAS.inicio, { replace: true })
-    if (!sesion && path !== RUTAS.ingresar) navigate(RUTAS.ingresar, { replace: true })
-  }, [cargando, sesion, path])
+    if (sesion && path === RUTAS.ingresar) navigate(volver, { replace: true })
+    if (!sesion && path === RUTAS.inicio) navigate(RUTAS.ingresar, { replace: true })
+  }, [cargando, sesion, path, volver])
 
   async function handleCerrarSesion() {
     setCerrando(true)
@@ -89,25 +98,63 @@ export default function App() {
 
   if (cargando) return <p className="visually-hidden">Cargando…</p>
 
-  if (sesion) {
+  const user = sesion?.user ?? null
+  const cabecera = (
+    <Cabecera user={user} onCerrarSesion={handleCerrarSesion} cerrando={cerrando} termino={params.get('q') ?? ''} />
+  )
+
+  if (path === RUTAS.ingresar) {
+    if (sesion) return null
     return (
-      <InicioPage
-        user={sesion.user}
-        minutosInactividad={Math.round(sesion.expiresInSeconds / 60)}
-        onCerrarSesion={handleCerrarSesion}
-        cerrando={cerrando}
+      <IngresarPage
+        aviso={aviso}
+        onCerrarAviso={() => setAviso(null)}
+        onIngreso={(nueva) => {
+          setAviso(null)
+          setSesion(nueva)
+        }}
       />
     )
   }
 
+  if (path === RUTAS.inicio) {
+    if (!sesion) return null
+    return (
+      <>
+        {cabecera}
+        <InicioPage user={user} minutosInactividad={Math.round(sesion.expiresInSeconds / 60)} />
+      </>
+    )
+  }
+
+  const producto = path.match(RUTA_PRODUCTO)
+  if (producto) {
+    return (
+      <>
+        {cabecera}
+        <ProductoPage id={producto[1]} user={user} />
+      </>
+    )
+  }
+
+  if (RUTA_PRODUCTOR.test(path)) {
+    return (
+      <>
+        {cabecera}
+        <ProductorPage />
+      </>
+    )
+  }
+
+  if (path !== RUTAS.catalogo) {
+    navigate(RUTAS.catalogo, { replace: true })
+    return null
+  }
+
   return (
-    <IngresarPage
-      aviso={aviso}
-      onCerrarAviso={() => setAviso(null)}
-      onIngreso={(nueva) => {
-        setAviso(null)
-        setSesion(nueva)
-      }}
-    />
+    <>
+      {cabecera}
+      <CatalogoPage q={(params.get('q') ?? '').trim()} pagina={Math.max(0, Number(params.get('pagina')) || 0)} />
+    </>
   )
 }
