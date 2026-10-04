@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { apiFetch, ApiError } from './http.js'
+import { apiFetch, ApiError, idRuta } from './http.js'
 import { servidor } from '../test/servidor.js'
 
 describe('apiFetch', () => {
@@ -15,5 +15,15 @@ describe('apiFetch', () => {
   it('un error sin cuerpo usa un mensaje generico', async () => {
     servidor({ 'GET /api/z': [500] })
     await expect(apiFetch('/api/z')).rejects.toThrow('Error 500')
+  })
+})
+
+describe('idRuta', () => {
+  it('acepta numeros y UUID, y rechaza todo lo demas como inexistente', () => {
+    expect(idRuta(42)).toBe('42')
+    expect(idRuta('0000000a-0000-4000-8000-000000000000')).toBe('0000000a-0000-4000-8000-000000000000')
+    for (const malo of ['0', '-1', '1.5', '../auth/logout', '9%2F..', '', null, undefined, '1 OR 1=1']) {
+      expect(() => idRuta(malo)).toThrow(expect.objectContaining({ status: 404 }))
+    }
   })
 })

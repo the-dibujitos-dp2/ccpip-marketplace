@@ -230,6 +230,13 @@ describe('PW-06 Registrar lote (CCPIP-41)', () => {
     expect(screen.getByLabelText('¿De qué producto es el lote?')).toBeInTheDocument()
   })
 
+  it('un enlace armado no llega al API: el id debe ser un numero', async () => {
+    const fetchMock = productor()
+    abrirEn('/productor/lotes?producto=..%2F..%2Fauth%2Flogout')
+    expect(await screen.findByText('Ese producto no existe')).toBeInTheDocument()
+    expect(fetchMock.mock.calls.some(([u]) => u.includes('auth/logout') || u.includes('..'))).toBe(false)
+  })
+
   it('sin productos invita a crear uno', async () => {
     productor({ 'GET /api/productor/productos': () => [200, { items: [], conteo: {} }] })
     abrirEn('/productor/lotes')
@@ -318,18 +325,18 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
     const conFotos = {
       ...copia(DATOS.edicion),
       imagenes: [
-        { id: 'a', urlMiniatura: '/api/imagenes/a?tam=min', principal: true },
-        { id: 'b', urlMiniatura: '/api/imagenes/b?tam=min', principal: false },
+        { id: '0000000a-0000-4000-8000-000000000000', urlMiniatura: '/api/imagenes/a?tam=min', principal: true },
+        { id: '0000000b-0000-4000-8000-000000000000', urlMiniatura: '/api/imagenes/b?tam=min', principal: false },
       ],
     }
     const fetchMock = productor({
       'GET /api/productor/productos/9': () => [200, copia(conFotos)],
       'POST /api/productor/imagenes': () => {
         intentos += 1
-        return intentos === 1 ? new TypeError('Failed to fetch') : [201, { id: 'c' }]
+        return intentos === 1 ? new TypeError('Failed to fetch') : [201, { id: '0000000c-0000-4000-8000-000000000000' }]
       },
-      'PUT /api/productor/imagenes/b/principal': [200, {}],
-      'DELETE /api/productor/imagenes/a': [204],
+      'PUT /api/productor/imagenes/0000000b-0000-4000-8000-000000000000/principal': [200, {}],
+      'DELETE /api/productor/imagenes/0000000a-0000-4000-8000-000000000000': [204],
     })
     const user = userEvent.setup()
     abrirEn('/productor/productos/9')
@@ -340,8 +347,8 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Hacer principal' }))
     await user.click(screen.getAllByRole('button', { name: 'Quitar foto' })[0])
-    await waitFor(() => expect(llamadas(fetchMock, 'DELETE /api/productor/imagenes/a')).toHaveLength(1))
-    expect(llamadas(fetchMock, 'PUT /api/productor/imagenes/b/principal')).toHaveLength(1)
+    await waitFor(() => expect(llamadas(fetchMock, 'DELETE /api/productor/imagenes/0000000a-0000-4000-8000-000000000000')).toHaveLength(1))
+    expect(llamadas(fetchMock, 'PUT /api/productor/imagenes/0000000b-0000-4000-8000-000000000000/principal')).toHaveLength(1)
   })
 
   it('pide el nombre antes de la primera foto', async () => {
@@ -359,10 +366,10 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
     const creado = { ...copia(DATOS.edicion), id: 31, estado: 'BORRADOR', nombre: 'Miel de abeja nativa', imagenes: [], historia: null }
     productor({
       'POST /api/productor/productos': [201, creado],
-      'GET /api/productor/productos/31': () => [200, { ...copia(creado), imagenes: conFoto ? [{ id: 'f', urlMiniatura: '/api/imagenes/f?tam=min', principal: true }] : [] }],
+      'GET /api/productor/productos/31': () => [200, { ...copia(creado), imagenes: conFoto ? [{ id: '0000000f-0000-4000-8000-000000000000', urlMiniatura: '/api/imagenes/f?tam=min', principal: true }] : [] }],
       'POST /api/productor/imagenes': () => {
         conFoto = true
-        return [201, { id: 'f' }]
+        return [201, { id: '0000000f-0000-4000-8000-000000000000' }]
       },
     })
     const user = userEvent.setup()
@@ -375,10 +382,10 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
   })
 
   it('si no se puede quitar una foto lo avisa y la lista sigue', async () => {
-    const conFoto = { ...copia(DATOS.edicion), imagenes: [{ id: 'a', urlMiniatura: '/api/imagenes/a?tam=min', principal: true }] }
+    const conFoto = { ...copia(DATOS.edicion), imagenes: [{ id: '0000000a-0000-4000-8000-000000000000', urlMiniatura: '/api/imagenes/a?tam=min', principal: true }] }
     productor({
       'GET /api/productor/productos/9': () => [200, copia(conFoto)],
-      'DELETE /api/productor/imagenes/a': [500, { error: 'No pudimos quitar la foto' }],
+      'DELETE /api/productor/imagenes/0000000a-0000-4000-8000-000000000000': [500, { error: 'No pudimos quitar la foto' }],
     })
     const user = userEvent.setup()
     abrirEn('/productor/productos/9')
@@ -619,10 +626,10 @@ describe('PW-08 Editar mi tienda (CCPIP-30, 153, 154)', () => {
       'GET /api/productor/tienda': () => [200, copia(tienda)],
       'POST /api/productor/imagenes': (o) => {
         subidas.push(Object.fromEntries([...o.body.entries()].filter(([k]) => k !== 'archivo')))
-        tienda = { ...tienda, galeria: [{ id: 'g1', categoria: 'CULTIVO', urlMiniatura: '/api/imagenes/g1?tam=min' }] }
+        tienda = { ...tienda, galeria: [{ id: '000000a1-0000-4000-8000-000000000000', categoria: 'CULTIVO', urlMiniatura: '/api/imagenes/g1?tam=min' }] }
         return [201, {}]
       },
-      'DELETE /api/productor/imagenes/g1': () => {
+      'DELETE /api/productor/imagenes/000000a1-0000-4000-8000-000000000000': () => {
         tienda = { ...tienda, galeria: [] }
         return [204]
       },

@@ -49,6 +49,20 @@ export class ApiError extends Error {
   }
 }
 
+// Ids que pueden ir en una ruta del API: numeros (productos, tiendas) o UUID (imagenes)
+const ID_VALIDO = /^(?:[1-9]\d{0,17}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i
+
+/**
+ * Valida un id que llega de la URL antes de ponerlo en la ruta de una peticion. Evita que un
+ * enlace armado (p. ej. ?producto=../../auth/logout) haga llamar a otro endpoint del sitio.
+ * Un id invalido se trata como inexistente (404).
+ */
+export function idRuta(valor) {
+  const texto = String(valor ?? '')
+  if (!ID_VALIDO.test(texto)) throw new ApiError(404, { code: 'NO_ENCONTRADO', error: 'No encontrado' })
+  return encodeURIComponent(texto)
+}
+
 export async function apiFetch(path, { method = 'GET', body, sessionRequired = true } = {}) {
   const res = await fetch(path, {
     method,

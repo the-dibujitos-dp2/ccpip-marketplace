@@ -1,5 +1,5 @@
 // API del productor (PW-01 a PW-08). El servidor filtra todo por el productor de la sesion.
-import { ApiError, apiFetch, restartIdle } from './http.js'
+import { ApiError, apiFetch, idRuta, restartIdle } from './http.js'
 
 const base = '/api/productor'
 
@@ -14,24 +14,24 @@ export function listarProductos({ estado = 'PUBLICADO', q } = {}) {
   if (q?.trim()) p.set('q', q.trim())
   return apiFetch(`${base}/productos?${p}`)
 }
-export const obtenerProducto = (id) => apiFetch(`${base}/productos/${id}`)
+export const obtenerProducto = async (id) => apiFetch(`${base}/productos/${idRuta(id)}`)
 export const crearProducto = (datos) => apiFetch(`${base}/productos`, { method: 'POST', body: datos })
-export const editarProducto = (id, datos) => apiFetch(`${base}/productos/${id}`, { method: 'PUT', body: datos })
-export const publicarProducto = (id) => apiFetch(`${base}/productos/${id}/publicar`, { method: 'POST' })
-export const retirarProducto = (id) => apiFetch(`${base}/productos/${id}/retirar`, { method: 'POST' })
+export const editarProducto = async (id, datos) => apiFetch(`${base}/productos/${idRuta(id)}`, { method: 'PUT', body: datos })
+export const publicarProducto = async (id) => apiFetch(`${base}/productos/${idRuta(id)}/publicar`, { method: 'POST' })
+export const retirarProducto = async (id) => apiFetch(`${base}/productos/${idRuta(id)}/retirar`, { method: 'POST' })
 
-export const guardarHistoria = (id, datos) => apiFetch(`${base}/productos/${id}/historia`, { method: 'PUT', body: datos })
-export const proponerHistoria = (id, respuestas, variante = 'NORMAL') =>
-  apiFetch(`${base}/productos/${id}/historia/propuesta`, { method: 'POST', body: { respuestas, variante } })
-export const aprobarHistoria = (id, datos) => apiFetch(`${base}/productos/${id}/historia/aprobar`, { method: 'POST', body: datos })
+export const guardarHistoria = async (id, datos) => apiFetch(`${base}/productos/${idRuta(id)}/historia`, { method: 'PUT', body: datos })
+export const proponerHistoria = async (id, respuestas, variante = 'NORMAL') =>
+  apiFetch(`${base}/productos/${idRuta(id)}/historia/propuesta`, { method: 'POST', body: { respuestas, variante } })
+export const aprobarHistoria = async (id, datos) => apiFetch(`${base}/productos/${idRuta(id)}/historia/aprobar`, { method: 'POST', body: datos })
 export const proponerDescripcion = (datos) => apiFetch(`${base}/ia/descripcion`, { method: 'POST', body: datos })
 
 export const listarUbicaciones = () => apiFetch(`${base}/ubicaciones`)
-export const listarLotes = (id) => apiFetch(`${base}/productos/${id}/lotes`)
-export const registrarLote = (id, datos) => apiFetch(`${base}/productos/${id}/lotes`, { method: 'POST', body: datos })
+export const listarLotes = async (id) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`)
+export const registrarLote = async (id, datos) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`, { method: 'POST', body: datos })
 
-export const marcarPrincipal = (imagenId) => apiFetch(`${base}/imagenes/${imagenId}/principal`, { method: 'PUT' })
-export const eliminarImagen = (imagenId) => apiFetch(`${base}/imagenes/${imagenId}`, { method: 'DELETE' })
+export const marcarPrincipal = async (imagenId) => apiFetch(`${base}/imagenes/${idRuta(imagenId)}/principal`, { method: 'PUT' })
+export const eliminarImagen = async (imagenId) => apiFetch(`${base}/imagenes/${idRuta(imagenId)}`, { method: 'DELETE' })
 
 /**
  * Sube UNA imagen (CCPIP-44). Cada archivo va en su propia peticion: si la conexion se corta,

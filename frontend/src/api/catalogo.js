@@ -1,5 +1,5 @@
 // Catalogo publico (CW-01 a CW-04): no requiere sesion.
-import { apiFetch } from './http.js'
+import { apiFetch, idRuta } from './http.js'
 
 const publico = { sessionRequired: false }
 
@@ -20,8 +20,8 @@ export function buscarProductos({ q, lineas = [], regiones = [], modalidad, tien
   return apiFetch(`/api/productos?${p}`, publico)
 }
 
-export const obtenerProducto = (id) => apiFetch(`/api/productos/${id}`, publico)
+export const obtenerProducto = async (id) => apiFetch(`/api/productos/${idRuta(id)}`, publico)
 export const obtenerInicio = () => apiFetch('/api/inicio', publico)
 export const listarTiendas = () => apiFetch('/api/tiendas', publico)
-export const obtenerTienda = (id) => apiFetch(`/api/tiendas/${id}`, publico)
+export const obtenerTienda = async (id) => apiFetch(`/api/tiendas/${idRuta(id)}`, publico)
 export const obtenerCatalogos = () => apiFetch('/api/catalogos', publico)
