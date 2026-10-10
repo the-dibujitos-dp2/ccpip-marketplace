@@ -23,7 +23,7 @@
              en la imagen). Quitar cuando una version de Spring Boot ya incluya estas o mayores. -->
         <tomcat.version>10.1.60</tomcat.version>
         <jackson-bom.version>2.21.7</jackson-bom.version>
-        <awssdk.version>2.55.11</awssdk.version>
+        <awssdk.version>2.55.12</awssdk.version>
         <s3mock.version>5.2.3</s3mock.version>
         <!-- CCPIP-148: CVE-2026-54291 en el driver 42.7.11 que trae Spring Boot 3.5.16. -->
         <postgresql.version>42.7.12</postgresql.version>
@@ -99,7 +99,7 @@
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-webp</artifactId>
-            <version>3.15.2</version>
+            <version>3.15.3</version>
         </dependency>
         <dependency>
             <groupId>com.drewnoakes</groupId>
