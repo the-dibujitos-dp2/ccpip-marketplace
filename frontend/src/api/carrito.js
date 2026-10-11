@@ -1,4 +1,4 @@
-// Carrito del comprador (CCPIP-58, CCPIP-155, CCPIP-268). Requiere sesion de consumidor.
+// Carrito del comprador (CCPIP-58, CCPIP-155, CCPIP-268, CCPIP-156). Requiere sesion de consumidor.
 import { useEffect, useState } from 'react'
 import { apiFetch, idRuta } from './http.js'
 
@@ -12,6 +12,10 @@ export const consultarCarrito = () => apiFetch('/api/carrito')
 /** CCPIP-268: reemplaza la cantidad de una oferta del carrito. Devuelve el carrito recalculado. */
 export const modificarCantidad = async (productoId, cantidad) =>
   apiFetch(`/api/carrito/items/${idRuta(productoId)}`, { method: 'PUT', body: { cantidad } })
+
+/** CCPIP-156: quita una oferta del carrito. Devuelve el carrito recalculado. */
+export const quitarDelCarrito = async (productoId) =>
+  apiFetch(`/api/carrito/items/${idRuta(productoId)}`, { method: 'DELETE' })
 
 // Unidades del carrito para el boton "Carrito · N" de la cabecera. Se comparten entre pantallas
 // para no consultar el carrito en cada una; quien lo cambia avisa con recargarUnidadesCarrito().

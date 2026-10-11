@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import iconoAlerta from '../../assets/icons/alerta-campo.svg'
+import iconoBasurero from '../../assets/icons/basurero.svg'
 import iconoReloj from '../../assets/icons/reloj.svg'
-import { consultarCarrito, fijarUnidadesCarrito, modificarCantidad } from '../../api/carrito.js'
+import { consultarCarrito, fijarUnidadesCarrito, modificarCantidad, quitarDelCarrito } from '../../api/carrito.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
@@ -36,11 +37,12 @@ const PROBLEMAS = {
 /**
  * CW-05 · CCPIP-155: articulos, cantidades, subtotales y total del carrito persistido. Precio y
  * stock vienen revalidados del servidor; lo que ya no se puede comprar se muestra sin sumar al
- * total. Cambiar la cantidad es CCPIP-268; agrupar por comunidad, CCPIP-63; quitar, CCPIP-156.
+ * total. Cambiar la cantidad es CCPIP-268 y quitar, CCPIP-156; agrupar por comunidad, CCPIP-63.
  */
 export default function CarritoPage() {
   const [carrito, setCarrito] = useState(null)
   const [error, setError] = useState(null)
+  const [aviso, setAviso] = useState(null)
 
   const cargar = useCallback(() => {
     setError(null)
@@ -66,11 +68,37 @@ export default function CarritoPage() {
     }
   }, [])
 
+  // CCPIP-156: quitar sin confirmacion, como en el Figma; si fue un error se vuelve a agregar desde la ficha
+  const quitar = useCallback(async (item) => {
+    const numero = ++ultimoCambio.current
+    setAviso(null)
+    try {
+      const nuevo = await quitarDelCarrito(item.productoId)
+      if (numero === ultimoCambio.current) {
+        setCarrito(nuevo)
+        fijarUnidadesCarrito(nuevo.unidades)
+      }
+      setAviso({ tono: 'exito', titulo: `Quitaste ${item.nombre} de tu carrito` })
+    } catch (e) {
+      if (e.status === 404) {
+        // Ya no estaba (p. ej. se quito desde otra pestana): se muestra el carrito actual
+        cargar()
+      } else if (e.status !== 401) {
+        setAviso({ tono: 'error', titulo: `No pudimos quitar ${item.nombre}`, descripcion: 'Inténtalo otra vez.' })
+      }
+    }
+  }, [cargar])
+
   return (
     <LayoutTienda>
       <main className="contenedor carrito" aria-busy={!carrito && !error}>
         <Pasos pasos={PASOS} actual={0} etiqueta="Pasos de la compra" />
         <h1 className="carrito__titulo">Tu carrito</h1>
+        {aviso && (
+          <div className="carrito__aviso">
+            <Alerta {...aviso} onCerrar={() => setAviso(null)} />
+          </div>
+        )}
         {error && (
           <EstadoVacio titulo="No pudimos cargar tu carrito" descripcion="Revisa tu conexión e inténtalo otra vez.">
             <Boton tamano="M" onClick={cargar}>
@@ -86,13 +114,15 @@ export default function CarritoPage() {
             </Boton>
           </EstadoVacio>
         )}
-        {carrito && carrito.items.length > 0 && <Contenido carrito={carrito} onCambiarCantidad={cambiarCantidad} />}
+        {carrito && carrito.items.length > 0 && (
+          <Contenido carrito={carrito} onCambiarCantidad={cambiarCantidad} onQuitar={quitar} />
+        )}
       </main>
     </LayoutTienda>
   )
 }
 
-function Contenido({ carrito, onCambiarCantidad }) {
+function Contenido({ carrito, onCambiarCantidad, onQuitar }) {
   const comprables = carrito.items.filter((i) => i.estado === 'DISPONIBLE')
   const unidadesComprables = comprables.reduce((suma, i) => suma + Number(i.cantidad), 0)
   const conProblemas = comprables.length < carrito.items.length
@@ -108,7 +138,7 @@ function Contenido({ carrito, onCambiarCantidad }) {
         )}
         <ul className="carrito__items">
           {carrito.items.map((item) => (
-            <ItemCarrito key={item.productoId} item={item} onCambiarCantidad={onCambiarCantidad} />
+            <ItemCarrito key={item.productoId} item={item} onCambiarCantidad={onCambiarCantidad} onQuitar={onQuitar} />
           ))}
         </ul>
       </section>
@@ -145,7 +175,7 @@ function Contenido({ carrito, onCambiarCantidad }) {
   )
 }
 
-function ItemCarrito({ item, onCambiarCantidad }) {
+function ItemCarrito({ item, onCambiarCantidad, onQuitar }) {
   const problema = PROBLEMAS[item.estado]?.(item)
   const presentacion = item.contenido ?? item.unidad?.toLowerCase()
   const cantidad = Number(item.cantidad)
@@ -171,6 +201,7 @@ function ItemCarrito({ item, onCambiarCantidad }) {
       <div className="carrito__subtotal">
         {problema ? <Badge tono={problema.tono}>{problema.texto}</Badge> : <strong>{precio(item.subtotal)}</strong>}
       </div>
+      <BotonQuitar item={item} onQuitar={onQuitar} />
     </li>
   )
 }
@@ -250,4 +281,29 @@ function CantidadEditable({ item, onCambiar }) {
 /** "2026-10-04" -> "octubre 2026", como en el Figma CW-05 ("cosecha de octubre 2026"). */
 function cosecha(iso) {
   return mesAnio(iso).replace(' de ', ' ')
+}
+
+/** CCPIP-156: basurero de la fila (Figma CW-05). Se desactiva mientras se quita para no repetir el pedido. */
+function BotonQuitar({ item, onQuitar }) {
+  const [quitando, setQuitando] = useState(false)
+  async function quitar() {
+    setQuitando(true)
+    try {
+      await onQuitar(item)
+    } finally {
+      setQuitando(false)
+    }
+  }
+  return (
+    <button
+      type="button"
+      className="carrito__quitar"
+      onClick={() => void quitar()}
+      disabled={quitando}
+      aria-label={`Quitar ${item.nombre} del carrito`}
+      title="Quitar del carrito"
+    >
+      <Icono src={iconoBasurero} tamano={20} />
+    </button>
+  )
 }
