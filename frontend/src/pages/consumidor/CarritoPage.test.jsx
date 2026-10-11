@@ -28,7 +28,7 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
     const filas = within(screen.getByRole('region', { name: 'Productos en tu carrito' })).getAllByRole('listitem')
     expect(filas).toHaveLength(2)
     expect(within(filas[0]).getByRole('link', { name: 'Aceite de aguaje 250 ml' })).toHaveAttribute('href', '/productos/8')
-    expect(within(filas[0]).getByText('mililitro · de Asoc. Nii Joi')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('mililitro · cosecha de setiembre 2026 · de Asoc. Nii Joi')).toBeInTheDocument()
     expect(within(filas[0]).getByText('S/ 52.00 c/u')).toBeInTheDocument()
     expect(within(filas[0]).getByLabelText('Cantidad de Aceite de aguaje 250 ml')).toHaveValue('14')
     expect(within(filas[0]).getByText('S/ 728.00')).toBeInTheDocument()
@@ -44,6 +44,14 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
     expect(within(resumen).getByText('Tu carrito no reserva stock')).toBeInTheDocument()
     // La cabecera usa las unidades de la misma consulta
     expect(screen.getByRole('link', { name: 'Carrito · 16' })).toHaveAttribute('href', '/carrito')
+  })
+
+  it('sin lotes vendibles no hay cosecha que mostrar', async () => {
+    const carrito = copia(DATOS.carrito)
+    carrito.items[0] = { ...carrito.items[0], cosecha: null }
+    servidor(conSesion(carrito))
+    abrirEn('/carrito')
+    expect(await screen.findByText('mililitro · de Asoc. Nii Joi')).toBeInTheDocument()
   })
 
   it('lo que ya no se puede comprar se marca, avisa y no cuenta en el resumen', async () => {
