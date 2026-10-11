@@ -39,7 +39,19 @@ cd backend
 ./mvnw spring-boot:run
 ```
 
-Requiere Java 21. La base de datos de desarrollo se levanta con `docker compose up -d` desde la raíz. Copia `backend/.env.example` a `backend/.env` y completa las variables.
+Requiere Java 21 y Docker Desktop abierto. Antes de arrancar el backend, desde la raíz del repo:
+
+```
+docker compose up -d
+```
+
+Eso levanta PostgreSQL (`localhost:5432`) y S3Mock (`localhost:9090`), que reemplaza a S3 para las imágenes en local. **No hace falta ningún `.env` ni cuenta de AWS**: todo tiene valores por defecto en `backend/src/main/resources/application.properties`. Al arrancar, el backend crea las tablas, carga los datos de prueba y crea el bucket de imágenes.
+
+Usuarios de prueba (clave `Demo1234!`): `consumidor@ccpip.test`, `productor@ccpip.test` y `productor_nuevo@ccpip.test` (tienda vacía para armarla desde cero). Ver [docs/devsecops.md](docs/devsecops.md) para los demás roles.
+
+Problemas comunes:
+- `Connection to localhost:5432 refused` o `No se pudo conectar al almacenamiento de imagenes`: Docker Desktop está cerrado o falta `docker compose up -d`.
+- Fallan las migraciones tras cambiar de rama: borra la base local con `docker compose down -v` y vuelve a levantarla.
 
 ### Frontend
 
@@ -49,7 +61,7 @@ npm install
 npm run dev
 ```
 
-Copia `frontend/.env.example` a `frontend/.env` y completa las variables (URL del backend, etc).
+Abre http://localhost:5173. Las llamadas a `/api` se redirigen al backend en `localhost:8080` (configurado en `vite.config.js`), así que tampoco hace falta un `.env`.
 
 ## Convencion de ramas
 
