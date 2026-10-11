@@ -16,7 +16,7 @@
 
 .carrito__item {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr) 200px 140px;
+  grid-template-columns: 88px minmax(0, 1fr) 200px 140px 40px;
   align-items: center;
   gap: 20px;
   padding: 20px;
@@ -37,6 +37,22 @@
 .carrito__cantidad-editable p { margin: 0; }
 .carrito__error { display: flex; align-items: flex-start; gap: 6px; font-size: 14px; line-height: 20px; color: var(--color-status-error-fg); }
 .carrito__subtotal { justify-self: end; text-align: right; font-size: 18px; line-height: 26px; }
+/* CCPIP-156: basurero de la fila */
+.carrito__quitar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.carrito__quitar:hover:not(:disabled) { background: var(--color-bg-surface-alt); color: var(--color-status-error-fg); }
+.carrito__quitar:disabled { color: var(--color-text-disabled); cursor: wait; }
+.carrito__aviso { margin-bottom: 16px; }
 
 .carrito__resumen {
   position: sticky;
@@ -70,7 +86,9 @@
 
 @media (max-width: 600px) {
   .carrito__titulo { font-size: 28px; line-height: 36px; }
-  .carrito__item { grid-template-columns: 64px minmax(0, 1fr); gap: 12px 16px; padding: 16px; }
+  .carrito__item { grid-template-columns: 64px minmax(0, 1fr) 40px; gap: 12px 16px; padding: 16px; }
+  /* En celular el basurero queda arriba a la derecha, junto al nombre */
+  .carrito__quitar { grid-column: 3; grid-row: 1; align-self: start; }
   .carrito__imagen { width: 64px; height: 64px; }
   .carrito__cantidad,
   .carrito__cantidad-editable { grid-column: 2; justify-self: start; align-items: flex-start; text-align: left; }

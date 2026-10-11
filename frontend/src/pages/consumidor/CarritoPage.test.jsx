@@ -255,6 +255,96 @@ describe('CCPIP-268 Modificar la cantidad en el carrito', () => {
   })
 })
 
+describe('CCPIP-156 Quitar una oferta del carrito', () => {
+  /** Respuesta del servidor tras quitar el aceite: queda solo el cacao. */
+  function sinAceite() {
+    const c = copia(DATOS.carrito)
+    c.items = c.items.slice(1)
+    c.unidades = 2
+    c.comunidades = 1
+    c.total = 84
+    return c
+  }
+
+  it('quita la oferta sin confirmacion, recalcula todo y lo avisa', async () => {
+    const fetchMock = servidor({ ...conSesion(), 'DELETE /api/carrito/items/8': [200, sinAceite()] })
+    const user = userEvent.setup()
+    abrirEn('/carrito')
+    await user.click(await screen.findByRole('button', { name: 'Quitar Aceite de aguaje 250 ml del carrito' }))
+
+    expect(await screen.findByText('Quitaste Aceite de aguaje 250 ml de tu carrito')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Aceite de aguaje 250 ml' })).not.toBeInTheDocument()
+    const resumen = screen.getByRole('complementary', { name: 'Resumen del pedido' })
+    expect(within(resumen).getByText('Productos (2)')).toBeInTheDocument()
+    expect(within(resumen).getAllByText('S/ 84.00')).toHaveLength(2)
+    expect(screen.getByRole('link', { name: 'Carrito · 2' })).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'DELETE /api/carrito/items/8')).toHaveLength(1)
+  })
+
+  it('al quitar la ultima oferta queda el carrito vacio', async () => {
+    const soloUna = copia(DATOS.carrito)
+    soloUna.items = soloUna.items.slice(0, 1)
+    servidor({
+      ...conSesion(soloUna),
+      'DELETE /api/carrito/items/8': [200, { items: [], unidades: 0, comunidades: 0, total: 0 }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/carrito')
+    await user.click(await screen.findByRole('button', { name: 'Quitar Aceite de aguaje 250 ml del carrito' }))
+    expect(await screen.findByText('Tu carrito está vacío')).toBeInTheDocument()
+    expect(screen.getByText('Quitaste Aceite de aguaje 250 ml de tu carrito')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Carrito' })).toBeInTheDocument()
+  })
+
+  it('lo que ya no se puede comprar tambien se quita', async () => {
+    const carrito = copia(DATOS.carrito)
+    carrito.items[1] = { ...carrito.items[1], estado: 'AGOTADO', subtotal: null }
+    servidor({
+      ...conSesion(carrito),
+      'DELETE /api/carrito/items/1': () => {
+        const c = copia(carrito)
+        c.items = c.items.slice(0, 1)
+        return [200, c]
+      },
+    })
+    const user = userEvent.setup()
+    abrirEn('/carrito')
+    expect(await screen.findByText('Agotado por ahora')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Quitar Cacao en grano fermentado 1 kg del carrito' }))
+    expect(await screen.findByText('Quitaste Cacao en grano fermentado 1 kg de tu carrito')).toBeInTheDocument()
+    expect(screen.queryByText('Agotado por ahora')).not.toBeInTheDocument()
+  })
+
+  it('si ya no estaba en el carrito, muestra el carrito actual', async () => {
+    // Otra pestana ya lo quito: desde el intento, el servidor devuelve el carrito sin el aceite
+    let quitadoAntes = false
+    servidor({
+      ...conSesion(),
+      'GET /api/carrito': () => [200, quitadoAntes ? sinAceite() : copia(DATOS.carrito)],
+      'DELETE /api/carrito/items/8': () => {
+        quitadoAntes = true
+        return [404, { code: 'ITEM_NO_ENCONTRADO', error: 'Este producto ya no está en tu carrito.' }]
+      },
+    })
+    const user = userEvent.setup()
+    abrirEn('/carrito')
+    await user.click(await screen.findByRole('button', { name: 'Quitar Aceite de aguaje 250 ml del carrito' }))
+    await waitFor(() => expect(screen.queryByRole('link', { name: 'Aceite de aguaje 250 ml' })).not.toBeInTheDocument())
+    expect(screen.getByRole('link', { name: 'Cacao en grano fermentado 1 kg' })).toBeInTheDocument()
+  })
+
+  it('si falla, lo dice y la oferta sigue en el carrito', async () => {
+    servidor({ ...conSesion(), 'DELETE /api/carrito/items/8': new TypeError('Failed to fetch') })
+    const user = userEvent.setup()
+    abrirEn('/carrito')
+    const quitar = await screen.findByRole('button', { name: 'Quitar Aceite de aguaje 250 ml del carrito' })
+    await user.click(quitar)
+    expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos quitar Aceite de aguaje 250 ml')
+    expect(screen.getByRole('link', { name: 'Aceite de aguaje 250 ml' })).toBeInTheDocument()
+    expect(quitar).toBeEnabled()
+  })
+})
+
 describe('Boton "Carrito" de la cabecera (CCPIP-155)', () => {
   it('el visitante lo ve sin numero y lleva al carrito', async () => {
     servidor({ ...PUBLICAS, 'GET /api/auth/me': SIN_SESION })
