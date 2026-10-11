@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -50,17 +52,28 @@ public class S3ImagenStorage implements ImagenStorage {
                 .region(Region.of(region))
                 .httpClientBuilder(UrlConnectionHttpClient.builder());
         if (!endpoint.isBlank()) {
-            // S3Mock y otros emuladores necesitan direcciones con el bucket en la ruta
-            builder.endpointOverride(URI.create(endpoint)).forcePathStyle(true);
+            // S3Mock y otros emuladores: direcciones con el bucket en la ruta y peticiones sin firmar
+            // (el emulador no valida credenciales). Asi nadie necesita AWS configurado en su
+            // maquina. En prod no hay endpoint y se usan las credenciales del rol de la EC2.
+            builder.endpointOverride(URI.create(endpoint))
+                    .forcePathStyle(true)
+                    .credentialsProvider(AnonymousCredentialsProvider.create());
         }
         s3 = builder.build();
         if (crearBucket) {
-            try {
-                s3.headBucket(b -> b.bucket(bucket));
-            } catch (NoSuchBucketException e) {
-                s3.createBucket(b -> b.bucket(bucket));
-                log.info("Bucket de imagenes {} creado", bucket);
-            }
+            prepararBucket();
+        }
+    }
+
+    private void prepararBucket() {
+        try {
+            s3.headBucket(b -> b.bucket(bucket));
+        } catch (NoSuchBucketException e) {
+            s3.createBucket(b -> b.bucket(bucket));
+            log.info("Bucket de imagenes {} creado", bucket);
+        } catch (SdkClientException e) {
+            throw new IllegalStateException("No se pudo conectar al almacenamiento de imagenes en " + endpoint
+                    + ". En desarrollo, levanta S3Mock con 'docker compose up -d' desde la raiz del repo.", e);
         }
     }
 
