@@ -1,6 +1,7 @@
 package pe.ccpip.carrito;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import pe.ccpip.catalogo.CatalogoModelos.TiendaResumen;
@@ -29,10 +30,11 @@ public final class CarritoModelos {
     /**
      * {@code precio} y {@code subtotal} son los vigentes (RF-124); {@code subtotal} es nulo si el item
      * no se puede comprar. {@code disponibles} solo se informa con STOCK_INSUFICIENTE. {@code linea}
-     * es la linea principal: sin foto, la pantalla muestra su ilustracion (Figma CW-05).
+     * es la linea principal: sin foto, la pantalla muestra su ilustracion (Figma CW-05). {@code cosecha}
+     * es la produccion mas reciente entre sus lotes vendibles, como en la ficha; nula si no hay.
      */
     public record Item(long productoId, String nombre, String contenido, String unidad, String imagen,
-                       String linea, TiendaResumen tienda, BigDecimal precio, BigDecimal cantidad, BigDecimal subtotal,
+                       String linea, LocalDate cosecha, TiendaResumen tienda, BigDecimal precio, BigDecimal cantidad, BigDecimal subtotal,
                        EstadoItem estado, BigDecimal disponibles) {
     }
 
