@@ -1,6 +1,6 @@
-// Carrito del comprador (CCPIP-58, CCPIP-155). Requiere sesion de consumidor.
+// Carrito del comprador (CCPIP-58, CCPIP-155, CCPIP-268). Requiere sesion de consumidor.
 import { useEffect, useState } from 'react'
-import { apiFetch } from './http.js'
+import { apiFetch, idRuta } from './http.js'
 
 /** Agrega una oferta especifica con su cantidad. Devuelve { productoId, cantidad, articulos }. */
 export const agregarAlCarrito = (productoId, cantidad) =>
@@ -8,6 +8,10 @@ export const agregarAlCarrito = (productoId, cantidad) =>
 
 /** Carrito con precio y stock revalidados: { items, unidades, comunidades, total }. */
 export const consultarCarrito = () => apiFetch('/api/carrito')
+
+/** CCPIP-268: reemplaza la cantidad de una oferta del carrito. Devuelve el carrito recalculado. */
+export const modificarCantidad = async (productoId, cantidad) =>
+  apiFetch(`/api/carrito/items/${idRuta(productoId)}`, { method: 'PUT', body: { cantidad } })
 
 // Unidades del carrito para el boton "Carrito · N" de la cabecera. Se comparten entre pantallas
 // para no consultar el carrito en cada una; quien lo cambia avisa con recargarUnidadesCarrito().

@@ -119,6 +119,13 @@ describe('CCPIP-58 Agregar al carrito desde la ficha', () => {
     await user.click(quitar)
     expect(screen.getByLabelText('Cantidad')).toHaveValue('2')
 
+    // Desde un campo vacio, "+" lleva a una unidad (no a dos)
+    await user.clear(screen.getByLabelText('Cantidad'))
+    expect(quitar).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Agregar una unidad' }))
+    expect(screen.getByLabelText('Cantidad')).toHaveValue('1')
+    await user.click(screen.getByRole('button', { name: 'Agregar una unidad' }))
+
     await user.click(screen.getByRole('button', { name: 'Agregar al carrito' }))
     expect(await screen.findByText('Agregaste 2 unidades a tu carrito')).toBeInTheDocument()
     expect(JSON.parse(llamadas(fetchMock, 'POST /api/carrito/items')[0][1].body).cantidad).toBe(2)
