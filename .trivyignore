@@ -1,0 +1,12 @@
+# Excepciones de CVEs revisadas por el equipo. Cada una vence: al pasar la fecha, Trivy vuelve a
+# bloquear y hay que revisarla otra vez. Agregar solo con justificacion y fecha.
+
+# Spring Framework 6.2.19 (Spring Boot 3.5.16). El parche solo existe en Spring Framework 7
+# (Spring Boot 4); no hay 6.2.20 publico. No nos afectan:
+# - CVE-2026-47884: ejecucion remota via XsltView. El backend solo responde JSON; no usa XsltView
+#   ni vistas XSLT.
+# - CVE-2026-47890: corrupcion de streams de Server-Sent Events. No usamos SseEmitter, SSE ni
+#   WebFlux (no estan en el jar).
+# Seguimiento: migrar a Spring Boot 4 antes de la fecha de vencimiento.
+CVE-2026-47884 exp:2026-12-15
+CVE-2026-47890 exp:2026-12-15

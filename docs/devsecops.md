@@ -56,6 +56,8 @@ llave ira como secreto del servidor, nunca al navegador.
 | `terraform.yml` | PR que toca `infra/terraform/`, o manual | `fmt`, `validate`; manual: `plan`/`apply` con credenciales de Learner Lab |
 | `dependabot.yml` | Semanal | PRs de actualizacion de Maven, npm, imagenes Docker, Actions y Terraform |
 
+**Excepciones de CVEs:** si Trivy marca un CVE sin parche en nuestra linea de versiones y el equipo confirma que no nos afecta, se agrega a `.trivyignore` con la justificacion y una fecha de vencimiento (`exp:AAAA-MM-DD`). Al vencer, Trivy vuelve a bloquear. Hoy: dos CVEs de Spring Framework 6.2 (XsltView y SSE, que no usamos), hasta migrar a Spring Boot 4.
+
 Todas las Actions estan fijadas por SHA (evita ataques de cadena de suministro por tags movidos); Dependabot las mantiene al dia.
 
 ## Configuracion inicial (una sola vez)
