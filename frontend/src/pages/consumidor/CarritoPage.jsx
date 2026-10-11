@@ -65,7 +65,7 @@ export default function CarritoPage() {
             </Boton>
           </EstadoVacio>
         )}
-        {carrito?.items.length > 0 && <Contenido carrito={carrito} />}
+        {carrito && carrito.items.length > 0 && <Contenido carrito={carrito} />}
       </main>
     </LayoutTienda>
   )
