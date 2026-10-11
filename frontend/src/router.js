@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 export const RUTAS = {
   catalogo: '/',
   buscar: '/buscar',
+  carrito: '/carrito',
   comunidades: '/comunidades',
   ingresar: '/ingresar',
   inicio: '/inicio',

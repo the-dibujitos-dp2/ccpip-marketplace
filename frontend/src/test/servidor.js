@@ -3,6 +3,7 @@ import { vi } from 'vitest'
 import catalogos from './fixtures/catalogos.json'
 import inicio from './fixtures/inicio.json'
 import buscar from './fixtures/buscar.json'
+import carrito from './fixtures/carrito.json'
 import detalle from './fixtures/productos-1.json'
 import tiendas from './fixtures/tiendas.json'
 import tienda from './fixtures/tiendas-2.json'
@@ -76,6 +77,7 @@ export function pagina(items, { pagina = 0, tamano = 12, total = items.length } 
 
 export const DATOS = {
   catalogos,
+  carrito,
   inicio,
   buscar,
   detalle,

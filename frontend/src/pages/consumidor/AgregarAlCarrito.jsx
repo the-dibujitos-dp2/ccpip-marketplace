@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 import iconoAlerta from '../../assets/icons/alerta-campo.svg'
 import iconoBolsa from '../../assets/icons/bolsa-marca.svg'
-import { agregarAlCarrito } from '../../api/carrito.js'
+import { agregarAlCarrito, recargarUnidadesCarrito } from '../../api/carrito.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import SelectorCantidad from '../../components/SelectorCantidad.jsx'
@@ -49,6 +49,7 @@ export default function AgregarAlCarrito({ producto }) {
     setAviso(null)
     try {
       const r = await agregarAlCarrito(producto.id, unidades)
+      recargarUnidadesCarrito()
       setAviso({
         tono: 'exito',
         titulo: `Agregaste ${unidades} ${unidades === 1 ? 'unidad' : 'unidades'} a tu carrito`,

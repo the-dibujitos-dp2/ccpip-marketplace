@@ -1,0 +1,51 @@
+{
+    "items": [
+        {
+            "productoId": 8,
+            "nombre": "Aceite de aguaje 250 ml",
+            "contenido": null,
+            "unidad": "Mililitro",
+            "imagen": null,
+            "linea": "ACEITES",
+            "tienda": {
+                "id": 1,
+                "nombre": "Asoc. Nii Joi",
+                "pueblo": "Shipibo-Konibo",
+                "comunidad": "Comunidad Shipibo Konibo de Yarinacocha",
+                "region": "Ucayali",
+                "localidad": "Yarinacocha",
+                "origenVerificado": true
+            },
+            "precio": 52.0,
+            "cantidad": 14.0,
+            "subtotal": 728.0,
+            "estado": "DISPONIBLE",
+            "disponibles": null
+        },
+        {
+            "productoId": 1,
+            "nombre": "Cacao en grano fermentado 1 kg",
+            "contenido": null,
+            "unidad": "Kilogramo",
+            "imagen": null,
+            "linea": "CACAO",
+            "tienda": {
+                "id": 2,
+                "nombre": "C.N. Yarina",
+                "pueblo": "Awajún",
+                "comunidad": "Comunidad Awajun del Alto Maranon",
+                "region": "Amazonas",
+                "localidad": "Alto Marañón",
+                "origenVerificado": true
+            },
+            "precio": 42.0,
+            "cantidad": 2.0,
+            "subtotal": 84.0,
+            "estado": "DISPONIBLE",
+            "disponibles": null
+        }
+    ],
+    "unidades": 16.0,
+    "comunidades": 2,
+    "total": 812.0
+}

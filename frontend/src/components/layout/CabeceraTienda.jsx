@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import iconoBolsa from '../../assets/icons/bolsa-marca.svg'
 import iconoBuscar from '../../assets/icons/buscar.svg'
 import iconoUsuario from '../../assets/icons/usuario.svg'
+import { useUnidadesCarrito } from '../../api/carrito.js'
 import { obtenerCatalogos } from '../../api/catalogo.js'
 import { navigate, RUTAS } from '../../router.js'
 import BarraConfianza from '../BarraConfianza.jsx'
@@ -12,7 +14,7 @@ import './CabeceraTienda.css'
 /**
  * Cabecera web de la tienda (Figma 66:459): barra de confianza, busqueda protagonista,
  * navegacion y cuenta. Con sesion, el menu de cuenta siempre ofrece "Cerrar sesion" (CCPIP-27).
- * Carrito, favoritos e idioma aparecen cuando existan sus historias.
+ * El boton "Carrito · N" llega con CCPIP-155; favoritos e idioma, cuando existan sus historias.
  */
 export default function CabeceraTienda({ user, onCerrarSesion, cerrando, termino = '' }) {
   const [busqueda, setBusqueda] = useState(termino)
@@ -43,6 +45,9 @@ export default function CabeceraTienda({ user, onCerrarSesion, cerrando, termino
   }
 
   const panel = user?.role === 'PRODUCTOR' ? RUTAS.productor : RUTAS.inicio
+  // CCPIP-155: el carrito es del comprador; el visitante lo ve para ingresar y comprar
+  const conCarrito = !user || user.role === 'CONSUMIDOR'
+  const unidades = useUnidadesCarrito(user?.role === 'CONSUMIDOR')
 
   return (
     <header className="cabecera-tienda">
@@ -100,6 +105,12 @@ export default function CabeceraTienda({ user, onCerrarSesion, cerrando, termino
             </Enlace>
           )}
         </div>
+        {conCarrito && (
+          <Enlace to={RUTAS.carrito} className="cabecera-tienda__carrito">
+            <Icono src={iconoBolsa} tamano={20} />
+            {unidades ? `Carrito · ${unidades}` : 'Carrito'}
+          </Enlace>
+        )}
       </div>
       {lineas.length > 0 && (
         <nav className="cabecera-tienda__lineas" aria-label="Líneas de producto">
