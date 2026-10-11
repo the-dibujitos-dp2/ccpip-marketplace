@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
@@ -30,7 +30,7 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
     expect(within(filas[0]).getByRole('link', { name: 'Aceite de aguaje 250 ml' })).toHaveAttribute('href', '/productos/8')
     expect(within(filas[0]).getByText('mililitro · de Asoc. Nii Joi')).toBeInTheDocument()
     expect(within(filas[0]).getByText('S/ 52.00 c/u')).toBeInTheDocument()
-    expect(within(filas[0]).getByText('14 und')).toBeInTheDocument()
+    expect(within(filas[0]).getByLabelText('Cantidad de Aceite de aguaje 250 ml')).toHaveValue('14')
     expect(within(filas[0]).getByText('S/ 728.00')).toBeInTheDocument()
     expect(within(filas[1]).getByText('de C.N. Yarina', { exact: false })).toBeInTheDocument()
     // Sin foto del productor, cada oferta muestra la ilustracion de su linea (Figma CW-05)
@@ -106,6 +106,144 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
     expect(window.location.pathname).not.toBe('/carrito')
     expect(screen.queryByRole('link', { name: /^Carrito/ })).not.toBeInTheDocument()
     expect(llamadas(fetchMock, 'GET /api/carrito')).toHaveLength(0)
+  })
+})
+
+describe('CCPIP-268 Modificar la cantidad en el carrito', () => {
+  /** Respuesta del servidor tras cambiar la cantidad del aceite (precio 52). */
+  function recalculado(cantidad) {
+    const c = copia(DATOS.carrito)
+    c.items[0] = { ...c.items[0], cantidad, subtotal: 52 * cantidad }
+    c.unidades = cantidad + 2
+    c.total = 52 * cantidad + 84
+    return c
+  }
+
+  it('cambia la cantidad sin boton de actualizar y recalcula subtotal, total y cabecera', async () => {
+    const fetchMock = servidor({
+      ...conSesion(),
+      'PUT /api/carrito/items/8': (o) => [200, recalculado(JSON.parse(o.body).cantidad)],
+    })
+    const user = userEvent.setup()
+    abrirEn('/carrito')
+    const cantidad = await screen.findByLabelText('Cantidad de Aceite de aguaje 250 ml')
+    const fila = cantidad.closest('li')
+
+    // Tres clics seguidos son una sola peticion, con la cantidad final
+    await user.click(within(fila).getByRole('button', { name: 'Quitar una unidad' }))
+    await user.click(within(fila).getByRole('button', { name: 'Quitar una unidad' }))
+    await user.click(within(fila).getByRole('button', { name: 'Agregar una unidad' }))
+    expect(cantidad).toHaveValue('13')
+    expect(await within(fila).findByText('S/ 676.00')).toBeInTheDocument()
+    const pedidos = llamadas(fetchMock, 'PUT /api/carrito/items/8')
+    expect(pedidos).toHaveLength(1)
+    expect(JSON.parse(pedidos[0][1].body)).toEqual({ cantidad: 13 })
+
+    const resumen = screen.getByRole('complementary', { name: 'Resumen del pedido' })
+    expect(within(resumen).getAllByText('S/ 760.00')).toHaveLength(2)
+    expect(within(resumen).getByText('Productos (15)')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Carrito · 15' })).toBeInTheDocument()
+  })
+
+  // Espera el plazo real (6 s): adelantar un reloj simulado resulto inestable con la cobertura activa
+  it('si el servidor lo rechaza explica el motivo unos segundos y vuelve a la cantidad anterior', { timeout: 15_000 }, async () => {
+    servidor({
+      ...conSesion(),
+      'PUT /api/carrito/items/8': [409, { code: 'STOCK_INSUFICIENTE', error: 'Solo quedan 15 unidades disponibles.' }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/carrito')
+    const cantidad = await screen.findByLabelText('Cantidad de Aceite de aguaje 250 ml')
+    await user.clear(cantidad)
+    await user.type(cantidad, '40')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Solo quedan 15 unidades disponibles.')
+    expect(cantidad).toHaveValue('14')
+    expect(screen.getByText('S/ 728.00')).toBeInTheDocument()
+
+    // La cantidad ya es la correcta: el motivo se va solo
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument(), { timeout: 8000 })
+  })
+
+  it('el motivo del rechazo tambien se va al volver a cambiar la cantidad', async () => {
+    servidor({
+      ...conSesion(),
+      'PUT /api/carrito/items/8': (o) =>
+        JSON.parse(o.body).cantidad > 100
+          ? [409, { code: 'STOCK_INSUFICIENTE', error: 'Solo quedan 100 unidades disponibles.' }]
+          : [200, recalculado(JSON.parse(o.body).cantidad)],
+    })
+    const user = userEvent.setup()
+    abrirEn('/carrito')
+    const cantidad = await screen.findByLabelText('Cantidad de Aceite de aguaje 250 ml')
+    await user.clear(cantidad)
+    await user.type(cantidad, '999')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Solo quedan 100 unidades disponibles.')
+    await user.click(within(cantidad.closest('li')).getByRole('button', { name: 'Agregar una unidad' }))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(await within(cantidad.closest('li')).findByText('S/ 780.00')).toBeInTheDocument()
+  })
+
+  it('desde 0 o vacio, "+" lleva a una unidad y borra el error', async () => {
+    const fetchMock = servidor({
+      ...conSesion(),
+      'PUT /api/carrito/items/1': (o) => {
+        const c = copia(DATOS.carrito)
+        c.items[1] = { ...c.items[1], cantidad: JSON.parse(o.body).cantidad, subtotal: 42 }
+        return [200, c]
+      },
+    })
+    const user = userEvent.setup()
+    abrirEn('/carrito')
+    const cantidad = await screen.findByLabelText('Cantidad de Cacao en grano fermentado 1 kg')
+    const fila = cantidad.closest('li')
+    await user.clear(cantidad)
+    await user.type(cantidad, '0')
+    expect(await within(fila).findByRole('alert')).toHaveTextContent('La cantidad mínima es una unidad')
+    expect(within(fila).getByRole('button', { name: 'Quitar una unidad' })).toBeDisabled()
+
+    await user.click(within(fila).getByRole('button', { name: 'Agregar una unidad' }))
+    expect(cantidad).toHaveValue('1')
+    expect(within(fila).queryByRole('alert')).not.toBeInTheDocument()
+    expect(await within(fila).findByText('S/ 42.00')).toBeInTheDocument()
+    expect(JSON.parse(llamadas(fetchMock, 'PUT /api/carrito/items/1')[0][1].body)).toEqual({ cantidad: 1 })
+  })
+
+  it('una cantidad menor a una unidad no se envia', async () => {
+    const fetchMock = servidor(conSesion())
+    const user = userEvent.setup()
+    abrirEn('/carrito')
+    const cantidad = await screen.findByLabelText('Cantidad de Aceite de aguaje 250 ml')
+    await user.clear(cantidad)
+    await user.type(cantidad, '0')
+    expect(await screen.findByRole('alert')).toHaveTextContent('La cantidad mínima es una unidad')
+    expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+    await new Promise((r) => setTimeout(r, 600))
+    expect(llamadas(fetchMock, 'PUT /api/carrito/items/8')).toHaveLength(0)
+  })
+
+  it('con stock insuficiente se puede bajar la cantidad; lo agotado o retirado no se edita', async () => {
+    const carrito = copia(DATOS.carrito)
+    carrito.items[0] = { ...carrito.items[0], estado: 'STOCK_INSUFICIENTE', disponibles: 3, subtotal: null }
+    carrito.items[1] = { ...carrito.items[1], estado: 'AGOTADO', subtotal: null }
+    servidor({
+      ...conSesion(carrito),
+      'PUT /api/carrito/items/8': () => {
+        const c = copia(carrito)
+        c.items[0] = { ...DATOS.carrito.items[0], cantidad: 3, subtotal: 156 }
+        c.total = 156
+        return [200, c]
+      },
+    })
+    const user = userEvent.setup()
+    abrirEn('/carrito')
+    const cantidad = await screen.findByLabelText('Cantidad de Aceite de aguaje 250 ml')
+    expect(screen.queryByLabelText('Cantidad de Cacao en grano fermentado 1 kg')).not.toBeInTheDocument()
+    expect(screen.getByText('2 und')).toBeInTheDocument()
+
+    await user.clear(cantidad)
+    await user.type(cantidad, '3')
+    expect(await within(cantidad.closest('li')).findByText('S/ 156.00')).toBeInTheDocument()
+    expect(screen.queryByText('Solo quedan 3: ajusta la cantidad')).not.toBeInTheDocument()
   })
 })
 

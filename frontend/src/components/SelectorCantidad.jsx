@@ -9,14 +9,14 @@ import './SelectorCantidad.css'
  */
 export default function SelectorCantidad({ valor, onCambiar, min = 1, etiqueta = 'Cantidad', invalido = false, disabled = false, id, describedBy }) {
   const numero = Number(valor)
-  const actual = Number.isInteger(numero) && numero >= min ? numero : min
+  const valido = valor !== '' && Number.isInteger(numero) && numero >= min
   return (
     <div className={`selector-cantidad${invalido ? ' selector-cantidad--error' : ''}${disabled ? ' selector-cantidad--deshabilitado' : ''}`}>
       <button
         type="button"
         className="selector-cantidad__boton"
-        onClick={() => onCambiar(String(actual - 1))}
-        disabled={disabled || actual <= min}
+        onClick={() => onCambiar(String(numero - 1))}
+        disabled={disabled || !valido || numero <= min}
         aria-label="Quitar una unidad"
       >
         <Icono src={iconoMenos} tamano={18} />
@@ -36,7 +36,8 @@ export default function SelectorCantidad({ valor, onCambiar, min = 1, etiqueta =
       <button
         type="button"
         className="selector-cantidad__boton"
-        onClick={() => onCambiar(String(actual + 1))}
+        // Desde un valor invalido (vacio, 0, letras) "+" lleva al minimo, no al minimo + 1
+        onClick={() => onCambiar(String(valido ? numero + 1 : min))}
         disabled={disabled}
         aria-label="Agregar una unidad"
       >

@@ -16,7 +16,7 @@
 
 .carrito__item {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr) auto 140px;
+  grid-template-columns: 88px minmax(0, 1fr) 200px 140px;
   align-items: center;
   gap: 20px;
   padding: 20px;
@@ -30,7 +30,12 @@
 .carrito__nombre { font-weight: 600; font-size: 18px; line-height: 26px; color: var(--color-text-primary); text-decoration: none; }
 .carrito__nombre:hover { text-decoration: underline; }
 .carrito__datos .caption { color: var(--color-text-secondary); }
-.carrito__cantidad { margin: 0; font-weight: 600; white-space: nowrap; }
+.carrito__cantidad { justify-self: end; margin: 0; font-weight: 600; white-space: nowrap; }
+/* CCPIP-268: selector de la fila con su mensaje debajo (Figma CW-05) */
+/* Ancho fijo de columna y alineado a la derecha: un mensaje de error no desplaza el selector */
+.carrito__cantidad-editable { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; text-align: right; }
+.carrito__cantidad-editable p { margin: 0; }
+.carrito__error { display: flex; align-items: flex-start; gap: 6px; font-size: 14px; line-height: 20px; color: var(--color-status-error-fg); }
 .carrito__subtotal { justify-self: end; text-align: right; font-size: 18px; line-height: 26px; }
 
 .carrito__resumen {
@@ -67,6 +72,7 @@
   .carrito__titulo { font-size: 28px; line-height: 36px; }
   .carrito__item { grid-template-columns: 64px minmax(0, 1fr); gap: 12px 16px; padding: 16px; }
   .carrito__imagen { width: 64px; height: 64px; }
-  .carrito__cantidad { grid-column: 2; }
+  .carrito__cantidad,
+  .carrito__cantidad-editable { grid-column: 2; justify-self: start; align-items: flex-start; text-align: left; }
   .carrito__subtotal { grid-column: 2; justify-self: start; text-align: left; }
 }
