@@ -12,7 +12,7 @@ import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import SelectorCantidad from '../../components/SelectorCantidad.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
-import { precio } from '../../formato.js'
+import { mesAnio, precio } from '../../formato.js'
 import { RUTAS } from '../../router.js'
 import './CarritoPage.css'
 
@@ -157,7 +157,9 @@ function ItemCarrito({ item, onCambiarCantidad }) {
           {item.nombre}
         </Enlace>
         <p className="caption">
-          {[presentacion, `de ${item.tienda.nombre}`].filter(Boolean).join(' · ')}
+          {[presentacion, item.cosecha && `cosecha de ${cosecha(item.cosecha)}`, `de ${item.tienda.nombre}`]
+            .filter(Boolean)
+            .join(' · ')}
         </p>
         {item.precio != null && <p className="body-s">{precio(item.precio)} c/u</p>}
       </div>
@@ -243,4 +245,9 @@ function CantidadEditable({ item, onCambiar }) {
       )}
     </div>
   )
+}
+
+/** "2026-10-04" -> "octubre 2026", como en el Figma CW-05 ("cosecha de octubre 2026"). */
+function cosecha(iso) {
+  return mesAnio(iso).replace(' de ', ' ')
 }

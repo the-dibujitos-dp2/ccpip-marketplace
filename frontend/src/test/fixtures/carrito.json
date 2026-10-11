@@ -7,6 +7,7 @@
             "unidad": "Mililitro",
             "imagen": null,
             "linea": "ACEITES",
+            "cosecha": "2026-09-11",
             "tienda": {
                 "id": 1,
                 "nombre": "Asoc. Nii Joi",
@@ -29,6 +30,7 @@
             "unidad": "Kilogramo",
             "imagen": null,
             "linea": "CACAO",
+            "cosecha": "2026-09-11",
             "tienda": {
                 "id": 2,
                 "nombre": "C.N. Yarina",
