@@ -70,6 +70,10 @@ public class CatalogoRepository {
 
     public enum Orden { RELEVANCIA, PRECIO_ASC, PRECIO_DESC, NOVEDADES }
 
+    /** Lo que el carrito necesita saber de una oferta visible: su modalidad y cuanto hay en venta. */
+    public record Vendible(String modalidad, BigDecimal enVenta) {
+    }
+
     private final NamedParameterJdbcTemplate jdbc;
 
     public CatalogoRepository(NamedParameterJdbcTemplate jdbc) {
@@ -139,6 +143,13 @@ public class CatalogoRepository {
                             (Integer) rs.getObject("cantidad_minima_mayorista"), r.disponible(), imagenes(r.id()),
                             r.tienda(), historia(r.id()), cosecha(r.id()), relacionados(r));
                 }).stream().findFirst();
+    }
+
+    /** CCPIP-58: misma regla de visibilidad y saldo vendible que la ficha publica. */
+    public Optional<Vendible> vendible(long id) {
+        return jdbc.query("SELECT p.modalidad, " + EN_VENTA + " AS en_venta " + VISIBLE + " AND p.id = :id",
+                new MapSqlParameterSource("id", id),
+                (rs, row) -> new Vendible(rs.getString("modalidad"), rs.getBigDecimal("en_venta"))).stream().findFirst();
     }
 
     public List<ProductoResumen> deTienda(long tiendaId) {
