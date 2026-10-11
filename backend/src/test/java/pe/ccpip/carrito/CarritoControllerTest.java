@@ -174,6 +174,8 @@ class CarritoControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.items[0].nombre").value("Sacha inchi tostado"))
                 .andExpect(jsonPath("$.items[0].unidad").value("Gramo"))
                 .andExpect(jsonPath("$.items[0].linea").value("SUPERFRUTOS"))
+                // La cosecha de su lote vendible, como en la ficha (Figma CW-05)
+                .andExpect(jsonPath("$.items[0].cosecha").value(EN_UN_MES.minusDays(60).toString()))
                 .andExpect(jsonPath("$.items[0].tienda.nombre").value("Asoc. Nii Joi"))
                 .andExpect(jsonPath("$.items[0].precio").value(20))
                 .andExpect(jsonPath("$.items[0].cantidad").value(2))

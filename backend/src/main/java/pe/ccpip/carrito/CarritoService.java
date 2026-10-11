@@ -2,6 +2,7 @@ package pe.ccpip.carrito;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -49,6 +50,10 @@ public class CarritoService {
                 SELECT i.producto_id, i.cantidad, p.nombre, p.contenido, p.precio, um.nombre AS unidad,
                        (SELECT im.id FROM imagen im WHERE im.producto_id = p.id AND im.principal) AS imagen,
                        l.codigo AS linea,
+                       (SELECT max(lt.fecha_produccion) FROM lote lt JOIN ubicacion u ON u.id = lt.ubicacion_id
+                        WHERE lt.producto_id = p.id AND lt.cantidad_actual > 0 AND u.tipo = 'PUNTO_ACOPIO'
+                          AND (lt.fecha_vencimiento IS NULL
+                               OR lt.fecha_vencimiento >= (now() AT TIME ZONE 'America/Lima')::date)) AS cosecha,
                        pr.id AS pr_id, coalesce(pr.nombre_tienda, pr.comunidad) AS pr_nombre, pr.pueblo, pr.comunidad,
                        pr.region, pr.localidad, pr.origen_verificado
                 FROM item_carrito i
@@ -63,7 +68,7 @@ public class CarritoService {
                     UUID imagen = rs.getObject("imagen", UUID.class);
                     return new ItemGuardado(rs.getLong("producto_id"), rs.getString("nombre"), rs.getString("contenido"),
                             rs.getString("unidad"), imagen == null ? null : ImagenService.urlMiniatura(imagen),
-                            rs.getString("linea"),
+                            rs.getString("linea"), rs.getObject("cosecha", LocalDate.class),
                             new TiendaResumen(rs.getLong("pr_id"), rs.getString("pr_nombre"), rs.getString("pueblo"),
                                     rs.getString("comunidad"), rs.getString("region"), rs.getString("localidad"),
                                     rs.getBoolean("origen_verificado")),
@@ -82,7 +87,7 @@ public class CarritoService {
     }
 
     private record ItemGuardado(long productoId, String nombre, String contenido, String unidad, String imagen,
-                                String linea, TiendaResumen tienda, BigDecimal precio, BigDecimal cantidad) {
+                                String linea, LocalDate cosecha, TiendaResumen tienda, BigDecimal precio, BigDecimal cantidad) {
     }
 
     private static Item revalidar(ItemGuardado g, Vendible oferta) {
@@ -103,7 +108,7 @@ public class CarritoService {
         BigDecimal subtotal = estado == EstadoItem.DISPONIBLE
                 ? g.precio().multiply(g.cantidad()).setScale(2, RoundingMode.HALF_UP)
                 : null;
-        return new Item(g.productoId(), g.nombre(), g.contenido(), g.unidad(), g.imagen(), g.linea(), g.tienda(),
+        return new Item(g.productoId(), g.nombre(), g.contenido(), g.unidad(), g.imagen(), g.linea(), g.cosecha(), g.tienda(),
                 g.precio(), g.cantidad(), subtotal, estado, disponibles);
     }
 
