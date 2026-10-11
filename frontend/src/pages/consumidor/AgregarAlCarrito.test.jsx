@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
@@ -17,6 +17,73 @@ async function escribirCantidad(user, valor) {
   await user.clear(campo)
   if (valor !== '') await user.type(campo, valor)
 }
+
+/** Simula el scroll: ubica el panel de compra en pantalla, arriba (ya se paso) o abajo (aun no se llega). */
+function moverPanel(estado) {
+  const fila = document.querySelector('.agregar-carrito__fila')
+  const top = { visible: 300, arriba: -400, abajo: 1400 }[estado]
+  fila.getBoundingClientRect = () => ({ top, bottom: top + 48, left: 0, right: 400, width: 400, height: 48 })
+  fireEvent.scroll(window)
+}
+
+const barra = () => screen.queryByRole('region', { name: 'Compra rápida' })
+
+describe('CW-03b Barra de compra persistente (CCPIP-58)', () => {
+  it('aparece al dejar el panel atras, comparte la cantidad y agrega desde ahi', async () => {
+    const fetchMock = servidor({
+      ...conSesion,
+      ...ficha(),
+      'GET /api/carrito': [200, { items: [], unidades: 2, comunidades: 1, total: 84 }],
+      'POST /api/carrito/items': [200, { productoId: 1, cantidad: 2, articulos: 1 }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productos/1')
+    await screen.findByRole('button', { name: 'Agregar al carrito' })
+    expect(barra()).not.toBeInTheDocument()
+
+    // Aun no se llega al panel (esta abajo): no hay barra
+    moverPanel('abajo')
+    await new Promise((r) => requestAnimationFrame(r))
+    expect(barra()).not.toBeInTheDocument()
+
+    // Salto directo de abajo a arriba, sin pasar por el panel (p. ej. "Leer su historia")
+    moverPanel('arriba')
+    const compra = await screen.findByRole('region', { name: 'Compra rápida' })
+    expect(within(compra).getByText(DATOS.detalle.nombre)).toBeInTheDocument()
+    expect(within(compra).getByText(`${DATOS.detalle.tienda.nombre} · S/ 42.00 minorista`)).toBeInTheDocument()
+
+    await user.click(within(compra).getByRole('button', { name: 'Agregar una unidad' }))
+    expect(screen.getByLabelText('Cantidad')).toHaveValue('2')
+    await user.click(within(compra).getByRole('button', { name: 'Agregar al carrito' }))
+    expect(await within(compra).findByText('Agregaste 2 unidades a tu carrito')).toBeInTheDocument()
+    expect(JSON.parse(llamadas(fetchMock, 'POST /api/carrito/items')[0][1].body).cantidad).toBe(2)
+
+    // De vuelta en el panel, la barra se va
+    moverPanel('visible')
+    await waitFor(() => expect(barra()).not.toBeInTheDocument())
+  })
+
+  it('muestra en la barra el error de cantidad y no aparece en ofertas solo mayoristas', async () => {
+    servidor({ ...conSesion, ...ficha({ modalidad: 'AMBAS', precioMayorista: 35, cantidadMinimaMayorista: 12 }) })
+    const user = userEvent.setup()
+    const { unmount } = abrirEn('/productos/1')
+    await screen.findByRole('button', { name: 'Agregar al carrito' })
+    moverPanel('arriba')
+    const compra = await screen.findByRole('region', { name: 'Compra rápida' })
+    expect(within(compra).getByText(/S\/ 42\.00 minorista · S\/ 35\.00 desde 12 und/)).toBeInTheDocument()
+    await user.clear(within(compra).getByLabelText('Cantidad a agregar'))
+    await user.click(within(compra).getByRole('button', { name: 'Agregar al carrito' }))
+    expect(within(compra).getByRole('status')).toHaveTextContent('La cantidad mínima es una unidad')
+    unmount()
+
+    servidor({ ...conSesion, ...ficha({ modalidad: 'MAYORISTA', precio: null, precioMayorista: 30, cantidadMinimaMayorista: 10 }) })
+    abrirEn('/productos/1')
+    await screen.findByText(/se vende solo por mayor/)
+    moverPanel('arriba')
+    await new Promise((r) => requestAnimationFrame(r))
+    expect(barra()).not.toBeInTheDocument()
+  })
+})
 
 describe('CCPIP-58 Agregar al carrito desde la ficha', () => {
   it('el comprador agrega la cantidad elegida y ve cuanto tiene en su carrito', async () => {

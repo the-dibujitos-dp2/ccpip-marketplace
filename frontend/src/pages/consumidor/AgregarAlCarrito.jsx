@@ -1,9 +1,10 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import iconoAlerta from '../../assets/icons/alerta-campo.svg'
 import iconoBolsa from '../../assets/icons/bolsa-marca.svg'
 import { agregarAlCarrito, recargarUnidadesCarrito } from '../../api/carrito.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
+import ImagenProducto from '../../components/ImagenProducto.jsx'
 import SelectorCantidad from '../../components/SelectorCantidad.jsx'
 import { precio } from '../../formato.js'
 import { navigate, RUTAS } from '../../router.js'
@@ -23,10 +24,12 @@ export default function AgregarAlCarrito({ producto }) {
   const [error, setError] = useState(null)
   const [aviso, setAviso] = useState(null)
   const [enviando, setEnviando] = useState(false)
-
   // Solo el comprador tiene carrito: a otros roles no se les ofrece (el servidor tambien lo niega)
-  if (!producto.disponible || (user && user.role !== 'CONSUMIDOR')) return null
+  const ofrecer = producto.disponible && (!user || user.role === 'CONSUMIDOR')
   const soloMayorista = producto.modalidad === 'MAYORISTA'
+  const [panel, panelFuera] = usePanelFuera(ofrecer && !soloMayorista)
+
+  if (!ofrecer) return null
 
   function cambiar(valor) {
     setCantidad(valor)
@@ -66,9 +69,11 @@ export default function AgregarAlCarrito({ producto }) {
     }
   }
 
+  const textoBoton = enviando ? 'Agregando…' : 'Agregar al carrito'
+
   return (
     <form className="agregar-carrito" onSubmit={agregar} noValidate>
-      <div className="agregar-carrito__fila">
+      <div className="agregar-carrito__fila" ref={panel}>
         <SelectorCantidad
           valor={cantidad}
           onCambiar={cambiar}
@@ -77,9 +82,27 @@ export default function AgregarAlCarrito({ producto }) {
           describedBy={error ? idError : undefined}
         />
         <Boton tipo="primario" tamano="L" type="submit" icono={iconoBolsa} disabled={enviando || soloMayorista} className="agregar-carrito__boton">
-          {enviando ? 'Agregando…' : 'Agregar al carrito'}
+          {textoBoton}
         </Boton>
       </div>
+      {panelFuera && (
+        // CW-03b: al bajar por la ficha, la compra sigue a mano. Comparte cantidad y envio con el panel.
+        <div className="barra-compra" role="region" aria-label="Compra rápida">
+          <div className="contenedor barra-compra__contenido">
+            <ImagenProducto url={producto.imagenes?.[0]?.miniatura} linea={producto.linea?.codigo} className="barra-compra__imagen" />
+            <div className="barra-compra__datos">
+              <p className="barra-compra__nombre">{producto.nombre}</p>
+              <p className={`caption barra-compra__detalle${aviso?.tono === 'error' || error ? ' barra-compra__detalle--error' : ''}`} role="status">
+                {error ?? (aviso ? (aviso.tono === 'exito' ? aviso.titulo : aviso.descripcion) : resumenPrecios(producto))}
+              </p>
+            </div>
+            <SelectorCantidad valor={cantidad} onCambiar={cambiar} invalido={Boolean(error)} etiqueta="Cantidad a agregar" />
+            <Boton tipo="primario" tamano="L" type="submit" icono={iconoBolsa} disabled={enviando} className="barra-compra__boton">
+              {textoBoton}
+            </Boton>
+          </div>
+        </div>
+      )}
       {error && (
         <p id={idError} className="agregar-carrito__error">
           <img src={iconoAlerta} width="16" height="16" alt="" />
@@ -103,4 +126,45 @@ export default function AgregarAlCarrito({ producto }) {
       {aviso && <Alerta {...aviso} onCerrar={() => setAviso(null)} />}
     </form>
   )
+}
+
+/** "C.N. Yarina · S/ 18.00 minorista · S/ 14.50 desde 24 und", como en CW-03b. */
+function resumenPrecios(producto) {
+  return [
+    producto.tienda?.nombre,
+    producto.precio != null && `${precio(producto.precio)} minorista`,
+    producto.modalidad !== 'MINORISTA' && producto.precioMayorista != null &&
+      `${precio(producto.precioMayorista)} desde ${producto.cantidadMinimaMayorista} und`,
+  ].filter(Boolean).join(' · ')
+}
+
+/**
+ * Avisa cuando el panel de compra quedo arriba, fuera de la pantalla (no cuando aun no se llega a el).
+ * Se mide en cada scroll (una vez por cuadro) y no con IntersectionObserver: este no avisa si la pagina
+ * salta de "panel abajo" a "panel arriba" sin pasar por el, como con "Leer su historia" o un scroll rapido.
+ */
+function usePanelFuera(activo) {
+  const [elemento, setElemento] = useState(null)
+  const [fuera, setFuera] = useState(false)
+  useEffect(() => {
+    if (!activo || !elemento) return undefined
+    let cuadro = null
+    const medir = () => {
+      cuadro = null
+      setFuera(elemento.getBoundingClientRect().bottom < 0)
+    }
+    const alMover = () => {
+      cuadro ??= requestAnimationFrame(medir)
+    }
+    medir()
+    window.addEventListener('scroll', alMover, { passive: true })
+    window.addEventListener('resize', alMover)
+    return () => {
+      window.removeEventListener('scroll', alMover)
+      window.removeEventListener('resize', alMover)
+      if (cuadro !== null) cancelAnimationFrame(cuadro)
+      setFuera(false)
+    }
+  }, [activo, elemento])
+  return [setElemento, activo && fuera]
 }
