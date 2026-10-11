@@ -1,18 +1,27 @@
 package pe.ccpip.carrito;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import pe.ccpip.carrito.CarritoModelos.Carrito;
+import pe.ccpip.carrito.CarritoModelos.EstadoItem;
+import pe.ccpip.carrito.CarritoModelos.Item;
+import pe.ccpip.catalogo.CatalogoModelos.TiendaResumen;
 import pe.ccpip.catalogo.CatalogoRepository;
 import pe.ccpip.catalogo.CatalogoRepository.Vendible;
 import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.imagenes.ImagenService;
 
 /**
- * Carrito persistido del comprador (CCPIP-58). Agregar solo consulta la disponibilidad: no
+ * Carrito persistido del comprador (CCPIP-58, CCPIP-155). Agregar solo consulta la disponibilidad: no
  * reserva ni descuenta existencias (RNF-35, ADR-11). El descuento ocurre al confirmar la compra.
  */
 @Service
@@ -28,6 +37,71 @@ public class CarritoService {
     public CarritoService(JdbcTemplate jdbc, CatalogoRepository catalogo) {
         this.jdbc = jdbc;
         this.catalogo = catalogo;
+    }
+
+    /**
+     * CCPIP-155: el carrito persistido del comprador con precio y disponibilidad recalculados ahora
+     * mismo (RF-124). Sobrevive al cierre de sesion porque vive en la base, y consultarlo no reserva.
+     */
+    @Transactional(readOnly = true)
+    public Carrito consultar(long usuarioId) {
+        List<ItemGuardado> guardados = jdbc.query("""
+                SELECT i.producto_id, i.cantidad, p.nombre, p.contenido, p.precio, um.nombre AS unidad,
+                       (SELECT im.id FROM imagen im WHERE im.producto_id = p.id AND im.principal) AS imagen,
+                       pr.id AS pr_id, coalesce(pr.nombre_tienda, pr.comunidad) AS pr_nombre, pr.pueblo, pr.comunidad,
+                       pr.region, pr.localidad, pr.origen_verificado
+                FROM item_carrito i
+                JOIN carrito c ON c.id = i.carrito_id
+                JOIN producto p ON p.id = i.producto_id
+                JOIN productor pr ON pr.id = p.productor_id
+                LEFT JOIN unidad_medida um ON um.id = p.unidad_medida_id
+                WHERE c.usuario_id = ?
+                ORDER BY i.agregado_en, i.id""",
+                (rs, row) -> {
+                    UUID imagen = rs.getObject("imagen", UUID.class);
+                    return new ItemGuardado(rs.getLong("producto_id"), rs.getString("nombre"), rs.getString("contenido"),
+                            rs.getString("unidad"), imagen == null ? null : ImagenService.urlMiniatura(imagen),
+                            new TiendaResumen(rs.getLong("pr_id"), rs.getString("pr_nombre"), rs.getString("pueblo"),
+                                    rs.getString("comunidad"), rs.getString("region"), rs.getString("localidad"),
+                                    rs.getBoolean("origen_verificado")),
+                            rs.getBigDecimal("precio"), rs.getBigDecimal("cantidad"));
+                }, usuarioId);
+
+        Map<Long, Vendible> vendibles = catalogo.vendibles(guardados.stream().map(ItemGuardado::productoId).toList());
+        List<Item> items = guardados.stream().map(g -> revalidar(g, vendibles.get(g.productoId()))).toList();
+
+        BigDecimal unidades = items.stream().map(Item::cantidad).reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<Item> comprables = items.stream().filter(i -> i.estado() == EstadoItem.DISPONIBLE).toList();
+        BigDecimal total = comprables.stream().map(Item::subtotal).reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
+        long comunidades = comprables.stream().map(i -> i.tienda().id()).distinct().count();
+        return new Carrito(items, unidades, comunidades, total);
+    }
+
+    private record ItemGuardado(long productoId, String nombre, String contenido, String unidad, String imagen,
+                                TiendaResumen tienda, BigDecimal precio, BigDecimal cantidad) {
+    }
+
+    private static Item revalidar(ItemGuardado g, Vendible oferta) {
+        EstadoItem estado;
+        BigDecimal disponibles = null;
+        if (oferta == null) {
+            estado = EstadoItem.NO_DISPONIBLE;
+        } else if ("MAYORISTA".equals(oferta.modalidad()) || g.precio() == null) {
+            estado = EstadoItem.SOLO_MAYORISTA;
+        } else if (oferta.enVenta().signum() == 0) {
+            estado = EstadoItem.AGOTADO;
+        } else if (g.cantidad().compareTo(oferta.enVenta()) > 0) {
+            estado = EstadoItem.STOCK_INSUFICIENTE;
+            disponibles = oferta.enVenta();
+        } else {
+            estado = EstadoItem.DISPONIBLE;
+        }
+        BigDecimal subtotal = estado == EstadoItem.DISPONIBLE
+                ? g.precio().multiply(g.cantidad()).setScale(2, RoundingMode.HALF_UP)
+                : null;
+        return new Item(g.productoId(), g.nombre(), g.contenido(), g.unidad(), g.imagen(), g.tienda(), g.precio(),
+                g.cantidad(), subtotal, estado, disponibles);
     }
 
     /**
