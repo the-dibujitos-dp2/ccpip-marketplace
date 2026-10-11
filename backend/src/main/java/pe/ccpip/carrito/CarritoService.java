@@ -48,6 +48,7 @@ public class CarritoService {
         List<ItemGuardado> guardados = jdbc.query("""
                 SELECT i.producto_id, i.cantidad, p.nombre, p.contenido, p.precio, um.nombre AS unidad,
                        (SELECT im.id FROM imagen im WHERE im.producto_id = p.id AND im.principal) AS imagen,
+                       l.codigo AS linea,
                        pr.id AS pr_id, coalesce(pr.nombre_tienda, pr.comunidad) AS pr_nombre, pr.pueblo, pr.comunidad,
                        pr.region, pr.localidad, pr.origen_verificado
                 FROM item_carrito i
@@ -55,12 +56,14 @@ public class CarritoService {
                 JOIN producto p ON p.id = i.producto_id
                 JOIN productor pr ON pr.id = p.productor_id
                 LEFT JOIN unidad_medida um ON um.id = p.unidad_medida_id
+                LEFT JOIN linea_producto l ON l.id = p.linea_id
                 WHERE c.usuario_id = ?
                 ORDER BY i.agregado_en, i.id""",
                 (rs, row) -> {
                     UUID imagen = rs.getObject("imagen", UUID.class);
                     return new ItemGuardado(rs.getLong("producto_id"), rs.getString("nombre"), rs.getString("contenido"),
                             rs.getString("unidad"), imagen == null ? null : ImagenService.urlMiniatura(imagen),
+                            rs.getString("linea"),
                             new TiendaResumen(rs.getLong("pr_id"), rs.getString("pr_nombre"), rs.getString("pueblo"),
                                     rs.getString("comunidad"), rs.getString("region"), rs.getString("localidad"),
                                     rs.getBoolean("origen_verificado")),
@@ -79,7 +82,7 @@ public class CarritoService {
     }
 
     private record ItemGuardado(long productoId, String nombre, String contenido, String unidad, String imagen,
-                                TiendaResumen tienda, BigDecimal precio, BigDecimal cantidad) {
+                                String linea, TiendaResumen tienda, BigDecimal precio, BigDecimal cantidad) {
     }
 
     private static Item revalidar(ItemGuardado g, Vendible oferta) {
@@ -100,8 +103,8 @@ public class CarritoService {
         BigDecimal subtotal = estado == EstadoItem.DISPONIBLE
                 ? g.precio().multiply(g.cantidad()).setScale(2, RoundingMode.HALF_UP)
                 : null;
-        return new Item(g.productoId(), g.nombre(), g.contenido(), g.unidad(), g.imagen(), g.tienda(), g.precio(),
-                g.cantidad(), subtotal, estado, disponibles);
+        return new Item(g.productoId(), g.nombre(), g.contenido(), g.unidad(), g.imagen(), g.linea(), g.tienda(),
+                g.precio(), g.cantidad(), subtotal, estado, disponibles);
     }
 
     /**
