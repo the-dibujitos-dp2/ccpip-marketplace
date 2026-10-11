@@ -28,10 +28,11 @@ public final class CarritoModelos {
 
     /**
      * {@code precio} y {@code subtotal} son los vigentes (RF-124); {@code subtotal} es nulo si el item
-     * no se puede comprar. {@code disponibles} solo se informa con STOCK_INSUFICIENTE.
+     * no se puede comprar. {@code disponibles} solo se informa con STOCK_INSUFICIENTE. {@code linea}
+     * es la linea principal: sin foto, la pantalla muestra su ilustracion (Figma CW-05).
      */
     public record Item(long productoId, String nombre, String contenido, String unidad, String imagen,
-                       TiendaResumen tienda, BigDecimal precio, BigDecimal cantidad, BigDecimal subtotal,
+                       String linea, TiendaResumen tienda, BigDecimal precio, BigDecimal cantidad, BigDecimal subtotal,
                        EstadoItem estado, BigDecimal disponibles) {
     }
 
