@@ -12,6 +12,7 @@ import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { capital, fecha, mesAnio, precio } from '../../formato.js'
 import { RUTAS } from '../../router.js'
+import AgregarAlCarrito from './AgregarAlCarrito.jsx'
 import './ProductoPage.css'
 
 /** CW-03: ficha publica del producto (CCPIP-53) con su historia de origen (CCPIP-152). */
@@ -181,6 +182,7 @@ export default function ProductoPage({ id }) {
                   ? 'Se recoge en un punto de acopio de la Cámara.'
                   : 'Sin stock por ahora. Vuelve pronto: la comunidad repone por cosecha.'}
               </p>
+              <AgregarAlCarrito key={producto.id} producto={producto} />
             </div>
 
             {producto.descripcion && <p className="body-m ficha__descripcion">{producto.descripcion}</p>}

@@ -1,0 +1,37 @@
+.selector-cantidad {
+  display: inline-flex;
+  align-items: center;
+  height: 48px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-m);
+  background: var(--color-bg-surface);
+  overflow: hidden;
+}
+.selector-cantidad:focus-within { border-color: var(--color-border-focus); }
+.selector-cantidad--error { border: 2px solid var(--color-border-error); }
+
+.selector-cantidad__boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+.selector-cantidad__boton:disabled { background: var(--color-bg-disabled); color: var(--color-text-disabled); cursor: not-allowed; }
+
+.selector-cantidad__valor {
+  width: 44px;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+  color: var(--color-text-primary);
+}
+.selector-cantidad__valor:focus { outline: none; }
+.selector-cantidad--deshabilitado .selector-cantidad__valor { color: var(--color-text-disabled); }
