@@ -42,7 +42,8 @@ export function useUnidadesCarrito(activo) {
   useEffect(() => {
     if (!activo) return undefined
     oyentes.add(setValor)
-    if (unidades === null) recargarUnidadesCarrito()
+    // recargarUnidadesCarrito ya atrapa sus errores: no hay nada que esperar aqui
+    if (unidades === null) void recargarUnidadesCarrito()
     else setValor(unidades)
     return () => oyentes.delete(setValor)
   }, [activo])

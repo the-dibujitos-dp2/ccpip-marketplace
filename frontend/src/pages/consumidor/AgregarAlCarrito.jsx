@@ -49,7 +49,8 @@ export default function AgregarAlCarrito({ producto }) {
     setAviso(null)
     try {
       const r = await agregarAlCarrito(producto.id, unidades)
-      recargarUnidadesCarrito()
+      // La cabecera se actualiza en segundo plano; sus errores no afectan esta confirmacion
+      void recargarUnidadesCarrito()
       setAviso({
         tono: 'exito',
         titulo: `Agregaste ${unidades} ${unidades === 1 ? 'unidad' : 'unidades'} a tu carrito`,
