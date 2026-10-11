@@ -2,6 +2,7 @@ package pe.ccpip.carrito;
 
 import java.math.BigDecimal;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +17,7 @@ import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.filter.SessionAuthFilter;
 import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
+import pe.ccpip.carrito.CarritoModelos.Carrito;
 import pe.ccpip.carrito.CarritoService.Agregado;
 
 /** Carrito del comprador. Opera siempre sobre el carrito del usuario de la sesion (RNF-05). */
@@ -39,6 +41,12 @@ public class CarritoController {
 
     public CarritoController(CarritoService carrito) {
         this.carrito = carrito;
+    }
+
+    /** CCPIP-155: articulos, cantidades, subtotales y total con precio y stock revalidados. */
+    @GetMapping
+    public Carrito consultar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s) {
+        return carrito.consultar(s.userId());
     }
 
     /** CCPIP-58: agrega una oferta especifica con su cantidad, sin reservar existencias (RNF-35). */

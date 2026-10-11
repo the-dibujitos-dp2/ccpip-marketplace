@@ -1,6 +1,7 @@
 package pe.ccpip.carrito;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -20,7 +21,8 @@ import jakarta.servlet.http.Cookie;
 import pe.ccpip.support.IntegrationTest;
 
 /**
- * CCPIP-58: el comprador agrega una oferta especifica con su cantidad. Cada producto de prueba
+ * CCPIP-58 y CCPIP-155: el comprador agrega una oferta especifica con su cantidad y consulta su
+ * carrito con precio y stock revalidados. Cada producto de prueba
  * nace con un lote de 5 unidades (ver {@link IntegrationTest#productoConLote}).
  */
 @Transactional
@@ -139,6 +141,134 @@ class CarritoControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.code").value("SIN_PERMISO"));
         assertThat(jdbc.queryForObject("SELECT count(*) FROM item_carrito WHERE producto_id = ?", Integer.class, oferta))
                 .isZero();
+    }
+
+    // ---------- Consultar el carrito (CCPIP-155) ----------
+
+    @Test
+    void unCarritoNuevoEstaVacio() throws Exception {
+        consultar(consumidor)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isEmpty())
+                .andExpect(jsonPath("$.unidades").value(0))
+                .andExpect(jsonPath("$.comunidades").value(0))
+                .andExpect(jsonPath("$.total").value(0));
+    }
+
+    @Test
+    void muestraArticulosCantidadesSubtotalesYTotal() throws Exception {
+        long otra = productoConLote("Cacao en grano", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
+        jdbc.update("""
+                UPDATE producto SET productor_id = (SELECT p.id FROM productor p JOIN usuario u ON u.id = p.usuario_id
+                                                    WHERE u.correo = 'productor2@ccpip.test'), precio = 15.50
+                WHERE id = ?""", otra);
+        agregar(consumidor, oferta, 2).andExpect(status().isOk());
+        agregar(consumidor, otra, 3).andExpect(status().isOk());
+
+        consultar(consumidor)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(2))
+                // En el orden en que se agregaron
+                .andExpect(jsonPath("$.items[0].productoId").value(oferta))
+                .andExpect(jsonPath("$.items[0].nombre").value("Sacha inchi tostado"))
+                .andExpect(jsonPath("$.items[0].unidad").value("Gramo"))
+                .andExpect(jsonPath("$.items[0].tienda.nombre").value("Asoc. Nii Joi"))
+                .andExpect(jsonPath("$.items[0].precio").value(20))
+                .andExpect(jsonPath("$.items[0].cantidad").value(2))
+                .andExpect(jsonPath("$.items[0].subtotal").value(40))
+                .andExpect(jsonPath("$.items[0].estado").value("DISPONIBLE"))
+                .andExpect(jsonPath("$.items[0].disponibles").doesNotExist())
+                .andExpect(jsonPath("$.items[1].tienda.nombre").value("C.N. Yarina"))
+                .andExpect(jsonPath("$.items[1].subtotal").value(46.5))
+                .andExpect(jsonPath("$.unidades").value(5))
+                .andExpect(jsonPath("$.comunidades").value(2))
+                .andExpect(jsonPath("$.total").value(86.5));
+    }
+
+    @Test
+    void elPrecioSeRevalidaEnCadaConsulta() throws Exception {
+        agregar(consumidor, oferta, 2).andExpect(status().isOk());
+        jdbc.update("UPDATE producto SET precio = 25 WHERE id = ?", oferta);
+        consultar(consumidor)
+                .andExpect(jsonPath("$.items[0].precio").value(25))
+                .andExpect(jsonPath("$.items[0].subtotal").value(50))
+                .andExpect(jsonPath("$.total").value(50));
+    }
+
+    @Test
+    void loQueYaNoSePuedeComprarSeMuestraPeroNoSumaAlTotal() throws Exception {
+        long otra = productoConLote("Cacao en grano", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
+        long retirada = productoConLote("Aceite retirado", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
+        agregar(consumidor, oferta, 4).andExpect(status().isOk());
+        agregar(consumidor, otra, 1).andExpect(status().isOk());
+        agregar(consumidor, retirada, 1).andExpect(status().isOk());
+
+        // Otros compradores se llevaron unidades y el productor retiro una oferta
+        jdbc.update("UPDATE lote SET cantidad_actual = 2 WHERE producto_id = ?", oferta);
+        jdbc.update("UPDATE lote SET cantidad_actual = 0 WHERE producto_id = ?", otra);
+        jdbc.update("UPDATE producto SET estado = 'RETIRADO' WHERE id = ?", retirada);
+
+        consultar(consumidor)
+                .andExpect(jsonPath("$.items[0].estado").value("STOCK_INSUFICIENTE"))
+                .andExpect(jsonPath("$.items[0].disponibles").value(2))
+                .andExpect(jsonPath("$.items[0].subtotal").doesNotExist())
+                .andExpect(jsonPath("$.items[1].estado").value("AGOTADO"))
+                .andExpect(jsonPath("$.items[2].estado").value("NO_DISPONIBLE"))
+                .andExpect(jsonPath("$.items[2].nombre").value("Aceite retirado"))
+                .andExpect(jsonPath("$.unidades").value(6))
+                .andExpect(jsonPath("$.comunidades").value(0))
+                .andExpect(jsonPath("$.total").value(0));
+
+        // Consultar no reserva ni descuenta (RNF-35)
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario WHERE producto_id IN (?, ?, ?)",
+                Integer.class, oferta, otra, retirada)).isZero();
+    }
+
+    @Test
+    void unaOfertaQuePasaASoloMayoristaQuedaMarcada() throws Exception {
+        agregar(consumidor, oferta, 1).andExpect(status().isOk());
+        jdbc.update("""
+                UPDATE producto SET modalidad = 'MAYORISTA', precio = NULL, precio_mayorista = 15,
+                                    cantidad_minima_mayorista = 10 WHERE id = ?""", oferta);
+        consultar(consumidor)
+                .andExpect(jsonPath("$.items[0].estado").value("SOLO_MAYORISTA"))
+                .andExpect(jsonPath("$.total").value(0));
+    }
+
+    @Test
+    void elCarritoSobreviveAlCierreDeSesion() throws Exception {
+        agregar(consumidor, oferta, 3).andExpect(status().isOk());
+        mockMvc.perform(post("/api/auth/logout").cookie(consumidor)).andExpect(status().is2xxSuccessful());
+        consultar(consumidor).andExpect(status().isUnauthorized());
+
+        consultar(loginAs("consumidor@ccpip.test"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].productoId").value(oferta))
+                .andExpect(jsonPath("$.items[0].cantidad").value(3));
+    }
+
+    @Test
+    void cadaCompradorVeSoloSuCarrito() throws Exception {
+        jdbc.update("""
+                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
+                SELECT 'otro_comprador@ccpip.test', contrasena_hash, 'Otro comprador', rol_id, true
+                FROM usuario WHERE correo = 'consumidor@ccpip.test'""");
+        agregar(consumidor, oferta, 2).andExpect(status().isOk());
+
+        consultar(loginAs("otro_comprador@ccpip.test"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isEmpty());
+    }
+
+    @Test
+    void soloElCompradorConSesionConsultaSuCarrito() throws Exception {
+        consultar(null).andExpect(status().isUnauthorized());
+        consultar(loginAs("productor@ccpip.test")).andExpect(status().isForbidden());
+    }
+
+    private ResultActions consultar(Cookie sesion) throws Exception {
+        var peticion = get("/api/carrito");
+        return mockMvc.perform(sesion == null ? peticion : peticion.cookie(sesion));
     }
 
     private ResultActions agregar(Cookie sesion, long productoId, Number cantidad) throws Exception {

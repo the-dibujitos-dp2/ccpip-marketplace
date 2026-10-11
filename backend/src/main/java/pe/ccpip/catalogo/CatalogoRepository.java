@@ -5,10 +5,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -147,9 +151,20 @@ public class CatalogoRepository {
 
     /** CCPIP-58: misma regla de visibilidad y saldo vendible que la ficha publica. */
     public Optional<Vendible> vendible(long id) {
-        return jdbc.query("SELECT p.modalidad, " + EN_VENTA + " AS en_venta " + VISIBLE + " AND p.id = :id",
-                new MapSqlParameterSource("id", id),
-                (rs, row) -> new Vendible(rs.getString("modalidad"), rs.getBigDecimal("en_venta"))).stream().findFirst();
+        return Optional.ofNullable(vendibles(List.of(id)).get(id));
+    }
+
+    /** CCPIP-155: varias ofertas a la vez. Las que ya no estan visibles no aparecen en el mapa. */
+    public Map<Long, Vendible> vendibles(Collection<Long> ids) {
+        Map<Long, Vendible> vendibles = new HashMap<>();
+        if (ids.isEmpty()) {
+            return vendibles;
+        }
+        jdbc.query("SELECT p.id, p.modalidad, " + EN_VENTA + " AS en_venta " + VISIBLE + " AND p.id IN (:ids)",
+                new MapSqlParameterSource("ids", ids),
+                (RowCallbackHandler) rs -> vendibles.put(rs.getLong("id"),
+                        new Vendible(rs.getString("modalidad"), rs.getBigDecimal("en_venta"))));
+        return vendibles;
     }
 
     public List<ProductoResumen> deTienda(long tiendaId) {
