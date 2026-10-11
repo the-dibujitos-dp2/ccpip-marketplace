@@ -1,0 +1,13 @@
+.agregar-carrito { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+/* Selector y boton en la misma fila (CW-03c); en pantallas angostas el boton baja */
+.agregar-carrito__fila { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.agregar-carrito__boton { flex: 1 1 200px; }
+.agregar-carrito__error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-status-error-fg);
+}
