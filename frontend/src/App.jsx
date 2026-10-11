@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { consultarSesion, fetchMe, logout } from './api/auth.js'
+import { olvidarUnidadesCarrito } from './api/carrito.js'
 import { armIdleTimer, disarmIdleTimer, onSessionLost } from './api/http.js'
 import { invalidarTiendaActual } from './api/tiendaActual.js'
 import LayoutTienda from './components/layout/LayoutTienda.jsx'
 import CuentaPage from './pages/CuentaPage.jsx'
 import BuscarPage from './pages/consumidor/BuscarPage.jsx'
+import CarritoPage from './pages/consumidor/CarritoPage.jsx'
 import ComunidadesPage from './pages/consumidor/ComunidadesPage.jsx'
 import IngresarPage from './pages/consumidor/IngresarPage.jsx'
 import InicioPage from './pages/consumidor/InicioPage.jsx'
@@ -41,6 +43,7 @@ export default function App() {
   const terminarSesion = useCallback((nuevoAviso) => {
     disarmIdleTimer()
     invalidarTiendaActual()
+    olvidarUnidadesCarrito()
     setSesion(null)
     setAviso(nuevoAviso)
     navigate(RUTAS.ingresar, { replace: true })
@@ -76,7 +79,8 @@ export default function App() {
 
   // "/productores/1" (enlace antiguo) no es del panel: se compara por segmento
   const delProductor = path === RUTAS.productor || path.startsWith(`${RUTAS.productor}/`)
-  const protegida = path === RUTAS.inicio || delProductor
+  const delComprador = path === RUTAS.carrito
+  const protegida = path === RUTAS.inicio || delProductor || delComprador
 
   // Al cargar y al volver a una pantalla protegida con "atras", se vuelve a preguntar al servidor
   useEffect(() => {
@@ -108,6 +112,7 @@ export default function App() {
     if (sesion && path === RUTAS.ingresar) navigate(volver, { replace: true })
     else if (!sesion && protegida) navigate(`${RUTAS.ingresar}?volver=${encodeURIComponent(path + search)}`, { replace: true })
     else if (sesion && delProductor && user.role !== 'PRODUCTOR') navigate(RUTAS.inicio, { replace: true })
+    else if (sesion && delComprador && user.role !== 'CONSUMIDOR') navigate(RUTAS.inicio, { replace: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cargando, sesion, path])
 
@@ -159,6 +164,8 @@ export default function App() {
       pagina = <EditorProductoPage path={RUTAS.productorProductos} id={editor[1] === 'nuevo' ? null : editor[1]} search={search} />
     }
     else pagina = <PanelPage path={RUTAS.productor} />
+  } else if (delComprador) {
+    pagina = user.role === 'CONSUMIDOR' ? <CarritoPage /> : null
   } else if (path === RUTAS.catalogo) {
     pagina = <InicioPage />
   } else if (path === RUTAS.buscar) {

@@ -2,10 +2,10 @@ import iconoCheck from '../assets/icons/check.svg'
 import Icono from './Icono.jsx'
 import './Pasos.css'
 
-/** Indicador de pasos del asistente de publicacion (PW-04 · PW-05 · PW-06). */
-export default function Pasos({ pasos, actual, onIr }) {
+/** Indicador de pasos del asistente de publicacion (PW-04 · PW-05 · PW-06) y de la compra (CW-05). */
+export default function Pasos({ pasos, actual, onIr, etiqueta = 'Pasos para publicar' }) {
   return (
-    <ol className="pasos" aria-label="Pasos para publicar">
+    <ol className="pasos" aria-label={etiqueta}>
       {pasos.map((paso, i) => {
         const estado = i < actual ? 'hecho' : i === actual ? 'actual' : 'pendiente'
         return (

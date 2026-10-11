@@ -44,6 +44,25 @@
 
 .cabecera-tienda__boton-cuenta:hover { background: var(--color-bg-surface-alt); }
 
+/* Figma 66:459: pastilla verde "Carrito · N" a la derecha de la cuenta */
+.cabecera-tienda__carrito {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-brand);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-text-on-brand);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cabecera-tienda__carrito:hover { background: #12482d; }
+
 .cabecera-tienda__menu {
   position: absolute;
   top: calc(100% + 8px);
