@@ -2,6 +2,7 @@ package pe.ccpip.carrito;
 
 import java.math.BigDecimal;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -63,6 +64,13 @@ public class CarritoController {
     public Carrito modificar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                              @PathVariable long productoId, @Valid @RequestBody NuevaCantidad nueva) {
         return carrito.modificar(s.userId(), productoId, nueva.cantidad());
+    }
+
+    /** CCPIP-156: quita una oferta del carrito y devuelve el carrito recalculado. */
+    @DeleteMapping("/items/{productoId}")
+    public Carrito quitar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                          @PathVariable long productoId) {
+        return carrito.quitar(s.userId(), productoId);
     }
 
     /** CCPIP-58: agrega una oferta especifica con su cantidad, sin reservar existencias (RNF-35). */

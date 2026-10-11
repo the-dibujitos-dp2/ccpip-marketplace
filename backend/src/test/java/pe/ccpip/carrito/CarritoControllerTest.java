@@ -1,6 +1,7 @@
 package pe.ccpip.carrito;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -22,9 +23,9 @@ import jakarta.servlet.http.Cookie;
 import pe.ccpip.support.IntegrationTest;
 
 /**
- * CCPIP-58, CCPIP-155 y CCPIP-268: el comprador agrega una oferta especifica con su cantidad,
- * consulta su carrito y cambia cantidades, siempre con precio y stock revalidados. Cada producto de prueba
- * nace con un lote de 5 unidades (ver {@link IntegrationTest#productoConLote}).
+ * CCPIP-58, 155, 268 y 156: el comprador agrega una oferta especifica con su cantidad, consulta
+ * su carrito, cambia cantidades y quita ofertas, siempre con precio y stock revalidados. Cada
+ * producto de prueba nace con un lote de 5 unidades (ver {@link IntegrationTest#productoConLote}).
  */
 @Transactional
 class CarritoControllerTest extends IntegrationTest {
@@ -378,6 +379,87 @@ class CarritoControllerTest extends IntegrationTest {
         modificar(null, oferta, 1).andExpect(status().isUnauthorized());
         modificar(loginAs("productor@ccpip.test"), oferta, 1).andExpect(status().isForbidden());
         consultar(consumidor).andExpect(jsonPath("$.items[0].cantidad").value(2));
+    }
+
+    // ---------- Quitar del carrito (CCPIP-156) ----------
+
+    @Test
+    void quitaUnaOfertaYRecalculaSinMovimientoDeInventario() throws Exception {
+        long otra = productoConLote("Cacao en grano", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
+        jdbc.update("""
+                UPDATE producto SET productor_id = (SELECT p.id FROM productor p JOIN usuario u ON u.id = p.usuario_id
+                                                    WHERE u.correo = 'productor2@ccpip.test') WHERE id = ?""", otra);
+        agregar(consumidor, oferta, 2).andExpect(status().isOk());
+        agregar(consumidor, otra, 1).andExpect(status().isOk());
+
+        quitar(consumidor, oferta)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].productoId").value(otra))
+                .andExpect(jsonPath("$.unidades").value(1))
+                .andExpect(jsonPath("$.comunidades").value(1))
+                .andExpect(jsonPath("$.total").value(20));
+
+        // RNF-35: el lote no cambia ni se registran movimientos
+        assertThat(jdbc.queryForObject("SELECT cantidad_actual FROM lote WHERE producto_id = ?", Integer.class, oferta))
+                .isEqualTo(5);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario WHERE producto_id IN (?, ?)",
+                Integer.class, oferta, otra)).isZero();
+    }
+
+    @Test
+    void quitarLaUltimaOfertaDejaElCarritoVacioYSePuedeVolverAAgregar() throws Exception {
+        agregar(consumidor, oferta, 3).andExpect(status().isOk());
+        quitar(consumidor, oferta)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isEmpty())
+                .andExpect(jsonPath("$.unidades").value(0))
+                .andExpect(jsonPath("$.total").value(0));
+
+        // Volver a agregar empieza de cero, no recupera la cantidad anterior
+        agregar(consumidor, oferta, 1).andExpect(jsonPath("$.cantidad").value(1));
+    }
+
+    @Test
+    void tambienSeQuitanLasOfertasQueYaNoSePuedenComprar() throws Exception {
+        long retirada = productoConLote("Aceite retirado", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
+        agregar(consumidor, oferta, 1).andExpect(status().isOk());
+        agregar(consumidor, retirada, 1).andExpect(status().isOk());
+        jdbc.update("UPDATE producto SET estado = 'RETIRADO' WHERE id = ?", retirada);
+        jdbc.update("UPDATE lote SET cantidad_actual = 0 WHERE producto_id = ?", oferta);
+
+        quitar(consumidor, retirada).andExpect(status().isOk()).andExpect(jsonPath("$.items.length()").value(1));
+        quitar(consumidor, oferta).andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty());
+    }
+
+    @Test
+    void soloSeQuitaLoQueEstaEnElCarrito() throws Exception {
+        quitar(consumidor, oferta)
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("ITEM_NO_ENCONTRADO"));
+        agregar(consumidor, oferta, 1).andExpect(status().isOk());
+        quitar(consumidor, oferta).andExpect(status().isOk());
+        // Quitar dos veces: la segunda ya no lo encuentra
+        quitar(consumidor, oferta).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void soloElCompradorQuitaDeSuPropioCarrito() throws Exception {
+        agregar(consumidor, oferta, 2).andExpect(status().isOk());
+        jdbc.update("""
+                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
+                SELECT 'otro_comprador@ccpip.test', contrasena_hash, 'Otro comprador', rol_id, true
+                FROM usuario WHERE correo = 'consumidor@ccpip.test'""");
+
+        quitar(loginAs("otro_comprador@ccpip.test"), oferta).andExpect(status().isNotFound());
+        quitar(null, oferta).andExpect(status().isUnauthorized());
+        quitar(loginAs("productor@ccpip.test"), oferta).andExpect(status().isForbidden());
+        consultar(consumidor).andExpect(jsonPath("$.items[0].cantidad").value(2));
+    }
+
+    private ResultActions quitar(Cookie sesion, long productoId) throws Exception {
+        var peticion = delete("/api/carrito/items/{id}", productoId);
+        return mockMvc.perform(sesion == null ? peticion : peticion.cookie(sesion));
     }
 
     private ResultActions modificar(Cookie sesion, long productoId, Number cantidad) throws Exception {

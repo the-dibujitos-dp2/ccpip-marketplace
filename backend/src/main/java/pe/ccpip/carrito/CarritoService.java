@@ -22,7 +22,7 @@ import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.imagenes.ImagenService;
 
 /**
- * Carrito persistido del comprador (CCPIP-58, CCPIP-155, CCPIP-268). Agregar solo consulta la disponibilidad: no
+ * Carrito persistido del comprador (CCPIP-58, CCPIP-155, CCPIP-268, CCPIP-156). Agregar solo consulta la disponibilidad: no
  * reserva ni descuenta existencias (RNF-35, ADR-11). El descuento ocurre al confirmar la compra.
  */
 @Service
@@ -170,6 +170,22 @@ public class CarritoService {
                     "Solo quedan " + oferta.enVenta().stripTrailingZeros().toPlainString() + " unidades disponibles.");
         }
         jdbc.update("UPDATE item_carrito SET cantidad = ? WHERE id = ?", cantidad, itemId);
+        jdbc.update("UPDATE carrito SET actualizado_en = now() WHERE usuario_id = ?", usuarioId);
+        return consultar(usuarioId);
+    }
+
+    /**
+     * CCPIP-156: quita una oferta del carrito, este o no comprable (es la salida para lo agotado o
+     * retirado), y devuelve el carrito recalculado. Sin movimiento de inventario (RNF-35).
+     */
+    @Transactional
+    public Carrito quitar(long usuarioId, long productoId) {
+        int quitados = jdbc.update("""
+                DELETE FROM item_carrito i USING carrito c
+                WHERE c.id = i.carrito_id AND c.usuario_id = ? AND i.producto_id = ?""", usuarioId, productoId);
+        if (quitados == 0) {
+            throw ErrorNegocio.noEncontrado("ITEM_NO_ENCONTRADO", "Este producto ya no está en tu carrito.");
+        }
         jdbc.update("UPDATE carrito SET actualizado_en = now() WHERE usuario_id = ?", usuarioId);
         return consultar(usuarioId);
     }
