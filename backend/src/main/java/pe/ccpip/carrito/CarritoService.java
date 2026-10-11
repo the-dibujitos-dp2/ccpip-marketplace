@@ -21,7 +21,7 @@ import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.imagenes.ImagenService;
 
 /**
- * Carrito persistido del comprador (CCPIP-58, CCPIP-155). Agregar solo consulta la disponibilidad: no
+ * Carrito persistido del comprador (CCPIP-58, CCPIP-155, CCPIP-268). Agregar solo consulta la disponibilidad: no
  * reserva ni descuenta existencias (RNF-35, ADR-11). El descuento ocurre al confirmar la compra.
  */
 @Service
@@ -115,12 +115,7 @@ public class CarritoService {
     public Agregado agregar(long usuarioId, long productoId, BigDecimal cantidad) {
         Vendible oferta = catalogo.vendible(productoId).orElseThrow(() ->
                 ErrorNegocio.noEncontrado("PRODUCTO_NO_ENCONTRADO", "El producto no existe o ya no está disponible"));
-        if ("MAYORISTA".equals(oferta.modalidad())) {
-            throw ErrorNegocio.invalido("SOLO_MAYORISTA", "La compra mayorista estará disponible pronto.");
-        }
-        if (oferta.enVenta().signum() == 0) {
-            throw new ErrorNegocio(HttpStatus.CONFLICT, "AGOTADO", "Este producto está agotado por ahora.");
-        }
+        exigirComprable(oferta);
 
         BigDecimal enCarrito = jdbc.query("""
                 SELECT i.cantidad FROM item_carrito i JOIN carrito c ON c.id = i.carrito_id
@@ -147,5 +142,40 @@ public class CarritoService {
         Integer articulos = jdbc.queryForObject("SELECT count(*) FROM item_carrito WHERE carrito_id = ?",
                 Integer.class, carritoId);
         return new Agregado(productoId, total, articulos == null ? 0 : articulos);
+    }
+
+    /**
+     * CCPIP-268: reemplaza la cantidad de una oferta que ya esta en el carrito, revalidando precio y
+     * stock en ese momento (RF-141), y devuelve el carrito recalculado. No reserva ni descuenta (RNF-35).
+     * Una oferta que ya no se puede comprar no se modifica: se quita (CCPIP-156).
+     */
+    @Transactional
+    public Carrito modificar(long usuarioId, long productoId, BigDecimal cantidad) {
+        Long itemId = jdbc.query("""
+                SELECT i.id FROM item_carrito i JOIN carrito c ON c.id = i.carrito_id
+                WHERE c.usuario_id = ? AND i.producto_id = ?""",
+                (rs, row) -> rs.getLong("id"), usuarioId, productoId)
+                .stream().findFirst()
+                .orElseThrow(() -> ErrorNegocio.noEncontrado("ITEM_NO_ENCONTRADO", "Este producto ya no está en tu carrito."));
+        Vendible oferta = catalogo.vendible(productoId).orElseThrow(() -> new ErrorNegocio(HttpStatus.CONFLICT,
+                "NO_DISPONIBLE", "Este producto ya no está disponible. Quítalo de tu carrito."));
+        exigirComprable(oferta);
+        if (cantidad.compareTo(oferta.enVenta()) > 0) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "STOCK_INSUFICIENTE",
+                    "Solo quedan " + oferta.enVenta().stripTrailingZeros().toPlainString() + " unidades disponibles.");
+        }
+        jdbc.update("UPDATE item_carrito SET cantidad = ? WHERE id = ?", cantidad, itemId);
+        jdbc.update("UPDATE carrito SET actualizado_en = now() WHERE usuario_id = ?", usuarioId);
+        return consultar(usuarioId);
+    }
+
+    /** Reglas comunes para agregar y modificar: por ahora solo al por menor y con saldo vendible. */
+    private static void exigirComprable(Vendible oferta) {
+        if ("MAYORISTA".equals(oferta.modalidad())) {
+            throw ErrorNegocio.invalido("SOLO_MAYORISTA", "La compra mayorista estará disponible pronto.");
+        }
+        if (oferta.enVenta().signum() == 0) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "AGOTADO", "Este producto está agotado por ahora.");
+        }
     }
 }

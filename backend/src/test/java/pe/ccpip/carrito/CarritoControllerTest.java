@@ -3,6 +3,7 @@ package pe.ccpip.carrito;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -21,8 +22,8 @@ import jakarta.servlet.http.Cookie;
 import pe.ccpip.support.IntegrationTest;
 
 /**
- * CCPIP-58 y CCPIP-155: el comprador agrega una oferta especifica con su cantidad y consulta su
- * carrito con precio y stock revalidados. Cada producto de prueba
+ * CCPIP-58, CCPIP-155 y CCPIP-268: el comprador agrega una oferta especifica con su cantidad,
+ * consulta su carrito y cambia cantidades, siempre con precio y stock revalidados. Cada producto de prueba
  * nace con un lote de 5 unidades (ver {@link IntegrationTest#productoConLote}).
  */
 @Transactional
@@ -265,6 +266,123 @@ class CarritoControllerTest extends IntegrationTest {
     void soloElCompradorConSesionConsultaSuCarrito() throws Exception {
         consultar(null).andExpect(status().isUnauthorized());
         consultar(loginAs("productor@ccpip.test")).andExpect(status().isForbidden());
+    }
+
+    // ---------- Modificar la cantidad (CCPIP-268) ----------
+
+    @Test
+    void reemplazaLaCantidadYDevuelveElCarritoRecalculadoSinTocarExistencias() throws Exception {
+        agregar(consumidor, oferta, 2).andExpect(status().isOk());
+
+        modificar(consumidor, oferta, 4)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].cantidad").value(4))
+                .andExpect(jsonPath("$.items[0].subtotal").value(80))
+                .andExpect(jsonPath("$.unidades").value(4))
+                .andExpect(jsonPath("$.total").value(80));
+        // Bajar tambien es reemplazar, no restar
+        modificar(consumidor, oferta, 1)
+                .andExpect(jsonPath("$.items[0].cantidad").value(1))
+                .andExpect(jsonPath("$.total").value(20));
+
+        assertThat(jdbc.queryForObject("SELECT cantidad_actual FROM lote WHERE producto_id = ?", Integer.class, oferta))
+                .isEqualTo(5);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario WHERE producto_id = ?",
+                Integer.class, oferta)).isZero();
+    }
+
+    @Test
+    void alModificarRevalidaPrecioYStock() throws Exception {
+        agregar(consumidor, oferta, 2).andExpect(status().isOk());
+        jdbc.update("UPDATE producto SET precio = 25 WHERE id = ?", oferta);
+
+        modificar(consumidor, oferta, 3)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].precio").value(25))
+                .andExpect(jsonPath("$.items[0].subtotal").value(75));
+        modificar(consumidor, oferta, 6)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("STOCK_INSUFICIENTE"))
+                .andExpect(jsonPath("$.error").value("Solo quedan 5 unidades disponibles."));
+        // Lo rechazado no cambia el carrito
+        consultar(consumidor).andExpect(jsonPath("$.items[0].cantidad").value(3));
+    }
+
+    @Test
+    void bajarLaCantidadResuelveElStockInsuficiente() throws Exception {
+        agregar(consumidor, oferta, 4).andExpect(status().isOk());
+        jdbc.update("UPDATE lote SET cantidad_actual = 2 WHERE producto_id = ?", oferta);
+        consultar(consumidor).andExpect(jsonPath("$.items[0].estado").value("STOCK_INSUFICIENTE"));
+
+        modificar(consumidor, oferta, 2)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].estado").value("DISPONIBLE"))
+                .andExpect(jsonPath("$.total").value(40));
+    }
+
+    @Test
+    void laNuevaCantidadEsUnEnteroDeAlMenosUnaUnidad() throws Exception {
+        agregar(consumidor, oferta, 2).andExpect(status().isOk());
+        modificar(consumidor, oferta, 0)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.cantidad").value("La cantidad mínima es una unidad"));
+        modificar(consumidor, oferta, 1.5)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.cantidad").value("La cantidad debe ser un número entero de unidades"));
+        modificar(consumidor, oferta, null)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.cantidad").value("Indica la cantidad"));
+        consultar(consumidor).andExpect(jsonPath("$.items[0].cantidad").value(2));
+    }
+
+    @Test
+    void soloSeModificaLoQueEstaEnElCarritoYSePuedeComprar() throws Exception {
+        modificar(consumidor, oferta, 1)
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("ITEM_NO_ENCONTRADO"));
+
+        long retirada = productoConLote("Aceite retirado", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
+        long agotada = productoConLote("Cacao agotado", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
+        agregar(consumidor, oferta, 1).andExpect(status().isOk());
+        agregar(consumidor, retirada, 1).andExpect(status().isOk());
+        agregar(consumidor, agotada, 1).andExpect(status().isOk());
+        jdbc.update("UPDATE producto SET estado = 'RETIRADO' WHERE id = ?", retirada);
+        jdbc.update("UPDATE lote SET cantidad_actual = 0 WHERE producto_id = ?", agotada);
+        jdbc.update("""
+                UPDATE producto SET modalidad = 'MAYORISTA', precio = NULL, precio_mayorista = 15,
+                                    cantidad_minima_mayorista = 10 WHERE id = ?""", oferta);
+
+        modificar(consumidor, retirada, 2)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("NO_DISPONIBLE"));
+        modificar(consumidor, agotada, 2)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("AGOTADO"));
+        modificar(consumidor, oferta, 2)
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("SOLO_MAYORISTA"));
+    }
+
+    @Test
+    void soloElCompradorModificaSuPropioCarrito() throws Exception {
+        agregar(consumidor, oferta, 2).andExpect(status().isOk());
+        jdbc.update("""
+                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
+                SELECT 'otro_comprador@ccpip.test', contrasena_hash, 'Otro comprador', rol_id, true
+                FROM usuario WHERE correo = 'consumidor@ccpip.test'""");
+
+        // Otro comprador no puede tocar mi carrito: para el, esa oferta no esta en su carrito
+        modificar(loginAs("otro_comprador@ccpip.test"), oferta, 1).andExpect(status().isNotFound());
+        modificar(null, oferta, 1).andExpect(status().isUnauthorized());
+        modificar(loginAs("productor@ccpip.test"), oferta, 1).andExpect(status().isForbidden());
+        consultar(consumidor).andExpect(jsonPath("$.items[0].cantidad").value(2));
+    }
+
+    private ResultActions modificar(Cookie sesion, long productoId, Number cantidad) throws Exception {
+        Map<String, Object> cuerpo = new HashMap<>();
+        cuerpo.put("cantidad", cantidad);
+        var peticion = put("/api/carrito/items/{id}", productoId).contentType(MediaType.APPLICATION_JSON).content(json(cuerpo));
+        return mockMvc.perform(sesion == null ? peticion : peticion.cookie(sesion));
     }
 
     private ResultActions consultar(Cookie sesion) throws Exception {
