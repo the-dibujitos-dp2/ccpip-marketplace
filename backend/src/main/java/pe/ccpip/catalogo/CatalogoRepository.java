@@ -44,6 +44,17 @@ public class CatalogoRepository {
              WHERE l.producto_id = p.id AND u.tipo = 'PUNTO_ACOPIO'
                AND (l.fecha_vencimiento IS NULL OR l.fecha_vencimiento >= %s))""".formatted(HOY);
 
+    /**
+     * CCPIP-269 (RF-142): la oferta p del productor pr se puede comprar solo si el productor tiene una
+     * cuenta bancaria ACTIVA y una autorizacion APROBADA y vigente para ese producto. Sin eso sigue
+     * visible, pero en "Venta pausada" (Figma CW-03c).
+     */
+    static final String HABILITADA = """
+            (EXISTS (SELECT 1 FROM cuenta_bancaria cb WHERE cb.productor_id = pr.id AND cb.estado = 'ACTIVA')
+             AND EXISTS (SELECT 1 FROM autorizacion_producto a
+                         WHERE a.producto_id = p.id AND a.productor_id = pr.id AND a.estado = 'APROBADA'
+                           AND (a.vigente_hasta IS NULL OR a.vigente_hasta >= %s)))""".formatted(HOY);
+
     static final String VISIBLE = """
             FROM producto p
             JOIN productor pr ON pr.id = p.productor_id AND pr.activo AND pr.tienda_publicada
@@ -74,8 +85,11 @@ public class CatalogoRepository {
 
     public enum Orden { RELEVANCIA, PRECIO_ASC, PRECIO_DESC, NOVEDADES }
 
-    /** Lo que el carrito necesita saber de una oferta visible: su modalidad y cuanto hay en venta. */
-    public record Vendible(String modalidad, BigDecimal enVenta) {
+    /**
+     * Lo que el carrito necesita saber de una oferta visible: su modalidad, cuanto hay en venta y si
+     * su productor puede venderla (CCPIP-269).
+     */
+    public record Vendible(String modalidad, BigDecimal enVenta, boolean habilitada) {
     }
 
     private final NamedParameterJdbcTemplate jdbc;
@@ -138,13 +152,14 @@ public class CatalogoRepository {
     public Optional<ProductoDetalle> detalle(long id) {
         MapSqlParameterSource p = new MapSqlParameterSource("id", id);
         return jdbc.query("""
-                SELECT %s, p.descripcion, p.cantidad_minima_mayorista
-                %s AND p.id = :id""".formatted(COLUMNAS, VISIBLE), p,
+                SELECT %s, p.descripcion, p.cantidad_minima_mayorista, %s AS comprable
+                %s AND p.id = :id""".formatted(COLUMNAS, HABILITADA, VISIBLE), p,
                 (rs, row) -> {
                     ProductoResumen r = resumen(rs, row);
                     return new ProductoDetalle(r.id(), r.nombre(), rs.getString("descripcion"), r.contenido(), r.unidad(),
                             r.linea(), lineas(r.id()), r.modalidad(), r.precio(), r.precioMayorista(),
-                            (Integer) rs.getObject("cantidad_minima_mayorista"), r.disponible(), imagenes(r.id()),
+                            (Integer) rs.getObject("cantidad_minima_mayorista"), r.disponible(),
+                            rs.getBoolean("comprable"), imagenes(r.id()),
                             r.tienda(), historia(r.id()), cosecha(r.id()), relacionados(r));
                 }).stream().findFirst();
     }
@@ -160,10 +175,11 @@ public class CatalogoRepository {
         if (ids.isEmpty()) {
             return vendibles;
         }
-        jdbc.query("SELECT p.id, p.modalidad, " + EN_VENTA + " AS en_venta " + VISIBLE + " AND p.id IN (:ids)",
+        jdbc.query("SELECT p.id, p.modalidad, " + EN_VENTA + " AS en_venta, " + HABILITADA + " AS habilitada "
+                        + VISIBLE + " AND p.id IN (:ids)",
                 new MapSqlParameterSource("ids", ids),
-                (RowCallbackHandler) rs -> vendibles.put(rs.getLong("id"),
-                        new Vendible(rs.getString("modalidad"), rs.getBigDecimal("en_venta"))));
+                (RowCallbackHandler) rs -> vendibles.put(rs.getLong("id"), new Vendible(rs.getString("modalidad"),
+                        rs.getBigDecimal("en_venta"), rs.getBoolean("habilitada"))));
         return vendibles;
     }
 

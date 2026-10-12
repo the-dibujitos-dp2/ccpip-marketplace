@@ -43,6 +43,8 @@ public class CarritoService {
     /**
      * CCPIP-155: el carrito persistido del comprador con precio y disponibilidad recalculados ahora
      * mismo (RF-124). Sobrevive al cierre de sesion porque vive en la base, y consultarlo no reserva.
+     * Tambien revalida que cada productor pueda vender (CCPIP-269): la confirmacion de la compra
+     * debe volver a consultarlo justo antes del pago y aceptar solo items DISPONIBLE (RF-142).
      */
     @Transactional(readOnly = true)
     public Carrito consultar(long usuarioId) {
@@ -95,6 +97,8 @@ public class CarritoService {
         BigDecimal disponibles = null;
         if (oferta == null) {
             estado = EstadoItem.NO_DISPONIBLE;
+        } else if (!oferta.habilitada()) {
+            estado = EstadoItem.VENTA_PAUSADA;
         } else if ("MAYORISTA".equals(oferta.modalidad()) || g.precio() == null) {
             estado = EstadoItem.SOLO_MAYORISTA;
         } else if (oferta.enVenta().signum() == 0) {
@@ -190,8 +194,15 @@ public class CarritoService {
         return consultar(usuarioId);
     }
 
-    /** Reglas comunes para agregar y modificar: por ahora solo al por menor y con saldo vendible. */
+    /**
+     * Reglas comunes para agregar y modificar: el productor puede vender (CCPIP-269), por ahora solo
+     * al por menor y con saldo vendible.
+     */
     private static void exigirComprable(Vendible oferta) {
+        if (!oferta.habilitada()) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "VENTA_PAUSADA",
+                    "La venta de este producto está pausada por ahora. Puedes verlo, pero aún no comprarlo.");
+        }
         if ("MAYORISTA".equals(oferta.modalidad())) {
             throw ErrorNegocio.invalido("SOLO_MAYORISTA", "La compra mayorista estará disponible pronto.");
         }

@@ -273,6 +273,35 @@ Quien cambio que y cuando: `accion` (CREAR, EDITAR, PUBLICAR, RETIRAR, REPUBLICA
 LOTE, IMAGEN) y `cambios` en jsonb con el antes y el despues. Solo insercion: un trigger
 rechaza UPDATE y DELETE, igual que en `movimiento_inventario`.
 
+## Cuenta bancaria y autorizacion para vender (CCPIP-269)
+
+Migracion `V202610121000`. RF-142: solo se compra lo autorizado a un productor con cuenta
+bancaria activa. Entra solo lo que esa regla necesita; el registro de la cuenta (CCPIP-32) y el
+flujo de autorizacion con evidencias (CCPIP-359) agregan lo suyo con sus historias.
+
+```mermaid
+erDiagram
+    productor ||--o{ cuenta_bancaria : cobra_en
+    productor ||--o{ autorizacion_producto : solicita
+    producto ||--o{ autorizacion_producto : autoriza
+```
+
+### cuenta_bancaria
+`productor_id`, `banco`, `titular`, `numero_cuenta`, `cci` y `estado` (ACTIVA, DESACTIVADA).
+Como maximo una ACTIVA por productor (indice unico parcial); las desactivadas se conservan.
+No vence (CCPIP-129).
+
+### autorizacion_producto
+`productor_id`, `producto_id`, `estado` (SOLICITADA, APROBADA, RECHAZADA, REVOCADA), `motivo`,
+`decidido_por`, `decidido_en` y `vigente_hasta` (nula si no vence). Unica por productor y
+producto. El diccionario la liga a `producto_maestro`, que aun no existe: por ahora apunta a
+`producto`. La migracion deja APROBADA lo que ya se vendia.
+
+**Una oferta es comprable** si su productor tiene una cuenta ACTIVA y una autorizacion APROBADA
+para ese producto con `vigente_hasta` nula o de hoy en adelante (hora de Lima). Si no, sigue
+visible en el catalogo, pero en "Venta pausada": la ficha lo dice con `comprable: false` y el
+carrito marca el item `VENTA_PAUSADA` sin sumarlo al total.
+
 ## Fuera de este modelo
 
 Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehacer nada:
