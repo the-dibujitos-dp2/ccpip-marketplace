@@ -19,6 +19,7 @@
     "modalidad": "MINORISTA",
     "precio": 42.0,
     "disponible": true,
+    "comprable": true,
     "imagenes": [],
     "tienda": {
         "id": 2,

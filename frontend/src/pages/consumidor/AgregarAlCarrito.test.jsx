@@ -204,3 +204,40 @@ describe('CCPIP-58 Agregar al carrito desde la ficha', () => {
     expect(screen.getByText(/por ahora el carrito usa el precio minorista/)).toBeInTheDocument()
   })
 })
+
+describe('CW-03c Venta pausada (CCPIP-269)', () => {
+  it('sin cuenta bancaria activa o autorizacion vigente la ficha se ve completa pero sin compra', async () => {
+    const fetchMock = servidor({ ...conSesion, ...ficha({ comprable: false }) })
+    abrirEn('/productos/1')
+
+    expect(await screen.findByText('● Venta pausada temporalmente')).toBeInTheDocument()
+    expect(
+      screen.getByText(`${DATOS.detalle.tienda.nombre} pausó sus ventas por un tema administrativo. Puedes ver todo el producto, pero por ahora no se puede comprar.`),
+    ).toBeInTheDocument()
+    // La oferta sigue consultable: nombre y precio a la vista
+    expect(screen.getByRole('heading', { level: 1, name: DATOS.detalle.nombre })).toBeInTheDocument()
+    expect(screen.getAllByText('S/ 42.00').length).toBeGreaterThan(0)
+    expect(screen.queryByText('● Disponible')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Cantidad')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Agregar al carrito' })).not.toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/carrito/items')).toHaveLength(0)
+  })
+
+  it('si la venta se pausa mientras mira la ficha, el servidor lo rechaza y se explica', async () => {
+    servidor({
+      ...conSesion,
+      ...ficha(),
+      'POST /api/carrito/items': [409, {
+        code: 'VENTA_PAUSADA',
+        error: 'La venta de este producto está pausada por ahora. Puedes verlo, pero aún no comprarlo.',
+      }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productos/1')
+    await user.click(await screen.findByRole('button', { name: 'Agregar al carrito' }))
+
+    const alerta = await screen.findByRole('alert')
+    expect(alerta).toHaveTextContent('No pudimos agregarlo')
+    expect(alerta).toHaveTextContent('La venta de este producto está pausada por ahora.')
+  })
+})

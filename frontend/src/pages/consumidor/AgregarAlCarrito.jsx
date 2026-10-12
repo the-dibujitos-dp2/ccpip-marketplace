@@ -16,6 +16,7 @@ import './AgregarAlCarrito.css'
  * indicando la cantidad. Sin sesion lo lleva a ingresar y lo regresa a la ficha. La
  * disponibilidad real la valida el servidor; el carrito no reserva existencias (RNF-35).
  * La tarifa mayorista (CCPIP-134) llega en Sprint 1: por ahora se compra al precio minorista.
+ * Una oferta en "Venta pausada" (CCPIP-269) no ofrece compra: la ficha explica por que.
  */
 export default function AgregarAlCarrito({ producto }) {
   const { user } = useSesion()
@@ -25,7 +26,7 @@ export default function AgregarAlCarrito({ producto }) {
   const [aviso, setAviso] = useState(null)
   const [enviando, setEnviando] = useState(false)
   // Solo el comprador tiene carrito: a otros roles no se les ofrece (el servidor tambien lo niega)
-  const ofrecer = producto.disponible && (!user || user.role === 'CONSUMIDOR')
+  const ofrecer = producto.disponible && producto.comprable !== false && (!user || user.role === 'CONSUMIDOR')
   const soloMayorista = producto.modalidad === 'MAYORISTA'
   const [panel, panelFuera] = usePanelFuera(ofrecer && !soloMayorista)
 
