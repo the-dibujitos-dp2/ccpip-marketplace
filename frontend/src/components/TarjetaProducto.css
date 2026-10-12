@@ -48,3 +48,4 @@
 .etiqueta-producto--info { background: var(--color-status-info-bg); color: var(--color-status-info-fg); }
 .etiqueta-producto--neutro { background: var(--color-bg-surface-alt); color: var(--color-text-primary); }
 .etiqueta-producto--agotado { background: var(--color-bg-surface-alt); color: var(--color-text-secondary); }
+.etiqueta-producto--aviso { background: var(--color-status-warning-bg); color: var(--color-status-warning-fg); }

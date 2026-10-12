@@ -77,6 +77,25 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
     expect(within(resumen).getAllByText('S/ 84.00')).toHaveLength(2)
   })
 
+  it('una oferta en venta pausada se marca, no se edita y no cuenta en el resumen (CCPIP-269)', async () => {
+    const carrito = copia(DATOS.carrito)
+    carrito.items[1] = { ...carrito.items[1], estado: 'VENTA_PAUSADA', subtotal: null }
+    carrito.total = carrito.items[0].subtotal
+    servidor(conSesion(carrito))
+    abrirEn('/carrito')
+
+    expect(await screen.findByText('Algunos productos no se pueden comprar como están')).toBeInTheDocument()
+    const fila = screen.getByText('Venta pausada temporalmente').closest('li')
+    expect(within(fila).getByText(carrito.items[1].nombre)).toBeInTheDocument()
+    expect(screen.queryByLabelText(`Cantidad de ${carrito.items[1].nombre}`)).not.toBeInTheDocument()
+    expect(screen.getByLabelText(`Cantidad de ${carrito.items[0].nombre}`)).toBeInTheDocument()
+    const resumen = screen.getByRole('complementary', { name: 'Resumen del pedido' })
+    // El total es solo el de la oferta que sigue comprable
+    expect(within(resumen).getAllByText('S/ 728.00')).toHaveLength(2)
+    // Se puede quitar: es la salida para lo que no se puede comprar (CCPIP-156)
+    expect(within(fila).getByRole('button', { name: /Quitar/ })).toBeInTheDocument()
+  })
+
   it('un carrito vacio invita a explorar productos', async () => {
     servidor(conSesion({ items: [], unidades: 0, comunidades: 0, total: 0 }))
     abrirEn('/carrito')

@@ -32,6 +32,8 @@ const PROBLEMAS = {
   AGOTADO: () => ({ tono: 'error', texto: 'Agotado por ahora' }),
   SOLO_MAYORISTA: () => ({ tono: 'neutro', texto: 'Solo se vende por mayor' }),
   NO_DISPONIBLE: () => ({ tono: 'neutro', texto: 'Ya no está disponible' }),
+  // CCPIP-269: el productor no tiene cuenta bancaria activa o autorizacion vigente
+  VENTA_PAUSADA: () => ({ tono: 'aviso', texto: 'Venta pausada temporalmente' }),
 }
 
 /**

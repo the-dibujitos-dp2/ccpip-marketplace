@@ -172,15 +172,20 @@ export default function ProductoPage({ id }) {
                   />
                 )}
               </div>
-              {producto.disponible ? (
+              {/* CCPIP-269 (CW-03c "Venta pausada"): sin cuenta bancaria activa o autorizacion vigente, se ve pero no se compra */}
+              {producto.comprable === false ? (
+                <span className="etiqueta-producto etiqueta-producto--aviso">● Venta pausada temporalmente</span>
+              ) : producto.disponible ? (
                 <span className="etiqueta-producto etiqueta-producto--marca">● Disponible</span>
               ) : (
                 <span className="etiqueta-producto etiqueta-producto--agotado">Agotado por ahora</span>
               )}
               <p className="body-s">
-                {producto.disponible
-                  ? 'Se recoge en un punto de acopio de la Cámara.'
-                  : 'Sin stock por ahora. Vuelve pronto: la comunidad repone por cosecha.'}
+                {producto.comprable === false
+                  ? `${tienda.nombre} pausó sus ventas por un tema administrativo. Puedes ver todo el producto, pero por ahora no se puede comprar.`
+                  : producto.disponible
+                    ? 'Se recoge en un punto de acopio de la Cámara.'
+                    : 'Sin stock por ahora. Vuelve pronto: la comunidad repone por cosecha.'}
               </p>
               <AgregarAlCarrito key={producto.id} producto={producto} />
             </div>
