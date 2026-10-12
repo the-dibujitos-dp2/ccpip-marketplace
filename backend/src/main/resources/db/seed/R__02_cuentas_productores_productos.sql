@@ -152,3 +152,29 @@ JOIN producto pr ON pr.id = s.producto_id
 JOIN linea_producto l ON l.id = pr.linea_id
 WHERE s.cantidad > 0
   AND NOT EXISTS (SELECT 1 FROM lote x WHERE x.producto_id = s.producto_id);
+
+-- ---------------------------------------------------------------------------------------
+-- Cuenta bancaria y autorizaciones (CCPIP-269, RF-142): solo se compra lo autorizado a un
+-- productor con cuenta ACTIVA. Los tres productores con tienda venden; Kukama
+-- (productor_nuevo) aun no registra su cuenta, asi que lo que publique se ve en
+-- "Venta pausada" (Figma CW-03c) hasta que la registre (CCPIP-32).
+-- ---------------------------------------------------------------------------------------
+
+INSERT INTO cuenta_bancaria (productor_id, banco, titular, numero_cuenta, cci)
+SELECT p.id, 'Banco de la Nación', p.comunidad, d.numero, d.cci
+FROM productor p
+JOIN usuario u ON u.id = p.usuario_id
+JOIN (VALUES
+    ('productor@ccpip.test',  '04-110-000001', '01811000041100000117'),
+    ('productor2@ccpip.test', '04-110-000002', '01811000041100000217'),
+    ('productor3@ccpip.test', '04-110-000003', '01811000041100000317')
+) AS d(correo, numero, cci) ON d.correo = u.correo
+WHERE NOT EXISTS (SELECT 1 FROM cuenta_bancaria c WHERE c.productor_id = p.id);
+
+INSERT INTO autorizacion_producto (productor_id, producto_id, estado, decidido_en)
+SELECT pr.productor_id, pr.id, 'APROBADA', now()
+FROM producto pr
+JOIN productor p ON p.id = pr.productor_id
+JOIN usuario u ON u.id = p.usuario_id
+WHERE u.correo IN ('productor@ccpip.test', 'productor2@ccpip.test', 'productor3@ccpip.test')
+ON CONFLICT (productor_id, producto_id) DO NOTHING;

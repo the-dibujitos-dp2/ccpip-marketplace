@@ -164,6 +164,9 @@ class CarritoControllerTest extends IntegrationTest {
                 UPDATE producto SET productor_id = (SELECT p.id FROM productor p JOIN usuario u ON u.id = p.usuario_id
                                                     WHERE u.correo = 'productor2@ccpip.test'), precio = 15.50
                 WHERE id = ?""", otra);
+        // La autorizacion es del productor que vende (CCPIP-269)
+        jdbc.update("UPDATE autorizacion_producto a SET productor_id = p.productor_id FROM producto p WHERE p.id = a.producto_id AND p.id = ?",
+                otra);
         agregar(consumidor, oferta, 2).andExpect(status().isOk());
         agregar(consumidor, otra, 3).andExpect(status().isOk());
 
@@ -389,6 +392,9 @@ class CarritoControllerTest extends IntegrationTest {
         jdbc.update("""
                 UPDATE producto SET productor_id = (SELECT p.id FROM productor p JOIN usuario u ON u.id = p.usuario_id
                                                     WHERE u.correo = 'productor2@ccpip.test') WHERE id = ?""", otra);
+        // La autorizacion es del productor que vende (CCPIP-269)
+        jdbc.update("UPDATE autorizacion_producto a SET productor_id = p.productor_id FROM producto p WHERE p.id = a.producto_id AND p.id = ?",
+                otra);
         agregar(consumidor, oferta, 2).andExpect(status().isOk());
         agregar(consumidor, otra, 1).andExpect(status().isOk());
 
@@ -455,6 +461,72 @@ class CarritoControllerTest extends IntegrationTest {
         quitar(null, oferta).andExpect(status().isUnauthorized());
         quitar(loginAs("productor@ccpip.test"), oferta).andExpect(status().isForbidden());
         consultar(consumidor).andExpect(jsonPath("$.items[0].cantidad").value(2));
+    }
+
+    // --- CCPIP-269: solo se compra lo autorizado a un productor con cuenta bancaria activa ---
+
+    @Test
+    void sinCuentaBancariaActivaLaOfertaNoSeAgregaNiSeModifica() throws Exception {
+        agregar(consumidor, oferta, 1).andExpect(status().isOk());
+        jdbc.update("UPDATE cuenta_bancaria SET estado = 'DESACTIVADA' WHERE productor_id = (SELECT productor_id FROM producto WHERE id = ?)",
+                oferta);
+
+        agregar(consumidor, oferta, 1)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("VENTA_PAUSADA"));
+        modificar(consumidor, oferta, 2)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("VENTA_PAUSADA"));
+        // Lo rechazado no altera el carrito, y se puede quitar
+        consultar(consumidor).andExpect(jsonPath("$.items[0].cantidad").value(1));
+        quitar(consumidor, oferta).andExpect(status().isOk());
+    }
+
+    @Test
+    void unaAutorizacionNoAprobadaOVencidaPausaLaVenta() throws Exception {
+        LocalDate hoy = LocalDate.now(ZoneId.of("America/Lima"));
+        for (String estado : new String[] {"SOLICITADA", "RECHAZADA", "REVOCADA"}) {
+            long otra = productoConLote("Aceite " + estado, "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
+            jdbc.update("UPDATE autorizacion_producto SET estado = ? WHERE producto_id = ?", estado, otra);
+            agregar(consumidor, otra, 1).andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.code").value("VENTA_PAUSADA"));
+        }
+
+        long vencida = productoConLote("Aceite con autorizacion vencida", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
+        jdbc.update("UPDATE autorizacion_producto SET vigente_hasta = ? WHERE producto_id = ?", hoy.minusDays(1), vencida);
+        agregar(consumidor, vencida, 1).andExpect(status().isConflict());
+
+        // El ultimo dia de vigencia todavia se vende
+        jdbc.update("UPDATE autorizacion_producto SET vigente_hasta = ? WHERE producto_id = ?", hoy, oferta);
+        agregar(consumidor, oferta, 1).andExpect(status().isOk());
+
+        jdbc.update("DELETE FROM autorizacion_producto WHERE producto_id = ?", vencida);
+        agregar(consumidor, vencida, 1).andExpect(status().isConflict());
+    }
+
+    @Test
+    void laVentaPausadaSeMuestraEnElCarritoPeroNoSumaAlTotal() throws Exception {
+        long otra = productoConLote("Cacao en grano", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
+        agregar(consumidor, oferta, 2).andExpect(status().isOk());
+        agregar(consumidor, otra, 1).andExpect(status().isOk());
+
+        // RF-142: se revalida al consultar, no solo al agregar
+        jdbc.update("UPDATE autorizacion_producto SET estado = 'REVOCADA', motivo = 'Certificado vencido' WHERE producto_id = ?",
+                oferta);
+
+        consultar(consumidor)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].estado").value("VENTA_PAUSADA"))
+                .andExpect(jsonPath("$.items[0].subtotal").doesNotExist())
+                .andExpect(jsonPath("$.items[1].estado").value("DISPONIBLE"))
+                .andExpect(jsonPath("$.unidades").value(3))
+                .andExpect(jsonPath("$.total").value(20));
+
+        // Con la autorizacion aprobada de nuevo, vuelve a sumar
+        jdbc.update("UPDATE autorizacion_producto SET estado = 'APROBADA' WHERE producto_id = ?", oferta);
+        consultar(consumidor)
+                .andExpect(jsonPath("$.items[0].estado").value("DISPONIBLE"))
+                .andExpect(jsonPath("$.total").value(60));
     }
 
     private ResultActions quitar(Cookie sesion, long productoId) throws Exception {

@@ -167,6 +167,33 @@ class CatalogoControllerTest extends IntegrationTest {
     }
 
     @Test
+    void sinCuentaBancariaActivaLaFichaSeVePeroNoEsComprable() throws Exception {
+        long id = idDe("Cafe tostado en grano 500 g");
+        mockMvc.perform(get("/api/productos/{id}", id))
+                .andExpect(jsonPath("$.comprable").value(true));
+
+        // CCPIP-269: la oferta sigue consultable, con su precio y su stock, pero no se puede comprar
+        jdbc.update("UPDATE cuenta_bancaria SET estado = 'DESACTIVADA' WHERE productor_id = (SELECT productor_id FROM producto WHERE id = ?)",
+                id);
+        mockMvc.perform(get("/api/productos/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.precio").value(46.00))
+                .andExpect(jsonPath("$.disponible").value(true))
+                .andExpect(jsonPath("$.comprable").value(false));
+        mockMvc.perform(get("/api/productos").param("q", "cafe tostado"))
+                .andExpect(jsonPath("$.items[*].id").value(hasItem((int) id)));
+    }
+
+    @Test
+    void unaAutorizacionVencidaDejaLaFichaSinCompra() throws Exception {
+        long id = productoConLote("Miel autorizada", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_ANIO);
+        jdbc.update("UPDATE autorizacion_producto SET vigente_hasta = current_date - 2 WHERE producto_id = ?", id);
+        mockMvc.perform(get("/api/productos/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.comprable").value(false));
+    }
+
+    @Test
     void unProductoNoPublicadoONoExistenteDevuelve404() throws Exception {
         long borrador = productoConLote("Miel en borrador", "BORRADOR", null, null);
         mockMvc.perform(get("/api/productos/{id}", borrador))

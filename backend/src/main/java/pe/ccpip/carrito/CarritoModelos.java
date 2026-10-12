@@ -24,7 +24,12 @@ public final class CarritoModelos {
         /** La tarifa mayorista llega con CCPIP-134. */
         SOLO_MAYORISTA,
         /** Retirada del catalogo, o su tienda ya no esta publicada. */
-        NO_DISPONIBLE
+        NO_DISPONIBLE,
+        /**
+         * Sigue visible, pero su productor no tiene cuenta bancaria activa o autorizacion vigente
+         * para el producto (CCPIP-269, RF-142).
+         */
+        VENTA_PAUSADA
     }
 
     /**

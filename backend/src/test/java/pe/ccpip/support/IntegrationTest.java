@@ -77,7 +77,10 @@ public abstract class IntegrationTest {
         return objectMapper.writeValueAsString(cuerpo);
     }
 
-    /** Inserta un producto publicado con su linea y, si se pide, un lote. Para casos borde del catalogo. */
+    /**
+     * Inserta un producto publicado con su linea y, si se pide, un lote. Para casos borde del catalogo.
+     * Es de productor@ccpip.test, que tiene cuenta bancaria activa, y nace autorizado (CCPIP-269).
+     */
     protected long productoConLote(String nombre, String estado, String tipoUbicacion, java.time.LocalDate vence) {
         Long id = jdbc.queryForObject("""
                 INSERT INTO producto (productor_id, nombre, descripcion, linea_id, unidad_medida_id, precio, estado, publicado_en)
@@ -86,6 +89,9 @@ public abstract class IntegrationTest {
                        (SELECT id FROM unidad_medida WHERE codigo = 'G'), 20.00, ?, now()
                 RETURNING id""", Long.class, nombre, estado);
         jdbc.update("INSERT INTO producto_linea (producto_id, linea_id) SELECT ?, id FROM linea_producto WHERE codigo = 'SUPERFRUTOS'", id);
+        jdbc.update("""
+                INSERT INTO autorizacion_producto (productor_id, producto_id, estado, decidido_en)
+                SELECT productor_id, id, 'APROBADA', now() FROM producto WHERE id = ?""", id);
         if (tipoUbicacion != null) {
             jdbc.update("""
                     INSERT INTO lote (producto_id, ubicacion_id, codigo, cantidad_inicial, cantidad_actual,

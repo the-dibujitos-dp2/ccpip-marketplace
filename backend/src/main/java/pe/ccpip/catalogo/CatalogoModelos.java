@@ -55,11 +55,15 @@ public final class CatalogoModelos {
     public record Cosecha(LocalDate produccion, LocalDate consumirAntesDe) {
     }
 
+    /**
+     * {@code comprable} es falso cuando el productor no tiene cuenta bancaria activa o autorizacion
+     * vigente para el producto (CCPIP-269): la ficha se ve igual, pero en "Venta pausada" (CW-03c).
+     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record ProductoDetalle(long id, String nombre, String descripcion, String contenido, Codigo unidad,
                                   Codigo linea, List<Codigo> lineas, String modalidad, BigDecimal precio,
                                   BigDecimal precioMayorista, Integer cantidadMinimaMayorista, boolean disponible,
-                                  List<Imagen> imagenes, TiendaResumen tienda, HistoriaPublica historia, Cosecha cosecha,
+                                  boolean comprable, List<Imagen> imagenes, TiendaResumen tienda, HistoriaPublica historia, Cosecha cosecha,
                                   List<ProductoResumen> relacionados) {
     }
 
