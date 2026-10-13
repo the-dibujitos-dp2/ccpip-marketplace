@@ -302,6 +302,20 @@ para ese producto con `vigente_hasta` nula o de hoy en adelante (hora de Lima). 
 visible en el catalogo, pero en "Venta pausada": la ficha lo dice con `comprable: false` y el
 carrito marca el item `VENTA_PAUSADA` sin sumarlo al total.
 
+## Descuento de existencias por venta (CCPIP-158)
+
+Migracion `V202610121700`. Al confirmar una compra, cada linea de pedido sale de los lotes
+vigentes del punto de recojo, primero el que vence antes, con un movimiento `SALIDA_VENTA` por
+lote. Lote, stock y movimiento cambian en la misma transaccion que el pedido (RNF-10, ADR-10).
+
+- `movimiento_inventario.item_pedido_id`: la linea de pedido que origina la venta.
+- CHECK: una `SALIDA_VENTA` siempre tiene `pedido_id`, `item_pedido_id` y `lote_id`.
+- Indice unico parcial `(item_pedido_id, lote_id)` para `SALIDA_VENTA`: aunque la confirmacion
+  se reintente, una linea no descuenta dos veces el mismo lote.
+
+El administrador del punto los consulta en `/api/acopio/movimientos` (Figma A-03), solo de los
+puntos que tiene en `usuario_ubicacion` y sin los datos del comprador (RNF-05).
+
 ## Fuera de este modelo
 
 Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehacer nada:
