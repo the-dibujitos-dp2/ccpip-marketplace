@@ -32,11 +32,12 @@ public class PedidosPuntoService {
 
     static final String HOY = "(now() AT TIME ZONE 'America/Lima')::date";
 
+    /** El filtro de RNF-05: solo los pedidos de los puntos que el administrador tiene asignados. */
+    private static final String EN_SU_PUNTO =
+            "pe.ubicacion_origen_id IN (SELECT ubicacion_id FROM usuario_ubicacion WHERE usuario_id = :usuario)";
+
     /** Los pedidos de los puntos del administrador. */
-    private static final String DEL_PUNTO = """
-            FROM pedido pe
-            WHERE pe.ubicacion_origen_id IN (SELECT ubicacion_id FROM usuario_ubicacion WHERE usuario_id = :usuario)
-            """;
+    private static final String DEL_PUNTO = "FROM pedido pe WHERE " + EN_SU_PUNTO + "\n";
 
     private final NamedParameterJdbcTemplate jdbc;
     private final PuntosDeAcopio puntos;
@@ -59,35 +60,94 @@ public class PedidosPuntoService {
         return new PedidosPunto(ubicacion, pedidos(ids));
     }
 
+    /** Un pedido del punto, ya bloqueado, con lo que hace falta para decidir si cambia de estado. */
+    private record Bloqueado(long id, String estado, String comprador, String personaAutorizada, String celularContacto) {
+    }
+
+    /**
+     * Busca el pedido entre los de los puntos del administrador y lo bloquea hasta el final de la
+     * transaccion: dos clics simultaneos sobre el mismo pedido se ordenan. Otro punto, o un numero
+     * que no existe, es un 404 (RNF-05).
+     */
+    private Bloqueado bloquear(long usuarioId, String numero) {
+        MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId).addValue("numero", numero);
+        return jdbc.query("""
+                SELECT pe.id, pe.estado, u.nombre AS comprador, pe.persona_autorizada, pe.celular_contacto
+                FROM pedido pe JOIN usuario u ON u.id = pe.usuario_id
+                WHERE %s AND upper(pe.numero) = :numero
+                FOR UPDATE OF pe""".formatted(EN_SU_PUNTO), p,
+                (rs, row) -> new Bloqueado(rs.getLong("id"), rs.getString("estado"), rs.getString("comprador"),
+                        rs.getString("persona_autorizada"), rs.getString("celular_contacto")))
+                .stream().findFirst()
+                .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "El pedido no existe en tu punto de acopio."));
+    }
+
+    /** El cambio de estado solo vale desde {@code requerido}; en cualquier otro, explica donde esta el pedido. */
+    private static void exigirEstado(Bloqueado pedido, String requerido) {
+        if (requerido.equals(pedido.estado())) {
+            return;
+        }
+        throw new ErrorNegocio(HttpStatus.CONFLICT, "ESTADO_INVALIDO", switch (pedido.estado()) {
+            case "CONFIRMADO" -> "Este pedido aún no está listo para recojo.";
+            case "LISTO_PARA_RECOJO" -> "Este pedido ya está listo para recojo.";
+            case "ENTREGADO" -> "Este pedido ya fue entregado.";
+            case "CANCELADO" -> "Este pedido fue cancelado.";
+            default -> "Este pedido no se puede cambiar ahora.";
+        });
+    }
+
+    /** Pasa el pedido a su nuevo estado y deja en el historial quien lo hizo y cuando. No toca el inventario. */
+    private void cambiarEstado(long usuarioId, Bloqueado pedido, String nuevo) {
+        MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId).addValue("id", pedido.id()).addValue("estado", nuevo);
+        jdbc.update("UPDATE pedido SET estado = :estado, actualizado_en = now() WHERE id = :id", p);
+        jdbc.update("INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (:id, :estado, :usuario)", p);
+    }
+
     /**
      * CCPIP-159 (RF-128): el pedido confirmado queda listo para recojo, con responsable y fecha en su
      * historial. Solo desde CONFIRMADO: marcarlo dos veces, o un pedido ya entregado, es un 409.
      */
     @Transactional
     public PedidoPunto marcarListo(long usuarioId, String numero) {
-        MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId).addValue("numero", numero);
-        // El bloqueo ordena dos clics simultaneos sobre el mismo pedido
-        List<Map<String, Object>> fila = jdbc.queryForList(
-                "SELECT pe.id, pe.estado " + DEL_PUNTO + " AND upper(pe.numero) = :numero FOR UPDATE", p);
-        if (fila.isEmpty()) {
-            throw ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "El pedido no existe en tu punto de acopio.");
+        Bloqueado pedido = bloquear(usuarioId, numero);
+        exigirEstado(pedido, "CONFIRMADO");
+        cambiarEstado(usuarioId, pedido, "LISTO_PARA_RECOJO");
+        return pedidos(List.of(pedido.id())).get(0);
+    }
+
+    /**
+     * CCPIP-71 (RF-53): el pedido listo se entrega a quien lo recoge, que debe ser el comprador o la
+     * persona autorizada y dar el celular registrado en el pedido. Queda quien recogio, el responsable
+     * del punto y la fecha. Cierra la venta sin tocar el inventario: el descuento ya ocurrio al confirmar
+     * la compra (CCPIP-158) y no se repite.
+     *
+     * <p>Los rechazos no dicen que dato debia ser: no se revela quien compro ni su celular (RNF-05).
+     */
+    @Transactional
+    public PedidoPunto registrarRecojo(long usuarioId, String numero, String persona, String celular) {
+        String celularDado = PersonaDeRecojo.celular(celular).orElseThrow(() -> ErrorNegocio.invalido("CELULAR_INVALIDO",
+                "Ingresa un celular de 9 dígitos que empiece con 9."));
+        Bloqueado pedido = bloquear(usuarioId, numero);
+        exigirEstado(pedido, "LISTO_PARA_RECOJO");
+
+        String recoge;
+        if (PersonaDeRecojo.mismoNombre(persona, pedido.comprador())) {
+            recoge = pedido.comprador();
+        } else if (PersonaDeRecojo.mismoNombre(persona, pedido.personaAutorizada())) {
+            recoge = pedido.personaAutorizada();
+        } else {
+            throw ErrorNegocio.invalido("PERSONA_NO_COINCIDE", "La persona no es quien compró ni la persona autorizada de este pedido.");
         }
-        long id = ((Number) fila.get(0).get("id")).longValue();
-        String estado = (String) fila.get(0).get("estado");
-        if (!"CONFIRMADO".equals(estado)) {
-            throw new ErrorNegocio(HttpStatus.CONFLICT, "ESTADO_INVALIDO", switch (estado) {
-                case "LISTO_PARA_RECOJO" -> "Este pedido ya está listo para recojo.";
-                case "ENTREGADO" -> "Este pedido ya fue entregado.";
-                case "CANCELADO" -> "Este pedido fue cancelado.";
-                default -> "Este pedido no se puede marcar como listo ahora.";
-            });
+        // Sin celular registrado no hay con que compararlo: se acepta uno valido y queda como constancia
+        if (pedido.celularContacto() != null && PersonaDeRecojo.celular(pedido.celularContacto()).filter(celularDado::equals).isEmpty()) {
+            throw ErrorNegocio.invalido("CELULAR_NO_COINCIDE", "El celular no coincide con el registrado en el pedido.");
         }
-        p.addValue("id", id);
-        jdbc.update("UPDATE pedido SET estado = 'LISTO_PARA_RECOJO', actualizado_en = now() WHERE id = :id", p);
-        jdbc.update("""
-                INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id)
-                VALUES (:id, 'LISTO_PARA_RECOJO', :usuario)""", p);
-        return pedidos(List.of(id)).get(0);
+
+        cambiarEstado(usuarioId, pedido, "ENTREGADO");
+        // Despues del cambio de estado: la base solo admite quien recogio en un pedido ENTREGADO
+        jdbc.update("UPDATE pedido SET recogido_por = :por, recogido_celular = :celular WHERE id = :id",
+                new MapSqlParameterSource("por", recoge).addValue("celular", celularDado).addValue("id", pedido.id()));
+        return pedidos(List.of(pedido.id())).get(0);
     }
 
     /** Arma los pedidos con sus lineas e historial, en el orden de {@code ids}. */
@@ -132,13 +192,13 @@ public class PedidosPuntoService {
                                     rs.getString("responsable")));
                 });
         Map<Long, PedidoPunto> porId = new HashMap<>();
-        jdbc.query("SELECT id, numero, estado, confirmado_en, actualizado_en, total FROM pedido WHERE id IN (:ids)", p,
+        jdbc.query("SELECT id, numero, estado, confirmado_en, actualizado_en, total, recogido_por FROM pedido WHERE id IN (:ids)", p,
                 rs -> {
                     long id = rs.getLong("id");
                     porId.put(id, new PedidoPunto(rs.getString("numero"), rs.getString("estado"),
                             rs.getObject("confirmado_en", Timestamp.class).toInstant(),
                             rs.getObject("actualizado_en", Timestamp.class).toInstant(), rs.getBigDecimal("total"),
-                            lineas.getOrDefault(id, List.of()), historial.getOrDefault(id, List.of())));
+                            lineas.getOrDefault(id, List.of()), historial.getOrDefault(id, List.of()), rs.getString("recogido_por")));
                 });
         return ids.stream().map(porId::get).toList();
     }
