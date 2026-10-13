@@ -14,6 +14,8 @@ import edicion from './fixtures/productor-productos-9.json'
 import lotes from './fixtures/productor-productos-9-lotes.json'
 import ubicaciones from './fixtures/productor-ubicaciones.json'
 import movimientos from './fixtures/acopio-movimientos.json'
+import pedidos from './fixtures/acopio-pedidos.json'
+import pedidoListo from './fixtures/acopio-pedido-listo.json'
 
 export const USUARIO = {
   id: 1,
@@ -37,14 +39,14 @@ export const EXPIRADA = [401, { code: 'SESION_EXPIRADA' }]
 
 /**
  * Simula el backend. `rutas` mapea "METODO /ruta" a [status, cuerpo], a una funcion que lo
- * devuelve, o a un Error para simular una falla de red.
+ * devuelve (puede ser asincrona, para simular una respuesta lenta), o a un Error para simular una falla de red.
  */
 export function servidor(rutas) {
   const fetchMock = vi.fn(async (url, opciones = {}) => {
     const clave = `${opciones.method || 'GET'} ${url}`
     // Si no hay una ruta exacta, vale la misma ruta sin query string
     let respuesta = rutas[clave] ?? rutas[clave.split('?')[0]]
-    if (typeof respuesta === 'function') respuesta = respuesta(opciones)
+    if (typeof respuesta === 'function') respuesta = await respuesta(opciones)
     if (respuesta instanceof Error) throw respuesta
     if (!respuesta) throw new Error(`Ruta no simulada: ${clave}`)
     const [status, cuerpo] = respuesta
@@ -91,6 +93,8 @@ export const DATOS = {
   lotes,
   ubicaciones,
   movimientos,
+  pedidos,
+  pedidoListo,
 }
 
 /** Copia profunda para que cada prueba pueda modificar los datos sin afectar a otras. */

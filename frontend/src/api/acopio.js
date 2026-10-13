@@ -8,3 +8,9 @@ export function consultarMovimientos({ tipo, pedido, pagina = 0 } = {}) {
   if (pedido?.trim()) p.set('pedido', pedido.trim())
   return apiFetch(`/api/acopio/movimientos?${p}`)
 }
+
+/** CCPIP-159 (A-05): los pedidos del punto, por columna: confirmados, listos para recojo y entregados hoy. */
+export const listarPedidos = () => apiFetch('/api/acopio/pedidos')
+
+/** CCPIP-159: marca un pedido confirmado como listo para recojo y devuelve el pedido actualizado. */
+export const marcarListo = (numero) => apiFetch(`/api/acopio/pedidos/${encodeURIComponent(numero)}/listo`, { method: 'POST' })

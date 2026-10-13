@@ -36,8 +36,9 @@ export default function CuentaPage({ user, minutosInactividad }) {
         {error && <Alerta tono="error" titulo="No pudimos cargar tu panel" descripcion={error.message} />}
 
         {user.role === 'ADMIN_PUNTO' && (
-          <div>
-            <Boton tamano="M" to={RUTAS.acopioMovimientos}>Ver movimientos del punto</Boton>
+          <div className="inicio__acciones">
+            <Boton tamano="M" to={RUTAS.acopioPedidos}>Ver pedidos del punto</Boton>
+            <Boton tamano="M" tipo="secundario" to={RUTAS.acopioMovimientos}>Ver movimientos del punto</Boton>
           </div>
         )}
 

@@ -16,3 +16,5 @@
   border-radius: var(--radius-l);
   background: var(--color-bg-surface);
 }
+
+.inicio__acciones { display: flex; flex-wrap: wrap; gap: 12px; }
