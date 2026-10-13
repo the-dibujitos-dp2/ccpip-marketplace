@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import iconoBuscar from '../../assets/icons/buscar.svg'
 import { consultarMovimientos } from '../../api/acopio.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Buscador from '../../components/Buscador.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
-import Icono from '../../components/Icono.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
@@ -79,18 +78,15 @@ export default function MovimientosPage({ path }) {
     <LayoutAcopio path={path} punto={datos?.ubicacion} titulo="Movimientos">
       <div className="movimientos__filtros">
         <Pestanas opciones={PESTANAS} valor={tipo} onCambiar={cambiarTipo} etiqueta="Tipo de movimiento" />
-        <form className="movimientos__buscar" role="search" onSubmit={buscar}>
-          <Icono src={iconoBuscar} tamano={20} />
-          <label htmlFor="buscar-pedido" className="visually-hidden">Número de pedido</label>
-          <input
-            id="buscar-pedido"
-            type="search"
-            placeholder="Buscar por N.º de pedido"
-            maxLength={20}
-            value={pedido}
-            onChange={(e) => setPedido(e.target.value)}
-          />
-        </form>
+        <Buscador
+          id="buscar-pedido"
+          etiqueta="Número de pedido"
+          placeholder="Buscar por N.º de pedido"
+          maxLength={20}
+          value={pedido}
+          onChange={(e) => setPedido(e.target.value)}
+          onBuscar={buscar}
+        />
       </div>
 
       {error && (
