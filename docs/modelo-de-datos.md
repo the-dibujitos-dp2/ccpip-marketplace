@@ -321,6 +321,21 @@ vencen hoy o despues (hora de Lima), el que vence antes sale primero y lo que no
 artesania, al final. Cada linea conserva de que lotes salio por sus movimientos `SALIDA_VENTA`
 (`item_pedido_id` + `lote_id`), y `/api/acopio/pedidos` los muestra en cada linea del pedido.
 
+## Recojo del pedido (CCPIP-71)
+
+Migracion `V202610131800`. El administrador del punto entrega un pedido `LISTO_PARA_RECOJO` al
+comprador o a la persona autorizada y lo deja `ENTREGADO`. Cierra la venta **sin tocar el
+inventario**: el descuento ya ocurrio al confirmar (CCPIP-158) y no se repite.
+
+- `pedido.persona_autorizada` y `pedido.celular_contacto`: los registra la confirmacion de la compra
+  (CCPIP-157) y el recojo los valida. Nulos: recoge el comprador, o el pedido aun no tiene contacto.
+- `pedido.recogido_por` y `pedido.recogido_celular`: constancia de quien se lo llevo y con que
+  celular. Van juntos (CHECK) y solo con estado `ENTREGADO`. El responsable del punto y la fecha
+  quedan en `pedido_estado_historial`.
+- Quien recoge debe ser el comprador o la persona autorizada, sin distinguir mayusculas, tildes ni
+  espacios; el celular se normaliza a 9 digitos (admite `+51`, espacios y guiones) y debe coincidir
+  con el registrado si lo hay. El rechazo no revela cual era el dato correcto (RNF-05).
+
 ## Fuera de este modelo
 
 Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehacer nada:

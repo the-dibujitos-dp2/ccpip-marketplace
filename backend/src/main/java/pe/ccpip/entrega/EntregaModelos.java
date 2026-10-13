@@ -37,9 +37,13 @@ public final class EntregaModelos {
     public record Cambio(String estado, Instant registradoEn, String responsable) {
     }
 
-    /** Un pedido para recoger en el punto, sin datos del comprador. */
+    /**
+     * Un pedido para recoger en el punto, sin datos del comprador. {@code recogidoPor} es quien se lo
+     * llevo (CCPIP-71): el comprador o la persona autorizada; nulo mientras no se entrega.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public record PedidoPunto(String numero, String estado, Instant confirmadoEn, Instant actualizadoEn,
-                              BigDecimal total, List<Linea> lineas, List<Cambio> historial) {
+                              BigDecimal total, List<Linea> lineas, List<Cambio> historial, String recogidoPor) {
     }
 
     /** {@code items}: confirmados, listos para recojo y entregados hoy, en ese orden de columnas. */
