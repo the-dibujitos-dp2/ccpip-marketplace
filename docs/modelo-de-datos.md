@@ -316,6 +316,11 @@ lote. Lote, stock y movimiento cambian en la misma transaccion que el pedido (RN
 El administrador del punto los consulta en `/api/acopio/movimientos` (Figma A-03), solo de los
 puntos que tiene en `usuario_ubicacion` y sin los datos del comprador (RNF-05).
 
+**Lotes asignados (CCPIP-74, RNF-14).** Un lote vencido nunca se asigna: solo cuentan los que
+vencen hoy o despues (hora de Lima), el que vence antes sale primero y lo que no vence, como una
+artesania, al final. Cada linea conserva de que lotes salio por sus movimientos `SALIDA_VENTA`
+(`item_pedido_id` + `lote_id`), y `/api/acopio/pedidos` los muestra en cada linea del pedido.
+
 ## Fuera de este modelo
 
 Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehacer nada:

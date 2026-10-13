@@ -14,10 +14,12 @@ import java.time.ZoneId;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.servlet.http.Cookie;
+import pe.ccpip.inventario.DescuentoExistenciasService;
 import pe.ccpip.support.IntegrationTest;
 
 /**
@@ -29,7 +31,8 @@ import pe.ccpip.support.IntegrationTest;
 class PedidosPuntoControllerTest extends IntegrationTest {
 
     static final String LIMA = "Centro Nacional Lima";
-    static final LocalDate EN_UN_MES = LocalDate.now(ZoneId.of("America/Lima")).plusDays(30);
+    static final LocalDate HOY = LocalDate.now(ZoneId.of("America/Lima"));
+    static final LocalDate EN_UN_MES = HOY.plusDays(30);
 
     private Cookie admin;
     private long producto;
@@ -94,6 +97,45 @@ class PedidosPuntoControllerTest extends IntegrationTest {
         // El rechazo no deja rastro en el historial
         assertThat(jdbc.queryForObject("SELECT count(*) FROM pedido_estado_historial WHERE pedido_id = ?",
                 Integer.class, pedido)).isEqualTo(2);
+    }
+
+    // --- CCPIP-74: lotes asignados a cada linea ---
+
+    @Autowired
+    DescuentoExistenciasService descuento;
+
+    @Test
+    void cadaLineaMuestraLosLotesAsignadosElQueVenceAntesPrimero() throws Exception {
+        // El producto trae un lote de 5 und que vence en un mes; este otro, de 3, vence antes
+        jdbc.update("""
+                INSERT INTO lote (producto_id, ubicacion_id, codigo, cantidad_inicial, cantidad_actual, fecha_vencimiento)
+                SELECT ?, id, 'L-PRONTO', 3, 3, ? FROM ubicacion WHERE nombre = ?""", producto, HOY.plusDays(10), LIMA);
+        jdbc.update("""
+                INSERT INTO stock (producto_id, ubicacion_id, cantidad)
+                SELECT ?, id, 8 FROM ubicacion WHERE nombre = ?""", producto, LIMA);
+        long grande = pedidoConfirmado("MC-T0074", LIMA, producto, 6);
+        descuento.descontarPorPedido(grande, jdbc.queryForObject(
+                "SELECT usuario_id FROM pedido WHERE id = ?", Long.class, grande));
+
+        listar(admin)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.numero == 'MC-T0074')].lineas[0].lotes[0].codigo").value("L-PRONTO"))
+                .andExpect(jsonPath("$.items[?(@.numero == 'MC-T0074')].lineas[0].lotes[0].cantidad").value(3.0))
+                .andExpect(jsonPath("$.items[?(@.numero == 'MC-T0074')].lineas[0].lotes[0].fechaVencimiento")
+                        .value(HOY.plusDays(10).toString()))
+                .andExpect(jsonPath("$.items[?(@.numero == 'MC-T0074')].lineas[0].lotes[1].codigo").value("L-T" + producto))
+                .andExpect(jsonPath("$.items[?(@.numero == 'MC-T0074')].lineas[0].lotes[1].cantidad").value(3.0))
+                .andExpect(jsonPath("$.items[?(@.numero == 'MC-T0074')].lineas[0].lotes[2]").isEmpty());
+
+        // Los lotes tambien llegan en la respuesta de marcar el pedido como listo
+        marcarListo(admin, "MC-T0074")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lineas[0].lotes.length()").value(2));
+    }
+
+    @Test
+    void unPedidoQueAunNoDescuentaNoTieneLotesAsignados() throws Exception {
+        listar(admin).andExpect(jsonPath("$.items[?(@.numero == 'MC-T0159')].lineas[0].lotes.length()").value(0));
     }
 
     @Test
