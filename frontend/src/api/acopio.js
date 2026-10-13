@@ -14,3 +14,10 @@ export const listarPedidos = () => apiFetch('/api/acopio/pedidos')
 
 /** CCPIP-159: marca un pedido confirmado como listo para recojo y devuelve el pedido actualizado. */
 export const marcarListo = (numero) => apiFetch(`/api/acopio/pedidos/${encodeURIComponent(numero)}/listo`, { method: 'POST' })
+
+/**
+ * CCPIP-71: entrega un pedido listo a quien lo recoge. `{ persona, celular }` se validan en el
+ * servidor contra el comprador o la persona autorizada; devuelve el pedido ya entregado.
+ */
+export const registrarRecojo = (numero, datos) =>
+  apiFetch(`/api/acopio/pedidos/${encodeURIComponent(numero)}/recojo`, { method: 'POST', body: datos })

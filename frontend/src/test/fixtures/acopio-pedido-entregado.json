@@ -1,0 +1,44 @@
+{
+    "numero": "MC-00139",
+    "estado": "ENTREGADO",
+    "confirmadoEn": "2026-10-13T12:08:05.258864Z",
+    "actualizadoEn": "2026-10-13T17:20:48.584900Z",
+    "total": 160.0,
+    "lineas": [
+        {
+            "producto": "Cacao en grano fermentado 1 kg",
+            "comunidad": "C.N. Yarina",
+            "cantidad": 2.0,
+            "lotes": [
+                {
+                    "codigo": "L-0001",
+                    "cantidad": 2.0,
+                    "fechaVencimiento": "2027-10-13"
+                }
+            ]
+        },
+        {
+            "producto": "Pasta de cacao 500 g",
+            "comunidad": "C.N. Yarina",
+            "cantidad": 1.0,
+            "lotes": []
+        }
+    ],
+    "historial": [
+        {
+            "estado": "CONFIRMADO",
+            "registradoEn": "2026-10-13T12:08:05.258864Z"
+        },
+        {
+            "estado": "LISTO_PARA_RECOJO",
+            "registradoEn": "2026-10-13T12:38:05.258864Z",
+            "responsable": "Administrador de Acopio de Prueba"
+        },
+        {
+            "estado": "ENTREGADO",
+            "registradoEn": "2026-10-13T17:20:48.584900Z",
+            "responsable": "Administrador de Acopio de Prueba"
+        }
+    ],
+    "recogidoPor": "Rosa Ancón Pérez"
+}

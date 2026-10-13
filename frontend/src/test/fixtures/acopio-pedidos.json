@@ -5,21 +5,9 @@
             "numero": "MC-00155",
             "estado": "CONFIRMADO",
             "confirmadoEn": "2026-10-13T11:08:05.258864Z",
-            "actualizadoEn": "2026-10-13T15:33:35.664168Z",
+            "actualizadoEn": "2026-10-13T17:20:47.586793Z",
             "total": 96.0,
             "lineas": [
-                {
-                    "producto": "Aceite de aguaje 250 ml",
-                    "comunidad": "Asoc. Nii Joi",
-                    "cantidad": 1.0,
-                    "lotes": [
-                        {
-                            "codigo": "L-0008",
-                            "cantidad": 1.0,
-                            "fechaVencimiento": "2027-10-13"
-                        }
-                    ]
-                },
                 {
                     "producto": "Aceite de ungurahui 250 ml",
                     "comunidad": "Asoc. Nii Joi",
@@ -27,6 +15,18 @@
                     "lotes": [
                         {
                             "codigo": "L-0007",
+                            "cantidad": 1.0,
+                            "fechaVencimiento": "2027-10-13"
+                        }
+                    ]
+                },
+                {
+                    "producto": "Aceite de aguaje 250 ml",
+                    "comunidad": "Asoc. Nii Joi",
+                    "cantidad": 1.0,
+                    "lotes": [
+                        {
+                            "codigo": "L-0008",
                             "cantidad": 1.0,
                             "fechaVencimiento": "2027-10-13"
                         }
@@ -44,15 +44,9 @@
             "numero": "MC-00139",
             "estado": "LISTO_PARA_RECOJO",
             "confirmadoEn": "2026-10-13T12:08:05.258864Z",
-            "actualizadoEn": "2026-10-13T15:33:35.664168Z",
+            "actualizadoEn": "2026-10-13T17:20:47.586793Z",
             "total": 160.0,
             "lineas": [
-                {
-                    "producto": "Pasta de cacao 500 g",
-                    "comunidad": "C.N. Yarina",
-                    "cantidad": 1.0,
-                    "lotes": []
-                },
                 {
                     "producto": "Cacao en grano fermentado 1 kg",
                     "comunidad": "C.N. Yarina",
@@ -64,6 +58,12 @@
                             "fechaVencimiento": "2027-10-13"
                         }
                     ]
+                },
+                {
+                    "producto": "Pasta de cacao 500 g",
+                    "comunidad": "C.N. Yarina",
+                    "cantidad": 1.0,
+                    "lotes": []
                 }
             ],
             "historial": [
@@ -82,7 +82,7 @@
             "numero": "MC-00131",
             "estado": "ENTREGADO",
             "confirmadoEn": "2026-10-13T13:08:05.258864Z",
-            "actualizadoEn": "2026-10-13T15:33:35.664168Z",
+            "actualizadoEn": "2026-10-13T17:20:47.586793Z",
             "total": 138.0,
             "lineas": [
                 {
@@ -109,11 +109,17 @@
                     "registradoEn": "2026-10-13T13:08:05.258864Z"
                 },
                 {
+                    "estado": "LISTO_PARA_RECOJO",
+                    "registradoEn": "2026-10-13T13:20:05.258864Z",
+                    "responsable": "Administrador de Acopio de Prueba"
+                },
+                {
                     "estado": "ENTREGADO",
                     "registradoEn": "2026-10-13T13:48:05.258864Z",
                     "responsable": "Administrador de Acopio de Prueba"
                 }
-            ]
+            ],
+            "recogidoPor": "Rosa Ancón Pérez"
         }
     ]
 }
