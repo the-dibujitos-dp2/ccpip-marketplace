@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -241,7 +242,8 @@ class ProductorFlujoTest extends IntegrationTest {
     @Test
     void validaLosLotes() throws Exception {
         long id = crearProducto(datosAceite());
-        registrarLote(id, "L-1", acopioLima, "10", LocalDate.now().minusDays(1))
+        // Ayer en Lima, como lo valida el servidor: el CI corre en UTC
+        registrarLote(id, "L-1", acopioLima, "10", LocalDate.now(ZoneId.of("America/Lima")).minusDays(1))
                 .andExpect(jsonPath("$.code").value("VENCIMIENTO_PASADO"));
         registrarLote(id, "L-1", acopioLima, "10", null)
                 .andExpect(jsonPath("$.code").value("FALTA_VENCIMIENTO"));
