@@ -5,7 +5,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
-import { fechaHora, precio } from '../../formato.js'
+import { fechaCorta, fechaHora, precio } from '../../formato.js'
 import './PedidosPage.css'
 
 /** Columnas de A-05 en Sprint 0: preparacion, reparto y recogido por el distribuidor llegan con sus historias. */
@@ -20,10 +20,17 @@ const PIE = { CONFIRMADO: 'Confirmado', LISTO_PARA_RECOJO: 'Listo', ENTREGADO: '
 
 const unidades = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 3 })
 
+/** "Lote L-0247 · vence 02/11/2027 · 2 und": de donde sale lo que se entrega (CCPIP-74). */
+function textoLote(lote) {
+  const vence = lote.fechaVencimiento ? `vence ${fechaCorta(lote.fechaVencimiento)}` : 'no vence'
+  return `Lote ${lote.codigo} · ${vence} · ${unidades.format(lote.cantidad)} und`
+}
+
 /**
  * A-05 · CCPIP-159 (RF-128): los pedidos del punto por estado. El administrador marca un pedido
  * confirmado como listo para recojo; el servidor guarda quien y cuando, y rechaza lo que ya cambio.
- * Registrar el recojo (CCPIP-71) llega con su historia.
+ * CCPIP-74: cada linea muestra los lotes asignados, el que vence antes primero, para saber que
+ * entregar. Registrar el recojo (CCPIP-71) llega con su historia.
  */
 export default function PedidosPage({ path }) {
   const { datos, setDatos, error, recargar } = useConsulta(listarPedidos)
@@ -92,8 +99,14 @@ function TarjetaPedido({ pedido, accion, ocupado, onMarcar }) {
       <p className="pedidos__numero">{pedido.numero}</p>
       <ul className="pedidos__lineas" aria-label={`Productos del pedido ${pedido.numero}`}>
         {pedido.lineas.map((l) => (
-          <li key={`${l.comunidad}-${l.producto}`} className="caption">
-            {`${l.comunidad} · ${l.producto} × ${unidades.format(l.cantidad)}`}
+          <li key={`${l.comunidad}-${l.producto}`}>
+            <span className="caption">{`${l.comunidad} · ${l.producto} × ${unidades.format(l.cantidad)}`}</span>
+            <ul className="pedidos__lotes" aria-label={`Lotes de ${l.producto}`}>
+              {l.lotes.length === 0 && <li className="caption">Sin lotes asignados</li>}
+              {l.lotes.map((lote) => (
+                <li key={lote.codigo} className="caption">{textoLote(lote)}</li>
+              ))}
+            </ul>
           </li>
         ))}
       </ul>
