@@ -5,6 +5,7 @@ import { armIdleTimer, disarmIdleTimer, onSessionLost } from './api/http.js'
 import { invalidarTiendaActual } from './api/tiendaActual.js'
 import LayoutTienda from './components/layout/LayoutTienda.jsx'
 import CuentaPage from './pages/CuentaPage.jsx'
+import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
 import BuscarPage from './pages/consumidor/BuscarPage.jsx'
 import CarritoPage from './pages/consumidor/CarritoPage.jsx'
 import ComunidadesPage from './pages/consumidor/ComunidadesPage.jsx'
@@ -80,7 +81,8 @@ export default function App() {
   // "/productores/1" (enlace antiguo) no es del panel: se compara por segmento
   const delProductor = path === RUTAS.productor || path.startsWith(`${RUTAS.productor}/`)
   const delComprador = path === RUTAS.carrito
-  const protegida = path === RUTAS.inicio || delProductor || delComprador
+  const delAcopio = path === RUTAS.acopio || path.startsWith(`${RUTAS.acopio}/`)
+  const protegida = path === RUTAS.inicio || delProductor || delComprador || delAcopio
 
   // Al cargar y al volver a una pantalla protegida con "atras", se vuelve a preguntar al servidor
   useEffect(() => {
@@ -113,6 +115,7 @@ export default function App() {
     else if (!sesion && protegida) navigate(`${RUTAS.ingresar}?volver=${encodeURIComponent(path + search)}`, { replace: true })
     else if (sesion && delProductor && user.role !== 'PRODUCTOR') navigate(RUTAS.inicio, { replace: true })
     else if (sesion && delComprador && user.role !== 'CONSUMIDOR') navigate(RUTAS.inicio, { replace: true })
+    else if (sesion && delAcopio && user.role !== 'ADMIN_PUNTO') navigate(RUTAS.inicio, { replace: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cargando, sesion, path])
 
@@ -166,6 +169,14 @@ export default function App() {
     else pagina = <PanelPage path={RUTAS.productor} />
   } else if (delComprador) {
     pagina = user.role === 'CONSUMIDOR' ? <CarritoPage /> : null
+  } else if (delAcopio) {
+    // Por ahora el punto solo tiene Movimientos (A-03, CCPIP-158)
+    if (user.role !== 'ADMIN_PUNTO') pagina = null
+    else if (path === RUTAS.acopioMovimientos) pagina = <MovimientosPage path={path} />
+    else {
+      navigate(RUTAS.acopioMovimientos, { replace: true })
+      pagina = null
+    }
   } else if (path === RUTAS.catalogo) {
     pagina = <InicioPage />
   } else if (path === RUTAS.buscar) {

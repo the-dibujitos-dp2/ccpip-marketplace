@@ -2,6 +2,9 @@ const SOLES = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN
 const MES_ANIO = new Intl.DateTimeFormat('es-PE', { month: 'long', year: 'numeric', timeZone: 'UTC' })
 const FECHA_CORTA = new Intl.DateTimeFormat('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
 const FECHA = new Intl.DateTimeFormat('es-PE', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+const FECHA_HORA = new Intl.DateTimeFormat('es-PE', {
+  day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima',
+})
 
 /** 46 -> "S/ 46.00" */
 export function precio(valor) {
@@ -26,4 +29,9 @@ export function capital(texto) {
 /** "2026-11-20" -> "20/11/2026" (tablas, como en PW-06) */
 export function fechaCorta(iso) {
   return iso ? FECHA_CORTA.format(new Date(`${iso}T00:00:00Z`)) : ''
+}
+
+/** "2026-11-16T14:12:00Z" -> "16/11 09:12", en hora de Lima (tablas de movimientos, A-03) */
+export function fechaHora(instante) {
+  return instante ? FECHA_HORA.format(new Date(instante)).replace(',', '') : ''
 }

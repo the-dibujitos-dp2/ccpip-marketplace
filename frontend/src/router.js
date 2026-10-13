@@ -13,6 +13,8 @@ export const RUTAS = {
   productorProductos: '/productor/productos',
   productorNuevo: '/productor/productos/nuevo',
   productorLotes: '/productor/lotes',
+  acopio: '/acopio',
+  acopioMovimientos: '/acopio/movimientos',
 }
 
 export function navigate(path, { replace = false } = {}) {

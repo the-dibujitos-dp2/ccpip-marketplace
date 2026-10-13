@@ -13,6 +13,7 @@ import productosProductor from './fixtures/productor-productos-estado-PUBLICADO.
 import edicion from './fixtures/productor-productos-9.json'
 import lotes from './fixtures/productor-productos-9-lotes.json'
 import ubicaciones from './fixtures/productor-ubicaciones.json'
+import movimientos from './fixtures/acopio-movimientos.json'
 
 export const USUARIO = {
   id: 1,
@@ -89,6 +90,7 @@ export const DATOS = {
   edicion,
   lotes,
   ubicaciones,
+  movimientos,
 }
 
 /** Copia profunda para que cada prueba pueda modificar los datos sin afectar a otras. */

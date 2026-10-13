@@ -1,0 +1,36 @@
+{
+    "ubicacion": "Centro Nacional Lima",
+    "items": [
+        {
+            "id": 10,
+            "registradoEn": "2026-10-13T04:39:08.114161Z",
+            "tipo": "ENTRADA",
+            "productoId": 10,
+            "producto": "Cafe tostado en grano 500 g",
+            "cantidad": 100.0,
+            "observacion": "Carga inicial de demostracion"
+        },
+        {
+            "id": 9,
+            "registradoEn": "2026-10-13T04:39:08.114161Z",
+            "tipo": "ENTRADA",
+            "productoId": 9,
+            "producto": "Camu camu en polvo 150 g",
+            "cantidad": 100.0,
+            "observacion": "Carga inicial de demostracion"
+        },
+        {
+            "id": 8,
+            "registradoEn": "2026-10-13T04:39:08.114161Z",
+            "tipo": "ENTRADA",
+            "productoId": 8,
+            "producto": "Aceite de aguaje 250 ml",
+            "cantidad": 100.0,
+            "observacion": "Carga inicial de demostracion"
+        }
+    ],
+    "pagina": 0,
+    "tamano": 20,
+    "total": 3,
+    "totalPaginas": 1
+}
