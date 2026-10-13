@@ -5,13 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.comun.PuntosDeAcopio;
 import pe.ccpip.inventario.InventarioModelos.Grupo;
 import pe.ccpip.inventario.InventarioModelos.Movimiento;
 import pe.ccpip.inventario.InventarioModelos.Movimientos;
@@ -36,22 +35,17 @@ public class MovimientosService {
             """;
 
     private final NamedParameterJdbcTemplate jdbc;
+    private final PuntosDeAcopio puntos;
 
-    public MovimientosService(NamedParameterJdbcTemplate jdbc) {
+    public MovimientosService(NamedParameterJdbcTemplate jdbc, PuntosDeAcopio puntos) {
         this.jdbc = jdbc;
+        this.puntos = puntos;
     }
 
     /** Lo mas reciente primero. {@code pedido} filtra por numero exacto, sin distinguir mayusculas. */
     @Transactional(readOnly = true)
     public Movimientos listar(long usuarioId, Grupo grupo, String pedido, int pagina) {
-        List<String> ubicaciones = jdbc.queryForList("""
-                SELECT ub.nombre FROM usuario_ubicacion uu JOIN ubicacion ub ON ub.id = uu.ubicacion_id
-                WHERE uu.usuario_id = :usuario ORDER BY ub.nombre""",
-                new MapSqlParameterSource("usuario", usuarioId), String.class);
-        if (ubicaciones.isEmpty()) {
-            throw new ErrorNegocio(HttpStatus.CONFLICT, "ACOPIO_SIN_ASIGNAR",
-                    "Tu cuenta aún no tiene un punto de acopio asignado.");
-        }
+        String ubicacion = puntos.nombres(usuarioId);
 
         MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId);
         List<String> filtros = new ArrayList<>();
@@ -77,7 +71,7 @@ public class MovimientosService {
                         rs.getString("tipo"), rs.getLong("producto_id"), rs.getString("producto"), rs.getString("lote"),
                         rs.getBigDecimal("cantidad"), rs.getString("pedido"), rs.getString("registrado_por"),
                         rs.getString("observacion")));
-        return new Movimientos(String.join(", ", ubicaciones), items, pagina, TAMANO, cuantos,
+        return new Movimientos(ubicacion, items, pagina, TAMANO, cuantos,
                 (int) ((cuantos + TAMANO - 1) / TAMANO));
     }
 }

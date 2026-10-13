@@ -105,6 +105,26 @@ public abstract class IntegrationTest {
         return id;
     }
 
+    /**
+     * Un pedido confirmado por consumidor@ccpip.test para recoger en {@code punto}, con una linea y la
+     * confirmacion en su historial. Lo arma directo en la base mientras la confirmacion (CCPIP-157) no exista.
+     */
+    protected long pedidoConfirmado(String numero, String punto, long productoId, int cantidad) {
+        Long id = jdbc.queryForObject("""
+                INSERT INTO pedido (numero, usuario_id, modalidad, ubicacion_origen_id, total)
+                SELECT ?, u.id, 'RECOJO', l.id, (SELECT precio * ? FROM producto WHERE id = ?)
+                FROM usuario u, ubicacion l WHERE u.correo = 'consumidor@ccpip.test' AND l.nombre = ?
+                RETURNING id""", Long.class, numero, cantidad, productoId, punto);
+        jdbc.update("""
+                INSERT INTO item_pedido (pedido_id, producto_id, productor_id, cantidad, precio_unitario, subtotal)
+                SELECT ?, id, productor_id, ?, precio, precio * ? FROM producto WHERE id = ?""",
+                id, cantidad, cantidad, productoId);
+        jdbc.update("""
+                INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id)
+                SELECT ?, 'CONFIRMADO', usuario_id FROM pedido WHERE id = ?""", id, id);
+        return id;
+    }
+
     /** Inicia sesion y devuelve la cookie para usarla en las siguientes peticiones. */
     protected Cookie loginAs(String email) throws Exception {
         Cookie cookie = mockMvc.perform(login(email, DEMO_PASSWORD))
