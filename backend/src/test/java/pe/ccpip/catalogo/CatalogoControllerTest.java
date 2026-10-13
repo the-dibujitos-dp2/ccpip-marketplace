@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,9 @@ import pe.ccpip.support.IntegrationTest;
 @Transactional
 class CatalogoControllerTest extends IntegrationTest {
 
-    private static final LocalDate EN_UN_ANIO = LocalDate.now().plusYears(1);
+    /** Hoy en Lima, como lo calcula el servidor: el CI corre en UTC (de 19:00 a 24:00 en Lima ya es manana). */
+    private static final LocalDate HOY = LocalDate.now(ZoneId.of("America/Lima"));
+    private static final LocalDate EN_UN_ANIO = HOY.plusYears(1);
 
     // --- CCPIP-52: buscar ---
 
@@ -108,7 +111,7 @@ class CatalogoControllerTest extends IntegrationTest {
     void soloMuestraLoVendibleSalvoQueSePidanTodos() throws Exception {
         long borrador = productoConLote("Miel borrador", "BORRADOR", "PUNTO_ACOPIO", EN_UN_ANIO);
         long sinLote = productoConLote("Miel sin lote", "PUBLICADO", null, null);
-        long vencido = productoConLote("Miel vencida", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().minusDays(1));
+        long vencido = productoConLote("Miel vencida", "PUBLICADO", "PUNTO_ACOPIO", HOY.minusDays(1));
         long enAlmacen = productoConLote("Miel en almacen", "PUBLICADO", "ALMACEN_PRODUCTOR", EN_UN_ANIO);
         long vendible = productoConLote("Miel vendible", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_ANIO);
 
@@ -157,7 +160,7 @@ class CatalogoControllerTest extends IntegrationTest {
 
     @Test
     void sinStockSeVeComoNoDisponibleYNuncaExponeLotesNiCantidades() throws Exception {
-        long id = productoConLote("Miel agotada", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().minusDays(1));
+        long id = productoConLote("Miel agotada", "PUBLICADO", "PUNTO_ACOPIO", HOY.minusDays(1));
         mockMvc.perform(get("/api/productos/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.disponible").value(false))
