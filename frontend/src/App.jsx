@@ -6,6 +6,7 @@ import { invalidarTiendaActual } from './api/tiendaActual.js'
 import LayoutTienda from './components/layout/LayoutTienda.jsx'
 import CuentaPage from './pages/CuentaPage.jsx'
 import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
+import PedidosPage from './pages/acopio/PedidosPage.jsx'
 import BuscarPage from './pages/consumidor/BuscarPage.jsx'
 import CarritoPage from './pages/consumidor/CarritoPage.jsx'
 import ComunidadesPage from './pages/consumidor/ComunidadesPage.jsx'
@@ -170,11 +171,12 @@ export default function App() {
   } else if (delComprador) {
     pagina = user.role === 'CONSUMIDOR' ? <CarritoPage /> : null
   } else if (delAcopio) {
-    // Por ahora el punto solo tiene Movimientos (A-03, CCPIP-158)
+    // Por ahora el punto tiene Pedidos (A-05, CCPIP-159) y Movimientos (A-03, CCPIP-158)
     if (user.role !== 'ADMIN_PUNTO') pagina = null
+    else if (path === RUTAS.acopioPedidos) pagina = <PedidosPage path={path} />
     else if (path === RUTAS.acopioMovimientos) pagina = <MovimientosPage path={path} />
     else {
-      navigate(RUTAS.acopioMovimientos, { replace: true })
+      navigate(RUTAS.acopioPedidos, { replace: true })
       pagina = null
     }
   } else if (path === RUTAS.catalogo) {

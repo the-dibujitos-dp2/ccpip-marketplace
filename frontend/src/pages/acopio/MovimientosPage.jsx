@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { consultarMovimientos } from '../../api/acopio.js'
+import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
@@ -41,21 +42,8 @@ export default function MovimientosPage({ path }) {
   const [pedido, setPedido] = useState('')
   const [buscado, setBuscado] = useState('')
   const [pagina, setPagina] = useState(0)
-  const [datos, setDatos] = useState(null)
-  const [error, setError] = useState(null)
-
-  const cargar = useCallback(() => {
-    let vigente = true
-    setError(null)
-    consultarMovimientos({ tipo, pedido: buscado, pagina })
-      .then((d) => vigente && setDatos(d))
-      .catch((e) => vigente && e.status !== 401 && setError(e))
-    return () => {
-      vigente = false
-    }
-  }, [tipo, buscado, pagina])
-
-  useEffect(cargar, [cargar])
+  const consultar = useCallback(() => consultarMovimientos({ tipo, pedido: buscado, pagina }), [tipo, buscado, pagina])
+  const { datos, error, recargar } = useConsulta(consultar)
 
   function cambiarTipo(valor) {
     setTipo(valor)
@@ -91,7 +79,7 @@ export default function MovimientosPage({ path }) {
 
       {error && (
         <EstadoVacio titulo="No pudimos cargar los movimientos" descripcion={error.message}>
-          <Boton tamano="M" tipo="secundario" onClick={cargar}>Reintentar</Boton>
+          <Boton tamano="M" tipo="secundario" onClick={recargar}>Reintentar</Boton>
         </EstadoVacio>
       )}
 

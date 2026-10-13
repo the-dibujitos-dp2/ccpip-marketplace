@@ -1,3 +1,4 @@
+import iconoCaja from '../../assets/icons/caja.svg'
 import iconoMovimientos from '../../assets/icons/movimientos.svg'
 import { RUTAS } from '../../router.js'
 import { useSesion } from '../../sesion.js'
@@ -8,6 +9,7 @@ import LayoutPanel from './LayoutPanel.jsx'
  * llegan con sus historias. Mientras tanto, su inicio sigue siendo /inicio.
  */
 const NAV = [
+  { to: RUTAS.acopioPedidos, texto: 'Pedidos', icono: iconoCaja, activo: (p) => p.startsWith(RUTAS.acopioPedidos) },
   { to: RUTAS.acopioMovimientos, texto: 'Movimientos', icono: iconoMovimientos, activo: (p) => p.startsWith(RUTAS.acopioMovimientos) },
 ]
 

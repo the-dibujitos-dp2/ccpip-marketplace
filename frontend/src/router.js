@@ -14,6 +14,7 @@ export const RUTAS = {
   productorNuevo: '/productor/productos/nuevo',
   productorLotes: '/productor/lotes',
   acopio: '/acopio',
+  acopioPedidos: '/acopio/pedidos',
   acopioMovimientos: '/acopio/movimientos',
 }
 

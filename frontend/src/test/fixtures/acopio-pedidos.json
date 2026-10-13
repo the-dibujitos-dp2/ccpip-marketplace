@@ -1,0 +1,85 @@
+{
+    "ubicacion": "Centro Nacional Lima",
+    "items": [
+        {
+            "numero": "MC-00155",
+            "estado": "CONFIRMADO",
+            "confirmadoEn": "2026-10-13T11:08:05.258864Z",
+            "actualizadoEn": "2026-10-13T11:08:05.258864Z",
+            "total": 96.0,
+            "lineas": [
+                {
+                    "producto": "Aceite de ungurahui 250 ml",
+                    "comunidad": "Asoc. Nii Joi",
+                    "cantidad": 1.0
+                },
+                {
+                    "producto": "Aceite de aguaje 250 ml",
+                    "comunidad": "Asoc. Nii Joi",
+                    "cantidad": 1.0
+                }
+            ],
+            "historial": [
+                {
+                    "estado": "CONFIRMADO",
+                    "registradoEn": "2026-10-13T11:08:05.258864Z"
+                }
+            ]
+        },
+        {
+            "numero": "MC-00139",
+            "estado": "LISTO_PARA_RECOJO",
+            "confirmadoEn": "2026-10-13T12:08:05.258864Z",
+            "actualizadoEn": "2026-10-13T12:08:05.258864Z",
+            "total": 160.0,
+            "lineas": [
+                {
+                    "producto": "Cacao en grano fermentado 1 kg",
+                    "comunidad": "C.N. Yarina",
+                    "cantidad": 2.0
+                },
+                {
+                    "producto": "Pasta de cacao 500 g",
+                    "comunidad": "C.N. Yarina",
+                    "cantidad": 1.0
+                }
+            ],
+            "historial": [
+                {
+                    "estado": "CONFIRMADO",
+                    "registradoEn": "2026-10-13T12:08:05.258864Z"
+                },
+                {
+                    "estado": "LISTO_PARA_RECOJO",
+                    "registradoEn": "2026-10-13T12:38:05.258864Z",
+                    "responsable": "Administrador de Acopio de Prueba"
+                }
+            ]
+        },
+        {
+            "numero": "MC-00131",
+            "estado": "ENTREGADO",
+            "confirmadoEn": "2026-10-13T13:08:05.258864Z",
+            "actualizadoEn": "2026-10-13T13:08:05.258864Z",
+            "total": 46.0,
+            "lineas": [
+                {
+                    "producto": "Cafe tostado en grano 500 g",
+                    "comunidad": "Coop. Río Ene",
+                    "cantidad": 1.0
+                }
+            ],
+            "historial": [
+                {
+                    "estado": "CONFIRMADO",
+                    "registradoEn": "2026-10-13T13:08:05.258864Z"
+                },
+                {
+                    "estado": "ENTREGADO",
+                    "registradoEn": "2026-10-13T13:48:05.258864Z",
+                    "responsable": "Administrador de Acopio de Prueba"
+                }
+            ]
+        }
+    ]
+}
