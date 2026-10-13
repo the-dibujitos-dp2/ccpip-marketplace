@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { fetchPanel } from '../api/panel.js'
 import Alerta from '../components/Alerta.jsx'
+import Boton from '../components/Boton.jsx'
+import { RUTAS } from '../router.js'
 import './CuentaPage.css'
 
 /** Pantalla de inicio de cada rol. El contenido lo entrega el servidor segun el rol. */
@@ -32,6 +34,12 @@ export default function CuentaPage({ user, minutosInactividad }) {
           </section>
         )}
         {error && <Alerta tono="error" titulo="No pudimos cargar tu panel" descripcion={error.message} />}
+
+        {user.role === 'ADMIN_PUNTO' && (
+          <div>
+            <Boton tamano="M" to={RUTAS.acopioMovimientos}>Ver movimientos del punto</Boton>
+          </div>
+        )}
 
         <p className="caption">
           Por seguridad, tu sesión se cierra tras {minutosInactividad} minutos sin actividad.
