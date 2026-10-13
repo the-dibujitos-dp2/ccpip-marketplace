@@ -54,6 +54,33 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     expect(screen.queryByText(/Consumidor de Prueba|consumidor@/)).not.toBeInTheDocument()
   })
 
+  it('cada linea muestra los lotes asignados, el que vence antes primero (CCPIP-74)', async () => {
+    servidor(comoAcopio())
+    abrirEn('/acopio/pedidos')
+    await screen.findByText('MC-00155')
+
+    // Un pedido repartido en dos lotes: primero el que vence antes
+    const cafe = within(screen.getByRole('list', { name: 'Lotes de Cafe tostado en grano 500 g' })).getAllByRole('listitem')
+    expect(cafe.map((l) => l.textContent)).toEqual([
+      'Lote L-0010B · vence 02/11/2026 · 2 und',
+      'Lote L-0010 · vence 13/10/2027 · 1 und',
+    ])
+    // Una linea con un solo lote, en cada columna
+    expect(within(columna('Confirmado')).getByText('Lote L-0008 · vence 13/10/2027 · 1 und')).toBeInTheDocument()
+    expect(within(columna('Listo para recojo')).getByText('Lote L-0001 · vence 13/10/2027 · 2 und')).toBeInTheDocument()
+    // Si el pedido aun no descuenta existencias, lo dice en lugar de callar
+    expect(within(columna('Listo para recojo')).getByText('Sin lotes asignados')).toBeInTheDocument()
+  })
+
+  it('lo que no vence, como una artesania, lo dice en lugar de mostrar una fecha vacia', async () => {
+    const datos = copia(DATOS.pedidos)
+    delete datos.items[0].lineas[0].lotes[0].fechaVencimiento
+    servidor(comoAcopio({ [LISTAR]: [200, datos] }))
+    abrirEn('/acopio/pedidos')
+
+    expect(await screen.findByText('Lote L-0008 · no vence · 1 und')).toBeInTheDocument()
+  })
+
   it('marcar listo pasa el pedido a su columna, lo avisa y no vuelve a ofrecer el boton', async () => {
     const fetchMock = servidor(comoAcopio({ [LISTO]: () => [200, copia(DATOS.pedidoListo)] }))
     const user = userEvent.setup()
@@ -65,7 +92,9 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     const listo = within(columna('Listo para recojo'))
     expect(listo.getByRole('heading', { name: 'Listo para recojo (2)' })).toBeInTheDocument()
     expect(listo.getByText('MC-00155')).toBeInTheDocument()
-    expect(listo.getByText('Listo 13/10 09:08 · Administrador de Acopio de Prueba · S/ 96.00')).toBeInTheDocument()
+    expect(listo.getByText('Listo 13/10 10:33 · Administrador de Acopio de Prueba · S/ 96.00')).toBeInTheDocument()
+    // Los lotes de la respuesta viajan con el pedido a su nueva columna
+    expect(listo.getByText('Lote L-0008 · vence 13/10/2027 · 1 und')).toBeInTheDocument()
     expect(within(columna('Confirmado')).getByRole('heading', { name: 'Confirmado (0)' })).toBeInTheDocument()
     expect(within(columna('Confirmado')).getByText('No hay pedidos por preparar.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Marcar el pedido/ })).not.toBeInTheDocument()

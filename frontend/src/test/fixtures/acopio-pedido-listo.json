@@ -2,18 +2,32 @@
     "numero": "MC-00155",
     "estado": "LISTO_PARA_RECOJO",
     "confirmadoEn": "2026-10-13T11:08:05.258864Z",
-    "actualizadoEn": "2026-10-13T14:08:11.397136Z",
+    "actualizadoEn": "2026-10-13T15:33:58.109980Z",
     "total": 96.0,
     "lineas": [
         {
-            "producto": "Aceite de ungurahui 250 ml",
-            "comunidad": "Asoc. Nii Joi",
-            "cantidad": 1.0
-        },
-        {
             "producto": "Aceite de aguaje 250 ml",
             "comunidad": "Asoc. Nii Joi",
-            "cantidad": 1.0
+            "cantidad": 1.0,
+            "lotes": [
+                {
+                    "codigo": "L-0008",
+                    "cantidad": 1.0,
+                    "fechaVencimiento": "2027-10-13"
+                }
+            ]
+        },
+        {
+            "producto": "Aceite de ungurahui 250 ml",
+            "comunidad": "Asoc. Nii Joi",
+            "cantidad": 1.0,
+            "lotes": [
+                {
+                    "codigo": "L-0007",
+                    "cantidad": 1.0,
+                    "fechaVencimiento": "2027-10-13"
+                }
+            ]
         }
     ],
     "historial": [
@@ -23,7 +37,7 @@
         },
         {
             "estado": "LISTO_PARA_RECOJO",
-            "registradoEn": "2026-10-13T14:08:11.397136Z",
+            "registradoEn": "2026-10-13T15:33:58.109980Z",
             "responsable": "Administrador de Acopio de Prueba"
         }
     ]
