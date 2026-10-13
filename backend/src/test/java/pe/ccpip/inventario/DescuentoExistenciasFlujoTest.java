@@ -54,6 +54,73 @@ class DescuentoExistenciasFlujoTest extends IntegrationTest {
                 Integer.class, pedido)).isEqualTo(2);
     }
 
+    // --- CCPIP-74 (RF-30, RNF-14): lotes vendibles por vencimiento mas proximo, nunca uno vencido ---
+
+    @Test
+    void unLoteVencidoNuncaSeAsignaAunqueSeaElQueVenceAntes() {
+        long producto = productoConLote("Camu camu", "PUBLICADO", null, null);
+        long vencido = lote(producto, "L-VENCIDO", 10, HOY.minusDays(1));
+        long vigente = lote(producto, "L-VIGENTE", 10, HOY.plusDays(20));
+        long pedido = pedido("MC-T0010", producto, 4);
+
+        List<Descuento> salidas = descuento.descontarPorPedido(pedido, comprador());
+
+        // Es el lote que vence "antes", pero ya vencio: todo sale del vigente y el vencido no se toca
+        assertThat(salidas).extracting(Descuento::loteId, d -> d.cantidad().intValue()).containsExactly(tuple(vigente, 4));
+        assertThat(cantidadLote(vencido)).isEqualTo(10);
+        assertThat(cantidadLote(vigente)).isEqualTo(6);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario WHERE lote_id = ? AND tipo = 'SALIDA_VENTA'",
+                Integer.class, vencido)).isZero();
+    }
+
+    @Test
+    void elLoteQueVenceHoyTodaviaSeAsignaYSeCompletaConElSiguiente() {
+        long producto = productoConLote("Miel", "PUBLICADO", null, null);
+        long vencePasado = lote(producto, "L-SIGUIENTE", 5, HOY.plusDays(30));
+        long venceHoy = lote(producto, "L-HOY", 3, HOY);
+        long pedido = pedido("MC-T0011", producto, 4);
+
+        List<Descuento> salidas = descuento.descontarPorPedido(pedido, comprador());
+
+        // Hoy todavia es vendible (vence al terminar el dia): sale primero y el resto del siguiente lote
+        assertThat(salidas).extracting(Descuento::loteId, d -> d.cantidad().intValue())
+                .containsExactly(tuple(venceHoy, 3), tuple(vencePasado, 1));
+    }
+
+    @Test
+    void loQueNoVenceSaleDespuesDeLoQueVence() {
+        long producto = productoConLote("Canasta tejida", "PUBLICADO", null, null);
+        long sinVencimiento = lote(producto, "L-ARTESANIA", 5, null);
+        long conVencimiento = lote(producto, "L-FECHA", 2, HOY.plusDays(60));
+        long pedido = pedido("MC-T0012", producto, 4);
+
+        List<Descuento> salidas = descuento.descontarPorPedido(pedido, comprador());
+
+        assertThat(salidas).extracting(Descuento::loteId, d -> d.cantidad().intValue())
+                .containsExactly(tuple(conVencimiento, 2), tuple(sinVencimiento, 2));
+    }
+
+    @Test
+    void cadaLineaConservaLosLotesDeLosQueSalio() {
+        long producto = productoConLote("Cafe", "PUBLICADO", null, null);
+        long otro = productoConLote("Cacao", "PUBLICADO", null, null);
+        long l1 = lote(producto, "L-A", 2, HOY.plusDays(5));
+        long l2 = lote(producto, "L-B", 5, HOY.plusDays(50));
+        long l3 = lote(otro, "L-C", 9, HOY.plusDays(15));
+        long pedido = pedido("MC-T0013", producto, 4);
+        agregarItem(pedido, otro, 1);
+
+        descuento.descontarPorPedido(pedido, comprador());
+
+        // Trazabilidad: cada movimiento dice de que pedido, de que linea y de que lote salio
+        assertThat(jdbc.queryForList("""
+                SELECT m.lote_id, i.producto_id, m.cantidad::int AS cantidad
+                FROM movimiento_inventario m JOIN item_pedido i ON i.id = m.item_pedido_id
+                WHERE m.pedido_id = ? AND m.tipo = 'SALIDA_VENTA' ORDER BY m.id""", pedido))
+                .extracting(f -> f.get("lote_id"), f -> f.get("producto_id"), f -> f.get("cantidad"))
+                .containsExactly(tuple(l1, producto, 2), tuple(l2, producto, 2), tuple(l3, otro, 1));
+    }
+
     @Test
     void confirmarDosVecesNoDescuentaDosVeces() {
         long producto = productoConLote("Cacao", "PUBLICADO", null, null);

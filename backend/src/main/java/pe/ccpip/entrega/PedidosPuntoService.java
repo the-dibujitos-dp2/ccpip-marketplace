@@ -1,6 +1,7 @@
 package pe.ccpip.entrega;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +17,7 @@ import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.comun.PuntosDeAcopio;
 import pe.ccpip.entrega.EntregaModelos.Cambio;
 import pe.ccpip.entrega.EntregaModelos.Linea;
+import pe.ccpip.entrega.EntregaModelos.LoteAsignado;
 import pe.ccpip.entrega.EntregaModelos.PedidoPunto;
 import pe.ccpip.entrega.EntregaModelos.PedidosPunto;
 
@@ -94,14 +96,27 @@ public class PedidosPuntoService {
             return List.of();
         }
         MapSqlParameterSource p = new MapSqlParameterSource("ids", ids);
+        // Los lotes que el descuento asigno a cada linea (CCPIP-74), el que vence antes primero
+        Map<Long, List<LoteAsignado>> lotes = new HashMap<>();
+        jdbc.query("""
+                SELECT m.item_pedido_id, l.codigo, m.cantidad, l.fecha_vencimiento
+                FROM movimiento_inventario m JOIN lote l ON l.id = m.lote_id
+                WHERE m.pedido_id IN (:ids) AND m.tipo = 'SALIDA_VENTA'
+                ORDER BY l.fecha_vencimiento NULLS LAST, m.id""", p,
+                rs -> {
+                    lotes.computeIfAbsent(rs.getLong("item_pedido_id"), k -> new ArrayList<>())
+                            .add(new LoteAsignado(rs.getString("codigo"), rs.getBigDecimal("cantidad"),
+                                    rs.getObject("fecha_vencimiento", LocalDate.class)));
+                });
         Map<Long, List<Linea>> lineas = new HashMap<>();
         jdbc.query("""
-                SELECT i.pedido_id, pr.nombre, coalesce(po.nombre_tienda, po.comunidad) AS comunidad, i.cantidad
+                SELECT i.id, i.pedido_id, pr.nombre, coalesce(po.nombre_tienda, po.comunidad) AS comunidad, i.cantidad
                 FROM item_pedido i JOIN producto pr ON pr.id = i.producto_id JOIN productor po ON po.id = i.productor_id
                 WHERE i.pedido_id IN (:ids) ORDER BY i.id""", p,
                 rs -> {
                     lineas.computeIfAbsent(rs.getLong("pedido_id"), k -> new ArrayList<>())
-                            .add(new Linea(rs.getString("nombre"), rs.getString("comunidad"), rs.getBigDecimal("cantidad")));
+                            .add(new Linea(rs.getString("nombre"), rs.getString("comunidad"), rs.getBigDecimal("cantidad"),
+                                    lotes.getOrDefault(rs.getLong("id"), List.of())));
                 });
         // El responsable es el personal del punto; el comprador que confirmo no se nombra (RNF-05)
         Map<Long, List<Cambio>> historial = new HashMap<>();

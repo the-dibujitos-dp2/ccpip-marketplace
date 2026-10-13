@@ -2,6 +2,7 @@ package pe.ccpip.entrega;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -12,8 +13,20 @@ public final class EntregaModelos {
     private EntregaModelos() {
     }
 
-    /** Lo que se entrega de una linea: producto, comunidad que lo vende y cantidad. */
-    public record Linea(String producto, String comunidad, BigDecimal cantidad) {
+    /**
+     * Un lote del que sale parte de una linea (CCPIP-74): el que vence antes se asigna primero y uno
+     * vencido nunca (RNF-14). {@code fechaVencimiento} es nula en lo que no vence, como una artesania.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record LoteAsignado(String codigo, BigDecimal cantidad, LocalDate fechaVencimiento) {
+    }
+
+    /**
+     * Lo que se entrega de una linea: producto, comunidad que lo vende y cantidad. {@code lotes} son
+     * los lotes asignados al confirmar la compra, mas proximo a vencer primero; esta vacia mientras
+     * el pedido no descuenta existencias.
+     */
+    public record Linea(String producto, String comunidad, BigDecimal cantidad, List<LoteAsignado> lotes) {
     }
 
     /**
