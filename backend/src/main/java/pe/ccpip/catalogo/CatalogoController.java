@@ -49,6 +49,8 @@ public class CatalogoController {
     /**
      * CCPIP-52, 54 y 165: busqueda en nombre y descripcion sin distinguir mayusculas ni tildes,
      * con filtros por linea, modalidad, region, comunidad y precio. Por defecto solo disponibles.
+     * CCPIP-363: la comunidad debe ser real y con tienda publicada; si no, se rechaza en vez de
+     * devolver una lista vacia que parece "sin resultados".
      */
     @GetMapping("/api/productos")
     public Busqueda buscar(
@@ -66,6 +68,9 @@ public class CatalogoController {
         String mod = modalidad == null || modalidad.isBlank() ? null : modalidad.toUpperCase(Locale.ROOT);
         if (mod != null && !List.of("MINORISTA", "MAYORISTA").contains(mod)) {
             throw ErrorNegocio.invalido("MODALIDAD_INVALIDA", "La modalidad debe ser MINORISTA o MAYORISTA.");
+        }
+        if (tienda != null && !tiendas.publicada(tienda)) {
+            throw ErrorNegocio.invalido("COMUNIDAD_INVALIDA", "Esa comunidad no existe o aún no tiene su tienda publicada.");
         }
         Orden ordenElegido;
         try {
