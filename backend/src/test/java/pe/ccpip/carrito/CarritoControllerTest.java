@@ -526,6 +526,39 @@ class CarritoControllerTest extends IntegrationTest {
         agregar(consumidor, vencida, 1).andExpect(status().isConflict());
     }
 
+    // --- CCPIP-270: la autorizacion es por producto y por productor ---
+
+    @Test
+    void autorizarUnProductoNoAutorizaLosDemasDeSuLinea() throws Exception {
+        // Dos productos del mismo productor y de la misma linea (SUPERFRUTOS); solo uno queda autorizado
+        long autorizado = productoConLote("Camu camu autorizado", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
+        long sinAutorizar = productoConLote("Aguaje sin autorizar", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
+        jdbc.update("DELETE FROM autorizacion_producto WHERE producto_id = ?", sinAutorizar);
+
+        agregar(consumidor, autorizado, 1).andExpect(status().isOk());
+        agregar(consumidor, sinAutorizar, 1)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("VENTA_PAUSADA"));
+        mockMvc.perform(get("/api/productos/{id}", autorizado)).andExpect(jsonPath("$.comprable").value(true));
+        mockMvc.perform(get("/api/productos/{id}", sinAutorizar)).andExpect(jsonPath("$.comprable").value(false));
+    }
+
+    @Test
+    void laAutorizacionDeOtroProductorNoVale() throws Exception {
+        long producto = productoConLote("Sacha inchi de productor@", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
+        // La unica autorizacion aprobada para este producto es de otro productor: no habilita esta oferta
+        jdbc.update("DELETE FROM autorizacion_producto WHERE producto_id = ?", producto);
+        jdbc.update("""
+                INSERT INTO autorizacion_producto (productor_id, producto_id, estado, decidido_en)
+                SELECT pr.id, ?, 'APROBADA', now() FROM productor pr
+                WHERE pr.id <> (SELECT productor_id FROM producto WHERE id = ?) ORDER BY pr.id LIMIT 1""", producto, producto);
+
+        agregar(consumidor, producto, 1)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("VENTA_PAUSADA"));
+        mockMvc.perform(get("/api/productos/{id}", producto)).andExpect(jsonPath("$.comprable").value(false));
+    }
+
     @Test
     void laVentaPausadaSeMuestraEnElCarritoPeroNoSumaAlTotal() throws Exception {
         long otra = productoConLote("Cacao en grano", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);

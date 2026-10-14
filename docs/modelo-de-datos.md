@@ -307,6 +307,38 @@ para ese producto con `vigente_hasta` nula o de hoy en adelante (hora de Lima). 
 visible en el catalogo, pero en "Venta pausada": la ficha lo dice con `comprable: false` y el
 carrito marca el item `VENTA_PAUSADA` sin sumarlo al total.
 
+**La autorizacion es por producto y por productor** (CCPIP-270, RF-143). Elegir una linea no
+autoriza todos sus productos, y la autorizacion de otro productor para el mismo producto no
+vale. El servidor lo controla en cada paso donde se puede comprar:
+
+| Momento | Si la oferta no esta autorizada |
+|---|---|
+| Agregar o cambiar la cantidad en el carrito | `409 VENTA_PAUSADA` |
+| Consultar el carrito | El item queda `VENTA_PAUSADA` y no suma al total |
+| Confirmar la compra (`POST /api/pedidos`) | `409 CARRITO_CON_PROBLEMAS` |
+| Pagar (`POST /api/pedidos/{id}/pagos`), por si se revoco despues de crear el pedido | No se cobra, el pedido se cancela y responde `409 VENTA_PAUSADA` |
+
+### Revision manual de autorizaciones (MVP)
+
+Mientras no exista la bandeja del subadministrador (CCPIP-359, pantallas S-01 y S-02), la
+autorizacion se decide fuera de la plataforma y se registra en la base:
+
+1. El productor envia por correo a la Camara la evidencia de que puede vender ese producto
+   (por ejemplo, registro sanitario o certificado de origen) y su vigencia, si la tiene.
+2. Un subadministrador la revisa. Al decidir, deja constancia en el acta de la semana: productor,
+   producto, decision, motivo y vigencia.
+3. Registra la decision. Los productos sembrados ya entran aprobados por `R__02`; para uno nuevo
+   o para cambiar una decision, en la base del ambiente:
+   ```sql
+   INSERT INTO autorizacion_producto (productor_id, producto_id, estado, motivo, decidido_por, decidido_en, vigente_hasta)
+   VALUES (:productor, :producto, 'APROBADA', 'Registro sanitario vigente', :subadministrador, now(), '2027-06-30')
+   ON CONFLICT (productor_id, producto_id) DO UPDATE
+   SET estado = EXCLUDED.estado, motivo = EXCLUDED.motivo, decidido_por = EXCLUDED.decidido_por,
+       decidido_en = EXCLUDED.decidido_en, vigente_hasta = EXCLUDED.vigente_hasta;
+   ```
+   Para pausar la venta: `estado = 'REVOCADA'` o `'RECHAZADA'` con su `motivo`. El cambio rige de
+   inmediato en el catalogo, los carritos y los pagos pendientes; no hace falta redesplegar.
+
 ## Descuento de existencias por venta (CCPIP-158)
 
 Migracion `V202610121700`. Al confirmar una compra, cada linea de pedido sale de los lotes
