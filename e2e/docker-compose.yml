@@ -22,6 +22,12 @@ services:
   s3:
     image: adobe/s3mock:5.2.3
 
+  # CCPIP-328: atrapa los correos para que la prueba lea el enlace de verificacion por su API
+  correo:
+    image: axllent/mailpit:v1.30.7
+    ports:
+      - "127.0.0.1:8025:8025"
+
   backend:
     build: ../backend
     environment:
@@ -35,6 +41,12 @@ services:
       CCPIP_IA_PROVEEDOR: simulado
       # Expiracion corta para probar la expiracion por inactividad sin esperar 30 minutos
       CCPIP_AUTH_SESSION_TIMEOUT: 2m
+      # Enlaces del correo hacia el frontend de pruebas y envio sin TLS a Mailpit
+      CCPIP_APP_URL: http://localhost:4173
+      CCPIP_CORREO_HOST: correo
+      CCPIP_CORREO_PUERTO: "1025"
+      CCPIP_CORREO_STARTTLS: "false"
+      CCPIP_CORREO_REMITENTE: Mercado CCPIP <no-responder@ccpip.test>
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       AWS_REGION: us-east-1
@@ -42,6 +54,8 @@ services:
       db:
         condition: service_healthy
       s3:
+        condition: service_started
+      correo:
         condition: service_started
 
   web:
