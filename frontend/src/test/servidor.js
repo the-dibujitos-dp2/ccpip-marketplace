@@ -16,6 +16,7 @@ import ubicaciones from './fixtures/productor-ubicaciones.json'
 import movimientos from './fixtures/acopio-movimientos.json'
 import pedidos from './fixtures/acopio-pedidos.json'
 import pedidoListo from './fixtures/acopio-pedido-listo.json'
+import pedidoEntregado from './fixtures/acopio-pedido-entregado.json'
 
 export const USUARIO = {
   id: 1,
@@ -95,6 +96,7 @@ export const DATOS = {
   movimientos,
   pedidos,
   pedidoListo,
+  pedidoEntregado,
 }
 
 /** Copia profunda para que cada prueba pueda modificar los datos sin afectar a otras. */

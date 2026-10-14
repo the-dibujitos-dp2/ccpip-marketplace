@@ -44,10 +44,14 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     expect(listo.getByText('MC-00139')).toBeInTheDocument()
     expect(listo.getByText('C.N. Yarina · Cacao en grano fermentado 1 kg × 2')).toBeInTheDocument()
     expect(listo.getByText('Listo 13/10 07:38 · Administrador de Acopio de Prueba · S/ 160.00')).toBeInTheDocument()
-    expect(listo.queryByRole('button')).not.toBeInTheDocument()
+    // Lo listo espera su entrega: se registra el recojo, ya no se vuelve a marcar
+    expect(listo.getByRole('button', { name: 'Registrar el recojo del pedido MC-00139' })).toBeEnabled()
+    expect(listo.queryByRole('button', { name: /Marcar el pedido/ })).not.toBeInTheDocument()
 
+    // Lo entregado cuenta quien se lo llevo y ya no tiene acciones
     const entregado = within(columna('Entregado hoy'))
     expect(entregado.getByText('MC-00131')).toBeInTheDocument()
+    expect(entregado.getByText('Recogió Rosa Ancón Pérez')).toBeInTheDocument()
     expect(entregado.queryByRole('button')).not.toBeInTheDocument()
 
     // Nunca se nombra al comprador (RNF-05)
@@ -74,7 +78,7 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
 
   it('lo que no vence, como una artesania, lo dice en lugar de mostrar una fecha vacia', async () => {
     const datos = copia(DATOS.pedidos)
-    delete datos.items[0].lineas[0].lotes[0].fechaVencimiento
+    delete datos.items[0].lineas.find((l) => l.producto === 'Aceite de aguaje 250 ml').lotes[0].fechaVencimiento
     servidor(comoAcopio({ [LISTAR]: [200, datos] }))
     abrirEn('/acopio/pedidos')
 
@@ -187,5 +191,166 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     servidor({ ...PUBLICAS, 'GET /api/auth/me': SIN_SESION })
     abrirEn('/acopio/pedidos')
     await waitFor(() => expect(window.location.pathname).toBe('/ingresar'))
+  })
+})
+
+describe('A-05 Registrar el recojo (CCPIP-71)', () => {
+  const RECOJO = 'POST /api/acopio/pedidos/MC-00139/recojo'
+  const TARJETA = 'Registrar el recojo del pedido MC-00139'
+  // Los mensajes y codigos que devuelve el servidor
+  const PERSONA = [422, { code: 'PERSONA_NO_COINCIDE', error: 'La persona no es quien compró ni la persona autorizada de este pedido.' }]
+  const CELULAR = [422, { code: 'CELULAR_NO_COINCIDE', error: 'El celular no coincide con el registrado en el pedido.' }]
+
+  async function abrirDialogo(user) {
+    await user.click(await screen.findByRole('button', { name: TARJETA }))
+    return screen.findByRole('dialog', { name: 'Registrar recojo del pedido MC-00139' })
+  }
+
+  async function llenar(user, dialogo, persona, celular) {
+    await user.type(within(dialogo).getByLabelText('Nombre de quien recoge'), persona)
+    await user.type(within(dialogo).getByLabelText('Celular de contacto'), celular)
+  }
+
+  const registrar = (user, dialogo) => user.click(within(dialogo).getByRole('button', { name: 'Registrar recojo' }))
+
+  it('pide quien recoge y su celular, entrega el pedido y lo pasa a "Entregado hoy" con quien se lo llevo', async () => {
+    const fetchMock = servidor(comoAcopio({ [RECOJO]: () => [200, copia(DATOS.pedidoEntregado)] }))
+    const user = userEvent.setup()
+    abrirEn('/acopio/pedidos')
+    const dialogo = await abrirDialogo(user)
+    await llenar(user, dialogo, '  rosa ancon  perez ', '+51 987 654 321')
+    await registrar(user, dialogo)
+
+    expect(await screen.findByText('El pedido MC-00139 se entregó a Rosa Ancón Pérez')).toBeInTheDocument()
+    // Se envia lo que escribio el administrador: el servidor decide si coincide
+    expect(JSON.parse(llamadas(fetchMock, RECOJO)[0][1].body)).toEqual({ persona: 'rosa ancon  perez', celular: '+51 987 654 321' })
+    expect(screen.queryByRole('dialog', { name: /Registrar recojo/ })).not.toBeInTheDocument()
+
+    expect(within(columna('Listo para recojo')).getByRole('heading', { name: 'Listo para recojo (0)' })).toBeInTheDocument()
+    const entregado = within(columna('Entregado hoy'))
+    expect(entregado.getByRole('heading', { name: 'Entregado hoy (2)' })).toBeInTheDocument()
+    expect(entregado.getAllByText('Recogió Rosa Ancón Pérez')).toHaveLength(2)
+    expect(entregado.queryByRole('button')).not.toBeInTheDocument()
+    // Solo cambio ese pedido: la lista no se volvio a pedir
+    expect(llamadas(fetchMock, LISTAR)).toHaveLength(1)
+  })
+
+  it('sin nombre o sin celular no llama al servidor y marca el campo que falta', async () => {
+    const fetchMock = servidor(comoAcopio())
+    const user = userEvent.setup()
+    abrirEn('/acopio/pedidos')
+    const dialogo = await abrirDialogo(user)
+    await registrar(user, dialogo)
+
+    expect(within(dialogo).getByText('Indica quién recoge')).toBeInTheDocument()
+    expect(within(dialogo).getByText('Indica el celular de contacto')).toBeInTheDocument()
+    expect(within(dialogo).getByLabelText('Nombre de quien recoge')).toBeInvalid()
+    expect(llamadas(fetchMock, RECOJO)).toHaveLength(0)
+  })
+
+  it('si la persona o el celular no coinciden, lo dice junto a ese campo y deja corregir', async () => {
+    let intentos = 0
+    servidor(comoAcopio({ [RECOJO]: () => [PERSONA, CELULAR, [200, copia(DATOS.pedidoEntregado)]][intentos++] }))
+    const user = userEvent.setup()
+    abrirEn('/acopio/pedidos')
+    const dialogo = await abrirDialogo(user)
+    await llenar(user, dialogo, 'Juan Pérez', '987654321')
+    await registrar(user, dialogo)
+
+    // El rechazo no dice cual era el dato correcto
+    expect(await within(dialogo).findByText(PERSONA[1].error)).toBeInTheDocument()
+    expect(within(dialogo).getByLabelText('Nombre de quien recoge')).toBeInvalid()
+    expect(within(dialogo).getByLabelText('Celular de contacto')).toBeValid()
+
+    // Corrige el nombre; ahora es el celular el que no coincide y el error anterior se va
+    await user.clear(within(dialogo).getByLabelText('Nombre de quien recoge'))
+    await user.type(within(dialogo).getByLabelText('Nombre de quien recoge'), 'Rosa Ancón Pérez')
+    await registrar(user, dialogo)
+    expect(await within(dialogo).findByText(CELULAR[1].error)).toBeInTheDocument()
+    expect(within(dialogo).queryByText(PERSONA[1].error)).not.toBeInTheDocument()
+
+    // Y a la tercera, entrega
+    await user.clear(within(dialogo).getByLabelText('Celular de contacto'))
+    await user.type(within(dialogo).getByLabelText('Celular de contacto'), '987654321')
+    await registrar(user, dialogo)
+    expect(await screen.findByText('El pedido MC-00139 se entregó a Rosa Ancón Pérez')).toBeInTheDocument()
+    expect(intentos).toBe(3)
+  })
+
+  it('un celular con formato invalido o datos rechazados por el servidor se muestran junto al campo', async () => {
+    servidor(comoAcopio({
+      [RECOJO]: [422, { code: 'CELULAR_INVALIDO', error: 'Ingresa un celular de 9 dígitos que empiece con 9.' }],
+    }))
+    const user = userEvent.setup()
+    abrirEn('/acopio/pedidos')
+    const dialogo = await abrirDialogo(user)
+    await llenar(user, dialogo, 'Rosa Ancón Pérez', '12345')
+    await registrar(user, dialogo)
+
+    expect(await within(dialogo).findByText('Ingresa un celular de 9 dígitos que empiece con 9.')).toBeInTheDocument()
+    expect(within(dialogo).getByLabelText('Celular de contacto')).toBeInvalid()
+  })
+
+  it('Enter en un campo tambien registra el recojo', async () => {
+    const fetchMock = servidor(comoAcopio({ [RECOJO]: () => [200, copia(DATOS.pedidoEntregado)] }))
+    const user = userEvent.setup()
+    abrirEn('/acopio/pedidos')
+    const dialogo = await abrirDialogo(user)
+    await user.type(within(dialogo).getByLabelText('Nombre de quien recoge'), 'Rosa Ancón Pérez')
+    await user.type(within(dialogo).getByLabelText('Celular de contacto'), '987654321{Enter}')
+
+    expect(await screen.findByText('El pedido MC-00139 se entregó a Rosa Ancón Pérez')).toBeInTheDocument()
+    expect(llamadas(fetchMock, RECOJO)).toHaveLength(1)
+  })
+
+  it('si otra persona ya lo entrego, cierra el dialogo, explica el motivo y actualiza la lista', async () => {
+    let lecturas = 0
+    servidor(comoAcopio({
+      [LISTAR]: () => {
+        const datos = copia(DATOS.pedidos)
+        if (++lecturas > 1) datos.items[1] = copia(DATOS.pedidoEntregado)
+        return [200, datos]
+      },
+      [RECOJO]: [409, { code: 'ESTADO_INVALIDO', error: 'Este pedido ya fue entregado.' }],
+    }))
+    const user = userEvent.setup()
+    abrirEn('/acopio/pedidos')
+    const dialogo = await abrirDialogo(user)
+    await llenar(user, dialogo, 'Rosa Ancón Pérez', '987654321')
+    await registrar(user, dialogo)
+
+    const alerta = await screen.findByRole('alert')
+    expect(alerta).toHaveTextContent('No pudimos registrar el recojo')
+    expect(alerta).toHaveTextContent('Este pedido ya fue entregado.')
+    expect(screen.queryByRole('dialog', { name: /Registrar recojo/ })).not.toBeInTheDocument()
+    await waitFor(() => expect(within(columna('Entregado hoy')).getAllByText('MC-00139')).toHaveLength(1))
+    expect(lecturas).toBe(2)
+  })
+
+  it('si falla la red lo dice dentro del dialogo y no pierde lo escrito', async () => {
+    servidor(comoAcopio({ [RECOJO]: new Error('sin red') }))
+    const user = userEvent.setup()
+    abrirEn('/acopio/pedidos')
+    const dialogo = await abrirDialogo(user)
+    await llenar(user, dialogo, 'Rosa Ancón Pérez', '987654321')
+    await registrar(user, dialogo)
+
+    expect(await within(dialogo).findByText('No pudimos registrar el recojo')).toBeInTheDocument()
+    expect(within(dialogo).getByLabelText('Nombre de quien recoge')).toHaveValue('Rosa Ancón Pérez')
+  })
+
+  it('cancelar cierra sin llamar al servidor y el siguiente recojo empieza con los campos vacios', async () => {
+    const fetchMock = servidor(comoAcopio())
+    const user = userEvent.setup()
+    abrirEn('/acopio/pedidos')
+    const dialogo = await abrirDialogo(user)
+    await llenar(user, dialogo, 'Rosa Ancón Pérez', '987654321')
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }))
+
+    expect(screen.queryByRole('dialog', { name: /Registrar recojo/ })).not.toBeInTheDocument()
+    expect(llamadas(fetchMock, RECOJO)).toHaveLength(0)
+    const otra = await abrirDialogo(user)
+    expect(within(otra).getByLabelText('Nombre de quien recoge')).toHaveValue('')
+    expect(within(otra).getByLabelText('Celular de contacto')).toHaveValue('')
   })
 })

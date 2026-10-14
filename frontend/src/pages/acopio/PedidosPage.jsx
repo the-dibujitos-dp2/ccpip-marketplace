@@ -6,12 +6,13 @@ import Boton from '../../components/Boton.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
 import { fechaCorta, fechaHora, precio } from '../../formato.js'
+import DialogoRecojo from './DialogoRecojo.jsx'
 import './PedidosPage.css'
 
 /** Columnas de A-05 en Sprint 0: preparacion, reparto y recogido por el distribuidor llegan con sus historias. */
 const COLUMNAS = [
-  { estado: 'CONFIRMADO', titulo: 'Confirmado', accion: true, vacio: 'No hay pedidos por preparar.' },
-  { estado: 'LISTO_PARA_RECOJO', titulo: 'Listo para recojo', vacio: 'Ningún pedido espera a su comprador.' },
+  { estado: 'CONFIRMADO', titulo: 'Confirmado', accion: 'LISTO', vacio: 'No hay pedidos por preparar.' },
+  { estado: 'LISTO_PARA_RECOJO', titulo: 'Listo para recojo', accion: 'RECOJO', vacio: 'Ningún pedido espera a su comprador.' },
   { estado: 'ENTREGADO', titulo: 'Entregado hoy', vacio: 'Aún no se entregó ningún pedido hoy.' },
 ]
 
@@ -30,19 +31,26 @@ function textoLote(lote) {
  * A-05 · CCPIP-159 (RF-128): los pedidos del punto por estado. El administrador marca un pedido
  * confirmado como listo para recojo; el servidor guarda quien y cuando, y rechaza lo que ya cambio.
  * CCPIP-74: cada linea muestra los lotes asignados, el que vence antes primero, para saber que
- * entregar. Registrar el recojo (CCPIP-71) llega con su historia.
+ * entregar. CCPIP-71: el pedido listo se entrega con "Registrar recojo", que pide y valida en el
+ * servidor quien recoge y su celular.
  */
 export default function PedidosPage({ path }) {
   const { datos, setDatos, error, recargar } = useConsulta(listarPedidos)
   const [aviso, setAviso] = useState(null)
   const [marcando, setMarcando] = useState(null)
+  const [recojo, setRecojo] = useState(null)
+
+  /** Pone el pedido que devolvio el servidor en su lugar: cambia de columna sin volver a pedir la lista. */
+  function reemplazar(pedido) {
+    setDatos((d) => ({ ...d, items: d.items.map((p) => (p.numero === pedido.numero ? pedido : p)) }))
+  }
 
   async function marcar(numero) {
     setMarcando(numero)
     setAviso(null)
     try {
       const pedido = await marcarListo(numero)
-      setDatos((d) => ({ ...d, items: d.items.map((p) => (p.numero === numero ? pedido : p)) }))
+      reemplazar(pedido)
       setAviso({ tono: 'exito', titulo: `El pedido ${numero} está listo para recojo` })
     } catch (e) {
       // Un 401 ya lo maneja la app; aqui se explican las reglas de negocio
@@ -53,6 +61,19 @@ export default function PedidosPage({ path }) {
     } finally {
       setMarcando(null)
     }
+  }
+
+  function recogido(pedido) {
+    reemplazar(pedido)
+    setRecojo(null)
+    setAviso({ tono: 'exito', titulo: `El pedido ${pedido.numero} se entregó a ${pedido.recogidoPor}` })
+  }
+
+  /** El pedido cambio mientras se llenaba el dialogo (otra persona lo entrego) o ya no es de este punto. */
+  function desactualizado(e) {
+    setRecojo(null)
+    setAviso({ tono: 'error', titulo: 'No pudimos registrar el recojo', descripcion: e.message })
+    recargar()
   }
 
   return (
@@ -79,7 +100,7 @@ export default function PedidosPage({ path }) {
                 {pedidos.length === 0 && <p className="caption">{c.vacio}</p>}
                 <ul className="pedidos__lista">
                   {pedidos.map((p) => (
-                    <TarjetaPedido key={p.numero} pedido={p} accion={c.accion} ocupado={marcando === p.numero} onMarcar={marcar} />
+                    <TarjetaPedido key={p.numero} pedido={p} accion={c.accion} ocupado={marcando === p.numero} onMarcar={marcar} onRecojo={setRecojo} />
                   ))}
                 </ul>
               </section>
@@ -87,11 +108,15 @@ export default function PedidosPage({ path }) {
           })}
         </div>
       )}
+
+      {recojo && (
+        <DialogoRecojo key={recojo.numero} pedido={recojo} onCancelar={() => setRecojo(null)} onRegistrado={recogido} onDesactualizado={desactualizado} />
+      )}
     </LayoutAcopio>
   )
 }
 
-function TarjetaPedido({ pedido, accion, ocupado, onMarcar }) {
+function TarjetaPedido({ pedido, accion, ocupado, onMarcar, onRecojo }) {
   const cambio = [...pedido.historial].reverse().find((c) => c.estado === pedido.estado)
   const cuando = fechaHora(cambio?.registradoEn ?? pedido.confirmadoEn)
   return (
@@ -110,10 +135,11 @@ function TarjetaPedido({ pedido, accion, ocupado, onMarcar }) {
           </li>
         ))}
       </ul>
+      {pedido.recogidoPor && <p className="caption pedidos__recogio">{`Recogió ${pedido.recogidoPor}`}</p>}
       <p className="caption pedidos__pie">
         {`${PIE[pedido.estado]} ${cuando}${cambio?.responsable ? ` · ${cambio.responsable}` : ''} · ${precio(pedido.total)}`}
       </p>
-      {accion && (
+      {accion === 'LISTO' && (
         <Boton
           tipo="secundario"
           tamano="M"
@@ -123,6 +149,17 @@ function TarjetaPedido({ pedido, accion, ocupado, onMarcar }) {
           onClick={() => onMarcar(pedido.numero)}
         >
           {ocupado ? 'Marcando…' : 'Listo para recojo'}
+        </Boton>
+      )}
+      {accion === 'RECOJO' && (
+        <Boton
+          tipo="secundario"
+          tamano="M"
+          anchoCompleto
+          aria-label={`Registrar el recojo del pedido ${pedido.numero}`}
+          onClick={() => onRecojo(pedido)}
+        >
+          Registrar recojo
         </Boton>
       )}
     </li>

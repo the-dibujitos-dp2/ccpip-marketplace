@@ -36,3 +36,5 @@
 
 .pedidos__numero { margin: 0; font-weight: 600; font-size: 16px; line-height: 24px; color: var(--color-text-primary); }
 .pedidos__pie { margin: 0; }
+
+.pedidos__recogio { margin: 0; font-weight: 600; color: var(--color-text-primary); }
