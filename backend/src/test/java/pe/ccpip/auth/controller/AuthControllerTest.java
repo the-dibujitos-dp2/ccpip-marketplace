@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -11,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 import jakarta.servlet.http.Cookie;
 import pe.ccpip.auth.config.SessionCookies;
@@ -109,6 +111,51 @@ class AuthControllerTest extends IntegrationTest {
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
                 .andExpect(jsonPath("$.user.email").value(EMAIL))
                 .andExpect(jsonPath("$.expiresInSeconds").value(1800));
+    }
+
+    // --- Idioma preferido (CCPIP-265) ---
+
+    @Test
+    void laCuentaNaceEnEspanol() throws Exception {
+        mockMvc.perform(login(EMAIL, DEMO_PASSWORD))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.user.language").value("es"));
+    }
+
+    @Test
+    void elIdiomaElegidoSeConservaEnLaCuentaParaLaSiguienteSesion() throws Exception {
+        Cookie cookie = loginAs(EMAIL);
+        mockMvc.perform(put("/api/auth/me/language").cookie(cookie)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"language\":\"en\"}"))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/auth/me").cookie(cookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.user.language").value("en"));
+        // Otro dispositivo: una sesion nueva ya llega en ingles
+        mockMvc.perform(login(EMAIL, DEMO_PASSWORD))
+                .andExpect(jsonPath("$.user.language").value("en"));
+    }
+
+    @Test
+    void unIdiomaNoSoportadoSeRechazaSinCambiarLaPreferencia() throws Exception {
+        Cookie cookie = loginAs(EMAIL);
+        for (String cuerpo : new String[] {"{\"language\":\"fr\"}", "{\"language\":\"EN \"}", "{}"}) {
+            mockMvc.perform(put("/api/auth/me/language").cookie(cookie)
+                            .contentType(MediaType.APPLICATION_JSON).content(cuerpo))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("DATOS_INVALIDOS"))
+                    .andExpect(jsonPath("$.campos.language").exists());
+        }
+        mockMvc.perform(get("/api/auth/me").cookie(cookie))
+                .andExpect(jsonPath("$.user.language").value("es"));
+    }
+
+    @Test
+    void sinSesionNoSeGuardaElIdioma() throws Exception {
+        mockMvc.perform(put("/api/auth/me/language")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"language\":\"en\"}"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

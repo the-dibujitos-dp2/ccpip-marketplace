@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import pe.ccpip.auth.model.AuthUser;
 import pe.ccpip.auth.model.Rol;
+import pe.ccpip.comun.Idioma;
 
 class LoginAttemptServiceTest {
 
@@ -73,7 +74,7 @@ class LoginAttemptServiceTest {
     private static class FakeUserStore implements UserStore {
 
         AuthUser user = new AuthUser(1L, "consumidor@ccpip.test", "hash", "Consumidor", Rol.CONSUMIDOR,
-                "Consumidor final", true, true, 0, null);
+                "Consumidor final", true, true, 0, null, Idioma.ES);
 
         @Override
         public Optional<AuthUser> findByEmail(String email) {
@@ -97,7 +98,12 @@ class LoginAttemptServiceTest {
 
         private AuthUser copy(int failedAttempts, Instant lockedUntil) {
             return new AuthUser(user.id(), user.email(), user.passwordHash(), user.fullName(), user.role(),
-                    user.roleName(), user.active(), user.emailConfirmed(), failedAttempts, lockedUntil);
+                    user.roleName(), user.active(), user.emailConfirmed(), failedAttempts, lockedUntil, user.language());
+        }
+
+        @Override
+        public void updateLanguage(long userId, Idioma language) {
+            throw new UnsupportedOperationException("El servicio de intentos no cambia el idioma");
         }
     }
 }

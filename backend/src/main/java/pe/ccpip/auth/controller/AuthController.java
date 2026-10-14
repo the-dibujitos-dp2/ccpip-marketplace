@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import pe.ccpip.auth.access.Autenticado;
 import pe.ccpip.auth.access.Publico;
 import pe.ccpip.auth.config.SessionCookies;
@@ -28,6 +31,7 @@ import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.service.LoginAttemptService;
 import pe.ccpip.auth.service.SessionService;
 import pe.ccpip.auth.service.UserStore;
+import pe.ccpip.comun.Idioma;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -36,10 +40,15 @@ public class AuthController {
     public record LoginRequest(@NotBlank @Email String email, @NotBlank String password) {
     }
 
-    public record UserView(long id, String email, String fullName, String role, String roleName) {
+    public record UserView(long id, String email, String fullName, String role, String roleName, String language) {
         static UserView of(AuthUser user) {
-            return new UserView(user.id(), user.email(), user.fullName(), user.role().name(), user.roleName());
+            return new UserView(user.id(), user.email(), user.fullName(), user.role().name(), user.roleName(),
+                    user.language().codigo());
         }
+    }
+
+    /** CCPIP-265: solo los idiomas de la plataforma, "es" o "en". */
+    public record LanguageRequest(@NotNull @Pattern(regexp = "es|en", message = "Idioma no soportado") String language) {
     }
 
     /** El token no viaja en el cuerpo: va solo en la cookie HttpOnly. */
@@ -122,6 +131,20 @@ public class AuthController {
                 .map(user -> new SessionView(UserView.of(user), sessionService.timeout().toSeconds()))
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
+
+    /**
+     * CCPIP-265: guarda en la cuenta el idioma elegido en el selector, para conservarlo en cualquier
+     * dispositivo. El visitante sin sesion lo guarda solo en su navegador.
+     */
+    @Autenticado
+    @PutMapping("/me/language")
+    public ResponseEntity<Void> updateLanguage(
+            @RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession session,
+            @Valid @RequestBody LanguageRequest request) {
+        Idioma language = Idioma.deCodigo(request.language()).orElseThrow();
+        userStore.updateLanguage(session.userId(), language);
+        return ResponseEntity.noContent().build();
     }
 
     private static ResponseEntity<Map<String, String>> invalidCredentials() {

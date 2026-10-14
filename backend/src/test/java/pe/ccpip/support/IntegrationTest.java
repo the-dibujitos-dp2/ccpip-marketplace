@@ -25,7 +25,7 @@ import pe.ccpip.auth.controller.AuthController;
 /**
  * Base de las pruebas contra PostgreSQL real (Testcontainers, ver pom.xml) con las migraciones
  * y cuentas sembradas, y S3Mock como bucket de imagenes. Un solo contexto para toda la suite;
- * cada prueba limpia sesiones y bloqueos.
+ * cada prueba limpia sesiones, bloqueos y el idioma elegido.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -64,7 +64,7 @@ public abstract class IntegrationTest {
     @BeforeEach
     void resetAuthState() {
         jdbc.update("DELETE FROM sesion");
-        jdbc.update("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL");
+        jdbc.update("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL, idioma = 'es'");
     }
 
     protected RequestBuilder login(String email, String password) throws Exception {

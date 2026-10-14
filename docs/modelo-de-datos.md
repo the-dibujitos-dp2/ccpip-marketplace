@@ -67,6 +67,7 @@ Sprint 0, eso es CCPIP-28.
 | activo | boolean | no | Una cuenta se desactiva, no se borra. RNF-18 |
 | intentos_fallidos | smallint | no | Contador para el bloqueo temporal |
 | bloqueado_hasta | timestamptz | si | Nulo significa no bloqueado. RNF-02 |
+| idioma | varchar(2) | no | `es` o `en`, por defecto `es`. Preferencia de idioma de la cuenta, CCPIP-265. El visitante la guarda solo en su navegador |
 
 ### sesion
 Sesion con token opaco aleatorio, entregado en cookie HttpOnly y guardado en el servidor.

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import pe.ccpip.auth.model.AuthUser;
 import pe.ccpip.auth.model.Rol;
+import pe.ccpip.comun.Idioma;
 
 @Repository
 public class JdbcUserStore implements UserStore {
@@ -19,7 +20,7 @@ public class JdbcUserStore implements UserStore {
     private static final String SELECT_USER = """
             SELECT u.id, u.correo, u.contrasena_hash, u.nombre, r.codigo AS rol_codigo,
                    r.nombre AS rol_nombre, u.activo, u.correo_confirmado,
-                   u.intentos_fallidos, u.bloqueado_hasta
+                   u.intentos_fallidos, u.bloqueado_hasta, u.idioma
             FROM usuario u
             JOIN rol r ON r.id = u.rol_id
             """;
@@ -61,6 +62,11 @@ public class JdbcUserStore implements UserStore {
                 WHERE id = ?""", userId);
     }
 
+    @Override
+    public void updateLanguage(long userId, Idioma language) {
+        jdbc.update("UPDATE usuario SET idioma = ?, actualizado_en = now() WHERE id = ?", language.codigo(), userId);
+    }
+
     private static AuthUser map(ResultSet rs, int row) throws SQLException {
         OffsetDateTime lockedUntil = rs.getObject("bloqueado_hasta", OffsetDateTime.class);
         return new AuthUser(
@@ -73,6 +79,7 @@ public class JdbcUserStore implements UserStore {
                 rs.getBoolean("activo"),
                 rs.getBoolean("correo_confirmado"),
                 rs.getInt("intentos_fallidos"),
-                lockedUntil == null ? null : lockedUntil.toInstant());
+                lockedUntil == null ? null : lockedUntil.toInstant(),
+                Idioma.deCodigo(rs.getString("idioma")).orElse(Idioma.ES));
     }
 }
