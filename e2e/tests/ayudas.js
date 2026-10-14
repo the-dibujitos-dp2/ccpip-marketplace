@@ -8,7 +8,7 @@ export const CLAVE = 'Demo1234!'
 export async function ingresar(page, correo, clave = CLAVE) {
   await page.goto('/ingresar')
   await page.getByLabel('Correo electrónico').fill(correo)
-  await page.getByLabel('Contraseña').fill(clave)
+  await page.getByLabel('Contraseña', { exact: true }).fill(clave)
   await page.getByRole('button', { name: 'Iniciar sesión' }).click()
   await expect(page).not.toHaveURL(/\/ingresar/)
 }

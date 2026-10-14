@@ -28,6 +28,23 @@ describe('Inicio de sesion (CCPIP-27)', () => {
     expect(window.location.pathname).toBe('/ingresar')
   })
 
+  it('el ojo muestra y oculta la contraseña escrita', async () => {
+    servidor({ ...PUBLICAS, 'GET /api/auth/me': SIN_SESION })
+    const user = userEvent.setup()
+    abrirEn('/ingresar')
+    const clave = await screen.findByLabelText('Contraseña')
+    await user.type(clave, 'Demo1234!')
+    expect(clave).toHaveAttribute('type', 'password')
+
+    await user.click(screen.getByRole('button', { name: 'Mostrar contraseña' }))
+    expect(clave).toHaveAttribute('type', 'text')
+    expect(clave).toHaveValue('Demo1234!')
+    expect(screen.getByRole('button', { name: 'Ocultar contraseña' })).toHaveAttribute('aria-pressed', 'true')
+
+    await user.click(screen.getByRole('button', { name: 'Ocultar contraseña' }))
+    expect(clave).toHaveAttribute('type', 'password')
+  })
+
   it('valida los campos antes de llamar al servidor', async () => {
     const fetchMock = servidor({ ...PUBLICAS, 'GET /api/auth/me': SIN_SESION })
     const user = userEvent.setup()

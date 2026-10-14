@@ -122,7 +122,7 @@ export default function IngresarPage({ aviso, onCerrarAviso, onIngreso }) {
             />
             <Campo
               etiqueta="Contraseña"
-              type="password"
+              tipo="contrasena"
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
