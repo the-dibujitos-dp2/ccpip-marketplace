@@ -1,0 +1,111 @@
+{
+  "comun": {
+    "cargando": "Cargando…"
+  },
+  "app": {
+    "sesionExpirada": {
+      "titulo": "Tu sesión expiró",
+      "descripcion": "La cerramos tras {{minutos}} minutos sin actividad. Vuelve a ingresar para continuar."
+    },
+    "sesionCerrada": {
+      "titulo": "Cerraste sesión",
+      "descripcion": "Vuelve cuando quieras."
+    }
+  },
+  "marca": {
+    "nombre": "Mercado CCPIP",
+    "lema": "Comercio de pueblos indígenas",
+    "irAlInicio": "Mercado CCPIP, ir al inicio"
+  },
+  "barraConfianza": {
+    "mensaje": "Productos con origen verificado por la Cámara de Comercio de los Pueblos Indígenas del Perú"
+  },
+  "cabecera": {
+    "buscarEtiqueta": "Buscar productos",
+    "buscarPlaceholder": "Busca cacao, café, una comunidad…",
+    "navPrincipal": "Principal",
+    "explorar": "Explorar",
+    "comunidades": "Comunidades",
+    "miCuenta": "Mi cuenta",
+    "panelProductor": "Panel del productor",
+    "cerrarSesion": "Cerrar sesión",
+    "cerrando": "Cerrando…",
+    "ingresar": "Ingresar",
+    "carrito": "Carrito",
+    "carritoConUnidades": "Carrito · {{unidades}}",
+    "lineas": "Líneas de producto",
+    "novedades": "Novedades"
+  },
+  "pie": {
+    "descripcion": "Un canal de la Cámara de Comercio de los Pueblos Indígenas del Perú para llevar productos con historia, directo de las comunidades, a todo el país.",
+    "comprar": "Comprar",
+    "explorarProductos": "Explorar productos",
+    "comunidades": "Comunidades",
+    "novedades": "Novedades",
+    "legal": "© 2026 CCPIP · Prototipo académico con datos de prueba"
+  },
+  "panel": {
+    "cerrarSesion": "Cerrar sesión",
+    "abrirMenu": "Abrir menú"
+  },
+  "productor": {
+    "rol": "Productor",
+    "buscarEtiqueta": "Buscar en mis productos",
+    "buscarPlaceholder": "Buscar…",
+    "nav": {
+      "inicio": "Inicio",
+      "tienda": "Mi tienda",
+      "productos": "Productos",
+      "lotes": "Lotes"
+    }
+  },
+  "acopio": {
+    "rol": "Punto de acopio",
+    "nav": {
+      "pedidos": "Pedidos",
+      "movimientos": "Movimientos"
+    }
+  },
+  "sello": {
+    "titulo": "Origen verificado por la CCPIP",
+    "corto": "Origen verificado",
+    "ceroDeforestacion": "Cero deforestación",
+    "ceroPesticidas": "Cero pesticidas o herbicidas",
+    "comunidadIndigena": "Elaborado por comunidad indígena"
+  },
+  "modalidad": {
+    "MINORISTA": "Minorista",
+    "MAYORISTA": "Mayorista",
+    "AMBAS": "Minorista y mayorista"
+  },
+  "tarjetaProducto": {
+    "agotado": "Agotado"
+  },
+  "tarjetaTienda": {
+    "visitar": "Visitar tienda",
+    "visitarDe": " de {{nombre}}"
+  },
+  "paginacion": {
+    "etiqueta": "Paginación",
+    "anterior": "Anterior",
+    "siguiente": "Siguiente",
+    "pagina": "Página {{numero}}"
+  },
+  "selectorCantidad": {
+    "etiqueta": "Cantidad",
+    "quitar": "Quitar una unidad",
+    "agregar": "Agregar una unidad"
+  },
+  "pasos": {
+    "etiqueta": "Pasos para publicar"
+  },
+  "zonaArchivos": {
+    "texto": "Arrastra fotos aquí o selecciónalas",
+    "formatos": "JPG, PNG o WebP · máx. 10 MB. Se comprimen automáticamente."
+  },
+  "campo": {
+    "elegir": "Elige una opción",
+    "ocultarContrasena": "Ocultar contraseña",
+    "mostrarContrasena": "Mostrar contraseña"
+  }
+}

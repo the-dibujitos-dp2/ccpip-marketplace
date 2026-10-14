@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import iconoCaja from '../../assets/icons/caja.svg'
 import iconoEtiqueta from '../../assets/icons/etiqueta.svg'
 import iconoTablero from '../../assets/icons/tablero.svg'
@@ -8,14 +9,16 @@ import LayoutPanel from './LayoutPanel.jsx'
 
 /** Solo los modulos que el productor ya puede usar (almacen, pedidos, etc. llegan con sus historias). */
 const NAV = [
-  { to: RUTAS.productor, texto: 'Inicio', icono: iconoTablero, activo: (p) => p === RUTAS.productor },
-  { to: RUTAS.productorTienda, texto: 'Mi tienda', icono: iconoTienda, activo: (p) => p.startsWith(RUTAS.productorTienda) },
-  { to: RUTAS.productorProductos, texto: 'Productos', icono: iconoEtiqueta, activo: (p) => p.startsWith(RUTAS.productorProductos) },
-  { to: RUTAS.productorLotes, texto: 'Lotes', icono: iconoCaja, activo: (p) => p.startsWith(RUTAS.productorLotes) },
+  { to: RUTAS.productor, clave: 'inicio', icono: iconoTablero, activo: (p) => p === RUTAS.productor },
+  { to: RUTAS.productorTienda, clave: 'tienda', icono: iconoTienda, activo: (p) => p.startsWith(RUTAS.productorTienda) },
+  { to: RUTAS.productorProductos, clave: 'productos', icono: iconoEtiqueta, activo: (p) => p.startsWith(RUTAS.productorProductos) },
+  { to: RUTAS.productorLotes, clave: 'lotes', icono: iconoCaja, activo: (p) => p.startsWith(RUTAS.productorLotes) },
 ]
 
 /** Estructura web del productor (PW): su menu y un buscador de sus productos en la barra superior. */
 export default function LayoutProductor({ path, user, tienda, migas, titulo, acciones, onCerrarSesion, cerrando, children }) {
+  const { t } = useTranslation()
+  const nav = NAV.map((n) => ({ ...n, texto: t(`productor.nav.${n.clave}`) }))
   function buscar(e) {
     e.preventDefault()
     const q = new FormData(e.currentTarget).get('q').trim()
@@ -24,8 +27,8 @@ export default function LayoutProductor({ path, user, tienda, migas, titulo, acc
   return (
     <LayoutPanel
       path={path}
-      rol="Productor"
-      nav={NAV}
+      rol={t('productor.rol')}
+      nav={nav}
       user={user}
       subtitulo={tienda}
       migas={migas}
@@ -34,7 +37,7 @@ export default function LayoutProductor({ path, user, tienda, migas, titulo, acc
       cerrando={cerrando}
       barra={
         <>
-          <Buscador id="buscar-productor" name="q" etiqueta="Buscar en mis productos" placeholder="Buscar…" onBuscar={buscar} className="layout-productor__buscar" />
+          <Buscador id="buscar-productor" name="q" etiqueta={t('productor.buscarEtiqueta')} placeholder={t('productor.buscarPlaceholder')} onBuscar={buscar} className="layout-productor__buscar" />
           {acciones}
         </>
       }

@@ -3,10 +3,14 @@ import { cleanup } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
 import { olvidarUnidadesCarrito } from '../api/carrito.js'
 import { disarmIdleTimer } from '../api/http.js'
+import i18n from '../i18n/index.js'
 import { invalidarTiendaActual } from '../api/tiendaActual.js'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  // Cada prueba empieza en espanol, el idioma por defecto (CCPIP-98)
+  window.localStorage.clear()
+  await i18n.changeLanguage('es')
   disarmIdleTimer()
   invalidarTiendaActual()
   olvidarUnidadesCarrito()

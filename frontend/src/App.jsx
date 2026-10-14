@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { consultarSesion, fetchMe, logout } from './api/auth.js'
 import { olvidarUnidadesCarrito } from './api/carrito.js'
 import { armIdleTimer, disarmIdleTimer, onSessionLost } from './api/http.js'
@@ -37,6 +38,7 @@ function destinoPorRol(user) {
 }
 
 export default function App() {
+  const { t } = useTranslation()
   const { path, search } = useLocation()
   const params = new URLSearchParams(search)
   const [sesion, setSesion] = useState(null) // { user, expiresInSeconds }
@@ -72,14 +74,14 @@ export default function App() {
         if (code === 'SESION_EXPIRADA') {
           terminarSesion({
             tono: 'aviso',
-            titulo: 'Tu sesión expiró',
-            descripcion: `La cerramos tras ${minutos.current} minutos sin actividad. Vuelve a ingresar para continuar.`,
+            titulo: t('app.sesionExpirada.titulo'),
+            descripcion: t('app.sesionExpirada.descripcion', { minutos: minutos.current }),
           })
         } else {
           terminarSesion(null)
         }
       }),
-    [terminarSesion],
+    [terminarSesion, t],
   )
 
   // "/productores/1" (enlace antiguo) no es del panel: se compara por segmento
@@ -131,12 +133,12 @@ export default function App() {
       // Aunque falle la red, la pantalla se cierra; la cookie expira sola en el servidor
     }
     setCerrando(false)
-    terminarSesion({ tono: 'exito', titulo: 'Cerraste sesión', descripcion: 'Vuelve cuando quieras.' })
-  }, [terminarSesion])
+    terminarSesion({ tono: 'exito', titulo: t('app.sesionCerrada.titulo'), descripcion: t('app.sesionCerrada.descripcion') })
+  }, [terminarSesion, t])
 
   const contexto = useMemo(() => ({ user, cerrarSesion: handleCerrarSesion, cerrando }), [user, handleCerrarSesion, cerrando])
 
-  if (cargando) return <p className="visually-hidden">Cargando…</p>
+  if (cargando) return <p className="visually-hidden">{t('comun.cargando')}</p>
 
   let pagina
   if (path === RUTAS.ingresar) {

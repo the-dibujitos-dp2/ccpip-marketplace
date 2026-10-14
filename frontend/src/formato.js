@@ -1,24 +1,47 @@
-const SOLES = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' })
-const MES_ANIO = new Intl.DateTimeFormat('es-PE', { month: 'long', year: 'numeric', timeZone: 'UTC' })
-const FECHA_CORTA = new Intl.DateTimeFormat('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
-const FECHA = new Intl.DateTimeFormat('es-PE', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
-const FECHA_HORA = new Intl.DateTimeFormat('es-PE', {
-  day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima',
-})
+import { localeFechas } from './i18n/index.js'
+
+// CCPIP-98: las fechas siguen el idioma elegido. Los precios y cantidades se escriben igual en ambos
+// idiomas, en soles y con el formato de Peru (S/ 1,234.50): multimoneda esta fuera de alcance (CCPIP-99).
+const OPCIONES = {
+  soles: { style: 'currency', currency: 'PEN' },
+  unidades: { maximumFractionDigits: 3 },
+  mesAnio: { month: 'long', year: 'numeric', timeZone: 'UTC' },
+  fechaCorta: { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' },
+  fecha: { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' },
+  fechaHora: { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima' },
+}
+
+// Crear un Intl.*Format es costoso: se guarda uno por formato y locale
+const cache = new Map()
+function formato(nombre) {
+  const numerico = nombre === 'soles' || nombre === 'unidades'
+  const locale = numerico ? 'es-PE' : localeFechas()
+  const clave = `${nombre}|${locale}`
+  if (!cache.has(clave)) {
+    const Tipo = numerico ? Intl.NumberFormat : Intl.DateTimeFormat
+    cache.set(clave, new Tipo(locale, OPCIONES[nombre]))
+  }
+  return cache.get(clave)
+}
 
 /** 46 -> "S/ 46.00" */
 export function precio(valor) {
-  return SOLES.format(Number(valor))
+  return formato('soles').format(Number(valor))
 }
 
-/** "2026-10-04" -> "octubre de 2026" */
+/** 12.5 -> "12.5" (cantidades de stock, hasta 3 decimales) */
+export function unidades(valor) {
+  return formato('unidades').format(Number(valor))
+}
+
+/** "2026-10-04" -> "octubre de 2026" · "October 2026" */
 export function mesAnio(iso) {
-  return iso ? MES_ANIO.format(new Date(`${iso}T00:00:00Z`)) : ''
+  return iso ? formato('mesAnio').format(new Date(`${iso}T00:00:00Z`)) : ''
 }
 
-/** "2026-10-04" -> "4 oct 2026" */
+/** "2026-10-04" -> "4 oct 2026" · "4 Oct 2026" */
 export function fecha(iso) {
-  return iso ? FECHA.format(new Date(`${iso}T00:00:00Z`)).replace('.', '') : ''
+  return iso ? formato('fecha').format(new Date(`${iso}T00:00:00Z`)).replace('.', '') : ''
 }
 
 /** Mayuscula inicial: "octubre de 2026" -> "Octubre de 2026" */
@@ -28,10 +51,10 @@ export function capital(texto) {
 
 /** "2026-11-20" -> "20/11/2026" (tablas, como en PW-06) */
 export function fechaCorta(iso) {
-  return iso ? FECHA_CORTA.format(new Date(`${iso}T00:00:00Z`)) : ''
+  return iso ? formato('fechaCorta').format(new Date(`${iso}T00:00:00Z`)) : ''
 }
 
 /** "2026-11-16T14:12:00Z" -> "16/11 09:12", en hora de Lima (tablas de movimientos, A-03) */
 export function fechaHora(instante) {
-  return instante ? FECHA_HORA.format(new Date(instante)).replace(',', '') : ''
+  return instante ? formato('fechaHora').format(new Date(instante)).replace(',', '') : ''
 }

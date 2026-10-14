@@ -1,0 +1,111 @@
+{
+  "comun": {
+    "cargando": "Loading…"
+  },
+  "app": {
+    "sesionExpirada": {
+      "titulo": "Your session expired",
+      "descripcion": "We closed it after {{minutos}} minutes of inactivity. Log in again to continue."
+    },
+    "sesionCerrada": {
+      "titulo": "You logged out",
+      "descripcion": "Come back anytime."
+    }
+  },
+  "marca": {
+    "nombre": "Mercado CCPIP",
+    "lema": "Indigenous peoples' marketplace",
+    "irAlInicio": "Mercado CCPIP, go to home"
+  },
+  "barraConfianza": {
+    "mensaje": "Products with origin verified by the Chamber of Commerce of the Indigenous Peoples of Peru"
+  },
+  "cabecera": {
+    "buscarEtiqueta": "Search products",
+    "buscarPlaceholder": "Search cacao, coffee, a community…",
+    "navPrincipal": "Main",
+    "explorar": "Explore",
+    "comunidades": "Communities",
+    "miCuenta": "My account",
+    "panelProductor": "Producer dashboard",
+    "cerrarSesion": "Log out",
+    "cerrando": "Logging out…",
+    "ingresar": "Log in",
+    "carrito": "Cart",
+    "carritoConUnidades": "Cart · {{unidades}}",
+    "lineas": "Product lines",
+    "novedades": "New arrivals"
+  },
+  "pie": {
+    "descripcion": "A channel of the Chamber of Commerce of the Indigenous Peoples of Peru that brings products with a story, straight from the communities, to the whole country.",
+    "comprar": "Shop",
+    "explorarProductos": "Explore products",
+    "comunidades": "Communities",
+    "novedades": "New arrivals",
+    "legal": "© 2026 CCPIP · Academic prototype with test data"
+  },
+  "panel": {
+    "cerrarSesion": "Log out",
+    "abrirMenu": "Open menu"
+  },
+  "productor": {
+    "rol": "Producer",
+    "buscarEtiqueta": "Search my products",
+    "buscarPlaceholder": "Search…",
+    "nav": {
+      "inicio": "Home",
+      "tienda": "My store",
+      "productos": "Products",
+      "lotes": "Batches"
+    }
+  },
+  "acopio": {
+    "rol": "Collection point",
+    "nav": {
+      "pedidos": "Orders",
+      "movimientos": "Stock movements"
+    }
+  },
+  "sello": {
+    "titulo": "Origin verified by CCPIP",
+    "corto": "Verified origin",
+    "ceroDeforestacion": "Zero deforestation",
+    "ceroPesticidas": "Zero pesticides or herbicides",
+    "comunidadIndigena": "Made by an Indigenous community"
+  },
+  "modalidad": {
+    "MINORISTA": "Retail",
+    "MAYORISTA": "Wholesale",
+    "AMBAS": "Retail & wholesale"
+  },
+  "tarjetaProducto": {
+    "agotado": "Out of stock"
+  },
+  "tarjetaTienda": {
+    "visitar": "Visit store",
+    "visitarDe": " of {{nombre}}"
+  },
+  "paginacion": {
+    "etiqueta": "Pagination",
+    "anterior": "Previous",
+    "siguiente": "Next",
+    "pagina": "Page {{numero}}"
+  },
+  "selectorCantidad": {
+    "etiqueta": "Quantity",
+    "quitar": "Remove one unit",
+    "agregar": "Add one unit"
+  },
+  "pasos": {
+    "etiqueta": "Steps to publish"
+  },
+  "zonaArchivos": {
+    "texto": "Drag photos here or choose them",
+    "formatos": "JPG, PNG or WebP · max. 10 MB. They are compressed automatically."
+  },
+  "campo": {
+    "elegir": "Choose an option",
+    "ocultarContrasena": "Hide password",
+    "mostrarContrasena": "Show password"
+  }
+}

@@ -1,14 +1,16 @@
+import { useTranslation } from 'react-i18next'
 import Boton from './Boton.jsx'
 import './Paginacion.css'
 
 /** Paginacion numerada (CW-02). `pagina` empieza en 0, como en la API. */
 export default function Paginacion({ pagina, totalPaginas, onCambiar }) {
+  const { t } = useTranslation()
   if (totalPaginas <= 1) return null
   const numeros = paginasVisibles(pagina, totalPaginas)
   return (
-    <nav className="paginacion" aria-label="Paginación">
+    <nav className="paginacion" aria-label={t('paginacion.etiqueta')}>
       <Boton tipo="secundario" tamano="S" disabled={pagina === 0} onClick={() => onCambiar(pagina - 1)}>
-        Anterior
+        {t('paginacion.anterior')}
       </Boton>
       {numeros.map((n, i) =>
         n === null ? (
@@ -19,7 +21,7 @@ export default function Paginacion({ pagina, totalPaginas, onCambiar }) {
             type="button"
             className={`paginacion__numero${n === pagina ? ' paginacion__numero--actual' : ''}`}
             aria-current={n === pagina ? 'page' : undefined}
-            aria-label={`Página ${n + 1}`}
+            aria-label={t('paginacion.pagina', { numero: n + 1 })}
             onClick={() => onCambiar(n)}
           >
             {n + 1}
@@ -27,7 +29,7 @@ export default function Paginacion({ pagina, totalPaginas, onCambiar }) {
         ),
       )}
       <Boton tipo="secundario" tamano="S" disabled={pagina >= totalPaginas - 1} onClick={() => onCambiar(pagina + 1)}>
-        Siguiente
+        {t('paginacion.siguiente')}
       </Boton>
     </nav>
   )

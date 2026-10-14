@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import iconoSalir from '../../assets/icons/salir.svg'
 import Avatar from '../Avatar.jsx'
 import Enlace from '../Enlace.jsx'
@@ -12,6 +13,7 @@ import './LayoutProductor.css'
  * `nav`: [{ to, texto, icono, activo(path) }]
  */
 export default function LayoutPanel({ path, rol, nav, user, subtitulo, migas, titulo, barra, onCerrarSesion, cerrando, children }) {
+  const { t } = useTranslation()
   const [abierto, setAbierto] = useState(false)
   return (
     <div className="layout-productor">
@@ -39,7 +41,7 @@ export default function LayoutPanel({ path, rol, nav, user, subtitulo, migas, ti
               <span className="label-m">{user.fullName}</span>
               <span className="caption">{subtitulo ?? user.roleName}</span>
             </span>
-            <button type="button" className="layout-productor__salir" onClick={onCerrarSesion} disabled={cerrando} aria-label="Cerrar sesión">
+            <button type="button" className="layout-productor__salir" onClick={onCerrarSesion} disabled={cerrando} aria-label={t('panel.cerrarSesion')}>
               <Icono src={iconoSalir} tamano={20} />
             </button>
           </div>
@@ -47,7 +49,7 @@ export default function LayoutPanel({ path, rol, nav, user, subtitulo, migas, ti
       </aside>
       <div className="layout-productor__principal">
         <header className="layout-productor__barra">
-          <button type="button" className="layout-productor__menu" aria-label="Abrir menú" aria-expanded={abierto} onClick={() => setAbierto((v) => !v)}>
+          <button type="button" className="layout-productor__menu" aria-label={t('panel.abrirMenu')} aria-expanded={abierto} onClick={() => setAbierto((v) => !v)}>
             ☰
           </button>
           <div className="layout-productor__titulos">
