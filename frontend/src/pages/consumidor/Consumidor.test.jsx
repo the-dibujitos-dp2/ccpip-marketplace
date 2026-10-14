@@ -146,6 +146,21 @@ describe('CW-02 Catalogo y busqueda (CCPIP-52, 54, 165)', () => {
     expect(await screen.findByText('No encontramos productos para “zzz”')).toBeInTheDocument()
   })
 
+  it('una comunidad que ya no existe lo dice y ofrece quitar el filtro (CCPIP-363)', async () => {
+    const fetchMock = servidor({
+      ...sinSesion,
+      'GET /api/productos': (o, url) => (String(url).includes('tienda=') ? [422, { code: 'COMUNIDAD_INVALIDA', error: 'Esa comunidad no existe' }] : [200, copia(DATOS.buscar)]),
+    })
+    const user = userEvent.setup()
+    abrirEn('/buscar?q=cacao&tienda=999')
+    expect(await screen.findByText('Esa comunidad ya no está disponible')).toBeInTheDocument()
+    expect(screen.queryByText('No pudimos cargar el catálogo')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Quitar el filtro de comunidad' }))
+    await waitFor(() => expect(window.location.search).toBe('?q=cacao'))
+    expect(await screen.findByText('2 productos de 1 comunidad')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalled()
+  })
+
   it('si falla la red muestra el error', async () => {
     servidor({ ...sinSesion, 'GET /api/productos': new TypeError('Failed to fetch') })
     abrirEn('/buscar')

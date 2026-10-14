@@ -250,7 +250,16 @@ export default function BuscarPage({ search }) {
               </ul>
             )}
 
-            {error && <Alerta tono="error" titulo="No pudimos cargar el catálogo" descripcion="Revisa tu conexión e inténtalo otra vez." />}
+            {/* CCPIP-363: un enlace a una comunidad que ya no existe o pauso su tienda no es un error de red */}
+            {error?.code === 'COMUNIDAD_INVALIDA' ? (
+              <EstadoVacio titulo="Esa comunidad ya no está disponible" descripcion="Puede que haya pausado su tienda o que el enlace esté mal.">
+                <Boton tamano="M" onClick={() => aplicar({ tienda: '' })}>
+                  Quitar el filtro de comunidad
+                </Boton>
+              </EstadoVacio>
+            ) : (
+              error && <Alerta tono="error" titulo="No pudimos cargar el catálogo" descripcion="Revisa tu conexión e inténtalo otra vez." />
+            )}
 
             {resultado?.total === 0 && (
               <EstadoVacio
