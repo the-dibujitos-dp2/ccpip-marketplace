@@ -9,9 +9,11 @@ import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
 import PedidosPage from './pages/acopio/PedidosPage.jsx'
 import BuscarPage from './pages/consumidor/BuscarPage.jsx'
 import CarritoPage from './pages/consumidor/CarritoPage.jsx'
+import CompraPage from './pages/consumidor/CompraPage.jsx'
 import ComunidadesPage from './pages/consumidor/ComunidadesPage.jsx'
 import IngresarPage from './pages/consumidor/IngresarPage.jsx'
 import InicioPage from './pages/consumidor/InicioPage.jsx'
+import PedidoPage from './pages/consumidor/PedidoPage.jsx'
 import ProductoPage from './pages/consumidor/ProductoPage.jsx'
 import TiendaPage from './pages/consumidor/TiendaPage.jsx'
 import EditorProductoPage from './pages/productor/EditorProductoPage.jsx'
@@ -25,6 +27,7 @@ import { SesionContexto } from './sesion.js'
 const RUTA_PRODUCTO = /^\/productos\/(\d+)$/
 const RUTA_TIENDA = /^\/tiendas\/(\d+)$/
 const RUTA_EDITOR = /^\/productor\/productos\/(\d+|nuevo)$/
+const RUTA_PEDIDO = /^\/pedidos\/(\d+)$/
 
 /** A donde va cada rol al ingresar si no venia de ninguna pagina. */
 function destinoPorRol(user) {
@@ -81,7 +84,7 @@ export default function App() {
 
   // "/productores/1" (enlace antiguo) no es del panel: se compara por segmento
   const delProductor = path === RUTAS.productor || path.startsWith(`${RUTAS.productor}/`)
-  const delComprador = path === RUTAS.carrito
+  const delComprador = path === RUTAS.carrito || path === RUTAS.compra || RUTA_PEDIDO.test(path)
   const delAcopio = path === RUTAS.acopio || path.startsWith(`${RUTAS.acopio}/`)
   const protegida = path === RUTAS.inicio || delProductor || delComprador || delAcopio
 
@@ -169,7 +172,10 @@ export default function App() {
     }
     else pagina = <PanelPage path={RUTAS.productor} />
   } else if (delComprador) {
-    pagina = user.role === 'CONSUMIDOR' ? <CarritoPage /> : null
+    if (user.role !== 'CONSUMIDOR') pagina = null
+    else if (path === RUTAS.compra) pagina = <CompraPage />
+    else if (RUTA_PEDIDO.test(path)) pagina = <PedidoPage id={path.match(RUTA_PEDIDO)[1]} />
+    else pagina = <CarritoPage />
   } else if (delAcopio) {
     // Por ahora el punto tiene Pedidos (A-05, CCPIP-159) y Movimientos (A-03, CCPIP-158)
     if (user.role !== 'ADMIN_PUNTO') pagina = null

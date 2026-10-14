@@ -1,0 +1,53 @@
+/* CW-05 · Confirmación del pedido (CCPIP-64) e intentos de pago (CCPIP-163) */
+.pedido { padding-top: 32px; padding-bottom: 64px; }
+.pedido__titulo { margin: 24px 0 8px; font-family: var(--font-display); font-weight: 600; font-size: 36px; line-height: 44px; }
+
+.pedido__exito { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 32px 0; text-align: center; }
+.pedido__exito .pedido__titulo { margin: 12px 0 4px; }
+.pedido__subtitulo { margin: 0; max-width: 560px; font-size: 18px; line-height: 26px; color: var(--color-text-secondary); }
+.pedido__subtitulo strong { color: var(--color-text-primary); }
+
+.pedido__cuerpo { display: grid; grid-template-columns: minmax(0, 1fr) 400px; align-items: start; gap: 32px; margin-top: 24px; }
+.pedido__lateral { display: flex; flex-direction: column; gap: 16px; }
+
+.pedido__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-surface);
+}
+.pedido__tarjeta-titulo { margin: 0; font-weight: 600; font-size: 20px; line-height: 28px; }
+
+.pedido__tabla { width: 100%; border-collapse: collapse; }
+.pedido__tabla th { padding: 0 0 12px; font-weight: 600; font-size: 14px; color: var(--color-text-secondary); text-align: right; }
+.pedido__tabla td { padding: 12px 0; border-top: 1px solid var(--color-border-default); text-align: right; vertical-align: top; }
+.pedido__tabla th:first-child,
+.pedido__tabla td:first-child { text-align: left; }
+.pedido__tabla td:first-child { display: flex; flex-direction: column; gap: 2px; }
+.pedido__tabla .caption { color: var(--color-text-secondary); }
+.pedido__producto { font-weight: 600; }
+
+.pedido__total { display: flex; align-items: baseline; justify-content: space-between; margin: 0; padding-top: 16px; border-top: 1px solid var(--color-border-default); font-weight: 600; font-size: 18px; }
+.pedido__total strong { font-family: var(--font-display); font-size: 32px; line-height: 40px; }
+
+.pedido__datos { display: flex; flex-direction: column; gap: 12px; margin: 0; }
+.pedido__datos dt { font-size: 14px; color: var(--color-text-secondary); }
+.pedido__datos dd { display: flex; flex-direction: column; gap: 2px; margin: 0; font-weight: 600; }
+.pedido__datos .caption { font-weight: 400; color: var(--color-text-secondary); }
+
+.pedido__pago-ok { display: flex; flex-direction: column; gap: 2px; margin: 0; font-weight: 600; }
+.pedido__pago-ok .caption { font-weight: 400; color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.pedido__intentos { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.pedido__intentos li { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+@media (max-width: 960px) {
+  .pedido__cuerpo { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .pedido__titulo { font-size: 28px; line-height: 36px; }
+  .pedido__tarjeta { padding: 16px; }
+}

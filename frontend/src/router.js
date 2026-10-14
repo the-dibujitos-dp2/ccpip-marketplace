@@ -5,6 +5,7 @@ export const RUTAS = {
   catalogo: '/',
   buscar: '/buscar',
   carrito: '/carrito',
+  compra: '/compra',
   comunidades: '/comunidades',
   ingresar: '/ingresar',
   inicio: '/inicio',

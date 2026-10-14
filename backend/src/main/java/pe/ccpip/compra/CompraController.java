@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.filter.SessionAuthFilter;
@@ -34,16 +35,21 @@ import pe.ccpip.pago.Tarjeta;
 @RestController
 public class CompraController {
 
+    /** Nombres de personas: letras (con tildes), espacios, apostrofos, puntos y guiones. */
+    static final String NOMBRE = "^\\p{L}[\\p{L}\\s'’.-]*$";
+
     /** Datos del recojo. Sin persona autorizada, recoge el mismo comprador. */
     public record Recojo(@NotNull(message = "Elige un punto de acopio") Long puntoId,
-                         @Size(max = 160, message = "El nombre es demasiado largo") String personaAutorizada,
+                         @Size(max = 160, message = "El nombre es demasiado largo")
+                         @Pattern(regexp = NOMBRE, message = "Usa solo letras en el nombre de quien recoge") String personaAutorizada,
                          @NotBlank(message = "Indica un celular de contacto")
                          @Size(max = 20, message = "El celular es demasiado largo") String celularContacto) {
     }
 
     /** Tarjeta tal como la escribe el comprador. No se guarda: solo se usa para cobrar. */
     public record DatosTarjeta(@NotBlank(message = "Indica el número de tarjeta") @Size(max = 30) String numero,
-                               @NotBlank(message = "Indica el nombre del titular") @Size(max = 120) String titular,
+                               @NotBlank(message = "Indica el nombre del titular") @Size(max = 120)
+                               @Pattern(regexp = NOMBRE, message = "Usa solo letras en el nombre del titular") String titular,
                                @NotNull(message = "Indica el mes de vencimiento") Integer mes,
                                @NotNull(message = "Indica el año de vencimiento") Integer anio,
                                @NotBlank(message = "Indica el código de seguridad") @Size(max = 4) String cvv) {

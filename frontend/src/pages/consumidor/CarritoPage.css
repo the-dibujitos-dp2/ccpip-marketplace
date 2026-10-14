@@ -75,6 +75,8 @@
 .carrito__total { display: flex; align-items: baseline; justify-content: space-between; margin: 0; font-weight: 600; font-size: 18px; }
 .carrito__total strong { font-family: var(--font-display); font-size: 32px; line-height: 40px; }
 
+.carrito__bloqueo { margin: -8px 0 0; color: var(--color-text-secondary); text-align: center; }
+
 .carrito__nota { padding: 12px; border-radius: var(--radius-m); background: var(--color-bg-sand); }
 .carrito__nota p { margin: 0; }
 .carrito__nota .carrito__nota-titulo { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-weight: 600; font-size: 14px; }
