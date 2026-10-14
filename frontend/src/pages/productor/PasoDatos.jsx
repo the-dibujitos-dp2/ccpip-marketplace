@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import iconoCamara from '../../assets/icons/camara.svg'
 import iconoCerrar from '../../assets/icons/cerrar.svg'
 import iconoIa from '../../assets/icons/ia.svg'
@@ -13,16 +14,15 @@ import Icono from '../../components/Icono.jsx'
 import OpcionTarjeta from '../../components/OpcionTarjeta.jsx'
 import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import ZonaArchivos from '../../components/ZonaArchivos.jsx'
+import { ApiError } from '../../api/http.js'
 import { precio } from '../../formato.js'
+import { mensajeError, traducirFaltante } from '../../i18n/errores.js'
+import i18n from '../../i18n/index.js'
 import './Editor.css'
 
 export const MAX_FOTOS = 6
 
-const MODALIDADES = [
-  { valor: 'MINORISTA', etiqueta: 'Solo minorista' },
-  { valor: 'MAYORISTA', etiqueta: 'Solo mayorista' },
-  { valor: 'AMBAS', etiqueta: 'Minorista y mayorista' },
-]
+const MODALIDADES = ['MINORISTA', 'MAYORISTA', 'AMBAS']
 
 function datosIniciales(p) {
   return {
@@ -55,27 +55,29 @@ export function aCuerpo(d) {
 
 /** Errores que se pueden detectar en pantalla antes de ir al servidor. */
 export function validarDatos(d, { paraPublicar = false } = {}) {
+  const t = (clave) => i18n.t(`productor.datos.validacion.${clave}`)
   const e = {}
-  if (!d.nombre.trim()) e.nombre = 'Escribe el nombre del producto'
+  if (!d.nombre.trim()) e.nombre = t('nombre')
   const minorista = d.modalidad !== 'MAYORISTA'
   const mayorista = d.modalidad !== 'MINORISTA'
-  if (d.precio !== '' && !(Number(d.precio) >= 0.1)) e.precio = 'El precio debe ser mayor a S/ 0.10'
-  if (d.precioMayorista !== '' && !(Number(d.precioMayorista) >= 0.1)) e.precioMayorista = 'El precio debe ser mayor a S/ 0.10'
+  if (d.precio !== '' && !(Number(d.precio) >= 0.1)) e.precio = t('precioMinimo')
+  if (d.precioMayorista !== '' && !(Number(d.precioMayorista) >= 0.1)) e.precioMayorista = t('precioMinimo')
   if (minorista && mayorista && d.precio !== '' && d.precioMayorista !== '' && Number(d.precioMayorista) >= Number(d.precio)) {
-    e.precioMayorista = 'Debe ser menor que el precio minorista'
+    e.precioMayorista = t('mayoristaMenor')
   }
-  if (mayorista && d.precioMayorista !== '' && !(Number(d.cantidadMinimaMayorista) >= 2)) e.cantidadMinimaMayorista = 'Indica desde qué cantidad (2 o más)'
+  if (mayorista && d.precioMayorista !== '' && !(Number(d.cantidadMinimaMayorista) >= 2)) e.cantidadMinimaMayorista = t('cantidadMinima')
   if (paraPublicar) {
-    if (!d.lineas.length) e.lineas = 'Elige al menos una línea'
-    if (!d.unidad) e.unidad = 'Elige la unidad de medida'
-    if (minorista && d.precio === '') e.precio = 'Escribe el precio minorista'
-    if (mayorista && d.precioMayorista === '') e.precioMayorista = 'Escribe el precio mayorista'
+    if (!d.lineas.length) e.lineas = t('lineas')
+    if (!d.unidad) e.unidad = t('unidad')
+    if (minorista && d.precio === '') e.precio = t('precioMinorista')
+    if (mayorista && d.precioMayorista === '') e.precioMayorista = t('precioMayorista')
   }
   return e
 }
 
 /** PW-04 · paso 1 "Datos": todo lo que el comprador ve del producto (CCPIP-40, 45, 132, 44). */
 export default function PasoDatos({ producto, tienda, asegurarProducto, onGuardar, onSiguiente, onImagenes }) {
+  const { t } = useTranslation()
   const [catalogos, setCatalogos] = useState({ lineas: [], unidades: [], comisionPorcentaje: null })
   const [d, setD] = useState(() => datosIniciales(producto))
   const [errores, setErrores] = useState({})
@@ -115,7 +117,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
     const e = validarDatos(d)
     setErrores(e)
     if (Object.keys(e).length) {
-      setAlerta({ tono: 'error', titulo: 'Revisa los datos marcados', descripcion: Object.values(e).join(' · ') })
+      setAlerta({ tono: 'error', titulo: t('productor.datos.revisa'), descripcion: Object.values(e).join(' · ') })
       return
     }
     setGuardando(true)
@@ -123,11 +125,13 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
     try {
       await onGuardar(aCuerpo(d))
       if (siguiente) onSiguiente()
-      else if (publicado) setAlerta({ tono: 'exito', titulo: 'Cambios guardados', descripcion: 'Ya se ven en el catálogo y en tu tienda.' })
-      else setAlerta({ tono: 'exito', titulo: 'Borrador guardado', descripcion: 'Puedes seguir más tarde desde Mis productos.' })
+      else if (publicado) setAlerta({ tono: 'exito', titulo: t('productor.datos.cambiosGuardados'), descripcion: t('productor.datos.cambiosGuardadosTexto') })
+      else setAlerta({ tono: 'exito', titulo: t('productor.datos.borradorGuardado'), descripcion: t('productor.datos.borradorGuardadoTexto') })
     } catch (err) {
-      setErrores(err.body?.campos ?? {})
-      setAlerta({ tono: 'error', titulo: err.message ?? 'No pudimos guardar', descripcion: err.body?.detalles?.join(' · ') })
+      // Los mensajes por campo llegan en espanol: en ingles se marca el campo con el mensaje del code
+      const campos = err.body?.campos ?? {}
+      setErrores(i18n.resolvedLanguage === 'es' ? campos : Object.fromEntries(Object.keys(campos).map((c) => [c, mensajeError(err)])))
+      setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.errorGuardar'), descripcion: err.body?.detalles?.map(traducirFaltante).join(' · ') })
     } finally {
       setGuardando(false)
     }
@@ -140,14 +144,14 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
     try {
       id = await asegurarProducto(aCuerpo(d))
     } catch (err) {
-      setErrores({ nombre: 'Escribe el nombre del producto antes de agregar fotos' })
-      setAlerta({ tono: 'error', titulo: err.message ?? 'Guarda el producto antes de agregar fotos' })
+      setErrores({ nombre: t('productor.editor.nombreAntesFotos') })
+      setAlerta({ tono: 'error', titulo: err instanceof ApiError ? mensajeError(err) : (err.message ?? t('productor.datos.guardaAntesFotos')) })
       return
     }
     const libres = MAX_FOTOS - imagenes.length - subidas.filter((s) => s.estado !== 'error').length
     const tomados = archivos.slice(0, Math.max(0, libres))
     if (archivos.length > tomados.length) {
-      setAlerta({ tono: 'aviso', titulo: `Un producto puede tener hasta ${MAX_FOTOS} fotos`, descripcion: 'Elimina alguna para agregar otras.' })
+      setAlerta({ tono: 'aviso', titulo: t('productor.datos.maxFotos', { max: MAX_FOTOS }), descripcion: t('productor.datos.maxFotosTexto') })
     }
     for (const archivo of tomados) {
       await subirUno(id, archivo)
@@ -157,7 +161,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
 
   async function subirUno(id, archivo, clave = `${archivo.name}-${archivo.size}-${Date.now()}`) {
     if (archivo.size > 10 * 1024 * 1024) {
-      setSubidas((s) => [...s.filter((x) => x.clave !== clave), { clave, archivo, estado: 'error', mensaje: 'Pesa más de 10 MB' }])
+      setSubidas((s) => [...s.filter((x) => x.clave !== clave), { clave, archivo, estado: 'error', mensaje: t('productor.datos.pesaMucho') }])
       return
     }
     setSubidas((s) => [...s.filter((x) => x.clave !== clave), { clave, archivo, estado: 'subiendo' }])
@@ -165,7 +169,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
       await subirImagen(archivo, { tipo: 'PRODUCTO', productoId: id })
       setSubidas((s) => s.filter((x) => x.clave !== clave))
     } catch (err) {
-      setSubidas((s) => s.map((x) => (x.clave === clave ? { ...x, estado: 'error', mensaje: err.message ?? 'Se cortó la conexión' } : x)))
+      setSubidas((s) => s.map((x) => (x.clave === clave ? { ...x, estado: 'error', mensaje: mensajeError(err, 'productor.datos.seCorto') } : x)))
     }
   }
 
@@ -180,19 +184,19 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
     try {
       await accion()
     } catch (err) {
-      setAlerta({ tono: 'error', titulo: err.message ?? mensaje })
+      setAlerta({ tono: 'error', titulo: mensajeError(err, mensaje) })
     }
     onImagenes(producto.id)
   }
 
-  const quitar = (imagen) => accionFoto(() => eliminarImagen(imagen.id), 'No pudimos quitar la foto')
-  const principal = (imagen) => accionFoto(() => marcarPrincipal(imagen.id), 'No pudimos cambiar la foto principal')
+  const quitar = (imagen) => accionFoto(() => eliminarImagen(imagen.id), 'productor.datos.errorQuitarFoto')
+  const principal = (imagen) => accionFoto(() => marcarPrincipal(imagen.id), 'productor.datos.errorPrincipal')
 
   // ---------- Descripcion asistida (CCPIP-48, RNF-29) ----------
 
   async function sugerir() {
     if (!d.nombre.trim()) {
-      setErrores({ ...errores, nombre: 'Escribe el nombre para que la IA tenga de dónde partir' })
+      setErrores({ ...errores, nombre: t('productor.datos.nombreParaIa') })
       return
     }
     setIa({ estado: 'cargando' })
@@ -200,7 +204,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
       const propuesta = await proponerDescripcion({ productoId: producto?.id ?? null, nombre: d.nombre.trim(), lineas: d.lineas, contenido: d.contenido || null })
       setIa({ estado: 'propuesta', texto: propuesta.texto })
     } catch (err) {
-      setIa({ estado: err.code === 'IA_NO_DISPONIBLE' ? 'no-disponible' : 'error', mensaje: err.message })
+      setIa({ estado: err.code === 'IA_NO_DISPONIBLE' ? 'no-disponible' : 'error', mensaje: mensajeError(err) })
     }
   }
 
@@ -222,29 +226,29 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
         {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
 
         <section className="editor__fotos" aria-labelledby="titulo-fotos">
-          <h2 id="titulo-fotos" className="heading-h4">Fotos</h2>
+          <h2 id="titulo-fotos" className="heading-h4">{t('productor.datos.fotos')}</h2>
           <ul className="editor__miniaturas">
             {imagenes.map((img) => (
               <li key={img.id} className={`editor__miniatura${img.principal ? ' editor__miniatura--principal' : ''}`}>
-                <img src={img.urlMiniatura} alt="Foto del producto" />
+                <img src={img.urlMiniatura} alt={t('productor.datos.fotoProducto')} />
                 {img.principal ? (
-                  <span className="editor__principal">Principal</span>
+                  <span className="editor__principal">{t('productor.datos.principal')}</span>
                 ) : (
                   <button type="button" className="editor__accion-foto editor__accion-foto--principal" onClick={() => void principal(img)}>
-                    Hacer principal
+                    {t('productor.datos.hacerPrincipal')}
                   </button>
                 )}
-                <button type="button" className="editor__quitar" aria-label="Quitar foto" onClick={() => void quitar(img)}>
+                <button type="button" className="editor__quitar" aria-label={t('productor.datos.quitarFoto')} onClick={() => void quitar(img)}>
                   <Icono src={iconoCerrar} tamano={14} />
                 </button>
               </li>
             ))}
             {subidas.map((s) => (
               <li key={s.clave} className={`editor__miniatura editor__miniatura--${s.estado}`}>
-                <span className="caption">{s.estado === 'subiendo' ? 'Subiendo…' : s.mensaje}</span>
+                <span className="caption">{s.estado === 'subiendo' ? t('productor.datos.subiendo') : s.mensaje}</span>
                 {s.estado === 'error' && (
                   <button type="button" className="editor__accion-foto" onClick={() => void reintentar(s)}>
-                    Reintentar
+                    {t('carrito.reintentar')}
                   </button>
                 )}
               </li>
@@ -253,20 +257,20 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
               <li className="editor__miniatura editor__miniatura--agregar">
                 <label>
                   <Icono src={iconoCamara} tamano={20} />
-                  Agregar
+                  {t('productor.datos.agregar')}
                   <input className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => { void subir(Array.from(e.target.files ?? [])); e.target.value = '' }} />
                 </label>
               </li>
             )}
           </ul>
           {imagenes.length < MAX_FOTOS && <ZonaArchivos onArchivos={subir} />}
-          <p className="caption">Hasta {MAX_FOTOS} fotos. La primera es la principal: es la que se ve en el catálogo.</p>
+          <p className="caption">{t('productor.datos.fotosAyuda', { max: MAX_FOTOS })}</p>
         </section>
 
-        <Campo etiqueta="Nombre del producto" value={d.nombre} onChange={set('nombre')} error={errores.nombre} maxLength={200} placeholder="Aceite de sacha inchi extra virgen" />
+        <Campo etiqueta={t('productor.datos.nombre')} value={d.nombre} onChange={set('nombre')} error={errores.nombre} maxLength={200} placeholder={t('productor.datos.nombreEjemplo')} />
 
         <Chips
-          etiqueta="Línea de producto"
+          etiqueta={t('buscar.linea')}
           opciones={catalogos.lineas.map((l) => ({ valor: l.codigo, etiqueta: l.nombre }))}
           seleccion={d.lineas}
           onCambiar={elegirLineas}
@@ -277,31 +281,31 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
           {ia.estado === 'inicial' || ia.estado === 'aceptada' ? (
             <button type="button" className="editor__ia-boton" onClick={sugerir}>
               <Icono src={iconoIa} tamano={18} />
-              {ia.estado === 'aceptada' ? 'Generar otra descripción con IA' : 'Sugerir una descripción con IA (borrador)'}
+              {ia.estado === 'aceptada' ? t('productor.datos.ia.otra') : t('productor.datos.ia.sugerir')}
             </button>
           ) : null}
-          {ia.estado === 'cargando' && <p className="body-s">Preparando un borrador…</p>}
+          {ia.estado === 'cargando' && <p className="body-s">{t('productor.datos.ia.preparando')}</p>}
           {ia.estado === 'no-disponible' && (
-            <Alerta tono="aviso" titulo="La redacción asistida no está disponible" descripcion="Escribe la descripción con tus palabras; la plataforma funciona igual." onCerrar={() => setIa({ estado: 'inicial' })} />
+            <Alerta tono="aviso" titulo={t('productor.datos.ia.noDisponible')} descripcion={t('productor.datos.ia.noDisponibleTexto')} onCerrar={() => setIa({ estado: 'inicial' })} />
           )}
-          {ia.estado === 'error' && <Alerta tono="error" titulo="No pudimos generar el borrador" descripcion={ia.mensaje} onCerrar={() => setIa({ estado: 'inicial' })} />}
+          {ia.estado === 'error' && <Alerta tono="error" titulo={t('productor.datos.ia.error')} descripcion={ia.mensaje} onCerrar={() => setIa({ estado: 'inicial' })} />}
           {ia.estado === 'propuesta' && (
             <div className="editor__ia-panel">
               <p className="editor__ia-titulo">
                 <Icono src={iconoIa} tamano={18} />
-                Borrador asistido por IA · revisa antes de publicar
+                {t('productor.datos.ia.borrador')}
               </p>
               <p className="body-s editor__ia-texto">{ia.texto}</p>
-              <p className="caption">Edítalo con tus palabras; no se publica hasta que lo aceptes.</p>
+              <p className="caption">{t('productor.datos.ia.editalo')}</p>
               <div className="editor__ia-acciones">
                 <Boton tipo="secundario" tamano="S" onClick={() => aceptarDescripcion(true)}>
-                  Editar
+                  {t('productor.editor.editar')}
                 </Boton>
                 <Boton tipo="terciario" tamano="S" onClick={sugerir}>
-                  Generar otra
+                  {t('productor.datos.ia.generarOtra')}
                 </Boton>
                 <Boton tamano="S" onClick={() => aceptarDescripcion(false)}>
-                  Aceptar descripción
+                  {t('productor.datos.ia.aceptar')}
                 </Boton>
               </div>
             </div>
@@ -310,39 +314,39 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
 
         <Campo
           id="descripcion-producto"
-          etiqueta={d.descripcionAsistida ? 'Descripción (borrador asistido por IA, editable)' : 'Descripción'}
+          etiqueta={d.descripcionAsistida ? t('productor.datos.descripcionAsistida') : t('productor.datos.descripcion')}
           tipo="area"
           value={d.descripcion}
           onChange={set('descripcion')}
           error={errores.descripcion}
           maxLength={2000}
-          placeholder="Qué es, cómo se elabora y para qué sirve."
+          placeholder={t('productor.datos.descripcionPlaceholder')}
         />
 
         <div className="editor__fila">
           <Campo
-            etiqueta="Unidad de medida"
+            etiqueta={t('productor.datos.unidad')}
             tipo="selector"
-            placeholder="Elige una unidad"
+            placeholder={t('productor.datos.eligeUnidad')}
             value={d.unidad}
             onChange={set('unidad')}
             error={errores.unidad}
-            ayuda="Del catálogo de unidades"
+            ayuda={t('productor.datos.unidadAyuda')}
             opciones={catalogos.unidades.map((u) => ({ valor: u.codigo, etiqueta: u.nombre }))}
           />
-          <Campo etiqueta="Contenido por unidad" value={d.contenido} onChange={set('contenido')} maxLength={40} placeholder="250 ml" ayuda="Se muestra en la ficha" />
+          <Campo etiqueta={t('productor.datos.contenido')} value={d.contenido} onChange={set('contenido')} maxLength={40} placeholder="250 ml" ayuda={t('productor.datos.contenidoAyuda')} />
         </div>
 
-        <OpcionTarjeta nombre="modalidad" etiqueta="Modalidad de venta" opciones={MODALIDADES} valor={d.modalidad} onCambiar={set('modalidad')} />
+        <OpcionTarjeta nombre="modalidad" etiqueta={t('productor.datos.modalidad')} opciones={MODALIDADES.map((m) => ({ valor: m, etiqueta: t(`productor.datos.modalidades.${m}`) }))} valor={d.modalidad} onCambiar={set('modalidad')} />
 
         <div className="editor__precios">
           {minorista && (
-            <Campo etiqueta="Precio minorista (S/)" type="number" inputMode="decimal" min="0" step="0.01" value={d.precio} onChange={set('precio')} error={errores.precio} ayuda="Por unidad" />
+            <Campo etiqueta={t('productor.datos.precioMinorista')} type="number" inputMode="decimal" min="0" step="0.01" value={d.precio} onChange={set('precio')} error={errores.precio} ayuda={t('productor.datos.porUnidad')} />
           )}
           {mayorista && (
             <>
-              <Campo etiqueta="Precio mayorista (S/)" type="number" inputMode="decimal" min="0" step="0.01" value={d.precioMayorista} onChange={set('precioMayorista')} error={errores.precioMayorista} ayuda="Por unidad, desde el mínimo" />
-              <Campo etiqueta="Cantidad mínima mayorista" type="number" inputMode="numeric" min="2" step="1" value={d.cantidadMinimaMayorista} onChange={set('cantidadMinimaMayorista')} error={errores.cantidadMinimaMayorista} ayuda="Tú la defines" />
+              <Campo etiqueta={t('productor.datos.precioMayorista')} type="number" inputMode="decimal" min="0" step="0.01" value={d.precioMayorista} onChange={set('precioMayorista')} error={errores.precioMayorista} ayuda={t('productor.datos.porUnidadMinimo')} />
+              <Campo etiqueta={t('productor.datos.cantidadMinima')} type="number" inputMode="numeric" min="2" step="1" value={d.cantidadMinimaMayorista} onChange={set('cantidadMinimaMayorista')} error={errores.cantidadMinimaMayorista} ayuda={t('productor.datos.tuLaDefines')} />
             </>
           )}
         </div>
@@ -350,32 +354,32 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
         <p className="editor__nota-precio">
           <Icono src={iconoInfo} tamano={16} />
           {mayorista
-            ? `El precio mayorista se aplica solo desde ${d.cantidadMinimaMayorista || 'la cantidad mínima'} und. Debe ser menor que el minorista. No se permiten descuentos ni precios promocionales.`
-            : 'No se permiten descuentos ni precios promocionales.'}
+            ? t('productor.datos.notaMayorista', { minimo: d.cantidadMinimaMayorista || t('productor.datos.laCantidadMinima') })
+            : t('productor.datos.sinDescuentos')}
         </p>
 
         <label className="casilla">
           <input type="checkbox" checked={d.esMateriaPrima} onChange={set('esMateriaPrima')} />
-          <span>Es materia prima (no un producto terminado)</span>
+          <span>{t('productor.datos.materiaPrima')}</span>
         </label>
 
         <div className="editor__botones">
           <Boton tipo="secundario" onClick={() => guardar(false)} disabled={guardando}>
-            {publicado ? 'Guardar cambios' : 'Guardar borrador'}
+            {publicado ? t('productor.datos.guardarCambios') : t('productor.datos.guardarBorrador')}
           </Boton>
           <Boton onClick={() => guardar(true)} disabled={guardando}>
-            Siguiente: historia
+            {t('productor.datos.siguienteHistoria')}
           </Boton>
         </div>
       </div>
 
-      <aside className="editor__vista-previa" aria-label="Vista previa en el catálogo">
-        <h2 className="heading-h4">Vista previa en el catálogo</h2>
+      <aside className="editor__vista-previa" aria-label={t('productor.datos.vistaPrevia')}>
+        <h2 className="heading-h4">{t('productor.datos.vistaPrevia')}</h2>
         <div className="editor__tarjeta-previa" aria-hidden="true" inert>
           <TarjetaProducto
             producto={{
               id: producto?.id ?? 0,
-              nombre: d.nombre || 'Nombre del producto',
+              nombre: d.nombre || t('productor.datos.nombre'),
               modalidad: d.modalidad,
               precio: minorista && d.precio !== '' ? Number(d.precio) : null,
               precioMayorista: mayorista && d.precioMayorista !== '' ? Number(d.precioMayorista) : null,
@@ -389,8 +393,8 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
         </div>
         {comision != null && monto > 0 && (
           <div className="editor__recibiras">
-            <p className="label-m">Recibirás {precio(monto * (1 - Number(comision) / 100))} por unidad</p>
-            <p className="caption">Comisión de la Cámara: {Number(comision)} % (valor de ejemplo, configurable).</p>
+            <p className="label-m">{t('productor.datos.recibiras', { monto: precio(monto * (1 - Number(comision) / 100)) })}</p>
+            <p className="caption">{t('productor.datos.comision', { porcentaje: Number(comision) })}</p>
           </div>
         )}
       </aside>

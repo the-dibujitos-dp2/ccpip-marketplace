@@ -31,3 +31,33 @@
   .ingresar__fotos, .ingresar__bajada { display: none; }
   .ingresar__formulario-zona { align-items: flex-start; padding: 28px 16px; }
 }
+
+/* CCPIP-265: el idioma tambien se elige antes de ingresar */
+.ingresar__formulario-zona { position: relative; }
+.ingresar__idioma { position: absolute; top: 16px; right: 16px; }
+
+/* CCPIP-26: pestanas como enlaces (/registro e /ingresar) */
+.ingresar__tarjeta .pestanas__item { text-decoration: none; }
+.ingresar__fila { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.ingresar__terminos { display: flex; flex-direction: column; gap: 6px; }
+.ingresar__check { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 20px; cursor: pointer; }
+.ingresar__check input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: var(--color-bg-brand); }
+.ingresar__pedir-enlace { align-self: center; }
+
+/* CW-14 (CCPIP-328): revisa tu correo y resultado del enlace */
+.revisa { display: flex; flex-direction: column; gap: 16px; }
+.revisa__icono {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-bg-brand-subtle);
+}
+.revisa__texto { font-size: 16px; line-height: 24px; color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.revisa__acciones { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.revisa__explorar { align-self: flex-start; }
+
+@media (max-width: 480px) {
+  .ingresar__fila, .revisa__acciones { grid-template-columns: minmax(0, 1fr); }
+}

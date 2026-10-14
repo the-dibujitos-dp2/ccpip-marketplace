@@ -1,10 +1,12 @@
 import { useId, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import iconoSubir from '../assets/icons/subir.svg'
 import Icono from './Icono.jsx'
 import './ZonaArchivos.css'
 
 /** Zona para arrastrar o elegir fotos (PW-04, PW-08). Valida tipo y peso antes de subir. */
-export default function ZonaArchivos({ onArchivos, multiple = true, texto = 'Arrastra fotos aquí o selecciónalas', disabled }) {
+export default function ZonaArchivos({ onArchivos, multiple = true, texto, disabled }) {
+  const { t } = useTranslation()
   const id = useId()
   const input = useRef(null)
   const [encima, setEncima] = useState(false)
@@ -30,9 +32,9 @@ export default function ZonaArchivos({ onArchivos, multiple = true, texto = 'Arr
     >
       <Icono src={iconoSubir} tamano={24} />
       <label htmlFor={id} className="zona-archivos__texto">
-        {texto}
+        {texto ?? t('zonaArchivos.texto')}
       </label>
-      <p className="caption">JPG, PNG o WebP · máx. 10 MB. Se comprimen automáticamente.</p>
+      <p className="caption">{t('zonaArchivos.formatos')}</p>
       <input
         ref={input}
         id={id}

@@ -1,0 +1,1088 @@
+{
+  "comun": {
+    "cargando": "Loading…",
+    "inicio": "Home",
+    "migas": "Breadcrumb",
+    "verTodas": "See all",
+    "errorConexion": "Check your connection and try again.",
+    "producto_one": "{{count}} product",
+    "producto_other": "{{count}} products",
+    "vuelvePronto": "Come back soon.",
+    "und": "{{cantidad}} units",
+    "cancelar": "Cancel",
+    "confirmar": "Confirm",
+    "cerrarAviso": "Close notice"
+  },
+  "app": {
+    "sesionExpirada": {
+      "titulo": "Your session expired",
+      "descripcion": "We closed it after {{minutos}} minutes of inactivity. Log in again to continue."
+    },
+    "sesionCerrada": {
+      "titulo": "You logged out",
+      "descripcion": "Come back anytime."
+    }
+  },
+  "marca": {
+    "nombre": "Mercado CCPIP",
+    "lema": "Indigenous peoples' marketplace",
+    "irAlInicio": "Mercado CCPIP, go to home"
+  },
+  "barraConfianza": {
+    "mensaje": "Products with origin verified by the Chamber of Commerce of the Indigenous Peoples of Peru"
+  },
+  "cabecera": {
+    "buscarEtiqueta": "Search products",
+    "buscarPlaceholder": "Search cacao, coffee, a community…",
+    "navPrincipal": "Main",
+    "explorar": "Explore",
+    "comunidades": "Communities",
+    "miCuenta": "My account",
+    "panelProductor": "Producer dashboard",
+    "cerrarSesion": "Log out",
+    "cerrando": "Logging out…",
+    "ingresar": "Log in",
+    "carrito": "Cart",
+    "carritoConUnidades": "Cart · {{unidades}}",
+    "lineas": "Product lines",
+    "novedades": "New arrivals"
+  },
+  "pie": {
+    "descripcion": "A channel of the Chamber of Commerce of the Indigenous Peoples of Peru that brings products with a story, straight from the communities, to the whole country.",
+    "comprar": "Shop",
+    "explorarProductos": "Explore products",
+    "comunidades": "Communities",
+    "novedades": "New arrivals",
+    "legal": "© 2026 CCPIP · Academic prototype with test data"
+  },
+  "panel": {
+    "cerrarSesion": "Log out",
+    "abrirMenu": "Open menu"
+  },
+  "productor": {
+    "rol": "Producer",
+    "buscarEtiqueta": "Search my products",
+    "buscarPlaceholder": "Search…",
+    "nav": {
+      "inicio": "Home",
+      "tienda": "My store",
+      "productos": "Products",
+      "lotes": "Batches"
+    },
+    "tabla": {
+      "producto": "Product",
+      "accion": "Action"
+    },
+    "panel": {
+      "registrarLote": "Register batch",
+      "publicarProducto": "Publish product",
+      "tiendaPublicada": "Store published",
+      "tiendaSinPublicar": "Store not published",
+      "verificadoDesde": "Origin verified since {{fecha}}",
+      "publicaTienda": "Publish your store to start selling",
+      "publicaTiendaTexto": "Tell buyers who you are and your community's story. Your products appear in the catalog once your store is published.",
+      "armarTienda": "Set up my store",
+      "kpi": {
+        "publicados": "Published products",
+        "borradores_one": "{{count}} draft",
+        "borradores_other": "{{count}} drafts",
+        "enVenta": "For sale",
+        "enAcopios": "At collection points",
+        "porVencer": "Batches expiring",
+        "proximos15": "In the next 15 days",
+        "despublicados": "Unpublished",
+        "republicar": "You can publish them again"
+      },
+      "porVencer_one": "{{count}} batch expires soon (per your 15-day alert)",
+      "porVencer_other": "{{count}} batches expire soon (per your 15-day alert)",
+      "porVencerTexto": "{{lotes}}. Coordinate its removal with the collection point.",
+      "loteVence": "{{producto}} ({{codigo}}, at {{ubicacion}}, expires {{fecha}})",
+      "sinProductos": "You don't have any products yet",
+      "sinProductosTexto": "Publish your first product and tell buyers your community's story.",
+      "sinStock": "Published with no stock for sale",
+      "reponer": "Register batch to restock"
+    },
+    "lotes": {
+      "primeroProducto": "Create a product first",
+      "primeroProductoTexto": "Batches are registered for a product.",
+      "noExiste": "That product doesn't exist",
+      "noExisteTexto": "It may not be yours or the link may be wrong. Choose one of your products.",
+      "deQueProducto": "Which product is this batch for?",
+      "eligeProducto": "Choose a product",
+      "stockActual": "Current stock {{stock}} units in {{lotes}} · {{enVenta}} for sale",
+      "lote_one": "{{count}} batch",
+      "lote_other": "{{count}} batches",
+      "cambiarProducto": "Change product",
+      "deEsteProducto": "Batches of this product",
+      "fefo": "The batch that expires first is sold first",
+      "fefoTexto": "An expired batch isn't sold and no longer counts as available stock."
+    },
+    "lote": {
+      "validacion": {
+        "codigo": "Enter the batch code",
+        "cantidad": "The quantity must be greater than zero",
+        "anteriorHoy": "It can't be earlier than today",
+        "posteriorHoy": "It can't be later than today",
+        "ubicacion": "Choose where the batch goes in",
+        "vencimiento": "This product needs an expiry date"
+      },
+      "registrado": "Batch registered",
+      "registradoTexto": "Stock was updated with its incoming movement.",
+      "error": "We couldn't register the batch",
+      "nuevo": "New batch",
+      "codigo": "Batch code",
+      "produccion": "Production",
+      "vencimiento": "Expiry",
+      "vencimientoOpcional": "Expiry (optional)",
+      "lineaNoVence": "This line doesn't expire",
+      "ingresaA": "Goes into",
+      "miAlmacenEn": "My warehouse · {{departamento}}",
+      "puntoDeAcopio": "{{nombre}} · collection point",
+      "ayudaAlmacen": "What's in your warehouse is sold after you transfer it to a collection point.",
+      "ayudaAcopio": "At a collection point the batch is for sale right away.",
+      "registrando": "Registering…",
+      "sinLotes": "No batches registered for this product yet.",
+      "tabla": {
+        "lote": "Batch",
+        "vence": "Expires",
+        "stock": "Stock",
+        "punto": "Point",
+        "estado": "Status"
+      },
+      "noVence": "Doesn't expire",
+      "miAlmacen": "My warehouse",
+      "estado": {
+        "VENDE_PRIMERO": "Sell first",
+        "DISPONIBLE": "Available",
+        "EN_ALMACEN": "In your warehouse",
+        "AGOTADO": "Sold out",
+        "VENCIDO": "Expired"
+      },
+      "ubicacionPlaceholder": "Choose your warehouse or a collection point"
+    },
+    "productos": {
+      "badge": {
+        "borrador": "Draft",
+        "despublicado": "Unpublished",
+        "porVencer": "Batch expiring",
+        "sinStock": "No stock for sale",
+        "stockBajo": "Low stock",
+        "publicado": "Published"
+      },
+      "almacen": "Warehouse",
+      "publicado": "Product published",
+      "publicadoTexto": "It now appears in the catalog and in your store.",
+      "despublicado": "Product unpublished",
+      "despublicadoTexto": "It no longer appears in the catalog. You can publish it again whenever you want.",
+      "errorEstado": "The status couldn't be changed",
+      "titulo": "My products",
+      "buscar": "Search product",
+      "buscarPlaceholder": "Search product…",
+      "estadoEtiqueta": "Product status",
+      "pestana": {
+        "PUBLICADO": "Published ({{total}})",
+        "BORRADOR": "Drafts ({{total}})",
+        "RETIRADO": "Unpublished ({{total}})"
+      },
+      "error": "We couldn't load your products",
+      "noEncontramos": "We couldn't find “{{q}}”",
+      "vacio": {
+        "PUBLICADO": "You don't have published products yet",
+        "BORRADOR": "You don't have drafts",
+        "RETIRADO": "You don't have unpublished products"
+      },
+      "col": {
+        "precio": "Price",
+        "enVenta": "For sale (points)",
+        "modalidad": "Mode",
+        "ubicacion": "Stock location"
+      },
+      "editar": "Edit {{nombre}}",
+      "masAcciones": "More actions for {{nombre}}",
+      "verEnTienda": "View in store",
+      "despublicar": "Unpublish",
+      "volverPublicar": "Publish again",
+      "publicar": "Publish",
+      "nota": "You only see your own products. “For sale” is the stock at collection points; what's in your warehouse is sold after you transfer it.",
+      "confirmarTitulo": "Unpublish this product?",
+      "confirmarTexto": "will no longer appear in the catalog or in your store. It isn't deleted: it stays in orders and history, and you can publish it again whenever you want."
+    },
+    "editor": {
+      "nombreAntesFotos": "Enter the product name before adding photos",
+      "errorPublicar": "We couldn't publish",
+      "producto": "Product",
+      "noExisteTexto": "It may not be yours or the address may be wrong.",
+      "irProductos": "Go to my products",
+      "nuevoProducto": "New product",
+      "pasos": {
+        "datos": "Details",
+        "historia": "Story",
+        "lote": "First batch"
+      },
+      "nuevo": "New",
+      "editar": "Edit",
+      "errorFotos": "We couldn't update the photos",
+      "errorFotosTexto": "Reload the page to see them.",
+      "enCatalogo": "Your product is in the catalog. New batches add to what's for sale.",
+      "todoListo": "All set: price, line and a batch for sale. Once published it appears in the catalog and in your store.",
+      "publicando": "Publishing…",
+      "falta": "Still missing before you can publish:",
+      "irTienda": "Go to My store",
+      "volverProductos": "Back to my products",
+      "noExiste": "This product doesn't exist"
+    },
+    "datos": {
+      "validacion": {
+        "nombre": "Enter the product name",
+        "precioMinimo": "The price must be greater than S/ 0.10",
+        "mayoristaMenor": "It must be lower than the retail price",
+        "cantidadMinima": "Enter the minimum quantity (2 or more)",
+        "lineas": "Choose at least one line",
+        "unidad": "Choose the unit of measure",
+        "precioMinorista": "Enter the retail price",
+        "precioMayorista": "Enter the wholesale price"
+      },
+      "revisa": "Check the highlighted fields",
+      "cambiosGuardados": "Changes saved",
+      "cambiosGuardadosTexto": "They now show in the catalog and in your store.",
+      "borradorGuardado": "Draft saved",
+      "borradorGuardadoTexto": "You can continue later from My products.",
+      "errorGuardar": "We couldn't save",
+      "guardaAntesFotos": "Save the product before adding photos",
+      "maxFotos": "A product can have up to {{max}} photos",
+      "maxFotosTexto": "Delete one to add others.",
+      "pesaMucho": "It's larger than 10 MB",
+      "seCorto": "The connection was lost",
+      "errorQuitarFoto": "We couldn't remove the photo",
+      "errorPrincipal": "We couldn't change the main photo",
+      "nombreParaIa": "Enter the name so the AI has something to start from",
+      "fotos": "Photos",
+      "fotoProducto": "Product photo",
+      "principal": "Main",
+      "hacerPrincipal": "Make main",
+      "quitarFoto": "Remove photo",
+      "subiendo": "Uploading…",
+      "agregar": "Add",
+      "fotosAyuda": "Up to {{max}} photos. The first one is the main photo: it's the one shown in the catalog.",
+      "nombre": "Product name",
+      "nombreEjemplo": "Extra virgin sacha inchi oil",
+      "ia": {
+        "otra": "Generate another description with AI",
+        "sugerir": "Suggest a description with AI (draft)",
+        "preparando": "Preparing a draft…",
+        "noDisponible": "Assisted writing isn't available",
+        "noDisponibleTexto": "Write the description in your own words; the platform works the same.",
+        "error": "We couldn't generate the draft",
+        "borrador": "AI-assisted draft · review before publishing",
+        "editalo": "Edit it in your own words; it isn't published until you accept it.",
+        "generarOtra": "Generate another",
+        "aceptar": "Accept description"
+      },
+      "descripcionAsistida": "Description (AI-assisted draft, editable)",
+      "descripcion": "Description",
+      "descripcionPlaceholder": "What it is, how it's made and what it's for.",
+      "unidad": "Unit of measure",
+      "eligeUnidad": "Choose a unit",
+      "unidadAyuda": "From the units catalog",
+      "contenido": "Content per unit",
+      "contenidoAyuda": "Shown on the product page",
+      "modalidad": "Sales mode",
+      "modalidades": {
+        "MINORISTA": "Retail only",
+        "MAYORISTA": "Wholesale only",
+        "AMBAS": "Retail & wholesale"
+      },
+      "precioMinorista": "Retail price (S/)",
+      "porUnidad": "Per unit",
+      "precioMayorista": "Wholesale price (S/)",
+      "porUnidadMinimo": "Per unit, from the minimum",
+      "cantidadMinima": "Minimum wholesale quantity",
+      "tuLaDefines": "You set it",
+      "notaMayorista": "The wholesale price only applies from {{minimo}} units. It must be lower than the retail price. Discounts and promotional prices aren't allowed.",
+      "laCantidadMinima": "the minimum quantity",
+      "sinDescuentos": "Discounts and promotional prices aren't allowed.",
+      "materiaPrima": "It's a raw material (not a finished product)",
+      "guardarCambios": "Save changes",
+      "guardarBorrador": "Save draft",
+      "siguienteHistoria": "Next: story",
+      "vistaPrevia": "Catalog preview",
+      "recibiras": "You'll receive {{monto}} per unit",
+      "comision": "Chamber commission: {{porcentaje}} % (example value, configurable)."
+    },
+    "historia": {
+      "preguntas": {
+        "quienes": {
+          "texto": "Who makes it?",
+          "ejemplo": "34 Shipibo women from the association, in Yarinacocha."
+        },
+        "como": {
+          "texto": "How do they make it?",
+          "ejemplo": "We gather the seed in the forest, dry it in the sun and cold-press it."
+        },
+        "significado": {
+          "texto": "What does it mean for their community?",
+          "ejemplo": "It lets us earn without cutting trees and teach our daughters."
+        },
+        "cuidado": {
+          "texto": "How do they protect the forest while making it?",
+          "ejemplo": "We only harvest on our farms and fallow land; we don't burn or cut trees."
+        }
+      },
+      "respondeUna": "Answer at least one question",
+      "respondeUnaTexto": "The AI builds the draft only from your words.",
+      "noDisponibleTexto": "Write the story in your own words; your answers serve as a guide.",
+      "minimo": "The story must have at least {{minimo}} characters",
+      "errorAprobar": "We couldn't approve the story",
+      "cuenta": "Tell the story in your own words",
+      "cuentaTexto": "Answer 4 short questions. They're used to build the story buyers read.",
+      "responder": "Answer: {{pregunta}}",
+      "aprobada": "Story approved",
+      "deLaComunidad": "The community's story",
+      "redactadaIa": "Written with AI support and approved by the community.",
+      "atras": "Back",
+      "editar": "Edit story",
+      "siguienteLote": "Next: first batch",
+      "enBorrador": "Your story, in draft",
+      "enBorradorTexto": "Once you have your answers, the platform can suggest a draft. You review it, change it, and it's only published when you approve it.",
+      "preparando": "Preparing draft…",
+      "generar": "Generate draft with AI",
+      "escribirYo": "I'd rather write it myself",
+      "seguirDespues": "Save answers and continue later",
+      "titulo": "Title",
+      "historia": "Story",
+      "listo": "Done",
+      "editarTexto": "Edit text",
+      "otraVersion": "Suggest another version",
+      "masCorto": "Shorter",
+      "noSePublica": "This text won't be published until you approve it. It will be shown as “The community's story”.",
+      "aprobar": "Approve story",
+      "escribe": "Write the story",
+      "tituloOpcional": "Title (optional)",
+      "tituloEjemplo": "The forest grandmothers' oil",
+      "caracteres": "{{total}} characters · minimum {{minimo}}",
+      "historiaPlaceholder": "Tell who makes it, how, and why it matters to your community."
+    },
+    "tienda": {
+      "categorias": {
+        "COMUNIDAD": "Community",
+        "CULTIVO": "Farming",
+        "PRODUCCION": "Production",
+        "TIENDA_FISICA": "Physical store",
+        "BRANDING": "Branding"
+      },
+      "errorCargar": "We couldn't load your store",
+      "validacion": {
+        "nombre": "Enter your store name",
+        "socios": "It must be a positive number"
+      },
+      "publicados": "Changes published",
+      "publicadosTexto": "They now show in your store.",
+      "guardadosTexto": "Publish your store when it's ready.",
+      "publicada": "Your store is published!",
+      "publicadaTexto": "Buyers can now get to know your community.",
+      "noSubio": "“{{nombre}}” wasn't uploaded",
+      "noSubioTexto": "{{motivo}} The other photos are kept; try again.",
+      "errorFotos": "We couldn't update your photos",
+      "titulo": "Edit my store",
+      "asiTeVen": "How buyers see you",
+      "alGuardar": "Changes are published when you save.",
+      "noPublicada": "Your store isn't published yet.",
+      "verPublicada": "View published store",
+      "publicar": "Publish store",
+      "portada": "Store cover",
+      "cambiarPortada": "Change cover",
+      "subirPortada": "Upload cover",
+      "nombre": "Store name",
+      "descripcion": "My store description",
+      "descripcionAyuda": "One or two lines: it appears under the store name.",
+      "historia": "My community's story",
+      "historiaPlaceholder": "Who you are, where you live and how you produce.",
+      "cita": "Community quote",
+      "citaPlaceholder": "“The forest's plants heal and nourish.”",
+      "pueblo": "People you belong to",
+      "localidad": "Town",
+      "socios": "Members",
+      "registrados": "Region: {{region}} · Community: {{comunidad}}. Registered by the Chamber.",
+      "destacados": "Featured products in my store",
+      "elegir": "Choose products",
+      "sinPublicados": "Once you publish products you can feature up to {{max}}.",
+      "sinElegir": "You haven't chosen products yet.",
+      "hasta": "Up to {{max}}. They're shown first in your store.",
+      "galeria": "Gallery ({{total}})",
+      "filtrar": "Filter gallery",
+      "todo": "All",
+      "fotoDe": "{{categoria}} photo",
+      "fotoGaleria": "Gallery photo",
+      "agregarFoto": "Add photo",
+      "categoriaNuevas": "Category for new photos",
+      "senal": "If the signal drops, only the missing photo is retried: the others are kept."
+    }
+  },
+  "acopio": {
+    "rol": "Collection point",
+    "nav": {
+      "pedidos": "Orders",
+      "movimientos": "Stock movements"
+    },
+    "pedidos": {
+      "vence": "expires {{fecha}}",
+      "lote": "Batch {{codigo}} · {{vence}} · {{cantidad}} units",
+      "marcado": "Order {{numero}} is ready for pickup",
+      "errorMarcar": "We couldn't mark the order",
+      "entregado": "Order {{numero}} was handed over to {{persona}}",
+      "errorCargar": "We couldn't load the orders",
+      "vacio": "No orders yet",
+      "vacioTexto": "Here you'll see the orders buyers will pick up at your point.",
+      "columna": {
+        "CONFIRMADO": "Confirmed",
+        "LISTO_PARA_RECOJO": "Ready for pickup",
+        "ENTREGADO": "Delivered today"
+      },
+      "columnaConteo": "{{titulo}} ({{total}})",
+      "columnaVacia": {
+        "CONFIRMADO": "No orders to prepare.",
+        "LISTO_PARA_RECOJO": "No orders waiting for their buyer.",
+        "ENTREGADO": "No orders delivered today yet."
+      },
+      "productosDe": "Products in order {{numero}}",
+      "lotesDe": "Batches of {{producto}}",
+      "sinLotes": "No batches assigned",
+      "recogio": "Picked up by {{persona}}",
+      "pie": {
+        "CONFIRMADO": "Confirmed",
+        "LISTO_PARA_RECOJO": "Ready",
+        "ENTREGADO": "Delivered"
+      },
+      "marcarEtiqueta": "Mark order {{numero}} as ready for pickup",
+      "marcando": "Marking…",
+      "recojoEtiqueta": "Record pickup for order {{numero}}"
+    },
+    "recojo": {
+      "validacion": {
+        "persona": "Enter who is picking up",
+        "celular": "Enter the contact mobile number"
+      },
+      "titulo": "Record pickup for order {{numero}}",
+      "registrar": "Record pickup",
+      "instrucciones": "Ask the person picking up for their name and mobile number. They must match the order: the buyer or the authorized person.",
+      "nombre": "Name of the person picking up",
+      "celularAyuda": "9 digits; may include +51",
+      "error": "We couldn't record the pickup"
+    },
+    "movimientos": {
+      "pestana": {
+        "TODOS": "All",
+        "ENTRADAS": "Incoming",
+        "SALIDAS": "Outgoing",
+        "AJUSTES": "Adjustments"
+      },
+      "tipoEtiqueta": "Movement type",
+      "numeroPedido": "Order number",
+      "buscarPedido": "Search by order no.",
+      "errorCargar": "We couldn't load the movements",
+      "delPedido": "Movements for order {{numero}}",
+      "sinMovimientosPedido": "That order has no movements at your point.",
+      "vacio": "No movements yet",
+      "vacioTexto": "Here you'll see incoming stock, sales and adjustments at your point.",
+      "col": {
+        "fecha": "Date",
+        "tipo": "Type",
+        "producto": "Product and batch",
+        "registro": "Recorded by"
+      },
+      "lista": "Point movements",
+      "tipo": {
+        "ENTRADA": "Incoming",
+        "TRANSFERENCIA_ENTRADA": "Transfer",
+        "SALIDA_VENTA": "Outgoing",
+        "TRANSFERENCIA_SALIDA": "Transfer",
+        "AJUSTE": "Adjustment"
+      },
+      "compraEnLinea": "Online purchase"
+    }
+  },
+  "sello": {
+    "titulo": "Origin verified by CCPIP",
+    "corto": "Verified origin",
+    "ceroDeforestacion": "Zero deforestation",
+    "ceroPesticidas": "Zero pesticides or herbicides",
+    "comunidadIndigena": "Made by an Indigenous community"
+  },
+  "modalidad": {
+    "MINORISTA": "Retail",
+    "MAYORISTA": "Wholesale",
+    "AMBAS": "Retail & wholesale"
+  },
+  "tarjetaProducto": {
+    "agotado": "Out of stock"
+  },
+  "tarjetaTienda": {
+    "visitar": "Visit store",
+    "visitarDe": " of {{nombre}}"
+  },
+  "paginacion": {
+    "etiqueta": "Pagination",
+    "anterior": "Previous",
+    "siguiente": "Next",
+    "pagina": "Page {{numero}}"
+  },
+  "selectorCantidad": {
+    "etiqueta": "Quantity",
+    "quitar": "Remove one unit",
+    "agregar": "Add one unit"
+  },
+  "pasos": {
+    "etiqueta": "Steps to publish"
+  },
+  "zonaArchivos": {
+    "texto": "Drag photos here or choose them",
+    "formatos": "JPG, PNG or WebP · max. 10 MB. They are compressed automatically."
+  },
+  "campo": {
+    "elegir": "Choose an option",
+    "ocultarContrasena": "Hide password",
+    "mostrarContrasena": "Show password"
+  },
+  "roles": {
+    "CONSUMIDOR": "Customer",
+    "PRODUCTOR": "Producer",
+    "ADMIN_PUNTO": "Collection point manager",
+    "SUB_ADMIN": "Sub-administrator",
+    "SUPER_ADMIN": "Super administrator",
+    "DISTRIBUIDOR": "Distributor"
+  },
+  "inicio": {
+    "hero": {
+      "overline": "Made by Indigenous peoples of Peru",
+      "titulo": "Products with a story, straight from the Amazon",
+      "descripcion": "Cacao, coffee, superfruits, oils and crafts made by communities that protect the forest. Every purchase reaches the people who make it, backed by the Chamber.",
+      "explorar": "Explore products",
+      "conocer": "Meet the communities"
+    },
+    "valores": {
+      "etiqueta": "What every product guarantees",
+      "deforestacion": {
+        "titulo": "Zero deforestation",
+        "texto": "Products that don't come from cleared land."
+      },
+      "pesticidas": {
+        "titulo": "Zero pesticides",
+        "texto": "No agrochemicals in farming or processing."
+      },
+      "comunidades": {
+        "titulo": "Made by communities",
+        "texto": "Made by member Indigenous peoples."
+      },
+      "verificado": {
+        "titulo": "Verified by the Chamber",
+        "texto": "Physical samples and certificates reviewed."
+      }
+    },
+    "error": "We couldn't load the home page",
+    "comunidades": "Meet the people who make them",
+    "lineas": "Explore by product line",
+    "descubrir": {
+      "titulo": "Products to discover",
+      "bajada": "Picked by the communities and just arrived.",
+      "verTodo": "See all",
+      "destacados": "Featured",
+      "novedades": "New arrivals"
+    },
+    "mayorista": {
+      "titulo": "Buying in volume for your store, café or for export?",
+      "texto": "Many producers also sell wholesale: volume pricing from the minimum quantity each one sets, with the same story and the same verified origin.",
+      "ver": "See wholesale products"
+    }
+  },
+  "comunidades": {
+    "titulo": "Communities",
+    "overline": "Producers who are members of the Chamber",
+    "bajada": "Each community tells its story and sells with verified origin.",
+    "error": "We couldn't load the communities",
+    "vacio": "No communities published yet"
+  },
+  "tienda": {
+    "noDisponible": "This store isn't available",
+    "error": "We couldn't load the store",
+    "preparando": "The community may still be setting it up.",
+    "verComunidades": "See communities",
+    "portada": "Cover of {{nombre}}",
+    "pueblo": "{{pueblo}} people",
+    "socios_one": "{{count}} member",
+    "socios_other": "{{count}} members",
+    "cifraProductos": "products",
+    "cifraDesde": "on the platform",
+    "copiado": "Link copied",
+    "compartir": "Share",
+    "historia": "Our story",
+    "galeria": "Gallery",
+    "foto": "Photo of {{nombre}}",
+    "porLinea": "Products by line",
+    "todos": "All ({{total}})",
+    "destacados": "Featured by the community · picked by {{nombre}}",
+    "sinProductos": "No products published yet",
+    "sinProductosTexto": "This community is preparing its catalog. Come back soon.",
+    "productosDe": "Products from {{nombre}}"
+  },
+  "cuenta": {
+    "hola": "Hello, {{nombre}}",
+    "error": "We couldn't load your dashboard",
+    "verPedidos": "See the point's orders",
+    "verMovimientos": "See the point's stock movements",
+    "seguridad": "For security, your session closes after {{minutos}} minutes of inactivity.",
+    "panel": {
+      "CONSUMIDOR": {
+        "titulo": "Your market",
+        "descripcion": "Explore products with a story, straight from the communities."
+      },
+      "PRODUCTOR": {
+        "titulo": "Your community",
+        "descripcion": "Here you'll manage your products, your stock and your orders."
+      },
+      "ADMIN_PUNTO": {
+        "titulo": "Your collection point",
+        "descripcion": "Here you'll see the orders to prepare and record pickups."
+      },
+      "SUB_ADMIN": {
+        "titulo": "CCPIP administration",
+        "descripcion": "Here you'll oversee producers, collection points and accounts."
+      },
+      "SUPER_ADMIN": {
+        "titulo": "CCPIP administration",
+        "descripcion": "Here you'll oversee producers, collection points and accounts."
+      },
+      "DISTRIBUIDOR": {
+        "titulo": "Your wholesale purchases",
+        "descripcion": "Here you'll place volume orders with the communities."
+      }
+    }
+  },
+  "errores": {
+    "generico": "Something went wrong. Please try again.",
+    "AGOTADO": "This product is out of stock for now.",
+    "ARCHIVO_MUY_PESADO": "The file is larger than 10 MB. Choose a lighter photo.",
+    "ARCHIVO_VACIO": "The file is empty.",
+    "CATEGORIA_INVALIDA": "Choose the photo's category.",
+    "CELULAR_INVALIDO": "Enter a 9-digit mobile number starting with 9.",
+    "CELULAR_NO_COINCIDE": "The mobile number doesn't match the one on the order.",
+    "ACOPIO_SIN_ASIGNAR": "Your account doesn't have a collection point assigned yet.",
+    "DATOS_INVALIDOS": "Check the form details.",
+    "ESTADO_INVALIDO": "The order isn't in a status that allows this action.",
+    "FALTA_MINIMO_MAYORISTA": "Enter the quantity from which the wholesale price applies.",
+    "FALTA_VENCIMIENTO": "This product needs an expiry date.",
+    "FECHAS_INVALIDAS": "The expiry date must be after the production date.",
+    "FORMATO_NO_PERMITIDO": "Only JPG, PNG or WebP photos are accepted.",
+    "IA_NO_DISPONIBLE": "Assisted writing isn't available right now. You can write the text in your own words.",
+    "IMAGEN_DANADA": "We couldn't read the image. It may be damaged; try another one.",
+    "IMAGEN_MUY_GRANDE": "The image has too many pixels. Use one under 40 megapixels.",
+    "IMAGEN_NO_ENCONTRADA": "The image doesn't exist.",
+    "ITEM_NO_ENCONTRADO": "This product is no longer in your cart.",
+    "LIMITE_DE_FOTOS": "You've reached the maximum number of photos. Delete one to add another.",
+    "LINEA_INVALIDA": "Choose a product line from the catalog.",
+    "LOTE_REPETIDO": "You already registered a batch with that code.",
+    "MODALIDAD_INVALIDA": "The mode must be retail or wholesale.",
+    "NO_DISPONIBLE": "This product is no longer available. Remove it from your cart.",
+    "ORDEN_INVALIDO": "Unknown sort order.",
+    "PEDIDO_NO_ENCONTRADO": "The order doesn't exist.",
+    "PERSONA_NO_COINCIDE": "This person isn't the buyer or the authorized person for this order.",
+    "PRECIO_MAYORISTA_INVALIDO": "The wholesale price must be lower than the retail price.",
+    "PRODUCCION_FUTURA": "The production date can't be later than today.",
+    "PRODUCTO_INCOMPLETO": "A published product must keep all its details.",
+    "PRODUCTO_NO_ENCONTRADO": "The product doesn't exist or is no longer available.",
+    "PRODUCTO_NO_PUBLICABLE": "Some details are still missing before you can publish.",
+    "PRODUCTO_REQUERIDO": "Indicate which product the photo belongs to.",
+    "PRODUCTOR_SIN_REGISTRO": "Your account isn't linked to a producer community yet. Contact CCPIP.",
+    "SIN_PERMISO": "Your account doesn't have permission for this action.",
+    "SOLO_MAYORISTA": "Wholesale purchasing will be available soon.",
+    "SOLO_PUBLICADOS": "Only a published product can be unpublished.",
+    "STOCK_INSUFICIENTE": "There aren't enough units available.",
+    "TIENDA_INCOMPLETA": "Complete the missing details to publish your store.",
+    "TIENDA_NO_ENCONTRADA": "The store doesn't exist or isn't published yet.",
+    "TIPO_INVALIDO": "Unknown movement type.",
+    "UBICACION_INVALIDA": "Choose your warehouse or a collection point.",
+    "UNIDAD_INVALIDA": "Choose a unit from the catalog.",
+    "VENCIMIENTO_PASADO": "The expiry date can't be earlier than today.",
+    "VENTA_PAUSADA": "Sales of this product are paused for now. You can view it, but you can't buy it yet.",
+    "CARRITO_VACIO": "Your cart is empty.",
+    "CARRITO_CON_PROBLEMAS": "Some products in your cart can't be bought as they are. Adjust or remove them to continue.",
+    "TARJETA_INVALIDA": "Check your card details.",
+    "PUNTO_SIN_EXISTENCIAS": "This collection point no longer has stock for your whole cart. Choose another point.",
+    "PEDIDO_NO_PAGABLE": "This order can no longer be paid.",
+    "PAGO_EN_CURSO": "There's already a payment in progress for this order. Wait for its result before trying again.",
+    "CLAVE_REUTILIZADA": "This payment attempt belongs to another order.",
+    "CORREO_YA_REGISTRADO": "An account with that email already exists. Log in or request a new verification link.",
+    "CONTRASENA_MUY_LARGA": "The password is too long.",
+    "ENLACE_INVALIDO": "The link is not valid. Check that you copied it completely.",
+    "ENLACE_USADO": "This link was already used. If you already verified your email, log in.",
+    "ENLACE_VENCIDO": "The link expired. Request a new one with your email."
+  },
+  "buscar": {
+    "comunidad": "Community",
+    "migas": "Search",
+    "resultadosPara": "Results for “{{q}}”",
+    "titulo": "Explore products with a story",
+    "conteo": "{{productos}} from {{comunidades}}",
+    "comunidades_one": "{{count}} community",
+    "comunidades_other": "{{count}} communities",
+    "ordenar": "Sort",
+    "ordenarPor": "Sort: {{orden}}",
+    "orden": {
+      "RELEVANCIA": "Relevance",
+      "NOVEDADES": "Newest",
+      "PRECIO_ASC": "Price: low to high",
+      "PRECIO_DESC": "Price: high to low"
+    },
+    "filtros": "Filters",
+    "limpiar": "Clear",
+    "linea": "Product line",
+    "modalidad": "Purchase mode",
+    "region": "Region",
+    "precio": "Price (S/)",
+    "precioMinimo": "Minimum price",
+    "min": "Min.",
+    "precioMaximo": "Maximum price",
+    "max": "Max.",
+    "aplicarPrecio": "Apply price",
+    "comunidadOPueblo": "Community or people",
+    "todas": "All",
+    "soloDisponibles": "Show available only",
+    "resultados": "Results",
+    "filtrosActivos": "Active filters",
+    "quitarFiltro": "Remove filter {{filtro}}",
+    "error": "We couldn't load the catalog",
+    "sinResultadosPara": "We found no products for “{{q}}”",
+    "sinResultados": "No products match these filters",
+    "sugerencia": "Try another word or remove a filter, for example cacao, coffee or oil.",
+    "verCatalogo": "See the whole catalog",
+    "productos": "Products",
+    "comunidadNoDisponible": {
+      "titulo": "That community is no longer available",
+      "descripcion": "It may have paused its store, or the link may be wrong.",
+      "quitar": "Remove the community filter"
+    }
+  },
+  "ingresar": {
+    "titular": "Buy directly from the communities that protect the forest",
+    "bajada": "Log in to shop, track your orders and manage your store.",
+    "confianza": "Origin verified by the Chamber of Commerce of the Indigenous Peoples of Peru",
+    "acceso": "Access",
+    "iniciarSesion": "Log in",
+    "titulo": "Log in to your account",
+    "correo": "Email",
+    "correoEjemplo": "name@email.com",
+    "contrasena": "Password",
+    "ingresando": "Logging in…",
+    "validacion": {
+      "correo": "Enter a valid email, for example name@email.com",
+      "contrasena": "Enter your password"
+    },
+    "errores": {
+      "conexion": {
+        "titulo": "We couldn't connect"
+      },
+      "bloqueada": {
+        "titulo": "Account temporarily locked",
+        "descripcion": "For security we locked your account after several failed attempts. Try again at {{hasta}}."
+      },
+      "sinConfirmar": {
+        "titulo": "Confirm your email",
+        "descripcion": "Open the link we sent to your email and log in again."
+      },
+      "inactiva": {
+        "titulo": "Account deactivated",
+        "descripcion": "Contact CCPIP to reactivate it."
+      },
+      "credenciales": {
+        "titulo": "We couldn't log you in",
+        "descripcion": "The email or password is incorrect."
+      }
+    }
+  },
+  "producto": {
+    "noDisponible": "This product isn't available",
+    "error": "We couldn't load the product",
+    "retirado": "The community may have removed it from the catalog.",
+    "volverCatalogo": "Back to the catalog",
+    "cargando": "Loading product…",
+    "fotos": "Product photos",
+    "verFoto": "See photo {{numero}}",
+    "origen": "Origin",
+    "cosecha": "Harvest",
+    "presentacion": "Packaging",
+    "elaboradoPor": "Made by",
+    "hechoPor": "Made by",
+    "puebloCorto": "· {{pueblo}} people",
+    "leerHistoria": "Read their story",
+    "precioSegunModalidad": "Price by purchase mode",
+    "precioMinorista": "Retail price",
+    "precioMayorista": "Wholesale price",
+    "porUnidadDe": "per {{unidad}}",
+    "porUnidad": "per unit",
+    "desdeUnidades_one": "from {{count}} unit",
+    "desdeUnidades_other": "from {{count}} units",
+    "unidades_one": "{{count}} unit",
+    "unidades_other": "{{count}} units",
+    "estado": {
+      "pausada": "Sales temporarily paused",
+      "disponible": "In stock",
+      "agotado": "Out of stock for now",
+      "pausadaTexto": "{{nombre}} paused its sales for an administrative matter. You can see the whole product, but it can't be bought for now.",
+      "disponibleTexto": "Picked up at one of the Chamber's collection points.",
+      "agotadoTexto": "Out of stock for now. Come back soon: the community restocks each harvest."
+    },
+    "historia": {
+      "comunidad": "The community",
+      "cultivo": "The farming",
+      "proceso": "The process",
+      "overline": "The story behind",
+      "titulo": "From the forest to your table",
+      "asistida": "The community's story, written with the help of artificial intelligence and approved by them.",
+      "propia": "Story written by the community."
+    },
+    "confianza": "Why you can trust this product",
+    "verificando": "The Chamber is still verifying this community's origin.",
+    "sobreCosecha": "About this harvest",
+    "consumirAntes": "Best before",
+    "volumen": {
+      "titulo": "For volume purchases",
+      "texto": "For stores, cafés and exporters: the same story and the same verified origin.",
+      "minimo": "Minimum wholesale order",
+      "precioUnidad": "Price per unit"
+    },
+    "tambienDe": "More {{linea}}"
+  },
+  "carrito": {
+    "agregar": {
+      "minimo": "The minimum quantity is one unit",
+      "agregaste_one": "You added {{count}} unit to your cart",
+      "agregaste_other": "You added {{count}} units to your cart",
+      "ahoraTienes": "You now have {{cantidad}} of this product in your cart.",
+      "error": "We couldn't add it",
+      "agregando": "Adding…",
+      "boton": "Add to cart",
+      "compraRapida": "Quick buy",
+      "cantidad": "Quantity to add",
+      "soloMayorista": "This product is sold wholesale only: minimum {{minimo}} units",
+      "mayoristaPronto": "Wholesale purchasing will be available in the cart soon.",
+      "ambas": "From {{minimo}} units the wholesale price ({{precio}} each) will be available soon; for now the cart uses the retail price.",
+      "resumenMinorista": "{{precio}} retail",
+      "resumenMayorista": "{{precio}} from {{minimo}} units"
+    },
+    "pasos": {
+      "etiqueta": "Checkout steps",
+      "carrito": "Cart",
+      "entrega": "Delivery and payment",
+      "confirmacion": "Confirmation"
+    },
+    "problema": {
+      "STOCK_INSUFICIENTE": "Only {{quedan}} left: adjust the quantity",
+      "AGOTADO": "Out of stock for now",
+      "SOLO_MAYORISTA": "Sold wholesale only",
+      "NO_DISPONIBLE": "No longer available",
+      "VENTA_PAUSADA": "Sales temporarily paused"
+    },
+    "quitaste": "You removed {{nombre}} from your cart",
+    "noQuitamos": "We couldn't remove {{nombre}}",
+    "intentaOtraVez": "Please try again.",
+    "titulo": "Your cart",
+    "error": "We couldn't load your cart",
+    "reintentar": "Try again",
+    "cargando": "Loading your cart…",
+    "vacio": "Your cart is empty",
+    "vacioTexto": "Explore the communities' products and add them here.",
+    "productos": "Products in your cart",
+    "conProblemas": "Some products can't be bought as they are",
+    "conProblemasTexto": "We checked them when you opened your cart and they don't count toward the total.",
+    "resumen": "Order summary",
+    "productosConteo": "Products ({{unidades}})",
+    "entrega": "Delivery",
+    "entregaSiguiente": "Chosen in the next step",
+    "total": "Total",
+    "noReserva": "Your cart doesn't reserve stock",
+    "noReservaTexto": "Availability is confirmed at payment, and stock is deducted at that moment.",
+    "cosechaDe": "{{mes}} harvest",
+    "deTienda": "from {{nombre}}",
+    "precioCadaUno": "{{precio}} each",
+    "cantidadDe": "Quantity of {{nombre}}",
+    "guardando": "Saving…",
+    "quitar": "Remove {{nombre}} from cart",
+    "quitarTitulo": "Remove from cart",
+    "continuar": "Continue to delivery and payment",
+    "bloqueo": "Adjust or remove the highlighted products to continue."
+  },
+  "faltantes": {
+    "linea": "At least one product line",
+    "unidad": "The unit of measure",
+    "precioMinorista": "The retail price",
+    "precioMayorista": "The wholesale price and its minimum quantity",
+    "lote": "A current batch with stock at a collection point",
+    "tienda": "Publish your store (My store)",
+    "nombreTienda": "The store name",
+    "descripcionTienda": "The store description",
+    "historiaComunidad": "Your community's story",
+    "pueblo": "The people you belong to"
+  },
+  "compra": {
+    "validacion": {
+      "punto": "Choose a collection point",
+      "persona": "Enter who will pick up the order",
+      "soloLetras": "Use letters only",
+      "celular": "Enter a 9-digit mobile number starting with 9",
+      "numero": "Enter your card number",
+      "numeroInvalido": "The card number isn't valid",
+      "titular": "Enter the cardholder's name",
+      "mes": "Choose the month",
+      "anio": "Choose the year",
+      "vencida": "The card has expired",
+      "cvv": "{{digitos}} digits"
+    },
+    "resultado": {
+      "RECHAZADO": "Your bank declined the payment. Try another card.",
+      "ERROR": "We couldn't process the payment. No charge was made; please try again.",
+      "ANULADO": "The stock ran out while you were paying. We refunded your payment and canceled the order."
+    },
+    "revisaCarrito": "Check your cart",
+    "noPreparamos": "We couldn't prepare your purchase",
+    "noCompletada": "Your purchase couldn't be completed",
+    "rechazado": "Your payment was declined",
+    "noProcesado": "We couldn't process your payment",
+    "carritoCambio": "Your cart changed",
+    "noCompletamosPago": "We couldn't complete the payment",
+    "sinConexion": "Check your connection and try again. No duplicate charge was made.",
+    "volverCarrito": "Back to cart",
+    "preparando": "Preparing your purchase…",
+    "sinPunto": "No collection point has your whole cart",
+    "sinPuntoTexto": "Right now no point has stock for all your products together. Adjust the quantities or remove one.",
+    "puntoTitulo": "1. Pickup point",
+    "puntoAyuda": "Pick up your order free of charge at one of the Chamber's collection points.",
+    "eligeDonde": "Choose where to pick up",
+    "quienTitulo": "2. Who picks it up?",
+    "otraPersona": "Someone else will pick up the order",
+    "personaAutorizada": "Authorized person's name",
+    "celular": "Contact mobile number",
+    "celularAyuda": "9 digits. The collection point checks it when handing over the order.",
+    "pagoTitulo": "3. Card payment",
+    "noGuardamos": "We don't store your card details.",
+    "numero": "Card number",
+    "titular": "Cardholder name",
+    "mes": "Month",
+    "anio": "Year",
+    "anioPlaceholder": "YYYY",
+    "pruebas": "Test environment: no real charge is made",
+    "pruebasTexto": "Use 4111 1111 1111 1111 to approve the payment or 4000 0000 0000 0002 to see a decline.",
+    "recojo": "Pickup at collection point",
+    "gratis": "Free",
+    "procesando": "Processing payment…",
+    "pagar": "Pay {{monto}}",
+    "notaStock": "Stock is only deducted once your payment is approved."
+  },
+  "pedido": {
+    "noEncontrado": "We couldn't find that order",
+    "noEncontradoTexto": "Check the link or go back to the store.",
+    "irTienda": "Go to the store",
+    "error": "We couldn't load your order",
+    "cargando": "Loading your order…",
+    "gracias": "Thank you for your purchase!",
+    "confirmado": "Your order <strong>{{numero}}</strong> is confirmed. We'll let you know when it's ready for pickup.",
+    "titulo": "Order {{numero}}",
+    "esperaPago": "This order is awaiting payment",
+    "esperaPagoTexto": "Go back to delivery and payment to complete it.",
+    "cancelado": "This order was canceled",
+    "canceladoTexto": "Nothing was charged or the payment was refunded.",
+    "articulos": "Items",
+    "subtotal": "Subtotal",
+    "recojo": "Pickup",
+    "punto": "Collection point",
+    "recoge": "Picked up by",
+    "tu": "You, with your ID",
+    "pago": "Payment",
+    "pagaste": "You paid {{monto}} with {{marca}}",
+    "operacion": "Transaction {{referencia}}",
+    "intentos": "Payment attempts",
+    "estadoPago": {
+      "APROBADO": "Approved",
+      "RECHAZADO": "Declined",
+      "ERROR": "Error",
+      "PENDIENTE": "Processing",
+      "ANULADO": "Refunded"
+    },
+    "seguirComprando": "Continue shopping"
+  },
+  "idioma": {
+    "etiqueta": "Language: {{idioma}}. Change language",
+    "menu": "Language"
+  },
+  "registro": {
+    "crearCuenta": "Create account",
+    "titulo": "Create your account",
+    "bajada": "Create your account to shop and track your orders.",
+    "nombres": "First names",
+    "apellidos": "Last names",
+    "correoAyuda": "We'll send you a link to verify it before you log in.",
+    "celular": "Mobile phone (optional)",
+    "celularAyuda": "So we can let you know when your order is ready.",
+    "contrasenaAyuda": "At least 8 characters, one uppercase letter and one number.",
+    "terminos": "I accept the terms and the privacy policy",
+    "creando": "Creating account…",
+    "validacion": {
+      "nombres": "Enter your first names",
+      "apellidos": "Enter your last names",
+      "celular": "Enter a valid mobile number, for example 987 654 321",
+      "contrasena": "Use at least 8 characters, with one uppercase letter and one number",
+      "terminos": "Accept the terms to create your account"
+    },
+    "errores": {
+      "duplicado": {
+        "titulo": "That email already has an account",
+        "descripcion": "Log in or, if you haven't verified it yet, request a new link."
+      },
+      "datos": {
+        "titulo": "Check your details",
+        "descripcion": "Some fields are not valid."
+      },
+      "generico": {
+        "titulo": "We couldn't create your account"
+      }
+    },
+    "pedirEnlace": "Request a new link"
+  },
+  "revisaCorreo": {
+    "titulo": "Check your email",
+    "descripcion": "We sent a verification link to {{correo}}. Open it to activate your account. Meanwhile, you can keep browsing products.",
+    "noEnviado": {
+      "titulo": "Your account was created, but the email didn't go out",
+      "descripcion": "Request the link again in a few minutes."
+    },
+    "reenviado": "We sent the link again. If you don't see it, check your spam folder.",
+    "yaVerifique": "I've verified · log in",
+    "reenviar": "Resend link",
+    "reenviando": "Resending…",
+    "esperar": "Resend in {{segundos}} s",
+    "cambiarCorreo": "Change email",
+    "ayuda": "Not arriving? Check your spam folder. The link works only once and expires in 24 hours.",
+    "seguirExplorando": "Keep browsing"
+  },
+  "verificarCorreo": {
+    "titulo": "Email verification",
+    "verificando": "Verifying your email…",
+    "exito": {
+      "titulo": "Email verified",
+      "descripcion": "Your account {{correo}} is now active. Log in with your password."
+    },
+    "usado": {
+      "titulo": "This link was already used",
+      "descripcion": "If you already verified your email, log in."
+    },
+    "vencido": {
+      "titulo": "The link expired",
+      "descripcion": "Enter your email and we'll send you a new one."
+    },
+    "invalido": {
+      "titulo": "The link is not valid",
+      "descripcion": "Check that you copied it completely or request a new one with your email."
+    },
+    "pedirNuevo": "Send a new link",
+    "enviando": "Sending…",
+    "nuevoEnviado": "If that email has an unverified account, we sent you a new link."
+  }
+}

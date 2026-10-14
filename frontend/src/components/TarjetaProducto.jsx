@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import iconoBolsa from '../assets/icons/bolsa-marca.svg'
 import iconoPaquete from '../assets/icons/paquete.svg'
 import iconoReloj from '../assets/icons/reloj.svg'
@@ -9,15 +10,17 @@ import SelloOrigen from './SelloOrigen.jsx'
 import './TarjetaProducto.css'
 
 const MODALIDAD = {
-  MINORISTA: { texto: 'Minorista', icono: iconoBolsa, clase: 'marca' },
-  MAYORISTA: { texto: 'Mayorista', icono: iconoPaquete, clase: 'info' },
-  AMBAS: { texto: 'Minorista y mayorista', icono: iconoPaquete, clase: 'neutro' },
+  MINORISTA: { icono: iconoBolsa, clase: 'marca' },
+  MAYORISTA: { icono: iconoPaquete, clase: 'info' },
+  AMBAS: { icono: iconoPaquete, clase: 'neutro' },
 }
 
 /** Tarjeta de catalogo (Figma 66:834). La comunidad va antes que el nombre: la historia primero. */
 export default function TarjetaProducto({ producto }) {
+  const { t } = useTranslation()
   const { tienda } = producto
-  const modalidad = MODALIDAD[producto.modalidad] ?? MODALIDAD.MINORISTA
+  const clave = MODALIDAD[producto.modalidad] ? producto.modalidad : 'MINORISTA'
+  const modalidad = MODALIDAD[clave]
   const monto = producto.precio ?? producto.precioMayorista
   return (
     <Enlace to={`/productos/${producto.id}`} className="tarjeta-producto">
@@ -39,12 +42,12 @@ export default function TarjetaProducto({ producto }) {
           {!producto.disponible && (
             <span className="etiqueta-producto etiqueta-producto--agotado">
               <Icono src={iconoReloj} tamano={14} />
-              Agotado
+              {t('tarjetaProducto.agotado')}
             </span>
           )}
           <span className={`etiqueta-producto etiqueta-producto--${modalidad.clase}`}>
             <Icono src={modalidad.icono} tamano={14} />
-            {modalidad.texto}
+            {t(`modalidad.${clave}`)}
           </span>
         </span>
         <span className="tarjeta-producto__precio">

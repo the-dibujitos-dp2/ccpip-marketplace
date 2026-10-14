@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { consultarSesion, fetchMe, logout } from './api/auth.js'
 import { olvidarUnidadesCarrito } from './api/carrito.js'
 import { armIdleTimer, disarmIdleTimer, onSessionLost } from './api/http.js'
 import { invalidarTiendaActual } from './api/tiendaActual.js'
+import { aplicarIdiomaDeSesion, olvidarIdiomaDeSesion } from './i18n/preferencia.js'
 import LayoutTienda from './components/layout/LayoutTienda.jsx'
 import CuentaPage from './pages/CuentaPage.jsx'
 import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
@@ -16,6 +18,7 @@ import InicioPage from './pages/consumidor/InicioPage.jsx'
 import PedidoPage from './pages/consumidor/PedidoPage.jsx'
 import ProductoPage from './pages/consumidor/ProductoPage.jsx'
 import TiendaPage from './pages/consumidor/TiendaPage.jsx'
+import VerificarCorreoPage from './pages/consumidor/VerificarCorreoPage.jsx'
 import EditorProductoPage from './pages/productor/EditorProductoPage.jsx'
 import LotesPage from './pages/productor/LotesPage.jsx'
 import PanelPage from './pages/productor/PanelPage.jsx'
@@ -37,17 +40,21 @@ function destinoPorRol(user) {
 }
 
 export default function App() {
+  const { t, i18n } = useTranslation()
   const { path, search } = useLocation()
   const params = new URLSearchParams(search)
   const [sesion, setSesion] = useState(null) // { user, expiresInSeconds }
   const [cargando, setCargando] = useState(true)
   const [aviso, setAviso] = useState(null)
   const [cerrando, setCerrando] = useState(false)
+  // CCPIP-26 y CCPIP-328: correo de la cuenta recien creada o verificada, para no volver a escribirlo
+  const [correoConocido, setCorreoConocido] = useState('')
   const minutos = useRef(30)
 
   const terminarSesion = useCallback((nuevoAviso) => {
     disarmIdleTimer()
     invalidarTiendaActual()
+    olvidarIdiomaDeSesion()
     olvidarUnidadesCarrito()
     setSesion(null)
     setAviso(nuevoAviso)
@@ -57,7 +64,10 @@ export default function App() {
   // La sesion se confirma siempre con el servidor, nunca con datos guardados en el navegador
   const verificar = useCallback(async () => {
     try {
-      setSesion(await consultarSesion())
+      const nueva = await consultarSesion()
+      // CCPIP-265: con sesion, el idioma guardado en la cuenta (o el que eligio antes de ingresar)
+      await aplicarIdiomaDeSesion(nueva?.user)
+      setSesion(nueva)
     } catch {
       setSesion(null)
     } finally {
@@ -72,14 +82,14 @@ export default function App() {
         if (code === 'SESION_EXPIRADA') {
           terminarSesion({
             tono: 'aviso',
-            titulo: 'Tu sesión expiró',
-            descripcion: `La cerramos tras ${minutos.current} minutos sin actividad. Vuelve a ingresar para continuar.`,
+            titulo: t('app.sesionExpirada.titulo'),
+            descripcion: t('app.sesionExpirada.descripcion', { minutos: minutos.current }),
           })
         } else {
           terminarSesion(null)
         }
       }),
-    [terminarSesion],
+    [terminarSesion, t],
   )
 
   // "/productores/1" (enlace antiguo) no es del panel: se compara por segmento
@@ -115,7 +125,7 @@ export default function App() {
   // Reglas de acceso de cada ruta. El servidor valida igual (CCPIP-151); esto solo evita pantallas vacias.
   useEffect(() => {
     if (cargando) return
-    if (sesion && path === RUTAS.ingresar) navigate(volver, { replace: true })
+    if (sesion && (path === RUTAS.ingresar || path === RUTAS.registro)) navigate(volver, { replace: true })
     else if (!sesion && protegida) navigate(`${RUTAS.ingresar}?volver=${encodeURIComponent(path + search)}`, { replace: true })
     else if (sesion && delProductor && user.role !== 'PRODUCTOR') navigate(RUTAS.inicio, { replace: true })
     else if (sesion && delComprador && user.role !== 'CONSUMIDOR') navigate(RUTAS.inicio, { replace: true })
@@ -131,25 +141,32 @@ export default function App() {
       // Aunque falle la red, la pantalla se cierra; la cookie expira sola en el servidor
     }
     setCerrando(false)
-    terminarSesion({ tono: 'exito', titulo: 'Cerraste sesión', descripcion: 'Vuelve cuando quieras.' })
-  }, [terminarSesion])
+    terminarSesion({ tono: 'exito', titulo: t('app.sesionCerrada.titulo'), descripcion: t('app.sesionCerrada.descripcion') })
+  }, [terminarSesion, t])
 
   const contexto = useMemo(() => ({ user, cerrarSesion: handleCerrarSesion, cerrando }), [user, handleCerrarSesion, cerrando])
 
-  if (cargando) return <p className="visually-hidden">Cargando…</p>
+  if (cargando) return <p className="visually-hidden">{t('comun.cargando')}</p>
 
   let pagina
-  if (path === RUTAS.ingresar) {
+  if (path === RUTAS.ingresar || path === RUTAS.registro) {
     pagina = sesion ? null : (
       <IngresarPage
+        modo={path === RUTAS.registro ? 'registro' : 'ingresar'}
+        search={search}
+        correoInicial={correoConocido}
+        onCorreoConocido={setCorreoConocido}
         aviso={aviso}
         onCerrarAviso={() => setAviso(null)}
         onIngreso={(nueva) => {
           setAviso(null)
+          void aplicarIdiomaDeSesion(nueva?.user)
           setSesion(nueva)
         }}
       />
     )
+  } else if (path === RUTAS.verificarCorreo) {
+    pagina = <VerificarCorreoPage search={search} onVerificado={setCorreoConocido} />
   } else if (protegida && !sesion) {
     pagina = null
   } else if (path === RUTAS.inicio) {
@@ -204,5 +221,13 @@ export default function App() {
     pagina = null
   }
 
-  return <SesionContexto.Provider value={contexto}>{pagina}</SesionContexto.Provider>
+  // CCPIP-166: las paginas del catalogo muestran contenido del servidor en el idioma elegido. Al
+  // cambiar de idioma se vuelven a montar para pedirlo otra vez; las demas conservan lo escrito.
+  const delCatalogo = path === RUTAS.catalogo || path === RUTAS.buscar || path === RUTAS.comunidades
+    || RUTA_PRODUCTO.test(path) || RUTA_TIENDA.test(path)
+  return (
+    <SesionContexto.Provider value={contexto}>
+      <Fragment key={delCatalogo ? i18n.resolvedLanguage : 'pagina'}>{pagina}</Fragment>
+    </SesionContexto.Provider>
+  )
 }

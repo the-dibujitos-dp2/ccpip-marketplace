@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { capital, fecha, fechaCorta, mesAnio, precio } from './formato'
+import { capital, fecha, fechaCorta, mesAnio, precio, unidades } from './formato'
+import i18n from './i18n/index.js'
 
 // Intl separa la moneda con un espacio no separable (U+00A0): se normaliza para comparar
 const normal = (texto) => texto.replace(/ /g, ' ')
@@ -52,6 +53,23 @@ describe('formato', () => {
     it('devuelve cadena vacía sin texto', () => {
       expect(capital('')).toBe('')
       expect(capital(undefined)).toBe('')
+    })
+  })
+
+  describe('en inglés (CCPIP-98)', () => {
+    it('mantiene los soles y escribe las fechas en inglés', async () => {
+      await i18n.changeLanguage('en')
+      expect(normal(precio(1234.5))).toBe('S/ 1,234.50')
+      expect(mesAnio('2026-10-04')).toBe('October 2026')
+      expect(fecha('2026-10-04')).toBe('4 Oct 2026')
+      expect(fechaCorta('2026-11-20')).toBe('20/11/2026')
+    })
+  })
+
+  describe('unidades', () => {
+    it('muestra hasta tres decimales', () => {
+      expect(unidades('12.5000')).toBe('12.5')
+      expect(unidades(3)).toBe('3')
     })
   })
 })

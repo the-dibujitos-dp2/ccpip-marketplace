@@ -1,11 +1,13 @@
+import { useTranslation } from 'react-i18next'
 import iconoCheck from '../assets/icons/check.svg'
 import Icono from './Icono.jsx'
 import './Pasos.css'
 
 /** Indicador de pasos del asistente de publicacion (PW-04 · PW-05 · PW-06) y de la compra (CW-05). */
-export default function Pasos({ pasos, actual, onIr, etiqueta = 'Pasos para publicar' }) {
+export default function Pasos({ pasos, actual, onIr, etiqueta }) {
+  const { t } = useTranslation()
   return (
-    <ol className="pasos" aria-label={etiqueta}>
+    <ol className="pasos" aria-label={etiqueta ?? t('pasos.etiqueta')}>
       {pasos.map((paso, i) => {
         const estado = i < actual ? 'hecho' : i === actual ? 'actual' : 'pendiente'
         return (
