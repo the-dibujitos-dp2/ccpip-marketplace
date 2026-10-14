@@ -98,6 +98,40 @@ class CatalogoControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.total").value(3));
     }
 
+    // --- CCPIP-363: filtro por comunidad productora ---
+
+    @Test
+    void elFiltroPorComunidadSeCombinaConLaBusqueda() throws Exception {
+        Long yarina = jdbc.queryForObject("SELECT id FROM productor WHERE nombre_tienda = 'C.N. Yarina'", Long.class);
+        mockMvc.perform(get("/api/productos").param("tienda", yarina.toString()).param("q", "cacao"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(2))
+                .andExpect(jsonPath("$.items[*].tienda.id", everyItem(Matchers.is(yarina.intValue()))));
+        // Un termino que esa comunidad no tiene: cero resultados, pero la comunidad sigue siendo valida
+        mockMvc.perform(get("/api/productos").param("tienda", yarina.toString()).param("q", "aguaje"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(0));
+    }
+
+    @Test
+    void soloSeFiltraPorComunidadesRealesConTiendaPublicada() throws Exception {
+        // La faceta solo ofrece comunidades con productos publicados
+        mockMvc.perform(get("/api/productos"))
+                .andExpect(jsonPath("$.facetas.comunidades[*].nombre",
+                        Matchers.containsInAnyOrder("Asoc. Nii Joi", "C.N. Yarina", "Coop. Río Ene")));
+
+        // Inexistente, sin publicar o mal escrita: se rechaza, no se responde una lista vacia
+        mockMvc.perform(get("/api/productos").param("tienda", "999999"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("COMUNIDAD_INVALIDA"));
+        Long yarina = jdbc.queryForObject("SELECT id FROM productor WHERE nombre_tienda = 'C.N. Yarina'", Long.class);
+        jdbc.update("UPDATE productor SET tienda_publicada = false WHERE id = ?", yarina);
+        mockMvc.perform(get("/api/productos").param("tienda", yarina.toString()))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("COMUNIDAD_INVALIDA"));
+        mockMvc.perform(get("/api/productos").param("tienda", "abc")).andExpect(status().isBadRequest());
+    }
+
     @Test
     void lasFacetasTraenConteosParaLosFiltros() throws Exception {
         mockMvc.perform(get("/api/productos"))
