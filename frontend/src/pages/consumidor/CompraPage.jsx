@@ -12,6 +12,7 @@ import Pasos from '../../components/Pasos.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { precio } from '../../formato.js'
 import { navigate, RUTAS } from '../../router.js'
+import { digitos, formatear, largoCvv, marca, nombreMarca, numeroValido, vencimientoValido } from '../../tarjeta.js'
 import './CompraPage.css'
 
 const PASOS = ['Carrito', 'Entrega y pago', 'Confirmación']
@@ -28,17 +29,44 @@ export function celularValido(texto) {
   return /^9\d{8}$/.test(local)
 }
 
-/** Lo minimo antes de enviar. La tarjeta la valida a fondo el servidor (Luhn, marca, vencimiento). */
+/** Nombres de personas: letras (con tildes), espacios, apostrofos, puntos y guiones. */
+const NOMBRE = /^\p{L}[\p{L}\s'’.-]*$/u
+const soloNombre = (texto) => texto.replace(/[^\p{L}\s'’.-]/gu, '')
+
+/** Solo los 9 digitos del celular; si se pega con +51, se quita el prefijo. */
+function limpiarCelular(texto) {
+  const d = digitos(texto)
+  return (d.length > 9 && d.startsWith('51') ? d.slice(2) : d).slice(0, 9)
+}
+
+/**
+ * Lo que se limpia mientras se escribe, para que no se pueda escribir de mas. El CVV depende de la
+ * marca: 4 digitos en American Express, 3 en las demas.
+ */
+const LIMPIAR = {
+  celular: (valor) => limpiarCelular(valor),
+  numero: (valor) => formatear(valor),
+  cvv: (valor, f) => digitos(valor).slice(0, largoCvv(marca(f.numero))),
+  titular: (valor) => soloNombre(valor),
+  personaAutorizada: (valor) => soloNombre(valor),
+}
+
+/** Las mismas reglas que el servidor (Tarjeta.java, PersonaDeRecojo.java), para avisar antes de enviar. */
 function validar(f) {
   const errores = {}
   if (!f.puntoId) errores.puntoId = 'Elige un punto de acopio'
   if (f.recogeOtro && !f.personaAutorizada.trim()) errores.personaAutorizada = 'Indica quién recogerá el pedido'
+  else if (f.recogeOtro && !NOMBRE.test(f.personaAutorizada.trim())) errores.personaAutorizada = 'Usa solo letras'
   if (!celularValido(f.celular)) errores.celular = 'Ingresa un celular de 9 dígitos que empiece con 9'
-  if (f.numero.replace(/\D/g, '').length < 13) errores.numero = 'Ingresa el número de tu tarjeta'
+  if (digitos(f.numero).length < 13) errores.numero = 'Ingresa el número de tu tarjeta'
+  else if (!numeroValido(f.numero)) errores.numero = 'El número de tarjeta no es válido'
   if (!f.titular.trim()) errores.titular = 'Indica el nombre del titular'
+  else if (!NOMBRE.test(f.titular.trim())) errores.titular = 'Usa solo letras'
   if (!f.mes) errores.mes = 'Elige el mes'
   if (!f.anio) errores.anio = 'Elige el año'
-  if (!/^\d{3,4}$/.test(f.cvv)) errores.cvv = '3 o 4 dígitos'
+  if (f.mes && f.anio && !vencimientoValido(f.mes, f.anio)) errores.mes = 'La tarjeta está vencida'
+  const cvv = largoCvv(marca(f.numero))
+  if (!/^\d+$/.test(f.cvv) || f.cvv.length !== cvv) errores.cvv = `${cvv} dígitos`
   return errores
 }
 
@@ -85,7 +113,12 @@ export default function CompraPage() {
   useEffect(cargar, [cargar])
 
   const cambiar = (campo, valor) => {
-    setForm((f) => ({ ...f, [campo]: valor }))
+    setForm((f) => {
+      const nuevo = { ...f, [campo]: LIMPIAR[campo] ? LIMPIAR[campo](valor, f) : valor }
+      // Si cambia la marca (p. ej. de Amex a Visa), el CVV se recorta a su nuevo largo
+      if (campo === 'numero') nuevo.cvv = LIMPIAR.cvv(f.cvv, nuevo)
+      return nuevo
+    })
     setErrores((e) => ({ ...e, [campo]: undefined }))
   }
   const alEscribir = (campo) => (e) => cambiar(campo, e.target.type === 'checkbox' ? e.target.checked : e.target.value)
@@ -168,6 +201,7 @@ export default function CompraPage() {
   }
 
   const comprables = carrito?.items.filter((i) => i.estado === 'DISPONIBLE') ?? []
+  const marcaTarjeta = marca(form.numero)
 
   return (
     <LayoutTienda>
@@ -243,14 +277,13 @@ export default function CompraPage() {
                 )}
                 <Campo
                   etiqueta="Celular de contacto"
-                  ayuda="El punto de acopio lo verifica al entregar el pedido."
+                  ayuda="9 dígitos. El punto de acopio lo verifica al entregar el pedido."
                   value={form.celular}
                   onChange={alEscribir('celular')}
                   error={errores.celular}
-                  inputMode="tel"
-                  autoComplete="tel"
-                  placeholder="987 654 321"
-                  maxLength={20}
+                  inputMode="numeric"
+                  autoComplete="tel-national"
+                  placeholder="987654321"
                 />
               </section>
 
@@ -262,13 +295,13 @@ export default function CompraPage() {
                 </p>
                 <Campo
                   etiqueta="Número de tarjeta"
+                  ayuda={nombreMarca(marcaTarjeta) ?? undefined}
                   value={form.numero}
                   onChange={alEscribir('numero')}
                   error={errores.numero}
                   inputMode="numeric"
                   autoComplete="cc-number"
                   placeholder="1234 5678 9012 3456"
-                  maxLength={23}
                 />
                 <Campo
                   etiqueta="Nombre del titular"
@@ -284,7 +317,8 @@ export default function CompraPage() {
                   <Campo tipo="selector" etiqueta="Año" opciones={ANIOS} placeholder="AAAA" value={form.anio}
                     onChange={alEscribir('anio')} error={errores.anio} autoComplete="cc-exp-year" />
                   <Campo etiqueta="CVV" value={form.cvv} onChange={alEscribir('cvv')} error={errores.cvv}
-                    inputMode="numeric" autoComplete="cc-csc" maxLength={4} />
+                    inputMode="numeric" autoComplete="cc-csc" maxLength={largoCvv(marcaTarjeta)}
+                    placeholder={'•'.repeat(largoCvv(marcaTarjeta))} />
                 </div>
                 <Alerta
                   tono="info"

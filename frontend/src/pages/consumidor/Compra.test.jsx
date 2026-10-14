@@ -92,7 +92,7 @@ describe('CW-05 Entrega y pago (CCPIP-157, CCPIP-62) y confirmación (CCPIP-64)'
     expect(screen.getByText(/^Pagaste S\/\s812\.00 con VISA/)).toBeInTheDocument()
 
     const [, pedido] = llamadas(fetchMock, 'POST /api/pedidos')[0]
-    expect(JSON.parse(pedido.body)).toEqual({ puntoId: 1, personaAutorizada: null, celularContacto: '987 654 321' })
+    expect(JSON.parse(pedido.body)).toEqual({ puntoId: 1, personaAutorizada: null, celularContacto: '987654321' })
     const [, pago] = llamadas(fetchMock, 'POST /api/pedidos/77/pagos')[0]
     const cuerpo = JSON.parse(pago.body)
     expect(cuerpo.claveIdempotencia).toMatch(/^[0-9a-f-]{36}$/)
@@ -131,6 +131,59 @@ describe('CW-05 Entrega y pago (CCPIP-157, CCPIP-62) y confirmación (CCPIP-64)'
     const claves = llamadas(fetchMock, 'POST /api/pedidos/77/pagos').map(([, o]) => JSON.parse(o.body).claveIdempotencia)
     expect(claves).toHaveLength(2)
     expect(claves[0]).not.toBe(claves[1])
+  })
+
+  it('no deja escribir de más: celular de 9 dígitos, tarjeta agrupada y CVV según la marca', async () => {
+    servidor(rutas())
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    const celular = await screen.findByLabelText('Celular de contacto')
+
+    await usuario.type(celular, '98765432199')
+    expect(celular).toHaveValue('987654321')
+    await usuario.clear(celular)
+    await usuario.paste('+51 987-654-321')
+    expect(celular).toHaveValue('987654321')
+
+    const numero = screen.getByLabelText('Número de tarjeta')
+    const cvv = screen.getByLabelText('CVV')
+    await usuario.type(numero, '41111111111111119999')
+    expect(numero).toHaveValue('4111 1111 1111 1111 999')
+    expect(screen.getByText('Visa')).toBeInTheDocument()
+    await usuario.type(cvv, '12345')
+    expect(cvv).toHaveValue('123')
+
+    // American Express: 15 dígitos en grupos 4-6-5 y CVV de 4
+    await usuario.clear(numero)
+    await usuario.type(numero, '378282246310005')
+    expect(numero).toHaveValue('3782 822463 10005')
+    await usuario.clear(cvv)
+    await usuario.type(cvv, '12345')
+    expect(cvv).toHaveValue('1234')
+
+    // Volver a Visa recorta el CVV a 3
+    await usuario.clear(numero)
+    await usuario.type(numero, '4111111111111111')
+    expect(cvv).toHaveValue('123')
+  })
+
+  it('avisa si la tarjeta no es válida o ya venció, sin enviar nada', async () => {
+    const fetchMock = servidor(rutas())
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await usuario.type(await screen.findByLabelText('Celular de contacto'), '987654321')
+    await usuario.type(screen.getByLabelText('Número de tarjeta'), '4111 1111 1111 1112')
+    await usuario.type(screen.getByLabelText('Nombre del titular'), 'Ana Quispe')
+    const anio = new Date().getFullYear()
+    const mesPasado = new Date().getMonth() // 0-11: el mes anterior al actual, en 1-12
+    await usuario.selectOptions(screen.getByLabelText('Año'), String(anio))
+    if (mesPasado > 0) await usuario.selectOptions(screen.getByLabelText('Mes'), String(mesPasado))
+    await usuario.type(screen.getByLabelText('CVV'), '123')
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+
+    expect(screen.getByText('El número de tarjeta no es válido')).toBeInTheDocument()
+    if (mesPasado > 0) expect(screen.getByText('La tarjeta está vencida')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/pedidos')).toHaveLength(0)
   })
 
   it('sin datos completos no envía nada y marca lo que falta', async () => {
