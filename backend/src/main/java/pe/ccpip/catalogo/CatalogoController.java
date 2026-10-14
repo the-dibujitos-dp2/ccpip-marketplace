@@ -4,12 +4,15 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -27,8 +30,13 @@ import pe.ccpip.catalogo.CatalogoModelos.TiendaTarjeta;
 import pe.ccpip.catalogo.CatalogoRepository.Filtro;
 import pe.ccpip.catalogo.CatalogoRepository.Orden;
 import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.comun.Idioma;
 
-/** Catalogo publico: no requiere sesion (CCPIP-53, CCPIP-154). */
+/**
+ * Catalogo publico: no requiere sesion (CCPIP-53, CCPIP-154). Responde en el idioma de la cabecera
+ * Accept-Language con el contenido aprobado en ese idioma; lo que no esta traducido sale en
+ * espanol, el original (CCPIP-166, CCPIP-357, CCPIP-358).
+ */
 @Publico
 @RestController
 public class CatalogoController {
@@ -36,13 +44,15 @@ public class CatalogoController {
     private final CatalogoRepository catalogo;
     private final TiendasRepository tiendas;
     private final JdbcTemplate jdbc;
+    private final TraductorCatalogo traductor;
     private final BigDecimal comision;
 
-    public CatalogoController(CatalogoRepository catalogo, TiendasRepository tiendas, JdbcTemplate jdbc,
+    public CatalogoController(CatalogoRepository catalogo, TiendasRepository tiendas, JdbcTemplate jdbc, TraductorCatalogo traductor,
                               @org.springframework.beans.factory.annotation.Value("${ccpip.comision.porcentaje:10}") BigDecimal comision) {
         this.catalogo = catalogo;
         this.tiendas = tiendas;
         this.jdbc = jdbc;
+        this.traductor = traductor;
         this.comision = comision;
     }
 
@@ -64,7 +74,9 @@ public class CatalogoController {
             @RequestParam(defaultValue = "true") boolean disponibles,
             @RequestParam(defaultValue = "RELEVANCIA") String orden,
             @RequestParam(defaultValue = "0") @Min(0) int pagina,
-            @RequestParam(defaultValue = "12") @Min(1) @Max(48) int tamano) {
+            @RequestParam(defaultValue = "12") @Min(1) @Max(48) int tamano,
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            HttpServletResponse response) {
         String mod = modalidad == null || modalidad.isBlank() ? null : modalidad.toUpperCase(Locale.ROOT);
         if (mod != null && !List.of("MINORISTA", "MAYORISTA").contains(mod)) {
             throw ErrorNegocio.invalido("MODALIDAD_INVALIDA", "La modalidad debe ser MINORISTA o MAYORISTA.");
@@ -84,40 +96,52 @@ public class CatalogoController {
         Facetas facetas = new Facetas(catalogo.facetaLineas(f), catalogo.faceta(f, "pr.region", "pr.region"),
                 catalogo.facetaModalidades(f),
                 catalogo.faceta(f, "pr.id::text", "coalesce(pr.nombre_tienda, pr.comunidad)"));
-        return new Busqueda(catalogo.buscar(f, ordenElegido, pagina, tamano), pagina, tamano, total,
+        Busqueda busqueda = new Busqueda(catalogo.buscar(f, ordenElegido, pagina, tamano), pagina, tamano, total,
                 (int) ((total + tamano - 1) / tamano), catalogo.contarComunidades(f), facetas);
+        return traductor.busqueda(busqueda, idioma(acceptLanguage, response));
     }
 
     /** CCPIP-53 y CCPIP-152: ficha publica. Un producto sin stock se ve igual, marcado como agotado. */
     @GetMapping("/api/productos/{id}")
-    public ProductoDetalle detalle(@PathVariable long id) {
-        return catalogo.detalle(id).orElseThrow(() ->
+    public ProductoDetalle detalle(@PathVariable long id,
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            HttpServletResponse response) {
+        ProductoDetalle detalle = catalogo.detalle(id).orElseThrow(() ->
                 ErrorNegocio.noEncontrado("PRODUCTO_NO_ENCONTRADO", "El producto no existe o ya no está disponible"));
+        return traductor.detalle(detalle, idioma(acceptLanguage, response));
     }
 
     /** CCPIP-153: comunidades con tienda publicada. */
     @GetMapping("/api/tiendas")
-    public List<TiendaTarjeta> tiendas(@RequestParam(required = false) @Min(1) @Max(100) Integer limite) {
-        return tiendas.listar(limite);
+    public List<TiendaTarjeta> tiendas(@RequestParam(required = false) @Min(1) @Max(100) Integer limite,
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            HttpServletResponse response) {
+        return traductor.tarjetas(tiendas.listar(limite), idioma(acceptLanguage, response));
     }
 
     /** CCPIP-154 y CCPIP-56: tienda de la comunidad con su historia, galeria y productos. */
     @GetMapping("/api/tiendas/{id}")
-    public TiendaDetalle tienda(@PathVariable long id) {
-        return tiendas.detalle(id).orElseThrow(() ->
+    public TiendaDetalle tienda(@PathVariable long id,
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            HttpServletResponse response) {
+        TiendaDetalle detalle = tiendas.detalle(id).orElseThrow(() ->
                 ErrorNegocio.noEncontrado("TIENDA_NO_ENCONTRADA", "La tienda no existe o aún no está publicada"));
+        return traductor.tienda(detalle, idioma(acceptLanguage, response));
     }
 
     /** CW-01: comunidades, lineas con conteo y productos para descubrir. */
     @GetMapping("/api/inicio")
-    public Inicio inicio() {
+    public Inicio inicio(@RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+                         HttpServletResponse response) {
         Filtro todos = new Filtro(null, List.of(), null, List.of(), null, null, null, true);
-        return new Inicio(tiendas.listar(3), catalogo.facetaLineas(todos), catalogo.destacados(8), catalogo.novedades(8));
+        Inicio inicio = new Inicio(tiendas.listar(3), catalogo.facetaLineas(todos), catalogo.destacados(8), catalogo.novedades(8));
+        return traductor.inicio(inicio, idioma(acceptLanguage, response));
     }
 
     /** Catalogos cerrados para los formularios (RNF-32). */
     @GetMapping("/api/catalogos")
-    public Catalogos catalogos() {
+    public Catalogos catalogos(@RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+                               HttpServletResponse response) {
         List<LineaCatalogo> lineas = jdbc.query("""
                 SELECT l.codigo, l.nombre, l.requiere_vencimiento, u.codigo AS unidad
                 FROM linea_producto l LEFT JOIN unidad_medida u ON u.id = l.unidad_sugerida_id
@@ -126,7 +150,18 @@ public class CatalogoController {
                         rs.getBoolean("requiere_vencimiento"), rs.getString("unidad")));
         List<Codigo> unidades = jdbc.query("SELECT codigo, nombre FROM unidad_medida ORDER BY nombre",
                 (rs, row) -> new Codigo(rs.getString("codigo"), rs.getString("nombre")));
-        return new Catalogos(lineas, unidades, comision);
+        return traductor.catalogos(new Catalogos(lineas, unidades, comision), idioma(acceptLanguage, response));
+    }
+
+    /**
+     * El idioma de la respuesta segun Accept-Language. Se declara en Content-Language, y Vary avisa a
+     * cualquier cache que la misma URL cambia con el idioma.
+     */
+    private static Idioma idioma(String acceptLanguage, HttpServletResponse response) {
+        Idioma idioma = Idioma.deCabecera(acceptLanguage);
+        response.setHeader(HttpHeaders.CONTENT_LANGUAGE, idioma.codigo());
+        response.addHeader(HttpHeaders.VARY, HttpHeaders.ACCEPT_LANGUAGE);
+        return idioma;
     }
 
     private static List<String> limpiar(List<String> valores) {

@@ -436,6 +436,28 @@ Queda fuera: vencer los pedidos que nunca se pagan (tarea programada que los pas
 `CANCELADO`), comision y liquidacion (CCPIP-90, CCPIP-91) y metodos locales (CCPIP-183).
 Lo verifica `PagoModeloTest`.
 
+### traduccion
+Contenido aprobado en ingles (CCPIP-166 productos, CCPIP-357 tiendas, CCPIP-358 comunidades).
+Adelanta el modelo de CCPIP-170. El espanol es el original y se queda en su tabla; aqui va solo
+su version en ingles, campo por campo. El catalogo publico responde segun `Accept-Language` y,
+si un campo no tiene traduccion aprobada, muestra el original. Quien traduce (productor, Camara o
+traduccion asistida) esta pendiente de definir con el cliente, por eso cada fila nace `PENDIENTE`.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| entidad | varchar(20) | no | PRODUCTO, HISTORIA, TIENDA, COMUNIDAD, LINEA o UNIDAD |
+| clave | varchar(60) | no | Id del producto (PRODUCTO, HISTORIA) o del productor (TIENDA, COMUNIDAD), o codigo del catalogo (LINEA, UNIDAD) |
+| campo | varchar(40) | no | nombre, descripcion, titulo, texto, historia, cita o una parte de la historia |
+| idioma | varchar(2) | no | Solo `en`: el espanol no se traduce |
+| texto | text | no | No vacio |
+| estado | varchar(10) | no | PENDIENTE o APROBADA. Solo la aprobada se publica |
+| aprobada_en | timestamptz | si | Obligatoria si esta APROBADA |
+
+Unica por (entidad, clave, campo, idioma). Los textos en ingles de los datos de demostracion
+estan en `R__03_traducciones_demo.sql`. Invalidar una traduccion cuando cambia el original es
+CCPIP-373.
+
 ## Fuera de este modelo
 
 Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehacer nada:
@@ -444,7 +466,6 @@ Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehac
 - Comision y liquidacion, Sprint 1, CCPIP-90 y CCPIP-91
 - Merma y sus causas, Sprint 2
 - Valoraciones y denuncias, Sprint 2
-- Traducciones del contenido, Sprint 3, CCPIP-170
 - Fidelizacion, Sprint 3, CCPIP-86
 
 ## Convencion de nombres de las migraciones
