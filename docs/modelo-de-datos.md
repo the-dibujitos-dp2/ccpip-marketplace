@@ -500,9 +500,12 @@ contenido. Eso es exactamente lo que queremos para datos sembrados idempotentes.
   `spring.flyway.locations`.
   Las existencias iniciales entran como lote, movimiento de ENTRADA ligado a ese lote y
   stock, en un solo comando (CCPIP-361). La autorizacion, la historia aprobada y las
-  existencias solo se siembran para los diez productos de la semilla: un producto creado
-  desde la plataforma no las recibe aunque la semilla vuelva a correr. Lo verifica
-  `SemillasTest`. El
+  existencias solo se siembran para los productos de la semilla (los diez originales y los
+  cuatro de los casos limite de Sprint 0): un producto creado desde la plataforma no las
+  recibe aunque la semilla vuelva a correr. Lo verifica `SemillasTest`.
+  Desde CCPIP-148 la semilla tambien trae pedidos de demostracion en todos los estados con su
+  pago, su descuento de lotes y su historial, y un carrito armado para `consumidor2@`
+  (ver docs/devsecops.md). Cada pedido se siembra una sola vez, por su numero. El
 numero en `R__01_` y `R__02_` fija el orden, porque las repetibles corren en orden
 alfabetico y la segunda depende de la primera.
 

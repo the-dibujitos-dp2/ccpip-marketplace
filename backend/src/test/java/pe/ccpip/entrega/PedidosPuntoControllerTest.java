@@ -11,12 +11,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.jayway.jsonpath.JsonPath;
 
 import jakarta.servlet.http.Cookie;
 import pe.ccpip.inventario.DescuentoExistenciasService;
@@ -165,14 +168,21 @@ class PedidosPuntoControllerTest extends IntegrationTest {
         jdbc.update("UPDATE pedido SET estado = 'ENTREGADO', actualizado_en = now() - interval '2 days' WHERE id = ?",
                 entregadoAntes);
 
-        listar(admin)
+        String cuerpo = listar(admin)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ubicacion").value(LIMA))
-                // Confirmados, luego listos, luego entregados hoy; lo entregado otro dia ya no se muestra
-                .andExpect(jsonPath("$.items[*].numero").value(org.hamcrest.Matchers.contains("MC-T0159", "MC-T0162", "MC-T0163")))
-                .andExpect(jsonPath("$.items[0].estado").value("CONFIRMADO"))
-                .andExpect(jsonPath("$.items[0].total").value(40))
-                .andExpect(content().string(not(containsString("consumidor@ccpip.test"))));
+                .andExpect(jsonPath("$.items[?(@.numero == 'MC-T0159')].total").value(org.hamcrest.Matchers.hasItem(40.0)))
+                .andExpect(content().string(not(containsString("consumidor@ccpip.test"))))
+                .andReturn().getResponse().getContentAsString();
+
+        // La demostracion ya trae pedidos en este punto: se mira el orden de los de esta prueba y el de todos por columna.
+        // Confirmados, luego listos, luego entregados hoy; lo entregado otro dia ya no se muestra.
+        List<String> propios = JsonPath.read(cuerpo, "$.items[?(@.numero =~ /MC-T.*/)].numero");
+        assertThat(propios).containsExactly("MC-T0159", "MC-T0162", "MC-T0163");
+        List<String> estados = JsonPath.read(cuerpo, "$.items[*].estado");
+        assertThat(estados).isSortedAccordingTo(java.util.Comparator.comparingInt(
+                e -> List.of("CONFIRMADO", "LISTO_PARA_RECOJO", "ENTREGADO").indexOf(e)));
+        assertThat(estados).first().isEqualTo("CONFIRMADO");
     }
 
     @Test

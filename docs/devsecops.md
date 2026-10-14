@@ -15,6 +15,17 @@ Usuarios de demostracion (uno por rol, clave `Demo1234!`): `consumidor@`, `produ
 `productor_nuevo@ccpip.test` tiene la tienda vacia, para probar que una comunidad la arma desde cero (PW-08).
 Ademas `sin_confirmar@ccpip.test` tiene el correo sin confirmar, para probar que el inicio de sesion lo rechaza (CCPIP-27).
 
+Datos del Sprint 0 (CCPIP-148), para recorrer el primer flujo de compra con recojo sin armarlo a mano:
+
+| Que | Cuenta o dato | Para probar |
+|---|---|---|
+| Segundo comprador | `consumidor2@ccpip.test` (Lucia Ramirez) | Tiene un **carrito armado** (una oferta comprable y una en venta pausada) y pedidos propios. `consumidor@` conserva el carrito vacio |
+| Un administrador por punto | `admin_acopio@` (Lima), `admin_acopio_loreto@`, `_cusco@`, `_ucayali@`, `_san_martin@`, `_junin@` | Cada uno ve solo los pedidos y movimientos de su punto (RNF-05) |
+| Pedidos en el Centro Nacional Lima | `CCP-900131` a `CCP-900161` | Uno **pendiente de pago** (`CCP-900160`, intento rechazado), **confirmados** (`CCP-900139`, `CCP-900144`), **listos** (`CCP-900152`, `CCP-900155`, este con persona autorizada Julio Paredes), **entregados** (`CCP-900131`, `CCP-900150`) y uno **cancelado** (`CCP-900161`) |
+| Casos limite de compra | `productor4@` (Ese Eja), `productor5@` (Yanesha) | Castanas con **dos lotes** (sale primero el que vence antes), aceite de castana **por vencer**, harina de castana **agotada** y una oferta en **venta pausada** (la cuenta bancaria de Yanesha esta desactivada, Figma CW-03c) |
+
+Los pedidos se siembran siguiendo el flujo real: nacen en `PENDIENTE_PAGO`, un pago `APROBADO` los confirma, y recien ahi se descuentan los lotes (vencimiento mas proximo primero). Cada uno queda con su pago, sus movimientos `SALIDA_VENTA`, su historial y el stock cuadrado. Un pedido sembrado no se vuelve a sembrar ni se vuelve a descontar.
+
 ## Arquitectura de prod
 
 ```

@@ -20,8 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.ccpip.support.IntegrationTest;
 
 /**
- * Catalogo publico contra los productos sembrados en R__02: 10 productos publicados de 3
- * tiendas, cada uno con un lote vigente en el Centro Nacional Lima. Cada prueba corre en una
+ * Catalogo publico contra los productos sembrados en R__02, cada uno con su lote en el Centro
+ * Nacional Lima. Los conteos que dependen de cuantos productos sembro la demostracion se calculan
+ * de la base ({@link #disponibles()}); lo que se afirma con cifras fijas son las tiendas y lineas
+ * de los diez productos originales, que la demostracion no toca. Cada prueba corre en una
  * transaccion que se revierte.
  */
 @Transactional
@@ -31,14 +33,30 @@ class CatalogoControllerTest extends IntegrationTest {
     private static final LocalDate HOY = LocalDate.now(ZoneId.of("America/Lima"));
     private static final LocalDate EN_UN_ANIO = HOY.plusYears(1);
 
+    /** Productos publicados, de tienda publicada, con saldo vigente en un punto de acopio: lo que el catalogo lista por defecto. */
+    private static final String OFERTA_DISPONIBLE = """
+            FROM producto p JOIN productor pr ON pr.id = p.productor_id AND pr.activo AND pr.tienda_publicada
+            WHERE p.estado = 'PUBLICADO' AND EXISTS (
+                SELECT 1 FROM lote l JOIN ubicacion u ON u.id = l.ubicacion_id
+                WHERE l.producto_id = p.id AND u.tipo = 'PUNTO_ACOPIO' AND l.cantidad_actual > 0
+                  AND (l.fecha_vencimiento IS NULL OR l.fecha_vencimiento >= ?))""";
+
+    private long disponibles() {
+        return jdbc.queryForObject("SELECT count(*) " + OFERTA_DISPONIBLE, Long.class, HOY);
+    }
+
+    private long comunidadesConOferta() {
+        return jdbc.queryForObject("SELECT count(DISTINCT pr.id) " + OFERTA_DISPONIBLE, Long.class, HOY);
+    }
+
     // --- CCPIP-52: buscar ---
 
     @Test
     void sinTerminoListaElCatalogoDisponibleSinSesion() throws Exception {
         mockMvc.perform(get("/api/productos"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.total").value(10))
-                .andExpect(jsonPath("$.totalComunidades").value(3))
+                .andExpect(jsonPath("$.total").value(disponibles()))
+                .andExpect(jsonPath("$.totalComunidades").value(comunidadesConOferta()))
                 .andExpect(jsonPath("$.items[0].tienda.nombre").exists())
                 .andExpect(jsonPath("$.items[0].tienda.pueblo").exists())
                 .andExpect(jsonPath("$.items[*].disponible", everyItem(Matchers.is(true))));
@@ -60,10 +78,11 @@ class CatalogoControllerTest extends IntegrationTest {
 
     @Test
     void losResultadosSePaginan() throws Exception {
+        long total = disponibles();
         mockMvc.perform(get("/api/productos").param("tamano", "4").param("pagina", "2"))
-                .andExpect(jsonPath("$.total").value(10))
-                .andExpect(jsonPath("$.totalPaginas").value(3))
-                .andExpect(jsonPath("$.items.length()").value(2));
+                .andExpect(jsonPath("$.total").value(total))
+                .andExpect(jsonPath("$.totalPaginas").value((total + 3) / 4))
+                .andExpect(jsonPath("$.items.length()").value(Math.min(4, Math.max(0, total - 8))));
     }
 
     @Test
@@ -74,8 +93,9 @@ class CatalogoControllerTest extends IntegrationTest {
 
     @Test
     void ordenaPorPrecioYNovedades() throws Exception {
+        Double masBarato = jdbc.queryForObject("SELECT min(p.precio) " + OFERTA_DISPONIBLE, Double.class, HOY);
         mockMvc.perform(get("/api/productos").param("orden", "precio_asc"))
-                .andExpect(jsonPath("$.items[0].nombre").value("Cafe molido 250 g"));
+                .andExpect(jsonPath("$.items[0].precio", Matchers.closeTo(masBarato, 0.001)));
         mockMvc.perform(get("/api/productos").param("orden", "precio_desc"))
                 .andExpect(jsonPath("$.items[0].nombre").value("Textil bordado shipibo"));
         mockMvc.perform(get("/api/productos").param("orden", "otro")).andExpect(status().isUnprocessableEntity());
@@ -137,8 +157,8 @@ class CatalogoControllerTest extends IntegrationTest {
         mockMvc.perform(get("/api/productos"))
                 .andExpect(jsonPath("$.facetas.lineas[?(@.codigo == 'CAFE')].total").value(hasItem(2)))
                 .andExpect(jsonPath("$.facetas.regiones[?(@.codigo == 'Ucayali')].total").value(hasItem(4)))
-                .andExpect(jsonPath("$.facetas.modalidades[?(@.codigo == 'MINORISTA')].total").value(hasItem(10)))
-                .andExpect(jsonPath("$.facetas.comunidades.length()").value(3));
+                .andExpect(jsonPath("$.facetas.modalidades[?(@.codigo == 'MINORISTA')].total").value(hasItem((int) disponibles())))
+                .andExpect(jsonPath("$.facetas.comunidades.length()").value(comunidadesConOferta()));
     }
 
     @Test
@@ -164,8 +184,10 @@ class CatalogoControllerTest extends IntegrationTest {
 
     @Test
     void unaTiendaSinPublicarNoMuestraSusProductos() throws Exception {
+        long antes = disponibles();
         jdbc.update("UPDATE productor SET tienda_publicada = false WHERE nombre_tienda = 'C.N. Yarina'");
-        mockMvc.perform(get("/api/productos")).andExpect(jsonPath("$.total").value(7));
+        // C.N. Yarina tenia tres de sus productos en el catalogo
+        mockMvc.perform(get("/api/productos")).andExpect(jsonPath("$.total").value(antes - 3));
     }
 
     @Test
@@ -262,8 +284,9 @@ class CatalogoControllerTest extends IntegrationTest {
 
     @Test
     void listaLasTiendasPublicadasYMuestraCadaUna() throws Exception {
+        long publicadas = jdbc.queryForObject("SELECT count(*) FROM productor WHERE tienda_publicada AND activo", Long.class);
         mockMvc.perform(get("/api/tiendas"))
-                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$.length()").value(publicadas))
                 .andExpect(jsonPath("$[*].nombre").value(hasItem("Asoc. Nii Joi")));
         Long id = jdbc.queryForObject("SELECT id FROM productor WHERE nombre_tienda = 'Asoc. Nii Joi'", Long.class);
         mockMvc.perform(get("/api/tiendas/{id}", id))

@@ -59,7 +59,8 @@ class MovimientosControllerTest extends IntegrationTest {
 
     @Test
     void elAdministradorDelPuntoVeLaSalidaDeCadaVentaConSuPedidoYLote() throws Exception {
-        listar(loginAs("admin_acopio@ccpip.test"), "tipo", "SALIDAS")
+        // La demostracion ya trae ventas en este punto: se mira la de esta prueba por su numero de pedido
+        listar(loginAs("admin_acopio@ccpip.test"), "tipo", "SALIDAS", "pedido", "MC-T0148")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ubicacion").value("Centro Nacional Lima"))
                 .andExpect(jsonPath("$.total").value(1))
@@ -83,9 +84,12 @@ class MovimientosControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.items[*].tipo", everyItem(is("ENTRADA"))))
                 .andExpect(jsonPath("$.items[*].observacion", hasItem("Carga inicial de demostracion")));
         listar(admin, "tipo", "AJUSTES").andExpect(jsonPath("$.total").value(0));
+        // Sin filtro, lo mas reciente primero: la venta de esta prueba va antes que cualquier dato sembrado
         listar(admin)
                 .andExpect(jsonPath("$.tamano").value(20))
-                .andExpect(jsonPath("$.items[0].tipo").value("SALIDA_VENTA"));
+                .andExpect(jsonPath("$.items[0].pedido").value("MC-T0148"));
+        listar(admin, "tipo", "SALIDAS")
+                .andExpect(jsonPath("$.items[*].tipo", everyItem(is("SALIDA_VENTA"))));
 
         // Sin distinguir mayusculas ni espacios al copiar el numero
         listar(admin, "pedido", " mc-t0148 ")

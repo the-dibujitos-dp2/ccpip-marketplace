@@ -96,7 +96,9 @@ class RecojoPedidoControllerTest extends IntegrationTest {
 
         assertThat(estado("MC-T0073")).isEqualTo("LISTO_PARA_RECOJO");
         assertThat(jdbc.queryForObject("SELECT recogido_por FROM pedido WHERE numero = 'MC-T0073'", String.class)).isNull();
-        assertThat(jdbc.queryForObject("SELECT count(*) FROM pedido_estado_historial WHERE estado = 'ENTREGADO'", Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM pedido_estado_historial h JOIN pedido p ON p.id = h.pedido_id
+                WHERE p.numero = 'MC-T0073' AND h.estado = 'ENTREGADO'""", Integer.class)).isZero();
     }
 
     @Test

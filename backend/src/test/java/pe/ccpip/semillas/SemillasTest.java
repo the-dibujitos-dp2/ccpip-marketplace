@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import pe.ccpip.support.IntegrationTest;
@@ -33,11 +34,13 @@ class SemillasTest extends IntegrationTest {
     @Autowired
     private DataSource dataSource;
 
+    /** Cada script va entero, como lo corre Flyway: las funciones con $$ no se pueden partir por ";". */
     private void correrSemillas() {
-        new ResourceDatabasePopulator(
+        ResourceDatabasePopulator semillas = new ResourceDatabasePopulator(
                 new ClassPathResource("db/migration/R__01_catalogos_base.sql"),
-                new ClassPathResource("db/seed/R__02_cuentas_productores_productos.sql"))
-                .execute(dataSource);
+                new ClassPathResource("db/seed/R__02_cuentas_productores_productos.sql"));
+        semillas.setSeparator(ScriptUtils.EOF_STATEMENT_SEPARATOR);
+        semillas.execute(dataSource);
     }
 
     private Map<String, Long> conteos() {
@@ -88,7 +91,7 @@ class SemillasTest extends IntegrationTest {
                 LEFT JOIN lote l ON l.id = mv.lote_id
                 WHERE mv.observacion = 'Carga inicial de demostracion'""");
 
-        assertThat(cargas).hasSize(10).allSatisfy(c -> {
+        assertThat(cargas).hasSizeGreaterThanOrEqualTo(10).allSatisfy(c -> {
             assertThat(c.get("lote_id")).isNotNull();
             assertThat(c.get("cantidad")).isEqualTo(c.get("cantidad_inicial"));
             assertThat(c.get("misma_ubicacion")).isEqualTo(true);
@@ -125,5 +128,126 @@ class SemillasTest extends IntegrationTest {
         assertThatThrownBy(() -> jdbc.update("UPDATE stock SET cantidad = -1"))
                 .isInstanceOf(DataAccessException.class)
                 .hasMessageContaining("stock_no_negativo");
+    }
+
+    // --- Datos del Sprint 0 (CCPIP-148): pedidos, casos limite de compra y cuentas de demostracion ---
+
+    @Test
+    void hayUnPedidoDeDemostracionEnCadaEstadoDelSprint() {
+        List<String> estados = jdbc.queryForList(
+                "SELECT DISTINCT estado FROM pedido WHERE numero LIKE 'CCP-900%' ORDER BY estado", String.class);
+
+        assertThat(estados).containsExactly("CANCELADO", "CONFIRMADO", "ENTREGADO", "LISTO_PARA_RECOJO", "PENDIENTE_PAGO");
+    }
+
+    @Test
+    void cadaPedidoSembradoEsCoherenteConSuPagoSuInventarioYSuHistorial() {
+        // El total es la suma de sus lineas
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM pedido p
+                WHERE p.numero LIKE 'CCP-900%' AND p.total <> (SELECT sum(i.subtotal) FROM item_pedido i WHERE i.pedido_id = p.id)""",
+                Long.class)).isZero();
+        // Lo cobrado tiene un pago APROBADO y descontó cada linea completa; lo demas no descontó nada
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM pedido p
+                WHERE p.numero LIKE 'CCP-900%' AND (
+                    (p.estado IN ('CONFIRMADO', 'LISTO_PARA_RECOJO', 'ENTREGADO') AND (
+                        NOT EXISTS (SELECT 1 FROM pago g WHERE g.pedido_id = p.id AND g.estado = 'APROBADO')
+                        OR EXISTS (SELECT 1 FROM item_pedido i WHERE i.pedido_id = p.id AND i.cantidad <>
+                            (SELECT coalesce(sum(m.cantidad), 0) FROM movimiento_inventario m WHERE m.item_pedido_id = i.id))))
+                 OR (p.estado IN ('PENDIENTE_PAGO', 'CANCELADO') AND (
+                        EXISTS (SELECT 1 FROM pago g WHERE g.pedido_id = p.id AND g.estado = 'APROBADO')
+                        OR EXISTS (SELECT 1 FROM movimiento_inventario m WHERE m.pedido_id = p.id))))""", Long.class)).isZero();
+        // El ultimo estado del historial es el estado del pedido
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM pedido p
+                WHERE p.numero LIKE 'CCP-900%' AND p.estado <>
+                    (SELECT h.estado FROM pedido_estado_historial h WHERE h.pedido_id = p.id ORDER BY h.registrado_en DESC, h.id DESC LIMIT 1)""",
+                Long.class)).isZero();
+    }
+
+    @Test
+    void elStockDeLosProductosSembradosCuadraConSusLotesYMovimientosDespuesDeLasVentas() {
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM stock s
+                WHERE EXISTS (SELECT 1 FROM movimiento_inventario c WHERE c.producto_id = s.producto_id
+                              AND c.observacion = 'Carga inicial de demostracion')
+                  AND (s.cantidad <> (SELECT coalesce(sum(l.cantidad_actual), 0) FROM lote l
+                                     WHERE l.producto_id = s.producto_id AND l.ubicacion_id = s.ubicacion_id)
+                   OR s.cantidad <> (SELECT coalesce(sum(CASE WHEN m.tipo IN ('ENTRADA', 'TRANSFERENCIA_ENTRADA', 'AJUSTE')
+                                                              THEN m.cantidad ELSE -m.cantidad END), 0)
+                                     FROM movimiento_inventario m
+                                     WHERE m.producto_id = s.producto_id AND m.ubicacion_id = s.ubicacion_id))""", Long.class)).isZero();
+    }
+
+    @Test
+    void laVentaSaleDelLoteQueVenceAntes() {
+        List<String> lotes = jdbc.queryForList("""
+                SELECT l.codigo FROM movimiento_inventario m JOIN lote l ON l.id = m.lote_id
+                JOIN pedido p ON p.id = m.pedido_id
+                WHERE p.numero = 'CCP-900152' AND m.tipo = 'SALIDA_VENTA'""", String.class);
+
+        assertThat(lotes).hasSize(1);
+        assertThat(lotes.get(0)).endsWith("A");
+    }
+
+    @Test
+    void hayCasosLimiteDeCompraListosParaProbar() {
+        // Venta pausada: oferta visible de una tienda con la cuenta bancaria desactivada
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM producto pr JOIN productor p ON p.id = pr.productor_id
+                JOIN cuenta_bancaria c ON c.productor_id = p.id
+                WHERE pr.estado = 'PUBLICADO' AND p.tienda_publicada AND c.estado = 'DESACTIVADA'
+                  AND NOT EXISTS (SELECT 1 FROM cuenta_bancaria a WHERE a.productor_id = p.id AND a.estado = 'ACTIVA')""",
+                Long.class)).isGreaterThanOrEqualTo(1);
+        // Agotado: publicado y sin saldo
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM producto pr WHERE pr.estado = 'PUBLICADO' AND pr.nombre = 'Harina de castana 300 g'
+                  AND NOT EXISTS (SELECT 1 FROM lote l WHERE l.producto_id = pr.id AND l.cantidad_actual > 0)""",
+                Long.class)).isEqualTo(1);
+        // Dos lotes de un mismo producto, para ver cual sale primero
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM (SELECT producto_id FROM lote GROUP BY producto_id HAVING count(*) > 1) x""",
+                Long.class)).isGreaterThanOrEqualTo(1);
+    }
+
+    @Test
+    void elSegundoCompradorTieneUnCarritoArmadoYElPrimeroLoTieneVacio() {
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM item_carrito i JOIN carrito c ON c.id = i.carrito_id JOIN usuario u ON u.id = c.usuario_id
+                WHERE u.correo = 'consumidor2@ccpip.test'""", Long.class)).isEqualTo(2);
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM carrito c JOIN usuario u ON u.id = c.usuario_id WHERE u.correo = 'consumidor@ccpip.test'""",
+                Long.class)).isZero();
+    }
+
+    @Test
+    void cadaPuntoDeAcopioTieneSuAdministradorYCadaAdministradorSoloUnPunto() {
+        List<Long> puntosSinAdmin = jdbc.queryForList("""
+                SELECT l.id FROM ubicacion l
+                WHERE l.tipo = 'PUNTO_ACOPIO' AND NOT EXISTS (
+                    SELECT 1 FROM usuario_ubicacion uu JOIN usuario u ON u.id = uu.usuario_id
+                    JOIN rol r ON r.id = u.rol_id WHERE uu.ubicacion_id = l.id AND r.codigo = 'ADMIN_PUNTO')""", Long.class);
+
+        assertThat(puntosSinAdmin).isEmpty();
+        assertThat(jdbc.queryForList("""
+                SELECT count(*) FROM usuario_ubicacion uu JOIN usuario u ON u.id = uu.usuario_id
+                WHERE u.correo LIKE 'admin_acopio%' GROUP BY u.id HAVING count(*) > 1""", Long.class)).isEmpty();
+    }
+
+    @Test
+    void unProductoNuevoDeUnProductorDeCasosLimiteNoRecibeLaSemilla() {
+        Long id = jdbc.queryForObject("""
+                INSERT INTO producto (productor_id, nombre, linea_id, unidad_medida_id, precio, estado)
+                SELECT p.id, 'Producto propio de Ese Eja', (SELECT id FROM linea_producto WHERE codigo = 'CAFE'),
+                       (SELECT id FROM unidad_medida WHERE codigo = 'G'), 30.00, 'PUBLICADO'
+                FROM productor p JOIN usuario u ON u.id = p.usuario_id
+                WHERE u.correo = 'productor4@ccpip.test'
+                RETURNING id""", Long.class);
+
+        correrSemillas();
+
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM autorizacion_producto WHERE producto_id = ?", Long.class, id)).isZero();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM producto_historia WHERE producto_id = ?", Long.class, id)).isZero();
     }
 }
