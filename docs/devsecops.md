@@ -116,6 +116,98 @@ El plan Free de GitHub no permite reglas de rama en repos privados. Opciones:
   ```
   Exige PR con 1 aprobacion (CODEOWNERS), checks de CI en verde, historial lineal y bloquea force-push y borrado de `main`.
 
+**Sin esa opcion** (no se pudo conseguir el plan), `main` queda vigilada por el [guardian](#guardian-de-main-ccpip-22).
+
+## Guardian de main (CCPIP-22)
+
+Mientras el repo no pueda aplicar `docs/ruleset-main.json` (ver "Proteger `main`"), nada impide
+fusionar un PR con checks en rojo. El **guardian** hace lo que esa regla haria, despues del merge:
+[`guardian-main.yml`](../.github/workflows/guardian-main.yml) corre al fusionar un PR a `main` y
+comprueba que cumplia los **6 checks obligatorios** de `docs/ruleset-main.json` (la unica fuente de
+verdad: si cambia la lista, cambia el guardian). Un check incumple si fallo, sigue pendiente o no existe;
+si se re-ejecuto, vale la ultima ejecucion.
+
+### Modos (variable del repo `GUARDIAN_MODO`)
+
+| Valor | Que hace |
+|---|---|
+| `avisar` (por defecto) | Comenta en el PR la tabla de checks incumplidos y abre un issue. **No toca el codigo.** El job queda en rojo y GitHub avisa a quien fusiono. |
+| `revertir` | Ademas hace `git revert` del merge y lo publica en `main`. |
+| `apagado` | No hace nada. Es el interruptor de emergencia. |
+
+Se cambia en **Settings > Secrets and variables > Actions > Variables**, o con
+`gh variable set GUARDIAN_MODO --body revertir`. No hace falta tocar el codigo.
+
+### Salvaguardas del modo `revertir`
+
+- Solo `git revert`: agrega un commit y conserva el historial. Nunca `--force`, nunca borra ramas.
+  Un revert equivocado se corrige revirtiendo el revert.
+- **Solo revierte si el merge sigue siendo la punta de `main`.** Si alguien fusiono algo encima, revertir sin
+  pasar por el CI podria dejar `main` rota sin que se note: en ese caso solo avisa.
+- **Nunca revierte el commit inicial** (borraria todo el contenido del repositorio).
+- **Antes de publicar comprueba que el contenido queda IDENTICO al de antes del PR** (el arbol de git del revert es el del
+  primer padre del merge); si no, no publica nada.
+- **No revierte un `rebase and merge` de varios commits**: revertir solo el ultimo dejaria el PR a medias. Solo revierte un
+  merge commit, un PR de un commit o un squash (commit con `(#N)` del mismo PR).
+- Si el revert no se puede aplicar, o el push es rechazado (alguien se adelanto, o el PR tocaba workflows), no hace nada mas que avisar.
+- Antes de revertir deja la etiqueta `respaldo/main-<sha>` en el commit que se revierte.
+- Un merge commit se revierte contra su primer padre (`-m 1`); un squash, directo.
+- **Valida todo lo que recibe**: la rama (`main`, o `prueba/*` en un simulacro, y debe ser un nombre de rama valido de git) y los
+  SHAs, el numero de PR y el de commits (que terminan como argumentos de `git` y `gh`).
+- **Si la API de GitHub falla, reintenta** (4 intentos, esperando 3, 6 y 9 segundos); si sigue fallando, termina en error sin actuar.
+- Dejar pasar un PR a proposito: ponle la etiqueta **`forzar-merge`** (sin distinguir mayusculas) antes de fusionar.
+
+### Limites (hay que conocerlos)
+
+- No impide el boton de merge: el codigo con checks fallidos **llega a `main` unos segundos** y luego se avisa o se revierte.
+- El push del guardian usa el `GITHUB_TOKEN`, que **no dispara** el CI ni el deploy. Lo normal es que no haga falta:
+  un PR con tests rotos tambien falla el CI de `deploy.yml` sobre `main` (`ci` -> `images` -> `deploy`, cada paso exige el
+  anterior), asi que **nunca se despliega** y el servidor sigue con la version anterior. La excepcion es un PR que el
+  guardian marca (por ejemplo, se fusiono con un check aun pendiente que luego pasa) pero cuyo CI en `main` si pasa: se despliega
+  y luego se revierte. Por eso, **tras cada revert el guardian pide un despliegue de `main`** (`gh workflow run deploy.yml`,
+  que ya admite `workflow_dispatch`): el servidor queda igual que `main` y el CI corre sobre el revert. Si no puede pedirlo, lo
+  dice en el aviso y el revert se mantiene; entonces hay que ejecutar *Deploy* a mano.
+- Si el PR tocaba `.github/workflows/`, el token no puede escribir esos archivos: el revert falla y solo se avisa.
+- Un PR que borre `guardian-main.yml` lo desactiva. Es la misma debilidad de cualquier regla sin proteccion real.
+- Es un respaldo, no una sustitucion: con GitHub Team o repo publico, aplica el ruleset y apaga el guardian.
+
+### Pruebas
+
+Todo se ejecuta **sin escribir en GitHub**. Hace falta bash, git y Python 3 (y `gh` con sesion para la parte de la API real).
+
+| Que | Como | Que prueba |
+|---|---|---|
+| Escenarios | `bash .github/guardian/probar.sh` | Repos de juguete y un `gh` falso: 34 escenarios, 229 comprobaciones. Checks pendientes, cancelados y re-ejecutados; modos; merge commit y squash; commits posteriores; push rechazado; **dos guardianes a la vez** y **otro PR fusionandose justo antes del push**; **ramas, SHAs, numeros y titulos de commit hostiles** (inyeccion); el commit inicial; PRs vacios; tipos de cambio (binarios, renombres, permisos, CRLF); etiquetas; locales; reintentos de la API; ensayo en seco; seguridad estatica del workflow; coherencia con `ci.yml` y el ruleset; `.gitattributes` con `core.autocrlf=true` |
+| Unitarias | `python3 -m unittest discover -s .github/guardian -v` | 24 pruebas del evaluador de checks, con **todas** las combinaciones de estado y conclusion que GitHub puede informar |
+| Historial real | `bash .github/guardian/probar-historial.sh` | **Parte 1 (solo git):** revierte cada commit real de `main` (46 hoy, squash y merge commits, el de 199 archivos y los 8 que tocan workflows) y comprueba que queda el contenido exacto de antes. **Parte 2 (API de GitHub, solo lectura):** corre el guardian real en seco sobre los 40 PRs fusionados y sobre commits que fallaron de verdad (PR #37 y #39) |
+| Linux | las mismas ordenes dentro de un contenedor `ubuntu:24.04` (el sistema de `ubuntu-latest`) con git y python3 | Sin las rarezas de Git Bash en Windows |
+| Linters | `actionlint`, `shellcheck`, `pyflakes` | Sintaxis del workflow y de los scripts |
+
+`--sin-red` y `--solo-red` limitan `probar-historial.sh` a su parte 1 o 2. En la parte 2 un `gh` envoltorio **bloquea** cualquier
+llamada que no sea leer check-runs, de modo que ni un error del guardian podria escribir en GitHub.
+
+- **Ensayo en seco** (`GUARDIAN_SECO=1`): el guardian lee de GitHub y prueba el revert en local, pero no escribe nada (ni comentarios,
+  issues, etiquetas, pushes ni despliegues); imprime lo que haria.
+- **Simulacro en GitHub:** Actions > *Guardian de main* > *Run workflow*, con una rama `prueba/*`. Finge checks incumplidos
+  sobre esa rama, sin PR, issues ni despliegues, y en modo `revertir` revierte **solo esa rama**. El workflow se niega a
+  actuar sobre `main` y sobre cualquier rama que no empiece por `prueba/`.
+
+**Lo que mostraron los datos reales** (13 de octubre de 2026): de los 40 PRs fusionados, los 28 desde el #16 (cuando el CI ya tenia los 6 checks)
+cumplen los 6, asi que el guardian no habria marcado ninguno; los 12 anteriores no, porque el CI de entonces no tenia todos los checks.
+Los fallos reales se detectan: el primer commit de los PRs #37 y #38 (backend en rojo por la zona horaria, Sonar omitido) y el primero
+del #39 (Sonar en rojo por duplicacion), no sus commits correctivos.
+
+### Evidencia para cerrar CCPIP-22
+
+La historia pide que "un fallo bloquee la integracion" y que no se afirme una implementacion que no existe. Con el guardian
+se puede afirmar lo siguiente, y solo cuando cada punto este comprobado:
+
+1. **El CI verifica** construccion, analisis y pruebas en cada PR (`ci.yml`): los 6 checks.
+2. **El guardian esta probado** sin tocar GitHub: `probar.sh`, las unitarias y `probar-historial.sh`, en Windows y en Linux.
+3. **Un PR fusionado sin cumplirlos se detecta** (modo `avisar`): comentario e issue en el PR. Evidencia en vivo: un PR de prueba con un test roto.
+4. **Se deshace** (modo `revertir`): el merge se revierte, queda el respaldo y se redespliega `main`. Evidencia en vivo: el mismo PR de prueba en ese modo.
+5. **Lo que no se puede**: impedir el boton de merge (requiere plan de pago). Si algun dia se consigue, aplicar `docs/ruleset-main.json` y apagar el guardian.
+
 ## Pruebas de punta a punta (Playwright)
 
 `e2e/` levanta el stack con **las mismas imagenes que van a produccion** (backend con perfil
