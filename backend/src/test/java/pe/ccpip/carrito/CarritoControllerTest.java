@@ -463,6 +463,28 @@ class CarritoControllerTest extends IntegrationTest {
         consultar(consumidor).andExpect(jsonPath("$.items[0].cantidad").value(2));
     }
 
+    // --- CCPIP-267: la sesion expira por inactividad, el carrito no ---
+
+    @Test
+    void alExpirarLaSesionElCarritoSeConservaParaLaProximaSesion() throws Exception {
+        agregar(consumidor, oferta, 2).andExpect(status().isOk());
+        jdbc.update("""
+                UPDATE sesion SET ultimo_acceso = now() - interval '31 minutes'
+                WHERE usuario_id = (SELECT id FROM usuario WHERE correo = 'consumidor@ccpip.test')""");
+
+        // Con la sesion expirada no se ve ni se cambia el carrito...
+        consultar(consumidor)
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("SESION_EXPIRADA"));
+        agregar(consumidor, oferta, 1).andExpect(status().isUnauthorized());
+
+        // ...pero no se pierde: al volver a ingresar sigue igual
+        consultar(loginAs("consumidor@ccpip.test"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].cantidad").value(2));
+    }
+
     // --- CCPIP-269: solo se compra lo autorizado a un productor con cuenta bancaria activa ---
 
     @Test
