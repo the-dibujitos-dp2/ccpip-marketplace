@@ -27,7 +27,7 @@
    CCPIP-26: Registrar consumidor final
    ```
 6. Pide revision a alguien del equipo. Las PR sobre `backend/` o `frontend/` piden revision automatica segun el archivo CODEOWNERS.
-7. Con al menos una aprobacion y sin conflictos, se puede hacer merge. Usa "Squash and merge" para mantener el historial de `main` limpio.
+7. GitHub solo deja fusionar con 1 aprobacion de un code owner, los 6 checks del CI en verde y la rama al dia con `main`; el unico metodo es "Squash and merge" y la rama se borra sola. Detalle en [docs/devsecops.md](docs/devsecops.md#4-proteger-main-ccpip-22).
 
 ## Permisos
 
