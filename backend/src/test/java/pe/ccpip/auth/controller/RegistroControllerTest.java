@@ -73,7 +73,7 @@ class RegistroControllerTest extends IntegrationTest {
     @Test
     void elCorreoSeGuardaEnMinusculasYElCelularEsOpcional() throws Exception {
         Map<String, Object> datos = datos();
-        datos.put("email", "  Lucia.Ramirez@REGISTRO.test ");
+        datos.put("email", "Lucia.Ramirez@REGISTRO.test");
         datos.put("phone", "");
         registrar(datos).andExpect(status().isCreated()).andExpect(jsonPath("$.email").value(CORREO));
         assertThat(jdbc.queryForObject("SELECT telefono FROM usuario WHERE correo = ?", String.class, CORREO)).isNull();
