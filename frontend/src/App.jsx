@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consultarSesion, fetchMe, logout } from './api/auth.js'
 import { olvidarUnidadesCarrito } from './api/carrito.js'
@@ -39,7 +39,7 @@ function destinoPorRol(user) {
 }
 
 export default function App() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { path, search } = useLocation()
   const params = new URLSearchParams(search)
   const [sesion, setSesion] = useState(null) // { user, expiresInSeconds }
@@ -212,5 +212,13 @@ export default function App() {
     pagina = null
   }
 
-  return <SesionContexto.Provider value={contexto}>{pagina}</SesionContexto.Provider>
+  // CCPIP-166: las paginas del catalogo muestran contenido del servidor en el idioma elegido. Al
+  // cambiar de idioma se vuelven a montar para pedirlo otra vez; las demas conservan lo escrito.
+  const delCatalogo = path === RUTAS.catalogo || path === RUTAS.buscar || path === RUTAS.comunidades
+    || RUTA_PRODUCTO.test(path) || RUTA_TIENDA.test(path)
+  return (
+    <SesionContexto.Provider value={contexto}>
+      <Fragment key={delCatalogo ? i18n.resolvedLanguage : 'pagina'}>{pagina}</Fragment>
+    </SesionContexto.Provider>
+  )
 }
