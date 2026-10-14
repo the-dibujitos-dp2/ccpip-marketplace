@@ -57,3 +57,29 @@
 .campo__selector { position: relative; }
 .campo__selector select { appearance: none; padding-right: 44px; cursor: pointer; }
 .campo__chevron { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); color: var(--color-text-secondary); pointer-events: none; }
+
+/* Contrasena con boton de ojo: el texto no se mete debajo del boton */
+.campo__con-accion { position: relative; }
+.campo__con-accion .campo__control { padding-right: 52px; }
+.campo__con-accion .campo__control:focus,
+.campo__con-accion .campo__control--error { padding-right: 51px; }
+
+.campo__accion {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+.campo__accion:hover { background: var(--color-bg-surface-alt); color: var(--color-text-primary); }
+.campo__accion:focus-visible { outline: 2px solid var(--color-border-focus); outline-offset: 2px; }
