@@ -8,3 +8,8 @@
   font-size: 12px;
   line-height: 16px;
 }
+
+.barra-confianza p { flex: 1; min-width: 0; }
+
+/* CCPIP-265: el selector va a la derecha, como en el Figma (Barra superior) */
+.barra-confianza__idioma { margin-left: auto; }

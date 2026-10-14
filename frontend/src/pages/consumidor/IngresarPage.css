@@ -31,3 +31,7 @@
   .ingresar__fotos, .ingresar__bajada { display: none; }
   .ingresar__formulario-zona { align-items: flex-start; padding: 28px 16px; }
 }
+
+/* CCPIP-265: el idioma tambien se elige antes de ingresar */
+.ingresar__formulario-zona { position: relative; }
+.ingresar__idioma { position: absolute; top: 16px; right: 16px; }

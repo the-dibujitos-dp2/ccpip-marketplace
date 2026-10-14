@@ -37,3 +37,8 @@ export async function fetchMe() {
 export function logout() {
   return apiFetch('/api/auth/logout', { method: 'POST', sessionRequired: false })
 }
+
+/** CCPIP-265: guarda en la cuenta el idioma elegido ("es" o "en"). */
+export function guardarIdiomaCuenta(language) {
+  return apiFetch('/api/auth/me/language', { method: 'PUT', body: { language } })
+}
