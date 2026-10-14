@@ -709,7 +709,12 @@
     "PUNTO_SIN_EXISTENCIAS": "Este punto de acopio ya no tiene existencias para todo tu carrito. Elige otro punto.",
     "PEDIDO_NO_PAGABLE": "Este pedido ya no se puede pagar.",
     "PAGO_EN_CURSO": "Ya hay un pago en curso para este pedido. Espera su resultado antes de reintentar.",
-    "CLAVE_REUTILIZADA": "Este intento de pago pertenece a otro pedido."
+    "CLAVE_REUTILIZADA": "Este intento de pago pertenece a otro pedido.",
+    "CORREO_YA_REGISTRADO": "Ya existe una cuenta con ese correo. Inicia sesión o pide un nuevo enlace de verificación.",
+    "CONTRASENA_MUY_LARGA": "La contraseña es demasiado larga.",
+    "ENLACE_INVALIDO": "El enlace no es válido. Revisa que lo hayas copiado completo.",
+    "ENLACE_USADO": "Este enlace ya se usó. Si ya verificaste tu correo, inicia sesión.",
+    "ENLACE_VENCIDO": "El enlace venció. Pide uno nuevo con tu correo."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -1006,5 +1011,78 @@
   "idioma": {
     "etiqueta": "Idioma: {{idioma}}. Cambiar idioma",
     "menu": "Idioma"
+  },
+  "registro": {
+    "crearCuenta": "Crear cuenta",
+    "titulo": "Crea tu cuenta",
+    "bajada": "Crea tu cuenta para comprar y seguir tus pedidos.",
+    "nombres": "Nombres",
+    "apellidos": "Apellidos",
+    "correoAyuda": "Te enviaremos un enlace para verificarlo antes de ingresar.",
+    "celular": "Celular (opcional)",
+    "celularAyuda": "Para avisarte cuando tu pedido esté listo.",
+    "contrasenaAyuda": "Mínimo 8 caracteres, una mayúscula y un número.",
+    "terminos": "Acepto los términos y la política de privacidad",
+    "creando": "Creando cuenta…",
+    "validacion": {
+      "nombres": "Escribe tus nombres",
+      "apellidos": "Escribe tus apellidos",
+      "celular": "Escribe un celular válido, por ejemplo 987 654 321",
+      "contrasena": "Usa al menos 8 caracteres, con una mayúscula y un número",
+      "terminos": "Acepta los términos para crear tu cuenta"
+    },
+    "errores": {
+      "duplicado": {
+        "titulo": "Ese correo ya tiene una cuenta",
+        "descripcion": "Inicia sesión o, si aún no la verificas, pide un enlace nuevo."
+      },
+      "datos": {
+        "titulo": "Revisa los datos",
+        "descripcion": "Algunos campos no son válidos."
+      },
+      "generico": {
+        "titulo": "No pudimos crear tu cuenta"
+      }
+    },
+    "pedirEnlace": "Pedir un enlace nuevo"
+  },
+  "revisaCorreo": {
+    "titulo": "Revisa tu correo",
+    "descripcion": "Enviamos un enlace de verificación a {{correo}}. Ábrelo para activar tu cuenta. Mientras tanto puedes seguir explorando productos.",
+    "noEnviado": {
+      "titulo": "Tu cuenta está creada, pero el correo no salió",
+      "descripcion": "Pide el enlace de nuevo en unos minutos."
+    },
+    "reenviado": "Te reenviamos el enlace. Si no lo ves, revisa la carpeta de spam.",
+    "yaVerifique": "Ya verifiqué · iniciar sesión",
+    "reenviar": "Reenviar enlace",
+    "reenviando": "Reenviando…",
+    "esperar": "Reenviar en {{segundos}} s",
+    "cambiarCorreo": "Cambiar correo",
+    "ayuda": "¿No llega? Revisa la carpeta de spam. El enlace es de un solo uso y vence en 24 horas.",
+    "seguirExplorando": "Seguir explorando"
+  },
+  "verificarCorreo": {
+    "titulo": "Verificación del correo",
+    "verificando": "Verificando tu correo…",
+    "exito": {
+      "titulo": "Correo verificado",
+      "descripcion": "Tu cuenta {{correo}} ya está activa. Ingresa con tu contraseña."
+    },
+    "usado": {
+      "titulo": "Este enlace ya se usó",
+      "descripcion": "Si ya verificaste tu correo, inicia sesión."
+    },
+    "vencido": {
+      "titulo": "El enlace venció",
+      "descripcion": "Escribe tu correo y te enviaremos uno nuevo."
+    },
+    "invalido": {
+      "titulo": "El enlace no es válido",
+      "descripcion": "Revisa que lo hayas copiado completo o pide uno nuevo con tu correo."
+    },
+    "pedirNuevo": "Enviar un enlace nuevo",
+    "enviando": "Enviando…",
+    "nuevoEnviado": "Si ese correo tiene una cuenta sin verificar, te enviamos un enlace nuevo."
   }
 }

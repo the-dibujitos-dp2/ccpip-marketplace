@@ -709,7 +709,12 @@
     "PUNTO_SIN_EXISTENCIAS": "This collection point no longer has stock for your whole cart. Choose another point.",
     "PEDIDO_NO_PAGABLE": "This order can no longer be paid.",
     "PAGO_EN_CURSO": "There's already a payment in progress for this order. Wait for its result before trying again.",
-    "CLAVE_REUTILIZADA": "This payment attempt belongs to another order."
+    "CLAVE_REUTILIZADA": "This payment attempt belongs to another order.",
+    "CORREO_YA_REGISTRADO": "An account with that email already exists. Log in or request a new verification link.",
+    "CONTRASENA_MUY_LARGA": "The password is too long.",
+    "ENLACE_INVALIDO": "The link is not valid. Check that you copied it completely.",
+    "ENLACE_USADO": "This link was already used. If you already verified your email, log in.",
+    "ENLACE_VENCIDO": "The link expired. Request a new one with your email."
   },
   "buscar": {
     "comunidad": "Community",
@@ -1006,5 +1011,78 @@
   "idioma": {
     "etiqueta": "Language: {{idioma}}. Change language",
     "menu": "Language"
+  },
+  "registro": {
+    "crearCuenta": "Create account",
+    "titulo": "Create your account",
+    "bajada": "Create your account to shop and track your orders.",
+    "nombres": "First names",
+    "apellidos": "Last names",
+    "correoAyuda": "We'll send you a link to verify it before you log in.",
+    "celular": "Mobile phone (optional)",
+    "celularAyuda": "So we can let you know when your order is ready.",
+    "contrasenaAyuda": "At least 8 characters, one uppercase letter and one number.",
+    "terminos": "I accept the terms and the privacy policy",
+    "creando": "Creating account…",
+    "validacion": {
+      "nombres": "Enter your first names",
+      "apellidos": "Enter your last names",
+      "celular": "Enter a valid mobile number, for example 987 654 321",
+      "contrasena": "Use at least 8 characters, with one uppercase letter and one number",
+      "terminos": "Accept the terms to create your account"
+    },
+    "errores": {
+      "duplicado": {
+        "titulo": "That email already has an account",
+        "descripcion": "Log in or, if you haven't verified it yet, request a new link."
+      },
+      "datos": {
+        "titulo": "Check your details",
+        "descripcion": "Some fields are not valid."
+      },
+      "generico": {
+        "titulo": "We couldn't create your account"
+      }
+    },
+    "pedirEnlace": "Request a new link"
+  },
+  "revisaCorreo": {
+    "titulo": "Check your email",
+    "descripcion": "We sent a verification link to {{correo}}. Open it to activate your account. Meanwhile, you can keep browsing products.",
+    "noEnviado": {
+      "titulo": "Your account was created, but the email didn't go out",
+      "descripcion": "Request the link again in a few minutes."
+    },
+    "reenviado": "We sent the link again. If you don't see it, check your spam folder.",
+    "yaVerifique": "I've verified · log in",
+    "reenviar": "Resend link",
+    "reenviando": "Resending…",
+    "esperar": "Resend in {{segundos}} s",
+    "cambiarCorreo": "Change email",
+    "ayuda": "Not arriving? Check your spam folder. The link works only once and expires in 24 hours.",
+    "seguirExplorando": "Keep browsing"
+  },
+  "verificarCorreo": {
+    "titulo": "Email verification",
+    "verificando": "Verifying your email…",
+    "exito": {
+      "titulo": "Email verified",
+      "descripcion": "Your account {{correo}} is now active. Log in with your password."
+    },
+    "usado": {
+      "titulo": "This link was already used",
+      "descripcion": "If you already verified your email, log in."
+    },
+    "vencido": {
+      "titulo": "The link expired",
+      "descripcion": "Enter your email and we'll send you a new one."
+    },
+    "invalido": {
+      "titulo": "The link is not valid",
+      "descripcion": "Check that you copied it completely or request a new one with your email."
+    },
+    "pedirNuevo": "Send a new link",
+    "enviando": "Sending…",
+    "nuevoEnviado": "If that email has an unverified account, we sent you a new link."
   }
 }
