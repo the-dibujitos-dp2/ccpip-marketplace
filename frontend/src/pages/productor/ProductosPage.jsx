@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import iconoBuscar from '../../assets/icons/buscar.svg'
 import iconoEditar from '../../assets/icons/editar.svg'
 import iconoInfo from '../../assets/icons/info-pequeno.svg'
@@ -14,36 +15,32 @@ import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
-import { precio } from '../../formato.js'
+import { precio, unidades } from '../../formato.js'
+import { mensajeError, traducirFaltante } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import PaginaProductor from './PaginaProductor.jsx'
 import './productor.css'
 import './ProductosPage.css'
 
-const unidades = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 3 })
-const MODALIDAD = { MINORISTA: 'Minorista', MAYORISTA: 'Mayorista', AMBAS: 'Minorista y mayorista' }
-const ESTADOS = [
-  { valor: 'PUBLICADO', etiqueta: 'Publicados' },
-  { valor: 'BORRADOR', etiqueta: 'Borradores' },
-  { valor: 'RETIRADO', etiqueta: 'Despublicados' },
-]
+const ESTADOS = ['PUBLICADO', 'BORRADOR', 'RETIRADO']
 
-function badge(fila) {
-  if (fila.estado === 'BORRADOR') return <Badge tono="neutro">Borrador</Badge>
-  if (fila.estado === 'RETIRADO') return <Badge tono="neutro">Despublicado</Badge>
-  if (fila.alerta === 'LOTE_POR_VENCER') return <Badge tono="aviso">Lote por vencer</Badge>
-  if (fila.alerta === 'SIN_STOCK') return <Badge tono="error">Sin stock en venta</Badge>
-  if (fila.alerta === 'STOCK_BAJO') return <Badge tono="error">Stock bajo</Badge>
-  return <Badge tono="exito">Publicado</Badge>
+function badge(fila, t) {
+  if (fila.estado === 'BORRADOR') return <Badge tono="neutro">{t('productor.productos.badge.borrador')}</Badge>
+  if (fila.estado === 'RETIRADO') return <Badge tono="neutro">{t('productor.productos.badge.despublicado')}</Badge>
+  if (fila.alerta === 'LOTE_POR_VENCER') return <Badge tono="aviso">{t('productor.productos.badge.porVencer')}</Badge>
+  if (fila.alerta === 'SIN_STOCK') return <Badge tono="error">{t('productor.productos.badge.sinStock')}</Badge>
+  if (fila.alerta === 'STOCK_BAJO') return <Badge tono="error">{t('productor.productos.badge.stockBajo')}</Badge>
+  return <Badge tono="exito">{t('productor.productos.badge.publicado')}</Badge>
 }
 
-function ubicaciones(stock) {
+function ubicaciones(stock, t) {
   if (!stock.length) return '—'
-  return stock.map((s) => `${s.tipo === 'ALMACEN_PRODUCTOR' ? 'Almacén' : s.ubicacion.replace(/^Centro (Nacional|Regional) /, '')} ${unidades.format(s.cantidad)}`).join(' · ')
+  return stock.map((s) => `${s.tipo === 'ALMACEN_PRODUCTOR' ? t('productor.productos.almacen') : s.ubicacion.replace(/^Centro (Nacional|Regional) /, '')} ${unidades(s.cantidad)}`).join(' · ')
 }
 
 /** PW-03: los productos del productor por estado (CCPIP-160). Solo ve los suyos (RNF-05). */
 export default function ProductosPage({ path, search }) {
+  const { t } = useTranslation()
   const inicial = new URLSearchParams(search)
   const [estado, setEstado] = useState(inicial.get('estado') ?? 'PUBLICADO')
   const [q, setQ] = useState(inicial.get('q') ?? '')
@@ -52,7 +49,7 @@ export default function ProductosPage({ path, search }) {
   const [menu, setMenu] = useState(null)
   const [confirmar, setConfirmar] = useState(null)
   const [ocupado, setOcupado] = useState(false)
-  const [aviso, setAviso] = useState(inicial.get('publicado') ? { tono: 'exito', titulo: 'Producto publicado', descripcion: 'Ya aparece en el catálogo y en tu tienda.' } : null)
+  const [aviso, setAviso] = useState(inicial.get('publicado') ? { tono: 'exito', titulo: t('productor.productos.publicado'), descripcion: t('productor.productos.publicadoTexto') } : null)
   const menuRef = useRef(null)
 
   function cargar(e = estado, termino = q) {
@@ -86,12 +83,12 @@ export default function ProductosPage({ path, search }) {
       else await publicarProducto(fila.id)
       setAviso(
         accion === 'retirar'
-          ? { tono: 'exito', titulo: 'Producto despublicado', descripcion: 'Ya no aparece en el catálogo. Puedes volver a publicarlo cuando quieras.' }
-          : { tono: 'exito', titulo: 'Producto publicado', descripcion: 'Ya aparece en el catálogo y en tu tienda.' },
+          ? { tono: 'exito', titulo: t('productor.productos.despublicado'), descripcion: t('productor.productos.despublicadoTexto') }
+          : { tono: 'exito', titulo: t('productor.productos.publicado'), descripcion: t('productor.productos.publicadoTexto') },
       )
       await cargar()
     } catch (e) {
-      setAviso({ tono: 'error', titulo: e.message ?? 'No se pudo cambiar el estado', descripcion: e.body?.detalles?.join(' · ') })
+      setAviso({ tono: 'error', titulo: mensajeError(e, 'productor.productos.errorEstado'), descripcion: e.body?.detalles?.map(traducirFaltante).join(' · ') })
     } finally {
       setOcupado(false)
       setConfirmar(null)
@@ -101,39 +98,39 @@ export default function ProductosPage({ path, search }) {
   const conteo = datos?.conteo ?? {}
 
   return (
-    <PaginaProductor path={path} seccion="Productos" titulo="Mis productos">
+    <PaginaProductor path={path} seccion={t('productor.nav.productos')} titulo={t('productor.productos.titulo')}>
       <div className="productos__barra">
         <label className="productos__buscador">
           <Icono src={iconoBuscar} tamano={20} />
-          <span className="visually-hidden">Buscar producto</span>
-          <input type="search" placeholder="Buscar producto…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <span className="visually-hidden">{t('productor.productos.buscar')}</span>
+          <input type="search" placeholder={t('productor.productos.buscarPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} />
         </label>
         <Boton tamano="M" icono={iconoMas} to={RUTAS.productorNuevo}>
-          Publicar producto
+          {t('productor.panel.publicarProducto')}
         </Boton>
       </div>
 
       <Pestanas
-        etiqueta="Estado de los productos"
+        etiqueta={t('productor.productos.estadoEtiqueta')}
         valor={estado}
         onCambiar={(v) => {
           setEstado(v)
           setMenu(null)
         }}
-        opciones={ESTADOS.map((e) => ({ valor: e.valor, etiqueta: `${e.etiqueta} (${conteo[e.valor] ?? 0})` }))}
+        opciones={ESTADOS.map((e) => ({ valor: e, etiqueta: t(`productor.productos.pestana.${e}`, { total: conteo[e] ?? 0 }) }))}
       />
 
       {aviso && <Alerta {...aviso} onCerrar={() => setAviso(null)} />}
-      {error && <Alerta tono="error" titulo="No pudimos cargar tus productos" descripcion="Revisa tu conexión e inténtalo otra vez." />}
+      {error && <Alerta tono="error" titulo={t('productor.productos.error')} descripcion={t('comun.errorConexion')} />}
 
       {datos?.items.length === 0 && (
         <EstadoVacio
-          titulo={q ? `No encontramos “${q}”` : estado === 'PUBLICADO' ? 'Aún no tienes productos publicados' : estado === 'BORRADOR' ? 'No tienes borradores' : 'No tienes productos despublicados'}
-          descripcion={estado === 'PUBLICADO' && !q ? 'Publica tu primer producto y cuéntale al comprador la historia de tu comunidad.' : undefined}
+          titulo={q ? t('productor.productos.noEncontramos', { q }) : t(`productor.productos.vacio.${estado}`)}
+          descripcion={estado === 'PUBLICADO' && !q ? t('productor.panel.sinProductosTexto') : undefined}
         >
           {estado === 'PUBLICADO' && !q && (
             <Boton tamano="M" icono={iconoMas} to={RUTAS.productorNuevo}>
-              Publicar producto
+              {t('productor.panel.publicarProducto')}
             </Boton>
           )}
         </EstadoVacio>
@@ -142,15 +139,15 @@ export default function ProductosPage({ path, search }) {
       {datos?.items.length > 0 && (
         <div className="tabla" ref={menuRef}>
           <div className="tabla__fila tabla__fila--encabezado" aria-hidden="true">
-            <span className="tabla__celda tabla__celda--flex">Producto</span>
-            <span className="tabla__celda productos__col-precio">Precio</span>
-            <span className="tabla__celda productos__col-venta">En venta (acopios)</span>
-            <span className="tabla__celda productos__col-modalidad">Modalidad</span>
-            <span className="tabla__celda productos__col-ubicacion">Ubicación del stock</span>
-            <span className="tabla__celda productos__col-estado">Estado</span>
+            <span className="tabla__celda tabla__celda--flex">{t('productor.tabla.producto')}</span>
+            <span className="tabla__celda productos__col-precio">{t('productor.productos.col.precio')}</span>
+            <span className="tabla__celda productos__col-venta">{t('productor.productos.col.enVenta')}</span>
+            <span className="tabla__celda productos__col-modalidad">{t('productor.productos.col.modalidad')}</span>
+            <span className="tabla__celda productos__col-ubicacion">{t('productor.productos.col.ubicacion')}</span>
+            <span className="tabla__celda productos__col-estado">{t('productor.lote.tabla.estado')}</span>
             <span className="tabla__celda productos__col-acciones" />
           </div>
-          <ul className="productos__lista" aria-label="Productos">
+          <ul className="productos__lista" aria-label={t('productor.nav.productos')}>
             {datos.items.map((f) => (
               <li key={f.id} className="tabla__fila">
                 <span className="tabla__celda tabla__celda--flex tabla__producto">
@@ -158,30 +155,30 @@ export default function ProductosPage({ path, search }) {
                   <span className="label-m">{f.nombre}</span>
                 </span>
                 <span className="tabla__celda productos__col-precio">{f.precio != null ? precio(f.precio) : f.precioMayorista != null ? precio(f.precioMayorista) : '—'}</span>
-                <span className="tabla__celda productos__col-venta">{unidades.format(f.enVenta)} und</span>
-                <span className="tabla__celda productos__col-modalidad">{MODALIDAD[f.modalidad]}</span>
-                <span className="tabla__celda productos__col-ubicacion">{ubicaciones(f.stock)}</span>
-                <span className="tabla__celda productos__col-estado">{badge(f)}</span>
+                <span className="tabla__celda productos__col-venta">{t('comun.und', { cantidad: unidades(f.enVenta) })}</span>
+                <span className="tabla__celda productos__col-modalidad">{t(`modalidad.${f.modalidad}`)}</span>
+                <span className="tabla__celda productos__col-ubicacion">{ubicaciones(f.stock, t)}</span>
+                <span className="tabla__celda productos__col-estado">{badge(f, t)}</span>
                 <span className="tabla__celda productos__col-acciones">
-                  <Enlace to={`${RUTAS.productorProductos}/${f.id}`} className="productos__icono-boton" aria-label={`Editar ${f.nombre}`}>
+                  <Enlace to={`${RUTAS.productorProductos}/${f.id}`} className="productos__icono-boton" aria-label={t('productor.productos.editar', { nombre: f.nombre })}>
                     <Icono src={iconoEditar} tamano={18} />
                   </Enlace>
                   <span className="productos__menu">
-                    <button type="button" className="productos__icono-boton" aria-label={`Más acciones para ${f.nombre}`} aria-haspopup="menu" aria-expanded={menu === f.id} onClick={() => setMenu(menu === f.id ? null : f.id)}>
+                    <button type="button" className="productos__icono-boton" aria-label={t('productor.productos.masAcciones', { nombre: f.nombre })} aria-haspopup="menu" aria-expanded={menu === f.id} onClick={() => setMenu(menu === f.id ? null : f.id)}>
                       <Icono src={iconoMasVertical} tamano={18} />
                     </button>
                     {menu === f.id && (
                       <span className="productos__menu-lista" role="menu">
-                        <Enlace role="menuitem" to={`${RUTAS.productorLotes}?producto=${f.id}`}>Registrar lote</Enlace>
+                        <Enlace role="menuitem" to={`${RUTAS.productorLotes}?producto=${f.id}`}>{t('productor.panel.registrarLote')}</Enlace>
                         {f.estado === 'PUBLICADO' && (
                           <>
-                            <Enlace role="menuitem" to={`/productos/${f.id}`}>Ver en la tienda</Enlace>
-                            <button type="button" role="menuitem" onClick={() => { setMenu(null); setConfirmar(f) }}>Despublicar</button>
+                            <Enlace role="menuitem" to={`/productos/${f.id}`}>{t('productor.productos.verEnTienda')}</Enlace>
+                            <button type="button" role="menuitem" onClick={() => { setMenu(null); setConfirmar(f) }}>{t('productor.productos.despublicar')}</button>
                           </>
                         )}
                         {f.estado !== 'PUBLICADO' && (
                           <button type="button" role="menuitem" onClick={() => { setMenu(null); void cambiarEstado(f, 'publicar') }}>
-                            {f.estado === 'RETIRADO' ? 'Volver a publicar' : 'Publicar'}
+                            {f.estado === 'RETIRADO' ? t('productor.productos.volverPublicar') : t('productor.productos.publicar')}
                           </button>
                         )}
                       </span>
@@ -196,21 +193,20 @@ export default function ProductosPage({ path, search }) {
 
       <p className="productor__nota">
         <Icono src={iconoInfo} tamano={16} />
-        Solo ves tus propios productos. “En venta” es el stock en puntos de acopio; lo que está en tu almacén se vende después de transferirlo.
+        {t('productor.productos.nota')}
       </p>
 
       <Dialogo
         abierto={confirmar !== null}
-        titulo="¿Despublicar este producto?"
-        confirmar="Despublicar"
+        titulo={t('productor.productos.confirmarTitulo')}
+        confirmar={t('productor.productos.despublicar')}
         tipoConfirmar="destructivo"
         ocupado={ocupado}
         onCancelar={() => setConfirmar(null)}
         onConfirmar={() => cambiarEstado(confirmar, 'retirar')}
       >
         <p>
-          <strong>{confirmar?.nombre}</strong> dejará de aparecer en el catálogo y en tu tienda. No se borra: sigue en los
-          pedidos y en el historial, y puedes volver a publicarlo cuando quieras.
+          <strong>{confirmar?.nombre}</strong> {t('productor.productos.confirmarTexto')}
         </p>
       </Dialogo>
     </PaginaProductor>

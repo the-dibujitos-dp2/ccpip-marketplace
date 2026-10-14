@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import Boton from './Boton.jsx'
 import './Dialogo.css'
 
 /** Modal de confirmacion (Figma 36:484). Accesible: <dialog> nativo, Escape cierra y el foco queda dentro. */
-export default function Dialogo({ abierto, titulo, children, confirmar = 'Confirmar', tipoConfirmar = 'primario', onConfirmar, onCancelar, ocupado }) {
+export default function Dialogo({ abierto, titulo, children, confirmar, tipoConfirmar = 'primario', onConfirmar, onCancelar, ocupado }) {
+  const { t } = useTranslation()
   const ref = useRef(null)
   useEffect(() => {
     const d = ref.current
@@ -25,10 +27,10 @@ export default function Dialogo({ abierto, titulo, children, confirmar = 'Confir
           <div className="body-s">{children}</div>
           <div className="dialogo__acciones">
             <Boton tipo="terciario" tamano="M" onClick={onCancelar} disabled={ocupado}>
-              Cancelar
+              {t('comun.cancelar')}
             </Boton>
             <Boton tipo={tipoConfirmar} tamano="M" onClick={onConfirmar} disabled={ocupado}>
-              {confirmar}
+              {confirmar ?? t('comun.confirmar')}
             </Boton>
           </div>
         </div>
