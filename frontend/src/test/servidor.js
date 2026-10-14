@@ -40,14 +40,15 @@ export const EXPIRADA = [401, { code: 'SESION_EXPIRADA' }]
 
 /**
  * Simula el backend. `rutas` mapea "METODO /ruta" a [status, cuerpo], a una funcion que lo
- * devuelve (puede ser asincrona, para simular una respuesta lenta), o a un Error para simular una falla de red.
+ * devuelve (recibe las opciones y la URL; puede ser asincrona, para simular una respuesta lenta), o a un
+ * Error para simular una falla de red.
  */
 export function servidor(rutas) {
   const fetchMock = vi.fn(async (url, opciones = {}) => {
     const clave = `${opciones.method || 'GET'} ${url}`
     // Si no hay una ruta exacta, vale la misma ruta sin query string
     let respuesta = rutas[clave] ?? rutas[clave.split('?')[0]]
-    if (typeof respuesta === 'function') respuesta = await respuesta(opciones)
+    if (typeof respuesta === 'function') respuesta = await respuesta(opciones, url)
     if (respuesta instanceof Error) throw respuesta
     if (!respuesta) throw new Error(`Ruta no simulada: ${clave}`)
     const [status, cuerpo] = respuesta
