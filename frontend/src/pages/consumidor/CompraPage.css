@@ -1,0 +1,66 @@
+/* CW-05 · Entrega y pago (CCPIP-157, CCPIP-62). Misma grilla y resumen que el carrito. */
+.compra { padding-top: 32px; padding-bottom: 64px; }
+.compra__titulo { margin: 24px 0; font-family: var(--font-display); font-weight: 600; font-size: 36px; line-height: 44px; }
+
+.compra__cuerpo { display: grid; grid-template-columns: minmax(0, 1fr) 400px; align-items: start; gap: 32px; }
+.compra__secciones { display: flex; flex-direction: column; gap: 16px; }
+
+.compra__seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-surface);
+}
+.compra__seccion-titulo { margin: 0; font-weight: 600; font-size: 20px; line-height: 28px; }
+.compra__ayuda { margin: -8px 0 0; color: var(--color-text-secondary); }
+
+/* Cada punto de acopio es una tarjeta con su direccion debajo del nombre */
+.compra__seccion .opcion-tarjeta { min-height: 72px; padding-top: 12px; padding-bottom: 12px; }
+.compra__punto { display: flex; flex-direction: column; gap: 2px; }
+.compra__punto-direccion { font-weight: 400; font-size: 13px; line-height: 18px; color: var(--color-text-secondary); }
+
+.compra__check { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; cursor: pointer; }
+.compra__check input { width: 20px; height: 20px; margin: 0; accent-color: var(--color-bg-brand); }
+
+.compra__seguro { display: flex; align-items: center; gap: 6px; margin: -8px 0 0; font-size: 14px; color: var(--color-text-secondary); }
+.compra__fila { display: grid; grid-template-columns: 1fr 1fr 120px; gap: 16px; }
+
+.compra__resumen {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-surface);
+}
+.compra__resumen-titulo { margin: 0; font-weight: 600; font-size: 20px; line-height: 28px; }
+
+.compra__lineas { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.compra__lineas li { display: flex; justify-content: space-between; gap: 16px; }
+.compra__cantidad { color: var(--color-text-secondary); white-space: nowrap; }
+
+.compra__cifras { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 16px 0; border-top: 1px solid var(--color-border-default); border-bottom: 1px solid var(--color-border-default); }
+.compra__cifras div { display: flex; justify-content: space-between; gap: 16px; }
+.compra__cifras dt { color: var(--color-text-secondary); }
+.compra__cifras dd { margin: 0; text-align: right; }
+
+.compra__total { display: flex; align-items: baseline; justify-content: space-between; margin: 0; font-weight: 600; font-size: 18px; }
+.compra__total strong { font-family: var(--font-display); font-size: 32px; line-height: 40px; }
+.compra__nota { margin: -8px 0 0; color: var(--color-text-secondary); text-align: center; }
+
+@media (max-width: 960px) {
+  .compra__cuerpo { grid-template-columns: minmax(0, 1fr); }
+  .compra__resumen { position: static; }
+}
+
+@media (max-width: 600px) {
+  .compra__titulo { font-size: 28px; line-height: 36px; }
+  .compra__seccion { padding: 16px; }
+  .compra__fila { grid-template-columns: 1fr 1fr; }
+}

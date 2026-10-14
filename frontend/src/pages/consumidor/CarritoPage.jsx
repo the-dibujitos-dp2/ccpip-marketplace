@@ -165,6 +165,19 @@ function Contenido({ carrito, onCambiarCantidad, onQuitar }) {
           <span>Total</span>
           <strong>{precio(carrito.total)}</strong>
         </p>
+        {/* CCPIP-157: para confirmar, todo el carrito debe poder comprarse (el servidor lo vuelve a revisar) */}
+        {comprables.length > 0 && !conProblemas ? (
+          <Boton tipo="acento" anchoCompleto to={RUTAS.compra}>
+            Continuar con la entrega y pago
+          </Boton>
+        ) : (
+          <>
+            <Boton tipo="acento" anchoCompleto disabled>
+              Continuar con la entrega y pago
+            </Boton>
+            <p className="caption carrito__bloqueo">Ajusta o quita los productos marcados para continuar.</p>
+          </>
+        )}
         <div className="carrito__nota">
           <p className="carrito__nota-titulo">
             <Icono src={iconoReloj} tamano={16} />
