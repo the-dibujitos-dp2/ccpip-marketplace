@@ -9,6 +9,7 @@ import Campo from '../../components/Campo.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Logotipo from '../../components/Logotipo.jsx'
+import SelectorIdioma from '../../components/SelectorIdioma.jsx'
 import { localeFechas } from '../../i18n/index.js'
 import { RUTAS } from '../../router.js'
 import './IngresarPage.css'
@@ -95,6 +96,7 @@ export default function IngresarPage({ aviso, onCerrarAviso, onIngreso }) {
       </aside>
 
       <main className="ingresar__formulario-zona">
+        <SelectorIdioma className="ingresar__idioma" />
         <section className="ingresar__tarjeta" aria-labelledby="titulo-ingresar">
           <div className="pestanas" role="tablist" aria-label={t('ingresar.acceso')}>
             <span className="pestanas__item pestanas__item--activa" role="tab" aria-selected="true">

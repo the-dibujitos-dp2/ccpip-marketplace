@@ -1002,5 +1002,9 @@
       "ANULADO": "Refunded"
     },
     "seguirComprando": "Continue shopping"
+  },
+  "idioma": {
+    "etiqueta": "Language: {{idioma}}. Change language",
+    "menu": "Language"
   }
 }

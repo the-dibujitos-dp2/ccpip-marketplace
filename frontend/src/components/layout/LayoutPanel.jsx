@@ -5,6 +5,7 @@ import Avatar from '../Avatar.jsx'
 import Enlace from '../Enlace.jsx'
 import Icono from '../Icono.jsx'
 import Logotipo from '../Logotipo.jsx'
+import SelectorIdioma from '../SelectorIdioma.jsx'
 import './LayoutProductor.css'
 
 /**
@@ -57,6 +58,7 @@ export default function LayoutPanel({ path, rol, nav, user, subtitulo, migas, ti
             <h1 className="heading-h2">{titulo}</h1>
           </div>
           {barra}
+          <SelectorIdioma />
         </header>
         <main className="layout-productor__contenido">{children}</main>
       </div>
