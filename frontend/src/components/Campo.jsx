@@ -1,4 +1,5 @@
 import { useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import iconoAlerta from '../assets/icons/alerta-campo.svg'
 import iconoChevron from '../assets/icons/chevron-abajo.svg'
 import iconoOjo from '../assets/icons/ojo.svg'
@@ -12,6 +13,7 @@ import './Campo.css'
  * contrasena: campo oculto con un boton de ojo para mostrar u ocultar lo escrito.
  */
 export default function Campo({ etiqueta, ayuda, error, tipo = 'texto', opciones = [], placeholder, className = '', id: idPropio, ...props }) {
+  const { t } = useTranslation()
   const generado = useId()
   const [visible, setVisible] = useState(false)
   const id = idPropio ?? generado
@@ -33,7 +35,7 @@ export default function Campo({ etiqueta, ayuda, error, tipo = 'texto', opciones
       {tipo === 'selector' && (
         <div className="campo__selector">
           <select {...control}>
-            <option value="">{placeholder ?? 'Elige una opción'}</option>
+            <option value="">{placeholder ?? t('campo.elegir')}</option>
             {opciones.map((o) => (
               <option key={o.valor} value={o.valor}>
                 {o.etiqueta}
@@ -51,7 +53,7 @@ export default function Campo({ etiqueta, ayuda, error, tipo = 'texto', opciones
             type="button"
             className="campo__accion"
             onClick={() => setVisible((v) => !v)}
-            aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            aria-label={visible ? t('campo.ocultarContrasena') : t('campo.mostrarContrasena')}
             aria-pressed={visible}
             aria-controls={id}
           >

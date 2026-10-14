@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import iconoCaja from '../../assets/icons/caja.svg'
 import iconoMovimientos from '../../assets/icons/movimientos.svg'
 import { RUTAS } from '../../router.js'
@@ -9,18 +10,20 @@ import LayoutPanel from './LayoutPanel.jsx'
  * llegan con sus historias. Mientras tanto, su inicio sigue siendo /inicio.
  */
 const NAV = [
-  { to: RUTAS.acopioPedidos, texto: 'Pedidos', icono: iconoCaja, activo: (p) => p.startsWith(RUTAS.acopioPedidos) },
-  { to: RUTAS.acopioMovimientos, texto: 'Movimientos', icono: iconoMovimientos, activo: (p) => p.startsWith(RUTAS.acopioMovimientos) },
+  { to: RUTAS.acopioPedidos, clave: 'pedidos', icono: iconoCaja, activo: (p) => p.startsWith(RUTAS.acopioPedidos) },
+  { to: RUTAS.acopioMovimientos, clave: 'movimientos', icono: iconoMovimientos, activo: (p) => p.startsWith(RUTAS.acopioMovimientos) },
 ]
 
 /** Estructura web del administrador de punto de acopio (Figma A-01 a A-08). */
 export default function LayoutAcopio({ path, punto, titulo, children }) {
+  const { t } = useTranslation()
   const { user, cerrarSesion, cerrando } = useSesion()
+  const nav = NAV.map((n) => ({ ...n, texto: t(`acopio.nav.${n.clave}`) }))
   return (
     <LayoutPanel
       path={path}
-      rol="Punto de acopio"
-      nav={NAV}
+      rol={t('acopio.rol')}
+      nav={nav}
       user={user}
       subtitulo={punto}
       migas={punto ? `${punto} / ${titulo}` : titulo}
