@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import iconoInfo from "../assets/icons/info.svg";
 import iconoExito from "../assets/icons/check-circulo.svg";
 import iconoAviso from "../assets/icons/alerta-aviso.svg";
@@ -9,6 +10,7 @@ const ICONOS = { info: iconoInfo, exito: iconoExito, aviso: iconoAviso, error: i
 
 /** Alerta persistente dentro del contenido. tono: info | exito | aviso | error */
 export default function Alerta({ tono = "info", titulo, descripcion, onCerrar }) {
+  const { t } = useTranslation()
   const urgente = tono === "error" || tono === "aviso";
   return (
     <div className={`alerta alerta--${tono}`} role={urgente ? "alert" : "status"}>
@@ -18,7 +20,7 @@ export default function Alerta({ tono = "info", titulo, descripcion, onCerrar })
         {descripcion && <p className="alerta__descripcion">{descripcion}</p>}
       </div>
       {onCerrar && (
-        <button type="button" className="alerta__cerrar" onClick={onCerrar} aria-label="Cerrar aviso">
+        <button type="button" className="alerta__cerrar" onClick={onCerrar} aria-label={t('comun.cerrarAviso')}>
           <img src={iconoCerrar} width="18" height="18" alt="" />
         </button>
       )}
