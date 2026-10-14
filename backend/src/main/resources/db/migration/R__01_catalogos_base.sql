@@ -3,7 +3,7 @@
 --
 -- Va en db/migration y corre en TODOS los ambientes: sin roles, catalogos y puntos
 -- de acopio la aplicacion no funciona. Los datos de demostracion (R__02) van en
--- db/seed y solo se cargan en desarrollo.
+-- db/seed, que hoy tambien corre en todos los ambientes (ver application.properties).
 
 INSERT INTO rol (id, codigo, nombre) VALUES
     (1, 'CONSUMIDOR',        'Consumidor final'),

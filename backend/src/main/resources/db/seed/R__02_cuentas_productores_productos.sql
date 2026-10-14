@@ -67,25 +67,6 @@ WHERE NOT EXISTS (
     SELECT 1 FROM producto x WHERE x.productor_id = p.id AND x.nombre = d.nombre
 );
 
--- Stock inicial en el centro nacional, con su movimiento de entrada.
--- Se insertan los dos juntos para que el stock quede explicado por un movimiento
--- desde el primer dia, que es lo que exige RNF-15.
-INSERT INTO movimiento_inventario (producto_id, ubicacion_id, tipo, cantidad, observacion)
-SELECT pr.id, l.id, 'ENTRADA', 100, 'Carga inicial de demostracion'
-FROM producto pr, ubicacion l
-WHERE l.nombre = 'Centro Nacional Lima'
-  AND NOT EXISTS (
-    SELECT 1 FROM movimiento_inventario mv
-    WHERE mv.producto_id = pr.id AND mv.ubicacion_id = l.id
-      AND mv.observacion = 'Carga inicial de demostracion'
-  );
-
-INSERT INTO stock (producto_id, ubicacion_id, cantidad)
-SELECT pr.id, l.id, 100
-FROM producto pr, ubicacion l
-WHERE l.nombre = 'Centro Nacional Lima'
-ON CONFLICT (producto_id, ubicacion_id) DO NOTHING;
-
 -- ---------------------------------------------------------------------------------------
 -- Tienda, almacen, lotes, lineas e historia (CCPIP-30, CCPIP-41, CCPIP-45, CCPIP-49).
 -- Agregado con el flujo del productor. Todo es idempotente y nunca pisa lo que el
@@ -133,25 +114,64 @@ INSERT INTO producto_linea (producto_id, linea_id)
 SELECT id, linea_id FROM producto WHERE linea_id IS NOT NULL
 ON CONFLICT DO NOTHING;
 
--- La historia sembrada cuenta como escrita y aprobada por la comunidad (CCPIP-49)
+-- La historia sembrada cuenta como escrita y aprobada por la comunidad (CCPIP-49).
+-- Solo la de los productos sembrados: la de un producto creado en la plataforma la
+-- aprueba la comunidad, no esta semilla.
 INSERT INTO producto_historia (producto_id, texto_final, aprobada_en)
-SELECT id, historia_origen, now() FROM producto
-WHERE historia_origen IS NOT NULL AND btrim(historia_origen) <> ''
+SELECT pr.id, pr.historia_origen, now() FROM producto pr
+WHERE pr.historia_origen IS NOT NULL AND btrim(pr.historia_origen) <> ''
+  AND pr.nombre IN (
+        'Aceite de ungurahui 250 ml', 'Aceite de aguaje 250 ml', 'Camu camu en polvo 150 g',
+        'Textil bordado shipibo', 'Cacao en grano fermentado 1 kg', 'Pasta de cacao 500 g',
+        'Infusion de guayusa 80 g', 'Cafe tostado en grano 500 g', 'Cafe molido 250 g',
+        'Canasta tejida de tamshi')
 ON CONFLICT (producto_id) DO NOTHING;
 
--- Un lote vigente por producto sembrado, que explica el stock de demostracion (RNF-15).
+-- Existencias iniciales (CCPIP-361, RNF-15): por cada producto sembrado, un lote en el
+-- centro nacional, su movimiento de ENTRADA ligado a ese lote y la fila de stock. Va en un
+-- solo comando para que los tres queden juntos o ninguno.
+--
+-- Solo los diez productos sembrados arriba: un producto creado desde la plataforma nunca
+-- recibe existencias de demostracion. Y solo si el producto aun no tiene su carga inicial,
+-- asi que volver a correr no duplica nada (RNF-28) ni pisa lo que el inventario ya movio.
 -- Las artesanias no vencen (la linea lo decide).
-INSERT INTO lote (producto_id, ubicacion_id, codigo, cantidad_inicial, cantidad_actual,
-                  fecha_produccion, fecha_vencimiento, registrado_en)
-SELECT s.producto_id, s.ubicacion_id, 'L-' || lpad(s.producto_id::text, 4, '0'), s.cantidad, s.cantidad,
-       current_date - 30,
-       CASE WHEN l.requiere_vencimiento THEN current_date + 365 END,
-       now()
-FROM stock s
-JOIN producto pr ON pr.id = s.producto_id
-JOIN linea_producto l ON l.id = pr.linea_id
-WHERE s.cantidad > 0
-  AND NOT EXISTS (SELECT 1 FROM lote x WHERE x.producto_id = s.producto_id);
+WITH sembrado AS (
+    SELECT pr.id AS producto_id, acopio.id AS ubicacion_id, li.requiere_vencimiento
+    FROM producto pr
+    JOIN productor p ON p.id = pr.productor_id
+    JOIN usuario u ON u.id = p.usuario_id
+    JOIN linea_producto li ON li.id = pr.linea_id
+    JOIN ubicacion acopio ON acopio.nombre = 'Centro Nacional Lima' AND acopio.tipo = 'PUNTO_ACOPIO'
+    WHERE u.correo IN ('productor@ccpip.test', 'productor2@ccpip.test', 'productor3@ccpip.test')
+      AND pr.nombre IN (
+        'Aceite de ungurahui 250 ml', 'Aceite de aguaje 250 ml', 'Camu camu en polvo 150 g',
+        'Textil bordado shipibo', 'Cacao en grano fermentado 1 kg', 'Pasta de cacao 500 g',
+        'Infusion de guayusa 80 g', 'Cafe tostado en grano 500 g', 'Cafe molido 250 g',
+        'Canasta tejida de tamshi')
+      AND NOT EXISTS (
+        SELECT 1 FROM movimiento_inventario mv
+        WHERE mv.producto_id = pr.id AND mv.observacion = 'Carga inicial de demostracion')
+),
+nuevo_lote AS (
+    INSERT INTO lote (producto_id, ubicacion_id, codigo, cantidad_inicial, cantidad_actual,
+                      fecha_produccion, fecha_vencimiento, registrado_en)
+    SELECT producto_id, ubicacion_id, 'L-' || lpad(producto_id::text, 4, '0'), 100, 100,
+           current_date - 30,
+           CASE WHEN requiere_vencimiento THEN current_date + 365 END,
+           now()
+    FROM sembrado
+    ON CONFLICT (producto_id, codigo) DO NOTHING
+    RETURNING id, producto_id, ubicacion_id, cantidad_inicial
+),
+entrada AS (
+    INSERT INTO movimiento_inventario (producto_id, ubicacion_id, lote_id, tipo, cantidad, observacion)
+    SELECT producto_id, ubicacion_id, id, 'ENTRADA', cantidad_inicial, 'Carga inicial de demostracion'
+    FROM nuevo_lote
+    RETURNING producto_id, ubicacion_id, cantidad
+)
+INSERT INTO stock (producto_id, ubicacion_id, cantidad)
+SELECT producto_id, ubicacion_id, cantidad FROM entrada
+ON CONFLICT (producto_id, ubicacion_id) DO NOTHING;
 
 -- ---------------------------------------------------------------------------------------
 -- Cuenta bancaria y autorizaciones (CCPIP-269, RF-142): solo se compra lo autorizado a un
@@ -177,4 +197,11 @@ FROM producto pr
 JOIN productor p ON p.id = pr.productor_id
 JOIN usuario u ON u.id = p.usuario_id
 WHERE u.correo IN ('productor@ccpip.test', 'productor2@ccpip.test', 'productor3@ccpip.test')
+  -- Solo los sembrados: lo que un productor publique desde la plataforma pasa por la
+  -- revision de la camara, aunque esta semilla vuelva a correr.
+  AND pr.nombre IN (
+        'Aceite de ungurahui 250 ml', 'Aceite de aguaje 250 ml', 'Camu camu en polvo 150 g',
+        'Textil bordado shipibo', 'Cacao en grano fermentado 1 kg', 'Pasta de cacao 500 g',
+        'Infusion de guayusa 80 g', 'Cafe tostado en grano 500 g', 'Cafe molido 250 g',
+        'Canasta tejida de tamshi')
 ON CONFLICT (productor_id, producto_id) DO NOTHING;

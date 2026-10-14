@@ -377,7 +377,12 @@ contenido. Eso es exactamente lo que queremos para datos sembrados idempotentes.
   (clave publica `Demo1234!`, ver docs/devsecops.md), productores y productos. Corre en
   todos los ambientes porque las revisiones de sprint y la prueba de humo del despliegue
   usan esas cuentas. Para un ambiente sin demo basta quitar `db/seed` de
-  `spring.flyway.locations`. El
+  `spring.flyway.locations`.
+  Las existencias iniciales entran como lote, movimiento de ENTRADA ligado a ese lote y
+  stock, en un solo comando (CCPIP-361). La autorizacion, la historia aprobada y las
+  existencias solo se siembran para los diez productos de la semilla: un producto creado
+  desde la plataforma no las recibe aunque la semilla vuelva a correr. Lo verifica
+  `SemillasTest`. El
 numero en `R__01_` y `R__02_` fija el orden, porque las repetibles corren en orden
 alfabetico y la segunda depende de la primera.
 
