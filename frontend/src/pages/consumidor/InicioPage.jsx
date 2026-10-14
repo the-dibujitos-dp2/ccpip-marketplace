@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import iconoArbol from '../../assets/icons/arbol.svg'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoEscudo from '../../assets/icons/sello-completo.svg'
@@ -16,14 +17,15 @@ import { RUTAS } from '../../router.js'
 import './InicioPage.css'
 
 const VALORES = [
-  { icono: iconoArbol, titulo: 'Cero deforestación', texto: 'Productos que no vienen de áreas taladas.' },
-  { icono: iconoSinQuimicos, titulo: 'Cero pesticidas', texto: 'Sin agroquímicos en cultivo ni transformación.' },
-  { icono: iconoComunidad, titulo: 'Hecho por comunidades', texto: 'Elaborado por pueblos indígenas asociados.' },
-  { icono: iconoEscudo, titulo: 'Verificado por la Cámara', texto: 'Muestra física y certificados revisados.' },
+  { icono: iconoArbol, clave: 'deforestacion' },
+  { icono: iconoSinQuimicos, clave: 'pesticidas' },
+  { icono: iconoComunidad, clave: 'comunidades' },
+  { icono: iconoEscudo, clave: 'verificado' },
 ]
 
 /** CW-01: inicio de la tienda web. */
 export default function InicioPage() {
+  const { t } = useTranslation()
   const [datos, setDatos] = useState(null)
   const [error, setError] = useState(false)
   const [pestana, setPestana] = useState('destacados')
@@ -39,18 +41,15 @@ export default function InicioPage() {
       <main className="inicio-tienda contenedor">
         <section className="hero" aria-labelledby="titulo-hero">
           <div className="hero__texto">
-            <p className="overline hero__overline">Hecho por pueblos indígenas del Perú</p>
-            <h1 id="titulo-hero" className="hero__titulo">Productos con historia, directo de la Amazonía</h1>
-            <p className="hero__descripcion">
-              Cacao, café, superfrutos, aceites y artesanías elaborados por comunidades que conservan el bosque. Cada
-              compra llega a quienes lo hacen, con el respaldo de la Cámara.
-            </p>
+            <p className="overline hero__overline">{t('inicio.hero.overline')}</p>
+            <h1 id="titulo-hero" className="hero__titulo">{t('inicio.hero.titulo')}</h1>
+            <p className="hero__descripcion">{t('inicio.hero.descripcion')}</p>
             <div className="hero__acciones">
               <Boton tipo="acento" to={RUTAS.buscar}>
-                Explorar productos
+                {t('inicio.hero.explorar')}
               </Boton>
               <Boton tipo="secundario" to={RUTAS.comunidades}>
-                Conocer a las comunidades
+                {t('inicio.hero.conocer')}
               </Boton>
             </div>
           </div>
@@ -61,27 +60,27 @@ export default function InicioPage() {
           </div>
         </section>
 
-        <ul className="valores" aria-label="Lo que garantiza cada producto">
+        <ul className="valores" aria-label={t('inicio.valores.etiqueta')}>
           {VALORES.map((v) => (
-            <li key={v.titulo} className="valor">
+            <li key={v.clave} className="valor">
               <span className="valor__icono">
                 <img src={v.icono} width="20" height="20" alt="" />
               </span>
               <span>
-                <span className="label-m">{v.titulo}</span>
-                <span className="caption valor__texto">{v.texto}</span>
+                <span className="label-m">{t(`inicio.valores.${v.clave}.titulo`)}</span>
+                <span className="caption valor__texto">{t(`inicio.valores.${v.clave}.texto`)}</span>
               </span>
             </li>
           ))}
         </ul>
 
-        {error && <Alerta tono="error" titulo="No pudimos cargar el inicio" descripcion="Revisa tu conexión e inténtalo otra vez." />}
+        {error && <Alerta tono="error" titulo={t('inicio.error')} descripcion={t('comun.errorConexion')} />}
 
         {datos?.tiendas.length > 0 && (
           <section className="seccion" aria-labelledby="titulo-comunidades">
             <div className="seccion__encabezado">
-              <h2 id="titulo-comunidades" className="seccion__titulo">Conoce a quienes lo hacen</h2>
-              <Enlace to={RUTAS.comunidades} className="enlace-marca">Ver todas</Enlace>
+              <h2 id="titulo-comunidades" className="seccion__titulo">{t('inicio.comunidades')}</h2>
+              <Enlace to={RUTAS.comunidades} className="enlace-marca">{t('comun.verTodas')}</Enlace>
             </div>
             <div className="inicio-tienda__tiendas">
               {datos.tiendas.map((t) => (
@@ -94,8 +93,8 @@ export default function InicioPage() {
         {datos?.lineas.length > 0 && (
           <section className="seccion" aria-labelledby="titulo-lineas">
             <div className="seccion__encabezado">
-              <h2 id="titulo-lineas" className="seccion__titulo">Explora por línea</h2>
-              <Enlace to={RUTAS.buscar} className="enlace-marca">Ver todas</Enlace>
+              <h2 id="titulo-lineas" className="seccion__titulo">{t('inicio.lineas')}</h2>
+              <Enlace to={RUTAS.buscar} className="enlace-marca">{t('comun.verTodas')}</Enlace>
             </div>
             <ul className="lineas-tienda">
               {datos.lineas.map((l) => (
@@ -103,9 +102,7 @@ export default function InicioPage() {
                   <Enlace to={`${RUTAS.buscar}?linea=${l.codigo}`} className="linea-tienda">
                     <ImagenProducto linea={l.codigo} className="linea-tienda__img" />
                     <span className="label-m">{l.nombre}</span>
-                    <span className="caption">
-                      {l.total} {l.total === 1 ? 'producto' : 'productos'}
-                    </span>
+                    <span className="caption">{t('comun.producto', { count: l.total })}</span>
                   </Enlace>
                 </li>
               ))}
@@ -117,23 +114,23 @@ export default function InicioPage() {
           <section className="seccion" aria-labelledby="titulo-descubrir">
             <div className="seccion__encabezado">
               <div>
-                <h2 id="titulo-descubrir" className="seccion__titulo">Productos para descubrir</h2>
-                <p className="body-s">Elegidos por las comunidades y recién llegados.</p>
+                <h2 id="titulo-descubrir" className="seccion__titulo">{t('inicio.descubrir.titulo')}</h2>
+                <p className="body-s">{t('inicio.descubrir.bajada')}</p>
               </div>
               <Boton tipo="secundario" tamano="M" to={RUTAS.buscar}>
-                Ver todo
+                {t('inicio.descubrir.verTodo')}
               </Boton>
             </div>
             <Pestanas
-              etiqueta="Productos para descubrir"
+              etiqueta={t('inicio.descubrir.titulo')}
               valor={pestana}
               onCambiar={setPestana}
               opciones={[
-                { valor: 'destacados', etiqueta: 'Destacados' },
-                { valor: 'novedades', etiqueta: 'Novedades' },
+                { valor: 'destacados', etiqueta: t('inicio.descubrir.destacados') },
+                { valor: 'novedades', etiqueta: t('inicio.descubrir.novedades') },
               ]}
             />
-            <ul className="grilla-productos" aria-label={pestana === 'destacados' ? 'Destacados' : 'Novedades'}>
+            <ul className="grilla-productos" aria-label={t(`inicio.descubrir.${pestana}`)}>
               {productos.map((p) => (
                 <li key={p.id}>
                   <TarjetaProducto producto={p} />
@@ -145,13 +142,10 @@ export default function InicioPage() {
 
         <section className="mayorista" aria-labelledby="titulo-mayorista">
           <div className="mayorista__texto">
-            <span className="etiqueta-producto etiqueta-producto--info">Mayorista</span>
-            <h2 id="titulo-mayorista" className="seccion__titulo">¿Compras por volumen para tu tienda, cafetería o para exportar?</h2>
-            <p className="body-m">
-              Muchos productores venden también por mayor: precio por volumen desde la cantidad mínima que cada uno
-              define, con la misma historia y el mismo origen verificado.
-            </p>
-            <Boton to={`${RUTAS.buscar}?modalidad=MAYORISTA`}>Ver productos mayoristas</Boton>
+            <span className="etiqueta-producto etiqueta-producto--info">{t('modalidad.MAYORISTA')}</span>
+            <h2 id="titulo-mayorista" className="seccion__titulo">{t('inicio.mayorista.titulo')}</h2>
+            <p className="body-m">{t('inicio.mayorista.texto')}</p>
+            <Boton to={`${RUTAS.buscar}?modalidad=MAYORISTA`}>{t('inicio.mayorista.ver')}</Boton>
           </div>
           <ImagenProducto linea="CAFE" className="mayorista__img" />
         </section>

@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import iconoAlerta from '../../assets/icons/alerta-campo.svg'
 import iconoBolsa from '../../assets/icons/bolsa-marca.svg'
 import { agregarAlCarrito, recargarUnidadesCarrito } from '../../api/carrito.js'
@@ -7,6 +8,8 @@ import Boton from '../../components/Boton.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import SelectorCantidad from '../../components/SelectorCantidad.jsx'
 import { precio } from '../../formato.js'
+import { mensajeError } from '../../i18n/errores.js'
+import i18n from '../../i18n/index.js'
 import { navigate, RUTAS } from '../../router.js'
 import { useSesion } from '../../sesion.js'
 import './AgregarAlCarrito.css'
@@ -19,6 +22,7 @@ import './AgregarAlCarrito.css'
  * Una oferta en "Venta pausada" (CCPIP-269) no ofrece compra: la ficha explica por que.
  */
 export default function AgregarAlCarrito({ producto }) {
+  const { t } = useTranslation()
   const { user } = useSesion()
   const idError = useId()
   const [cantidad, setCantidad] = useState('1')
@@ -46,7 +50,7 @@ export default function AgregarAlCarrito({ producto }) {
     }
     const unidades = Number(cantidad)
     if (cantidad === '' || !Number.isInteger(unidades) || unidades < 1) {
-      setError('La cantidad mínima es una unidad')
+      setError(t('carrito.agregar.minimo'))
       return
     }
     setEnviando(true)
@@ -57,20 +61,22 @@ export default function AgregarAlCarrito({ producto }) {
       void recargarUnidadesCarrito()
       setAviso({
         tono: 'exito',
-        titulo: `Agregaste ${unidades} ${unidades === 1 ? 'unidad' : 'unidades'} a tu carrito`,
-        descripcion: `Ahora tienes ${Number(r.cantidad)} de este producto en tu carrito.`,
+        titulo: t('carrito.agregar.agregaste', { count: unidades }),
+        descripcion: t('carrito.agregar.ahoraTienes', { cantidad: Number(r.cantidad) }),
       })
     } catch (err) {
       // Un 401 ya lo maneja la app (vuelve al inicio de sesion); aqui se muestran las reglas de negocio
       if (err.status !== 401) {
-        setAviso({ tono: 'error', titulo: 'No pudimos agregarlo', descripcion: err.body?.campos?.cantidad ?? err.message })
+        // El mensaje por campo llega del servidor en espanol: en ingles se usa el del code
+        const delCampo = i18n.resolvedLanguage === 'es' ? err.body?.campos?.cantidad : null
+        setAviso({ tono: 'error', titulo: t('carrito.agregar.error'), descripcion: delCampo ?? mensajeError(err) })
       }
     } finally {
       setEnviando(false)
     }
   }
 
-  const textoBoton = enviando ? 'Agregando…' : 'Agregar al carrito'
+  const textoBoton = enviando ? t('carrito.agregar.agregando') : t('carrito.agregar.boton')
 
   return (
     <form className="agregar-carrito" onSubmit={agregar} noValidate>
@@ -88,16 +94,16 @@ export default function AgregarAlCarrito({ producto }) {
       </div>
       {panelFuera && (
         // CW-03b: al bajar por la ficha, la compra sigue a mano. Comparte cantidad y envio con el panel.
-        <div className="barra-compra" role="region" aria-label="Compra rápida">
+        <div className="barra-compra" role="region" aria-label={t('carrito.agregar.compraRapida')}>
           <div className="contenedor barra-compra__contenido">
             <ImagenProducto url={producto.imagenes?.[0]?.miniatura} linea={producto.linea?.codigo} className="barra-compra__imagen" />
             <div className="barra-compra__datos">
               <p className="barra-compra__nombre">{producto.nombre}</p>
               <p className={`caption barra-compra__detalle${aviso?.tono === 'error' || error ? ' barra-compra__detalle--error' : ''}`} role="status">
-                {error ?? (aviso ? (aviso.tono === 'exito' ? aviso.titulo : aviso.descripcion) : resumenPrecios(producto))}
+                {error ?? (aviso ? (aviso.tono === 'exito' ? aviso.titulo : aviso.descripcion) : resumenPrecios(producto, t))}
               </p>
             </div>
-            <SelectorCantidad valor={cantidad} onCambiar={cambiar} invalido={Boolean(error)} etiqueta="Cantidad a agregar" />
+            <SelectorCantidad valor={cantidad} onCambiar={cambiar} invalido={Boolean(error)} etiqueta={t('carrito.agregar.cantidad')} />
             <Boton tipo="primario" tamano="L" type="submit" icono={iconoBolsa} disabled={enviando} className="barra-compra__boton">
               {textoBoton}
             </Boton>
@@ -113,14 +119,13 @@ export default function AgregarAlCarrito({ producto }) {
       {soloMayorista ? (
         <Alerta
           tono="error"
-          titulo={`Este producto se vende solo por mayor: mínimo ${producto.cantidadMinimaMayorista} und`}
-          descripcion="La compra mayorista estará disponible pronto en el carrito."
+          titulo={t('carrito.agregar.soloMayorista', { minimo: producto.cantidadMinimaMayorista })}
+          descripcion={t('carrito.agregar.mayoristaPronto')}
         />
       ) : (
         producto.modalidad === 'AMBAS' && (
           <p className="caption">
-            Desde {producto.cantidadMinimaMayorista} und el precio mayorista ({precio(producto.precioMayorista)} c/u) estará
-            disponible pronto; por ahora el carrito usa el precio minorista.
+            {t('carrito.agregar.ambas', { minimo: producto.cantidadMinimaMayorista, precio: precio(producto.precioMayorista) })}
           </p>
         )
       )}
@@ -130,12 +135,12 @@ export default function AgregarAlCarrito({ producto }) {
 }
 
 /** "C.N. Yarina · S/ 18.00 minorista · S/ 14.50 desde 24 und", como en CW-03b. */
-function resumenPrecios(producto) {
+function resumenPrecios(producto, t) {
   return [
     producto.tienda?.nombre,
-    producto.precio != null && `${precio(producto.precio)} minorista`,
+    producto.precio != null && t('carrito.agregar.resumenMinorista', { precio: precio(producto.precio) }),
     producto.modalidad !== 'MINORISTA' && producto.precioMayorista != null &&
-      `${precio(producto.precioMayorista)} desde ${producto.cantidadMinimaMayorista} und`,
+      t('carrito.agregar.resumenMayorista', { precio: precio(producto.precioMayorista), minimo: producto.cantidadMinimaMayorista }),
   ].filter(Boolean).join(' · ')
 }
 

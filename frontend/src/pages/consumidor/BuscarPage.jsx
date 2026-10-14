@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import iconoCerrar from '../../assets/icons/cerrar.svg'
 import iconoChevron from '../../assets/icons/chevron-abajo.svg'
 import { buscarProductos } from '../../api/catalogo.js'
@@ -15,12 +16,7 @@ import { navigate, RUTAS } from '../../router.js'
 import '../../components/Campo.css'
 import './BuscarPage.css'
 
-const ORDENES = [
-  { valor: 'RELEVANCIA', etiqueta: 'Relevancia' },
-  { valor: 'NOVEDADES', etiqueta: 'Novedades' },
-  { valor: 'PRECIO_ASC', etiqueta: 'Precio: menor a mayor' },
-  { valor: 'PRECIO_DESC', etiqueta: 'Precio: mayor a menor' },
-]
+const ORDENES = ['RELEVANCIA', 'NOVEDADES', 'PRECIO_ASC', 'PRECIO_DESC']
 
 /** Lee los filtros de la URL: el estado de la busqueda se puede compartir y "atras" funciona. */
 export function leerFiltros(search) {
@@ -57,6 +53,7 @@ export function escribirFiltros(f) {
 
 /** CW-02: catalogo y busqueda con filtros (CCPIP-52, CCPIP-54, CCPIP-165). */
 export default function BuscarPage({ search }) {
+  const { t } = useTranslation()
   const filtros = leerFiltros(search)
   const [resultado, setResultado] = useState(null)
   const [error, setError] = useState(null)
@@ -98,8 +95,8 @@ export default function BuscarPage({ search }) {
   const chips = [
     ...filtros.lineas.map((l) => ({ clave: `l-${l}`, texto: facetas?.lineas.find((x) => x.codigo === l)?.nombre ?? l, quitar: { lineas: filtros.lineas.filter((x) => x !== l) } })),
     ...filtros.regiones.map((r) => ({ clave: `r-${r}`, texto: r, quitar: { regiones: filtros.regiones.filter((x) => x !== r) } })),
-    ...(filtros.modalidad ? [{ clave: 'm', texto: filtros.modalidad === 'MAYORISTA' ? 'Mayorista' : 'Minorista', quitar: { modalidad: '' } }] : []),
-    ...(filtros.tienda ? [{ clave: 't', texto: nombreTienda ?? 'Comunidad', quitar: { tienda: '' } }] : []),
+    ...(filtros.modalidad ? [{ clave: 'm', texto: t(filtros.modalidad === 'MAYORISTA' ? 'modalidad.MAYORISTA' : 'modalidad.MINORISTA'), quitar: { modalidad: '' } }] : []),
+    ...(filtros.tienda ? [{ clave: 't', texto: nombreTienda ?? t('buscar.comunidad'), quitar: { tienda: '' } }] : []),
     ...(filtros.precioMin !== '' || filtros.precioMax !== ''
       ? [{ clave: 'p', texto: `S/ ${filtros.precioMin || 0} – ${filtros.precioMax || '…'}`, quitar: { precioMin: '', precioMax: '' } }]
       : []),
@@ -108,27 +105,26 @@ export default function BuscarPage({ search }) {
   return (
     <LayoutTienda termino={filtros.q}>
       <main className="buscar contenedor">
-        <nav className="migas" aria-label="Migas de pan">
-          <Enlace to={RUTAS.catalogo}>Inicio</Enlace> / <Enlace to={RUTAS.buscar}>Buscar</Enlace>
+        <nav className="migas" aria-label={t('comun.migas')}>
+          <Enlace to={RUTAS.catalogo}>{t('comun.inicio')}</Enlace> / <Enlace to={RUTAS.buscar}>{t('buscar.migas')}</Enlace>
           {filtros.q && <span> / “{filtros.q}”</span>}
         </nav>
 
         <div className="buscar__encabezado">
           <div>
-            <h1 className="display-l">{filtros.q ? `Resultados para “${filtros.q}”` : 'Explora productos con historia'}</h1>
+            <h1 className="display-l">{filtros.q ? t('buscar.resultadosPara', { q: filtros.q }) : t('buscar.titulo')}</h1>
             {resultado && (
               <p className="body-m">
-                {resultado.total} {resultado.total === 1 ? 'producto' : 'productos'} de {resultado.totalComunidades}{' '}
-                {resultado.totalComunidades === 1 ? 'comunidad' : 'comunidades'}
+                {t('buscar.conteo', { productos: t('comun.producto', { count: resultado.total }), comunidades: t('buscar.comunidades', { count: resultado.totalComunidades }) })}
               </p>
             )}
           </div>
           <label className="buscar__orden">
-            <span className="visually-hidden">Ordenar</span>
+            <span className="visually-hidden">{t('buscar.ordenar')}</span>
             <select value={filtros.orden} onChange={(e) => aplicar({ orden: e.target.value })}>
               {ORDENES.map((o) => (
-                <option key={o.valor} value={o.valor}>
-                  Ordenar: {o.etiqueta}
+                <option key={o} value={o}>
+                  {t('buscar.ordenarPor', { orden: t(`buscar.orden.${o}`) })}
                 </option>
               ))}
             </select>
@@ -137,19 +133,19 @@ export default function BuscarPage({ search }) {
         </div>
 
         <div className="buscar__cuerpo">
-          <aside className="filtros" aria-label="Filtros">
+          <aside className="filtros" aria-label={t('buscar.filtros')}>
             <div className="filtros__titulo">
-              <h2 className="heading-h4">Filtros</h2>
+              <h2 className="heading-h4">{t('buscar.filtros')}</h2>
               {chips.length > 0 && (
                 <button type="button" className="enlace-marca filtros__limpiar" onClick={() => navigate(escribirFiltros({ ...leerFiltros(''), q: filtros.q }))}>
-                  Limpiar
+                  {t('buscar.limpiar')}
                 </button>
               )}
             </div>
 
             {facetas?.lineas.length > 0 && (
               <fieldset className="filtros__grupo">
-                <legend>Línea de producto</legend>
+                <legend>{t('buscar.linea')}</legend>
                 {facetas.lineas.map((l) => (
                   <label key={l.codigo} className="casilla">
                     <input type="checkbox" checked={filtros.lineas.includes(l.codigo)} onChange={() => aplicar({ lineas: alternar(filtros.lineas, l.codigo) })} />
@@ -162,7 +158,7 @@ export default function BuscarPage({ search }) {
 
             {facetas?.modalidades.length > 0 && (
               <fieldset className="filtros__grupo">
-                <legend>Modalidad de compra</legend>
+                <legend>{t('buscar.modalidad')}</legend>
                 {facetas.modalidades.map((m) => (
                   <label key={m.codigo} className="casilla">
                     <input
@@ -170,7 +166,7 @@ export default function BuscarPage({ search }) {
                       checked={filtros.modalidad === m.codigo}
                       onChange={() => aplicar({ modalidad: filtros.modalidad === m.codigo ? '' : m.codigo })}
                     />
-                    <span>{m.nombre}</span>
+                    <span>{t(`modalidad.${m.codigo}`, { defaultValue: m.nombre })}</span>
                     <span className="casilla__total">{m.total}</span>
                   </label>
                 ))}
@@ -179,7 +175,7 @@ export default function BuscarPage({ search }) {
 
             {facetas?.regiones.length > 0 && (
               <fieldset className="filtros__grupo">
-                <legend>Región</legend>
+                <legend>{t('buscar.region')}</legend>
                 {facetas.regiones.map((r) => (
                   <label key={r.codigo} className="casilla">
                     <input type="checkbox" checked={filtros.regiones.includes(r.codigo)} onChange={() => aplicar({ regiones: alternar(filtros.regiones, r.codigo) })} />
@@ -198,28 +194,28 @@ export default function BuscarPage({ search }) {
               }}
             >
               <fieldset>
-                <legend>Precio (S/)</legend>
+                <legend>{t('buscar.precio')}</legend>
                 <div className="filtros__precio">
                   <label>
-                    <span className="visually-hidden">Precio mínimo</span>
-                    <input type="number" min="0" step="1" inputMode="decimal" placeholder="Mín." value={precio.min} onChange={(e) => setPrecio({ ...precio, min: e.target.value })} />
+                    <span className="visually-hidden">{t('buscar.precioMinimo')}</span>
+                    <input type="number" min="0" step="1" inputMode="decimal" placeholder={t('buscar.min')} value={precio.min} onChange={(e) => setPrecio({ ...precio, min: e.target.value })} />
                   </label>
                   <label>
-                    <span className="visually-hidden">Precio máximo</span>
-                    <input type="number" min="0" step="1" inputMode="decimal" placeholder="Máx." value={precio.max} onChange={(e) => setPrecio({ ...precio, max: e.target.value })} />
+                    <span className="visually-hidden">{t('buscar.precioMaximo')}</span>
+                    <input type="number" min="0" step="1" inputMode="decimal" placeholder={t('buscar.max')} value={precio.max} onChange={(e) => setPrecio({ ...precio, max: e.target.value })} />
                   </label>
                 </div>
                 {/* Enter tambien aplica; sin boton visible, como en CW-02 */}
-                <button type="submit" className="visually-hidden">Aplicar precio</button>
+                <button type="submit" className="visually-hidden">{t('buscar.aplicarPrecio')}</button>
               </fieldset>
             </form>
 
             {facetas?.comunidades.length > 0 && (
               <label className="filtros__grupo">
-                <span className="filtros__leyenda">Comunidad o pueblo</span>
+                <span className="filtros__leyenda">{t('buscar.comunidadOPueblo')}</span>
                 <span className="campo__selector">
                   <select className="campo__control" value={filtros.tienda} onChange={(e) => aplicar({ tienda: e.target.value })}>
-                    <option value="">Todas</option>
+                    <option value="">{t('buscar.todas')}</option>
                     {facetas.comunidades.map((c) => (
                       <option key={c.codigo} value={c.codigo}>
                         {c.nombre} ({c.total})
@@ -232,16 +228,16 @@ export default function BuscarPage({ search }) {
             )}
 
             <div className="filtros__grupo">
-              <Interruptor etiqueta="Mostrar solo disponibles" activo={filtros.disponibles} onCambiar={(v) => aplicar({ disponibles: v })} />
+              <Interruptor etiqueta={t('buscar.soloDisponibles')} activo={filtros.disponibles} onCambiar={(v) => aplicar({ disponibles: v })} />
             </div>
           </aside>
 
-          <section className="buscar__resultados" aria-label="Resultados">
+          <section className="buscar__resultados" aria-label={t('buscar.resultados')}>
             {chips.length > 0 && (
-              <ul className="filtros-activos" aria-label="Filtros activos">
+              <ul className="filtros-activos" aria-label={t('buscar.filtrosActivos')}>
                 {chips.map((c) => (
                   <li key={c.clave}>
-                    <button type="button" className="chip chip--activo" onClick={() => aplicar(c.quitar)} aria-label={`Quitar filtro ${c.texto}`}>
+                    <button type="button" className="chip chip--activo" onClick={() => aplicar(c.quitar)} aria-label={t('buscar.quitarFiltro', { filtro: c.texto })}>
                       {c.texto}
                       <Icono src={iconoCerrar} tamano={14} />
                     </button>
@@ -252,29 +248,29 @@ export default function BuscarPage({ search }) {
 
             {/* CCPIP-363: un enlace a una comunidad que ya no existe o pauso su tienda no es un error de red */}
             {error?.code === 'COMUNIDAD_INVALIDA' ? (
-              <EstadoVacio titulo="Esa comunidad ya no está disponible" descripcion="Puede que haya pausado su tienda o que el enlace esté mal.">
+              <EstadoVacio titulo={t('buscar.comunidadNoDisponible.titulo')} descripcion={t('buscar.comunidadNoDisponible.descripcion')}>
                 <Boton tamano="M" onClick={() => aplicar({ tienda: '' })}>
-                  Quitar el filtro de comunidad
+                  {t('buscar.comunidadNoDisponible.quitar')}
                 </Boton>
               </EstadoVacio>
             ) : (
-              error && <Alerta tono="error" titulo="No pudimos cargar el catálogo" descripcion="Revisa tu conexión e inténtalo otra vez." />
+              error && <Alerta tono="error" titulo={t('buscar.error')} descripcion={t('comun.errorConexion')} />
             )}
 
             {resultado?.total === 0 && (
               <EstadoVacio
-                titulo={filtros.q ? `No encontramos productos para “${filtros.q}”` : 'No hay productos con estos filtros'}
-                descripcion="Prueba con otra palabra o quita algún filtro, por ejemplo cacao, café o aceite."
+                titulo={filtros.q ? t('buscar.sinResultadosPara', { q: filtros.q }) : t('buscar.sinResultados')}
+                descripcion={t('buscar.sugerencia')}
               >
                 <Boton tamano="M" to={RUTAS.buscar}>
-                  Ver todo el catálogo
+                  {t('buscar.verCatalogo')}
                 </Boton>
               </EstadoVacio>
             )}
 
             {resultado?.total > 0 && (
               <>
-                <ul className="grilla-productos buscar__grilla" aria-label="Productos">
+                <ul className="grilla-productos buscar__grilla" aria-label={t('buscar.productos')}>
                   {resultado.items.map((p) => (
                     <li key={p.id}>
                       <TarjetaProducto producto={p} />
