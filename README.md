@@ -45,7 +45,7 @@ Requiere Java 21 y Docker Desktop abierto. Antes de arrancar el backend, desde l
 docker compose up -d
 ```
 
-Eso levanta PostgreSQL (`localhost:5432`) y S3Mock (`localhost:9090`), que reemplaza a S3 para las imágenes en local. **No hace falta ningún `.env` ni cuenta de AWS**: todo tiene valores por defecto en `backend/src/main/resources/application.properties`. Al arrancar, el backend crea las tablas, carga los datos de prueba y crea el bucket de imágenes.
+Eso levanta PostgreSQL (`localhost:5432`), S3Mock (`localhost:9090`), que reemplaza a S3 para las imágenes en local, y Mailpit, que atrapa los correos del backend: los enlaces de verificación de las cuentas nuevas se leen en http://localhost:8025. **No hace falta ningún `.env` ni cuenta de AWS**: todo tiene valores por defecto en `backend/src/main/resources/application.properties`. Al arrancar, el backend crea las tablas, carga los datos de prueba y crea el bucket de imágenes.
 
 Usuarios de prueba (clave `Demo1234!`): `consumidor@ccpip.test`, `productor@ccpip.test` y `productor_nuevo@ccpip.test` (tienda vacía para armarla desde cero). Ver [docs/devsecops.md](docs/devsecops.md) para los demás roles.
 

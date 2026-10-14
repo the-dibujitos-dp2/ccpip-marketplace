@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -29,6 +30,7 @@ import pe.ccpip.auth.controller.AuthController;
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(CorreosDePrueba.class)
 public abstract class IntegrationTest {
 
     /** Un solo S3Mock para toda la suite; Testcontainers lo apaga al terminar. */
@@ -61,10 +63,15 @@ public abstract class IntegrationTest {
     @Autowired
     protected JdbcTemplate jdbc;
 
+    /** Correos que el backend "envio" en la prueba (CCPIP-328). */
+    @Autowired
+    protected CorreosDePrueba.Bandeja correos;
+
     @BeforeEach
     void resetAuthState() {
         jdbc.update("DELETE FROM sesion");
         jdbc.update("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL");
+        correos.vaciar();
     }
 
     protected RequestBuilder login(String email, String password) throws Exception {
