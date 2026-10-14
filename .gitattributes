@@ -1,3 +1,0 @@
-# Los scripts del guardian de main (CCPIP-22) siempre con saltos de linea LF: bash falla con CRLF
-# (por ejemplo, en un clon de Windows con core.autocrlf=true).
-.github/guardian/*.sh text eol=lf
