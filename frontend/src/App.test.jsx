@@ -117,7 +117,8 @@ describe('Inicio de sesion (CCPIP-27)', () => {
     await ingresar(user, 'admin_acopio@ccpip.test')
 
     expect(await screen.findByRole('heading', { name: 'Hola, Admin' })).toBeInTheDocument()
-    expect(await screen.findByText('Tu mercado')).toBeInTheDocument()
+    // El panel del rol (CCPIP-151) se muestra con el texto del idioma activo (CCPIP-98)
+    expect(await screen.findByText('Tu punto de acopio')).toBeInTheDocument()
     expect(screen.getByText(/se cierra tras 2 minutos sin actividad/)).toBeInTheDocument()
     expect(window.location.pathname).toBe('/inicio')
   })
@@ -227,7 +228,7 @@ describe('Expiracion automatica por inactividad (CCPIP-27)', () => {
       'GET /api/panel/acopio': [200, PANEL],
     })
     abrirEn('/inicio')
-    await screen.findByText('Tu mercado')
+    await screen.findByText('Tu punto de acopio')
 
     expirada = true
     await act(() => vi.advanceTimersByTimeAsync(122_000))

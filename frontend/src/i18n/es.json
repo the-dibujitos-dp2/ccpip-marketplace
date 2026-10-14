@@ -1,6 +1,13 @@
 {
   "comun": {
-    "cargando": "Cargando…"
+    "cargando": "Cargando…",
+    "inicio": "Inicio",
+    "migas": "Migas de pan",
+    "verTodas": "Ver todas",
+    "errorConexion": "Revisa tu conexión e inténtalo otra vez.",
+    "producto_one": "{{count}} producto",
+    "producto_other": "{{count}} productos",
+    "vuelvePronto": "Vuelve pronto."
   },
   "app": {
     "sesionExpirada": {
@@ -107,5 +114,358 @@
     "elegir": "Elige una opción",
     "ocultarContrasena": "Ocultar contraseña",
     "mostrarContrasena": "Mostrar contraseña"
+  },
+  "roles": {
+    "CONSUMIDOR": "Consumidor final",
+    "PRODUCTOR": "Productor",
+    "ADMIN_PUNTO": "Administrador de punto de acopio",
+    "SUB_ADMIN": "Sub administrador",
+    "SUPER_ADMIN": "Super administrador",
+    "DISTRIBUIDOR": "Distribuidor"
+  },
+  "inicio": {
+    "hero": {
+      "overline": "Hecho por pueblos indígenas del Perú",
+      "titulo": "Productos con historia, directo de la Amazonía",
+      "descripcion": "Cacao, café, superfrutos, aceites y artesanías elaborados por comunidades que conservan el bosque. Cada compra llega a quienes lo hacen, con el respaldo de la Cámara.",
+      "explorar": "Explorar productos",
+      "conocer": "Conocer a las comunidades"
+    },
+    "valores": {
+      "etiqueta": "Lo que garantiza cada producto",
+      "deforestacion": {
+        "titulo": "Cero deforestación",
+        "texto": "Productos que no vienen de áreas taladas."
+      },
+      "pesticidas": {
+        "titulo": "Cero pesticidas",
+        "texto": "Sin agroquímicos en cultivo ni transformación."
+      },
+      "comunidades": {
+        "titulo": "Hecho por comunidades",
+        "texto": "Elaborado por pueblos indígenas asociados."
+      },
+      "verificado": {
+        "titulo": "Verificado por la Cámara",
+        "texto": "Muestra física y certificados revisados."
+      }
+    },
+    "error": "No pudimos cargar el inicio",
+    "comunidades": "Conoce a quienes lo hacen",
+    "lineas": "Explora por línea",
+    "descubrir": {
+      "titulo": "Productos para descubrir",
+      "bajada": "Elegidos por las comunidades y recién llegados.",
+      "verTodo": "Ver todo",
+      "destacados": "Destacados",
+      "novedades": "Novedades"
+    },
+    "mayorista": {
+      "titulo": "¿Compras por volumen para tu tienda, cafetería o para exportar?",
+      "texto": "Muchos productores venden también por mayor: precio por volumen desde la cantidad mínima que cada uno define, con la misma historia y el mismo origen verificado.",
+      "ver": "Ver productos mayoristas"
+    }
+  },
+  "comunidades": {
+    "titulo": "Comunidades",
+    "overline": "Productores asociados a la Cámara",
+    "bajada": "Cada comunidad cuenta su historia y vende con origen verificado.",
+    "error": "No pudimos cargar las comunidades",
+    "vacio": "Aún no hay comunidades publicadas"
+  },
+  "tienda": {
+    "noDisponible": "Esta tienda no está disponible",
+    "error": "No pudimos cargar la tienda",
+    "preparando": "Puede que la comunidad aún esté preparándola.",
+    "verComunidades": "Ver comunidades",
+    "portada": "Portada de {{nombre}}",
+    "pueblo": "Pueblo {{pueblo}}",
+    "socios_one": "{{count}} socia o socio",
+    "socios_other": "{{count}} socias y socios",
+    "cifraProductos": "productos",
+    "cifraDesde": "en la plataforma",
+    "copiado": "Enlace copiado",
+    "compartir": "Compartir",
+    "historia": "Nuestra historia",
+    "galeria": "Galería",
+    "foto": "Foto de {{nombre}}",
+    "porLinea": "Productos por línea",
+    "todos": "Todos ({{total}})",
+    "destacados": "Destacados por la comunidad · elegidos por {{nombre}}",
+    "sinProductos": "Aún no hay productos publicados",
+    "sinProductosTexto": "Esta comunidad está preparando su catálogo. Vuelve pronto.",
+    "productosDe": "Productos de {{nombre}}"
+  },
+  "cuenta": {
+    "hola": "Hola, {{nombre}}",
+    "error": "No pudimos cargar tu panel",
+    "verPedidos": "Ver pedidos del punto",
+    "verMovimientos": "Ver movimientos del punto",
+    "seguridad": "Por seguridad, tu sesión se cierra tras {{minutos}} minutos sin actividad.",
+    "panel": {
+      "CONSUMIDOR": {
+        "titulo": "Tu mercado",
+        "descripcion": "Explora productos con historia, directo de las comunidades."
+      },
+      "PRODUCTOR": {
+        "titulo": "Tu comunidad",
+        "descripcion": "Aquí gestionarás tus productos, tu stock y tus pedidos."
+      },
+      "ADMIN_PUNTO": {
+        "titulo": "Tu punto de acopio",
+        "descripcion": "Aquí verás los pedidos por preparar y registrarás los recojos."
+      },
+      "SUB_ADMIN": {
+        "titulo": "Administración CCPIP",
+        "descripcion": "Aquí supervisarás productores, puntos de acopio y cuentas."
+      },
+      "SUPER_ADMIN": {
+        "titulo": "Administración CCPIP",
+        "descripcion": "Aquí supervisarás productores, puntos de acopio y cuentas."
+      },
+      "DISTRIBUIDOR": {
+        "titulo": "Tus compras mayoristas",
+        "descripcion": "Aquí harás pedidos por volumen a las comunidades."
+      }
+    }
+  },
+  "errores": {
+    "generico": "Algo salió mal. Inténtalo otra vez.",
+    "AGOTADO": "Este producto está agotado por ahora.",
+    "ARCHIVO_MUY_PESADO": "El archivo pesa más de 10 MB. Elige una foto más liviana.",
+    "ARCHIVO_VACIO": "El archivo está vacío.",
+    "CATEGORIA_INVALIDA": "Elige la categoría de la foto.",
+    "CELULAR_INVALIDO": "Ingresa un celular de 9 dígitos que empiece con 9.",
+    "CELULAR_NO_COINCIDE": "El celular no coincide con el registrado en el pedido.",
+    "ACOPIO_SIN_ASIGNAR": "Tu cuenta aún no tiene un punto de acopio asignado.",
+    "DATOS_INVALIDOS": "Revisa los datos del formulario.",
+    "ESTADO_INVALIDO": "El pedido no está en un estado que permita esta acción.",
+    "FALTA_MINIMO_MAYORISTA": "Indica desde qué cantidad se aplica el precio mayorista.",
+    "FALTA_VENCIMIENTO": "Este producto necesita fecha de vencimiento.",
+    "FECHAS_INVALIDAS": "El vencimiento debe ser posterior a la producción.",
+    "FORMATO_NO_PERMITIDO": "Solo se aceptan fotos JPG, PNG o WebP.",
+    "IA_NO_DISPONIBLE": "La redacción asistida no está disponible en este momento. Puedes escribir el texto con tus palabras.",
+    "IMAGEN_DANADA": "No pudimos leer la imagen. Puede estar dañada; prueba con otra.",
+    "IMAGEN_MUY_GRANDE": "La imagen tiene demasiados píxeles. Usa una de menos de 40 megapíxeles.",
+    "IMAGEN_NO_ENCONTRADA": "La imagen no existe.",
+    "ITEM_NO_ENCONTRADO": "Este producto ya no está en tu carrito.",
+    "LIMITE_DE_FOTOS": "Llegaste al máximo de fotos. Elimina una para agregar otra.",
+    "LINEA_INVALIDA": "Elige una línea de producto del catálogo.",
+    "LOTE_REPETIDO": "Ya registraste un lote con ese código.",
+    "MODALIDAD_INVALIDA": "La modalidad debe ser minorista o mayorista.",
+    "NO_DISPONIBLE": "Este producto ya no está disponible. Quítalo de tu carrito.",
+    "ORDEN_INVALIDO": "Orden desconocido.",
+    "PEDIDO_NO_ENCONTRADO": "El pedido no existe.",
+    "PERSONA_NO_COINCIDE": "La persona no es quien compró ni la persona autorizada de este pedido.",
+    "PRECIO_MAYORISTA_INVALIDO": "El precio mayorista debe ser menor que el minorista.",
+    "PRODUCCION_FUTURA": "La fecha de producción no puede ser posterior a hoy.",
+    "PRODUCTO_INCOMPLETO": "Un producto publicado debe conservar sus datos completos.",
+    "PRODUCTO_NO_ENCONTRADO": "El producto no existe o ya no está disponible.",
+    "PRODUCTO_NO_PUBLICABLE": "Aún falta completar algunos datos para publicar.",
+    "PRODUCTO_REQUERIDO": "Indica a qué producto pertenece la foto.",
+    "PRODUCTOR_SIN_REGISTRO": "Tu cuenta aún no está asociada a una comunidad productora. Comunícate con la CCPIP.",
+    "SIN_PERMISO": "Tu cuenta no tiene permiso para esta acción.",
+    "SOLO_MAYORISTA": "La compra mayorista estará disponible pronto.",
+    "SOLO_PUBLICADOS": "Solo se puede despublicar un producto publicado.",
+    "STOCK_INSUFICIENTE": "No quedan suficientes unidades disponibles.",
+    "TIENDA_INCOMPLETA": "Para publicar tu tienda completa los datos que faltan.",
+    "TIENDA_NO_ENCONTRADA": "La tienda no existe o aún no está publicada.",
+    "TIPO_INVALIDO": "Tipo de movimiento desconocido.",
+    "UBICACION_INVALIDA": "Elige tu almacén o un punto de acopio.",
+    "UNIDAD_INVALIDA": "Elige una unidad del catálogo.",
+    "VENCIMIENTO_PASADO": "La fecha de vencimiento no puede ser anterior a hoy.",
+    "VENTA_PAUSADA": "La venta de este producto está pausada por ahora. Puedes verlo, pero aún no comprarlo."
+  },
+  "buscar": {
+    "comunidad": "Comunidad",
+    "migas": "Buscar",
+    "resultadosPara": "Resultados para “{{q}}”",
+    "titulo": "Explora productos con historia",
+    "conteo": "{{productos}} de {{comunidades}}",
+    "comunidades_one": "{{count}} comunidad",
+    "comunidades_other": "{{count}} comunidades",
+    "ordenar": "Ordenar",
+    "ordenarPor": "Ordenar: {{orden}}",
+    "orden": {
+      "RELEVANCIA": "Relevancia",
+      "NOVEDADES": "Novedades",
+      "PRECIO_ASC": "Precio: menor a mayor",
+      "PRECIO_DESC": "Precio: mayor a menor"
+    },
+    "filtros": "Filtros",
+    "limpiar": "Limpiar",
+    "linea": "Línea de producto",
+    "modalidad": "Modalidad de compra",
+    "region": "Región",
+    "precio": "Precio (S/)",
+    "precioMinimo": "Precio mínimo",
+    "min": "Mín.",
+    "precioMaximo": "Precio máximo",
+    "max": "Máx.",
+    "aplicarPrecio": "Aplicar precio",
+    "comunidadOPueblo": "Comunidad o pueblo",
+    "todas": "Todas",
+    "soloDisponibles": "Mostrar solo disponibles",
+    "resultados": "Resultados",
+    "filtrosActivos": "Filtros activos",
+    "quitarFiltro": "Quitar filtro {{filtro}}",
+    "error": "No pudimos cargar el catálogo",
+    "sinResultadosPara": "No encontramos productos para “{{q}}”",
+    "sinResultados": "No hay productos con estos filtros",
+    "sugerencia": "Prueba con otra palabra o quita algún filtro, por ejemplo cacao, café o aceite.",
+    "verCatalogo": "Ver todo el catálogo",
+    "productos": "Productos",
+    "comunidadNoDisponible": {
+      "titulo": "Esa comunidad ya no está disponible",
+      "descripcion": "Puede que haya pausado su tienda o que el enlace esté mal.",
+      "quitar": "Quitar el filtro de comunidad"
+    }
+  },
+  "ingresar": {
+    "titular": "Compra directo a las comunidades que cuidan el bosque",
+    "bajada": "Ingresa para comprar, seguir tus pedidos y administrar tu tienda.",
+    "confianza": "Origen verificado por la Cámara de Comercio de los Pueblos Indígenas del Perú",
+    "acceso": "Acceso",
+    "iniciarSesion": "Iniciar sesión",
+    "titulo": "Ingresa a tu cuenta",
+    "correo": "Correo electrónico",
+    "correoEjemplo": "nombre@correo.com",
+    "contrasena": "Contraseña",
+    "ingresando": "Ingresando…",
+    "validacion": {
+      "correo": "Escribe un correo válido, por ejemplo nombre@correo.com",
+      "contrasena": "Escribe tu contraseña"
+    },
+    "errores": {
+      "conexion": {
+        "titulo": "No pudimos conectar"
+      },
+      "bloqueada": {
+        "titulo": "Cuenta bloqueada temporalmente",
+        "descripcion": "Por seguridad bloqueamos tu cuenta tras varios intentos fallidos. Vuelve a intentarlo a las {{hasta}}."
+      },
+      "sinConfirmar": {
+        "titulo": "Confirma tu correo",
+        "descripcion": "Abre el enlace que te enviamos a tu correo y vuelve a ingresar."
+      },
+      "inactiva": {
+        "titulo": "Cuenta desactivada",
+        "descripcion": "Comunícate con la CCPIP para reactivarla."
+      },
+      "credenciales": {
+        "titulo": "No pudimos iniciar sesión",
+        "descripcion": "El correo o la contraseña no son correctos."
+      }
+    }
+  },
+  "producto": {
+    "noDisponible": "Este producto no está disponible",
+    "error": "No pudimos cargar el producto",
+    "retirado": "Puede que la comunidad lo haya retirado del catálogo.",
+    "volverCatalogo": "Volver al catálogo",
+    "cargando": "Cargando producto…",
+    "fotos": "Fotos del producto",
+    "verFoto": "Ver foto {{numero}}",
+    "origen": "Origen",
+    "cosecha": "Cosecha",
+    "presentacion": "Presentación",
+    "elaboradoPor": "Elaborado por",
+    "hechoPor": "Hecho por",
+    "puebloCorto": "· pueblo {{pueblo}}",
+    "leerHistoria": "Leer su historia",
+    "precioSegunModalidad": "Precio según modalidad",
+    "precioMinorista": "Precio minorista",
+    "precioMayorista": "Precio mayorista",
+    "porUnidadDe": "por {{unidad}}",
+    "porUnidad": "por unidad",
+    "desdeUnidades_one": "desde {{count}} und",
+    "desdeUnidades_other": "desde {{count}} und",
+    "unidades_one": "{{count}} und",
+    "unidades_other": "{{count}} und",
+    "estado": {
+      "pausada": "Venta pausada temporalmente",
+      "disponible": "Disponible",
+      "agotado": "Agotado por ahora",
+      "pausadaTexto": "{{nombre}} pausó sus ventas por un tema administrativo. Puedes ver todo el producto, pero por ahora no se puede comprar.",
+      "disponibleTexto": "Se recoge en un punto de acopio de la Cámara.",
+      "agotadoTexto": "Sin stock por ahora. Vuelve pronto: la comunidad repone por cosecha."
+    },
+    "historia": {
+      "comunidad": "La comunidad",
+      "cultivo": "El cultivo",
+      "proceso": "El proceso",
+      "overline": "La historia detrás",
+      "titulo": "Del bosque a tu mesa",
+      "asistida": "Relato de la comunidad, redactado con apoyo de inteligencia artificial y aprobado por ella.",
+      "propia": "Relato escrito por la comunidad."
+    },
+    "confianza": "Por qué puedes confiar en este producto",
+    "verificando": "La Cámara aún está verificando el origen de esta comunidad.",
+    "sobreCosecha": "Sobre esta cosecha",
+    "consumirAntes": "Consumir antes de",
+    "volumen": {
+      "titulo": "Para compras por volumen",
+      "texto": "Para tiendas, cafeterías y exportadores: la misma historia y el mismo origen verificado.",
+      "minimo": "Pedido mínimo mayorista",
+      "precioUnidad": "Precio por unidad"
+    },
+    "tambienDe": "También de {{linea}}"
+  },
+  "carrito": {
+    "agregar": {
+      "minimo": "La cantidad mínima es una unidad",
+      "agregaste_one": "Agregaste {{count}} unidad a tu carrito",
+      "agregaste_other": "Agregaste {{count}} unidades a tu carrito",
+      "ahoraTienes": "Ahora tienes {{cantidad}} de este producto en tu carrito.",
+      "error": "No pudimos agregarlo",
+      "agregando": "Agregando…",
+      "boton": "Agregar al carrito",
+      "compraRapida": "Compra rápida",
+      "cantidad": "Cantidad a agregar",
+      "soloMayorista": "Este producto se vende solo por mayor: mínimo {{minimo}} und",
+      "mayoristaPronto": "La compra mayorista estará disponible pronto en el carrito.",
+      "ambas": "Desde {{minimo}} und el precio mayorista ({{precio}} c/u) estará disponible pronto; por ahora el carrito usa el precio minorista.",
+      "resumenMinorista": "{{precio}} minorista",
+      "resumenMayorista": "{{precio}} desde {{minimo}} und"
+    },
+    "pasos": {
+      "etiqueta": "Pasos de la compra",
+      "carrito": "Carrito",
+      "entrega": "Entrega y pago",
+      "confirmacion": "Confirmación"
+    },
+    "problema": {
+      "STOCK_INSUFICIENTE": "Solo quedan {{quedan}}: ajusta la cantidad",
+      "AGOTADO": "Agotado por ahora",
+      "SOLO_MAYORISTA": "Solo se vende por mayor",
+      "NO_DISPONIBLE": "Ya no está disponible",
+      "VENTA_PAUSADA": "Venta pausada temporalmente"
+    },
+    "quitaste": "Quitaste {{nombre}} de tu carrito",
+    "noQuitamos": "No pudimos quitar {{nombre}}",
+    "intentaOtraVez": "Inténtalo otra vez.",
+    "titulo": "Tu carrito",
+    "error": "No pudimos cargar tu carrito",
+    "reintentar": "Reintentar",
+    "cargando": "Cargando tu carrito…",
+    "vacio": "Tu carrito está vacío",
+    "vacioTexto": "Explora los productos de las comunidades y agrégalos aquí.",
+    "productos": "Productos en tu carrito",
+    "conProblemas": "Algunos productos no se pueden comprar como están",
+    "conProblemasTexto": "Los revisamos al abrir tu carrito y no suman al total.",
+    "resumen": "Resumen del pedido",
+    "productosConteo": "Productos ({{unidades}})",
+    "entrega": "Entrega",
+    "entregaSiguiente": "Se elige en el siguiente paso",
+    "total": "Total",
+    "noReserva": "Tu carrito no reserva stock",
+    "noReservaTexto": "La disponibilidad se confirma al pagar y el stock se descuenta en ese momento.",
+    "cosechaDe": "cosecha de {{mes}}",
+    "deTienda": "de {{nombre}}",
+    "precioCadaUno": "{{precio}} c/u",
+    "cantidadDe": "Cantidad de {{nombre}}",
+    "guardando": "Guardando…",
+    "quitar": "Quitar {{nombre}} del carrito",
+    "quitarTitulo": "Quitar del carrito"
   }
 }
