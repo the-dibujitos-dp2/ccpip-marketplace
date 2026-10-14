@@ -8,9 +8,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -23,8 +26,10 @@ import pe.ccpip.support.IntegrationTest;
 
 /**
  * Flujo de compra de punta a punta (CCPIP-157, CCPIP-62, CCPIP-163, CCPIP-64): carrito, recojo,
- * pago con la pasarela simulada y confirmacion. Usa productos propios con stock en Cusco para no
- * mezclarse con los pedidos del punto de Lima que revisan otras pruebas.
+ * pago con la pasarela simulada y confirmacion. La base es compartida por toda la suite, asi que no
+ * deja rastro que otras pruebas cuenten: un comprador propio (su carrito no es el de
+ * consumidor@ccpip.test), productos con stock en Cusco (no en el punto de Lima que revisan las
+ * pruebas del acopio) y retirados al terminar (no aparecen en el catalogo).
  */
 class CompraFlujoTest extends IntegrationTest {
 
@@ -32,12 +37,30 @@ class CompraFlujoTest extends IntegrationTest {
     private static final String APROBADA = "4111 1111 1111 1111";
     private static final String FONDOS_INSUFICIENTES = "4000000000000002";
 
+    private static final String COMPRADOR = "comprador.flujo@ccpip.test";
+
     private Cookie comprador;
+    private final List<Long> creados = new ArrayList<>();
 
     @BeforeEach
-    void carritoVacio() throws Exception {
-        jdbc.update("DELETE FROM item_carrito WHERE carrito_id IN (SELECT c.id FROM carrito c JOIN usuario u ON u.id = c.usuario_id WHERE u.correo = 'consumidor@ccpip.test')");
-        comprador = loginAs("consumidor@ccpip.test");
+    void compradorConCarritoVacio() throws Exception {
+        crearConsumidor(COMPRADOR);
+        jdbc.update("DELETE FROM item_carrito WHERE carrito_id IN (SELECT c.id FROM carrito c JOIN usuario u ON u.id = c.usuario_id WHERE u.correo = ?)", COMPRADOR);
+        comprador = loginAs(COMPRADOR);
+    }
+
+    @AfterEach
+    void retirarProductosDePrueba() {
+        creados.forEach(id -> jdbc.update("UPDATE producto SET estado = 'RETIRADO' WHERE id = ?", id));
+        creados.clear();
+    }
+
+    /** Consumidor con la clave de demostracion, para no tocar el carrito de las cuentas sembradas. */
+    private void crearConsumidor(String correo) {
+        jdbc.update("""
+                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
+                SELECT ?, contrasena_hash, 'Comprador de Prueba', 1, true FROM usuario
+                WHERE correo = 'consumidor@ccpip.test' ON CONFLICT (correo) DO NOTHING""", correo);
     }
 
     /** Producto publicado y autorizado de productor@ccpip.test con {@code unidades} en un lote vigente de Cusco. */
@@ -58,6 +81,7 @@ class CompraFlujoTest extends IntegrationTest {
                 id, id, unidades, unidades, CUSCO);
         jdbc.update("INSERT INTO stock (producto_id, ubicacion_id, cantidad) SELECT ?, id, ? FROM ubicacion WHERE nombre = ?",
                 id, unidades, CUSCO);
+        creados.add(id);
         return id;
     }
 
@@ -237,11 +261,7 @@ class CompraFlujoTest extends IntegrationTest {
         Cookie otro = loginAs("productor@ccpip.test");
 
         mockMvc.perform(get("/api/pedidos/" + pedido).cookie(otro)).andExpect(status().isForbidden());
-        // Un consumidor distinto: se crea al vuelo para no depender de otras cuentas sembradas
-        jdbc.update("""
-                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
-                SELECT 'otro.comprador@ccpip.test', contrasena_hash, 'Otro Comprador', 1, true FROM usuario
-                WHERE correo = 'consumidor@ccpip.test' ON CONFLICT (correo) DO NOTHING""");
+        crearConsumidor("otro.comprador@ccpip.test");
         mockMvc.perform(get("/api/pedidos/" + pedido).cookie(loginAs("otro.comprador@ccpip.test")))
                 .andExpect(status().isNotFound());
     }
