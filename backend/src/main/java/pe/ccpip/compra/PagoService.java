@@ -1,6 +1,8 @@
 package pe.ccpip.compra;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -12,6 +14,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import pe.ccpip.catalogo.CatalogoRepository;
+import pe.ccpip.catalogo.CatalogoRepository.Vendible;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.compra.CompraModelos.ResultadoPago;
 import pe.ccpip.inventario.DescuentoExistenciasService;
@@ -25,6 +29,8 @@ import pe.ccpip.pago.Tarjeta;
  * bloqueada y cada intento quede registrado aunque algo falle a mitad (CCPIP-163):
  *
  * <ol>
+ *   <li>CCPIP-270: cada producto debe seguir autorizado para su productor. Si se revoco despues de
+ *       crear el pedido, no se cobra y el pedido se cancela.</li>
  *   <li>Se registra el intento en PENDIENTE (transaccion corta).</li>
  *   <li>Se cobra en la pasarela, fuera de toda transaccion.</li>
  *   <li>Se aplica el resultado. Si se aprobo, en una sola transaccion: descuento de stock (CCPIP-158),
@@ -48,14 +54,16 @@ public class PagoService {
     private final DescuentoExistenciasService descuento;
     private final PasarelaPago pasarela;
     private final CompraService compra;
+    private final CatalogoRepository catalogo;
 
     public PagoService(NamedParameterJdbcTemplate jdbc, TransactionTemplate tx, DescuentoExistenciasService descuento,
-                       PasarelaPago pasarela, CompraService compra) {
+                       PasarelaPago pasarela, CompraService compra, CatalogoRepository catalogo) {
         this.jdbc = jdbc;
         this.tx = tx;
         this.descuento = descuento;
         this.pasarela = pasarela;
         this.compra = compra;
+        this.catalogo = catalogo;
     }
 
     /**
@@ -72,6 +80,7 @@ public class PagoService {
         }
 
         Tarjeta.Marca marca = tarjeta.validar();
+        exigirAutorizados(usuarioId, pedidoId);
         Intento intento = tx.execute(s -> registrar(usuarioId, pedidoId, clave, marca));
 
         ResultadoCobro cobro;
@@ -100,6 +109,33 @@ public class PagoService {
             tx.executeWithoutResult(s -> resolver(intento.id(), resuelto));
         }
         return resultado(usuarioId, pedidoId, intento.id());
+    }
+
+    /**
+     * CCPIP-270 (RF-143): solo se adquiere lo autorizado especificamente al productor elegido, y se
+     * controla de nuevo al pagar, que es cuando la compra se concreta. Si una autorizacion se revoco o
+     * vencio despues de crear el pedido, no se cobra: el pedido se cancela y el comprador vuelve a su
+     * carrito, donde ese producto aparece como "Venta pausada".
+     */
+    private void exigirAutorizados(long usuarioId, long pedidoId) {
+        MapSqlParameterSource p = new MapSqlParameterSource("id", pedidoId).addValue("usuario", usuarioId);
+        List<Long> productos = jdbc.queryForList("""
+                SELECT ip.producto_id FROM item_pedido ip JOIN pedido pe ON pe.id = ip.pedido_id
+                WHERE pe.id = :id AND pe.usuario_id = :usuario AND pe.estado = 'PENDIENTE_PAGO'""", p, Long.class);
+        Map<Long, Vendible> vendibles = catalogo.vendibles(productos);
+        boolean pausado = productos.stream().map(vendibles::get).anyMatch(v -> v != null && !v.habilitada());
+        if (!pausado) {
+            return;
+        }
+        tx.executeWithoutResult(s -> {
+            if (jdbc.update("""
+                    UPDATE pedido SET estado = 'CANCELADO', actualizado_en = now()
+                    WHERE id = :id AND usuario_id = :usuario AND estado = 'PENDIENTE_PAGO'""", p) == 1) {
+                jdbc.update("INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (:id, 'CANCELADO', :usuario)", p);
+            }
+        });
+        throw new ErrorNegocio(HttpStatus.CONFLICT, "VENTA_PAUSADA",
+                "La venta de un producto de tu pedido se pausó. No se hizo ningún cobro; vuelve a tu carrito para revisarlo.");
     }
 
     private Intento registrar(long usuarioId, long pedidoId, UUID clave, Tarjeta.Marca marca) {
