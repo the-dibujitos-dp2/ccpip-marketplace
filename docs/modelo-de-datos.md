@@ -70,7 +70,11 @@ Sprint 0, eso es CCPIP-28.
 
 ### sesion
 Sesion con token opaco aleatorio, entregado en cookie HttpOnly y guardado en el servidor.
-Cerrar sesion borra la fila, y eso invalida el acceso de inmediato como exige RNF-03.
+Cerrar sesion borra la fila, y eso invalida el acceso de inmediato como exige RNF-03
+(CCPIP-266). La sesion expira tras un plazo sin actividad configurable,
+`ccpip.auth.session-timeout` (variable `CCPIP_AUTH_SESSION_TIMEOUT`; 30 minutos por defecto, 2
+en el stack de e2e). El carrito vive en `carrito` e `item_carrito`, ligado al usuario y no a la
+sesion: expirar o cerrar sesion no lo borra, y al volver a ingresar sigue igual (CCPIP-267).
 Reemplaza a la tabla token_revocado que venia de usar JWT: con JWT habia que consultar
 la lista de revocados en cada peticion de todos modos, y la expiracion por inactividad
 obligaba a reemitir tokens. ADR-05 se actualiza a token opaco.

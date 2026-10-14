@@ -49,6 +49,17 @@ class SessionServiceTest {
     }
 
     @Test
+    void elPlazoDeInactividadEsConfigurable() {
+        // CCPIP-267: el plazo sale de ccpip.auth.session-timeout; aqui 5 minutos en vez de 30
+        SessionService corto = new SessionService(store, Duration.ofMinutes(5), clock);
+        String token = corto.create(1L);
+        clock.advance(Duration.ofMinutes(4));
+        assertThat(corto.validate(token).status()).isEqualTo(Status.VALIDA);
+        clock.advance(Duration.ofMinutes(5));
+        assertThat(corto.validate(token).status()).isEqualTo(Status.EXPIRADA);
+    }
+
+    @Test
     void cadaRequestValidoRenuevaElPlazo() {
         String token = service.create(1L);
         clock.advance(Duration.ofMinutes(20));
