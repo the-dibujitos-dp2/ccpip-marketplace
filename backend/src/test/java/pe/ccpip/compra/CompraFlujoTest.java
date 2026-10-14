@@ -185,6 +185,30 @@ class CompraFlujoTest extends IntegrationTest {
     }
 
     @Test
+    void si_la_autorizacion_se_revoca_antes_de_pagar_no_se_cobra_y_el_pedido_se_cancela() throws Exception {
+        long producto = productoEnCusco("Canasta", 5);
+        long pedido = pedidoPendiente(producto, 1);
+        // CCPIP-270: entre crear el pedido y pagarlo, la Camara revoca la autorizacion del producto
+        jdbc.update("UPDATE autorizacion_producto SET estado = 'REVOCADA', motivo = 'Evidencia vencida' WHERE producto_id = ?",
+                producto);
+
+        pagar(pedido, UUID.randomUUID(), APROBADA, "123")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("VENTA_PAUSADA"));
+
+        assertThat(stock(producto)).isEqualByComparingTo("5");
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM pago WHERE pedido_id = ?", Integer.class, pedido)).isZero();
+        assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id = ?", String.class, pedido)).isEqualTo("CANCELADO");
+        // El producto sigue en el carrito, marcado como venta pausada
+        mockMvc.perform(get("/api/carrito").cookie(comprador))
+                .andExpect(jsonPath("$.items[0].estado").value("VENTA_PAUSADA"));
+        // Y no se puede volver a confirmar mientras siga pausado
+        confirmar(puntoCusco(), "987 654 321")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CARRITO_CON_PROBLEMAS"));
+    }
+
+    @Test
     void el_mismo_intento_enviado_dos_veces_no_cobra_dos_veces() throws Exception {
         long producto = productoEnCusco("Canasta", 5);
         long pedido = pedidoPendiente(producto, 1);
