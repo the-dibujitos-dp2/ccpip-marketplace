@@ -423,6 +423,82 @@
     "nav": {
       "pedidos": "Pedidos",
       "movimientos": "Movimientos"
+    },
+    "pedidos": {
+      "vence": "vence {{fecha}}",
+      "lote": "Lote {{codigo}} · {{vence}} · {{cantidad}} und",
+      "marcado": "El pedido {{numero}} está listo para recojo",
+      "errorMarcar": "No pudimos marcar el pedido",
+      "entregado": "El pedido {{numero}} se entregó a {{persona}}",
+      "errorCargar": "No pudimos cargar los pedidos",
+      "vacio": "Aún no hay pedidos",
+      "vacioTexto": "Aquí verás los pedidos que los compradores recogerán en tu punto.",
+      "columna": {
+        "CONFIRMADO": "Confirmado",
+        "LISTO_PARA_RECOJO": "Listo para recojo",
+        "ENTREGADO": "Entregado hoy"
+      },
+      "columnaConteo": "{{titulo}} ({{total}})",
+      "columnaVacia": {
+        "CONFIRMADO": "No hay pedidos por preparar.",
+        "LISTO_PARA_RECOJO": "Ningún pedido espera a su comprador.",
+        "ENTREGADO": "Aún no se entregó ningún pedido hoy."
+      },
+      "productosDe": "Productos del pedido {{numero}}",
+      "lotesDe": "Lotes de {{producto}}",
+      "sinLotes": "Sin lotes asignados",
+      "recogio": "Recogió {{persona}}",
+      "pie": {
+        "CONFIRMADO": "Confirmado",
+        "LISTO_PARA_RECOJO": "Listo",
+        "ENTREGADO": "Entregado"
+      },
+      "marcarEtiqueta": "Marcar el pedido {{numero}} como listo para recojo",
+      "marcando": "Marcando…",
+      "recojoEtiqueta": "Registrar el recojo del pedido {{numero}}"
+    },
+    "recojo": {
+      "validacion": {
+        "persona": "Indica quién recoge",
+        "celular": "Indica el celular de contacto"
+      },
+      "titulo": "Registrar recojo del pedido {{numero}}",
+      "registrar": "Registrar recojo",
+      "instrucciones": "Pide a quien recoge su nombre y su celular. Deben coincidir con los del pedido: el comprador o la persona autorizada.",
+      "nombre": "Nombre de quien recoge",
+      "celularAyuda": "9 dígitos; puede incluir +51",
+      "error": "No pudimos registrar el recojo"
+    },
+    "movimientos": {
+      "pestana": {
+        "TODOS": "Todos",
+        "ENTRADAS": "Entradas",
+        "SALIDAS": "Salidas",
+        "AJUSTES": "Ajustes"
+      },
+      "tipoEtiqueta": "Tipo de movimiento",
+      "numeroPedido": "Número de pedido",
+      "buscarPedido": "Buscar por N.º de pedido",
+      "errorCargar": "No pudimos cargar los movimientos",
+      "delPedido": "Movimientos del pedido {{numero}}",
+      "sinMovimientosPedido": "Ese pedido no tiene movimientos en tu punto.",
+      "vacio": "Aún no hay movimientos",
+      "vacioTexto": "Aquí verás las entradas, las ventas y los ajustes de tu punto.",
+      "col": {
+        "fecha": "Fecha",
+        "tipo": "Tipo",
+        "producto": "Producto y lote",
+        "registro": "Registró"
+      },
+      "lista": "Movimientos del punto",
+      "tipo": {
+        "ENTRADA": "Entrada",
+        "TRANSFERENCIA_ENTRADA": "Transferencia",
+        "SALIDA_VENTA": "Salida",
+        "TRANSFERENCIA_SALIDA": "Transferencia",
+        "AJUSTE": "Ajuste"
+      },
+      "compraEnLinea": "Compra en línea"
     }
   },
   "sello": {
