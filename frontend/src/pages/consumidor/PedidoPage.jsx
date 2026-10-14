@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import iconoCheck from '../../assets/icons/check-circulo.svg'
 import { consultarPedido } from '../../api/compra.js'
 import Alerta from '../../components/Alerta.jsx'
@@ -12,15 +13,9 @@ import { fechaHora, precio } from '../../formato.js'
 import { RUTAS } from '../../router.js'
 import './PedidoPage.css'
 
-const PASOS = ['Carrito', 'Entrega y pago', 'Confirmación']
+const PASOS = ['carrito', 'entrega', 'confirmacion']
 
-const ESTADOS_PAGO = {
-  APROBADO: { tono: 'exito', texto: 'Aprobado' },
-  RECHAZADO: { tono: 'error', texto: 'Rechazado' },
-  ERROR: { tono: 'error', texto: 'Error' },
-  PENDIENTE: { tono: 'aviso', texto: 'En proceso' },
-  ANULADO: { tono: 'neutro', texto: 'Devuelto' },
-}
+const TONO_PAGO = { APROBADO: 'exito', RECHAZADO: 'error', ERROR: 'error', PENDIENTE: 'aviso', ANULADO: 'neutro' }
 
 /**
  * CW-05, paso "Confirmación" · CCPIP-64: numero de pedido, articulos e importes con el precio
@@ -28,6 +23,7 @@ const ESTADOS_PAGO = {
  * estado y monto, sin datos de la tarjeta salvo la marca.
  */
 export default function PedidoPage({ id }) {
+  const { t } = useTranslation()
   const [pedido, setPedido] = useState(null)
   const [error, setError] = useState(null)
 
@@ -43,22 +39,22 @@ export default function PedidoPage({ id }) {
   return (
     <LayoutTienda>
       <main className="contenedor pedido" aria-busy={!pedido && !error}>
-        <Pasos pasos={PASOS} actual={pedido?.estado === 'PENDIENTE_PAGO' ? 1 : 2} etiqueta="Pasos de la compra" />
+        <Pasos pasos={PASOS.map((p) => t(`carrito.pasos.${p}`))} actual={pedido?.estado === 'PENDIENTE_PAGO' ? 1 : 2} etiqueta={t('carrito.pasos.etiqueta')} />
         {error?.status === 404 && (
-          <EstadoVacio titulo="No encontramos ese pedido" descripcion="Revisa el enlace o vuelve a la tienda.">
+          <EstadoVacio titulo={t('pedido.noEncontrado')} descripcion={t('pedido.noEncontradoTexto')}>
             <Boton tamano="M" to={RUTAS.catalogo}>
-              Ir a la tienda
+              {t('pedido.irTienda')}
             </Boton>
           </EstadoVacio>
         )}
         {error && error.status !== 404 && (
-          <EstadoVacio titulo="No pudimos cargar tu pedido" descripcion="Revisa tu conexión e inténtalo otra vez.">
+          <EstadoVacio titulo={t('pedido.error')} descripcion={t('comun.errorConexion')}>
             <Boton tamano="M" onClick={cargar}>
-              Reintentar
+              {t('carrito.reintentar')}
             </Boton>
           </EstadoVacio>
         )}
-        {!error && !pedido && <p className="visually-hidden">Cargando tu pedido…</p>}
+        {!error && !pedido && <p className="visually-hidden">{t('pedido.cargando')}</p>}
         {pedido && <Detalle pedido={pedido} />}
       </main>
     </LayoutTienda>
@@ -66,6 +62,7 @@ export default function PedidoPage({ id }) {
 }
 
 function Detalle({ pedido }) {
+  const { t } = useTranslation()
   const confirmado = !['PENDIENTE_PAGO', 'CANCELADO'].includes(pedido.estado)
   const pagoAprobado = pedido.pagos.find((p) => p.estado === 'APROBADO')
   const punto = pedido.punto
@@ -74,33 +71,33 @@ function Detalle({ pedido }) {
       {confirmado ? (
         <header className="pedido__exito">
           <Icono src={iconoCheck} tamano={48} className="pedido__exito-icono" />
-          <h1 className="pedido__titulo">¡Gracias por tu compra!</h1>
+          <h1 className="pedido__titulo">{t('pedido.gracias')}</h1>
           <p className="pedido__subtitulo">
-            Tu pedido <strong>{pedido.numero}</strong> está confirmado. Te avisaremos cuando esté listo para recoger.
+            <Trans i18nKey="pedido.confirmado" values={{ numero: pedido.numero }} components={{ strong: <strong /> }} />
           </p>
         </header>
       ) : (
         <>
-          <h1 className="pedido__titulo">Pedido {pedido.numero}</h1>
+          <h1 className="pedido__titulo">{t('pedido.titulo', { numero: pedido.numero })}</h1>
           {pedido.estado === 'PENDIENTE_PAGO' && (
-            <Alerta tono="aviso" titulo="Este pedido espera su pago" descripcion="Vuelve a entrega y pago para completarlo." />
+            <Alerta tono="aviso" titulo={t('pedido.esperaPago')} descripcion={t('pedido.esperaPagoTexto')} />
           )}
           {pedido.estado === 'CANCELADO' && (
-            <Alerta tono="error" titulo="Este pedido fue cancelado" descripcion="No se cobró nada o el pago fue devuelto." />
+            <Alerta tono="error" titulo={t('pedido.cancelado')} descripcion={t('pedido.canceladoTexto')} />
           )}
         </>
       )}
 
       <div className="pedido__cuerpo">
         <section className="pedido__tarjeta" aria-labelledby="pedido-articulos">
-          <h2 id="pedido-articulos" className="pedido__tarjeta-titulo">Artículos</h2>
+          <h2 id="pedido-articulos" className="pedido__tarjeta-titulo">{t('pedido.articulos')}</h2>
           <table className="pedido__tabla">
             <thead>
               <tr>
-                <th scope="col">Producto</th>
-                <th scope="col">Cantidad</th>
-                <th scope="col">Precio</th>
-                <th scope="col">Subtotal</th>
+                <th scope="col">{t('productor.tabla.producto')}</th>
+                <th scope="col">{t('selectorCantidad.etiqueta')}</th>
+                <th scope="col">{t('productor.productos.col.precio')}</th>
+                <th scope="col">{t('pedido.subtotal')}</th>
               </tr>
             </thead>
             <tbody>
@@ -108,7 +105,7 @@ function Detalle({ pedido }) {
                 <tr key={l.productoId}>
                   <td>
                     <span className="pedido__producto">{l.nombre}</span>
-                    <span className="caption">de {l.tienda}</span>
+                    <span className="caption">{t('carrito.deTienda', { nombre: l.tienda })}</span>
                   </td>
                   <td>{Number(l.cantidad)}</td>
                   <td>{precio(l.precioUnitario)}</td>
@@ -118,49 +115,49 @@ function Detalle({ pedido }) {
             </tbody>
           </table>
           <p className="pedido__total">
-            <span>Total</span>
+            <span>{t('carrito.total')}</span>
             <strong>{precio(pedido.total)}</strong>
           </p>
         </section>
 
         <aside className="pedido__lateral">
           <section className="pedido__tarjeta" aria-labelledby="pedido-recojo">
-            <h2 id="pedido-recojo" className="pedido__tarjeta-titulo">Recojo</h2>
+            <h2 id="pedido-recojo" className="pedido__tarjeta-titulo">{t('pedido.recojo')}</h2>
             <dl className="pedido__datos">
               <div>
-                <dt>Punto de acopio</dt>
+                <dt>{t('pedido.punto')}</dt>
                 <dd>
                   {punto.nombre}
                   <span className="caption">{[punto.direccion, punto.distrito, punto.departamento].filter(Boolean).join(' · ')}</span>
                 </dd>
               </div>
               <div>
-                <dt>Recoge</dt>
-                <dd>{pedido.personaAutorizada ?? 'Tú, con tu documento'}</dd>
+                <dt>{t('pedido.recoge')}</dt>
+                <dd>{pedido.personaAutorizada ?? t('pedido.tu')}</dd>
               </div>
               <div>
-                <dt>Celular de contacto</dt>
+                <dt>{t('compra.celular')}</dt>
                 <dd>{pedido.celularContacto}</dd>
               </div>
             </dl>
           </section>
 
           <section className="pedido__tarjeta" aria-labelledby="pedido-pagos">
-            <h2 id="pedido-pagos" className="pedido__tarjeta-titulo">Pago</h2>
+            <h2 id="pedido-pagos" className="pedido__tarjeta-titulo">{t('pedido.pago')}</h2>
             {pagoAprobado && (
               <p className="pedido__pago-ok">
-                Pagaste {precio(pagoAprobado.monto)} con {pagoAprobado.marca}
-                <span className="caption">Operación {pagoAprobado.referencia}</span>
+                {t('pedido.pagaste', { monto: precio(pagoAprobado.monto), marca: pagoAprobado.marca })}
+                <span className="caption">{t('pedido.operacion', { referencia: pagoAprobado.referencia })}</span>
               </p>
             )}
             {pedido.pagos.length > 0 && (
-              <ul className="pedido__intentos" aria-label="Intentos de pago">
+              <ul className="pedido__intentos" aria-label={t('pedido.intentos')}>
                 {pedido.pagos.map((p) => (
                   <li key={p.id}>
                     <span>
                       {fechaHora(p.creadoEn)} · {p.marca} · {precio(p.monto)}
                     </span>
-                    <Badge tono={ESTADOS_PAGO[p.estado]?.tono ?? 'neutro'}>{ESTADOS_PAGO[p.estado]?.texto ?? p.estado}</Badge>
+                    <Badge tono={TONO_PAGO[p.estado] ?? 'neutro'}>{t(`pedido.estadoPago.${p.estado}`, { defaultValue: p.estado })}</Badge>
                   </li>
                 ))}
               </ul>
@@ -168,7 +165,7 @@ function Detalle({ pedido }) {
           </section>
 
           <Boton tipo="secundario" anchoCompleto to={RUTAS.buscar}>
-            Seguir comprando
+            {t('pedido.seguirComprando')}
           </Boton>
         </aside>
       </div>

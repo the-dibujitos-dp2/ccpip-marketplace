@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import { consultarCarrito, recargarUnidadesCarrito } from '../../api/carrito.js'
 import { confirmarCompra, consultarPuntosRecojo, pagarPedido } from '../../api/compra.js'
@@ -11,11 +12,13 @@ import OpcionTarjeta from '../../components/OpcionTarjeta.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { precio } from '../../formato.js'
+import { mensajeError } from '../../i18n/errores.js'
+import i18n from '../../i18n/index.js'
 import { navigate, RUTAS } from '../../router.js'
 import { digitos, formatear, largoCvv, marca, nombreMarca, numeroValido, vencimientoValido } from '../../tarjeta.js'
 import './CompraPage.css'
 
-const PASOS = ['Carrito', 'Entrega y pago', 'Confirmación']
+const PASOS = ['carrito', 'entrega', 'confirmacion']
 const MESES = Array.from({ length: 12 }, (_, i) => ({ valor: String(i + 1), etiqueta: String(i + 1).padStart(2, '0') }))
 const ANIO = new Date().getFullYear()
 const ANIOS = Array.from({ length: 12 }, (_, i) => ({ valor: String(ANIO + i), etiqueta: String(ANIO + i) }))
@@ -53,21 +56,27 @@ const LIMPIAR = {
 
 /** Las mismas reglas que el servidor (Tarjeta.java, PersonaDeRecojo.java), para avisar antes de enviar. */
 function validar(f) {
+  const t = (clave, opciones) => i18n.t(`compra.validacion.${clave}`, opciones)
   const errores = {}
-  if (!f.puntoId) errores.puntoId = 'Elige un punto de acopio'
-  if (f.recogeOtro && !f.personaAutorizada.trim()) errores.personaAutorizada = 'Indica quién recogerá el pedido'
-  else if (f.recogeOtro && !NOMBRE.test(f.personaAutorizada.trim())) errores.personaAutorizada = 'Usa solo letras'
-  if (!celularValido(f.celular)) errores.celular = 'Ingresa un celular de 9 dígitos que empiece con 9'
-  if (digitos(f.numero).length < 13) errores.numero = 'Ingresa el número de tu tarjeta'
-  else if (!numeroValido(f.numero)) errores.numero = 'El número de tarjeta no es válido'
-  if (!f.titular.trim()) errores.titular = 'Indica el nombre del titular'
-  else if (!NOMBRE.test(f.titular.trim())) errores.titular = 'Usa solo letras'
-  if (!f.mes) errores.mes = 'Elige el mes'
-  if (!f.anio) errores.anio = 'Elige el año'
-  if (f.mes && f.anio && !vencimientoValido(f.mes, f.anio)) errores.mes = 'La tarjeta está vencida'
+  if (!f.puntoId) errores.puntoId = t('punto')
+  if (f.recogeOtro && !f.personaAutorizada.trim()) errores.personaAutorizada = t('persona')
+  else if (f.recogeOtro && !NOMBRE.test(f.personaAutorizada.trim())) errores.personaAutorizada = t('soloLetras')
+  if (!celularValido(f.celular)) errores.celular = t('celular')
+  if (digitos(f.numero).length < 13) errores.numero = t('numero')
+  else if (!numeroValido(f.numero)) errores.numero = t('numeroInvalido')
+  if (!f.titular.trim()) errores.titular = t('titular')
+  else if (!NOMBRE.test(f.titular.trim())) errores.titular = t('soloLetras')
+  if (!f.mes) errores.mes = t('mes')
+  if (!f.anio) errores.anio = t('anio')
+  if (f.mes && f.anio && !vencimientoValido(f.mes, f.anio)) errores.mes = t('vencida')
   const cvv = largoCvv(marca(f.numero))
-  if (!/^\d+$/.test(f.cvv) || f.cvv.length !== cvv) errores.cvv = `${cvv} dígitos`
+  if (!/^\d+$/.test(f.cvv) || f.cvv.length !== cvv) errores.cvv = t('cvv', { digitos: cvv })
   return errores
+}
+
+/** El mensaje del resultado del pago llega en espanol: en ingles se usa uno por estado. */
+function mensajePago(resultado) {
+  return i18n.resolvedLanguage === 'es' ? resultado.mensaje : i18n.t(`compra.resultado.${resultado.estado}`, { defaultValue: i18n.t('compra.resultado.ERROR') })
 }
 
 /**
@@ -76,6 +85,7 @@ function validar(f) {
  * descuenta el stock. Un rechazo deja reintentar sin perder lo escrito.
  */
 export default function CompraPage() {
+  const { t } = useTranslation()
   const [carrito, setCarrito] = useState(null)
   const [puntos, setPuntos] = useState(null)
   const [bloqueo, setBloqueo] = useState(null)
@@ -105,10 +115,10 @@ export default function CompraPage() {
       .catch((e) => {
         if (e.status === 401) return
         if (e.code === 'CARRITO_VACIO') navigate(RUTAS.carrito, { replace: true })
-        else if (e.code === 'CARRITO_CON_PROBLEMAS') setBloqueo({ titulo: 'Revisa tu carrito', descripcion: e.message, alCarrito: true })
-        else setBloqueo({ titulo: 'No pudimos preparar tu compra', descripcion: 'Revisa tu conexión e inténtalo otra vez.' })
+        else if (e.code === 'CARRITO_CON_PROBLEMAS') setBloqueo({ titulo: t('compra.revisaCarrito'), descripcion: mensajeError(e), alCarrito: true })
+        else setBloqueo({ titulo: t('compra.noPreparamos'), descripcion: t('comun.errorConexion') })
       })
-  }, [])
+  }, [t])
 
   useEffect(cargar, [cargar])
 
@@ -157,13 +167,13 @@ export default function CompraPage() {
       if (resultado.estado === 'ANULADO') {
         // El stock se agoto mientras pagaba: el pago se devolvio y el pedido se cancelo
         pedido.current = null
-        setAviso({ tono: 'error', titulo: 'No se pudo completar tu compra', descripcion: resultado.mensaje })
+        setAviso({ tono: 'error', titulo: t('compra.noCompletada'), descripcion: mensajePago(resultado) })
         cargar()
       } else {
         setAviso({
           tono: 'error',
-          titulo: resultado.estado === 'RECHAZADO' ? 'Tu pago fue rechazado' : 'No pudimos procesar tu pago',
-          descripcion: resultado.mensaje,
+          titulo: resultado.estado === 'RECHAZADO' ? t('compra.rechazado') : t('compra.noProcesado'),
+          descripcion: mensajePago(resultado),
         })
       }
     } catch (err) {
@@ -179,23 +189,24 @@ export default function CompraPage() {
   function manejarError(err) {
     switch (err.code) {
       case 'CELULAR_INVALIDO':
-        setErrores((e) => ({ ...e, celular: err.message }))
+        setErrores((e) => ({ ...e, celular: mensajeError(err) }))
         break
       case 'TARJETA_INVALIDA':
-        setAviso({ tono: 'error', titulo: err.message, descripcion: (err.body?.detalles ?? []).join(' ') })
+        // Los detalles llegan del servidor en espanol: en ingles basta el mensaje del code
+        setAviso({ tono: 'error', titulo: mensajeError(err), descripcion: i18n.resolvedLanguage === 'es' ? (err.body?.detalles ?? []).join(' ') : undefined })
         break
       case 'PUNTO_SIN_EXISTENCIAS':
       case 'CARRITO_CON_PROBLEMAS':
       case 'PEDIDO_NO_PAGABLE':
         pedido.current = null
-        setAviso({ tono: 'error', titulo: 'Tu carrito cambió', descripcion: err.message })
+        setAviso({ tono: 'error', titulo: t('compra.carritoCambio'), descripcion: mensajeError(err) })
         cargar()
         break
       default:
         setAviso({
           tono: 'error',
-          titulo: 'No pudimos completar el pago',
-          descripcion: err.status ? err.message : 'Revisa tu conexión e inténtalo otra vez. No se hizo ningún cobro duplicado.',
+          titulo: t('compra.noCompletamosPago'),
+          descripcion: err.status ? mensajeError(err) : t('compra.sinConexion'),
         })
     }
   }
@@ -206,30 +217,30 @@ export default function CompraPage() {
   return (
     <LayoutTienda>
       <main className="contenedor compra" aria-busy={!bloqueo && (!carrito || !puntos)}>
-        <Pasos pasos={PASOS} actual={1} etiqueta="Pasos de la compra" onIr={(i) => i === 0 && navigate(RUTAS.carrito)} />
-        <h1 className="compra__titulo">Entrega y pago</h1>
+        <Pasos pasos={PASOS.map((p) => t(`carrito.pasos.${p}`))} actual={1} etiqueta={t('carrito.pasos.etiqueta')} onIr={(i) => i === 0 && navigate(RUTAS.carrito)} />
+        <h1 className="compra__titulo">{t('carrito.pasos.entrega')}</h1>
 
         {bloqueo && (
           <EstadoVacio titulo={bloqueo.titulo} descripcion={bloqueo.descripcion}>
             {bloqueo.alCarrito ? (
               <Boton tamano="M" to={RUTAS.carrito}>
-                Volver al carrito
+                {t('compra.volverCarrito')}
               </Boton>
             ) : (
               <Boton tamano="M" onClick={cargar}>
-                Reintentar
+                {t('carrito.reintentar')}
               </Boton>
             )}
           </EstadoVacio>
         )}
-        {!bloqueo && (!carrito || !puntos) && <p className="visually-hidden">Preparando tu compra…</p>}
+        {!bloqueo && (!carrito || !puntos) && <p className="visually-hidden">{t('compra.preparando')}</p>}
         {!bloqueo && puntos?.length === 0 && (
           <EstadoVacio
-            titulo="Ningún punto de acopio tiene todo tu carrito"
-            descripcion="Por ahora ningún punto tiene existencias para todos tus productos juntos. Ajusta las cantidades o quita alguno."
+            titulo={t('compra.sinPunto')}
+            descripcion={t('compra.sinPuntoTexto')}
           >
             <Boton tamano="M" to={RUTAS.carrito}>
-              Volver al carrito
+              {t('compra.volverCarrito')}
             </Boton>
           </EstadoVacio>
         )}
@@ -238,11 +249,11 @@ export default function CompraPage() {
           <form className="compra__cuerpo" onSubmit={pagar} noValidate>
             <div className="compra__secciones">
               <section className="compra__seccion" aria-labelledby="compra-recojo">
-                <h2 id="compra-recojo" className="compra__seccion-titulo">1. Punto de recojo</h2>
-                <p className="caption compra__ayuda">Recoges tu pedido sin costo en un punto de acopio de la Cámara.</p>
+                <h2 id="compra-recojo" className="compra__seccion-titulo">{t('compra.puntoTitulo')}</h2>
+                <p className="caption compra__ayuda">{t('compra.puntoAyuda')}</p>
                 <OpcionTarjeta
                   nombre="punto"
-                  etiqueta="Elige dónde recoger"
+                  etiqueta={t('compra.eligeDonde')}
                   valor={form.puntoId}
                   onCambiar={(v) => cambiar('puntoId', v)}
                   opciones={puntos.map((p) => ({
@@ -261,14 +272,14 @@ export default function CompraPage() {
               </section>
 
               <section className="compra__seccion" aria-labelledby="compra-quien">
-                <h2 id="compra-quien" className="compra__seccion-titulo">2. ¿Quién recoge?</h2>
+                <h2 id="compra-quien" className="compra__seccion-titulo">{t('compra.quienTitulo')}</h2>
                 <label className="compra__check">
                   <input type="checkbox" checked={form.recogeOtro} onChange={alEscribir('recogeOtro')} />
-                  Otra persona recogerá el pedido
+                  {t('compra.otraPersona')}
                 </label>
                 {form.recogeOtro && (
                   <Campo
-                    etiqueta="Nombre de la persona autorizada"
+                    etiqueta={t('compra.personaAutorizada')}
                     value={form.personaAutorizada}
                     onChange={alEscribir('personaAutorizada')}
                     error={errores.personaAutorizada}
@@ -276,8 +287,8 @@ export default function CompraPage() {
                   />
                 )}
                 <Campo
-                  etiqueta="Celular de contacto"
-                  ayuda="9 dígitos. El punto de acopio lo verifica al entregar el pedido."
+                  etiqueta={t('compra.celular')}
+                  ayuda={t('compra.celularAyuda')}
                   value={form.celular}
                   onChange={alEscribir('celular')}
                   error={errores.celular}
@@ -288,13 +299,13 @@ export default function CompraPage() {
               </section>
 
               <section className="compra__seccion" aria-labelledby="compra-pago">
-                <h2 id="compra-pago" className="compra__seccion-titulo">3. Pago con tarjeta</h2>
+                <h2 id="compra-pago" className="compra__seccion-titulo">{t('compra.pagoTitulo')}</h2>
                 <p className="compra__seguro">
                   <Icono src={iconoEscudo} tamano={16} />
-                  No guardamos los datos de tu tarjeta.
+                  {t('compra.noGuardamos')}
                 </p>
                 <Campo
-                  etiqueta="Número de tarjeta"
+                  etiqueta={t('compra.numero')}
                   ayuda={nombreMarca(marcaTarjeta) ?? undefined}
                   value={form.numero}
                   onChange={alEscribir('numero')}
@@ -304,7 +315,7 @@ export default function CompraPage() {
                   placeholder="1234 5678 9012 3456"
                 />
                 <Campo
-                  etiqueta="Nombre del titular"
+                  etiqueta={t('compra.titular')}
                   value={form.titular}
                   onChange={alEscribir('titular')}
                   error={errores.titular}
@@ -312,9 +323,9 @@ export default function CompraPage() {
                   maxLength={120}
                 />
                 <div className="compra__fila">
-                  <Campo tipo="selector" etiqueta="Mes" opciones={MESES} placeholder="MM" value={form.mes}
+                  <Campo tipo="selector" etiqueta={t('compra.mes')} opciones={MESES} placeholder="MM" value={form.mes}
                     onChange={alEscribir('mes')} error={errores.mes} autoComplete="cc-exp-month" />
-                  <Campo tipo="selector" etiqueta="Año" opciones={ANIOS} placeholder="AAAA" value={form.anio}
+                  <Campo tipo="selector" etiqueta={t('compra.anio')} opciones={ANIOS} placeholder={t('compra.anioPlaceholder')} value={form.anio}
                     onChange={alEscribir('anio')} error={errores.anio} autoComplete="cc-exp-year" />
                   <Campo etiqueta="CVV" value={form.cvv} onChange={alEscribir('cvv')} error={errores.cvv}
                     inputMode="numeric" autoComplete="cc-csc" maxLength={largoCvv(marcaTarjeta)}
@@ -322,14 +333,14 @@ export default function CompraPage() {
                 </div>
                 <Alerta
                   tono="info"
-                  titulo="Ambiente de pruebas: no se hace ningún cobro real"
-                  descripcion="Usa 4111 1111 1111 1111 para aprobar el pago o 4000 0000 0000 0002 para ver un rechazo."
+                  titulo={t('compra.pruebas')}
+                  descripcion={t('compra.pruebasTexto')}
                 />
               </section>
             </div>
 
             <aside className="compra__resumen" aria-labelledby="compra-resumen">
-              <h2 id="compra-resumen" className="compra__resumen-titulo">Resumen del pedido</h2>
+              <h2 id="compra-resumen" className="compra__resumen-titulo">{t('carrito.resumen')}</h2>
               <ul className="compra__lineas">
                 {comprables.map((i) => (
                   <li key={i.productoId}>
@@ -342,16 +353,16 @@ export default function CompraPage() {
               </ul>
               <dl className="compra__cifras">
                 <div>
-                  <dt>Comunidades</dt>
+                  <dt>{t('comunidades.titulo')}</dt>
                   <dd>{carrito.comunidades}</dd>
                 </div>
                 <div>
-                  <dt>Recojo en punto de acopio</dt>
-                  <dd>Gratis</dd>
+                  <dt>{t('compra.recojo')}</dt>
+                  <dd>{t('compra.gratis')}</dd>
                 </div>
               </dl>
               <p className="compra__total">
-                <span>Total</span>
+                <span>{t('carrito.total')}</span>
                 <strong>{precio(carrito.total)}</strong>
               </p>
               {aviso && (
@@ -360,9 +371,9 @@ export default function CompraPage() {
                 </div>
               )}
               <Boton tipo="acento" anchoCompleto type="submit" disabled={enviando}>
-                {enviando ? 'Procesando pago…' : `Pagar ${precio(carrito.total)}`}
+                {enviando ? t('compra.procesando') : t('compra.pagar', { monto: precio(carrito.total) })}
               </Boton>
-              <p className="caption compra__nota">El stock se descuenta recién cuando tu pago se aprueba.</p>
+              <p className="caption compra__nota">{t('compra.notaStock')}</p>
             </aside>
           </form>
         )}
