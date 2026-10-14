@@ -1,5 +1,6 @@
 // Cliente HTTP comun (CCPIP-27). La sesion viaja en una cookie HttpOnly que pone el
 // backend: este codigo nunca ve ni guarda el token.
+import i18n from '../i18n/index.js'
 
 const listeners = new Set()
 let idleTimer = null
@@ -68,7 +69,8 @@ export async function apiFetch(path, { method = 'GET', body, sessionRequired = t
     method,
     credentials: 'same-origin',
     cache: 'no-store',
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    // CCPIP-166: el servidor responde el contenido aprobado en el idioma elegido
+    headers: { 'Accept-Language': i18n.resolvedLanguage, ...(body ? { 'Content-Type': 'application/json' } : {}) },
     body: body ? JSON.stringify(body) : undefined,
   })
   restartIdleTimer()
