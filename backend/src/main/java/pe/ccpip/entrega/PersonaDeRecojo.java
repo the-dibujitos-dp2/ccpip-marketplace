@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
  * mostrador, asi que no distinguen mayusculas, tildes ni espacios sobrantes, y el celular admite
  * "+51", espacios y guiones.
  */
-final class PersonaDeRecojo {
+public final class PersonaDeRecojo {
 
     private static final Pattern MARCAS = Pattern.compile("\\p{M}+");
     private static final Pattern ESPACIOS = Pattern.compile("\\s+");
@@ -32,7 +32,7 @@ final class PersonaDeRecojo {
     }
 
     /** Los 9 digitos del celular, o vacio si no es un celular valido. */
-    static Optional<String> celular(String texto) {
+    public static Optional<String> celular(String texto) {
         if (texto == null) {
             return Optional.empty();
         }
