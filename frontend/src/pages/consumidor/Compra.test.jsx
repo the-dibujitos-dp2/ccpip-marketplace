@@ -116,6 +116,8 @@ describe('CW-05 Entrega y pago (CCPIP-157, CCPIP-62) y confirmación (CCPIP-64)'
 
     const alerta = await screen.findByRole('alert')
     expect(within(alerta).getByText('Tu pago fue rechazado')).toBeInTheDocument()
+    // Junto al boton "Pagar", donde el comprador acaba de hacer clic, y no al inicio del formulario
+    expect(screen.getByRole('complementary', { name: 'Resumen del pedido' })).toContainElement(alerta)
     expect(within(alerta).getByText(/fondos insuficientes/)).toBeInTheDocument()
     // Se borra el CVV; lo demas se conserva
     expect(screen.getByLabelText('CVV')).toHaveValue('')

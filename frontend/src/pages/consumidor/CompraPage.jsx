@@ -59,6 +59,12 @@ export default function CompraPage() {
   const pedido = useRef(null)
   // Clave del intento de pago en curso: si la respuesta no llega (corte de red), se reenvia la misma
   const clave = useRef(null)
+  // El aviso va junto al boton "Pagar", donde el comprador acaba de hacer clic. Si aun asi quedo
+  // fuera de la pantalla, se desplaza lo justo para verlo (sin saltar al inicio del formulario).
+  const refAviso = useRef(null)
+  useEffect(() => {
+    if (aviso) refAviso.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
+  }, [aviso])
 
   const cargar = useCallback(() => {
     setBloqueo(null)
@@ -197,8 +203,6 @@ export default function CompraPage() {
         {!bloqueo && carrito && puntos?.length > 0 && (
           <form className="compra__cuerpo" onSubmit={pagar} noValidate>
             <div className="compra__secciones">
-              {aviso && <Alerta {...aviso} onCerrar={() => setAviso(null)} />}
-
               <section className="compra__seccion" aria-labelledby="compra-recojo">
                 <h2 id="compra-recojo" className="compra__seccion-titulo">1. Punto de recojo</h2>
                 <p className="caption compra__ayuda">Recoges tu pedido sin costo en un punto de acopio de la Cámara.</p>
@@ -316,6 +320,11 @@ export default function CompraPage() {
                 <span>Total</span>
                 <strong>{precio(carrito.total)}</strong>
               </p>
+              {aviso && (
+                <div ref={refAviso} className="compra__aviso">
+                  <Alerta {...aviso} onCerrar={() => setAviso(null)} />
+                </div>
+              )}
               <Boton tipo="acento" anchoCompleto type="submit" disabled={enviando}>
                 {enviando ? 'Procesando pago…' : `Pagar ${precio(carrito.total)}`}
               </Boton>

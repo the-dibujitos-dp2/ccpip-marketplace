@@ -52,6 +52,7 @@
 
 .compra__total { display: flex; align-items: baseline; justify-content: space-between; margin: 0; font-weight: 600; font-size: 18px; }
 .compra__total strong { font-family: var(--font-display); font-size: 32px; line-height: 40px; }
+.compra__aviso { scroll-margin: 24px; }
 .compra__nota { margin: -8px 0 0; color: var(--color-text-secondary); text-align: center; }
 
 @media (max-width: 960px) {
