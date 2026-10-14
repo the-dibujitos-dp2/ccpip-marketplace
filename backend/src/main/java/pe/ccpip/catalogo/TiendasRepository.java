@@ -49,6 +49,13 @@ public class TiendasRepository {
                 });
     }
 
+    /** CCPIP-363: la comunidad existe, esta activa y tiene su tienda publicada. */
+    public boolean publicada(long id) {
+        return Boolean.TRUE.equals(jdbc.queryForObject("""
+                SELECT EXISTS (SELECT 1 FROM productor pr WHERE pr.id = :id AND pr.activo AND pr.tienda_publicada)""",
+                new MapSqlParameterSource("id", id), Boolean.class));
+    }
+
     public Optional<TiendaDetalle> detalle(long id) {
         MapSqlParameterSource p = new MapSqlParameterSource("id", id);
         return jdbc.query("""
