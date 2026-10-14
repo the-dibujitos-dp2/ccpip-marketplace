@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import iconoCamara from '../../assets/icons/camara.svg'
 import iconoCerrar from '../../assets/icons/cerrar.svg'
 import iconoCheck from '../../assets/icons/check.svg'
@@ -12,17 +13,13 @@ import Campo from '../../components/Campo.jsx'
 import Icono from '../../components/Icono.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Badge from '../../components/Badge.jsx'
+import { mensajeError, traducirFaltante } from '../../i18n/errores.js'
+import i18n from '../../i18n/index.js'
 import PaginaProductor from './PaginaProductor.jsx'
 import './productor.css'
 import './TiendaEditorPage.css'
 
-const CATEGORIAS = [
-  { valor: 'COMUNIDAD', etiqueta: 'Comunidad' },
-  { valor: 'CULTIVO', etiqueta: 'Cultivo' },
-  { valor: 'PRODUCCION', etiqueta: 'Producción' },
-  { valor: 'TIENDA_FISICA', etiqueta: 'Tienda física' },
-  { valor: 'BRANDING', etiqueta: 'Branding' },
-]
+const CATEGORIAS = ['COMUNIDAD', 'CULTIVO', 'PRODUCCION', 'TIENDA_FISICA', 'BRANDING']
 const MAX_GALERIA = 24
 const MAX_DESTACADOS = 4
 
@@ -41,6 +38,7 @@ function formulario(t) {
 
 /** PW-08: el productor arma y publica la tienda de su comunidad (CCPIP-30). */
 export default function TiendaEditorPage({ path }) {
+  const { t } = useTranslation()
   const [tienda, setTienda] = useState(null)
   const [f, setF] = useState(null)
   const [errores, setErrores] = useState({})
@@ -51,34 +49,42 @@ export default function TiendaEditorPage({ path }) {
   const [eligiendo, setEligiendo] = useState(false)
   const [subiendo, setSubiendo] = useState(null)
 
-  function aplicar(t) {
-    setTienda(t)
-    setF(formulario(t))
+  function aplicar(datos) {
+    setTienda(datos)
+    setF(formulario(datos))
   }
+  const categorias = CATEGORIAS.map((c) => ({ valor: c, etiqueta: t(`productor.tienda.categorias.${c}`) }))
+  const nombreCategoria = (c) => (CATEGORIAS.includes(c) ? t(`productor.tienda.categorias.${c}`) : null)
 
   useEffect(() => {
-    obtenerTienda().then(aplicar).catch(() => setAlerta({ tono: 'error', titulo: 'No pudimos cargar tu tienda' }))
-  }, [])
+    obtenerTienda().then(aplicar).catch(() => setAlerta({ tono: 'error', titulo: t('productor.tienda.errorCargar') }))
+  }, [t])
 
   const set = (campo) => (e) => setF({ ...f, [campo]: e.target.value })
 
   async function guardar() {
     const e = {}
-    if (!f.nombreTienda.trim()) e.nombreTienda = 'Escribe el nombre de tu tienda'
-    if (f.socios !== '' && !(Number(f.socios) > 0)) e.socios = 'Debe ser un número positivo'
+    if (!f.nombreTienda.trim()) e.nombreTienda = t('productor.tienda.validacion.nombre')
+    if (f.socios !== '' && !(Number(f.socios) > 0)) e.socios = t('productor.tienda.validacion.socios')
     setErrores(e)
     if (Object.keys(e).length) return null
     setOcupado(true)
     setAlerta(null)
     try {
-      const t = await guardarTienda({ ...f, socios: f.socios === '' ? null : Number(f.socios) })
-      aplicar(t)
+      const guardada = await guardarTienda({ ...f, socios: f.socios === '' ? null : Number(f.socios) })
+      aplicar(guardada)
       invalidarTiendaActual()
-      setAlerta({ tono: 'exito', titulo: t.publicada ? 'Cambios publicados' : 'Cambios guardados', descripcion: t.publicada ? 'Ya se ven en tu tienda.' : 'Publica tu tienda cuando esté lista.' })
-      return t
+      setAlerta({
+        tono: 'exito',
+        titulo: guardada.publicada ? t('productor.tienda.publicados') : t('productor.datos.cambiosGuardados'),
+        descripcion: guardada.publicada ? t('productor.tienda.publicadosTexto') : t('productor.tienda.guardadosTexto'),
+      })
+      return guardada
     } catch (err) {
-      setErrores(err.body?.campos ?? {})
-      setAlerta({ tono: 'error', titulo: err.message ?? 'No pudimos guardar' })
+      // Los mensajes por campo llegan en espanol: en ingles se marca el campo con el mensaje del code
+      const campos = err.body?.campos ?? {}
+      setErrores(i18n.resolvedLanguage === 'es' ? campos : Object.fromEntries(Object.keys(campos).map((c) => [c, mensajeError(err)])))
+      setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.errorGuardar') })
       return null
     } finally {
       setOcupado(false)
@@ -91,9 +97,9 @@ export default function TiendaEditorPage({ path }) {
     try {
       aplicar(await publicarTienda())
       invalidarTiendaActual()
-      setAlerta({ tono: 'exito', titulo: '¡Tu tienda está publicada!', descripcion: 'Los compradores ya pueden conocer a tu comunidad.' })
+      setAlerta({ tono: 'exito', titulo: t('productor.tienda.publicada'), descripcion: t('productor.tienda.publicadaTexto') })
     } catch (err) {
-      setAlerta({ tono: 'error', titulo: err.message ?? 'No pudimos publicar', descripcion: err.body?.detalles?.join(' · ') })
+      setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.editor.errorPublicar'), descripcion: err.body?.detalles?.map(traducirFaltante).join(' · ') })
     } finally {
       setOcupado(false)
     }
@@ -105,7 +111,7 @@ export default function TiendaEditorPage({ path }) {
       try {
         await subirImagen(archivo, { tipo, categoria: tipo === 'GALERIA' ? categoria : undefined })
       } catch (err) {
-        setAlerta({ tono: 'error', titulo: `No se subió “${archivo.name}”`, descripcion: `${err.message ?? 'Se cortó la conexión'}. Las demás fotos se conservan; vuelve a intentarlo.` })
+        setAlerta({ tono: 'error', titulo: t('productor.tienda.noSubio', { nombre: archivo.name }), descripcion: t('productor.tienda.noSubioTexto', { motivo: mensajeError(err, 'productor.datos.seCorto') }) })
       }
     }
     setSubiendo(null)
@@ -116,7 +122,7 @@ export default function TiendaEditorPage({ path }) {
     try {
       await eliminarImagen(imagen.id)
     } catch (err) {
-      setAlerta({ tono: 'error', titulo: err.message ?? 'No pudimos quitar la foto' })
+      setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.errorQuitarFoto') })
     }
     await recargar()
   }
@@ -126,7 +132,7 @@ export default function TiendaEditorPage({ path }) {
     try {
       aplicar(await obtenerTienda())
     } catch {
-      setAlerta({ tono: 'error', titulo: 'No pudimos actualizar tus fotos', descripcion: 'Recarga la página para verlas.' })
+      setAlerta({ tono: 'error', titulo: t('productor.tienda.errorFotos'), descripcion: t('productor.editor.errorFotosTexto') })
     }
   }
 
@@ -138,7 +144,7 @@ export default function TiendaEditorPage({ path }) {
 
   if (!tienda || !f) {
     return (
-      <PaginaProductor path={path} seccion="Mi tienda" titulo="Editar mi tienda">
+      <PaginaProductor path={path} seccion={t('productor.nav.tienda')} titulo={t('productor.tienda.titulo')}>
         {alerta && <Alerta {...alerta} />}
       </PaginaProductor>
     )
@@ -147,22 +153,22 @@ export default function TiendaEditorPage({ path }) {
   const galeria = tienda.galeria.filter((g) => filtro === 'TODO' || g.categoria === filtro)
 
   return (
-    <PaginaProductor path={path} seccion="Mi tienda" titulo="Editar mi tienda">
+    <PaginaProductor path={path} seccion={t('productor.nav.tienda')} titulo={t('productor.tienda.titulo')}>
       <div className="productor__encabezado">
         <div>
-          <h2 className="heading-h2">Así te ven los compradores</h2>
-          <p className="body-s">{tienda.publicada ? 'Los cambios se publican al guardar.' : 'Tu tienda aún no está publicada.'}</p>
+          <h2 className="heading-h2">{t('productor.tienda.asiTeVen')}</h2>
+          <p className="body-s">{tienda.publicada ? t('productor.tienda.alGuardar') : t('productor.tienda.noPublicada')}</p>
         </div>
         <div className="productor__acciones-barra">
           {tienda.publicada ? (
             <>
-              <Boton tipo="secundario" tamano="M" icono={iconoOjo} to={`/tiendas/${tienda.id}`}>Ver tienda publicada</Boton>
-              <Boton tamano="M" onClick={guardar} disabled={ocupado}>Guardar cambios</Boton>
+              <Boton tipo="secundario" tamano="M" icono={iconoOjo} to={`/tiendas/${tienda.id}`}>{t('productor.tienda.verPublicada')}</Boton>
+              <Boton tamano="M" onClick={guardar} disabled={ocupado}>{t('productor.datos.guardarCambios')}</Boton>
             </>
           ) : (
             <>
-              <Boton tipo="secundario" tamano="M" onClick={guardar} disabled={ocupado}>Guardar borrador</Boton>
-              <Boton tamano="M" onClick={publicar} disabled={ocupado}>Publicar tienda</Boton>
+              <Boton tipo="secundario" tamano="M" onClick={guardar} disabled={ocupado}>{t('productor.datos.guardarBorrador')}</Boton>
+              <Boton tamano="M" onClick={publicar} disabled={ocupado}>{t('productor.tienda.publicar')}</Boton>
             </>
           )}
         </div>
@@ -173,36 +179,36 @@ export default function TiendaEditorPage({ path }) {
       <div className="tienda-editor">
         <div className="tarjeta-panel tienda-editor__formulario">
           <div className="tienda-editor__portada">
-            <ImagenProducto url={tienda.portada?.url} linea="PORTADA" alt="Portada de la tienda" className="tienda-editor__portada-img" />
+            <ImagenProducto url={tienda.portada?.url} linea="PORTADA" alt={t('productor.tienda.portada')} className="tienda-editor__portada-img" />
             <label className="tienda-editor__cambiar-portada">
               <Icono src={iconoCamara} tamano={16} />
-              {tienda.portada ? 'Cambiar portada' : 'Subir portada'}
+              {tienda.portada ? t('productor.tienda.cambiarPortada') : t('productor.tienda.subirPortada')}
               <input className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { void subir(Array.from(e.target.files ?? []).slice(0, 1), 'PORTADA'); e.target.value = '' }} />
             </label>
           </div>
 
-          <Campo etiqueta="Nombre de la tienda" value={f.nombreTienda} onChange={set('nombreTienda')} error={errores.nombreTienda} maxLength={120} placeholder="Asoc. Nii Joi" />
-          <Campo etiqueta="Descripción de mi tienda" value={f.descripcionCorta} onChange={set('descripcionCorta')} error={errores.descripcionCorta} maxLength={200} ayuda="Una o dos líneas: aparece bajo el nombre de la tienda." />
-          <Campo etiqueta="Historia de mi comunidad" tipo="area" rows={5} value={f.historia} onChange={set('historia')} error={errores.historia} maxLength={4000} placeholder="Quiénes son, dónde viven y cómo producen." />
-          <Campo etiqueta="Cita de la comunidad" value={f.cita} onChange={set('cita')} error={errores.cita} maxLength={200} placeholder="“Las plantas del monte curan y alimentan.”" />
+          <Campo etiqueta={t('productor.tienda.nombre')} value={f.nombreTienda} onChange={set('nombreTienda')} error={errores.nombreTienda} maxLength={120} placeholder="Asoc. Nii Joi" />
+          <Campo etiqueta={t('productor.tienda.descripcion')} value={f.descripcionCorta} onChange={set('descripcionCorta')} error={errores.descripcionCorta} maxLength={200} ayuda={t('productor.tienda.descripcionAyuda')} />
+          <Campo etiqueta={t('productor.tienda.historia')} tipo="area" rows={5} value={f.historia} onChange={set('historia')} error={errores.historia} maxLength={4000} placeholder={t('productor.tienda.historiaPlaceholder')} />
+          <Campo etiqueta={t('productor.tienda.cita')} value={f.cita} onChange={set('cita')} error={errores.cita} maxLength={200} placeholder={t('productor.tienda.citaPlaceholder')} />
           <div className="tienda-editor__fila">
-            <Campo etiqueta="Pueblo de pertenencia" value={f.pueblo} onChange={set('pueblo')} error={errores.pueblo} maxLength={80} placeholder="Shipibo-Konibo" />
-            <Campo etiqueta="Localidad" value={f.localidad} onChange={set('localidad')} maxLength={80} placeholder="Yarinacocha" />
-            <Campo etiqueta="Socias y socios" type="number" min="1" inputMode="numeric" value={f.socios} onChange={set('socios')} error={errores.socios} />
+            <Campo etiqueta={t('productor.tienda.pueblo')} value={f.pueblo} onChange={set('pueblo')} error={errores.pueblo} maxLength={80} placeholder="Shipibo-Konibo" />
+            <Campo etiqueta={t('productor.tienda.localidad')} value={f.localidad} onChange={set('localidad')} maxLength={80} placeholder="Yarinacocha" />
+            <Campo etiqueta={t('productor.tienda.socios')} type="number" min="1" inputMode="numeric" value={f.socios} onChange={set('socios')} error={errores.socios} />
           </div>
-          <p className="caption">Región: {tienda.region} · Comunidad: {tienda.comunidad}. Los registra la Cámara.</p>
+          <p className="caption">{t('productor.tienda.registrados', { region: tienda.region, comunidad: tienda.comunidad })}</p>
 
           <section className="tienda-editor__destacados" aria-labelledby="titulo-destacados">
             <div className="tienda-editor__destacados-cabecera">
-              <h3 id="titulo-destacados" className="label-m">Productos destacados en mi tienda</h3>
+              <h3 id="titulo-destacados" className="label-m">{t('productor.tienda.destacados')}</h3>
               {tienda.productosPublicados.length > 0 && (
                 <button type="button" className="enlace-marca tienda-editor__elegir" onClick={() => setEligiendo((v) => !v)}>
-                  {eligiendo ? 'Listo' : 'Elegir productos'}
+                  {eligiendo ? t('productor.historia.listo') : t('productor.tienda.elegir')}
                 </button>
               )}
             </div>
             {tienda.productosPublicados.length === 0 ? (
-              <p className="caption">Cuando publiques productos podrás destacar hasta 4.</p>
+              <p className="caption">{t('productor.tienda.sinPublicados', { max: MAX_DESTACADOS })}</p>
             ) : eligiendo ? (
               <ul className="tienda-editor__opciones">
                 {tienda.productosPublicados.map((p) => (
@@ -216,7 +222,7 @@ export default function TiendaEditorPage({ path }) {
               </ul>
             ) : (
               <ul className="tienda-editor__chips">
-                {f.destacados.length === 0 && <li className="caption">Aún no eliges productos.</li>}
+                {f.destacados.length === 0 && <li className="caption">{t('productor.tienda.sinElegir')}</li>}
                 {f.destacados.map((idProducto) => (
                   <li key={idProducto} className="tienda-editor__chip">
                     <Icono src={iconoEstrella} tamano={14} />
@@ -225,17 +231,17 @@ export default function TiendaEditorPage({ path }) {
                 ))}
               </ul>
             )}
-            <p className="caption">Hasta {MAX_DESTACADOS}. Se muestran primero en tu tienda.</p>
+            <p className="caption">{t('productor.tienda.hasta', { max: MAX_DESTACADOS })}</p>
           </section>
         </div>
 
         <section className="tarjeta-panel tienda-editor__galeria" aria-labelledby="titulo-galeria-editor">
           <div className="tienda-editor__destacados-cabecera">
-            <h2 id="titulo-galeria-editor" className="heading-h4">Galería ({tienda.galeria.length})</h2>
-            <span className="caption">Fotos</span>
+            <h2 id="titulo-galeria-editor" className="heading-h4">{t('productor.tienda.galeria', { total: tienda.galeria.length })}</h2>
+            <span className="caption">{t('productor.datos.fotos')}</span>
           </div>
-          <div className="tienda-editor__filtros" role="group" aria-label="Filtrar galería">
-            {[{ valor: 'TODO', etiqueta: 'Todo' }, ...CATEGORIAS].map((c) => (
+          <div className="tienda-editor__filtros" role="group" aria-label={t('productor.tienda.filtrar')}>
+            {[{ valor: 'TODO', etiqueta: t('productor.tienda.todo') }, ...categorias].map((c) => (
               <button key={c.valor} type="button" className={`chip${filtro === c.valor ? ' chip--activo' : ''}`} aria-pressed={filtro === c.valor} onClick={() => setFiltro(c.valor)}>
                 {filtro === c.valor && <Icono src={iconoCheck} tamano={14} />}
                 {c.etiqueta}
@@ -245,9 +251,9 @@ export default function TiendaEditorPage({ path }) {
           <ul className="tienda-editor__fotos">
             {galeria.map((g) => (
               <li key={g.id}>
-                <img src={g.urlMiniatura} alt={`Foto de ${CATEGORIAS.find((c) => c.valor === g.categoria)?.etiqueta ?? 'la galería'}`} />
-                <Badge tono="neutro" conPunto={false}>{CATEGORIAS.find((c) => c.valor === g.categoria)?.etiqueta}</Badge>
-                <button type="button" className="editor__quitar" aria-label="Quitar foto" onClick={() => void quitar(g)}>
+                <img src={g.urlMiniatura} alt={nombreCategoria(g.categoria) ? t('productor.tienda.fotoDe', { categoria: nombreCategoria(g.categoria) }) : t('productor.tienda.fotoGaleria')} />
+                <Badge tono="neutro" conPunto={false}>{nombreCategoria(g.categoria)}</Badge>
+                <button type="button" className="editor__quitar" aria-label={t('productor.datos.quitarFoto')} onClick={() => void quitar(g)}>
                   <Icono src={iconoCerrar} tamano={14} />
                 </button>
               </li>
@@ -256,20 +262,20 @@ export default function TiendaEditorPage({ path }) {
               <li className="tienda-editor__agregar">
                 <label>
                   <Icono src={iconoCamara} tamano={20} />
-                  {subiendo ? 'Subiendo…' : 'Agregar foto'}
+                  {subiendo ? t('productor.datos.subiendo') : t('productor.tienda.agregarFoto')}
                   <input className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => { void subir(Array.from(e.target.files ?? []), 'GALERIA'); e.target.value = '' }} />
                 </label>
               </li>
             )}
           </ul>
           <Campo
-            etiqueta="Categoría de las fotos nuevas"
+            etiqueta={t('productor.tienda.categoriaNuevas')}
             tipo="selector"
             value={categoria}
             onChange={(e) => setCategoria(e.target.value || 'COMUNIDAD')}
-            opciones={CATEGORIAS}
+            opciones={categorias}
           />
-          <p className="caption">Si la señal se corta, solo se reintenta la foto que faltó: las demás se conservan.</p>
+          <p className="caption">{t('productor.tienda.senal')}</p>
         </section>
       </div>
     </PaginaProductor>
