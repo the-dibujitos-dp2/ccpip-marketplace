@@ -37,6 +37,7 @@ erDiagram
     ubicacion ||--o{ pedido : origen
     pedido ||--o{ pedido_estado_historial : cambia
     pedido ||--o{ movimiento_inventario : origina
+    pedido ||--o{ pago : intenta
 ```
 
 La relacion central es **productor, producto y stock por ubicacion**. El lote entra en
@@ -336,12 +337,73 @@ inventario**: el descuento ya ocurrio al confirmar (CCPIP-158) y no se repite.
   espacios; el celular se normaliza a 9 digitos (admite `+51`, espacios y guiones) y debe coincidir
   con el registrado si lo hay. El rechazo no revela cual era el dato correcto (RNF-05).
 
+## Pago y su estado (CCPIP-62, CCPIP-163, CCPIP-157)
+
+Migracion `V202610132100__pago.sql`. El pedido existe **antes** de pagarse, en
+`PENDIENTE_PAGO`, porque CCPIP-163 consulta "los intentos de pago de su pedido". Solo pasa a
+`CONFIRMADO` cuando un intento sale `APROBADO`, y recien ahi se descuenta el stock. Un rechazo
+no confirma ni descuenta (CCPIP-62).
+
+```mermaid
+erDiagram
+    pedido ||--o{ pago : intenta
+```
+
+### pedido (cambios)
+- `estado` admite `PENDIENTE_PAGO`. Un pedido sin pagar puede pasar a `CANCELADO`.
+- `confirmado_en` admite nulos: se llena al confirmar. `pedido_confirmacion_coherente` exige que
+  sea nulo en `PENDIENTE_PAGO` y no nulo desde `CONFIRMADO`.
+- Nueva columna `creado_en`, porque antes el pedido nacia confirmado.
+
+### pago
+Un intento por fila. Un reintento es una fila nueva, asi cada intento queda registrado.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| pedido_id | bigint | no | |
+| clave_idempotencia | uuid | no | Unica. La genera el frontend por intento: el mismo intento enviado dos veces no cobra dos veces |
+| metodo | varchar(20) | no | Por ahora solo `TARJETA`. Un metodo local tipo Yape entra con CCPIP-183 |
+| monto | numeric(12,2) | no | Mayor que cero, en soles (RNF-43), igual al total del pedido |
+| estado | varchar(20) | no | `PENDIENTE`, `APROBADO`, `RECHAZADO`, `ERROR` o `ANULADO` |
+| pasarela | varchar(40) | no | Por ejemplo `SIMULADA` o la de pruebas que se use |
+| referencia_pasarela | varchar(100) | si | Identificador de la transaccion. Obligatoria si esta aprobado o anulado |
+| marca_tarjeta | varchar(20) | si | `VISA`, `MASTERCARD`, `AMEX` o `DINERS`. Obligatoria con tarjeta |
+| codigo_respuesta, mensaje_respuesta | varchar | si | Motivo del rechazo o error, para el comprador |
+| creado_en, resuelto_en, anulado_en | timestamptz | | `resuelto_en` al salir de PENDIENTE; `anulado_en` solo si se anula |
+
+**No se guarda la tarjeta**: ni numero, ni vencimiento, ni CVV. Vive en memoria mientras se
+valida (Luhn, marca, CVV de 3 o 4 digitos) y se envia a la pasarela. Lo ideal es que la pasarela
+tokenice desde el frontend y la tarjeta ni pase por el backend.
+
+**Reglas en la base**, como en `movimiento_inventario`, porque una regla solo en el codigo se
+salta desde cualquier cliente SQL:
+
+- Un solo pago `APROBADO` por pedido y un solo `PENDIENTE` a la vez (indices unicos parciales).
+- Solo se paga un pedido en `PENDIENTE_PAGO`, y por su total exacto (disparador al insertar).
+- El estado solo avanza `PENDIENTE` -> `APROBADO` | `RECHAZADO` | `ERROR`, y `APROBADO` ->
+  `ANULADO`. Un pago no se borra ni cambia de pedido, monto o clave (disparador).
+
+**Flujo esperado:**
+
+1. CCPIP-157 revalida precio, oferta, stock y cuenta bancaria y crea el pedido en
+   `PENDIENTE_PAGO`, con el precio copiado en cada linea. No toca el stock.
+2. CCPIP-62 registra el intento en `PENDIENTE`, llama a la pasarela y guarda el resultado.
+3. Si sale `APROBADO`, en una sola transaccion: UPDATE condicionado del stock (RNF-10),
+   movimientos `SALIDA_VENTA`, pedido `CONFIRMADO` y su historial. Si el stock ya no alcanza
+   (otro comprador se lo llevo mientras se pagaba), el pedido pasa a `CANCELADO` y el pago a
+   `ANULADO`, devolviendo el cobro en la pasarela.
+4. Si sale `RECHAZADO` o `ERROR`, el pedido sigue en `PENDIENTE_PAGO` y se puede reintentar.
+
+Queda fuera: vencer los pedidos que nunca se pagan (tarea programada que los pase a
+`CANCELADO`), comision y liquidacion (CCPIP-90, CCPIP-91) y metodos locales (CCPIP-183).
+Lo verifica `PagoModeloTest`.
+
 ## Fuera de este modelo
 
 Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehacer nada:
 
 - Cobertura del punto de acopio y division politica del Peru, Sprint 1, CCPIP-149
-- Pago y su estado, Sprint 1, CCPIP-62 y CCPIP-163
 - Comision y liquidacion, Sprint 1, CCPIP-90 y CCPIP-91
 - Merma y sus causas, Sprint 2
 - Valoraciones y denuncias, Sprint 2
