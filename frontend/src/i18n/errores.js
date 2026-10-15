@@ -14,3 +14,29 @@ export function mensajeError(error, respaldo = 'errores.generico') {
   if (error?.code && i18n.exists(`errores.${error.code}`)) return i18n.t(`errores.${error.code}`)
   return i18n.t(respaldo)
 }
+
+/**
+ * Lo que falta para publicar un producto o una tienda llega del servidor como texto en espanol
+ * (publicable.faltan y detalles de PRODUCTO_NO_PUBLICABLE, PRODUCTO_INCOMPLETO, TIENDA_INCOMPLETA).
+ * Es un conjunto cerrado: se reconoce y se traduce; un texto nuevo se muestra tal cual.
+ */
+const FALTANTES = {
+  'Al menos una línea de producto': 'linea',
+  'La unidad de medida': 'unidad',
+  'El precio minorista': 'precioMinorista',
+  'El precio mayorista y su cantidad mínima': 'precioMayorista',
+  'Un lote vigente con stock en un punto de acopio': 'lote',
+  'Publicar tu tienda (Mi tienda)': 'tienda',
+  'El nombre de la tienda': 'nombreTienda',
+  'La descripción de la tienda': 'descripcionTienda',
+  'La historia de tu comunidad': 'historiaComunidad',
+  'El pueblo de pertenencia': 'pueblo',
+}
+
+export function traducirFaltante(texto) {
+  const clave = FALTANTES[texto]
+  return clave ? i18n.t(`faltantes.${clave}`) : texto
+}
+
+/** Si lo que falta tiene que ver con la tienda, para ofrecer el atajo a "Mi tienda". Se compara el texto original. */
+export const esFaltanteDeTienda = (texto) => texto.toLowerCase().includes('tienda')

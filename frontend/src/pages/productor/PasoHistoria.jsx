@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import iconoCheck from '../../assets/icons/check.svg'
 import iconoEditar from '../../assets/icons/editar.svg'
 import iconoIa from '../../assets/icons/ia.svg'
@@ -8,14 +9,12 @@ import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import Icono from '../../components/Icono.jsx'
+import { mensajeError } from '../../i18n/errores.js'
+import i18n from '../../i18n/index.js'
 import './Editor.css'
 
-export const PREGUNTAS = [
-  { campo: 'quienes', texto: '¿Quiénes lo elaboran?', ejemplo: '34 mujeres shipibo de la asociación, en Yarinacocha.' },
-  { campo: 'como', texto: '¿Cómo lo hacen?', ejemplo: 'Recolectamos la semilla en el monte, la secamos al sol y la prensamos en frío.' },
-  { campo: 'significado', texto: '¿Qué significa para su comunidad?', ejemplo: 'Nos permite ganar sin talar y enseñar a nuestras hijas.' },
-  { campo: 'cuidado', texto: '¿Cómo cuidan el bosque al producirlo?', ejemplo: 'Solo cosechamos en nuestras chacras y purmas; no quemamos ni talamos.' },
-]
+/** Preguntas guiadas; su texto y ejemplo estan en el diccionario (productor.historia.preguntas). */
+export const PREGUNTAS = ['quienes', 'como', 'significado', 'cuidado'].map((campo) => ({ campo }))
 
 const MINIMO = 40
 
@@ -25,6 +24,7 @@ const MINIMO = 40
  * asistido (RNF-29). Si la IA no esta disponible, el productor la escribe con sus palabras.
  */
 export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }) {
+  const { t } = useTranslation()
   const h = producto.historia ?? {}
   const [respuestas, setRespuestas] = useState({ quienes: h.quienes ?? '', como: h.como ?? '', significado: h.significado ?? '', cuidado: h.cuidado ?? '' })
   const [abierta, setAbierta] = useState(() => PREGUNTAS.find((p) => !h[p.campo])?.campo ?? null)
@@ -47,10 +47,11 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
   }, [producto.id])
 
   const respondidas = PREGUNTAS.filter((p) => respuestas[p.campo].trim()).length
+  const pregunta = (p) => t(`productor.historia.preguntas.${p.campo}.texto`)
 
   async function pedir(variante) {
     if (respondidas === 0) {
-      setAlerta({ tono: 'aviso', titulo: 'Responde al menos una pregunta', descripcion: 'La IA arma el borrador solo con tus palabras.' })
+      setAlerta({ tono: 'aviso', titulo: t('productor.historia.respondeUna'), descripcion: t('productor.historia.respondeUnaTexto') })
       return
     }
     setEstado('generando')
@@ -63,9 +64,9 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
     } catch (err) {
       if (err.code === 'IA_NO_DISPONIBLE') {
         setModo('manual')
-        setAlerta({ tono: 'aviso', titulo: 'La redacción asistida no está disponible', descripcion: 'Escribe la historia con tus palabras; tus respuestas te sirven de guía.' })
+        setAlerta({ tono: 'aviso', titulo: t('productor.datos.ia.noDisponible'), descripcion: t('productor.historia.noDisponibleTexto') })
       } else {
-        setAlerta({ tono: 'error', titulo: err.message ?? 'No pudimos generar el borrador' })
+        setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.ia.error') })
       }
     } finally {
       setEstado(null)
@@ -74,7 +75,7 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
 
   async function aprobar({ titulo, texto, asistida }) {
     if (texto.trim().length < MINIMO) {
-      setAlerta({ tono: 'error', titulo: `La historia debe tener al menos ${MINIMO} caracteres` })
+      setAlerta({ tono: 'error', titulo: t('productor.historia.minimo', { minimo: MINIMO }) })
       return
     }
     setEstado('aprobando')
@@ -84,7 +85,9 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
       await aprobarHistoria(producto.id, { titulo: titulo || null, textoFinal: texto, asistida })
       onAprobada()
     } catch (err) {
-      setAlerta({ tono: 'error', titulo: err.message ?? 'No pudimos aprobar la historia', descripcion: err.body?.campos ? Object.values(err.body.campos).join(' · ') : undefined })
+      // Los mensajes por campo llegan del servidor en espanol: en ingles basta el del code
+      const campos = i18n.resolvedLanguage === 'es' && err.body?.campos ? Object.values(err.body.campos).join(' · ') : undefined
+      setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.historia.errorAprobar'), descripcion: campos })
     } finally {
       setEstado(null)
     }
@@ -96,7 +99,7 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
       await guardarHistoria(producto.id, { ...respuestas, titulo: null, textoFinal: null })
       onOmitir()
     } catch (err) {
-      setAlerta({ tono: 'error', titulo: err.message ?? 'No pudimos guardar' })
+      setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.errorGuardar') })
     } finally {
       setEstado(null)
     }
@@ -106,8 +109,8 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
     <div className="editor__historia">
       <section className="tarjeta-panel" aria-labelledby="titulo-preguntas">
         <div>
-          <h2 id="titulo-preguntas" className="heading-h2">Cuenta la historia con tus palabras</h2>
-          <p className="body-s">Responde 4 preguntas cortas. Con ellas se arma el relato que lee el comprador.</p>
+          <h2 id="titulo-preguntas" className="heading-h2">{t('productor.historia.cuenta')}</h2>
+          <p className="body-s">{t('productor.historia.cuentaTexto')}</p>
         </div>
         <ol className="preguntas">
           {PREGUNTAS.map((p, i) => {
@@ -119,9 +122,9 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
                   <span className={`pregunta__marca${lista && !activa ? ' pregunta__marca--lista' : ''}`} aria-hidden="true">
                     {lista && !activa ? <Icono src={iconoCheck} tamano={14} /> : i + 1}
                   </span>
-                  <span className="label-m pregunta__texto" id={`pregunta-${p.campo}`}>{p.texto}</span>
+                  <span className="label-m pregunta__texto" id={`pregunta-${p.campo}`}>{pregunta(p)}</span>
                   {!activa && (
-                    <button type="button" className="pregunta__editar" aria-label={`Responder: ${p.texto}`} onClick={() => {
+                    <button type="button" className="pregunta__editar" aria-label={t('productor.historia.responder', { pregunta: pregunta(p) })} onClick={() => {
                         setEnfocar(true)
                         setAbierta(p.campo)
                       }}>
@@ -133,7 +136,7 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
                   <textarea
                     className="campo__control campo__control--area pregunta__respuesta"
                     aria-labelledby={`pregunta-${p.campo}`}
-                    placeholder={p.ejemplo}
+                    placeholder={t(`productor.historia.preguntas.${p.campo}.ejemplo`)}
                     maxLength={1000}
                     value={respuestas[p.campo]}
                     id={`respuesta-${p.campo}`}
@@ -157,30 +160,28 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
 
         {modo === 'aprobada' && (
           <>
-            <Badge tono="exito">Historia aprobada</Badge>
-            <h2 id="titulo-propuesta" className="editor__propuesta-titulo">{manual.titulo || 'Historia de la comunidad'}</h2>
+            <Badge tono="exito">{t('productor.historia.aprobada')}</Badge>
+            <h2 id="titulo-propuesta" className="editor__propuesta-titulo">{manual.titulo || t('productor.historia.deLaComunidad')}</h2>
             <p className="editor__propuesta-texto">{manual.texto}</p>
-            {h.asistida && <p className="caption">Redactada con apoyo de IA y aprobada por la comunidad.</p>}
+            {h.asistida && <p className="caption">{t('productor.historia.redactadaIa')}</p>}
             <div className="editor__botones">
-              <Boton tipo="terciario" onClick={onAtras}>Atrás</Boton>
-              <Boton tipo="secundario" icono={iconoEditar} onClick={() => setModo('manual')}>Editar historia</Boton>
-              <Boton onClick={onOmitir}>Siguiente: primer lote</Boton>
+              <Boton tipo="terciario" onClick={onAtras}>{t('productor.historia.atras')}</Boton>
+              <Boton tipo="secundario" icono={iconoEditar} onClick={() => setModo('manual')}>{t('productor.historia.editar')}</Boton>
+              <Boton onClick={onOmitir}>{t('productor.historia.siguienteLote')}</Boton>
             </div>
           </>
         )}
 
         {modo === 'inicial' && (
           <>
-            <h2 id="titulo-propuesta" className="heading-h2">Tu historia, en borrador</h2>
-            <p className="body-s">
-              Cuando tengas tus respuestas, la plataforma puede proponerte un borrador. Lo revisas, lo cambias y solo se publica cuando lo apruebas.
-            </p>
+            <h2 id="titulo-propuesta" className="heading-h2">{t('productor.historia.enBorrador')}</h2>
+            <p className="body-s">{t('productor.historia.enBorradorTexto')}</p>
             <div className="editor__botones editor__botones--columna">
               <Boton icono={iconoIa} onClick={() => pedir('NORMAL')} disabled={estado === 'generando'}>
-                {estado === 'generando' ? 'Preparando borrador…' : 'Generar borrador con IA'}
+                {estado === 'generando' ? t('productor.historia.preparando') : t('productor.historia.generar')}
               </Boton>
-              <Boton tipo="secundario" onClick={() => setModo('manual')}>Prefiero escribirla yo</Boton>
-              <Boton tipo="terciario" onClick={guardarYSeguir} disabled={estado === 'guardando'}>Guardar respuestas y seguir después</Boton>
+              <Boton tipo="secundario" onClick={() => setModo('manual')}>{t('productor.historia.escribirYo')}</Boton>
+              <Boton tipo="terciario" onClick={guardarYSeguir} disabled={estado === 'guardando'}>{t('productor.historia.seguirDespues')}</Boton>
             </div>
           </>
         )}
@@ -189,12 +190,12 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
           <>
             <span className="editor__ia-chip">
               <Icono src={iconoIa} tamano={14} />
-              Borrador asistido por IA · revisa antes de publicar
+              {t('productor.datos.ia.borrador')}
             </span>
             {editando ? (
               <>
-                <Campo etiqueta="Título" value={propuesta.titulo} onChange={(e) => setPropuesta({ ...propuesta, titulo: e.target.value })} maxLength={160} />
-                <Campo etiqueta="Historia" tipo="area" rows={8} value={propuesta.texto} onChange={(e) => setPropuesta({ ...propuesta, texto: e.target.value })} maxLength={4000} />
+                <Campo etiqueta={t('productor.historia.titulo')} value={propuesta.titulo} onChange={(e) => setPropuesta({ ...propuesta, titulo: e.target.value })} maxLength={160} />
+                <Campo etiqueta={t('productor.historia.historia')} tipo="area" rows={8} value={propuesta.texto} onChange={(e) => setPropuesta({ ...propuesta, texto: e.target.value })} maxLength={4000} />
               </>
             ) : (
               <>
@@ -204,20 +205,20 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
             )}
             <div className="editor__ia-acciones">
               <Boton tipo="secundario" tamano="S" icono={iconoEditar} onClick={() => setEditando((v) => !v)}>
-                {editando ? 'Listo' : 'Editar texto'}
+                {editando ? t('productor.historia.listo') : t('productor.historia.editarTexto')}
               </Boton>
               <Boton tipo="terciario" tamano="S" icono={iconoIa} onClick={() => pedir('OTRA')} disabled={estado === 'generando'}>
-                Proponer otra versión
+                {t('productor.historia.otraVersion')}
               </Boton>
               <Boton tipo="terciario" tamano="S" onClick={() => pedir('CORTA')} disabled={estado === 'generando'}>
-                Más corto
+                {t('productor.historia.masCorto')}
               </Boton>
             </div>
-            <p className="caption">Este texto no se publicará hasta que lo apruebes. Se mostrará como “Relato de la comunidad”.</p>
+            <p className="caption">{t('productor.historia.noSePublica')}</p>
             <div className="editor__botones">
-              <Boton tipo="terciario" onClick={onAtras}>Atrás</Boton>
+              <Boton tipo="terciario" onClick={onAtras}>{t('productor.historia.atras')}</Boton>
               <Boton icono={iconoCheck} onClick={() => aprobar({ titulo: propuesta.titulo, texto: propuesta.texto, asistida: true })} disabled={estado === 'aprobando'}>
-                Aprobar historia
+                {t('productor.historia.aprobar')}
               </Boton>
             </div>
           </>
@@ -225,22 +226,22 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
 
         {modo === 'manual' && (
           <>
-            <h2 id="titulo-propuesta" className="heading-h2">Escribe la historia</h2>
-            <Campo etiqueta="Título (opcional)" value={manual.titulo} onChange={(e) => setManual({ ...manual, titulo: e.target.value })} maxLength={160} placeholder="Aceite de las abuelas del monte" />
+            <h2 id="titulo-propuesta" className="heading-h2">{t('productor.historia.escribe')}</h2>
+            <Campo etiqueta={t('productor.historia.tituloOpcional')} value={manual.titulo} onChange={(e) => setManual({ ...manual, titulo: e.target.value })} maxLength={160} placeholder={t('productor.historia.tituloEjemplo')} />
             <Campo
-              etiqueta="Historia"
+              etiqueta={t('productor.historia.historia')}
               tipo="area"
               rows={8}
               value={manual.texto}
               onChange={(e) => setManual({ ...manual, texto: e.target.value })}
               maxLength={4000}
-              ayuda={`${manual.texto.trim().length} caracteres · mínimo ${MINIMO}`}
-              placeholder="Cuenta quiénes lo hacen, cómo y por qué importa para tu comunidad."
+              ayuda={t('productor.historia.caracteres', { total: manual.texto.trim().length, minimo: MINIMO })}
+              placeholder={t('productor.historia.historiaPlaceholder')}
             />
             <div className="editor__botones">
-              <Boton tipo="terciario" onClick={() => setModo(propuesta ? 'ia' : 'inicial')}>Atrás</Boton>
+              <Boton tipo="terciario" onClick={() => setModo(propuesta ? 'ia' : 'inicial')}>{t('productor.historia.atras')}</Boton>
               <Boton icono={iconoCheck} onClick={() => aprobar({ titulo: manual.titulo, texto: manual.texto, asistida: false })} disabled={estado === 'aprobando'}>
-                Aprobar historia
+                {t('productor.historia.aprobar')}
               </Boton>
             </div>
           </>
