@@ -98,4 +98,17 @@ describe('Selector de idioma (CCPIP-265)', () => {
     await elegir(user, 'English')
     expect(await screen.findByRole('link', { name: 'My store' })).toBeInTheDocument()
   })
+
+  it('el contenido del catálogo se vuelve a pedir en el idioma elegido (CCPIP-166)', async () => {
+    const fetchMock = servidor(sinSesion)
+    const user = userEvent.setup()
+    abrirEn('/')
+    await screen.findByRole('heading', { name: /Productos con historia/ })
+    const idiomaDe = (llamada) => llamada[1].headers['Accept-Language']
+    expect(llamadas(fetchMock, 'GET /api/inicio').map(idiomaDe)).toEqual(['es'])
+
+    await elegir(user, 'English')
+    await screen.findByRole('heading', { name: 'Products with a story, straight from the Amazon' })
+    await waitFor(() => expect(llamadas(fetchMock, 'GET /api/inicio').map(idiomaDe)).toEqual(['es', 'en']))
+  })
 })
