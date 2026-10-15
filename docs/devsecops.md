@@ -93,8 +93,8 @@ Todas las Actions estan fijadas por SHA (evita ataques de cadena de suministro p
 |---|---|---|
 | `EC2_SSH_KEY` | Secret | Learner Lab → **AWS Details** → **SSH key: Download PEM** (`labsuser.pem`). Pega el contenido completo, incluidas las lineas `BEGIN`/`END`. |
 | `DB_PASSWORD` | Secret | Inventala: `openssl rand -base64 24`. Si la cambias despues, hay que borrar el volumen `ccpip_pgdata`. |
-| `CORREO_USUARIO` | Secret | Cuenta de Gmail del equipo que envia los correos (ADR-14), por ejemplo `mercado.ccpip@gmail.com`. Si falta, el deploy sigue con un aviso, pero las cuentas nuevas no reciben el enlace de verificacion (CCPIP-328). |
-| `CORREO_CLAVE` | Secret | Contrasena de aplicacion de esa cuenta, sin espacios: Cuenta de Google → *Seguridad* → activar *Verificacion en dos pasos* → *Contrasenas de aplicaciones*. No es la clave de la cuenta. |
+| `USER_MAIL_ADDRESS` | Secret | Cuenta de Gmail del equipo que envia los correos (ADR-14), por ejemplo `mercado.ccpip@gmail.com`. Si falta, el deploy sigue con un aviso, pero las cuentas nuevas no reciben el enlace de verificacion (CCPIP-328). |
+| `MAIL_PASSWORD` | Secret | Contrasena de aplicacion de esa cuenta (con o sin espacios, el deploy los quita): Cuenta de Google → *Seguridad* → activar *Verificacion en dos pasos* → *Contrasenas de aplicaciones*. No es la clave de la cuenta. |
 | `SONAR_TOKEN` | Secret | sonarcloud.io → *My Account → Security → Generate Token*. Si falta, CI salta el analisis sin fallar. |
 | `DEPLOY_HOST` | Variable | Salida `app_domain` de Terraform. |
 | `TF_STATE_BUCKET` | Variable | Nombre del bucket del paso 1.3 (solo para el workflow de Terraform). |

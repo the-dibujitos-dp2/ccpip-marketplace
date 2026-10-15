@@ -95,18 +95,20 @@ jobs:
         env:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           IMAGES_BUCKET: ${{ vars.IMAGES_BUCKET }}
-          # CCPIP-328: cuenta de Gmail del equipo y su contrasena de aplicacion, sin espacios (ADR-14)
-          CORREO_USUARIO: ${{ secrets.CORREO_USUARIO }}
-          CORREO_CLAVE: ${{ secrets.CORREO_CLAVE }}
+          # CCPIP-328: cuenta de Gmail del equipo y su contrasena de aplicacion (ADR-14)
+          CORREO_USUARIO: ${{ secrets.USER_MAIL_ADDRESS }}
+          CORREO_CLAVE: ${{ secrets.MAIL_PASSWORD }}
         run: |
           test -n "$DB_PASSWORD" || { echo "::error::Falta el secreto DB_PASSWORD"; exit 1; }
           test -n "$IMAGES_BUCKET" || { echo "::error::Falta la variable IMAGES_BUCKET (salida images_bucket de Terraform)"; exit 1; }
           # El correo no detiene el despliegue: sin secretos el sistema funciona, pero no envia enlaces
+          # Google muestra la contrasena de aplicacion en grupos de 4 con espacios; SMTP la quiere junta
+          CORREO_CLAVE="${CORREO_CLAVE// /}"
           if [ -n "$CORREO_USUARIO" ] && [ -n "$CORREO_CLAVE" ]; then
             CORREO_HOST=smtp.gmail.com
           else
             CORREO_HOST=
-            echo "::warning::Faltan los secretos CORREO_USUARIO y CORREO_CLAVE: no se enviaran correos de verificacion"
+            echo "::warning::Faltan los secretos USER_MAIL_ADDRESS y MAIL_PASSWORD: no se enviaran correos de verificacion"
           fi
           umask 077
           cat > .env <<ENV

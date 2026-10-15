@@ -31,7 +31,7 @@ services:
       CCPIP_IMAGENES_BUCKET: ${IMAGES_BUCKET:?falta IMAGES_BUCKET}
       AWS_REGION: us-east-1
       # CCPIP-26 y CCPIP-328: enlaces del correo hacia el dominio publico y Gmail por SMTP (ADR-14).
-      # Sin CORREO_USUARIO el backend arranca igual, pero no envia correos.
+      # Sin CORREO_USUARIO (secreto USER_MAIL_ADDRESS) el backend arranca igual, pero no envia correos.
       CCPIP_APP_URL: https://${SITE_ADDRESS}
       CCPIP_CORREO_HOST: ${CORREO_HOST:-}
       CCPIP_CORREO_USUARIO: ${CORREO_USUARIO:-}
