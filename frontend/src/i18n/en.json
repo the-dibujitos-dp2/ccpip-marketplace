@@ -423,6 +423,82 @@
     "nav": {
       "pedidos": "Orders",
       "movimientos": "Stock movements"
+    },
+    "pedidos": {
+      "vence": "expires {{fecha}}",
+      "lote": "Batch {{codigo}} · {{vence}} · {{cantidad}} units",
+      "marcado": "Order {{numero}} is ready for pickup",
+      "errorMarcar": "We couldn't mark the order",
+      "entregado": "Order {{numero}} was handed over to {{persona}}",
+      "errorCargar": "We couldn't load the orders",
+      "vacio": "No orders yet",
+      "vacioTexto": "Here you'll see the orders buyers will pick up at your point.",
+      "columna": {
+        "CONFIRMADO": "Confirmed",
+        "LISTO_PARA_RECOJO": "Ready for pickup",
+        "ENTREGADO": "Delivered today"
+      },
+      "columnaConteo": "{{titulo}} ({{total}})",
+      "columnaVacia": {
+        "CONFIRMADO": "No orders to prepare.",
+        "LISTO_PARA_RECOJO": "No orders waiting for their buyer.",
+        "ENTREGADO": "No orders delivered today yet."
+      },
+      "productosDe": "Products in order {{numero}}",
+      "lotesDe": "Batches of {{producto}}",
+      "sinLotes": "No batches assigned",
+      "recogio": "Picked up by {{persona}}",
+      "pie": {
+        "CONFIRMADO": "Confirmed",
+        "LISTO_PARA_RECOJO": "Ready",
+        "ENTREGADO": "Delivered"
+      },
+      "marcarEtiqueta": "Mark order {{numero}} as ready for pickup",
+      "marcando": "Marking…",
+      "recojoEtiqueta": "Record pickup for order {{numero}}"
+    },
+    "recojo": {
+      "validacion": {
+        "persona": "Enter who is picking up",
+        "celular": "Enter the contact mobile number"
+      },
+      "titulo": "Record pickup for order {{numero}}",
+      "registrar": "Record pickup",
+      "instrucciones": "Ask the person picking up for their name and mobile number. They must match the order: the buyer or the authorized person.",
+      "nombre": "Name of the person picking up",
+      "celularAyuda": "9 digits; may include +51",
+      "error": "We couldn't record the pickup"
+    },
+    "movimientos": {
+      "pestana": {
+        "TODOS": "All",
+        "ENTRADAS": "Incoming",
+        "SALIDAS": "Outgoing",
+        "AJUSTES": "Adjustments"
+      },
+      "tipoEtiqueta": "Movement type",
+      "numeroPedido": "Order number",
+      "buscarPedido": "Search by order no.",
+      "errorCargar": "We couldn't load the movements",
+      "delPedido": "Movements for order {{numero}}",
+      "sinMovimientosPedido": "That order has no movements at your point.",
+      "vacio": "No movements yet",
+      "vacioTexto": "Here you'll see incoming stock, sales and adjustments at your point.",
+      "col": {
+        "fecha": "Date",
+        "tipo": "Type",
+        "producto": "Product and batch",
+        "registro": "Recorded by"
+      },
+      "lista": "Point movements",
+      "tipo": {
+        "ENTRADA": "Incoming",
+        "TRANSFERENCIA_ENTRADA": "Transfer",
+        "SALIDA_VENTA": "Outgoing",
+        "TRANSFERENCIA_SALIDA": "Transfer",
+        "AJUSTE": "Adjustment"
+      },
+      "compraEnLinea": "Online purchase"
     }
   },
   "sello": {

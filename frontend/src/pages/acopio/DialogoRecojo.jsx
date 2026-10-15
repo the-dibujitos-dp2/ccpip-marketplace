@@ -1,8 +1,11 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { registrarRecojo } from '../../api/acopio.js'
 import Alerta from '../../components/Alerta.jsx'
 import Campo from '../../components/Campo.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
+import { mensajeError } from '../../i18n/errores.js'
+import i18n from '../../i18n/index.js'
 import './DialogoRecojo.css'
 
 /** Que campo corrige cada rechazo del servidor. Ninguno dice cual era el dato correcto (RNF-05). */
@@ -22,6 +25,7 @@ const CAMPO_POR_CODIGO = {
  * cambio mientras tanto (409) o ya no esta en el punto (404): la pantalla lo explica y se actualiza.
  */
 export default function DialogoRecojo({ pedido, onCancelar, onRegistrado, onDesactualizado }) {
+  const { t } = useTranslation()
   const [persona, setPersona] = useState('')
   const [celular, setCelular] = useState('')
   const [errores, setErrores] = useState({})
@@ -31,8 +35,8 @@ export default function DialogoRecojo({ pedido, onCancelar, onRegistrado, onDesa
   async function enviar(e) {
     e?.preventDefault()
     const faltan = {}
-    if (!persona.trim()) faltan.persona = 'Indica quién recoge'
-    if (!celular.trim()) faltan.celular = 'Indica el celular de contacto'
+    if (!persona.trim()) faltan.persona = t('acopio.recojo.validacion.persona')
+    if (!celular.trim()) faltan.celular = t('acopio.recojo.validacion.celular')
     setErrores(faltan)
     setError(null)
     if (Object.keys(faltan).length > 0) return
@@ -44,8 +48,11 @@ export default function DialogoRecojo({ pedido, onCancelar, onRegistrado, onDesa
       // Un 401 ya lo maneja la app (vuelve a ingresar)
       if (err.status === 401) return
       if (err.status === 404 || err.status === 409) onDesactualizado(err)
-      else if (err.body?.campos) setErrores(err.body.campos)
-      else if (CAMPO_POR_CODIGO[err.code]) setErrores({ [CAMPO_POR_CODIGO[err.code]]: err.message })
+      else if (err.body?.campos) {
+        // Los mensajes por campo llegan en espanol: en ingles se marca el campo con el mensaje del code
+        const campos = err.body.campos
+        setErrores(i18n.resolvedLanguage === 'es' ? campos : Object.fromEntries(Object.keys(campos).map((c) => [c, mensajeError(err)])))
+      } else if (CAMPO_POR_CODIGO[err.code]) setErrores({ [CAMPO_POR_CODIGO[err.code]]: mensajeError(err) })
       else setError(err)
     } finally {
       setEnviando(false)
@@ -55,16 +62,16 @@ export default function DialogoRecojo({ pedido, onCancelar, onRegistrado, onDesa
   return (
     <Dialogo
       abierto
-      titulo={`Registrar recojo del pedido ${pedido.numero}`}
-      confirmar={enviando ? 'Registrando…' : 'Registrar recojo'}
+      titulo={t('acopio.recojo.titulo', { numero: pedido.numero })}
+      confirmar={enviando ? t('productor.lote.registrando') : t('acopio.recojo.registrar')}
       onConfirmar={enviar}
       onCancelar={onCancelar}
       ocupado={enviando}
     >
       <form className="recojo__formulario" onSubmit={enviar} noValidate>
-        <p>Pide a quien recoge su nombre y su celular. Deben coincidir con los del pedido: el comprador o la persona autorizada.</p>
+        <p>{t('acopio.recojo.instrucciones')}</p>
         <Campo
-          etiqueta="Nombre de quien recoge"
+          etiqueta={t('acopio.recojo.nombre')}
           value={persona}
           onChange={(e) => setPersona(e.target.value)}
           error={errores.persona}
@@ -72,8 +79,8 @@ export default function DialogoRecojo({ pedido, onCancelar, onRegistrado, onDesa
           autoComplete="off"
         />
         <Campo
-          etiqueta="Celular de contacto"
-          ayuda="9 dígitos; puede incluir +51"
+          etiqueta={t('compra.celular')}
+          ayuda={t('acopio.recojo.celularAyuda')}
           value={celular}
           onChange={(e) => setCelular(e.target.value)}
           error={errores.celular}
@@ -81,7 +88,7 @@ export default function DialogoRecojo({ pedido, onCancelar, onRegistrado, onDesa
           inputMode="tel"
           autoComplete="off"
         />
-        {error && <Alerta tono="error" titulo="No pudimos registrar el recojo" descripcion={error.message} />}
+        {error && <Alerta tono="error" titulo={t('acopio.recojo.error')} descripcion={mensajeError(error)} />}
         {/* Enter en un campo envia el formulario, como el boton del dialogo */}
         <button type="submit" hidden />
       </form>
