@@ -16,5 +16,11 @@ export const confirmarCompra = ({ puntoId, personaAutorizada, celularContacto })
 export const pagarPedido = (pedidoId, claveIdempotencia, tarjeta) =>
   apiFetch(`/api/pedidos/${idRuta(pedidoId)}/pagos`, { method: 'POST', body: { claveIdempotencia, tarjeta } })
 
-/** Pedido con numero, lineas, importes, punto de recojo e intentos de pago. */
+/**
+ * CCPIP-112: las compras del comprador, la mas reciente primero, con estado, total pagado, punto,
+ * cuantos productos y comunidades y su historial de estados.
+ */
+export const listarMisPedidos = () => apiFetch('/api/pedidos')
+
+/** Pedido con numero, lineas, importes, punto de recojo, intentos de pago e historial de estados. */
 export const consultarPedido = (pedidoId) => apiFetch(`/api/pedidos/${idRuta(pedidoId)}`)

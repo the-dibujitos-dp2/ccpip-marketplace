@@ -17,6 +17,7 @@ import CompraPage from './pages/consumidor/CompraPage.jsx'
 import ComunidadesPage from './pages/consumidor/ComunidadesPage.jsx'
 import IngresarPage from './pages/consumidor/IngresarPage.jsx'
 import InicioPage from './pages/consumidor/InicioPage.jsx'
+import MisPedidosPage from './pages/consumidor/MisPedidosPage.jsx'
 import PedidoPage from './pages/consumidor/PedidoPage.jsx'
 import ProductoPage from './pages/consumidor/ProductoPage.jsx'
 import TiendaPage from './pages/consumidor/TiendaPage.jsx'
@@ -97,7 +98,7 @@ export default function App() {
 
   // "/productores/1" (enlace antiguo) no es del panel: se compara por segmento
   const delProductor = path === RUTAS.productor || path.startsWith(`${RUTAS.productor}/`)
-  const delComprador = path === RUTAS.carrito || path === RUTAS.compra || RUTA_PEDIDO.test(path)
+  const delComprador = path === RUTAS.carrito || path === RUTAS.compra || path === RUTAS.misPedidos || RUTA_PEDIDO.test(path)
   const delAcopio = path === RUTAS.acopio || path.startsWith(`${RUTAS.acopio}/`)
   const delAdmin = path === RUTAS.admin || path.startsWith(`${RUTAS.admin}/`)
   const protegida = path === RUTAS.inicio || delProductor || delComprador || delAcopio || delAdmin
@@ -215,6 +216,7 @@ export default function App() {
   } else if (delComprador) {
     if (user.role !== 'CONSUMIDOR') pagina = null
     else if (path === RUTAS.compra) pagina = <CompraPage />
+    else if (path === RUTAS.misPedidos) pagina = <MisPedidosPage />
     else if (RUTA_PEDIDO.test(path)) pagina = <PedidoPage id={path.match(RUTA_PEDIDO)[1]} />
     else pagina = <CarritoPage />
   } else if (delAcopio) {

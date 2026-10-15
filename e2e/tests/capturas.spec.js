@@ -37,6 +37,13 @@ test.describe('capturas para comparar con el Figma', () => {
     await capturar(page, 'PW-06-lote')
   })
 
+  test('cuenta del consumidor', async ({ page }) => {
+    await ingresar(page, 'consumidor@ccpip.test')
+    await page.goto('/cuenta/pedidos')
+    await page.getByRole('heading', { name: 'Mi cuenta' }).waitFor()
+    await capturar(page, 'CW-09-mis-pedidos')
+  })
+
   test('superadministrador', async ({ page }) => {
     await ingresar(page, 'sudo@ccpip.test')
     await page.getByRole('heading', { name: 'Tablero de operación' }).waitFor()

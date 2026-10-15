@@ -1057,6 +1057,55 @@
     },
     "seguirComprando": "Continue shopping"
   },
+  "misPedidos": {
+    "miCuenta": "My account",
+    "titulo": "My orders",
+    "enCurso_one": "In progress ({{count}})",
+    "enCurso_other": "In progress ({{count}})",
+    "historial_one": "History ({{count}})",
+    "historial_other": "History ({{count}})",
+    "error": "We couldn't load your orders",
+    "vacio": "You don't have any orders yet",
+    "vacioTexto": "Once you buy, you'll see the status of each order and your purchase history here.",
+    "explorar": "Explore products",
+    "sinEnCurso": "You have no orders in progress.",
+    "sinHistorial": "You don't have delivered or cancelled orders yet.",
+    "recientes": "Recently delivered",
+    "productos_one": "{{count}} product",
+    "productos_other": "{{count}} products",
+    "deComunidades_one": "{{productos}} from {{count}} community",
+    "deComunidades_other": "{{productos}} from {{count}} communities",
+    "entregadoEl": "delivered on {{fecha}}",
+    "completarPago": "Go to delivery and payment",
+    "verDetalle": "See details",
+    "verDetalleDe": "See details of order {{numero}}",
+    "verMisPedidos": "See my orders",
+    "seguimiento": "Tracking of order {{numero}}",
+    "seguimientoTitulo": "Tracking",
+    "historialPedido": "Order history",
+    "estado": {
+      "PENDIENTE_PAGO": "Awaiting payment",
+      "CONFIRMADO": "Payment confirmed",
+      "EN_PREPARACION": "Being prepared",
+      "LISTO_PARA_RECOJO": "Ready at collection point",
+      "ENTREGADO": "Delivered",
+      "CANCELADO": "Cancelled"
+    },
+    "etapa": {
+      "CONFIRMADO": "Payment confirmed",
+      "EN_PREPARACION": "Being prepared",
+      "LISTO_PARA_RECOJO": "Ready at collection point",
+      "ENTREGADO": "Delivered"
+    },
+    "evento": {
+      "PENDIENTE_PAGO": "Order created, awaiting payment",
+      "CONFIRMADO": "Payment approved and order confirmed",
+      "EN_PREPARACION": "Being prepared",
+      "LISTO_PARA_RECOJO": "Ready for pickup at the collection point",
+      "ENTREGADO": "Delivered",
+      "CANCELADO": "Order cancelled"
+    }
+  },
   "idioma": {
     "etiqueta": "Language: {{idioma}}. Change language",
     "menu": "Language"

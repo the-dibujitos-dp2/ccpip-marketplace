@@ -1,0 +1,24 @@
+/* CW-09 · Seguimiento del pedido (CCPIP-70, CCPIP-340) */
+.seguimiento { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; margin: 0; padding: 0; list-style: none; }
+.seguimiento__etapa { position: relative; display: flex; flex-direction: column; gap: 6px; padding-top: 40px; padding-right: 12px; }
+/* La linea que une cada etapa con la siguiente */
+.seguimiento__etapa::before { content: ''; position: absolute; top: 13px; left: 0; right: 0; height: 3px; background: var(--color-bg-sand); }
+.seguimiento__etapa:last-child::before { right: auto; width: 28px; }
+.seguimiento__etapa--hecho::before { background: var(--color-bg-brand); }
+.seguimiento__marca {
+  position: absolute; top: 0; left: 0;
+  display: grid; place-items: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--color-bg-sand); color: var(--color-text-on-brand);
+}
+.seguimiento__etapa--hecho .seguimiento__marca { background: var(--color-bg-brand); }
+.seguimiento__etapa--actual .seguimiento__marca { border: 3px solid var(--color-bg-brand); background: var(--color-bg-surface); }
+.seguimiento__nombre { font-weight: 600; font-size: 14px; line-height: 20px; }
+.seguimiento__etapa--pendiente .seguimiento__nombre { color: var(--color-text-tertiary); }
+.seguimiento__fecha { font-size: 12px; line-height: 16px; color: var(--color-text-tertiary); }
+
+@media (max-width: 600px) {
+  .seguimiento { grid-auto-flow: row; gap: 12px; }
+  .seguimiento__etapa { padding: 4px 0 0 40px; }
+  .seguimiento__etapa::before { display: none; }
+}

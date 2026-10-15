@@ -11,6 +11,7 @@ export const RUTAS = {
   registro: '/registro',
   verificarCorreo: '/verificar-correo',
   inicio: '/inicio',
+  misPedidos: '/cuenta/pedidos',
   productor: '/productor',
   productorTienda: '/productor/tienda',
   productorProductos: '/productor/productos',

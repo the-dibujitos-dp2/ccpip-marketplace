@@ -1057,6 +1057,55 @@
     },
     "seguirComprando": "Seguir comprando"
   },
+  "misPedidos": {
+    "miCuenta": "Mi cuenta",
+    "titulo": "Mis pedidos",
+    "enCurso_one": "En curso ({{count}})",
+    "enCurso_other": "En curso ({{count}})",
+    "historial_one": "Historial ({{count}})",
+    "historial_other": "Historial ({{count}})",
+    "error": "No pudimos cargar tus pedidos",
+    "vacio": "Aún no tienes pedidos",
+    "vacioTexto": "Cuando compres, aquí verás el estado de cada pedido y tu historial de compras.",
+    "explorar": "Explorar productos",
+    "sinEnCurso": "No tienes pedidos en curso.",
+    "sinHistorial": "Aún no tienes pedidos entregados o cancelados.",
+    "recientes": "Entregados recientemente",
+    "productos_one": "{{count}} producto",
+    "productos_other": "{{count}} productos",
+    "deComunidades_one": "{{productos}} de {{count}} comunidad",
+    "deComunidades_other": "{{productos}} de {{count}} comunidades",
+    "entregadoEl": "entregado el {{fecha}}",
+    "completarPago": "Ir a entrega y pago",
+    "verDetalle": "Ver detalle",
+    "verDetalleDe": "Ver detalle del pedido {{numero}}",
+    "verMisPedidos": "Ver mis pedidos",
+    "seguimiento": "Seguimiento del pedido {{numero}}",
+    "seguimientoTitulo": "Seguimiento",
+    "historialPedido": "Historial del pedido",
+    "estado": {
+      "PENDIENTE_PAGO": "Espera pago",
+      "CONFIRMADO": "Pago confirmado",
+      "EN_PREPARACION": "En preparación",
+      "LISTO_PARA_RECOJO": "Disponible en acopio",
+      "ENTREGADO": "Entregado",
+      "CANCELADO": "Cancelado"
+    },
+    "etapa": {
+      "CONFIRMADO": "Pago confirmado",
+      "EN_PREPARACION": "En preparación",
+      "LISTO_PARA_RECOJO": "Disponible en acopio",
+      "ENTREGADO": "Entregado"
+    },
+    "evento": {
+      "PENDIENTE_PAGO": "Pedido creado, en espera de pago",
+      "CONFIRMADO": "Pago aprobado y pedido confirmado",
+      "EN_PREPARACION": "En preparación",
+      "LISTO_PARA_RECOJO": "Listo para recoger en el punto de acopio",
+      "ENTREGADO": "Entregado",
+      "CANCELADO": "Pedido cancelado"
+    }
+  },
   "idioma": {
     "etiqueta": "Idioma: {{idioma}}. Cambiar idioma",
     "menu": "Idioma"

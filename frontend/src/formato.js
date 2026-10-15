@@ -9,6 +9,7 @@ const OPCIONES = {
   mes: { month: 'long', timeZone: 'UTC' },
   fechaCorta: { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' },
   fecha: { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' },
+  diaMes: { day: 'numeric', month: 'short', timeZone: 'America/Lima' },
   fechaHora: { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima' },
 }
 
@@ -67,4 +68,9 @@ export function mesAnterior(periodo) {
   // Solo, el mes sale con mayuscula en espanol ("Setiembre"); dentro de una frase va en minuscula
   const texto = formato('mes').format(new Date(Date.UTC(anio, mes - 2, 1)))
   return localeFechas().startsWith('es') ? texto.toLocaleLowerCase('es') : texto
+}
+
+/** "2026-11-16T14:12:00Z" -> "16 nov" · "16 Nov", en hora de Lima (listas de pedidos, CW-09) */
+export function diaMes(instante) {
+  return instante ? formato('diaMes').format(new Date(instante)).replace('.', '') : ''
 }

@@ -1,0 +1,42 @@
+[
+  {
+    "id": 81, "numero": "CCP-000081", "estado": "PENDIENTE_PAGO", "modalidad": "RECOJO", "total": 39.0,
+    "creadoEn": "2026-10-15T20:05:00Z", "confirmadoEn": null,
+    "punto": { "id": 1, "nombre": "Centro Nacional Lima", "departamento": "Lima", "provincia": "Lima", "distrito": "Lima", "direccion": "Sede central CCPIP" },
+    "productos": 1, "comunidades": 1,
+    "historial": [{ "estado": "PENDIENTE_PAGO", "registradoEn": "2026-10-15T20:05:00Z" }]
+  },
+  {
+    "id": 77, "numero": "CCP-000077", "estado": "LISTO_PARA_RECOJO", "modalidad": "RECOJO", "total": 92.5,
+    "creadoEn": "2026-10-10T15:40:00Z", "confirmadoEn": "2026-10-10T15:42:00Z",
+    "punto": { "id": 1, "nombre": "Centro Nacional Lima", "departamento": "Lima", "provincia": "Lima", "distrito": "Lima", "direccion": "Sede central CCPIP" },
+    "productos": 4, "comunidades": 3,
+    "historial": [
+      { "estado": "PENDIENTE_PAGO", "registradoEn": "2026-10-10T15:40:00Z" },
+      { "estado": "CONFIRMADO", "registradoEn": "2026-10-10T15:42:00Z" },
+      { "estado": "LISTO_PARA_RECOJO", "registradoEn": "2026-10-12T14:30:00Z" }
+    ]
+  },
+  {
+    "id": 60, "numero": "CCP-000060", "estado": "ENTREGADO", "modalidad": "RECOJO", "total": 48.0,
+    "creadoEn": "2026-10-01T16:00:00Z", "confirmadoEn": "2026-10-01T16:01:00Z",
+    "punto": { "id": 3, "nombre": "Centro Regional Cusco", "departamento": "Cusco", "provincia": "Cusco", "distrito": "Cusco", "direccion": "Centro regional andino" },
+    "productos": 1, "comunidades": 1,
+    "historial": [
+      { "estado": "PENDIENTE_PAGO", "registradoEn": "2026-10-01T16:00:00Z" },
+      { "estado": "CONFIRMADO", "registradoEn": "2026-10-01T16:01:00Z" },
+      { "estado": "LISTO_PARA_RECOJO", "registradoEn": "2026-10-02T15:00:00Z" },
+      { "estado": "ENTREGADO", "registradoEn": "2026-10-03T21:10:00Z" }
+    ]
+  },
+  {
+    "id": 55, "numero": "CCP-000055", "estado": "CANCELADO", "modalidad": "RECOJO", "total": 25.0,
+    "creadoEn": "2026-09-28T17:00:00Z", "confirmadoEn": null,
+    "punto": { "id": 3, "nombre": "Centro Regional Cusco", "departamento": "Cusco", "provincia": "Cusco", "distrito": "Cusco", "direccion": "Centro regional andino" },
+    "productos": 1, "comunidades": 1,
+    "historial": [
+      { "estado": "PENDIENTE_PAGO", "registradoEn": "2026-09-28T17:00:00Z" },
+      { "estado": "CANCELADO", "registradoEn": "2026-09-28T17:20:00Z" }
+    ]
+  }
+]
