@@ -18,6 +18,7 @@ import InicioPage from './pages/consumidor/InicioPage.jsx'
 import PedidoPage from './pages/consumidor/PedidoPage.jsx'
 import ProductoPage from './pages/consumidor/ProductoPage.jsx'
 import TiendaPage from './pages/consumidor/TiendaPage.jsx'
+import VerificarCorreoPage from './pages/consumidor/VerificarCorreoPage.jsx'
 import EditorProductoPage from './pages/productor/EditorProductoPage.jsx'
 import LotesPage from './pages/productor/LotesPage.jsx'
 import PanelPage from './pages/productor/PanelPage.jsx'
@@ -46,6 +47,8 @@ export default function App() {
   const [cargando, setCargando] = useState(true)
   const [aviso, setAviso] = useState(null)
   const [cerrando, setCerrando] = useState(false)
+  // CCPIP-26 y CCPIP-328: correo de la cuenta recien creada o verificada, para no volver a escribirlo
+  const [correoConocido, setCorreoConocido] = useState('')
   const minutos = useRef(30)
 
   const terminarSesion = useCallback((nuevoAviso) => {
@@ -122,7 +125,7 @@ export default function App() {
   // Reglas de acceso de cada ruta. El servidor valida igual (CCPIP-151); esto solo evita pantallas vacias.
   useEffect(() => {
     if (cargando) return
-    if (sesion && path === RUTAS.ingresar) navigate(volver, { replace: true })
+    if (sesion && (path === RUTAS.ingresar || path === RUTAS.registro)) navigate(volver, { replace: true })
     else if (!sesion && protegida) navigate(`${RUTAS.ingresar}?volver=${encodeURIComponent(path + search)}`, { replace: true })
     else if (sesion && delProductor && user.role !== 'PRODUCTOR') navigate(RUTAS.inicio, { replace: true })
     else if (sesion && delComprador && user.role !== 'CONSUMIDOR') navigate(RUTAS.inicio, { replace: true })
@@ -146,9 +149,13 @@ export default function App() {
   if (cargando) return <p className="visually-hidden">{t('comun.cargando')}</p>
 
   let pagina
-  if (path === RUTAS.ingresar) {
+  if (path === RUTAS.ingresar || path === RUTAS.registro) {
     pagina = sesion ? null : (
       <IngresarPage
+        modo={path === RUTAS.registro ? 'registro' : 'ingresar'}
+        search={search}
+        correoInicial={correoConocido}
+        onCorreoConocido={setCorreoConocido}
         aviso={aviso}
         onCerrarAviso={() => setAviso(null)}
         onIngreso={(nueva) => {
@@ -158,6 +165,8 @@ export default function App() {
         }}
       />
     )
+  } else if (path === RUTAS.verificarCorreo) {
+    pagina = <VerificarCorreoPage search={search} onVerificado={setCorreoConocido} />
   } else if (protegida && !sesion) {
     pagina = null
   } else if (path === RUTAS.inicio) {

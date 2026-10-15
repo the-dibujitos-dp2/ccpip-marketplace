@@ -8,6 +8,8 @@ export const RUTAS = {
   compra: '/compra',
   comunidades: '/comunidades',
   ingresar: '/ingresar',
+  registro: '/registro',
+  verificarCorreo: '/verificar-correo',
   inicio: '/inicio',
   productor: '/productor',
   productorTienda: '/productor/tienda',
