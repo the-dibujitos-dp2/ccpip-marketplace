@@ -68,6 +68,7 @@ Sprint 0, eso es CCPIP-28.
 | intentos_fallidos | smallint | no | Contador para el bloqueo temporal |
 | bloqueado_hasta | timestamptz | si | Nulo significa no bloqueado. RNF-02 |
 | idioma | varchar(2) | no | `es` o `en`, por defecto `es`. Preferencia de idioma de la cuenta, CCPIP-265. El visitante la guarda solo en su navegador |
+| telefono | varchar(20) | si | Celular opcional que se da al registrarse. CCPIP-26 |
 
 ### sesion
 Sesion con token opaco aleatorio, entregado en cookie HttpOnly y guardado en el servidor.
@@ -457,6 +458,34 @@ traduccion asistida) esta pendiente de definir con el cliente, por eso cada fila
 Unica por (entidad, clave, campo, idioma). Los textos en ingles de los datos de demostracion
 estan en `R__03_traducciones_demo.sql`. Invalidar una traduccion cuando cambia el original es
 CCPIP-373.
+
+## Registro y verificacion del correo (CCPIP-26, CCPIP-328)
+
+Migracion `V202610140800__registro_consumidor.sql`. El consumidor crea su cuenta con nombres,
+apellidos (se guardan juntos en `usuario.nombre`), correo, celular opcional y contrasena. La
+cuenta nace con `correo_confirmado = false` y el inicio de sesion la rechaza con
+`CORREO_NO_CONFIRMADO` hasta que use el enlace que le llega por correo.
+
+### token_un_uso
+Enlaces de un solo uso. Se comparte con la recuperacion de contrasena (CCPIP-33), que usara el
+proposito `RECUPERAR_CLAVE`. Como en `sesion`, solo se guarda el SHA-256 del token.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| usuario_id | bigint | no | Indexado junto con `proposito`, para reenviar |
+| proposito | varchar(30) | no | `VERIFICAR_CORREO` o `RECUPERAR_CLAVE` |
+| token_hash | char(64) | no | Unico. El token en claro solo viaja en el correo |
+| creado_en | timestamptz | no | |
+| expira_en | timestamptz | no | Posterior a `creado_en`. Por defecto, 24 horas |
+| usado_en | timestamptz | si | Nulo mientras no se use. Un enlace usado ya no sirve |
+
+- Usar el enlace es un UPDATE condicionado (`usado_en IS NULL`): si llegan dos usos a la vez,
+  solo uno confirma.
+- Reenviar borra los enlaces de verificacion sin usar de la cuenta y emite uno nuevo, como mucho
+  uno por minuto. La respuesta es la misma exista o no la cuenta, para no revelar que correos
+  estan registrados.
+- El enlace no inicia sesion: la persona ingresa con su contrasena despues de verificar.
 
 ## Fuera de este modelo
 

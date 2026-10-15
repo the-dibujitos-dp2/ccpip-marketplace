@@ -44,6 +44,13 @@
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
+        <!-- CCPIP-26 y CCPIP-328: correo por SMTP (ADR-14). El remitente se arma en CorreoConfig,
+             no con spring.mail.*, para que sin servidor configurado la aplicacion arranque igual. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- CCPIP-23: /actuator/health para el healthcheck del contenedor -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
