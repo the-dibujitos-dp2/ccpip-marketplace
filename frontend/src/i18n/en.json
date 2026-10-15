@@ -501,6 +501,54 @@
       "compraEnLinea": "Online purchase"
     }
   },
+  "admin": {
+    "rol": "Super administrator",
+    "plataforma": "Platform",
+    "nav": {
+      "tablero": "Dashboard"
+    },
+    "tablero": {
+      "titulo": "Operations dashboard",
+      "error": "We couldn't load the dashboard",
+      "kpi": {
+        "ventas": "Gross sales this month",
+        "comision": "Estimated commission this month",
+        "vigente": "{{porcentaje}} % current rate",
+        "productores": "Active producers",
+        "nuevos_one": "+ {{count}} new this month",
+        "nuevos_other": "+ {{count}} new this month",
+        "calificacion": "Average rating"
+      },
+      "variacion": "{{flecha}} {{valor}} % vs. {{mes}}",
+      "sinComparacion": "No sales in {{mes}} to compare",
+      "pronto": "Coming soon",
+      "lineas": "Sales by product line",
+      "top": "Top-selling producers",
+      "sinVentas": "No sales this month yet.",
+      "puntos": {
+        "titulo": "Collection points status",
+        "punto": "Collection point",
+        "stock": "Total stock",
+        "pedidos": "Orders this month",
+        "ventas": "Sales this month",
+        "merma": "% waste",
+        "reclamos": "Complaints"
+      },
+      "notaPronto": "Ratings, waste and complaints will show here once the platform starts recording them."
+    },
+    "restringido": {
+      "titulo": "Restricted access",
+      "encabezado": "This information isn't available for your role",
+      "texto": "Consumer orders and data, producers' stores and products, and collection point stock belong to the people in charge of them. The dashboard shows you the aggregated operations data.",
+      "fueraDeTuRol": "Outside your role",
+      "seccion": {
+        "tiendas": "Stores and products",
+        "pedidos": "Consumer orders",
+        "stock": "Collection point stock"
+      },
+      "volver": "Back to dashboard"
+    }
+  },
   "sello": {
     "titulo": "Origin verified by CCPIP",
     "corto": "Verified origin",
@@ -655,7 +703,8 @@
         "titulo": "Your wholesale purchases",
         "descripcion": "Here you'll place volume orders with the communities."
       }
-    }
+    },
+    "verTablero": "See the operations dashboard"
   },
   "errores": {
     "generico": "Something went wrong. Please try again.",

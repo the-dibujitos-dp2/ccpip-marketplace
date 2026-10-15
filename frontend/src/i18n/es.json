@@ -501,6 +501,54 @@
       "compraEnLinea": "Compra en línea"
     }
   },
+  "admin": {
+    "rol": "Super administrador",
+    "plataforma": "Plataforma",
+    "nav": {
+      "tablero": "Tablero"
+    },
+    "tablero": {
+      "titulo": "Tablero de operación",
+      "error": "No pudimos cargar el tablero",
+      "kpi": {
+        "ventas": "Ventas brutas del mes",
+        "comision": "Comisión estimada del mes",
+        "vigente": "{{porcentaje}} % vigente",
+        "productores": "Productores activos",
+        "nuevos_one": "+ {{count}} nuevo este mes",
+        "nuevos_other": "+ {{count}} nuevos este mes",
+        "calificacion": "Calificación promedio"
+      },
+      "variacion": "{{flecha}} {{valor}} % vs. {{mes}}",
+      "sinComparacion": "Sin ventas en {{mes}} para comparar",
+      "pronto": "Disponible pronto",
+      "lineas": "Ventas por línea de producto",
+      "top": "Productores que más venden",
+      "sinVentas": "Aún no hay ventas este mes.",
+      "puntos": {
+        "titulo": "Estado de los puntos de acopio",
+        "punto": "Punto de acopio",
+        "stock": "Stock total",
+        "pedidos": "Pedidos del mes",
+        "ventas": "Ventas del mes",
+        "merma": "% merma",
+        "reclamos": "Reclamos"
+      },
+      "notaPronto": "Calificaciones, merma y reclamos aparecerán aquí cuando la plataforma empiece a registrarlos."
+    },
+    "restringido": {
+      "titulo": "Acceso restringido",
+      "encabezado": "Esta información no está disponible para tu rol",
+      "texto": "Los pedidos y datos de consumidores, las tiendas y productos de los productores y el stock de los puntos de acopio pertenecen a sus responsables. En el tablero puedes ver la información agregada de la operación.",
+      "fueraDeTuRol": "Fuera de tu rol",
+      "seccion": {
+        "tiendas": "Tiendas y productos",
+        "pedidos": "Pedidos de consumidores",
+        "stock": "Stock de acopios"
+      },
+      "volver": "Volver al tablero"
+    }
+  },
   "sello": {
     "titulo": "Origen verificado por la CCPIP",
     "corto": "Origen verificado",
@@ -655,7 +703,8 @@
         "titulo": "Tus compras mayoristas",
         "descripcion": "Aquí harás pedidos por volumen a las comunidades."
       }
-    }
+    },
+    "verTablero": "Ver tablero de operación"
   },
   "errores": {
     "generico": "Algo salió mal. Inténtalo otra vez.",
