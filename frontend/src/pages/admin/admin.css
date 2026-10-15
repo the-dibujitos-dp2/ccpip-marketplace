@@ -1,0 +1,27 @@
+/* SA-01 y SA-08 (CCPIP-111) */
+.admin__fila { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+.admin__lineas { flex: 2 1 420px; }
+.admin__top { flex: 1 1 300px; }
+.admin__num { flex: 0 0 120px; text-align: right; font-variant-numeric: tabular-nums; }
+
+.admin__barras { display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 0; list-style: none; }
+.admin__barra { display: grid; grid-template-columns: 140px 1fr 110px; align-items: center; gap: 16px; }
+.admin__pista { height: 10px; border-radius: var(--radius-pill); background: var(--color-bg-sand); overflow: hidden; }
+.admin__relleno { display: block; height: 100%; border-radius: var(--radius-pill); background: var(--color-bg-brand); }
+
+.admin__ranking { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.admin__puesto { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--color-border-default); }
+.admin__numero { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; background: var(--color-bg-brand-subtle); color: var(--color-text-brand); font-weight: 600; font-size: 13px; }
+.admin__productor { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+
+.restringido { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 48px 24px; text-align: center; }
+.restringido__icono { display: grid; place-items: center; width: 80px; height: 80px; border-radius: 50%; background: var(--color-status-error-bg); color: var(--color-status-error-fg); }
+.restringido__titulo { font-size: 28px; line-height: 36px; }
+.restringido__texto { max-width: 620px; }
+.restringido__chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.restringido__chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--radius-pill); background: var(--color-bg-sand); color: var(--color-text-secondary); font-size: 13px; line-height: 18px; }
+
+@media (max-width: 600px) {
+  .admin__barra { grid-template-columns: 1fr 110px; }
+  .admin__pista { grid-column: 1 / -1; grid-row: 2; }
+}

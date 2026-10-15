@@ -7,6 +7,8 @@ import { invalidarTiendaActual } from './api/tiendaActual.js'
 import { aplicarIdiomaDeSesion, olvidarIdiomaDeSesion } from './i18n/preferencia.js'
 import LayoutTienda from './components/layout/LayoutTienda.jsx'
 import CuentaPage from './pages/CuentaPage.jsx'
+import AccesoRestringidoPage from './pages/admin/AccesoRestringidoPage.jsx'
+import TableroPage from './pages/admin/TableroPage.jsx'
 import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
 import PedidosPage from './pages/acopio/PedidosPage.jsx'
 import BuscarPage from './pages/consumidor/BuscarPage.jsx'
@@ -36,6 +38,7 @@ const RUTA_PEDIDO = /^\/pedidos\/(\d+)$/
 function destinoPorRol(user) {
   if (user?.role === 'PRODUCTOR') return RUTAS.productor
   if (user?.role === 'CONSUMIDOR') return RUTAS.catalogo
+  if (user?.role === 'SUPER_ADMIN') return RUTAS.admin
   return RUTAS.inicio
 }
 
@@ -96,7 +99,8 @@ export default function App() {
   const delProductor = path === RUTAS.productor || path.startsWith(`${RUTAS.productor}/`)
   const delComprador = path === RUTAS.carrito || path === RUTAS.compra || RUTA_PEDIDO.test(path)
   const delAcopio = path === RUTAS.acopio || path.startsWith(`${RUTAS.acopio}/`)
-  const protegida = path === RUTAS.inicio || delProductor || delComprador || delAcopio
+  const delAdmin = path === RUTAS.admin || path.startsWith(`${RUTAS.admin}/`)
+  const protegida = path === RUTAS.inicio || delProductor || delComprador || delAcopio || delAdmin
 
   // Al cargar y al volver a una pantalla protegida con "atras", se vuelve a preguntar al servidor
   useEffect(() => {
@@ -121,15 +125,25 @@ export default function App() {
 
   const user = sesion?.user ?? null
   const volver = rutaInterna(params.get('volver'), destinoPorRol(user))
+  // CCPIP-111 (SA-08): el superadministrador no entra a tiendas, pedidos ni stock; ve por que, en vez de
+  // volver al inicio sin explicacion. Los demas roles siguen yendo a /inicio.
+  let restringida = null
+  if (user?.role === 'SUPER_ADMIN') {
+    if (delProductor) restringida = 'tiendas'
+    else if (delComprador) restringida = 'pedidos'
+    else if (delAcopio) restringida = 'stock'
+  }
 
   // Reglas de acceso de cada ruta. El servidor valida igual (CCPIP-151); esto solo evita pantallas vacias.
   useEffect(() => {
     if (cargando) return
     if (sesion && (path === RUTAS.ingresar || path === RUTAS.registro)) navigate(volver, { replace: true })
     else if (!sesion && protegida) navigate(`${RUTAS.ingresar}?volver=${encodeURIComponent(path + search)}`, { replace: true })
+    else if (restringida) return
     else if (sesion && delProductor && user.role !== 'PRODUCTOR') navigate(RUTAS.inicio, { replace: true })
     else if (sesion && delComprador && user.role !== 'CONSUMIDOR') navigate(RUTAS.inicio, { replace: true })
     else if (sesion && delAcopio && user.role !== 'ADMIN_PUNTO') navigate(RUTAS.inicio, { replace: true })
+    else if (sesion && delAdmin && user.role !== 'SUPER_ADMIN') navigate(RUTAS.inicio, { replace: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cargando, sesion, path])
 
@@ -175,6 +189,16 @@ export default function App() {
         <CuentaPage user={user} minutosInactividad={Math.round(sesion.expiresInSeconds / 60)} />
       </LayoutTienda>
     )
+  } else if (restringida) {
+    pagina = <AccesoRestringidoPage path={path} seccion={restringida} />
+  } else if (delAdmin) {
+    // Por ahora el superadministrador tiene el tablero (SA-01); los otros modulos llegan con sus historias
+    if (user.role !== 'SUPER_ADMIN') pagina = null
+    else if (path === RUTAS.admin) pagina = <TableroPage path={path} />
+    else {
+      navigate(RUTAS.admin, { replace: true })
+      pagina = null
+    }
   } else if (delProductor) {
     const editor = path.match(RUTA_EDITOR)
     if (user.role !== 'PRODUCTOR') pagina = null

@@ -3,7 +3,7 @@ import { capturar, ingresar } from './ayudas.js'
 
 /**
  * Capturas de cada pantalla a 1440 px para compararlas con su par del Figma (02 · Consumidor
- * final y 03 · Productor). Se guardan en e2e/capturas y en CI como artefacto.
+ * final, 03 · Productor y Super admin). Se guardan en e2e/capturas y en CI como artefacto.
  */
 test.describe('capturas para comparar con el Figma', () => {
   test('consumidor', async ({ page }) => {
@@ -35,5 +35,15 @@ test.describe('capturas para comparar con el Figma', () => {
     await page.getByRole('menuitem', { name: 'Registrar lote' }).click()
     await page.getByRole('heading', { name: 'Lotes de este producto' }).waitFor()
     await capturar(page, 'PW-06-lote')
+  })
+
+  test('superadministrador', async ({ page }) => {
+    await ingresar(page, 'sudo@ccpip.test')
+    await page.getByRole('heading', { name: 'Tablero de operación' }).waitFor()
+    await page.getByRole('table', { name: 'Estado de los puntos de acopio' }).waitFor()
+    await capturar(page, 'SA-01-tablero')
+    await page.goto('/carrito')
+    await page.getByRole('heading', { name: 'Acceso restringido' }).waitFor()
+    await capturar(page, 'SA-08-acceso-restringido')
   })
 })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { capital, fecha, fechaCorta, mesAnio, precio, unidades } from './formato'
+import { capital, fecha, fechaCorta, mesAnio, mesAnterior, precio, unidades } from './formato'
 import i18n from './i18n/index.js'
 
 // Intl separa la moneda con un espacio no separable (U+00A0): se normaliza para comparar
@@ -38,7 +38,12 @@ describe('formato', () => {
       expect(fecha('2026-01-01')).toBe('1 ene 2026')
     })
 
-    it.each([fecha, fechaCorta, mesAnio])('%o devuelve cadena vacía sin valor', (fn) => {
+    it('mesAnterior nombra el mes previo al periodo, también al cruzar el año', () => {
+      expect(mesAnterior('2026-10')).toBe('setiembre')
+      expect(mesAnterior('2027-01')).toBe('diciembre')
+    })
+
+    it.each([fecha, fechaCorta, mesAnio, mesAnterior])('%o devuelve cadena vacía sin valor', (fn) => {
       expect(fn(null)).toBe('')
       expect(fn(undefined)).toBe('')
       expect(fn('')).toBe('')

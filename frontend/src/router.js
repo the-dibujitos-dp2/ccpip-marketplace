@@ -19,6 +19,7 @@ export const RUTAS = {
   acopio: '/acopio',
   acopioPedidos: '/acopio/pedidos',
   acopioMovimientos: '/acopio/movimientos',
+  admin: '/admin',
 }
 
 export function navigate(path, { replace = false } = {}) {

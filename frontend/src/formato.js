@@ -6,6 +6,7 @@ const OPCIONES = {
   soles: { style: 'currency', currency: 'PEN' },
   unidades: { maximumFractionDigits: 3 },
   mesAnio: { month: 'long', year: 'numeric', timeZone: 'UTC' },
+  mes: { month: 'long', timeZone: 'UTC' },
   fechaCorta: { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' },
   fecha: { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' },
   fechaHora: { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima' },
@@ -57,4 +58,13 @@ export function fechaCorta(iso) {
 /** "2026-11-16T14:12:00Z" -> "16/11 09:12", en hora de Lima (tablas de movimientos, A-03) */
 export function fechaHora(instante) {
   return instante ? formato('fechaHora').format(new Date(instante)).replace(',', '') : ''
+}
+
+/** "2026-10" -> "setiembre" · "September": el mes anterior a un periodo (comparaciones de SA-01) */
+export function mesAnterior(periodo) {
+  if (!periodo) return ''
+  const [anio, mes] = periodo.split('-').map(Number)
+  // Solo, el mes sale con mayuscula en espanol ("Setiembre"); dentro de una frase va en minuscula
+  const texto = formato('mes').format(new Date(Date.UTC(anio, mes - 2, 1)))
+  return localeFechas().startsWith('es') ? texto.toLocaleLowerCase('es') : texto
 }

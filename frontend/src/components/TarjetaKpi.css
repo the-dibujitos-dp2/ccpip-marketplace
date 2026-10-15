@@ -14,3 +14,5 @@
 .tarjeta-kpi__icono { display: flex; padding: 6px; border-radius: var(--radius-m); background: var(--color-bg-brand-subtle); color: var(--color-text-brand); }
 .tarjeta-kpi__valor { font-weight: 700; font-size: 32px; line-height: 40px; letter-spacing: -0.5px; }
 .tarjeta-kpi__detalle { font-weight: 500; font-size: 12px; line-height: 16px; color: var(--color-status-success-fg); }
+.tarjeta-kpi__detalle--error { color: var(--color-status-error-fg); }
+.tarjeta-kpi__detalle--neutro { color: var(--color-text-tertiary); }

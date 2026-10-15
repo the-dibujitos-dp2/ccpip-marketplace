@@ -1,0 +1,26 @@
+{
+  "periodo": "2026-10",
+  "ventas": { "mes": 4892.0, "mesAnterior": 4010.0, "variacion": 22.0, "pedidos": 37 },
+  "comision": { "porcentaje": 10, "estimada": 489.2 },
+  "productores": { "activos": 42, "nuevosDelMes": 6 },
+  "ventasPorLinea": [
+    { "codigo": "CACAO", "nombre": "Cacao y chocolates", "monto": 1624.0 },
+    { "codigo": "ACEITES", "nombre": "Aceites", "monto": 1138.0 },
+    { "codigo": "SUPERFRUTOS", "nombre": "Superfrutos", "monto": 891.0 },
+    { "codigo": "CAFE", "nombre": "Café", "monto": 712.0 },
+    { "codigo": "INFUSIONES", "nombre": "Infusiones", "monto": 346.0 },
+    { "codigo": "ARTESANIA", "nombre": "Artesanías", "monto": 181.0 },
+    { "codigo": "TEXTIL", "nombre": "Textiles", "monto": 0 }
+  ],
+  "productoresTop": [
+    { "id": 3, "nombre": "C.N. Yarina", "pueblo": "Awajún", "monto": 984.0 },
+    { "id": 1, "nombre": "Asoc. Nii Joi", "pueblo": "Shipibo-Konibo", "monto": 721.0 },
+    { "id": 2, "nombre": "Coop. Río Ene", "pueblo": "Asháninka", "monto": 698.0 },
+    { "id": 4, "nombre": "C.N. Puerto Alegre", "pueblo": null, "monto": 512.0 }
+  ],
+  "puntos": [
+    { "id": 1, "nombre": "Centro Nacional Lima", "distrito": "Lima", "stock": 1284.0, "pedidosDelMes": 21, "ventasDelMes": 2411.0 },
+    { "id": 4, "nombre": "Centro Regional Ucayali", "distrito": "Pucallpa", "stock": 842.5, "pedidosDelMes": 12, "ventasDelMes": 1840.0 },
+    { "id": 2, "nombre": "Centro Regional Loreto", "distrito": "Iquitos", "stock": 366.0, "pedidosDelMes": 4, "ventasDelMes": 641.0 }
+  ]
+}

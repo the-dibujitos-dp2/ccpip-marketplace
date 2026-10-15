@@ -17,6 +17,8 @@ import movimientos from './fixtures/acopio-movimientos.json'
 import pedidos from './fixtures/acopio-pedidos.json'
 import pedidoListo from './fixtures/acopio-pedido-listo.json'
 import pedidoEntregado from './fixtures/acopio-pedido-entregado.json'
+// CCPIP-111: armado segun TableroModelos (los registros del backend), con lineas y puntos del seed
+import tableroAdmin from './fixtures/admin-tablero.json'
 
 export const USUARIO = {
   id: 1,
@@ -32,6 +34,10 @@ export const SESION_ACOPIO = {
 }
 export const SESION_PRODUCTOR = {
   user: { id: 2, email: 'productor@ccpip.test', fullName: 'Comunidad Shipibo Konibo', role: 'PRODUCTOR', roleName: 'Productor' },
+  expiresInSeconds: 120,
+}
+export const SESION_SUPER = {
+  user: { id: 8, email: 'sudo@ccpip.test', fullName: 'Ana Shuñaqui', role: 'SUPER_ADMIN', roleName: 'Super administrador' },
   expiresInSeconds: 120,
 }
 export const PANEL = { titulo: 'Tu mercado', descripcion: 'Explora productos con historia.' }
@@ -98,6 +104,7 @@ export const DATOS = {
   pedidos,
   pedidoListo,
   pedidoEntregado,
+  tableroAdmin,
 }
 
 /** Copia profunda para que cada prueba pueda modificar los datos sin afectar a otras. */
