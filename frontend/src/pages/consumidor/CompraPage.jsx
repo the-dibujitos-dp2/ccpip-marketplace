@@ -346,6 +346,7 @@ export default function CompraPage() {
                   <li key={i.productoId}>
                     <span>
                       {i.nombre} <span className="compra__cantidad">× {Number(i.cantidad)}</span>
+                      <span className="caption compra__productor">{t('carrito.deTienda', { nombre: i.tienda.nombre })}</span>
                     </span>
                     <span>{precio(i.subtotal)}</span>
                   </li>

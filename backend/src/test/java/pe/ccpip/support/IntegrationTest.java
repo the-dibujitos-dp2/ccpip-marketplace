@@ -89,12 +89,18 @@ public abstract class IntegrationTest {
      * Es de productor@ccpip.test, que tiene cuenta bancaria activa, y nace autorizado (CCPIP-269).
      */
     protected long productoConLote(String nombre, String estado, String tipoUbicacion, java.time.LocalDate vence) {
+        return productoConLote(nombre, estado, tipoUbicacion, vence, "productor@ccpip.test");
+    }
+
+    /** CCPIP-172: el productor se elige al crear la oferta, nunca reasignandola despues. */
+    protected long productoConLote(String nombre, String estado, String tipoUbicacion, java.time.LocalDate vence,
+                                  String correoProductor) {
         Long id = jdbc.queryForObject("""
                 INSERT INTO producto (productor_id, nombre, descripcion, linea_id, unidad_medida_id, precio, estado, publicado_en)
-                SELECT (SELECT p.id FROM productor p JOIN usuario u ON u.id = p.usuario_id WHERE u.correo = 'productor@ccpip.test'),
+                SELECT (SELECT p.id FROM productor p JOIN usuario u ON u.id = p.usuario_id WHERE u.correo = ?),
                        ?, 'Producto de prueba', (SELECT id FROM linea_producto WHERE codigo = 'SUPERFRUTOS'),
                        (SELECT id FROM unidad_medida WHERE codigo = 'G'), 20.00, ?, now()
-                RETURNING id""", Long.class, nombre, estado);
+                RETURNING id""", Long.class, correoProductor, nombre, estado);
         jdbc.update("INSERT INTO producto_linea (producto_id, linea_id) SELECT ?, id FROM linea_producto WHERE codigo = 'SUPERFRUTOS'", id);
         jdbc.update("""
                 INSERT INTO autorizacion_producto (productor_id, producto_id, estado, decidido_en)

@@ -44,6 +44,7 @@
 .compra__lineas { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
 .compra__lineas li { display: flex; justify-content: space-between; gap: 16px; }
 .compra__cantidad { color: var(--color-text-secondary); white-space: nowrap; }
+.compra__productor { display: block; color: var(--color-text-secondary); }
 
 .compra__cifras { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 16px 0; border-top: 1px solid var(--color-border-default); border-bottom: 1px solid var(--color-border-default); }
 .compra__cifras div { display: flex; justify-content: space-between; gap: 16px; }
