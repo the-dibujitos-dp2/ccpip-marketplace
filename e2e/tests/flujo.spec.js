@@ -7,7 +7,9 @@ import { api, enDias, fotoPng, ingresar, sinViolaciones, unico, vigilarConsola }
  * lote, y un comprador lo encuentra, lo filtra y lee su historia. Requiere el stack recien creado
  * (productor_nuevo@ccpip.test con la tienda vacia).
  */
-test.describe.configure({ mode: 'serial' })
+// Sin reintentos: el flujo cambia datos (publica la tienda de productor_nuevo), asi que un reintento
+// sobre la misma base nunca podria pasar y solo ocultaria la causa del primer fallo.
+test.describe.configure({ mode: 'serial', retries: 0 })
 
 const TIENDA = 'Comunidad Kukama de Nauta'
 const PRODUCTO = unico('Aceite de sacha inchi Nauta')
