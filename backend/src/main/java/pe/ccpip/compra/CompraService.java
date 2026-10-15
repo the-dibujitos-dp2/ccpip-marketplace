@@ -5,7 +5,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -20,15 +23,18 @@ import pe.ccpip.carrito.CarritoModelos.EstadoItem;
 import pe.ccpip.carrito.CarritoModelos.Item;
 import pe.ccpip.carrito.CarritoService;
 import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.compra.CompraModelos.EventoPedido;
 import pe.ccpip.compra.CompraModelos.IntentoPago;
 import pe.ccpip.compra.CompraModelos.LineaPedido;
 import pe.ccpip.compra.CompraModelos.Pedido;
 import pe.ccpip.compra.CompraModelos.PuntoRecojo;
+import pe.ccpip.compra.CompraModelos.ResumenPedido;
 import pe.ccpip.entrega.PersonaDeRecojo;
 
 /**
  * CCPIP-157: confirmar la compra para recojo en un punto de acopio con existencias elegibles, y
- * CCPIP-64: consultar el pedido. El pedido nace en PENDIENTE_PAGO y no toca el stock: se confirma y
+ * CCPIP-64: consultar el pedido, CCPIP-112: la lista de compras del comprador y CCPIP-70 y CCPIP-340:
+ * su estado actual y su historial. El pedido nace en PENDIENTE_PAGO y no toca el stock: se confirma y
  * descuenta recien cuando un pago sale aprobado (ver {@link PagoService}).
  */
 @Service
@@ -110,9 +116,50 @@ public class CompraService {
                 (rs, row) -> new Pedido(rs.getLong("id"), rs.getString("numero"), rs.getString("estado"),
                         rs.getString("modalidad"), rs.getBigDecimal("total"), instante(rs, "creado_en"),
                         instante(rs, "confirmado_en"), punto(rs, "u_"), rs.getString("persona_autorizada"),
-                        rs.getString("celular_contacto"), lineas(pedidoId), pagos(pedidoId)));
+                        rs.getString("celular_contacto"), lineas(pedidoId), pagos(pedidoId),
+                        historial(List.of(pedidoId)).getOrDefault(pedidoId, List.of())));
         return encontrados.stream().findFirst()
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "No encontramos ese pedido."));
+    }
+
+    /**
+     * CCPIP-112: las compras del comprador, la mas reciente primero, con el total que pago y su
+     * historial de estados. Solo las propias (RNF-05): la consulta filtra por la sesion.
+     */
+    @Transactional(readOnly = true)
+    public List<ResumenPedido> misPedidos(long usuarioId) {
+        List<ResumenPedido> sinHistorial = jdbc.query("""
+                SELECT pe.id, pe.numero, pe.estado, pe.modalidad, pe.total, pe.creado_en, pe.confirmado_en,
+                       u.id AS u_id, u.nombre AS u_nombre, u.departamento, u.provincia, u.distrito, u.direccion,
+                       (SELECT count(*) FROM item_pedido i WHERE i.pedido_id = pe.id) AS productos,
+                       (SELECT count(DISTINCT i.productor_id) FROM item_pedido i WHERE i.pedido_id = pe.id) AS comunidades
+                FROM pedido pe JOIN ubicacion u ON u.id = pe.ubicacion_origen_id
+                WHERE pe.usuario_id = :usuario
+                ORDER BY pe.creado_en DESC, pe.id DESC""", new MapSqlParameterSource("usuario", usuarioId),
+                (rs, row) -> new ResumenPedido(rs.getLong("id"), rs.getString("numero"), rs.getString("estado"),
+                        rs.getString("modalidad"), rs.getBigDecimal("total"), instante(rs, "creado_en"),
+                        instante(rs, "confirmado_en"), punto(rs, "u_"), rs.getInt("productos"),
+                        rs.getInt("comunidades"), List.of()));
+        if (sinHistorial.isEmpty()) {
+            return sinHistorial;
+        }
+        Map<Long, List<EventoPedido>> historiales = historial(sinHistorial.stream().map(ResumenPedido::id).toList());
+        return sinHistorial.stream().map(r -> new ResumenPedido(r.id(), r.numero(), r.estado(), r.modalidad(), r.total(),
+                r.creadoEn(), r.confirmadoEn(), r.punto(), r.productos(), r.comunidades(),
+                historiales.getOrDefault(r.id(), List.of()))).toList();
+    }
+
+    /** CCPIP-340: los estados de cada pedido en orden cronologico, sin quien los registro. */
+    private Map<Long, List<EventoPedido>> historial(List<Long> pedidos) {
+        Map<Long, List<EventoPedido>> porPedido = new HashMap<>();
+        jdbc.query("""
+                SELECT pedido_id, estado, registrado_en FROM pedido_estado_historial
+                WHERE pedido_id IN (:ids) ORDER BY registrado_en, id""", new MapSqlParameterSource("ids", pedidos),
+                rs -> {
+                    porPedido.computeIfAbsent(rs.getLong("pedido_id"), k -> new ArrayList<>())
+                            .add(new EventoPedido(rs.getString("estado"), instante(rs, "registrado_en")));
+                });
+        return porPedido;
     }
 
     private List<LineaPedido> lineas(long pedidoId) {

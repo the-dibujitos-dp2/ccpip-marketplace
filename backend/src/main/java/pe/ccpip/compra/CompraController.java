@@ -25,6 +25,7 @@ import pe.ccpip.compra.CompraModelos.IntentoPago;
 import pe.ccpip.compra.CompraModelos.Pedido;
 import pe.ccpip.compra.CompraModelos.PuntoRecojo;
 import pe.ccpip.compra.CompraModelos.ResultadoPago;
+import pe.ccpip.compra.CompraModelos.ResumenPedido;
 import pe.ccpip.pago.Tarjeta;
 
 /**
@@ -80,6 +81,12 @@ public class CompraController {
     @GetMapping("/api/compra/puntos")
     public List<PuntoRecojo> puntos(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s) {
         return compra.puntosElegibles(s.userId());
+    }
+
+    /** CCPIP-112 (CW-09): las compras del comprador con su estado e historial. Solo las propias. */
+    @GetMapping("/api/pedidos")
+    public List<ResumenPedido> misPedidos(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s) {
+        return compra.misPedidos(s.userId());
     }
 
     /** CCPIP-157: crea el pedido para recojo, en espera de su pago. No descuenta stock todavia. */
