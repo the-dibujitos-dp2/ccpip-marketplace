@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoIa from '../../assets/icons/ia.svg'
 import { obtenerProducto } from '../../api/catalogo.js'
@@ -17,6 +18,7 @@ import './ProductoPage.css'
 
 /** CW-03: ficha publica del producto (CCPIP-53) con su historia de origen (CCPIP-152). */
 export default function ProductoPage({ id }) {
+  const { t } = useTranslation()
   const [producto, setProducto] = useState(null)
   const [error, setError] = useState(null)
   const [foto, setFoto] = useState(0)
@@ -45,11 +47,11 @@ export default function ProductoPage({ id }) {
       <LayoutTienda>
         <main className="contenedor ficha">
           <EstadoVacio
-            titulo={noExiste ? 'Este producto no está disponible' : 'No pudimos cargar el producto'}
-            descripcion={noExiste ? 'Puede que la comunidad lo haya retirado del catálogo.' : 'Revisa tu conexión e inténtalo otra vez.'}
+            titulo={noExiste ? t('producto.noDisponible') : t('producto.error')}
+            descripcion={noExiste ? t('producto.retirado') : t('comun.errorConexion')}
           >
             <Boton tamano="M" to={RUTAS.buscar}>
-              Volver al catálogo
+              {t('producto.volverCatalogo')}
             </Boton>
           </EstadoVacio>
         </main>
@@ -61,7 +63,7 @@ export default function ProductoPage({ id }) {
     return (
       <LayoutTienda>
         <main className="contenedor ficha" aria-busy="true">
-          <p className="visually-hidden">Cargando producto…</p>
+          <p className="visually-hidden">{t('producto.cargando')}</p>
         </main>
       </LayoutTienda>
     )
@@ -76,17 +78,17 @@ export default function ProductoPage({ id }) {
   const partes = historia?.partes
   const pasos = partes
     ? [
-        { titulo: 'La comunidad', texto: partes.comunidad },
-        { titulo: 'El cultivo', texto: partes.cultivo },
-        { titulo: 'El proceso', texto: partes.proceso },
+        { titulo: t('producto.historia.comunidad'), texto: partes.comunidad },
+        { titulo: t('producto.historia.cultivo'), texto: partes.cultivo },
+        { titulo: t('producto.historia.proceso'), texto: partes.proceso },
       ].filter((p) => p.texto)
     : []
 
   return (
     <LayoutTienda>
       <main className="contenedor ficha">
-        <nav className="migas" aria-label="Migas de pan">
-          <Enlace to={RUTAS.catalogo}>Inicio</Enlace> /{' '}
+        <nav className="migas" aria-label={t('comun.migas')}>
+          <Enlace to={RUTAS.catalogo}>{t('comun.inicio')}</Enlace> /{' '}
           {producto.linea && <><Enlace to={`${RUTAS.buscar}?linea=${producto.linea.codigo}`}>{producto.linea.nombre}</Enlace> / </>}
           <span aria-current="page">{producto.nombre}</span>
         </nav>
@@ -102,10 +104,10 @@ export default function ProductoPage({ id }) {
               )}
             </div>
             {imagenes.length > 1 && (
-              <ul className="ficha__miniaturas" aria-label="Fotos del producto">
+              <ul className="ficha__miniaturas" aria-label={t('producto.fotos')}>
                 {imagenes.map((img, i) => (
                   <li key={img.id}>
-                    <button type="button" className={`ficha__miniatura${i === foto ? ' ficha__miniatura--activa' : ''}`} onClick={() => setFoto(i)} aria-label={`Ver foto ${i + 1}`} aria-pressed={i === foto}>
+                    <button type="button" className={`ficha__miniatura${i === foto ? ' ficha__miniatura--activa' : ''}`} onClick={() => setFoto(i)} aria-label={t('producto.verFoto', { numero: i + 1 })} aria-pressed={i === foto}>
                       <img src={img.miniatura} alt="" />
                     </button>
                   </li>
@@ -114,24 +116,24 @@ export default function ProductoPage({ id }) {
             )}
             <dl className="ficha__datos">
               <div>
-                <dt>Origen</dt>
+                <dt>{t('producto.origen')}</dt>
                 <dd>{[tienda.localidad, tienda.region].filter(Boolean).join(', ')}</dd>
               </div>
               {cosecha?.produccion && (
                 <div>
-                  <dt>Cosecha</dt>
+                  <dt>{t('producto.cosecha')}</dt>
                   <dd>{capital(mesAnio(cosecha.produccion))}</dd>
                 </div>
               )}
               {unidad && (
                 <div>
-                  <dt>Presentación</dt>
+                  <dt>{t('producto.presentacion')}</dt>
                   <dd>{capital(unidad)}</dd>
                 </div>
               )}
               <div>
-                <dt>Elaborado por</dt>
-                <dd>{tienda.pueblo ? `Pueblo ${tienda.pueblo}` : tienda.comunidad}</dd>
+                <dt>{t('producto.elaboradoPor')}</dt>
+                <dd>{tienda.pueblo ? t('tienda.pueblo', { pueblo: tienda.pueblo }) : tienda.comunidad}</dd>
               </div>
             </dl>
           </div>
@@ -141,51 +143,51 @@ export default function ProductoPage({ id }) {
             <h1 className="ficha__titulo">{producto.nombre}</h1>
             <p className="ficha__productor">
               <Icono src={iconoComunidad} tamano={20} />
-              Hecho por{' '}
+              {t('producto.hechoPor')}{' '}
               <Enlace to={`/tiendas/${tienda.id}`} className="ficha__tienda">
                 {tienda.nombre}
               </Enlace>
-              {tienda.pueblo && <span className="caption">· pueblo {tienda.pueblo}</span>}
+              {tienda.pueblo && <span className="caption">{t('producto.puebloCorto', { pueblo: tienda.pueblo })}</span>}
             </p>
             {tienda.origenVerificado && <SelloOrigen variante="compacto" />}
 
             {historia && (
               <blockquote className="ficha__cita">
                 <p>“{historia.titulo ?? resumen(historia.texto)}”</p>
-                <a href="#historia" className="enlace-marca">Leer su historia <span aria-hidden="true">↓</span></a>
+                <a href="#historia" className="enlace-marca">{t('producto.leerHistoria')} <span aria-hidden="true">↓</span></a>
               </blockquote>
             )}
 
             <div className="ficha__compra">
-              <div className="ficha__precios" role={conMinorista && conMayorista ? 'radiogroup' : undefined} aria-label="Precio según modalidad">
+              <div className="ficha__precios" role={conMinorista && conMayorista ? 'radiogroup' : undefined} aria-label={t('producto.precioSegunModalidad')}>
                 {conMinorista && (
-                  <PrecioOpcion activo={modo === 'MINORISTA'} interactivo={conMayorista} onElegir={() => setModo('MINORISTA')} titulo="Precio minorista" monto={producto.precio} detalle={unidad ? `por ${unidad}` : 'por unidad'} />
+                  <PrecioOpcion activo={modo === 'MINORISTA'} interactivo={conMayorista} onElegir={() => setModo('MINORISTA')} titulo={t('producto.precioMinorista')} monto={producto.precio} detalle={unidad ? t('producto.porUnidadDe', { unidad }) : t('producto.porUnidad')} />
                 )}
                 {conMayorista && (
                   <PrecioOpcion
                     activo={modo === 'MAYORISTA'}
                     interactivo={conMinorista}
                     onElegir={() => setModo('MAYORISTA')}
-                    titulo="Precio mayorista"
+                    titulo={t('producto.precioMayorista')}
                     monto={producto.precioMayorista}
-                    detalle={`desde ${producto.cantidadMinimaMayorista} und`}
+                    detalle={t('producto.desdeUnidades', { count: producto.cantidadMinimaMayorista })}
                   />
                 )}
               </div>
               {/* CCPIP-269 (CW-03c "Venta pausada"): sin cuenta bancaria activa o autorizacion vigente, se ve pero no se compra */}
               {producto.comprable === false ? (
-                <span className="etiqueta-producto etiqueta-producto--aviso">● Venta pausada temporalmente</span>
+                <span className="etiqueta-producto etiqueta-producto--aviso">● {t('producto.estado.pausada')}</span>
               ) : producto.disponible ? (
-                <span className="etiqueta-producto etiqueta-producto--marca">● Disponible</span>
+                <span className="etiqueta-producto etiqueta-producto--marca">● {t('producto.estado.disponible')}</span>
               ) : (
-                <span className="etiqueta-producto etiqueta-producto--agotado">Agotado por ahora</span>
+                <span className="etiqueta-producto etiqueta-producto--agotado">{t('producto.estado.agotado')}</span>
               )}
               <p className="body-s">
                 {producto.comprable === false
-                  ? `${tienda.nombre} pausó sus ventas por un tema administrativo. Puedes ver todo el producto, pero por ahora no se puede comprar.`
+                  ? t('producto.estado.pausadaTexto', { nombre: tienda.nombre })
                   : producto.disponible
-                    ? 'Se recoge en un punto de acopio de la Cámara.'
-                    : 'Sin stock por ahora. Vuelve pronto: la comunidad repone por cosecha.'}
+                    ? t('producto.estado.disponibleTexto')
+                    : t('producto.estado.agotadoTexto')}
               </p>
               <AgregarAlCarrito key={producto.id} producto={producto} />
             </div>
@@ -198,8 +200,8 @@ export default function ProductoPage({ id }) {
           <section id="historia" className="historia" aria-labelledby="titulo-historia">
             <ImagenProducto url={imagenes[1]?.url ?? imagenes[0]?.url} linea="COMUNIDAD" className="historia__img" />
             <div className="historia__texto">
-              <p className="overline historia__overline">La historia detrás</p>
-              <h2 id="titulo-historia" className="historia__titulo">{historia.titulo ?? 'Del bosque a tu mesa'}</h2>
+              <p className="overline historia__overline">{t('producto.historia.overline')}</p>
+              <h2 id="titulo-historia" className="historia__titulo">{historia.titulo ?? t('producto.historia.titulo')}</h2>
               {pasos.length > 0 ? (
                 <ol className="historia__pasos">
                   {pasos.map((p, i) => (
@@ -216,8 +218,8 @@ export default function ProductoPage({ id }) {
               <p className="historia__relato">{historia.texto}</p>
               <p className="historia__nota">
                 {historia.asistida
-                  ? 'Relato de la comunidad, redactado con apoyo de inteligencia artificial y aprobado por ella.'
-                  : 'Relato escrito por la comunidad.'}
+                  ? t('producto.historia.asistida')
+                  : t('producto.historia.propia')}
                 {historia.asistida && <Icono src={iconoIa} tamano={14} className="historia__nota-icono" />}
               </p>
             </div>
@@ -225,30 +227,30 @@ export default function ProductoPage({ id }) {
         )}
 
         <section className="seccion" aria-labelledby="titulo-confianza">
-          <h2 id="titulo-confianza" className="seccion__titulo">Por qué puedes confiar en este producto</h2>
+          <h2 id="titulo-confianza" className="seccion__titulo">{t('producto.confianza')}</h2>
           <div className="ficha__confianza">
             {tienda.origenVerificado ? (
               <SelloOrigen variante="completo" />
             ) : (
-              <p className="body-m">La Cámara aún está verificando el origen de esta comunidad.</p>
+              <p className="body-m">{t('producto.verificando')}</p>
             )}
             {(cosecha?.produccion || cosecha?.consumirAntesDe) && (
               <div className="ficha__cosecha">
-                <p className="overline">Sobre esta cosecha</p>
+                <p className="overline">{t('producto.sobreCosecha')}</p>
                 <dl>
                   {cosecha.produccion && (
                     <div>
-                      <dt>Cosecha</dt>
+                      <dt>{t('producto.cosecha')}</dt>
                       <dd>{capital(mesAnio(cosecha.produccion))}</dd>
                     </div>
                   )}
                   <div>
-                    <dt>Origen</dt>
+                    <dt>{t('producto.origen')}</dt>
                     <dd>{[tienda.localidad, tienda.region].filter(Boolean).join(', ')}</dd>
                   </div>
                   {cosecha.consumirAntesDe && (
                     <div>
-                      <dt>Consumir antes de</dt>
+                      <dt>{t('producto.consumirAntes')}</dt>
                       <dd>{fecha(cosecha.consumirAntesDe)}</dd>
                     </div>
                   )}
@@ -260,16 +262,16 @@ export default function ProductoPage({ id }) {
 
         {conMayorista && (
           <section className="ficha__volumen" aria-labelledby="titulo-volumen">
-            <span className="etiqueta-producto etiqueta-producto--info">Mayorista</span>
-            <h2 id="titulo-volumen" className="heading-h2">Para compras por volumen</h2>
-            <p className="body-s">Para tiendas, cafeterías y exportadores: la misma historia y el mismo origen verificado.</p>
+            <span className="etiqueta-producto etiqueta-producto--info">{t('modalidad.MAYORISTA')}</span>
+            <h2 id="titulo-volumen" className="heading-h2">{t('producto.volumen.titulo')}</h2>
+            <p className="body-s">{t('producto.volumen.texto')}</p>
             <dl>
               <div>
-                <dt>Pedido mínimo mayorista</dt>
-                <dd>{producto.cantidadMinimaMayorista} und</dd>
+                <dt>{t('producto.volumen.minimo')}</dt>
+                <dd>{t('producto.unidades', { count: producto.cantidadMinimaMayorista })}</dd>
               </div>
               <div>
-                <dt>Precio por unidad</dt>
+                <dt>{t('producto.volumen.precioUnidad')}</dt>
                 <dd>{precio(producto.precioMayorista)}</dd>
               </div>
             </dl>
@@ -278,7 +280,7 @@ export default function ProductoPage({ id }) {
 
         {producto.relacionados?.length > 0 && (
           <section className="seccion" aria-labelledby="titulo-relacionados">
-            <h2 id="titulo-relacionados" className="seccion__titulo">También de {producto.linea?.nombre?.toLowerCase()}</h2>
+            <h2 id="titulo-relacionados" className="seccion__titulo">{t('producto.tambienDe', { linea: producto.linea?.nombre?.toLowerCase() })}</h2>
             <ul className="grilla-productos">
               {producto.relacionados.map((p) => (
                 <li key={p.id}>
