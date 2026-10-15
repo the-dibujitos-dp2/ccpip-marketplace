@@ -4,6 +4,7 @@ import { consultarSesion, fetchMe, logout } from './api/auth.js'
 import { olvidarUnidadesCarrito } from './api/carrito.js'
 import { armIdleTimer, disarmIdleTimer, onSessionLost } from './api/http.js'
 import { invalidarTiendaActual } from './api/tiendaActual.js'
+import { aplicarIdiomaDeSesion, olvidarIdiomaDeSesion } from './i18n/preferencia.js'
 import LayoutTienda from './components/layout/LayoutTienda.jsx'
 import CuentaPage from './pages/CuentaPage.jsx'
 import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
@@ -50,6 +51,7 @@ export default function App() {
   const terminarSesion = useCallback((nuevoAviso) => {
     disarmIdleTimer()
     invalidarTiendaActual()
+    olvidarIdiomaDeSesion()
     olvidarUnidadesCarrito()
     setSesion(null)
     setAviso(nuevoAviso)
@@ -59,7 +61,10 @@ export default function App() {
   // La sesion se confirma siempre con el servidor, nunca con datos guardados en el navegador
   const verificar = useCallback(async () => {
     try {
-      setSesion(await consultarSesion())
+      const nueva = await consultarSesion()
+      // CCPIP-265: con sesion, el idioma guardado en la cuenta (o el que eligio antes de ingresar)
+      await aplicarIdiomaDeSesion(nueva?.user)
+      setSesion(nueva)
     } catch {
       setSesion(null)
     } finally {
@@ -148,6 +153,7 @@ export default function App() {
         onCerrarAviso={() => setAviso(null)}
         onIngreso={(nueva) => {
           setAviso(null)
+          void aplicarIdiomaDeSesion(nueva?.user)
           setSesion(nueva)
         }}
       />
