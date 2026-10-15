@@ -4,7 +4,10 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
-/** Respuestas del flujo de compra: recojo (CCPIP-157), pago (CCPIP-62, CCPIP-163) y confirmacion (CCPIP-64). */
+/**
+ * Respuestas del flujo de compra: recojo (CCPIP-157), pago (CCPIP-62, CCPIP-163), confirmacion (CCPIP-64)
+ * y los pedidos del comprador (CCPIP-112, CCPIP-70, CCPIP-340).
+ */
 public final class CompraModelos {
 
     private CompraModelos() {
@@ -29,12 +32,29 @@ public final class CompraModelos {
     }
 
     /**
+     * CCPIP-340: un cambio de estado del pedido y cuando ocurrio. No dice quien lo hizo: eso es del
+     * punto de acopio, no del comprador.
+     */
+    public record EventoPedido(String estado, Instant registradoEn) {
+    }
+
+    /**
      * Pedido del comprador. {@code personaAutorizada} es nula si recoge el mismo comprador;
-     * {@code confirmadoEn} es nulo mientras espera su pago.
+     * {@code confirmadoEn} es nulo mientras espera su pago. {@code historial}: sus estados en orden
+     * cronologico (CCPIP-340).
      */
     public record Pedido(long id, String numero, String estado, String modalidad, BigDecimal total, Instant creadoEn,
                          Instant confirmadoEn, PuntoRecojo punto, String personaAutorizada, String celularContacto,
-                         List<LineaPedido> lineas, List<IntentoPago> pagos) {
+                         List<LineaPedido> lineas, List<IntentoPago> pagos, List<EventoPedido> historial) {
+    }
+
+    /**
+     * CCPIP-112 y CCPIP-70 (CW-09): un pedido en la lista del comprador, con su estado actual, el total
+     * que pago (no el precio vigente), cuantos productos y comunidades incluye y su historial.
+     */
+    public record ResumenPedido(long id, String numero, String estado, String modalidad, BigDecimal total,
+                                Instant creadoEn, Instant confirmadoEn, PuntoRecojo punto, int productos,
+                                int comunidades, List<EventoPedido> historial) {
     }
 
     /** Resultado de un intento de pago y el pedido como quedo. */
