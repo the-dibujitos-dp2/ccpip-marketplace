@@ -30,6 +30,12 @@ services:
       # Bucket real de S3; las credenciales salen del perfil de la EC2 (sin llaves)
       CCPIP_IMAGENES_BUCKET: ${IMAGES_BUCKET:?falta IMAGES_BUCKET}
       AWS_REGION: us-east-1
+      # CCPIP-26 y CCPIP-328: enlaces del correo hacia el dominio publico y Gmail por SMTP (ADR-14).
+      # Sin CORREO_USUARIO el backend arranca igual, pero no envia correos.
+      CCPIP_APP_URL: https://${SITE_ADDRESS}
+      CCPIP_CORREO_HOST: ${CORREO_HOST:-}
+      CCPIP_CORREO_USUARIO: ${CORREO_USUARIO:-}
+      CCPIP_CORREO_CLAVE: ${CORREO_CLAVE:-}
     depends_on:
       db:
         condition: service_healthy
