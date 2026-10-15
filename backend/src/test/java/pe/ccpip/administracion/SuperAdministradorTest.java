@@ -18,6 +18,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -27,7 +28,9 @@ import pe.ccpip.support.IntegrationTest;
 /**
  * CCPIP-111 (RF-76): el superadministrador supervisa con informacion agregada (SA-01) y no puede
  * editar tiendas, productos, pedidos, datos de consumidores ni existencias (RNF-04).
+ * Transaccional: los pedidos que arma la prueba no deben llegar a las demas pruebas de la suite.
  */
+@Transactional
 class SuperAdministradorTest extends IntegrationTest {
 
     private static final String SUPER = "sudo@ccpip.test";
