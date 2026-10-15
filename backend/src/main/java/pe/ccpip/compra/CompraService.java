@@ -164,13 +164,13 @@ public class CompraService {
 
     private List<LineaPedido> lineas(long pedidoId) {
         return jdbc.query("""
-                SELECT i.producto_id, p.nombre, coalesce(pr.nombre_tienda, pr.comunidad) AS tienda,
+                SELECT i.producto_id, i.productor_id, p.nombre, coalesce(pr.nombre_tienda, pr.comunidad) AS tienda,
                        i.cantidad, i.precio_unitario, i.subtotal
                 FROM item_pedido i
                 JOIN producto p ON p.id = i.producto_id
                 JOIN productor pr ON pr.id = i.productor_id
                 WHERE i.pedido_id = :id ORDER BY i.id""", new MapSqlParameterSource("id", pedidoId),
-                (rs, row) -> new LineaPedido(rs.getLong("producto_id"), rs.getString("nombre"), rs.getString("tienda"),
+                (rs, row) -> new LineaPedido(rs.getLong("producto_id"), rs.getLong("productor_id"), rs.getString("nombre"), rs.getString("tienda"),
                         rs.getBigDecimal("cantidad"), rs.getBigDecimal("precio_unitario"), rs.getBigDecimal("subtotal")));
     }
 

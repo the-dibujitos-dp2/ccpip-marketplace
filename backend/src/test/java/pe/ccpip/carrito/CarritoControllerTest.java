@@ -159,14 +159,8 @@ class CarritoControllerTest extends IntegrationTest {
 
     @Test
     void muestraArticulosCantidadesSubtotalesYTotal() throws Exception {
-        long otra = productoConLote("Cacao en grano", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
-        jdbc.update("""
-                UPDATE producto SET productor_id = (SELECT p.id FROM productor p JOIN usuario u ON u.id = p.usuario_id
-                                                    WHERE u.correo = 'productor2@ccpip.test'), precio = 15.50
-                WHERE id = ?""", otra);
-        // La autorizacion es del productor que vende (CCPIP-269)
-        jdbc.update("UPDATE autorizacion_producto a SET productor_id = p.productor_id FROM producto p WHERE p.id = a.producto_id AND p.id = ?",
-                otra);
+        long otra = productoConLote("Cacao en grano", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES, "productor2@ccpip.test");
+        jdbc.update("UPDATE producto SET precio = 15.50 WHERE id = ?", otra);
         agregar(consumidor, oferta, 2).andExpect(status().isOk());
         agregar(consumidor, otra, 3).andExpect(status().isOk());
 
@@ -388,13 +382,7 @@ class CarritoControllerTest extends IntegrationTest {
 
     @Test
     void quitaUnaOfertaYRecalculaSinMovimientoDeInventario() throws Exception {
-        long otra = productoConLote("Cacao en grano", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES);
-        jdbc.update("""
-                UPDATE producto SET productor_id = (SELECT p.id FROM productor p JOIN usuario u ON u.id = p.usuario_id
-                                                    WHERE u.correo = 'productor2@ccpip.test') WHERE id = ?""", otra);
-        // La autorizacion es del productor que vende (CCPIP-269)
-        jdbc.update("UPDATE autorizacion_producto a SET productor_id = p.productor_id FROM producto p WHERE p.id = a.producto_id AND p.id = ?",
-                otra);
+        long otra = productoConLote("Cacao en grano", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_MES, "productor2@ccpip.test");
         agregar(consumidor, oferta, 2).andExpect(status().isOk());
         agregar(consumidor, otra, 1).andExpect(status().isOk());
 

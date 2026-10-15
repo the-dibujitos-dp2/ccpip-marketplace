@@ -67,6 +67,18 @@ async function llenarYPagar(usuario, numero = '4111 1111 1111 1111') {
 }
 
 describe('CW-05 Entrega y pago (CCPIP-157, CCPIP-62) y confirmación (CCPIP-64)', () => {
+  it('muestra el productor de cada oferta antes de pagar (CCPIP-172)', async () => {
+    const carrito = copia(DATOS.carrito)
+    carrito.items[1].nombre = carrito.items[0].nombre
+    servidor(rutas({ 'GET /api/carrito': [200, carrito] }))
+    abrirEn('/compra')
+    const resumen = await screen.findByRole('complementary', { name: 'Resumen del pedido' })
+    const lineas = within(resumen).getAllByRole('listitem')
+    expect(lineas).toHaveLength(2)
+    expect(lineas[0]).toHaveTextContent(carrito.items[0].tienda.nombre)
+    expect(lineas[1]).toHaveTextContent(carrito.items[1].tienda.nombre)
+  })
+
   it('el carrito lleva a entrega y pago', async () => {
     servidor(rutas())
     abrirEn('/carrito')

@@ -1,6 +1,7 @@
 package pe.ccpip.compra;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -16,6 +17,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -65,12 +67,16 @@ class CompraFlujoTest extends IntegrationTest {
 
     /** Producto publicado y autorizado de productor@ccpip.test con {@code unidades} en un lote vigente de Cusco. */
     private long productoEnCusco(String nombre, int unidades) {
+        return productoEnCusco(nombre + " " + UUID.randomUUID(), unidades, "productor@ccpip.test");
+    }
+
+    private long productoEnCusco(String nombre, int unidades, String correoProductor) {
         Long id = jdbc.queryForObject("""
                 INSERT INTO producto (productor_id, nombre, descripcion, linea_id, unidad_medida_id, precio, estado, publicado_en)
                 SELECT p.id, ?, 'Producto de prueba', (SELECT id FROM linea_producto WHERE codigo = 'ARTESANIA'),
                        (SELECT id FROM unidad_medida WHERE codigo = 'UNIDAD'), 25.00, 'PUBLICADO', now()
-                FROM productor p JOIN usuario u ON u.id = p.usuario_id WHERE u.correo = 'productor@ccpip.test'
-                RETURNING id""", Long.class, nombre + " " + UUID.randomUUID());
+                FROM productor p JOIN usuario u ON u.id = p.usuario_id WHERE u.correo = ?
+                RETURNING id""", Long.class, nombre, correoProductor);
         jdbc.update("INSERT INTO producto_linea (producto_id, linea_id) SELECT ?, linea_id FROM producto WHERE id = ?", id, id);
         jdbc.update("""
                 INSERT INTO autorizacion_producto (productor_id, producto_id, estado, decidido_en)
@@ -116,6 +122,76 @@ class CompraFlujoTest extends IntegrationTest {
 
     private BigDecimal stock(long productoId) {
         return jdbc.queryForObject("SELECT cantidad FROM stock WHERE producto_id = ?", BigDecimal.class, productoId);
+    }
+
+    @Test
+    void ofertas_del_mismo_nombre_conservan_su_productor_hasta_pago_e_inventario() throws Exception {
+        String nombre = "Canasta " + UUID.randomUUID();
+        long primera = productoEnCusco(nombre, 5, "productor@ccpip.test");
+        long segunda = productoEnCusco(nombre, 8, "productor2@ccpip.test");
+        long productorPrimero = productorDe(primera);
+        long productorSegundo = productorDe(segunda);
+        alCarrito(primera, 2);
+        alCarrito(segunda, 3);
+        mockMvc.perform(get("/api/carrito").cookie(comprador))
+                .andExpect(jsonPath("$.items", hasSize(2)))
+                .andExpect(jsonPath("$.items[0].productoId").value(primera))
+                .andExpect(jsonPath("$.items[0].tienda.id").value(productorPrimero))
+                .andExpect(jsonPath("$.items[1].productoId").value(segunda))
+                .andExpect(jsonPath("$.items[1].tienda.id").value(productorSegundo));
+
+        JsonNode pedido = objectMapper.readTree(confirmar(puntoCusco(), "987654321")
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.lineas[0].productorId").value(productorPrimero))
+                .andExpect(jsonPath("$.lineas[1].productorId").value(productorSegundo))
+                .andReturn().getResponse().getContentAsString());
+        long id = pedido.get("id").asLong();
+        pagar(id, UUID.randomUUID(), APROBADA, "123")
+                .andExpect(jsonPath("$.pedido.lineas[0].productoId").value(primera))
+                .andExpect(jsonPath("$.pedido.lineas[0].productorId").value(productorPrimero))
+                .andExpect(jsonPath("$.pedido.lineas[1].productoId").value(segunda))
+                .andExpect(jsonPath("$.pedido.lineas[1].productorId").value(productorSegundo));
+        assertThat(stock(primera)).isEqualByComparingTo("3");
+        assertThat(stock(segunda)).isEqualByComparingTo("5");
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM movimiento_inventario m
+                JOIN item_pedido i ON i.id = m.item_pedido_id JOIN lote l ON l.id = m.lote_id
+                WHERE m.pedido_id = ? AND m.tipo = 'SALIDA_VENTA'
+                  AND m.producto_id = i.producto_id AND l.producto_id = i.producto_id""", Integer.class, id))
+                .isEqualTo(2);
+    }
+
+    @Test
+    void no_sustituye_una_oferta_agotada_por_otro_productor() throws Exception {
+        String nombre = "Canasta " + UUID.randomUUID();
+        long elegida = productoEnCusco(nombre, 5, "productor@ccpip.test");
+        long alternativa = productoEnCusco(nombre, 10, "productor2@ccpip.test");
+        long pedido = pedidoPendiente(elegida, 2);
+        jdbc.update("UPDATE lote SET cantidad_actual = 0 WHERE producto_id = ?", elegida);
+        jdbc.update("UPDATE stock SET cantidad = 0 WHERE producto_id = ?", elegida);
+        pagar(pedido, UUID.randomUUID(), APROBADA, "123")
+                .andExpect(jsonPath("$.estado").value("ANULADO"))
+                .andExpect(jsonPath("$.pedido.lineas[0].productoId").value(elegida))
+                .andExpect(jsonPath("$.pedido.lineas[0].productorId").value(productorDe(elegida)));
+        assertThat(stock(alternativa)).isEqualByComparingTo("10");
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario WHERE pedido_id = ?",
+                Integer.class, pedido)).isZero();
+    }
+
+    @Test
+    void la_base_impide_cambiar_el_productor_de_la_oferta_o_del_pedido() throws Exception {
+        long elegida = productoEnCusco("Canasta", 5);
+        long otra = productoEnCusco("Canasta", 5, "productor2@ccpip.test");
+        long pedido = pedidoPendiente(elegida, 1);
+        long otroProductor = productorDe(otra);
+        assertThatThrownBy(() -> jdbc.update("UPDATE producto SET productor_id = ? WHERE id = ?", otroProductor, elegida))
+                .isInstanceOf(DataIntegrityViolationException.class);
+        assertThatThrownBy(() -> jdbc.update("UPDATE item_pedido SET productor_id = ? WHERE pedido_id = ?", otroProductor, pedido))
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    private long productorDe(long producto) {
+        return jdbc.queryForObject("SELECT productor_id FROM producto WHERE id = ?", Long.class, producto);
     }
 
     @Test

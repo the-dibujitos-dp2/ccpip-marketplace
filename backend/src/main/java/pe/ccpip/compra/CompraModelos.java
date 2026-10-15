@@ -19,7 +19,7 @@ public final class CompraModelos {
     }
 
     /** Linea del pedido con el precio copiado al confirmar (RNF-13), nunca el vigente. */
-    public record LineaPedido(long productoId, String nombre, String tienda, BigDecimal cantidad,
+    public record LineaPedido(long productoId, long productorId, String nombre, String tienda, BigDecimal cantidad,
                               BigDecimal precioUnitario, BigDecimal subtotal) {
     }
 
