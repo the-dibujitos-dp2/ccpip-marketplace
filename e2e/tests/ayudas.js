@@ -99,7 +99,12 @@ export function vigilarConsola(page) {
     // axe vuelve a descargar por fetch las hojas de estilo de otro origen para analizarlas; la CSP
     // (connect-src) lo bloquea. La hoja de Google Fonts si carga: la permite style-src.
     const deAxe = /Connecting to 'https:\/\/fonts\.googleapis\.com/.test(texto)
-    if (m.type() === 'error' && !/401|Unauthorized/.test(texto) && !deAxe) errores.push(`${texto} ${m.location().url}`)
+    // Un corte de red al pedir Google Fonts (p. ej. net::ERR_NETWORK_CHANGED en el runner de CI) no
+    // es un error de la app: el navegador usa la fuente del sistema y todo sigue funcionando. Los
+    // errores de recursos de nuestro propio sitio si cuentan.
+    const fuenteExterna = /^Failed to load resource: net::/.test(texto)
+      && /^https:\/\/fonts\.(googleapis|gstatic)\.com\//.test(m.location().url ?? '')
+    if (m.type() === 'error' && !/401|Unauthorized/.test(texto) && !deAxe && !fuenteExterna) errores.push(`${texto} ${m.location().url}`)
   })
   page.on('pageerror', (e) => errores.push(e.message))
   return errores
