@@ -1,0 +1,40 @@
+/* CW-09 · Mi cuenta › Mis pedidos (CCPIP-112, CCPIP-70, CCPIP-340) */
+.mis-pedidos { padding-top: 40px; padding-bottom: 64px; }
+.mis-pedidos__titulo { margin: 0 0 32px; font-family: var(--font-display); font-weight: 600; font-size: 40px; line-height: 48px; }
+.mis-pedidos__cuerpo { display: grid; grid-template-columns: 280px minmax(0, 1fr); align-items: start; gap: 32px; }
+
+.mis-pedidos__lateral { display: flex; flex-direction: column; gap: 16px; padding: 24px 16px; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
+.mis-pedidos__usuario { display: flex; align-items: center; gap: 12px; padding: 0 8px; }
+.mis-pedidos__lateral nav { display: flex; flex-direction: column; gap: 4px; }
+.mis-pedidos__nav { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 0; border-radius: var(--radius-m); background: none; color: var(--color-text-secondary); font: inherit; font-weight: 500; font-size: 15px; text-align: left; text-decoration: none; cursor: pointer; }
+.mis-pedidos__nav:hover { background: var(--color-bg-surface-alt); }
+.mis-pedidos__nav--activo { background: var(--color-bg-brand-subtle); color: var(--color-text-brand); font-weight: 600; }
+
+.mis-pedidos__contenido { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.mis-pedidos__panel { display: flex; flex-direction: column; gap: 20px; }
+
+.mis-pedidos__tarjeta { display: flex; flex-direction: column; gap: 24px; padding: 28px; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
+.mis-pedidos__cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.mis-pedidos__numero { margin: 0 0 4px; font-family: var(--font-display); font-weight: 600; font-size: 24px; line-height: 32px; }
+.mis-pedidos__resumen { margin: 0; color: var(--color-text-secondary); font-size: 15px; }
+.mis-pedidos__pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-radius: var(--radius-l); background: var(--color-bg-sand); }
+.mis-pedidos__punto { display: flex; flex-direction: column; gap: 2px; margin: 0; }
+.mis-pedidos__punto .caption { color: var(--color-text-secondary); }
+.mis-pedidos__acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.mis-pedidos__recientes { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.mis-pedidos__lista { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
+.mis-pedidos__fila { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-top: 1px solid var(--color-border-default); }
+.mis-pedidos__fila:first-child { border-top: 0; }
+.mis-pedidos__fila-datos { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
+.mis-pedidos__fila-datos .caption { color: var(--color-text-secondary); }
+
+@media (max-width: 900px) {
+  .mis-pedidos__cuerpo { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .mis-pedidos__titulo { font-size: 32px; line-height: 40px; }
+  .mis-pedidos__tarjeta { padding: 16px; }
+  .mis-pedidos__cabecera, .mis-pedidos__fila { flex-wrap: wrap; }
+  .mis-pedidos__fila-datos { flex-basis: 100%; }
+}

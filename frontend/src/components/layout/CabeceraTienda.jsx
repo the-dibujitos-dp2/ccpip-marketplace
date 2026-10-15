@@ -46,7 +46,10 @@ export default function CabeceraTienda({ user, onCerrarSesion, cerrando, termino
     navigate(q ? `${RUTAS.buscar}?q=${encodeURIComponent(q)}` : RUTAS.buscar)
   }
 
-  const panel = user?.role === 'PRODUCTOR' ? RUTAS.productor : RUTAS.inicio
+  // CCPIP-112: la cuenta del comprador es Mis pedidos (CW-09)
+  let panel = RUTAS.inicio
+  if (user?.role === 'PRODUCTOR') panel = RUTAS.productor
+  else if (user?.role === 'CONSUMIDOR') panel = RUTAS.misPedidos
   // CCPIP-155: el carrito es del comprador; el visitante lo ve para ingresar y comprar
   const conCarrito = !user || user.role === 'CONSUMIDOR'
   const unidades = useUnidadesCarrito(user?.role === 'CONSUMIDOR')

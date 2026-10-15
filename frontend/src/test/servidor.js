@@ -19,6 +19,8 @@ import pedidoListo from './fixtures/acopio-pedido-listo.json'
 import pedidoEntregado from './fixtures/acopio-pedido-entregado.json'
 // CCPIP-111: armado segun TableroModelos (los registros del backend), con lineas y puntos del seed
 import tableroAdmin from './fixtures/admin-tablero.json'
+// CCPIP-112: armado segun ResumenPedido del backend
+import misPedidos from './fixtures/mis-pedidos.json'
 
 export const USUARIO = {
   id: 1,
@@ -105,6 +107,7 @@ export const DATOS = {
   pedidoListo,
   pedidoEntregado,
   tableroAdmin,
+  misPedidos,
 }
 
 /** Copia profunda para que cada prueba pueda modificar los datos sin afectar a otras. */

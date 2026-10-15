@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { capital, fecha, fechaCorta, mesAnio, mesAnterior, precio, unidades } from './formato'
+import { capital, diaMes, fecha, fechaCorta, mesAnio, mesAnterior, precio, unidades } from './formato'
 import i18n from './i18n/index.js'
 
 // Intl separa la moneda con un espacio no separable (U+00A0): se normaliza para comparar
@@ -43,7 +43,11 @@ describe('formato', () => {
       expect(mesAnterior('2027-01')).toBe('diciembre')
     })
 
-    it.each([fecha, fechaCorta, mesAnio, mesAnterior])('%o devuelve cadena vacía sin valor', (fn) => {
+    it('diaMes usa el dia de Lima aunque en UTC ya sea el siguiente', () => {
+      expect(diaMes('2026-11-17T03:30:00Z')).toBe('16 nov')
+    })
+
+    it.each([fecha, fechaCorta, mesAnio, mesAnterior, diaMes])('%o devuelve cadena vacía sin valor', (fn) => {
       expect(fn(null)).toBe('')
       expect(fn(undefined)).toBe('')
       expect(fn('')).toBe('')

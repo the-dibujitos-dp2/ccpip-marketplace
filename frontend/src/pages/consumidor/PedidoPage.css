@@ -9,6 +9,12 @@
 
 .pedido__cuerpo { display: grid; grid-template-columns: minmax(0, 1fr) 400px; align-items: start; gap: 32px; margin-top: 24px; }
 .pedido__lateral { display: flex; flex-direction: column; gap: 16px; }
+.pedido__principal { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+
+/* CCPIP-340: historial de estados, del mas antiguo al mas reciente */
+.pedido__historial { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0 0 0 16px; border-left: 2px solid var(--color-border-default); list-style: none; font-size: 15px; }
+.pedido__historial li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.pedido__historial .caption { color: var(--color-text-secondary); white-space: nowrap; }
 
 .pedido__tarjeta {
   display: flex;
