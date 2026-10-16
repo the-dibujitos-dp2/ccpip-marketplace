@@ -149,6 +149,36 @@ describe('Detalle del pedido con seguimiento e historial (CCPIP-70, CCPIP-340)',
   })
 })
 
+describe('Condiciones de la compra confirmada (CCPIP-167)', () => {
+  const condiciones = () => within(screen.getByRole('region', { name: 'Condiciones de tu compra' }))
+
+  it('muestra la fecha en que se fijaron los precios, la modalidad y la comisión de ese momento', async () => {
+    const confirmado = { ...DETALLE, comision: { porcentaje: 12.5, base: 'PRECIO_SIN_ENVIO', monto: 11.56 } }
+    servidor(comoComprador({ 'GET /api/pedidos/77': [200, confirmado] }))
+    abrirEn('/pedidos/77')
+    await screen.findByRole('region', { name: 'Condiciones de tu compra' })
+    expect(condiciones().getByText('Fijados al confirmar, el 10/10 10:42')).toBeInTheDocument()
+    expect(condiciones().getByText('Recojo en punto de acopio')).toBeInTheDocument()
+    expect(normal(condiciones().getByText(/^12\.5 %/).textContent)).toBe('12.5 % · S/ 11.56')
+    expect(condiciones().getByText('Incluida en el total: no se suma a lo que pagaste.')).toBeInTheDocument()
+  })
+
+  it('si se confirmó sin comisión configurada lo dice', async () => {
+    servidor(comoComprador({ 'GET /api/pedidos/77': [200, { ...DETALLE, comision: null }] }))
+    abrirEn('/pedidos/77')
+    await screen.findByRole('region', { name: 'Condiciones de tu compra' })
+    expect(condiciones().getByText('No se aplicó comisión a esta compra')).toBeInTheDocument()
+  })
+
+  it('un pedido que espera su pago todavía no tiene condiciones fijadas', async () => {
+    const pendiente = { ...DETALLE, estado: 'PENDIENTE_PAGO', confirmadoEn: null, historial: [], comision: null }
+    servidor(comoComprador({ 'GET /api/pedidos/77': [200, pendiente] }))
+    abrirEn('/pedidos/77')
+    expect(await screen.findByText('Este pedido espera su pago')).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Condiciones de tu compra' })).not.toBeInTheDocument()
+  })
+})
+
 describe('Mis pedidos en inglés (CCPIP-112)', () => {
   it('pestañas, etapas y fechas en inglés', async () => {
     await i18n.changeLanguage('en')

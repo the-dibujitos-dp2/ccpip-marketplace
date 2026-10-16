@@ -10,7 +10,7 @@ import Icono from '../../components/Icono.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import SeguimientoPedido, { conSeguimiento } from '../../components/SeguimientoPedido.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
-import { fechaHora, precio } from '../../formato.js'
+import { fechaHora, precio, unidades } from '../../formato.js'
 import { RUTAS } from '../../router.js'
 import './PedidoPage.css'
 
@@ -65,6 +65,42 @@ export default function PedidoPage({ id }) {
         {pedido && <Detalle pedido={pedido} />}
       </main>
     </LayoutTienda>
+  )
+}
+
+/**
+ * CCPIP-167 (RF-136): lo que quedo fijado al confirmar. Los precios de cada linea ya se ven arriba;
+ * aqui la modalidad y la comision de la Camara, incluida en el total (no se suma). Cambios
+ * posteriores de la comision no alteran este pedido.
+ */
+function Condiciones({ pedido }) {
+  const { t } = useTranslation()
+  const { comision } = pedido
+  return (
+    <section className="pedido__tarjeta" aria-labelledby="pedido-condiciones">
+      <h2 id="pedido-condiciones" className="pedido__tarjeta-titulo">{t('pedido.condiciones.titulo')}</h2>
+      <dl className="pedido__datos">
+        <div>
+          <dt>{t('pedido.condiciones.precios')}</dt>
+          <dd>{t('pedido.condiciones.preciosFijados', { fecha: fechaHora(pedido.confirmadoEn) })}</dd>
+        </div>
+        <div>
+          <dt>{t('pedido.condiciones.modalidad')}</dt>
+          <dd>{t(`pedido.condiciones.modalidades.${pedido.modalidad}`, { defaultValue: pedido.modalidad })}</dd>
+        </div>
+        <div>
+          <dt>{t('pedido.condiciones.comision')}</dt>
+          <dd>
+            <span>
+              {comision
+                ? t('pedido.condiciones.comisionMonto', { porcentaje: unidades(comision.porcentaje), monto: precio(comision.monto) })
+                : t('pedido.condiciones.sinComision')}
+            </span>
+            {comision && <span className="caption">{t('pedido.condiciones.incluida')}</span>}
+          </dd>
+        </div>
+      </dl>
+    </section>
   )
 }
 
@@ -134,6 +170,7 @@ function Detalle({ pedido }) {
               <strong>{precio(pedido.total)}</strong>
             </p>
           </section>
+          {pedido.confirmadoEn && <Condiciones pedido={pedido} />}
           {pedido.historial?.length > 0 && (
             <section className="pedido__tarjeta" aria-labelledby="pedido-historial">
               <h2 id="pedido-historial" className="pedido__tarjeta-titulo">{t('misPedidos.historialPedido')}</h2>

@@ -1,27 +1,38 @@
 import { useTranslation } from 'react-i18next'
+import iconoBillete from '../../assets/icons/billete.svg'
+import iconoPorcentaje from '../../assets/icons/porcentaje.svg'
 import iconoTablero from '../../assets/icons/tablero.svg'
 import { RUTAS } from '../../router.js'
 import { useSesion } from '../../sesion.js'
 import LayoutPanel from './LayoutPanel.jsx'
 
 /**
- * Solo los modulos que el superadministrador ya puede usar: comision, sub administradores,
- * lineas, reportes, auditoria y usuarios (SA-02 a SA-10) llegan con sus historias.
+ * Solo los modulos que ya existen. Sub administradores, lineas, reportes, auditoria y usuarios
+ * (SA-03 a SA-10) llegan con sus historias. `roles`: quienes ven cada modulo.
  */
-const NAV = [{ to: RUTAS.admin, clave: 'tablero', icono: iconoTablero, activo: (p) => p === RUTAS.admin }]
+const NAV = [
+  { to: RUTAS.admin, clave: 'tablero', icono: iconoTablero, roles: ['SUPER_ADMIN'] },
+  { to: RUTAS.adminComision, clave: 'comision', icono: iconoPorcentaje, roles: ['SUPER_ADMIN'] },
+  { to: RUTAS.adminComisiones, clave: 'comisiones', icono: iconoBillete, roles: ['SUPER_ADMIN', 'SUB_ADMIN'] },
+]
 
-/** Estructura web del superadministrador (Figma SA-01 a SA-10). */
+/** Estructura web de la administracion de la Camara (Figma SA-01 a SA-10). */
 export default function LayoutAdmin({ path, migas, titulo, children }) {
   const { t } = useTranslation()
   const { user, cerrarSesion, cerrando } = useSesion()
-  const nav = NAV.map((n) => ({ ...n, texto: t(`admin.nav.${n.clave}`) }))
+  const rol = t(`roles.${user.role}`, { defaultValue: user.roleName })
+  const nav = NAV.filter((n) => n.roles.includes(user.role)).map((n) => ({
+    ...n,
+    texto: t(`admin.nav.${n.clave}`),
+    activo: (p) => p === n.to,
+  }))
   return (
     <LayoutPanel
       path={path}
-      rol={t('admin.rol')}
+      rol={rol}
       nav={nav}
       user={user}
-      subtitulo={t('roles.SUPER_ADMIN', { defaultValue: user.roleName })}
+      subtitulo={rol}
       migas={`${t('admin.plataforma')} / ${migas}`}
       titulo={titulo}
       onCerrarSesion={cerrarSesion}

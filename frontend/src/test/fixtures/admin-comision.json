@@ -1,0 +1,43 @@
+{
+  "hoy": "2026-10-16",
+  "base": "PRECIO_SIN_ENVIO",
+  "vigente": {
+    "id": 2,
+    "porcentaje": 10.0,
+    "base": "PRECIO_SIN_ENVIO",
+    "vigenteDesde": "2026-10-01",
+    "motivo": "Tarifa aprobada en la junta de setiembre",
+    "registradoPor": "Ana Shuñaqui",
+    "registradoEn": "2026-09-28T15:20:00Z",
+    "estado": "VIGENTE",
+    "canceladoPor": null,
+    "canceladoEn": null
+  },
+  "programado": null,
+  "historial": [
+    {
+      "id": 2,
+      "porcentaje": 10.0,
+      "base": "PRECIO_SIN_ENVIO",
+      "vigenteDesde": "2026-10-01",
+      "motivo": "Tarifa aprobada en la junta de setiembre",
+      "registradoPor": "Ana Shuñaqui",
+      "registradoEn": "2026-09-28T15:20:00Z",
+      "estado": "VIGENTE",
+      "canceladoPor": null,
+      "canceladoEn": null
+    },
+    {
+      "id": 1,
+      "porcentaje": 8.0,
+      "base": "PRECIO_SIN_ENVIO",
+      "vigenteDesde": "2026-01-01",
+      "motivo": "Lanzamiento",
+      "registradoPor": "Ana Shuñaqui",
+      "registradoEn": "2025-12-20T14:00:00Z",
+      "estado": "ANTERIOR",
+      "canceladoPor": null,
+      "canceladoEn": null
+    }
+  ]
+}

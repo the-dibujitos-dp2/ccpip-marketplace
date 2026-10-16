@@ -101,12 +101,22 @@ describe('SA-01 Tablero de operación del superadministrador (CCPIP-111)', () =>
     expect(await screen.findByText('No pudimos cargar el tablero')).toBeInTheDocument()
   })
 
-  it('el menú solo ofrece el tablero, que es lo que ya existe', async () => {
+  it('el menú ofrece solo los módulos que ya existen', async () => {
     servidor(comoSuper())
     abrirEn('/admin')
     const nav = within(await screen.findByRole('navigation', { name: 'Super administrador' }))
-    expect(nav.getAllByRole('link')).toHaveLength(1)
+    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Tablero', 'Comisión', 'Comisión por pedido'])
     expect(nav.getByRole('link', { name: 'Tablero' })).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('sin comisión configurada no estima una con un porcentaje inventado (CCPIP-90)', async () => {
+    const sin = copia(DATOS.tableroAdmin)
+    sin.comision = { porcentaje: null, estimada: null }
+    servidor(comoSuper({ [`GET ${RUTA}`]: [200, sin] }))
+    abrirEn('/admin')
+    await screen.findByRole('region', { name: 'Comisión estimada del mes' })
+    expect(kpi('Comisión estimada del mes').getByText('—')).toBeInTheDocument()
+    expect(kpi('Comisión estimada del mes').getByText('Sin comisión configurada')).toBeInTheDocument()
   })
 
   it('al ingresar, el superadministrador llega a su tablero', async () => {

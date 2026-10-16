@@ -1,0 +1,43 @@
+{
+  "desde": "2026-10-01",
+  "hasta": "2026-10-16",
+  "resumen": { "pedidos": 3, "ventas": 216.7, "comision": 13.59, "neto": 101.11, "sinComision": 1 },
+  "pedidos": [
+    {
+      "id": 139,
+      "numero": "CCP-000139",
+      "estado": "CONFIRMADO",
+      "confirmadoEn": "2026-10-15T15:42:00Z",
+      "venta": 84.7,
+      "porcentaje": 12.5,
+      "comision": 10.59,
+      "neto": 74.11,
+      "productores": [
+        { "productorId": 1, "productor": "Asoc. Nii Joi", "venta": 25.0, "comision": 3.13, "neto": 21.87 },
+        { "productorId": 2, "productor": "C.N. Yarina", "venta": 59.7, "comision": 7.46, "neto": 52.24 }
+      ]
+    },
+    {
+      "id": 131,
+      "numero": "CCP-000131",
+      "estado": "ENTREGADO",
+      "confirmadoEn": "2026-10-09T14:10:00Z",
+      "venta": 30.0,
+      "porcentaje": 10.0,
+      "comision": 3.0,
+      "neto": 27.0,
+      "productores": [{ "productorId": 1, "productor": "Asoc. Nii Joi", "venta": 30.0, "comision": 3.0, "neto": 27.0 }]
+    },
+    {
+      "id": 102,
+      "numero": "CCP-000102",
+      "estado": "ENTREGADO",
+      "confirmadoEn": "2026-10-03T13:00:00Z",
+      "venta": 102.0,
+      "porcentaje": null,
+      "comision": null,
+      "neto": null,
+      "productores": [{ "productorId": 3, "productor": "Coop. Río Ene", "venta": 102.0, "comision": null, "neto": null }]
+    }
+  ]
+}

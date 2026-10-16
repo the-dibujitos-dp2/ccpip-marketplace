@@ -19,6 +19,9 @@ import pedidoListo from './fixtures/acopio-pedido-listo.json'
 import pedidoEntregado from './fixtures/acopio-pedido-entregado.json'
 // CCPIP-111: armado segun TableroModelos (los registros del backend), con lineas y puntos del seed
 import tableroAdmin from './fixtures/admin-tablero.json'
+// CCPIP-90 y CCPIP-91: armados segun ComisionModelos.Estado y ComisionesPorPedido del backend
+import comisionAdmin from './fixtures/admin-comision.json'
+import comisionesAdmin from './fixtures/admin-comisiones.json'
 // CCPIP-112: armado segun ResumenPedido del backend
 import misPedidos from './fixtures/mis-pedidos.json'
 
@@ -40,6 +43,10 @@ export const SESION_PRODUCTOR = {
 }
 export const SESION_SUPER = {
   user: { id: 8, email: 'sudo@ccpip.test', fullName: 'Ana Shuñaqui', role: 'SUPER_ADMIN', roleName: 'Super administrador' },
+  expiresInSeconds: 120,
+}
+export const SESION_SUB = {
+  user: { id: 7, email: 'sub_admin@ccpip.test', fullName: 'Lucía Paredes', role: 'SUB_ADMIN', roleName: 'Sub administrador' },
   expiresInSeconds: 120,
 }
 export const PANEL = { titulo: 'Tu mercado', descripcion: 'Explora productos con historia.' }
@@ -107,6 +114,8 @@ export const DATOS = {
   pedidoListo,
   pedidoEntregado,
   tableroAdmin,
+  comisionAdmin,
+  comisionesAdmin,
   misPedidos,
 }
 
