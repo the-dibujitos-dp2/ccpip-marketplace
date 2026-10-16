@@ -27,6 +27,9 @@ export const aprobarHistoria = async (id, datos) => apiFetch(`${base}/productos/
 export const proponerDescripcion = (datos) => apiFetch(`${base}/ia/descripcion`, { method: 'POST', body: datos })
 
 export const listarUbicaciones = () => apiFetch(`${base}/ubicaciones`)
+
+// CCPIP-66 (PW-07): solo las lineas propias de cada pedido pagado, con conteos por estado
+export const listarPedidos = (estado) => apiFetch(`${base}/pedidos?${new URLSearchParams({ estado })}`)
 export const listarLotes = async (id) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`)
 export const registrarLote = async (id, datos) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`, { method: 'POST', body: datos })
 

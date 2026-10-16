@@ -1,0 +1,31 @@
+/* PW-07: tabla de pedidos a la izquierda y detalle del elegido a la derecha */
+.pedidos-productor { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; }
+.pedidos-productor__lista { margin: 0; padding: 0; list-style: none; }
+
+.pedidos-productor__fila { width: 100%; border-right: 0; border-bottom: 0; border-left: 0; background: none; font: inherit; text-align: left; cursor: pointer; }
+.pedidos-productor__fila:hover { background: var(--color-bg-surface-alt); }
+.pedidos-productor__fila--activa { background: var(--color-bg-brand-subtle); }
+.pedidos-productor__fila:focus-visible { outline: 2px solid var(--color-border-focus); outline-offset: -2px; }
+
+.pedidos-productor__col-numero { width: 120px; color: var(--color-text-primary); }
+.pedidos-productor__col-modalidad { width: 130px; }
+.pedidos-productor__col-fecha { width: 70px; }
+.pedidos-productor__col-estado { width: 160px; }
+
+.pedidos-productor__detalle { gap: 16px; border: 2px solid var(--color-border-brand); }
+.pedidos-productor__detalle-cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+
+.pedidos-productor__lineas { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.pedidos-productor__linea { display: flex; gap: 12px; }
+.pedidos-productor__linea p { margin: 0; }
+
+.pedidos-productor__importes { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; margin: 0; padding-top: 12px; border-top: 1px solid var(--color-border-default); font-size: 14px; }
+.pedidos-productor__importes dd { margin: 0; text-align: right; }
+
+.pedidos-productor__historial { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--color-border-default); }
+.pedidos-productor__historial ol { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.pedidos-productor__historial li { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+
+@media (max-width: 1100px) {
+  .pedidos-productor { grid-template-columns: 1fr; }
+}
