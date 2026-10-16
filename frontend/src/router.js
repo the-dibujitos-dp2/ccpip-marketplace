@@ -10,6 +10,8 @@ export const RUTAS = {
   ingresar: '/ingresar',
   registro: '/registro',
   verificarCorreo: '/verificar-correo',
+  recuperarContrasena: '/recuperar-contrasena',
+  restablecerContrasena: '/restablecer-contrasena',
   inicio: '/inicio',
   misPedidos: '/cuenta/pedidos',
   productor: '/productor',

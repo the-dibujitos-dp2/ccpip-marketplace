@@ -64,3 +64,13 @@ export function verificarCorreo(token) {
 export function reenviarVerificacion(email) {
   return apiFetch('/api/auth/verificar-correo/reenviar', { method: 'POST', body: { email }, sessionRequired: false })
 }
+
+/** CCPIP-33: pide el enlace para restablecer la contrasena. El servidor responde igual exista o no la cuenta. */
+export function solicitarRecuperacion(email) {
+  return apiFetch('/api/auth/recuperar-contrasena', { method: 'POST', body: { email }, sessionRequired: false })
+}
+
+/** CCPIP-33: cambia la contrasena con el enlace de un solo uso. Devuelve { email } para ingresar. */
+export function restablecerContrasena(token, password) {
+  return apiFetch('/api/auth/restablecer-contrasena', { method: 'POST', body: { token, password }, sessionRequired: false })
+}

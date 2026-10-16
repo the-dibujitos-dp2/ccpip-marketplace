@@ -61,3 +61,4 @@
 @media (max-width: 480px) {
   .ingresar__fila, .revisa__acciones { grid-template-columns: minmax(0, 1fr); }
 }
+.ingresar__olvido { align-self: flex-end; margin-top: -8px; font-size: 14px; }

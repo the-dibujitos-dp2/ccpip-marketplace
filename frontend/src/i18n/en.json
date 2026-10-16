@@ -1282,5 +1282,43 @@
     "pedirNuevo": "Send a new link",
     "enviando": "Sending…",
     "nuevoEnviado": "If that email has an unverified account, we sent you a new link."
+  },
+  "recuperar": {
+    "olvidaste": "Forgot your password?",
+    "titulo": "Recover your password",
+    "bajada": "Enter your account's email and we'll send you a link to choose a new password.",
+    "enviar": "Send link",
+    "volver": "Back to sign in",
+    "otraVez": "Use another email",
+    "enviado": {
+      "titulo": "Check your email",
+      "descripcion": "If {{correo}} has an account, we sent you a link. It works only once and expires in 30 minutes.",
+      "noLlego": "Didn't get it? Check your spam folder or request it again in a minute."
+    },
+    "nuevaTitulo": "Choose a new password",
+    "nueva": "New password",
+    "repetir": "Repeat the new password",
+    "guardar": "Save password",
+    "guardando": "Saving…",
+    "validacion": {
+      "noCoinciden": "The passwords don't match."
+    },
+    "exito": {
+      "titulo": "Password updated",
+      "descripcion": "You can now sign in with your new password. For security we closed the sessions you had open."
+    },
+    "usado": {
+      "titulo": "This link was already used",
+      "descripcion": "Each link works only once. If you need to change your password again, request a new one."
+    },
+    "vencido": {
+      "titulo": "The link expired",
+      "descripcion": "For security the link lasts 30 minutes. Request a new one with your email."
+    },
+    "invalido": {
+      "titulo": "The link isn't valid",
+      "descripcion": "Check that you copied it completely or request a new one with your email."
+    },
+    "pedirNuevo": "Request a new link"
   }
 }
