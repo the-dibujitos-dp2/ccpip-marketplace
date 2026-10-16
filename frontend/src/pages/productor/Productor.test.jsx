@@ -311,6 +311,36 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
     expect(cuerpo(fetchMock, 'PUT /api/productor/productos/9')).toMatchObject({ descripcionAsistida: true })
   })
 
+  it('descartar el borrador de la descripcion lo registra y no toca lo escrito (CCPIP-280)', async () => {
+    const fetchMock = productor({
+      'POST /api/productor/ia/descripcion': [200, { texto: 'Aceite prensado en frío por mujeres shipibo.' }],
+      'POST /api/productor/productos/9/ia/rechazar?borrador=DESCRIPCION': [204],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.click(await screen.findByRole('button', { name: 'Sugerir una descripción con IA (borrador)' }))
+    await user.click(await screen.findByRole('button', { name: 'Descartar' }))
+    expect(await screen.findByText(/Descartaste el borrador/)).toBeInTheDocument()
+    expect(screen.queryByText('Aceite prensado en frío por mujeres shipibo.')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Descripción')).toHaveValue(DATOS.edicion.descripcion)
+    expect(llamadas(fetchMock, 'POST /api/productor/productos/9/ia/rechazar?borrador=DESCRIPCION')).toHaveLength(1)
+    // Se puede pedir otro
+    expect(screen.getByRole('button', { name: 'Sugerir una descripción con IA (borrador)' })).toBeInTheDocument()
+  })
+
+  it('si no se puede descartar el borrador lo avisa y lo mantiene', async () => {
+    productor({
+      'POST /api/productor/ia/descripcion': [200, { texto: 'Aceite prensado en frío por mujeres shipibo.' }],
+      'POST /api/productor/productos/9/ia/rechazar?borrador=DESCRIPCION': [500, {}],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.click(await screen.findByRole('button', { name: 'Sugerir una descripción con IA (borrador)' }))
+    await user.click(await screen.findByRole('button', { name: 'Descartar' }))
+    expect(await screen.findByText('No pudimos descartar el borrador')).toBeInTheDocument()
+    expect(screen.getByText('Aceite prensado en frío por mujeres shipibo.')).toBeInTheDocument()
+  })
+
   it('sin IA configurada el productor escribe a mano', async () => {
     productor({ 'POST /api/productor/ia/descripcion': [503, { code: 'IA_NO_DISPONIBLE', error: 'La redacción asistida no está disponible' }] })
     const user = userEvent.setup()
@@ -450,6 +480,23 @@ describe('PW-05 Historia asistida (CCPIP-49)', () => {
 
     await waitFor(() => expect(window.location.search).toBe('?paso=lote'))
     expect(cuerpo(fetchMock, 'POST /api/productor/productos/9/historia/aprobar')).toEqual({ titulo: 'Camu camu de las cochas', textoFinal: texto, asistida: true })
+  })
+
+  it('descartar el borrador de la historia conserva las respuestas (CCPIP-280)', async () => {
+    const conPropuesta = { ...copia(sinHistoria), historia: { quienes: '34 mujeres shipibo', como: '', significado: '', cuidado: '', titulo: 'Del agua a tu mesa', textoPropuesto: 'Somos mujeres shipibo que recolectamos camu camu.', aprobada: false } }
+    const fetchMock = productor({
+      'GET /api/productor/productos/9': () => [200, copia(conPropuesta)],
+      'POST /api/productor/productos/9/ia/rechazar?borrador=HISTORIA': [204],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9?paso=historia')
+    expect(await screen.findByRole('heading', { name: 'Del agua a tu mesa' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Descartar borrador' }))
+    expect(await screen.findByText('Descartaste el borrador de la IA')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Del agua a tu mesa' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Generar borrador con IA' })).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/productor/productos/9/ia/rechazar?borrador=HISTORIA')).toHaveLength(1)
+    expect(llamadas(fetchMock, 'POST /api/productor/productos/9/historia/aprobar')).toHaveLength(0)
   })
 
   it('sin IA se escribe a mano y debe tener un minimo de caracteres', async () => {
