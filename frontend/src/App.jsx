@@ -19,6 +19,8 @@ import IngresarPage from './pages/consumidor/IngresarPage.jsx'
 import InicioPage from './pages/consumidor/InicioPage.jsx'
 import MisPedidosPage from './pages/consumidor/MisPedidosPage.jsx'
 import PedidoPage from './pages/consumidor/PedidoPage.jsx'
+import RecuperarContrasenaPage from './pages/consumidor/RecuperarContrasenaPage.jsx'
+import RestablecerContrasenaPage from './pages/consumidor/RestablecerContrasenaPage.jsx'
 import ProductoPage from './pages/consumidor/ProductoPage.jsx'
 import TiendaPage from './pages/consumidor/TiendaPage.jsx'
 import VerificarCorreoPage from './pages/consumidor/VerificarCorreoPage.jsx'
@@ -181,6 +183,10 @@ export default function App() {
         }}
       />
     )
+  } else if (path === RUTAS.recuperarContrasena) {
+    pagina = <RecuperarContrasenaPage correoInicial={correoConocido} />
+  } else if (path === RUTAS.restablecerContrasena) {
+    pagina = <RestablecerContrasenaPage search={search} onRestablecida={setCorreoConocido} />
   } else if (path === RUTAS.verificarCorreo) {
     pagina = <VerificarCorreoPage search={search} onVerificado={setCorreoConocido} />
   } else if (protegida && !sesion) {

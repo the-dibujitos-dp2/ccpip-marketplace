@@ -1282,5 +1282,43 @@
     "pedirNuevo": "Enviar un enlace nuevo",
     "enviando": "Enviando…",
     "nuevoEnviado": "Si ese correo tiene una cuenta sin verificar, te enviamos un enlace nuevo."
+  },
+  "recuperar": {
+    "olvidaste": "¿Olvidaste tu contraseña?",
+    "titulo": "Recupera tu contraseña",
+    "bajada": "Escribe el correo de tu cuenta y te enviaremos un enlace para elegir una contraseña nueva.",
+    "enviar": "Enviar enlace",
+    "volver": "Volver a iniciar sesión",
+    "otraVez": "Usar otro correo",
+    "enviado": {
+      "titulo": "Revisa tu correo",
+      "descripcion": "Si {{correo}} tiene una cuenta, te enviamos un enlace. Sirve una sola vez y vence en 30 minutos.",
+      "noLlego": "¿No llegó? Revisa la carpeta de spam o vuelve a pedirlo en un minuto."
+    },
+    "nuevaTitulo": "Elige una contraseña nueva",
+    "nueva": "Contraseña nueva",
+    "repetir": "Repite la contraseña nueva",
+    "guardar": "Guardar contraseña",
+    "guardando": "Guardando…",
+    "validacion": {
+      "noCoinciden": "Las contraseñas no coinciden."
+    },
+    "exito": {
+      "titulo": "Contraseña actualizada",
+      "descripcion": "Ya puedes ingresar con tu nueva contraseña. Por seguridad cerramos las sesiones que tenías abiertas."
+    },
+    "usado": {
+      "titulo": "Este enlace ya se usó",
+      "descripcion": "Cada enlace sirve una sola vez. Si necesitas cambiar tu contraseña otra vez, pide uno nuevo."
+    },
+    "vencido": {
+      "titulo": "El enlace venció",
+      "descripcion": "Por seguridad el enlace dura 30 minutos. Pide uno nuevo con tu correo."
+    },
+    "invalido": {
+      "titulo": "El enlace no es válido",
+      "descripcion": "Revisa que lo hayas copiado completo o pide uno nuevo con tu correo."
+    },
+    "pedirNuevo": "Pedir un enlace nuevo"
   }
 }

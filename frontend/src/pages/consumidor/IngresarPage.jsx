@@ -134,6 +134,10 @@ export default function IngresarPage({ modo = 'ingresar', search = '', correoIni
             onChange={(e) => setPassword(e.target.value)}
             error={errores.password}
           />
+          {/* CCPIP-33: lleva el correo escrito para no volver a pedirlo */}
+          <Enlace to={RUTAS.recuperarContrasena} className="enlace-marca ingresar__olvido" onClick={() => onCorreoConocido?.(email.trim())}>
+            {t('recuperar.olvidaste')}
+          </Enlace>
           <Boton type="submit" anchoCompleto disabled={enviando}>
             {enviando ? t('ingresar.ingresando') : t('ingresar.iniciarSesion')}
           </Boton>
