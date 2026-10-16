@@ -53,6 +53,10 @@
 .editor__principal { cursor: default; }
 
 .editor__quitar { position: absolute; top: 6px; right: 6px; display: flex; padding: 4px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.92); color: var(--color-text-primary); cursor: pointer; }
+/* CCPIP-388: reemplazar sin quitar primero, en la esquina opuesta a quitar */
+.editor__reemplazar { position: absolute; top: 6px; left: 6px; display: flex; padding: 4px; border-radius: 50%; background: rgba(255, 255, 255, 0.92); color: var(--color-text-brand); cursor: pointer; }
+.editor__reemplazar:focus-within { outline: 2px solid var(--color-border-focus); outline-offset: 1px; }
+.editor__reemplazar--ocupado { opacity: 0.6; cursor: progress; }
 
 .editor__ia { display: flex; flex-direction: column; gap: 10px; }
 .editor__ia-boton { display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; padding: 0; border: 0; background: none; font-weight: 600; font-size: 14px; color: var(--color-text-brand); cursor: pointer; }

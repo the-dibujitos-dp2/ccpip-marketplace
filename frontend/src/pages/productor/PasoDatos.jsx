@@ -2,14 +2,16 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoCamara from '../../assets/icons/camara.svg'
 import iconoCerrar from '../../assets/icons/cerrar.svg'
+import iconoEditar from '../../assets/icons/editar.svg'
 import iconoIa from '../../assets/icons/ia.svg'
 import iconoInfo from '../../assets/icons/info-pequeno.svg'
 import { obtenerCatalogos } from '../../api/catalogo.js'
-import { eliminarImagen, marcarPrincipal, proponerDescripcion, rechazarBorrador, subirImagen } from '../../api/productor.js'
+import { eliminarImagen, marcarPrincipal, proponerDescripcion, rechazarBorrador, reemplazarImagen, subirImagen } from '../../api/productor.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import Chips from '../../components/Chips.jsx'
+import Dialogo from '../../components/Dialogo.jsx'
 import Icono from '../../components/Icono.jsx'
 import OpcionTarjeta from '../../components/OpcionTarjeta.jsx'
 import TarjetaProducto from '../../components/TarjetaProducto.jsx'
@@ -21,6 +23,7 @@ import i18n from '../../i18n/index.js'
 import './Editor.css'
 
 export const MAX_FOTOS = 6
+const MAX_BYTES_FOTO = 10 * 1024 * 1024
 
 const MODALIDADES = ['MINORISTA', 'MAYORISTA', 'AMBAS']
 
@@ -84,6 +87,9 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
   const [alerta, setAlerta] = useState(null)
   const [guardando, setGuardando] = useState(false)
   const [subidas, setSubidas] = useState([])
+  const [aRetirar, setARetirar] = useState(null)
+  const [retirando, setRetirando] = useState(false)
+  const [reemplazando, setReemplazando] = useState(null)
   const [ia, setIa] = useState({ estado: 'inicial' })
 
   useEffect(() => {
@@ -160,7 +166,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
   }
 
   async function subirUno(id, archivo, clave = `${archivo.name}-${archivo.size}-${Date.now()}`) {
-    if (archivo.size > 10 * 1024 * 1024) {
+    if (archivo.size > MAX_BYTES_FOTO) {
       setSubidas((s) => [...s.filter((x) => x.clave !== clave), { clave, archivo, estado: 'error', mensaje: t('productor.datos.pesaMucho') }])
       return
     }
@@ -179,7 +185,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
     onImagenes(id)
   }
 
-  /** Quitar una foto o hacerla principal: si el servidor falla, se avisa y la lista se recarga. */
+  /** Retirar, reemplazar o hacer principal una foto: si el servidor falla, se avisa y la lista se recarga. */
   async function accionFoto(accion, mensaje) {
     try {
       await accion()
@@ -189,7 +195,26 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
     onImagenes(producto.id)
   }
 
-  const quitar = (imagen) => accionFoto(() => eliminarImagen(imagen.id), 'productor.datos.errorQuitarFoto')
+  // CCPIP-389: retirar pide confirmacion; la foto sale de la ficha pero se conserva
+  async function retirar() {
+    setRetirando(true)
+    await accionFoto(() => eliminarImagen(aRetirar.id), 'productor.datos.errorQuitarFoto')
+    setRetirando(false)
+    setARetirar(null)
+  }
+
+  // CCPIP-388: la nueva toma el lugar de la anterior, incluso si era la principal
+  async function reemplazar(imagen, archivo) {
+    if (!archivo) return
+    if (archivo.size > MAX_BYTES_FOTO) {
+      setAlerta({ tono: 'error', titulo: t('productor.datos.pesaMucho') })
+      return
+    }
+    setReemplazando(imagen.id)
+    await accionFoto(() => reemplazarImagen(imagen.id, archivo), 'productor.datos.errorReemplazar')
+    setReemplazando(null)
+  }
+
   const principal = (imagen) => accionFoto(() => marcarPrincipal(imagen.id), 'productor.datos.errorPrincipal')
 
   // ---------- Descripcion asistida (CCPIP-48, RNF-29) ----------
@@ -254,7 +279,13 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
                     {t('productor.datos.hacerPrincipal')}
                   </button>
                 )}
-                <button type="button" className="editor__quitar" aria-label={t('productor.datos.quitarFoto')} onClick={() => void quitar(img)}>
+                <label className={`editor__reemplazar${reemplazando === img.id ? ' editor__reemplazar--ocupado' : ''}`} title={t('productor.datos.reemplazarFoto')}>
+                  <Icono src={iconoEditar} tamano={14} />
+                  <span className="visually-hidden">{t('productor.datos.reemplazarFoto')}</span>
+                  <input className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" disabled={reemplazando !== null}
+                    onChange={(e) => { void reemplazar(img, e.target.files?.[0]); e.target.value = '' }} />
+                </label>
+                <button type="button" className="editor__quitar" aria-label={t('productor.datos.quitarFoto')} onClick={() => setARetirar(img)}>
                   <Icono src={iconoCerrar} tamano={14} />
                 </button>
               </li>
@@ -281,6 +312,17 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
           </ul>
           {imagenes.length < MAX_FOTOS && <ZonaArchivos onArchivos={subir} />}
           <p className="caption">{t('productor.datos.fotosAyuda', { max: MAX_FOTOS })}</p>
+          <Dialogo
+            abierto={aRetirar !== null}
+            titulo={t('productor.datos.retirarTitulo')}
+            confirmar={t('productor.datos.retirarConfirmar')}
+            tipoConfirmar="destructivo"
+            ocupado={retirando}
+            onConfirmar={() => void retirar()}
+            onCancelar={() => setARetirar(null)}
+          >
+            <p>{t(aRetirar?.principal ? 'productor.datos.retirarTextoPrincipal' : 'productor.datos.retirarTexto')}</p>
+          </Dialogo>
         </section>
 
         <Campo etiqueta={t('productor.datos.nombre')} value={d.nombre} onChange={set('nombre')} error={errores.nombre} maxLength={200} placeholder={t('productor.datos.nombreEjemplo')} />

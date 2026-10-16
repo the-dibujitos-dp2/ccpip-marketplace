@@ -68,6 +68,7 @@
       "tienda": "My store",
       "productos": "Products",
       "lotes": "Batches",
+      "pedidos": "Orders",
       "cuenta": "Bank account"
     },
     "tabla": {
@@ -160,6 +161,52 @@
         "VENCIDO": "Expired"
       },
       "ubicacionPlaceholder": "Choose your warehouse or a collection point"
+    },
+    "pedidos": {
+      "titulo": "Orders",
+      "pestana": {
+        "CONFIRMADO": "Confirmed ({{total}})",
+        "EN_PREPARACION": "Being prepared ({{total}})",
+        "LISTO_PARA_RECOJO": "Ready for pickup ({{total}})",
+        "ENTREGADO": "Delivered ({{total}})",
+        "CANCELADO": "Cancelled ({{total}})"
+      },
+      "estado": {
+        "CONFIRMADO": "Confirmed",
+        "EN_PREPARACION": "Being prepared",
+        "LISTO_PARA_RECOJO": "Ready for pickup",
+        "ENTREGADO": "Delivered",
+        "CANCELADO": "Cancelled"
+      },
+      "vacio": {
+        "CONFIRMADO": "You have no confirmed orders",
+        "EN_PREPARACION": "You have no orders being prepared",
+        "LISTO_PARA_RECOJO": "No orders are waiting for their buyer",
+        "ENTREGADO": "No orders have been delivered yet",
+        "CANCELADO": "You have no cancelled orders"
+      },
+      "vacioTexto": "Paid orders that include your products show up here.",
+      "error": "We couldn't load your orders",
+      "col": {
+        "pedido": "Order",
+        "modalidad": "Delivery",
+        "pagado": "Paid"
+      },
+      "verPedido": "View order {{numero}}",
+      "yMas_one": "{{texto}} and {{count}} more product",
+      "yMas_other": "{{texto}} and {{count}} more products",
+      "recojoEn": "Pickup · {{punto}}",
+      "envio": "Home delivery",
+      "pagadoEl": "Paid on {{fecha}}",
+      "tusProductos": "Your products in this order",
+      "lote": "Batch {{codigo}} · {{cantidad}} units",
+      "loteVence": "Batch {{codigo}} · {{cantidad}} units · expires {{fecha}}",
+      "subtotal": "Your sales in this order",
+      "comision": "Chamber commission",
+      "neto": "You'll receive",
+      "sinComision": "Order confirmed before the commission was set up: no commission was calculated.",
+      "historial": "Status changes",
+      "nota": "You only see your products in each order. The buyer's details and what they bought from other communities are not shown."
     },
     "productos": {
       "badge": {
@@ -262,6 +309,12 @@
       "principal": "Main",
       "hacerPrincipal": "Make main",
       "quitarFoto": "Remove photo",
+      "reemplazarFoto": "Replace photo",
+      "errorReemplazar": "We couldn't replace the photo",
+      "retirarTitulo": "Remove this photo?",
+      "retirarTexto": "It will no longer show on the product page or in the catalog. We keep it for your order history.",
+      "retirarTextoPrincipal": "It's your main photo: the next one will take its place in the catalog. We keep it for your order history.",
+      "retirarConfirmar": "Remove photo",
       "subiendo": "Uploading…",
       "agregar": "Add",
       "fotosAyuda": "Up to {{max}} photos. The first one is the main photo: it's the one shown in the catalog.",

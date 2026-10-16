@@ -30,6 +30,7 @@ import CuentaBancariaPage from './pages/productor/CuentaBancariaPage.jsx'
 import EditorProductoPage from './pages/productor/EditorProductoPage.jsx'
 import LotesPage from './pages/productor/LotesPage.jsx'
 import PanelPage from './pages/productor/PanelPage.jsx'
+import PedidosProductorPage from './pages/productor/PedidosPage.jsx'
 import ProductosPage from './pages/productor/ProductosPage.jsx'
 import TiendaEditorPage from './pages/productor/TiendaEditorPage.jsx'
 import { navigate, RUTAS, rutaInterna, useLocation } from './router.js'
@@ -227,6 +228,7 @@ export default function App() {
     else if (path === RUTAS.productorProductos) pagina = <ProductosPage path={path} search={search} />
     else if (path === RUTAS.productorLotes) pagina = <LotesPage path={path} search={search} />
     else if (path === RUTAS.productorCuenta) pagina = <CuentaBancariaPage path={path} />
+    else if (path === RUTAS.productorPedidos) pagina = <PedidosProductorPage path={path} />
     else if (editor) {
       // Sin key por producto: al subir la primera foto el borrador nace y la URL pasa de /nuevo a
       // /:id; si el editor se montara de nuevo, perderia las fotos que se estan subiendo

@@ -377,6 +377,7 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Hacer principal' }))
     await user.click(screen.getAllByRole('button', { name: 'Quitar foto' })[0])
+    await user.click(await screen.findByRole('button', { name: 'Retirar foto' }))
     await waitFor(() => expect(llamadas(fetchMock, 'DELETE /api/productor/imagenes/0000000a-0000-4000-8000-000000000000')).toHaveLength(1))
     expect(llamadas(fetchMock, 'PUT /api/productor/imagenes/0000000b-0000-4000-8000-000000000000/principal')).toHaveLength(1)
   })
@@ -420,8 +421,68 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
     const user = userEvent.setup()
     abrirEn('/productor/productos/9')
     await user.click(await screen.findByRole('button', { name: 'Quitar foto' }))
+    await user.click(await screen.findByRole('button', { name: 'Retirar foto' }))
     expect(await screen.findByText('No pudimos quitar la foto')).toBeInTheDocument()
     expect(screen.getByAltText('Foto del producto')).toBeInTheDocument()
+  })
+
+  it('retirar una foto pide confirmacion y explica que se conserva (CCPIP-389)', async () => {
+    const conFoto = { ...copia(DATOS.edicion), imagenes: [{ id: '0000000a-0000-4000-8000-000000000000', urlMiniatura: '/api/imagenes/a?tam=min', principal: true }] }
+    const fetchMock = productor({
+      'GET /api/productor/productos/9': () => [200, copia(conFoto)],
+      'DELETE /api/productor/imagenes/0000000a-0000-4000-8000-000000000000': [204],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.click(await screen.findByRole('button', { name: 'Quitar foto' }))
+    expect(screen.getByRole('heading', { name: '¿Retirar esta foto?' })).toBeInTheDocument()
+    expect(screen.getByText(/Es tu foto principal: la siguiente ocupará su lugar/)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(llamadas(fetchMock, 'DELETE /api/productor/imagenes/0000000a-0000-4000-8000-000000000000')).toHaveLength(0)
+
+    await user.click(screen.getByRole('button', { name: 'Quitar foto' }))
+    await user.click(await screen.findByRole('button', { name: 'Retirar foto' }))
+    await waitFor(() => expect(llamadas(fetchMock, 'DELETE /api/productor/imagenes/0000000a-0000-4000-8000-000000000000')).toHaveLength(1))
+  })
+
+  it('reemplaza una foto en su lugar y avisa si el archivo no sirve (CCPIP-388)', async () => {
+    let intentos = 0
+    let reemplazada = false
+    const fotoA = { id: '0000000a-0000-4000-8000-000000000000', urlMiniatura: '/api/imagenes/a?tam=min', principal: true }
+    const fotoD = { id: '0000000d-0000-4000-8000-000000000000', urlMiniatura: '/api/imagenes/d?tam=min', principal: true }
+    productor({
+      'GET /api/productor/productos/9': () => [200, { ...copia(DATOS.edicion), imagenes: [reemplazada ? fotoD : fotoA] }],
+      'POST /api/productor/imagenes/0000000a-0000-4000-8000-000000000000/reemplazo': () => {
+        intentos += 1
+        if (intentos === 1) {
+          return [422, { code: 'FORMATO_NO_PERMITIDO', error: 'Solo se aceptan fotos JPG, PNG o WebP.' }]
+        }
+        reemplazada = true
+        return [201, fotoD]
+      },
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.upload(await screen.findByLabelText('Reemplazar foto'), foto('mala.jpg'))
+    expect(await screen.findByText('Solo se aceptan fotos JPG, PNG o WebP.')).toBeInTheDocument()
+    expect(screen.getByAltText('Foto del producto')).toHaveAttribute('src', '/api/imagenes/a?tam=min')
+
+    await user.upload(screen.getByLabelText('Reemplazar foto'), foto('nueva.jpg'))
+    await waitFor(() => expect(screen.getByAltText('Foto del producto')).toHaveAttribute('src', '/api/imagenes/d?tam=min'))
+    expect(screen.getByText('Principal')).toBeInTheDocument()
+  })
+
+  it('no reemplaza con una foto de mas de 10 MB', async () => {
+    const conFoto = { ...copia(DATOS.edicion), imagenes: [{ id: '0000000a-0000-4000-8000-000000000000', urlMiniatura: '/api/imagenes/a?tam=min', principal: true }] }
+    const fetchMock = productor({ 'GET /api/productor/productos/9': () => [200, copia(conFoto)] })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    const grande = foto('grande.jpg', 1)
+    Object.defineProperty(grande, 'size', { value: 11 * 1024 * 1024 })
+    await user.upload(await screen.findByLabelText('Reemplazar foto'), grande)
+    expect(await screen.findByText('Pesa más de 10 MB')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/productor/imagenes/0000000a-0000-4000-8000-000000000000/reemplazo')).toHaveLength(0)
   })
 
   it('una foto que pesa mas de 10 MB no se envia', async () => {
