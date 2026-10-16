@@ -2,18 +2,20 @@ import { useTranslation } from 'react-i18next'
 import iconoBillete from '../../assets/icons/billete.svg'
 import iconoCaja from '../../assets/icons/caja.svg'
 import iconoEtiqueta from '../../assets/icons/etiqueta.svg'
+import iconoPaquete from '../../assets/icons/paquete.svg'
 import iconoTablero from '../../assets/icons/tablero.svg'
 import iconoTienda from '../../assets/icons/tienda.svg'
 import { navigate, RUTAS } from '../../router.js'
 import Buscador from '../Buscador.jsx'
 import LayoutPanel from './LayoutPanel.jsx'
 
-/** Solo los modulos que el productor ya puede usar (almacen, pedidos, etc. llegan con sus historias). */
+/** Solo los modulos que el productor ya puede usar (almacen, transferencias, etc. llegan con sus historias). */
 const NAV = [
   { to: RUTAS.productor, clave: 'inicio', icono: iconoTablero, activo: (p) => p === RUTAS.productor },
   { to: RUTAS.productorTienda, clave: 'tienda', icono: iconoTienda, activo: (p) => p.startsWith(RUTAS.productorTienda) },
   { to: RUTAS.productorProductos, clave: 'productos', icono: iconoEtiqueta, activo: (p) => p.startsWith(RUTAS.productorProductos) },
   { to: RUTAS.productorLotes, clave: 'lotes', icono: iconoCaja, activo: (p) => p.startsWith(RUTAS.productorLotes) },
+  { to: RUTAS.productorPedidos, clave: 'pedidos', icono: iconoPaquete, activo: (p) => p.startsWith(RUTAS.productorPedidos) },
   { to: RUTAS.productorCuenta, clave: 'cuenta', icono: iconoBillete, activo: (p) => p.startsWith(RUTAS.productorCuenta) },
 ]
 
