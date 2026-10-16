@@ -15,7 +15,7 @@ public final class TableroModelos {
     /**
      * @param periodo        mes calendario en Lima, "2026-10"
      * @param ventas         ventas brutas del mes frente al mes anterior
-     * @param comision       comision estimada del mes con el porcentaje vigente (CCPIP-90 la hara real)
+     * @param comision       comision estimada del mes con el porcentaje vigente (CCPIP-90); nula sin comision configurada
      * @param productores    productores activos y cuantos se sumaron este mes
      * @param ventasPorLinea ventas del mes por linea de producto, de mayor a menor
      * @param productoresTop productores con mas ventas del mes (hasta 5)

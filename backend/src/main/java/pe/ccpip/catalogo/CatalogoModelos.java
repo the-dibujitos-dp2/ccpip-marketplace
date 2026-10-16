@@ -88,7 +88,7 @@ public final class CatalogoModelos {
     public record LineaCatalogo(String codigo, String nombre, boolean requiereVencimiento, String unidadSugerida) {
     }
 
-    /** {@code comisionPorcentaje}: comision de la Camara para la vista previa de PW-04 (valor de ejemplo, configurable). */
+    /** {@code comisionPorcentaje}: comision vigente de la Camara para la vista previa de PW-04 (CCPIP-90); nula si no hay ninguna configurada. */
     public record Catalogos(List<LineaCatalogo> lineas, List<Codigo> unidades, BigDecimal comisionPorcentaje) {
     }
 }

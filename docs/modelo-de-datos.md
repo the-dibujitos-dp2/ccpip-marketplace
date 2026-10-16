@@ -452,8 +452,39 @@ salta desde cualquier cliente SQL:
 4. Si sale `RECHAZADO` o `ERROR`, el pedido sigue en `PENDIENTE_PAGO` y se puede reintentar.
 
 Queda fuera: vencer los pedidos que nunca se pagan (tarea programada que los pase a
-`CANCELADO`), comision y liquidacion (CCPIP-90, CCPIP-91) y metodos locales (CCPIP-183).
+`CANCELADO`), la liquidacion a cada productor y metodos locales (CCPIP-183). La comision se
+copia al confirmar: ver la seccion siguiente.
 Lo verifica `PagoModeloTest`.
+
+## Comision de la Camara (CCPIP-90, CCPIP-91, CCPIP-167)
+
+### comision_configuracion
+Historial de la comision que configura el superadministrador (SA-02). Rige la fila no cancelada
+con la mayor `vigente_desde` que no pase de hoy (fecha de Lima).
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| porcentaje | numeric(5,2) | 0 a menos de 100 |
+| base_calculo | varchar(30) | Solo `PRECIO_SIN_ENVIO` hasta que CCPIP-101 defina el flete |
+| vigente_desde | date | Hoy o futura (la API lo valida). Indice unico parcial: un cambio por fecha entre los no cancelados |
+| motivo | varchar(300) | Obligatorio |
+| registrado_por, registrado_en | | Quien y cuando |
+| cancelado_por, cancelado_en | | Solo un cambio programado que aun no rige; ambos o ninguno |
+
+Es la auditoria del cambio: un trigger impide borrarla y editarla, salvo cancelar una vez. La
+migracion no siembra ningun porcentaje; el 10 % de la demo va en `R__04_comision_demo.sql` y solo
+si la tabla esta vacia.
+
+### pedido e item_pedido (columnas de comision)
+Al confirmarse el pago, en la misma transaccion, se copian en el pedido
+`comision_configuracion_id`, `comision_porcentaje`, `comision_base` y `comision_monto`, y en cada
+linea `comision_monto` y `neto` (`subtotal - comision_monto`). El redondeo es unico: HALF_UP a 2
+decimales por linea; el total del pedido es la suma de las lineas. Un pedido confirmado sin
+comision configurada, o antes de esta historia, queda con las columnas nulas: no se recalcula con
+un porcentaje que no regia.
+
+Triggers: una vez copiada la comision, no cambian el total ni la comision del pedido, ni la
+cantidad, precio, subtotal, comision y neto de sus lineas, y las lineas no se borran (RNF-13).
 
 ### traduccion
 Contenido aprobado en ingles (CCPIP-166 productos, CCPIP-357 tiendas, CCPIP-358 comunidades).
@@ -510,7 +541,7 @@ proposito `RECUPERAR_CLAVE`. Como en `sesion`, solo se guarda el SHA-256 del tok
 Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehacer nada:
 
 - Cobertura del punto de acopio y division politica del Peru, Sprint 1, CCPIP-149
-- Comision y liquidacion, Sprint 1, CCPIP-90 y CCPIP-91
+- Liquidacion y transferencia a cada productor (PW-11)
 - Merma y sus causas, Sprint 2
 - Valoraciones y denuncias, Sprint 2
 - Fidelizacion, Sprint 3, CCPIP-86

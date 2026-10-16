@@ -22,6 +22,7 @@ import pe.ccpip.carrito.CarritoModelos.Carrito;
 import pe.ccpip.carrito.CarritoModelos.EstadoItem;
 import pe.ccpip.carrito.CarritoModelos.Item;
 import pe.ccpip.carrito.CarritoService;
+import pe.ccpip.comision.ComisionModelos.ComisionPedido;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.compra.CompraModelos.EventoPedido;
 import pe.ccpip.compra.CompraModelos.IntentoPago;
@@ -110,6 +111,7 @@ public class CompraService {
         List<Pedido> encontrados = jdbc.query("""
                 SELECT pe.id, pe.numero, pe.estado, pe.modalidad, pe.total, pe.creado_en, pe.confirmado_en,
                        pe.persona_autorizada, pe.celular_contacto,
+                       pe.comision_porcentaje, pe.comision_base, pe.comision_monto,
                        u.id AS u_id, u.nombre AS u_nombre, u.departamento, u.provincia, u.distrito, u.direccion
                 FROM pedido pe JOIN ubicacion u ON u.id = pe.ubicacion_origen_id
                 WHERE pe.id = :id AND pe.usuario_id = :usuario""", p,
@@ -117,7 +119,7 @@ public class CompraService {
                         rs.getString("modalidad"), rs.getBigDecimal("total"), instante(rs, "creado_en"),
                         instante(rs, "confirmado_en"), punto(rs, "u_"), rs.getString("persona_autorizada"),
                         rs.getString("celular_contacto"), lineas(pedidoId), pagos(pedidoId),
-                        historial(List.of(pedidoId)).getOrDefault(pedidoId, List.of())));
+                        historial(List.of(pedidoId)).getOrDefault(pedidoId, List.of()), comision(rs)));
         return encontrados.stream().findFirst()
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "No encontramos ese pedido."));
     }
@@ -226,6 +228,13 @@ public class CompraService {
     private static PuntoRecojo punto(ResultSet rs, String prefijo) throws SQLException {
         return new PuntoRecojo(rs.getLong(prefijo + "id"), rs.getString(prefijo + "nombre"), rs.getString("departamento"),
                 rs.getString("provincia"), rs.getString("distrito"), rs.getString("direccion"));
+    }
+
+    /** CCPIP-167: la comision copiada al confirmar; nula si no hay copia. */
+    private static ComisionPedido comision(ResultSet rs) throws SQLException {
+        BigDecimal porcentaje = rs.getBigDecimal("comision_porcentaje");
+        return porcentaje == null ? null
+                : new ComisionPedido(porcentaje, rs.getString("comision_base"), rs.getBigDecimal("comision_monto"));
     }
 
     private static Instant instante(ResultSet rs, String columna) throws SQLException {

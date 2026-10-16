@@ -29,6 +29,7 @@ import pe.ccpip.catalogo.CatalogoModelos.TiendaDetalle;
 import pe.ccpip.catalogo.CatalogoModelos.TiendaTarjeta;
 import pe.ccpip.catalogo.CatalogoRepository.Filtro;
 import pe.ccpip.catalogo.CatalogoRepository.Orden;
+import pe.ccpip.comision.ComisionService;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.comun.Idioma;
 
@@ -45,10 +46,10 @@ public class CatalogoController {
     private final TiendasRepository tiendas;
     private final JdbcTemplate jdbc;
     private final TraductorCatalogo traductor;
-    private final BigDecimal comision;
+    private final ComisionService comision;
 
     public CatalogoController(CatalogoRepository catalogo, TiendasRepository tiendas, JdbcTemplate jdbc, TraductorCatalogo traductor,
-                              @org.springframework.beans.factory.annotation.Value("${ccpip.comision.porcentaje:10}") BigDecimal comision) {
+                              ComisionService comision) {
         this.catalogo = catalogo;
         this.tiendas = tiendas;
         this.jdbc = jdbc;
@@ -150,7 +151,7 @@ public class CatalogoController {
                         rs.getBoolean("requiere_vencimiento"), rs.getString("unidad")));
         List<Codigo> unidades = jdbc.query("SELECT codigo, nombre FROM unidad_medida ORDER BY nombre",
                 (rs, row) -> new Codigo(rs.getString("codigo"), rs.getString("nombre")));
-        return traductor.catalogos(new Catalogos(lineas, unidades, comision), idioma(acceptLanguage, response));
+        return traductor.catalogos(new Catalogos(lineas, unidades, comision.porcentajeVigente()), idioma(acceptLanguage, response));
     }
 
     /**

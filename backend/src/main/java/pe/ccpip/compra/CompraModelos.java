@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
+import pe.ccpip.comision.ComisionModelos.ComisionPedido;
+
 /**
  * Respuestas del flujo de compra: recojo (CCPIP-157), pago (CCPIP-62, CCPIP-163), confirmacion (CCPIP-64)
  * y los pedidos del comprador (CCPIP-112, CCPIP-70, CCPIP-340).
@@ -41,11 +43,13 @@ public final class CompraModelos {
     /**
      * Pedido del comprador. {@code personaAutorizada} es nula si recoge el mismo comprador;
      * {@code confirmadoEn} es nulo mientras espera su pago. {@code historial}: sus estados en orden
-     * cronologico (CCPIP-340).
+     * cronologico (CCPIP-340). {@code comision}: la vigente al confirmar, ya incluida en el total
+     * (CCPIP-167); nula mientras espera su pago o si se confirmo sin comision configurada.
      */
     public record Pedido(long id, String numero, String estado, String modalidad, BigDecimal total, Instant creadoEn,
                          Instant confirmadoEn, PuntoRecojo punto, String personaAutorizada, String celularContacto,
-                         List<LineaPedido> lineas, List<IntentoPago> pagos, List<EventoPedido> historial) {
+                         List<LineaPedido> lineas, List<IntentoPago> pagos, List<EventoPedido> historial,
+                         ComisionPedido comision) {
     }
 
     /**
