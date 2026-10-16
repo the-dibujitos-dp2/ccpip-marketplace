@@ -596,7 +596,9 @@
     "rol": "Super administrador",
     "plataforma": "Plataforma",
     "nav": {
-      "tablero": "Tablero"
+      "tablero": "Tablero",
+      "comision": "Comisión",
+      "comisiones": "Comisión por pedido"
     },
     "tablero": {
       "titulo": "Tablero de operación",
@@ -608,7 +610,8 @@
         "productores": "Productores activos",
         "nuevos_one": "+ {{count}} nuevo este mes",
         "nuevos_other": "+ {{count}} nuevos este mes",
-        "calificacion": "Calificación promedio"
+        "calificacion": "Calificación promedio",
+        "sinComision": "Sin comisión configurada"
       },
       "variacion": "{{flecha}} {{valor}} % vs. {{mes}}",
       "sinComparacion": "Sin ventas en {{mes}} para comparar",
@@ -638,6 +641,94 @@
         "stock": "Stock de acopios"
       },
       "volver": "Volver al tablero"
+    },
+    "comision": {
+      "titulo": "Comisión por venta digital",
+      "errorCargar": "No pudimos cargar la comisión",
+      "errorGuardar": "No pudimos guardar el cambio",
+      "errorCancelar": "No pudimos cancelar el cambio",
+      "vigente": "Comisión vigente: {{porcentaje}} %",
+      "desde": "Desde el {{fecha}} · configurada por {{nombre}}",
+      "sinVigente": "Sin comisión configurada",
+      "sinVigenteTexto": "Mientras la Cámara no fije un porcentaje, los pedidos se confirman sin comisión.",
+      "nuevo": "Nueva comisión",
+      "campo": {
+        "porcentaje": "Nueva comisión (%)",
+        "vigenteDesde": "Vigente desde",
+        "base": "Base de cálculo",
+        "motivo": "Motivo del cambio"
+      },
+      "base": {
+        "PRECIO_SIN_ENVIO": "Precio de venta sin costo de envío"
+      },
+      "basePendiente": "Pendiente de confirmar con la Cámara (CCPIP-101).",
+      "motivoEjemplo": "Ej.: Ajuste aprobado en junta directiva del 20/11.",
+      "conservan": "Los pedidos confirmados conservan su comisión",
+      "conservanDesde": "El nuevo porcentaje se aplica solo a pedidos confirmados desde el {{fecha}}.",
+      "conservanHoy": "El nuevo porcentaje se aplica a los pedidos que se confirmen desde ahora.",
+      "conservanSinFecha": "El nuevo porcentaje se aplica solo a pedidos confirmados desde la fecha de vigencia.",
+      "programar": "Programar cambio",
+      "aplicarHoy": "Aplicar desde hoy",
+      "aplicada": "La comisión del {{porcentaje}} % ya rige para los pedidos nuevos",
+      "programada": "Cambio programado: {{porcentaje}} % desde el {{fecha}}",
+      "programadoTitulo": "Cambio programado: {{porcentaje}} % desde el {{fecha}}",
+      "programadoTexto": "Solo hay un cambio pendiente a la vez. Para programar otro, cancela este primero.",
+      "motivo": "Motivo: {{motivo}}",
+      "cancelarProgramado": "Cancelar cambio programado",
+      "cancelarTitulo": "¿Cancelar el cambio programado?",
+      "cancelarTexto": "La comisión no cambiará a {{porcentaje}} % el {{fecha}}. El cambio quedará en el historial como cancelado.",
+      "cancelarConfirmar": "Sí, cancelar cambio",
+      "cancelado": "Cambio programado cancelado",
+      "previa": "Vista previa por venta de {{monto}}",
+      "paraCamara": "Comisión de la Cámara",
+      "paraProductor": "Recibe el productor",
+      "historial": "Historial",
+      "historialDesde": "Desde {{fecha}} · {{nombre}}",
+      "sinHistorial": "Aún no hay cambios registrados.",
+      "estado": {
+        "VIGENTE": "Vigente",
+        "PROGRAMADA": "Programada",
+        "ANTERIOR": "Anterior",
+        "CANCELADA": "Cancelada"
+      },
+      "validacion": {
+        "porcentajeVacio": "Indica el porcentaje",
+        "porcentaje": "Usa un número de 0 a 99.99, con hasta 2 decimales",
+        "mismo": "Ese ya es el porcentaje vigente",
+        "fechaVacia": "Indica desde cuándo rige",
+        "fechaPasada": "La vigencia empieza hoy o en una fecha futura",
+        "motivo": "Explica el motivo del cambio"
+      }
+    },
+    "comisiones": {
+      "titulo": "Comisión por pedido",
+      "desde": "Desde",
+      "hasta": "Hasta",
+      "error": "No pudimos cargar los pedidos",
+      "kpi": {
+        "ventas": "Ventas confirmadas",
+        "pedidos_one": "{{count}} pedido",
+        "pedidos_other": "{{count}} pedidos",
+        "comision": "Comisión de la Cámara",
+        "neto": "Neto para productores"
+      },
+      "sinComision_one": "{{count}} pedido se confirmó sin comisión configurada",
+      "sinComision_other": "{{count}} pedidos se confirmaron sin comisión configurada",
+      "sinComisionTexto": "Se muestran sin comisión ni neto: no se recalculan con un porcentaje que no regía al confirmarlos.",
+      "tabla": "Pedidos confirmados",
+      "vacio": "No hay pedidos confirmados en estas fechas.",
+      "col": {
+        "pedido": "Pedido",
+        "fecha": "Confirmado",
+        "productores": "Productores",
+        "venta": "Venta",
+        "comision": "Comisión",
+        "neto": "Neto"
+      },
+      "netoProductor": "Venta {{venta}} · neto {{neto}}",
+      "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
+      "sinComisionCelda": "Sin comisión",
+      "nota": "La comisión y el neto quedan fijados al confirmar cada pedido; un cambio posterior de la comisión no los altera."
     }
   },
   "sello": {
@@ -863,7 +954,15 @@
     "BANCO_INVALIDO": "Elige un banco de la lista.",
     "CCI_INVALIDO": "El CCI tiene 20 dígitos.",
     "NUMERO_CUENTA_INVALIDO": "El número de cuenta tiene entre 8 y 20 dígitos.",
-    "YAPE_INVALIDO": "El celular de Yape tiene 9 dígitos y empieza con 9."
+    "YAPE_INVALIDO": "El celular de Yape tiene 9 dígitos y empieza con 9.",
+    "VIGENCIA_PASADA": "La nueva comisión rige desde hoy o desde una fecha futura.",
+    "VIGENCIA_OCUPADA": "Ya hay un cambio que rige desde esa fecha. Elige otra fecha.",
+    "MISMO_PORCENTAJE": "Ese ya es el porcentaje vigente.",
+    "CAMBIO_YA_PROGRAMADO": "Ya hay un cambio programado. Cancélalo antes de programar otro.",
+    "CAMBIO_NO_CANCELABLE": "Solo se puede cancelar un cambio que aún no entra en vigor.",
+    "CAMBIO_NO_ENCONTRADO": "No encontramos ese cambio de comisión.",
+    "RANGO_INVALIDO": "La fecha inicial debe ser anterior o igual a la final.",
+    "RANGO_MUY_LARGO": "Consulta como máximo un año a la vez."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -1155,7 +1254,21 @@
       "PENDIENTE": "En proceso",
       "ANULADO": "Devuelto"
     },
-    "seguirComprando": "Seguir comprando"
+    "seguirComprando": "Seguir comprando",
+    "condiciones": {
+      "titulo": "Condiciones de tu compra",
+      "precios": "Precios",
+      "preciosFijados": "Fijados al confirmar, el {{fecha}}",
+      "modalidad": "Modalidad",
+      "modalidades": {
+        "RECOJO": "Recojo en punto de acopio",
+        "ENVIO": "Envío a domicilio"
+      },
+      "comision": "Comisión de la Cámara",
+      "comisionMonto": "{{porcentaje}} % · {{monto}}",
+      "incluida": "Incluida en el total: no se suma a lo que pagaste.",
+      "sinComision": "No se aplicó comisión a esta compra"
+    }
   },
   "misPedidos": {
     "miCuenta": "Mi cuenta",

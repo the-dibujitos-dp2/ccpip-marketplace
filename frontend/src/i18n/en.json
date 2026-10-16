@@ -596,7 +596,9 @@
     "rol": "Super administrator",
     "plataforma": "Platform",
     "nav": {
-      "tablero": "Dashboard"
+      "tablero": "Dashboard",
+      "comision": "Commission",
+      "comisiones": "Commission by order"
     },
     "tablero": {
       "titulo": "Operations dashboard",
@@ -608,7 +610,8 @@
         "productores": "Active producers",
         "nuevos_one": "+ {{count}} new this month",
         "nuevos_other": "+ {{count}} new this month",
-        "calificacion": "Average rating"
+        "calificacion": "Average rating",
+        "sinComision": "No commission set"
       },
       "variacion": "{{flecha}} {{valor}} % vs. {{mes}}",
       "sinComparacion": "No sales in {{mes}} to compare",
@@ -638,6 +641,94 @@
         "stock": "Collection point stock"
       },
       "volver": "Back to dashboard"
+    },
+    "comision": {
+      "titulo": "Digital sales commission",
+      "errorCargar": "We couldn't load the commission",
+      "errorGuardar": "We couldn't save the change",
+      "errorCancelar": "We couldn't cancel the change",
+      "vigente": "Current commission: {{porcentaje}} %",
+      "desde": "Since {{fecha}} · set by {{nombre}}",
+      "sinVigente": "No commission set",
+      "sinVigenteTexto": "Until the Chamber sets a rate, orders are confirmed without commission.",
+      "nuevo": "New commission",
+      "campo": {
+        "porcentaje": "New commission (%)",
+        "vigenteDesde": "Effective from",
+        "base": "Calculation base",
+        "motivo": "Reason for the change"
+      },
+      "base": {
+        "PRECIO_SIN_ENVIO": "Sale price without shipping"
+      },
+      "basePendiente": "Pending confirmation with the Chamber (CCPIP-101).",
+      "motivoEjemplo": "E.g.: Adjustment approved by the board on 11/20.",
+      "conservan": "Confirmed orders keep their commission",
+      "conservanDesde": "The new rate only applies to orders confirmed from {{fecha}}.",
+      "conservanHoy": "The new rate applies to orders confirmed from now on.",
+      "conservanSinFecha": "The new rate only applies to orders confirmed from the effective date.",
+      "programar": "Schedule change",
+      "aplicarHoy": "Apply from today",
+      "aplicada": "The {{porcentaje}} % commission now applies to new orders",
+      "programada": "Change scheduled: {{porcentaje}} % from {{fecha}}",
+      "programadoTitulo": "Change scheduled: {{porcentaje}} % from {{fecha}}",
+      "programadoTexto": "Only one change can be pending at a time. To schedule another, cancel this one first.",
+      "motivo": "Reason: {{motivo}}",
+      "cancelarProgramado": "Cancel scheduled change",
+      "cancelarTitulo": "Cancel the scheduled change?",
+      "cancelarTexto": "The commission won't change to {{porcentaje}} % on {{fecha}}. The change stays in the history as cancelled.",
+      "cancelarConfirmar": "Yes, cancel change",
+      "cancelado": "Scheduled change cancelled",
+      "previa": "Preview for a {{monto}} sale",
+      "paraCamara": "Chamber commission",
+      "paraProductor": "Producer receives",
+      "historial": "History",
+      "historialDesde": "From {{fecha}} · {{nombre}}",
+      "sinHistorial": "No changes recorded yet.",
+      "estado": {
+        "VIGENTE": "Current",
+        "PROGRAMADA": "Scheduled",
+        "ANTERIOR": "Previous",
+        "CANCELADA": "Cancelled"
+      },
+      "validacion": {
+        "porcentajeVacio": "Enter the rate",
+        "porcentaje": "Use a number from 0 to 99.99, with up to 2 decimals",
+        "mismo": "That's already the current rate",
+        "fechaVacia": "Enter the effective date",
+        "fechaPasada": "The effective date is today or later",
+        "motivo": "Explain the reason for the change"
+      }
+    },
+    "comisiones": {
+      "titulo": "Commission by order",
+      "desde": "From",
+      "hasta": "To",
+      "error": "We couldn't load the orders",
+      "kpi": {
+        "ventas": "Confirmed sales",
+        "pedidos_one": "{{count}} order",
+        "pedidos_other": "{{count}} orders",
+        "comision": "Chamber commission",
+        "neto": "Net for producers"
+      },
+      "sinComision_one": "{{count}} order was confirmed without a commission set",
+      "sinComision_other": "{{count}} orders were confirmed without a commission set",
+      "sinComisionTexto": "They're shown without commission or net: they aren't recalculated with a rate that wasn't in force when confirmed.",
+      "tabla": "Confirmed orders",
+      "vacio": "No orders confirmed in these dates.",
+      "col": {
+        "pedido": "Order",
+        "fecha": "Confirmed",
+        "productores": "Producers",
+        "venta": "Sale",
+        "comision": "Commission",
+        "neto": "Net"
+      },
+      "netoProductor": "Sale {{venta}} · net {{neto}}",
+      "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
+      "sinComisionCelda": "No commission",
+      "nota": "Commission and net are fixed when each order is confirmed; a later commission change doesn't alter them."
     }
   },
   "sello": {
@@ -863,7 +954,15 @@
     "BANCO_INVALIDO": "Choose a bank from the list.",
     "CCI_INVALIDO": "The CCI has 20 digits.",
     "NUMERO_CUENTA_INVALIDO": "The account number has between 8 and 20 digits.",
-    "YAPE_INVALIDO": "The Yape number has 9 digits and starts with 9."
+    "YAPE_INVALIDO": "The Yape number has 9 digits and starts with 9.",
+    "VIGENCIA_PASADA": "The new commission takes effect today or on a later date.",
+    "VIGENCIA_OCUPADA": "There's already a change effective from that date. Choose another date.",
+    "MISMO_PORCENTAJE": "That's already the current rate.",
+    "CAMBIO_YA_PROGRAMADO": "A change is already scheduled. Cancel it before scheduling another.",
+    "CAMBIO_NO_CANCELABLE": "Only a change that hasn't taken effect yet can be cancelled.",
+    "CAMBIO_NO_ENCONTRADO": "We couldn't find that commission change.",
+    "RANGO_INVALIDO": "The start date must be on or before the end date.",
+    "RANGO_MUY_LARGO": "Query at most one year at a time."
   },
   "buscar": {
     "comunidad": "Community",
@@ -1155,7 +1254,21 @@
       "PENDIENTE": "Processing",
       "ANULADO": "Refunded"
     },
-    "seguirComprando": "Continue shopping"
+    "seguirComprando": "Continue shopping",
+    "condiciones": {
+      "titulo": "Your purchase terms",
+      "precios": "Prices",
+      "preciosFijados": "Fixed at confirmation, on {{fecha}}",
+      "modalidad": "Method",
+      "modalidades": {
+        "RECOJO": "Pickup at collection point",
+        "ENVIO": "Home delivery"
+      },
+      "comision": "Chamber commission",
+      "comisionMonto": "{{porcentaje}} % · {{monto}}",
+      "incluida": "Included in the total: it isn't added to what you paid.",
+      "sinComision": "No commission was applied to this purchase"
+    }
   },
   "misPedidos": {
     "miCuenta": "My account",

@@ -21,7 +21,51 @@
 .restringido__chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .restringido__chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--radius-pill); background: var(--color-bg-sand); color: var(--color-text-secondary); font-size: 13px; line-height: 18px; }
 
+/* SA-02 Comision (CCPIP-90) */
+.comision { display: grid; grid-template-columns: minmax(0, 1fr) 400px; align-items: start; gap: 24px; }
+.comision__principal { gap: 24px; }
+.comision__vigente { display: flex; flex-direction: column; gap: 6px; padding-bottom: 20px; border-bottom: 1px solid var(--color-border-default); }
+.comision__vigente .heading-h2, .comision__vigente .body-s { margin: 0; }
+.comision__formulario { display: flex; flex-direction: column; gap: 20px; }
+.comision__campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.comision__aviso { display: flex; gap: 12px; padding: 14px 16px; border-left: 4px solid var(--color-status-info-fg); border-radius: var(--radius-l); background: var(--color-status-info-bg); color: var(--color-status-info-fg); }
+.comision__aviso p { margin: 0; color: var(--color-text-primary); }
+.comision__aviso .body-s { color: var(--color-text-secondary); }
+.comision__acciones { display: flex; justify-content: flex-end; gap: 12px; }
+.comision__programado { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; border-radius: var(--radius-l); background: var(--color-status-info-bg); }
+.comision__programado p { margin: 0 0 4px; }
+.comision__lateral { display: flex; flex-direction: column; gap: 14px; padding: 24px; border: 1px solid var(--color-border-brand); border-radius: var(--radius-xl); background: var(--color-bg-brand-subtle); }
+.comision__lateral .heading-h4 { margin: 0; }
+.comision__previa { display: flex; flex-direction: column; gap: 12px; margin: 0; padding-bottom: 16px; border-bottom: 1px solid var(--color-border-default); }
+.comision__previa-fila { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 15px; }
+.comision__previa-fila dt { color: var(--color-text-secondary); }
+.comision__previa-fila dd { display: flex; align-items: baseline; gap: 6px; margin: 0; font-variant-numeric: tabular-nums; }
+.comision__antes { color: var(--color-text-tertiary); font-size: 14px; }
+.comision__monto { font-weight: 600; font-size: 17px; color: var(--color-text-primary); }
+.comision__historial-titulo { margin: 0; }
+.comision__historial { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.comision__historial li { display: flex; flex-direction: column; gap: 2px; }
+.comision__historial .caption { color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.comision__historial-linea { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.comision__cancelada strong { color: var(--color-text-tertiary); text-decoration: line-through; }
+
+/* CCPIP-91 Comision por pedido */
+.comisiones__filtros { display: flex; flex-wrap: wrap; gap: 16px; }
+.comisiones__filtros .campo { width: 200px; }
+.comisiones__pedido { flex: 0 0 130px; }
+.comisiones__fecha { flex: 0 0 110px; }
+.comisiones__comision { flex: 0 0 150px; text-align: right; font-variant-numeric: tabular-nums; }
+.comisiones__productores { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.comisiones__productores li { display: flex; flex-direction: column; }
+.comisiones__productores .caption { color: var(--color-text-secondary); }
+
+@media (max-width: 1100px) {
+  .comision { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 600px) {
+  .comision__campos { grid-template-columns: 1fr; }
+  .comisiones__filtros .campo { width: 100%; }
   .admin__barra { grid-template-columns: 1fr 110px; }
   .admin__pista { grid-column: 1 / -1; grid-row: 2; }
 }

@@ -8,6 +8,8 @@ import { aplicarIdiomaDeSesion, olvidarIdiomaDeSesion } from './i18n/preferencia
 import LayoutTienda from './components/layout/LayoutTienda.jsx'
 import CuentaPage from './pages/CuentaPage.jsx'
 import AccesoRestringidoPage from './pages/admin/AccesoRestringidoPage.jsx'
+import ComisionesPage from './pages/admin/ComisionesPage.jsx'
+import ComisionPage from './pages/admin/ComisionPage.jsx'
 import TableroPage from './pages/admin/TableroPage.jsx'
 import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
 import PedidosPage from './pages/acopio/PedidosPage.jsx'
@@ -38,11 +40,18 @@ const RUTA_TIENDA = /^\/tiendas\/(\d+)$/
 const RUTA_EDITOR = /^\/productor\/productos\/(\d+|nuevo)$/
 const RUTA_PEDIDO = /^\/pedidos\/(\d+)$/
 
+/** Administracion de la Camara: el superadministrador ve todo; el sub administrador, la comision por pedido (CCPIP-91). */
+function puedeVerAdmin(user, path) {
+  if (user?.role === 'SUPER_ADMIN') return true
+  return user?.role === 'SUB_ADMIN' && path === RUTAS.adminComisiones
+}
+
 /** A donde va cada rol al ingresar si no venia de ninguna pagina. */
 function destinoPorRol(user) {
   if (user?.role === 'PRODUCTOR') return RUTAS.productor
   if (user?.role === 'CONSUMIDOR') return RUTAS.catalogo
   if (user?.role === 'SUPER_ADMIN') return RUTAS.admin
+  if (user?.role === 'SUB_ADMIN') return RUTAS.adminComisiones
   return RUTAS.inicio
 }
 
@@ -147,7 +156,8 @@ export default function App() {
     else if (sesion && delProductor && user.role !== 'PRODUCTOR') navigate(RUTAS.inicio, { replace: true })
     else if (sesion && delComprador && user.role !== 'CONSUMIDOR') navigate(RUTAS.inicio, { replace: true })
     else if (sesion && delAcopio && user.role !== 'ADMIN_PUNTO') navigate(RUTAS.inicio, { replace: true })
-    else if (sesion && delAdmin && user.role !== 'SUPER_ADMIN') navigate(RUTAS.inicio, { replace: true })
+    else if (sesion && delAdmin && user.role === 'SUB_ADMIN' && !puedeVerAdmin(user, path)) navigate(RUTAS.adminComisiones, { replace: true })
+    else if (sesion && delAdmin && !puedeVerAdmin(user, path)) navigate(RUTAS.inicio, { replace: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cargando, sesion, path])
 
@@ -200,9 +210,11 @@ export default function App() {
   } else if (restringida) {
     pagina = <AccesoRestringidoPage path={path} seccion={restringida} />
   } else if (delAdmin) {
-    // Por ahora el superadministrador tiene el tablero (SA-01); los otros modulos llegan con sus historias
-    if (user.role !== 'SUPER_ADMIN') pagina = null
+    // Tablero (SA-01), comision (SA-02) y comision por pedido; los otros modulos llegan con sus historias
+    if (!puedeVerAdmin(user, path)) pagina = null
     else if (path === RUTAS.admin) pagina = <TableroPage path={path} />
+    else if (path === RUTAS.adminComision) pagina = <ComisionPage path={path} />
+    else if (path === RUTAS.adminComisiones) pagina = <ComisionesPage path={path} />
     else {
       navigate(RUTAS.admin, { replace: true })
       pagina = null

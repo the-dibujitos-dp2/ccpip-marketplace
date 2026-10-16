@@ -1,0 +1,122 @@
+import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import iconoBillete from '../../assets/icons/billete.svg'
+import iconoGrafico from '../../assets/icons/grafico.svg'
+import iconoPorcentaje from '../../assets/icons/porcentaje.svg'
+import { comisionesPorPedido } from '../../api/admin.js'
+import Alerta from '../../components/Alerta.jsx'
+import Campo from '../../components/Campo.jsx'
+import TarjetaKpi from '../../components/TarjetaKpi.jsx'
+import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
+import { fechaHora, precio, unidades } from '../../formato.js'
+import { mensajeError } from '../../i18n/errores.js'
+import '../productor/productor.css'
+import './admin.css'
+
+/**
+ * CCPIP-91 (RF-69): la administracion de la Camara (super y sub administradores) consulta la comision y
+ * el neto de cada pedido confirmado, tal como se copiaron al confirmar. Sin datos del comprador.
+ */
+export default function ComisionesPage({ path }) {
+  const { t } = useTranslation()
+  const [rango, setRango] = useState({ desde: '', hasta: '' })
+  const [datos, setDatos] = useState(null)
+  const [error, setError] = useState(null)
+  const [cargando, setCargando] = useState(true)
+
+  const consultar = useCallback(async (filtro) => {
+    setCargando(true)
+    setError(null)
+    try {
+      const respuesta = await comisionesPorPedido(filtro)
+      setDatos(respuesta)
+      setRango({ desde: respuesta.desde, hasta: respuesta.hasta })
+    } catch (e) {
+      setError(e)
+    } finally {
+      setCargando(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    consultar()
+  }, [consultar])
+
+  const cambiar = (campo) => (e) => {
+    const nuevo = { ...rango, [campo]: e.target.value }
+    setRango(nuevo)
+    if (nuevo.desde && nuevo.hasta) consultar(nuevo)
+  }
+
+  return (
+    <LayoutAdmin path={path} migas={t('admin.nav.comisiones')} titulo={t('admin.comisiones.titulo')}>
+      <div className="comisiones__filtros">
+        <Campo etiqueta={t('admin.comisiones.desde')} type="date" value={rango.desde} max={rango.hasta || undefined} onChange={cambiar('desde')} />
+        <Campo etiqueta={t('admin.comisiones.hasta')} type="date" value={rango.hasta} min={rango.desde || undefined} onChange={cambiar('hasta')} />
+      </div>
+      {error && <Alerta tono="error" titulo={t('admin.comisiones.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
+      {cargando && !datos && <p className="caption">{t('comun.cargando')}</p>}
+      {datos && <Resultado datos={datos} />}
+    </LayoutAdmin>
+  )
+}
+
+function Resultado({ datos }) {
+  const { t } = useTranslation()
+  const { resumen, pedidos } = datos
+  return (
+    <>
+      <div className="productor__kpis">
+        <TarjetaKpi titulo={t('admin.comisiones.kpi.ventas')} valor={precio(resumen.ventas)} detalle={t('admin.comisiones.kpi.pedidos', { count: resumen.pedidos })} tono="neutro" icono={iconoGrafico} />
+        <TarjetaKpi titulo={t('admin.comisiones.kpi.comision')} valor={precio(resumen.comision)} icono={iconoPorcentaje} />
+        <TarjetaKpi titulo={t('admin.comisiones.kpi.neto')} valor={precio(resumen.neto)} icono={iconoBillete} />
+      </div>
+      {resumen.sinComision > 0 && (
+        <Alerta tono="info" titulo={t('admin.comisiones.sinComision', { count: resumen.sinComision })} descripcion={t('admin.comisiones.sinComisionTexto')} />
+      )}
+      <section className="productor__seccion" aria-labelledby="comisiones-tabla">
+        <h2 id="comisiones-tabla" className="heading-h3">{t('admin.comisiones.tabla')}</h2>
+        {pedidos.length === 0 ? (
+          <p className="body-s">{t('admin.comisiones.vacio')}</p>
+        ) : (
+          <div className="tabla" role="table" aria-labelledby="comisiones-tabla">
+            <div className="tabla__fila tabla__fila--encabezado" role="row">
+              <span className="tabla__celda comisiones__pedido" role="columnheader">{t('admin.comisiones.col.pedido')}</span>
+              <span className="tabla__celda comisiones__fecha" role="columnheader">{t('admin.comisiones.col.fecha')}</span>
+              <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('admin.comisiones.col.productores')}</span>
+              <span className="tabla__celda admin__num" role="columnheader">{t('admin.comisiones.col.venta')}</span>
+              <span className="tabla__celda comisiones__comision" role="columnheader">{t('admin.comisiones.col.comision')}</span>
+              <span className="tabla__celda admin__num" role="columnheader">{t('admin.comisiones.col.neto')}</span>
+            </div>
+            {pedidos.map((p) => (
+              <div key={p.id} className="tabla__fila" role="row">
+                <span className="tabla__celda comisiones__pedido label-m" role="cell">{p.numero}</span>
+                <span className="tabla__celda comisiones__fecha" role="cell">{fechaHora(p.confirmadoEn)}</span>
+                <span className="tabla__celda tabla__celda--flex" role="cell">
+                  <ul className="comisiones__productores">
+                    {p.productores.map((pr) => (
+                      <li key={pr.productorId}>
+                        <span>{pr.productor}</span>
+                        {p.productores.length > 1 && pr.neto != null && (
+                          <span className="caption">{t('admin.comisiones.netoProductor', { venta: precio(pr.venta), neto: precio(pr.neto) })}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </span>
+                <span className="tabla__celda admin__num" role="cell">{precio(p.venta)}</span>
+                <span className="tabla__celda comisiones__comision" role="cell">
+                  {p.comision == null
+                    ? t('admin.comisiones.sinComisionCelda')
+                    : t('admin.comisiones.conPorcentaje', { monto: precio(p.comision), porcentaje: unidades(p.porcentaje) })}
+                </span>
+                <span className="tabla__celda admin__num" role="cell">{p.neto == null ? '—' : precio(p.neto)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="caption">{t('admin.comisiones.nota')}</p>
+      </section>
+    </>
+  )
+}

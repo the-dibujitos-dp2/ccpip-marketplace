@@ -51,7 +51,11 @@ function Contenido({ tablero }) {
     <>
       <div className="productor__kpis">
         <TarjetaKpi titulo={t('admin.tablero.kpi.ventas')} valor={precio(ventas.mes)} detalle={variacion.texto} tono={variacion.tono} icono={iconoGrafico} />
-        <TarjetaKpi titulo={t('admin.tablero.kpi.comision')} valor={precio(comision.estimada)} detalle={t('admin.tablero.kpi.vigente', { porcentaje: unidades(comision.porcentaje) })} icono={iconoPorcentaje} />
+        {comision.porcentaje == null ? (
+          <TarjetaKpi titulo={t('admin.tablero.kpi.comision')} valor="—" detalle={t('admin.tablero.kpi.sinComision')} tono="neutro" icono={iconoPorcentaje} />
+        ) : (
+          <TarjetaKpi titulo={t('admin.tablero.kpi.comision')} valor={precio(comision.estimada)} detalle={t('admin.tablero.kpi.vigente', { porcentaje: unidades(comision.porcentaje) })} icono={iconoPorcentaje} />
+        )}
         <TarjetaKpi titulo={t('admin.tablero.kpi.productores')} valor={productores.activos} detalle={t('admin.tablero.kpi.nuevos', { count: productores.nuevosDelMes })} icono={iconoUsuario} />
         <TarjetaKpi titulo={t('admin.tablero.kpi.calificacion')} valor="—" detalle={t('admin.tablero.pronto')} tono="neutro" icono={iconoEstrella} />
       </div>

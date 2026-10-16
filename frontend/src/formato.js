@@ -9,6 +9,7 @@ const OPCIONES = {
   mes: { month: 'long', timeZone: 'UTC' },
   fechaCorta: { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' },
   fecha: { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' },
+  fechaLarga: { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' },
   diaMes: { day: 'numeric', month: 'short', timeZone: 'America/Lima' },
   fechaHora: { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima' },
 }
@@ -44,6 +45,11 @@ export function mesAnio(iso) {
 /** "2026-10-04" -> "4 oct 2026" · "4 Oct 2026" */
 export function fecha(iso) {
   return iso ? formato('fecha').format(new Date(`${iso}T00:00:00Z`)).replace('.', '') : ''
+}
+
+/** "2026-10-01" -> "1 de octubre de 2026" · "1 October 2026" (vigencias, SA-02) */
+export function fechaLarga(iso) {
+  return iso ? formato('fechaLarga').format(new Date(`${iso}T00:00:00Z`)) : ''
 }
 
 /** Mayuscula inicial: "octubre de 2026" -> "Octubre de 2026" */
