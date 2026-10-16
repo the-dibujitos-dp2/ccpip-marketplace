@@ -16,6 +16,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import pe.ccpip.catalogo.CatalogoRepository;
 import pe.ccpip.catalogo.CatalogoRepository.Vendible;
+import pe.ccpip.comision.ComisionService;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.compra.CompraModelos.ResultadoPago;
 import pe.ccpip.inventario.DescuentoExistenciasService;
@@ -34,7 +35,7 @@ import pe.ccpip.pago.Tarjeta;
  *   <li>Se registra el intento en PENDIENTE (transaccion corta).</li>
  *   <li>Se cobra en la pasarela, fuera de toda transaccion.</li>
  *   <li>Se aplica el resultado. Si se aprobo, en una sola transaccion: descuento de stock (CCPIP-158),
- *       pedido CONFIRMADO y carrito vaciado. Si el stock ya no alcanzo, el pago se ANULA, se devuelve
+ *       pedido CONFIRMADO con la comision vigente copiada (CCPIP-91, CCPIP-167) y carrito vaciado. Si el stock ya no alcanzo, el pago se ANULA, se devuelve
  *       y el pedido se cancela. Un rechazo no confirma ni descuenta.</li>
  * </ol>
  *
@@ -55,15 +56,18 @@ public class PagoService {
     private final PasarelaPago pasarela;
     private final CompraService compra;
     private final CatalogoRepository catalogo;
+    private final ComisionService comision;
 
     public PagoService(NamedParameterJdbcTemplate jdbc, TransactionTemplate tx, DescuentoExistenciasService descuento,
-                       PasarelaPago pasarela, CompraService compra, CatalogoRepository catalogo) {
+                       PasarelaPago pasarela, CompraService compra, CatalogoRepository catalogo,
+                       ComisionService comision) {
         this.jdbc = jdbc;
         this.tx = tx;
         this.descuento = descuento;
         this.pasarela = pasarela;
         this.compra = compra;
         this.catalogo = catalogo;
+        this.comision = comision;
     }
 
     /**
@@ -171,6 +175,8 @@ public class PagoService {
         MapSqlParameterSource p = new MapSqlParameterSource("id", intento.pedidoId()).addValue("usuario", usuarioId);
         jdbc.update("UPDATE pedido SET estado = 'CONFIRMADO', confirmado_en = now(), actualizado_en = now() WHERE id = :id", p);
         jdbc.update("INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (:id, 'CONFIRMADO', :usuario)", p);
+        // La comision que rige al confirmar queda copiada; cambios posteriores no la alteran (RNF-13)
+        comision.copiarAlPedido(intento.pedidoId());
         // Lo comprado sale del carrito; lo demas (si hubiera) se queda
         jdbc.update("""
                 DELETE FROM item_carrito ic USING carrito c
