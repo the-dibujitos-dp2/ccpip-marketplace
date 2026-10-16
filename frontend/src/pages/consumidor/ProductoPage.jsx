@@ -17,6 +17,7 @@ import { RUTAS } from '../../router.js'
 import { idiomaSegun, textoSegun } from '../../traduccion.js'
 import { resolverTarifa } from '../../tarifa.js'
 import AgregarAlCarrito from './AgregarAlCarrito.jsx'
+import MeInteresa from './MeInteresa.jsx'
 import './ProductoPage.css'
 
 // CCPIP-171: campos traducibles de cada seccion, con los nombres que usa el catalogo
@@ -226,6 +227,7 @@ export default function ProductoPage({ id }) {
                     : t('producto.estado.agotadoTexto')}
               </p>
               <AgregarAlCarrito key={producto.id} producto={producto} cantidad={cantidad} onCantidad={setCantidad} modo={activa} />
+              <MeInteresa key={`interes-${producto.id}`} producto={producto} />
             </div>
 
             {producto.descripcion && (
