@@ -298,6 +298,24 @@ erDiagram
 Como maximo una ACTIVA por productor (indice unico parcial); las desactivadas se conservan.
 No vence (CCPIP-129).
 
+Migracion `V202610161500` (CCPIP-32, 274, 275 y 276, Figma PW-19 y PW-20) agrega lo que el
+productor registra y como se desactiva:
+
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| documento_titular | varchar(11) | si | DNI (8) o RUC (11). Nula solo en cuentas anteriores a CCPIP-32 |
+| tipo_cuenta | varchar(10) | no | `AHORROS` o `CORRIENTE` |
+| moneda | char(3) | no | `PEN` o `USD` |
+| correo_avisos | varchar(254) | si | Correo para avisos de pago, opcional |
+| yape_celular | varchar(9) | si | Metodo complementario opcional; no reemplaza la cuenta (RF-07) |
+| motivo_desactivacion | varchar(20) | si | `ROBO`, `BLOQUEO_BANCO`, `SEGURIDAD` u `OTRO`; solo si esta DESACTIVADA |
+| desactivada_en | timestamptz | si | Desde cuando esta desactivada |
+
+El banco sale de una lista cerrada y el CCI se guarda con sus 20 digitos, sin guiones. Desactivar
+pide un motivo y confirmacion expresa; reactivar vuelve a validar los datos y pide la contrasena.
+Mientras esta DESACTIVADA, las ofertas del productor siguen visibles en "Venta pausada" y los
+pedidos ya pagados siguen su curso (supuesto de PW-20, por validar con el stakeholder).
+
 ### autorizacion_producto
 `productor_id`, `producto_id`, `estado` (SOLICITADA, APROBADA, RECHAZADA, REVOCADA), `motivo`,
 `decidido_por`, `decidido_en` y `vigente_hasta` (nula si no vence). Unica por productor y

@@ -210,7 +210,7 @@ class CatalogoControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.comprable").value(true));
 
         // CCPIP-269: la oferta sigue consultable, con su precio y su stock, pero no se puede comprar
-        jdbc.update("UPDATE cuenta_bancaria SET estado = 'DESACTIVADA' WHERE productor_id = (SELECT productor_id FROM producto WHERE id = ?)",
+        jdbc.update("UPDATE cuenta_bancaria SET estado = 'DESACTIVADA', motivo_desactivacion = 'OTRO', desactivada_en = now() WHERE productor_id = (SELECT productor_id FROM producto WHERE id = ?)",
                 id);
         mockMvc.perform(get("/api/productos/{id}", id))
                 .andExpect(status().isOk())

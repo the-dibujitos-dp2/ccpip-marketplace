@@ -180,15 +180,15 @@ ON CONFLICT (producto_id, ubicacion_id) DO NOTHING;
 -- "Venta pausada" (Figma CW-03c) hasta que la registre (CCPIP-32).
 -- ---------------------------------------------------------------------------------------
 
-INSERT INTO cuenta_bancaria (productor_id, banco, titular, numero_cuenta, cci)
-SELECT p.id, 'Banco de la Nación', p.comunidad, d.numero, d.cci
+INSERT INTO cuenta_bancaria (productor_id, banco, titular, numero_cuenta, cci, documento_titular)
+SELECT p.id, 'Banco de la Nación', p.comunidad, d.numero, d.cci, d.ruc
 FROM productor p
 JOIN usuario u ON u.id = p.usuario_id
 JOIN (VALUES
-    ('productor@ccpip.test',  '04-110-000001', '01811000041100000117'),
-    ('productor2@ccpip.test', '04-110-000002', '01811000041100000217'),
-    ('productor3@ccpip.test', '04-110-000003', '01811000041100000317')
-) AS d(correo, numero, cci) ON d.correo = u.correo
+    ('productor@ccpip.test',  '04-110-000001', '01811000041100000117', '20601234561'),
+    ('productor2@ccpip.test', '04-110-000002', '01811000041100000217', '20601234562'),
+    ('productor3@ccpip.test', '04-110-000003', '01811000041100000317', '20601234563')
+) AS d(correo, numero, cci, ruc) ON d.correo = u.correo
 WHERE NOT EXISTS (SELECT 1 FROM cuenta_bancaria c WHERE c.productor_id = p.id);
 
 INSERT INTO autorizacion_producto (productor_id, producto_id, estado, decidido_en)
