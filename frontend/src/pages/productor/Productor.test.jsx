@@ -17,6 +17,7 @@ function productor(rutas = {}) {
     'GET /api/auth/me': [200, SESION_PRODUCTOR],
     'GET /api/productor/tienda': () => [200, copia(DATOS.tiendaProductor)],
     'GET /api/productor/panel': () => [200, copia(DATOS.panelProductor)],
+    'GET /api/productor/intereses': () => [200, []],
     'GET /api/productor/productos': () => [200, copia(DATOS.productosProductor)],
     'GET /api/productor/productos/9': () => [200, copia(DATOS.edicion)],
     'GET /api/productor/productos/9/lotes': () => [200, copia(DATOS.lotes)],
@@ -86,6 +87,31 @@ describe('PW-01 Panel', () => {
     productor({ 'GET /api/productor/panel': [200, { ...copia(DATOS.panelProductor), publicados: 0, borradores: 0, retirados: 0 }] })
     abrirEn('/productor')
     expect(await screen.findByText('Aún no tienes productos')).toBeInTheDocument()
+  })
+
+  it('muestra cuántas personas y unidades esperan cada producto agotado, sin datos de los compradores (CCPIP-106)', async () => {
+    productor({
+      'GET /api/productor/intereses': [200, [
+        { productoId: 8, nombre: 'Harina de aguaje 500 g', unidad: 'UNIDAD', interesados: 11, cantidad: 23, estado: 'AGOTADO', ultimoRegistro: '2026-10-16T20:00:00Z' },
+        { productoId: 9, nombre: 'Bolso tejido de chambira', unidad: 'UNIDAD', interesados: 1, cantidad: 2, estado: 'VENTA_PAUSADA', ultimoRegistro: '2026-10-15T20:00:00Z' },
+      ]],
+    })
+    abrirEn('/productor')
+    const tarjeta = within(await screen.findByRole('region', { name: 'Interés en tus productos agotados' }))
+    const filas = tarjeta.getAllByRole('listitem')
+    expect(filas.map((f) => f.textContent)).toEqual([
+      'Harina de aguaje 500 g11 personas · 23 und',
+      'Bolso tejido de chambiraVenta pausada: reactiva tu cuenta bancaria para vender1 persona · 2 und',
+    ])
+    expect(tarjeta.getByRole('link', { name: 'Reponer stock' })).toHaveAttribute('href', '/productor/lotes')
+    expect(tarjeta.getByText(/avisamos por correo a cada interesado/)).toBeInTheDocument()
+  })
+
+  it('sin interesados no muestra la tarjeta, y si no carga el panel sigue igual', async () => {
+    productor({ 'GET /api/productor/intereses': [500, {}] })
+    abrirEn('/productor')
+    await screen.findByRole('heading', { name: 'Asoc. Nii Joi · Tienda publicada' })
+    expect(screen.queryByRole('region', { name: 'Interés en tus productos agotados' })).not.toBeInTheDocument()
   })
 
   it('si el panel falla lo dice', async () => {
