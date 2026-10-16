@@ -128,6 +128,14 @@ public class ProductorController {
         return historias.aprobar(actual.id(s), s.userId(), id, datos);
     }
 
+    /** CCPIP-280: descartar el borrador de la IA; queda registrado y no se publica nada. */
+    @PostMapping("/productos/{id}/ia/rechazar")
+    public ResponseEntity<Void> rechazarBorrador(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                                 @PathVariable long id, @RequestParam HistoriaService.Borrador borrador) {
+        historias.rechazar(actual.id(s), s.userId(), id, borrador);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/ia/descripcion")
     public Propuesta proponerDescripcion(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                          @Valid @RequestBody PedirDescripcion pedido) {

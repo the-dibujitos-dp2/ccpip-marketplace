@@ -323,6 +323,47 @@ class ProductorFlujoTest extends IntegrationTest {
     }
 
     @Test
+    void rechazarElBorradorDeLaIaLoQuitaYQuedaRegistrado() throws Exception {
+        long id = crearProducto(datosAceite());
+        String rechazar = "/api/productor/productos/{id}/ia/rechazar";
+
+        // Sin borrador pendiente no hay nada que rechazar
+        mockMvc.perform(post(rechazar, id).param("borrador", "DESCRIPCION").cookie(nuevo))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("SIN_BORRADOR"));
+
+        // CCPIP-280, descripcion (PW-04)
+        mockMvc.perform(post("/api/productor/ia/descripcion").cookie(nuevo).contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("productoId", id, "nombre", "Camu camu en polvo", "lineas", List.of("SUPERFRUTOS")))))
+                .andExpect(status().isOk());
+        mockMvc.perform(post(rechazar, id).param("borrador", "DESCRIPCION").cookie(nuevo)).andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/productor/productos/{id}", id).cookie(nuevo))
+                .andExpect(jsonPath("$.descripcionPropuesta").doesNotExist())
+                .andExpect(jsonPath("$.descripcionAsistida").value(false));
+
+        // Historia (PW-05): se rechaza la propuesta, se conservan las respuestas y no se publica nada
+        mockMvc.perform(post("/api/productor/productos/{id}/historia/propuesta", id).cookie(nuevo)
+                        .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("respuestas", respuestas()))))
+                .andExpect(status().isOk());
+        mockMvc.perform(post(rechazar, id).param("borrador", "HISTORIA").cookie(nuevo)).andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/productor/productos/{id}", id).cookie(nuevo))
+                .andExpect(jsonPath("$.historia.textoPropuesto").doesNotExist())
+                .andExpect(jsonPath("$.historia.aprobada").value(false))
+                .andExpect(jsonPath("$.historia.quienes").value(respuestas().get("quienes")));
+        mockMvc.perform(post(rechazar, id).param("borrador", "HISTORIA").cookie(nuevo)).andExpect(status().isConflict());
+
+        // RNF-29: los dos rechazos quedan en la auditoria con el texto que propuso la IA
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM producto_auditoria
+                WHERE producto_id = ? AND (cambios ->> 'descripcionIaRechazada' IS NOT NULL OR cambios ->> 'historiaIaRechazada' IS NOT NULL)""",
+                Integer.class, id)).isEqualTo(2);
+
+        // Solo sus productos y con un borrador valido
+        mockMvc.perform(post(rechazar, id).param("borrador", "HISTORIA").cookie(loginAs("productor@ccpip.test")))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(post(rechazar, id).param("borrador", "OTRO").cookie(nuevo)).andExpect(status().isBadRequest());
+    }
+
+    @Test
     void destacaHastaCuatroProductosPropios() throws Exception {
         long id = productoPublicado();
         Map<String, Object> tienda = new LinkedHashMap<>();
