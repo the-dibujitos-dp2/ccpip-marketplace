@@ -270,6 +270,11 @@ GALERIA o PRODUCTO, `categoria` de galeria, dimensiones y `principal`. Una sola 
 tienda y una sola principal por producto (indices unicos parciales). Se sirve por
 `/api/imagenes/{id}`, nunca con la URL del bucket, que es privado.
 
+Las fotos de producto no se borran (CCPIP-388, 389): `retirada_en` y `retirada_por` las sacan
+de la ficha y del editor, pero el registro y el archivo quedan y se siguen sirviendo por su id.
+Al reemplazar una, `reemplazada_por` apunta a la nueva, que toma su orden y su `principal`.
+Solo las vigentes cuentan para el limite de seis fotos. Portada y galeria se siguen borrando.
+
 ### producto_historia (CCPIP-48, 49)
 Las cuatro respuestas del productor (`quienes`, `como`, `significado`, `cuidado`), el texto
 que propuso la IA (`texto_propuesto`) y el aprobado (`texto_final`), con `asistida`,

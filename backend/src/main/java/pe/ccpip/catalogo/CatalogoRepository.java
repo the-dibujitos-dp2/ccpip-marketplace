@@ -212,7 +212,9 @@ public class CatalogoRepository {
     }
 
     private List<Imagen> imagenes(long productoId) {
-        return jdbc.query("SELECT id FROM imagen WHERE producto_id = :id ORDER BY principal DESC, orden, subida_en",
+        return jdbc.query("""
+                SELECT id FROM imagen WHERE producto_id = :id AND retirada_en IS NULL
+                ORDER BY principal DESC, orden, subida_en""",
                 new MapSqlParameterSource("id", productoId), (rs, row) -> {
                     UUID id = rs.getObject("id", UUID.class);
                     return new Imagen(id.toString(), ImagenService.url(id), ImagenService.urlMiniatura(id));
