@@ -67,7 +67,8 @@
       "inicio": "Inicio",
       "tienda": "Mi tienda",
       "productos": "Productos",
-      "lotes": "Lotes"
+      "lotes": "Lotes",
+      "cuenta": "Cuenta bancaria"
     },
     "tabla": {
       "producto": "Producto",
@@ -416,6 +417,96 @@
       "agregarFoto": "Agregar foto",
       "categoriaNuevas": "Categoría de las fotos nuevas",
       "senal": "Si la señal se corta, solo se reintenta la foto que faltó: las demás se conservan."
+    },
+    "cuenta": {
+      "titulo": "Cuenta bancaria",
+      "registrar": "Registra tu cuenta bancaria",
+      "resumen": "{{cuenta}} ···· {{ultimos}}",
+      "titularDe": "Titular: {{titular}}",
+      "tipo": {
+        "AHORROS": "Ahorros",
+        "CORRIENTE": "Corriente"
+      },
+      "moneda": {
+        "PEN": "Soles (S/)",
+        "USD": "Dólares (US$)"
+      },
+      "estado": {
+        "ACTIVA": "Activa",
+        "DESACTIVADA": "Desactivada temporalmente"
+      },
+      "motivo": {
+        "ROBO": "Robo o pérdida de la tarjeta de débito asociada",
+        "BLOQUEO_BANCO": "Bloqueo del banco",
+        "SEGURIDAD": "Problema de seguridad",
+        "OTRO": "Otro motivo"
+      },
+      "campo": {
+        "titular": "Titular de la cuenta",
+        "documento": "Documento del titular",
+        "banco": "Banco",
+        "tipoCuenta": "Tipo de cuenta",
+        "numeroCuenta": "Número de cuenta",
+        "cci": "Código de cuenta interbancario (CCI)",
+        "moneda": "Moneda",
+        "correoAvisos": "Correo para avisos de pago (opcional)",
+        "yapeCelular": "Celular Yape",
+        "contrasena": "Tu contraseña",
+        "motivo": "Motivo"
+      },
+      "ayudaDocumento": "DNI de 8 dígitos o RUC de 11.",
+      "ayudaCci": "20 dígitos. Puedes escribirlo con guiones.",
+      "ayudaContrasena": "Para reactivar la cuenta confirma que eres tú.",
+      "validacion": {
+        "titular": "Indica el titular de la cuenta.",
+        "documento": "Escribe un DNI de 8 dígitos o un RUC de 11.",
+        "banco": "Elige el banco.",
+        "tipoCuenta": "Elige el tipo de cuenta.",
+        "numeroCuenta": "Escribe el número de cuenta, solo con números y guiones.",
+        "cci": "El CCI tiene 20 dígitos.",
+        "moneda": "Elige la moneda.",
+        "correoAvisos": "Escribe un correo válido.",
+        "yapeCelular": "Escribe un celular de 9 dígitos que empiece con 9.",
+        "contrasena": "Escribe tu contraseña.",
+        "motivo": "Elige el motivo."
+      },
+      "noVence": "Una cuenta bancaria no vence: no pedimos fecha de vencimiento, CVV ni datos de tarjeta.",
+      "complementario": "Método complementario (opcional)",
+      "conYape": "Recibir también pagos por Yape",
+      "yapeNoReemplaza": "La cuenta bancaria sigue siendo obligatoria aunque uses Yape.",
+      "sinCuenta": "Aún no tienes una cuenta para cobrar",
+      "sinCuentaTexto": "Mientras no la registres, tus productos se ven en \"Venta pausada\" y no se pueden comprar.",
+      "registrarBoton": "Registrar cuenta",
+      "guardarBoton": "Guardar cambios",
+      "reactivarBoton": "Reactivar cuenta",
+      "registrada": "Cuenta registrada",
+      "registradaTexto": "Tus productos autorizados ya se pueden comprar.",
+      "actualizada": "Cambios guardados",
+      "actualizadaTexto": "Los datos de tu cuenta bancaria están al día.",
+      "reactivada": "Cuenta reactivada",
+      "reactivadaTexto": "Tus ventas se habilitaron de nuevo.",
+      "errorCargar": "No pudimos cargar tu cuenta bancaria",
+      "errorGuardar": "No pudimos guardar tu cuenta bancaria",
+      "seguridad": "¿Robo, bloqueo o problema de seguridad?",
+      "seguridadTexto": "Desactiva temporalmente la cuenta. Tu tienda y tus productos siguen visibles, pero no se podrá comprar hasta que la reactives.",
+      "desactivar": "Desactivar temporalmente",
+      "noSeElimina": "No se puede eliminar la cuenta: siempre debe existir un destino para tus pagos.",
+      "desactivadaAviso": "Cuenta desactivada",
+      "desactivadaAvisoTexto": "Tus productos siguen visibles, pero la venta está pausada hasta que reactives la cuenta.",
+      "desactivadaDesde": "Desactivada desde el {{fecha}} · {{motivo}}",
+      "revisaYReactiva": "Tus productos se ven en \"Venta pausada\". Revisa los datos, escribe tu contraseña y reactiva la cuenta para volver a vender.",
+      "dialogo": {
+        "titulo": "Desactivar temporalmente la cuenta bancaria",
+        "cuando": "Úsalo si te robaron, tu banco bloqueó la cuenta o detectas un problema de seguridad.",
+        "quePasara": "Qué pasará",
+        "visibles": "Tu tienda y tus productos siguen visibles.",
+        "pausa": "La venta se pausa: tus productos se ven en \"Venta pausada\".",
+        "pedidos": "Los pedidos ya pagados siguen su curso."
+      },
+      "nombreTipo": {
+        "AHORROS": "Cuenta de ahorros",
+        "CORRIENTE": "Cuenta corriente"
+      }
     }
   },
   "acopio": {
@@ -763,7 +854,16 @@
     "CONTRASENA_MUY_LARGA": "La contraseña es demasiado larga.",
     "ENLACE_INVALIDO": "El enlace no es válido. Revisa que lo hayas copiado completo.",
     "ENLACE_USADO": "Este enlace ya se usó. Si ya verificaste tu correo, inicia sesión.",
-    "ENLACE_VENCIDO": "El enlace venció. Pide uno nuevo con tu correo."
+    "ENLACE_VENCIDO": "El enlace venció. Pide uno nuevo con tu correo.",
+    "CUENTA_NO_REGISTRADA": "Aún no registras tu cuenta bancaria. Regístrala para poder vender.",
+    "CUENTA_YA_REGISTRADA": "Ya registraste tu cuenta bancaria. Puedes actualizar sus datos.",
+    "CUENTA_DESACTIVADA": "Tu cuenta está desactivada. Revisa sus datos y reactívala.",
+    "CUENTA_ACTIVA": "Tu cuenta ya está activa.",
+    "CONTRASENA_INCORRECTA": "La contraseña no es correcta.",
+    "BANCO_INVALIDO": "Elige un banco de la lista.",
+    "CCI_INVALIDO": "El CCI tiene 20 dígitos.",
+    "NUMERO_CUENTA_INVALIDO": "El número de cuenta tiene entre 8 y 20 dígitos.",
+    "YAPE_INVALIDO": "El celular de Yape tiene 9 dígitos y empieza con 9."
   },
   "buscar": {
     "comunidad": "Comunidad",

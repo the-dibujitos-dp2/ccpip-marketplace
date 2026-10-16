@@ -49,3 +49,14 @@ export async function subirImagen(archivo, { tipo, categoria, productoId }) {
   if (!res.ok) throw new ApiError(res.status, cuerpo)
   return cuerpo
 }
+
+// CCPIP-32, 274, 275 y 276 (PW-19, PW-20): la cuenta bancaria de la sesion. 404 si aun no hay una.
+export const consultarCuentaBancaria = () => apiFetch(`${base}/cuenta-bancaria`)
+export const listarBancos = () => apiFetch(`${base}/cuenta-bancaria/bancos`)
+export const registrarCuentaBancaria = (datos) => apiFetch(`${base}/cuenta-bancaria`, { method: 'POST', body: datos })
+export const actualizarCuentaBancaria = (datos) => apiFetch(`${base}/cuenta-bancaria`, { method: 'PUT', body: datos })
+/** `motivo`: ROBO | BLOQUEO_BANCO | SEGURIDAD | OTRO. La confirmacion expresa es el boton del dialogo. */
+export const desactivarCuentaBancaria = (motivo) =>
+  apiFetch(`${base}/cuenta-bancaria/desactivar`, { method: 'POST', body: { motivo, confirmo: true } })
+export const reactivarCuentaBancaria = (datos, contrasena) =>
+  apiFetch(`${base}/cuenta-bancaria/reactivar`, { method: 'POST', body: { datos, contrasena } })

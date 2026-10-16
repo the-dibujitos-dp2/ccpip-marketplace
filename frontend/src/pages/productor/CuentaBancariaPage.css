@@ -1,0 +1,27 @@
+/* PW-19 y PW-20 · Cuenta bancaria (CCPIP-32, 274, 275, 276) */
+.cuenta-bancaria { display: grid; grid-template-columns: minmax(0, 1fr) 380px; align-items: start; gap: 24px; }
+.cuenta-bancaria__formulario { gap: 20px; }
+.cuenta-bancaria__cabecera { display: flex; align-items: flex-start; gap: 14px; }
+.cuenta-bancaria__icono { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: var(--color-bg-brand-subtle); color: var(--color-text-brand); }
+.cuenta-bancaria__resumen { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
+.cuenta-bancaria__resumen .heading-h3 { margin: 0; }
+.cuenta-bancaria__resumen .body-s { margin: 0; }
+.cuenta-bancaria__campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; }
+.cuenta-bancaria__yape { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 16px; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); }
+.cuenta-bancaria__yape legend { padding: 0 4px; }
+.cuenta-bancaria__check { display: flex; align-items: center; gap: 10px; font-size: 15px; cursor: pointer; }
+.cuenta-bancaria__check input { width: 18px; height: 18px; accent-color: var(--color-bg-brand); }
+.cuenta-bancaria__acciones { display: flex; justify-content: flex-end; }
+.cuenta-bancaria__lateral { gap: 14px; }
+.cuenta-bancaria__lateral .heading-h4, .cuenta-bancaria__lateral p { margin: 0; }
+.cuenta-bancaria__consecuencias { margin: 12px 0; padding: 14px 16px; border-radius: var(--radius-l); background: var(--color-bg-sand); }
+.cuenta-bancaria__consecuencias p { margin: 0 0 8px; }
+.cuenta-bancaria__consecuencias ul { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.cuenta-bancaria__consecuencias li { display: flex; align-items: center; gap: 10px; color: var(--color-text-primary); }
+
+@media (max-width: 1100px) {
+  .cuenta-bancaria { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .cuenta-bancaria__campos { grid-template-columns: minmax(0, 1fr); }
+}

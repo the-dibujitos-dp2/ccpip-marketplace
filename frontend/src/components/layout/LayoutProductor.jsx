@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import iconoBillete from '../../assets/icons/billete.svg'
 import iconoCaja from '../../assets/icons/caja.svg'
 import iconoEtiqueta from '../../assets/icons/etiqueta.svg'
 import iconoTablero from '../../assets/icons/tablero.svg'
@@ -13,6 +14,7 @@ const NAV = [
   { to: RUTAS.productorTienda, clave: 'tienda', icono: iconoTienda, activo: (p) => p.startsWith(RUTAS.productorTienda) },
   { to: RUTAS.productorProductos, clave: 'productos', icono: iconoEtiqueta, activo: (p) => p.startsWith(RUTAS.productorProductos) },
   { to: RUTAS.productorLotes, clave: 'lotes', icono: iconoCaja, activo: (p) => p.startsWith(RUTAS.productorLotes) },
+  { to: RUTAS.productorCuenta, clave: 'cuenta', icono: iconoBillete, activo: (p) => p.startsWith(RUTAS.productorCuenta) },
 ]
 
 /** Estructura web del productor (PW): su menu y un buscador de sus productos en la barra superior. */

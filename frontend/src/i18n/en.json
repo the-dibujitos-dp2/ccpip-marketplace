@@ -67,7 +67,8 @@
       "inicio": "Home",
       "tienda": "My store",
       "productos": "Products",
-      "lotes": "Batches"
+      "lotes": "Batches",
+      "cuenta": "Bank account"
     },
     "tabla": {
       "producto": "Product",
@@ -416,6 +417,96 @@
       "agregarFoto": "Add photo",
       "categoriaNuevas": "Category for new photos",
       "senal": "If the signal drops, only the missing photo is retried: the others are kept."
+    },
+    "cuenta": {
+      "titulo": "Bank account",
+      "registrar": "Register your bank account",
+      "resumen": "{{cuenta}} ···· {{ultimos}}",
+      "titularDe": "Holder: {{titular}}",
+      "tipo": {
+        "AHORROS": "Savings",
+        "CORRIENTE": "Checking"
+      },
+      "moneda": {
+        "PEN": "Soles (S/)",
+        "USD": "US dollars (US$)"
+      },
+      "estado": {
+        "ACTIVA": "Active",
+        "DESACTIVADA": "Temporarily deactivated"
+      },
+      "motivo": {
+        "ROBO": "Theft or loss of the linked debit card",
+        "BLOQUEO_BANCO": "Blocked by the bank",
+        "SEGURIDAD": "Security issue",
+        "OTRO": "Other reason"
+      },
+      "campo": {
+        "titular": "Account holder",
+        "documento": "Holder's ID",
+        "banco": "Bank",
+        "tipoCuenta": "Account type",
+        "numeroCuenta": "Account number",
+        "cci": "Interbank account code (CCI)",
+        "moneda": "Currency",
+        "correoAvisos": "Email for payment notices (optional)",
+        "yapeCelular": "Yape mobile number",
+        "contrasena": "Your password",
+        "motivo": "Reason"
+      },
+      "ayudaDocumento": "8-digit DNI or 11-digit RUC.",
+      "ayudaCci": "20 digits. You can type it with dashes.",
+      "ayudaContrasena": "Confirm it's you to reactivate the account.",
+      "validacion": {
+        "titular": "Enter the account holder.",
+        "documento": "Enter an 8-digit DNI or an 11-digit RUC.",
+        "banco": "Choose the bank.",
+        "tipoCuenta": "Choose the account type.",
+        "numeroCuenta": "Enter the account number, using only digits and dashes.",
+        "cci": "The CCI has 20 digits.",
+        "moneda": "Choose the currency.",
+        "correoAvisos": "Enter a valid email.",
+        "yapeCelular": "Enter a 9-digit mobile number starting with 9.",
+        "contrasena": "Enter your password.",
+        "motivo": "Choose the reason."
+      },
+      "noVence": "A bank account doesn't expire: we don't ask for an expiry date, CVV or card details.",
+      "complementario": "Additional method (optional)",
+      "conYape": "Also receive payments via Yape",
+      "yapeNoReemplaza": "A bank account is still required even if you use Yape.",
+      "sinCuenta": "You don't have an account to get paid yet",
+      "sinCuentaTexto": "Until you register it, your products show as \"Sales paused\" and can't be bought.",
+      "registrarBoton": "Register account",
+      "guardarBoton": "Save changes",
+      "reactivarBoton": "Reactivate account",
+      "registrada": "Account registered",
+      "registradaTexto": "Your authorized products can now be bought.",
+      "actualizada": "Changes saved",
+      "actualizadaTexto": "Your bank account details are up to date.",
+      "reactivada": "Account reactivated",
+      "reactivadaTexto": "Your sales are enabled again.",
+      "errorCargar": "We couldn't load your bank account",
+      "errorGuardar": "We couldn't save your bank account",
+      "seguridad": "Theft, block or security issue?",
+      "seguridadTexto": "Temporarily deactivate the account. Your store and products stay visible, but they can't be bought until you reactivate it.",
+      "desactivar": "Deactivate temporarily",
+      "noSeElimina": "The account can't be deleted: there must always be a destination for your payments.",
+      "desactivadaAviso": "Account deactivated",
+      "desactivadaAvisoTexto": "Your products stay visible, but sales are paused until you reactivate the account.",
+      "desactivadaDesde": "Deactivated since {{fecha}} · {{motivo}}",
+      "revisaYReactiva": "Your products show as \"Sales paused\". Review the details, enter your password and reactivate the account to sell again.",
+      "dialogo": {
+        "titulo": "Temporarily deactivate the bank account",
+        "cuando": "Use it if you were robbed, your bank blocked the account or you detect a security issue.",
+        "quePasara": "What will happen",
+        "visibles": "Your store and products stay visible.",
+        "pausa": "Sales are paused: your products show as \"Sales paused\".",
+        "pedidos": "Orders already paid continue as usual."
+      },
+      "nombreTipo": {
+        "AHORROS": "Savings account",
+        "CORRIENTE": "Checking account"
+      }
     }
   },
   "acopio": {
@@ -763,7 +854,16 @@
     "CONTRASENA_MUY_LARGA": "The password is too long.",
     "ENLACE_INVALIDO": "The link is not valid. Check that you copied it completely.",
     "ENLACE_USADO": "This link was already used. If you already verified your email, log in.",
-    "ENLACE_VENCIDO": "The link expired. Request a new one with your email."
+    "ENLACE_VENCIDO": "The link expired. Request a new one with your email.",
+    "CUENTA_NO_REGISTRADA": "You haven't registered your bank account yet. Register it to sell.",
+    "CUENTA_YA_REGISTRADA": "You already registered your bank account. You can update its details.",
+    "CUENTA_DESACTIVADA": "Your account is deactivated. Review its details and reactivate it.",
+    "CUENTA_ACTIVA": "Your account is already active.",
+    "CONTRASENA_INCORRECTA": "The password is incorrect.",
+    "BANCO_INVALIDO": "Choose a bank from the list.",
+    "CCI_INVALIDO": "The CCI has 20 digits.",
+    "NUMERO_CUENTA_INVALIDO": "The account number has between 8 and 20 digits.",
+    "YAPE_INVALIDO": "The Yape number has 9 digits and starts with 9."
   },
   "buscar": {
     "comunidad": "Community",
