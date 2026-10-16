@@ -478,7 +478,7 @@ class CarritoControllerTest extends IntegrationTest {
     @Test
     void sinCuentaBancariaActivaLaOfertaNoSeAgregaNiSeModifica() throws Exception {
         agregar(consumidor, oferta, 1).andExpect(status().isOk());
-        jdbc.update("UPDATE cuenta_bancaria SET estado = 'DESACTIVADA' WHERE productor_id = (SELECT productor_id FROM producto WHERE id = ?)",
+        jdbc.update("UPDATE cuenta_bancaria SET estado = 'DESACTIVADA', motivo_desactivacion = 'OTRO', desactivada_en = now() WHERE productor_id = (SELECT productor_id FROM producto WHERE id = ?)",
                 oferta);
 
         agregar(consumidor, oferta, 1)
