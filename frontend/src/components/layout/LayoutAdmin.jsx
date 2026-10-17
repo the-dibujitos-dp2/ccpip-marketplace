@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import iconoBillete from '../../assets/icons/billete.svg'
+import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import iconoPorcentaje from '../../assets/icons/porcentaje.svg'
 import iconoTablero from '../../assets/icons/tablero.svg'
 import { RUTAS } from '../../router.js'
@@ -12,6 +13,7 @@ import LayoutPanel from './LayoutPanel.jsx'
  */
 const NAV = [
   { to: RUTAS.admin, clave: 'tablero', icono: iconoTablero, roles: ['SUPER_ADMIN'] },
+  { to: RUTAS.adminAutorizaciones, clave: 'autorizaciones', icono: iconoEscudo, roles: ['SUB_ADMIN'], prefijo: true },
   { to: RUTAS.adminComision, clave: 'comision', icono: iconoPorcentaje, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminComisiones, clave: 'comisiones', icono: iconoBillete, roles: ['SUPER_ADMIN', 'SUB_ADMIN'] },
 ]
@@ -24,7 +26,7 @@ export default function LayoutAdmin({ path, migas, titulo, children }) {
   const nav = NAV.filter((n) => n.roles.includes(user.role)).map((n) => ({
     ...n,
     texto: t(`admin.nav.${n.clave}`),
-    activo: (p) => p === n.to,
+    activo: (p) => p === n.to || (n.prefijo && p.startsWith(`${n.to}/`)),
   }))
   return (
     <LayoutPanel

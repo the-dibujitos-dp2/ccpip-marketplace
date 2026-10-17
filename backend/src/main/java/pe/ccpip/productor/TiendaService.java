@@ -15,6 +15,8 @@ import jakarta.validation.constraints.Size;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.imagenes.ImagenService;
 import pe.ccpip.imagenes.ImagenService.Imagen;
+import pe.ccpip.traduccion.InvalidacionTraducciones;
+import pe.ccpip.traduccion.Traducciones.Entidad;
 
 /** CCPIP-30: el productor arma y publica la tienda de su comunidad (PW-08). */
 @Service
@@ -44,10 +46,12 @@ public class TiendaService {
 
     private final JdbcTemplate jdbc;
     private final ImagenService imagenes;
+    private final InvalidacionTraducciones invalidacion;
 
-    public TiendaService(JdbcTemplate jdbc, ImagenService imagenes) {
+    public TiendaService(JdbcTemplate jdbc, ImagenService imagenes, InvalidacionTraducciones invalidacion) {
         this.jdbc = jdbc;
         this.imagenes = imagenes;
+        this.invalidacion = invalidacion;
     }
 
     public TiendaEdicion obtener(long productorId) {
@@ -74,6 +78,7 @@ public class TiendaService {
 
     @Transactional
     public TiendaEdicion guardar(long productorId, DatosTienda datos) {
+        TiendaEdicion antes = obtener(productorId);
         jdbc.update("""
                 UPDATE productor SET nombre_tienda = ?, descripcion_corta = ?, historia = ?, cita = ?, pueblo = ?,
                        localidad = ?, socios = ?, actualizado_en = now()
@@ -83,7 +88,13 @@ public class TiendaService {
         if (datos.destacados() != null) {
             fijarDestacados(productorId, datos.destacados());
         }
-        return obtener(productorId);
+        TiendaEdicion despues = obtener(productorId);
+        // CCPIP-373: la tienda vive en la fila del productor; la descripcion es de TIENDA y la historia de COMUNIDAD
+        invalidacion.siCambio(Entidad.TIENDA, productorId, "nombre", antes.nombreTienda(), despues.nombreTienda());
+        invalidacion.siCambio(Entidad.TIENDA, productorId, "descripcion", antes.descripcionCorta(), despues.descripcionCorta());
+        invalidacion.siCambio(Entidad.COMUNIDAD, productorId, "historia", antes.historia(), despues.historia());
+        invalidacion.siCambio(Entidad.COMUNIDAD, productorId, "cita", antes.cita(), despues.cita());
+        return despues;
     }
 
     /** Publica la tienda si tiene lo minimo que el comprador necesita para conocer a la comunidad. */

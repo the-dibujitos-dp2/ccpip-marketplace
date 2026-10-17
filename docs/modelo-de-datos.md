@@ -275,6 +275,25 @@ de la ficha y del editor, pero el registro y el archivo quedan y se siguen sirvi
 Al reemplazar una, `reemplazada_por` apunta a la nueva, que toma su orden y su `principal`.
 Solo las vigentes cuentan para el limite de seis fotos. Portada y galeria se siguen borrando.
 
+### imagen_validacion (CCPIP-144, 168)
+Migracion `V202610171300`. Cada vez que el productor pide validar una foto de producto queda
+una fila: `estado` (ANALIZANDO, VALIDA, SOSPECHOSA, ERROR), `linea_esperada` (la principal del
+producto), `linea_detectada` (la que coincide o a la que se parece), `motivo`, `proveedor`,
+`solicitada_por`, `solicitada_en` y `terminada_en` (nula solo mientras se analiza). La vigente
+es la ultima; las anteriores, incluidas las que fallaron, quedan como historial. Es solo una
+recomendacion: no bloquea la publicacion ni cambia la foto (RF-137). Hoy el proveedor es
+`simulado` (pruebas y demo) o `ninguno` (503); el modelo definitivo se conectara despues.
+
+### imagen_mejora (CCPIP-176, 272, 281, 282)
+Migracion `V202610171301`. La variante mejorada de una foto vive aparte, con su propia `clave`
+y `clave_miniatura` en el bucket (`productores/<id>/mejoras/<mejora>.jpg`), y se sirve solo a
+su dueno por `/api/productor/mejoras/{id}`. `estado` PENDIENTE, ACEPTADA o RECHAZADA, con
+`ajustes` (p. ej. AUTOCONTRASTE,NITIDEZ), `proveedor`, quien y cuando la pidio y la decidio.
+Una sola pendiente por foto (indice unico parcial). Al aceptarla se registra una `imagen` nueva
+con la clave de la variante que toma el lugar de la original, igual que un reemplazo: la
+original queda retirada y `reemplazada_por` apunta a la nueva; `imagen_resultante` la enlaza.
+Rechazarla no toca la original.
+
 ### producto_historia (CCPIP-48, 49)
 Las cuatro respuestas del productor (`quienes`, `como`, `significado`, `cuidado`), el texto
 que propuso la IA (`texto_propuesto`) y el aprobado (`texto_final`), con `asistida`,
@@ -558,12 +577,40 @@ traduccion asistida) esta pendiente de definir con el cliente, por eso cada fila
 | campo | varchar(40) | no | nombre, descripcion, titulo, texto, historia, cita o una parte de la historia |
 | idioma | varchar(2) | no | Solo `en`: el espanol no se traduce |
 | texto | text | no | No vacio |
-| estado | varchar(10) | no | PENDIENTE o APROBADA. Solo la aprobada se publica |
+| estado | varchar(14) | no | PENDIENTE, APROBADA o DESACTUALIZADA. Solo la aprobada se publica |
 | aprobada_en | timestamptz | si | Obligatoria si esta APROBADA |
+| origen | varchar(12) | no | COMUNIDAD (la escribio o reviso una persona) o AUTOMATICA (CCPIP-147). Por defecto COMUNIDAD |
+| proveedor | varchar(40) | si | Proveedor de la traduccion automatica; obligatorio si es AUTOMATICA |
+| version_original | integer | no | Version del original (`contenido_version`) desde la que se tradujo. Por defecto 1 |
+| desactualizada_en | timestamptz | si | Cuando cambio el original. Obligatoria si y solo si esta DESACTUALIZADA |
 
-Unica por (entidad, clave, campo, idioma). Los textos en ingles de los datos de demostracion
-estan en `R__03_traducciones_demo.sql`. Invalidar una traduccion cuando cambia el original es
-CCPIP-373.
+Unica por (entidad, clave, campo, idioma): traducir otra vez reemplaza la fila, nunca la duplica
+(CCPIP-170). Los textos en ingles de los datos de demostracion estan en
+`R__03_traducciones_demo.sql`, que no reactiva una traduccion desactualizada.
+
+### contenido_version
+CCPIP-170 y CCPIP-373 (migracion `V202610171400__traduccion_version.sql`). Version de cada campo
+original traducible. Sin fila, el campo esta en su version 1.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| entidad, clave, campo | | no | Clave primaria; mismos valores que en `traduccion` |
+| version | integer | no | Sube en 1 cada vez que el productor cambia ese texto |
+| actualizado_en | timestamptz | no | |
+
+Ciclo de una traduccion:
+
+- **CCPIP-373.** Cuando el productor cambia un texto original (nombre o descripcion del producto,
+  titulo, texto o partes de la historia, nombre, descripcion, historia o cita de la tienda), sube la
+  version del campo y sus traducciones pasan a DESACTUALIZADA. No se borran. El catalogo deja de
+  servirlas: muestra el original y avisa que la traduccion esta desactualizada. Guardar el mismo
+  texto no cuenta como cambio.
+- **CCPIP-147.** La traduccion automatica nace PENDIENTE, con `origen = AUTOMATICA` y su proveedor, y
+  solo se publica cuando el productor la revisa (RNF-33). Si la corrige, pasa a `origen =
+  COMUNIDAD`. No reemplaza una traduccion aprobada que siga al dia. Sin proveedor responde 503 y no
+  cambia nada (RNF-34).
+- **CCPIP-171.** La ficha y la tienda devuelven, en otro idioma, `traducciones` por campo con su
+  origen, si esta vigente y el texto original para "Ver original".
 
 ## Registro y verificacion del correo (CCPIP-26, CCPIP-328)
 

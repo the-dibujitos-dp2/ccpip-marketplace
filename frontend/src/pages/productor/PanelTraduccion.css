@@ -1,0 +1,8 @@
+/* CCPIP-147: traduccion del contenido en PW-04 y PW-08 */
+.panel-traduccion { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+.panel-traduccion__campos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.panel-traduccion__campo { display: flex; flex-direction: column; gap: 6px; padding-bottom: 12px; border-bottom: 1px solid var(--color-border-default); }
+.panel-traduccion__campo:last-child { border-bottom: 0; padding-bottom: 0; }
+.panel-traduccion__cabecera { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.panel-traduccion__texto { margin: 0; color: var(--color-text-secondary); white-space: pre-line; }
+.panel-traduccion__acciones { display: flex; flex-wrap: wrap; gap: 12px; }
