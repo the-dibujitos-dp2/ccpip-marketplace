@@ -11,6 +11,7 @@ import AccesoRestringidoPage from './pages/admin/AccesoRestringidoPage.jsx'
 import ComisionesPage from './pages/admin/ComisionesPage.jsx'
 import ComisionPage from './pages/admin/ComisionPage.jsx'
 import TableroPage from './pages/admin/TableroPage.jsx'
+import InventarioPage from './pages/acopio/InventarioPage.jsx'
 import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
 import PedidosPage from './pages/acopio/PedidosPage.jsx'
 import BuscarPage from './pages/consumidor/BuscarPage.jsx'
@@ -244,10 +245,11 @@ export default function App() {
     else if (RUTA_PEDIDO.test(path)) pagina = <PedidoPage id={path.match(RUTA_PEDIDO)[1]} />
     else pagina = <CarritoPage />
   } else if (delAcopio) {
-    // Por ahora el punto tiene Pedidos (A-05, CCPIP-159) y Movimientos (A-03, CCPIP-158)
+    // Por ahora el punto tiene Pedidos (A-05, CCPIP-159), Movimientos (A-03, CCPIP-158) e Inventario (A-02, CCPIP-162)
     if (user.role !== 'ADMIN_PUNTO') pagina = null
     else if (path === RUTAS.acopioPedidos) pagina = <PedidosPage path={path} />
     else if (path === RUTAS.acopioMovimientos) pagina = <MovimientosPage path={path} />
+    else if (path === RUTAS.acopioInventario) pagina = <InventarioPage path={path} />
     else {
       navigate(RUTAS.acopioPedidos, { replace: true })
       pagina = null

@@ -614,7 +614,8 @@
     "rol": "Collection point",
     "nav": {
       "pedidos": "Orders",
-      "movimientos": "Stock movements"
+      "movimientos": "Stock movements",
+      "inventario": "Inventory"
     },
     "pedidos": {
       "vence": "expires {{fecha}}",
@@ -688,9 +689,44 @@
         "TRANSFERENCIA_ENTRADA": "Transfer",
         "SALIDA_VENTA": "Outgoing",
         "TRANSFERENCIA_SALIDA": "Transfer",
-        "AJUSTE": "Adjustment"
+        "AJUSTE": "Adjustment",
+        "SALIDA": "Outgoing"
       },
       "compraEnLinea": "Online purchase"
+    },
+    "inventario": {
+      "buscar": "Search product or batch…",
+      "productor": "Producer",
+      "todos": "All",
+      "estadoLote": "Batch status",
+      "estado": {
+        "ACTIVOS": "Active",
+        "AGOTADOS": "Sold out",
+        "TODOS": "All"
+      },
+      "unSoloInventario": "A single inventory, calculated from movements",
+      "unSoloInventarioTexto": "Stock available for sale is deducted when each purchase is confirmed, not when the buyer picks it up. Expired stock is not sold; stock in transit or written off does not count here.",
+      "errorCargar": "We couldn't load the inventory",
+      "resumen": "Stock: {{stock}} units · Sellable: {{vendible}} units · Not sellable: {{noVendible}} units",
+      "vacio": "No batches match these filters",
+      "vacioTexto": "Here you'll see your point's batches, with their incoming, outgoing and status.",
+      "mostrando": "Showing {{desde}}–{{hasta}} of {{total}} batches",
+      "lista": "Collection point inventory",
+      "col": {
+        "vence": "Expires",
+        "entradas": "Incoming",
+        "salidas": "Outgoing",
+        "stock": "Stock",
+        "accion": "Action"
+      },
+      "estados": {
+        "DISPONIBLE": "Available",
+        "POR_VENCER": "Expiring soon",
+        "VENCIDO": "Expired",
+        "AGOTADO": "Sold out"
+      },
+      "movimiento": "Movement",
+      "movimientoDe": "Record a movement for batch {{lote}}"
     }
   },
   "admin": {
@@ -1063,7 +1099,12 @@
     "CAMBIO_NO_CANCELABLE": "Only a change that hasn't taken effect yet can be cancelled.",
     "CAMBIO_NO_ENCONTRADO": "We couldn't find that commission change.",
     "RANGO_INVALIDO": "The start date must be on or before the end date.",
-    "RANGO_MUY_LARGO": "Query at most one year at a time."
+    "RANGO_MUY_LARGO": "Query at most one year at a time.",
+    "SALDO_INSUFICIENTE": "The batch doesn't have that many units: no more than its stock can go out.",
+    "LOTE_VENCIDO": "The batch has expired: it can't receive more units.",
+    "LOTE_NO_ENCONTRADO": "The batch doesn't exist at your point or warehouse.",
+    "MOTIVO_INVALIDO": "That reason doesn't match this movement.",
+    "ENVIO_REUTILIZADO": "This submission was already used for another movement. Open the form again."
   },
   "buscar": {
     "comunidad": "Community",
@@ -1534,5 +1575,48 @@
       "descripcion": "Check that you copied it completely or request a new one with your email."
     },
     "pedirNuevo": "Request a new link"
+  },
+  "movimiento": {
+    "titulo": "Record movement",
+    "tipoEtiqueta": "Movement type",
+    "tipo": {
+      "ENTRADA": "Incoming",
+      "SALIDA": "Outgoing"
+    },
+    "registrar": {
+      "ENTRADA": "Record incoming",
+      "SALIDA": "Record outgoing"
+    },
+    "productor": "Producer",
+    "producto": "Product",
+    "lote": "Batch",
+    "cantidad": "Quantity",
+    "motivo": "Reason",
+    "observacion": "Note (optional)",
+    "resultante": "Resulting stock: {{cantidad}} units",
+    "vence": "expires {{fecha}}",
+    "sinLotes": {
+      "ENTRADA": "This product has no current batches here.",
+      "SALIDA": "This product has no batches with stock here."
+    },
+    "motivos": {
+      "RECEPCION": "Received from producer",
+      "DEVOLUCION_PRODUCTOR": "Returned to producer",
+      "PRODUCCION": "Harvest or production",
+      "RETIRO_PRODUCTOR": "Taken out by producer"
+    },
+    "validacion": {
+      "lote": "Choose the batch",
+      "cantidad": "Enter a quantity above zero, with up to 3 decimals",
+      "saldo": "The batch has {{cantidad}} units: no more can go out",
+      "motivo": "Choose the reason"
+    },
+    "error": "We couldn't record the movement",
+    "errorLotes": "We couldn't load the batches",
+    "registrado": {
+      "ENTRADA": "Incoming of {{cantidad}} units recorded in batch {{lote}}",
+      "SALIDA": "Outgoing of {{cantidad}} units recorded from batch {{lote}}"
+    },
+    "saldo": "The batch now has {{cantidad}} units."
   }
 }
