@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
@@ -23,7 +25,11 @@ public final class ProductoModelos {
 
     public enum Modalidad { MINORISTA, MAYORISTA, AMBAS }
 
-    /** Lo que el productor escribe en PW-04. Sin descuentos ni precios promocionales (CCPIP-87). */
+    /**
+     * Lo que el productor escribe en PW-04. Sin descuentos ni precios promocionales (CCPIP-87): solo fija
+     * precios ordinarios. {@code otros} junta cualquier campo que no sea de este contrato (p. ej. un
+     * "descuento") para rechazarlo en vez de ignorarlo en silencio.
+     */
     public record DatosProducto(
             @NotBlank(message = "Escribe el nombre del producto") @Size(max = 200, message = "Máximo 200 caracteres") String nombre,
             @Size(max = 2000, message = "Máximo 2000 caracteres") String descripcion,
@@ -37,7 +43,8 @@ public final class ProductoModelos {
             @DecimalMin(value = "0.10", message = "El precio debe ser mayor a S/ 0.10")
             @Digits(integer = 6, fraction = 2, message = "Usa un precio con hasta 2 decimales") BigDecimal precioMayorista,
             @Min(value = 2, message = "La cantidad mínima mayorista es 2 o más") Integer cantidadMinimaMayorista,
-            boolean esMateriaPrima) {
+            boolean esMateriaPrima,
+            @JsonAnySetter Map<String, Object> otros) {
     }
 
     public record Ubicado(String ubicacion, String tipo, BigDecimal cantidad) {
