@@ -1,0 +1,67 @@
+[
+  {
+    "id": 31,
+    "productoId": 8,
+    "producto": "Aceite de aguaje 250 ml",
+    "unidad": "Botella",
+    "codigo": "L-0031",
+    "cantidadInicial": 24.0,
+    "cantidadActual": 6.0,
+    "fechaVencimiento": "2026-10-10",
+    "ubicacion": "Centro Nacional Lima",
+    "tipoUbicacion": "PUNTO_ACOPIO",
+    "estado": "VENCIDO"
+  },
+  {
+    "id": 32,
+    "productoId": 8,
+    "producto": "Aceite de aguaje 250 ml",
+    "unidad": "Botella",
+    "codigo": "L-0032",
+    "cantidadInicial": 30.0,
+    "cantidadActual": 12.0,
+    "fechaVencimiento": "2026-11-20",
+    "ubicacion": "Centro Nacional Lima",
+    "tipoUbicacion": "PUNTO_ACOPIO",
+    "estado": "VENDE_PRIMERO"
+  },
+  {
+    "id": 33,
+    "productoId": 9,
+    "producto": "Camu camu en polvo 150 g",
+    "unidad": "Gramo",
+    "codigo": "L-0033",
+    "cantidadInicial": 40.0,
+    "cantidadActual": 40.0,
+    "fechaVencimiento": "2027-03-15",
+    "ubicacion": "Almacén Pucallpa",
+    "tipoUbicacion": "ALMACEN_PRODUCTOR",
+    "estado": "EN_ALMACEN"
+  },
+  {
+    "id": 9,
+    "productoId": 9,
+    "producto": "Camu camu en polvo 150 g",
+    "unidad": "Gramo",
+    "codigo": "L-0009",
+    "cantidadInicial": 100.0,
+    "cantidadActual": 100.0,
+    "fechaVencimiento": "2027-10-04",
+    "ubicacion": "Centro Nacional Lima",
+    "tipoUbicacion": "PUNTO_ACOPIO",
+    "estado": "VENDE_PRIMERO"
+  },
+  {
+    "id": 5,
+    "productoId": 5,
+    "producto": "Textil bordado shipibo",
+    "unidad": "Unidad",
+    "codigo": "L-0005",
+    "cantidadInicial": 10.0,
+    "cantidadActual": 0.0,
+    "fechaVencimiento": null,
+    "ubicacion": "Centro Nacional Lima",
+    "tipoUbicacion": "PUNTO_ACOPIO",
+    "estado": "AGOTADO"
+  }
+]

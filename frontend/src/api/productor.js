@@ -25,6 +25,9 @@ export const proponerHistoria = async (id, respuestas, variante = 'NORMAL') =>
   apiFetch(`${base}/productos/${idRuta(id)}/historia/propuesta`, { method: 'POST', body: { respuestas, variante } })
 export const aprobarHistoria = async (id, datos) => apiFetch(`${base}/productos/${idRuta(id)}/historia/aprobar`, { method: 'POST', body: datos })
 export const proponerDescripcion = (datos) => apiFetch(`${base}/ia/descripcion`, { method: 'POST', body: datos })
+/** CCPIP-280: `borrador` DESCRIPCION | HISTORIA. Queda registrado y no se publica nada. */
+export const rechazarBorrador = async (id, borrador) =>
+  apiFetch(`${base}/productos/${idRuta(id)}/ia/rechazar?${new URLSearchParams({ borrador })}`, { method: 'POST' })
 
 export const listarUbicaciones = () => apiFetch(`${base}/ubicaciones`)
 
@@ -38,6 +41,8 @@ export const registrarMovimientoAlmacen = (datos) => apiFetch(`${base}/almacen/m
 
 // CCPIP-66 (PW-07): solo las lineas propias de cada pedido pagado, con conteos por estado
 export const listarPedidos = (estado) => apiFetch(`${base}/pedidos?${new URLSearchParams({ estado })}`)
+// CCPIP-161: todos sus lotes, de todos sus productos, primero el que vence antes
+export const listarTodosLosLotes = () => apiFetch(`${base}/lotes`)
 export const listarLotes = async (id) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`)
 export const registrarLote = async (id, datos) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`, { method: 'POST', body: datos })
 

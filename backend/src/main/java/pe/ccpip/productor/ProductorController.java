@@ -23,6 +23,7 @@ import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.ia.AsistenteRedaccion.Propuesta;
 import pe.ccpip.ia.AsistenteRedaccion.Variante;
+import pe.ccpip.productor.InventarioProductorModelos.Inventario;
 import pe.ccpip.productor.PedidosProductorModelos.Pedidos;
 import pe.ccpip.productor.ProductoModelos.AprobarHistoria;
 import pe.ccpip.productor.ProductoModelos.DatosHistoria;
@@ -31,13 +32,14 @@ import pe.ccpip.productor.ProductoModelos.DatosProducto;
 import pe.ccpip.productor.ProductoModelos.Estado;
 import pe.ccpip.productor.ProductoModelos.Historia;
 import pe.ccpip.productor.ProductoModelos.ListaProductos;
+import pe.ccpip.productor.ProductoModelos.LoteDelProductor;
 import pe.ccpip.productor.ProductoModelos.Lotes;
 import pe.ccpip.productor.ProductoModelos.ProductoEdicion;
 import pe.ccpip.productor.ProductoModelos.Ubicacion;
 
 /**
- * API del productor: panel, productos, historia, lotes, pedidos y redaccion asistida. Todo opera sobre
- * el productor de la sesion (RNF-05). No existe DELETE de productos (RNF-17).
+ * API del productor: panel, productos, historia, lotes, inventario, pedidos y redaccion asistida.
+ * Todo opera sobre el productor de la sesion (RNF-05). No existe DELETE de productos (RNF-17).
  */
 @RolesPermitidos(Rol.PRODUCTOR)
 @RestController
@@ -58,15 +60,18 @@ public class ProductorController {
     private final LotesService lotes;
     private final PanelService panel;
     private final PedidosProductorService pedidos;
+    private final InventarioProductorService inventario;
 
     public ProductorController(ProductorActual actual, ProductosService productos, HistoriaService historias,
-                               LotesService lotes, PanelService panel, PedidosProductorService pedidos) {
+                               LotesService lotes, PanelService panel, PedidosProductorService pedidos,
+                               InventarioProductorService inventario) {
         this.actual = actual;
         this.productos = productos;
         this.historias = historias;
         this.lotes = lotes;
         this.panel = panel;
         this.pedidos = pedidos;
+        this.inventario = inventario;
     }
 
     @GetMapping("/panel")
@@ -153,6 +158,12 @@ public class ProductorController {
         return lotes.ubicaciones(actual.id(s));
     }
 
+    /** CCPIP-161: todos sus lotes, de todos sus productos, primero el que vence antes. */
+    @GetMapping("/lotes")
+    public List<LoteDelProductor> todosLosLotes(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s) {
+        return lotes.todos(actual.id(s));
+    }
+
     @GetMapping("/productos/{id}/lotes")
     public Lotes lotes(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s, @PathVariable long id) {
         return lotes.listar(actual.id(s), id);
@@ -162,6 +173,12 @@ public class ProductorController {
     public ResponseEntity<Lotes> registrarLote(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                                @PathVariable long id, @Valid @RequestBody DatosLote datos) {
         return ResponseEntity.status(HttpStatus.CREATED).body(lotes.registrar(actual.id(s), s.userId(), id, datos));
+    }
+
+    /** CCPIP-136 y CCPIP-162 (PW-16): su almacen virtual unico, por producto, ubicacion, lote y estado. */
+    @GetMapping("/inventario")
+    public Inventario inventario(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s) {
+        return inventario.obtener(actual.id(s));
     }
 
     /** CCPIP-66 (PW-07): pedidos con publicaciones propias; sin {@code estado}, todos los pagados. */

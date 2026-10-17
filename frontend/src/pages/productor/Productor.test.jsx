@@ -20,6 +20,7 @@ function productor(rutas = {}) {
     'GET /api/productor/productos': () => [200, copia(DATOS.productosProductor)],
     'GET /api/productor/productos/9': () => [200, copia(DATOS.edicion)],
     'GET /api/productor/productos/9/lotes': () => [200, copia(DATOS.lotes)],
+    'GET /api/productor/lotes': () => [200, copia(DATOS.todosLosLotes)],
     'GET /api/productor/ubicaciones': () => [200, copia(DATOS.ubicaciones)],
     ...rutas,
   })
@@ -237,6 +238,44 @@ describe('PW-06 Registrar lote (CCPIP-41)', () => {
     expect(fetchMock.mock.calls.some(([u]) => u.includes('auth/logout') || u.includes('..'))).toBe(false)
   })
 
+  it('sin producto elegido lista todos sus lotes, primero el que vence antes (CCPIP-161)', async () => {
+    const fetchMock = productor()
+    const user = userEvent.setup()
+    abrirEn('/productor/lotes')
+    const lista = await screen.findByRole('list', { name: 'Todos tus lotes' })
+    const filas = within(lista).getAllByRole('listitem')
+    expect(filas.map((f) => within(f).getByText(/^L-/).textContent)).toEqual(['L-0031', 'L-0032', 'L-0033', 'L-0009', 'L-0005'])
+    // Producto, unidad, vencimiento, ubicacion y estado de cada lote
+    expect(within(filas[0]).getByText('Aceite de aguaje 250 ml')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('Botella')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('Vencido')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('Centro Nacional Lima')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('Vende primero')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('Mi almacén')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('En tu almacén')).toBeInTheDocument()
+    expect(within(filas[4]).getByText('No vence')).toBeInTheDocument()
+    expect(within(filas[4]).getByText('Unidad')).toBeInTheDocument()
+    expect(within(filas[4]).getByText('Agotado')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'GET /api/productor/lotes')).toHaveLength(1)
+
+    // Desde un lote se abren los de su producto para registrar otro
+    await user.click(within(filas[3]).getByRole('link', { name: 'Ver los lotes de Camu camu en polvo 150 g' }))
+    expect(window.location.search).toBe('?producto=9')
+    expect(await screen.findByRole('list', { name: 'Lotes de este producto' })).toBeInTheDocument()
+    expect(screen.queryByRole('list', { name: 'Todos tus lotes' })).not.toBeInTheDocument()
+  })
+
+  it('sin lotes lo dice, y si falla la consulta lo avisa', async () => {
+    productor({ 'GET /api/productor/lotes': [200, []] })
+    const { unmount } = abrirEn('/productor/lotes')
+    expect(await screen.findByText('Aún no registraste lotes. Elige un producto para registrar el primero.')).toBeInTheDocument()
+    unmount()
+
+    productor({ 'GET /api/productor/lotes': [500, { code: 'ERROR' }] })
+    abrirEn('/productor/lotes')
+    expect(await screen.findByText('No pudimos cargar tus lotes')).toBeInTheDocument()
+  })
+
   it('sin productos invita a crear uno', async () => {
     productor({ 'GET /api/productor/productos': () => [200, { items: [], conteo: {} }] })
     abrirEn('/productor/lotes')
@@ -309,6 +348,36 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
     expect(await screen.findByText('Cambios guardados')).toBeInTheDocument()
     expect(cuerpo(fetchMock, 'PUT /api/productor/productos/9')).toMatchObject({ descripcionAsistida: true })
+  })
+
+  it('descartar el borrador de la descripcion lo registra y no toca lo escrito (CCPIP-280)', async () => {
+    const fetchMock = productor({
+      'POST /api/productor/ia/descripcion': [200, { texto: 'Aceite prensado en frío por mujeres shipibo.' }],
+      'POST /api/productor/productos/9/ia/rechazar?borrador=DESCRIPCION': [204],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.click(await screen.findByRole('button', { name: 'Sugerir una descripción con IA (borrador)' }))
+    await user.click(await screen.findByRole('button', { name: 'Descartar' }))
+    expect(await screen.findByText(/Descartaste el borrador/)).toBeInTheDocument()
+    expect(screen.queryByText('Aceite prensado en frío por mujeres shipibo.')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Descripción')).toHaveValue(DATOS.edicion.descripcion)
+    expect(llamadas(fetchMock, 'POST /api/productor/productos/9/ia/rechazar?borrador=DESCRIPCION')).toHaveLength(1)
+    // Se puede pedir otro
+    expect(screen.getByRole('button', { name: 'Sugerir una descripción con IA (borrador)' })).toBeInTheDocument()
+  })
+
+  it('si no se puede descartar el borrador lo avisa y lo mantiene', async () => {
+    productor({
+      'POST /api/productor/ia/descripcion': [200, { texto: 'Aceite prensado en frío por mujeres shipibo.' }],
+      'POST /api/productor/productos/9/ia/rechazar?borrador=DESCRIPCION': [500, {}],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.click(await screen.findByRole('button', { name: 'Sugerir una descripción con IA (borrador)' }))
+    await user.click(await screen.findByRole('button', { name: 'Descartar' }))
+    expect(await screen.findByText('No pudimos descartar el borrador')).toBeInTheDocument()
+    expect(screen.getByText('Aceite prensado en frío por mujeres shipibo.')).toBeInTheDocument()
   })
 
   it('sin IA configurada el productor escribe a mano', async () => {
@@ -511,6 +580,23 @@ describe('PW-05 Historia asistida (CCPIP-49)', () => {
 
     await waitFor(() => expect(window.location.search).toBe('?paso=lote'))
     expect(cuerpo(fetchMock, 'POST /api/productor/productos/9/historia/aprobar')).toEqual({ titulo: 'Camu camu de las cochas', textoFinal: texto, asistida: true })
+  })
+
+  it('descartar el borrador de la historia conserva las respuestas (CCPIP-280)', async () => {
+    const conPropuesta = { ...copia(sinHistoria), historia: { quienes: '34 mujeres shipibo', como: '', significado: '', cuidado: '', titulo: 'Del agua a tu mesa', textoPropuesto: 'Somos mujeres shipibo que recolectamos camu camu.', aprobada: false } }
+    const fetchMock = productor({
+      'GET /api/productor/productos/9': () => [200, copia(conPropuesta)],
+      'POST /api/productor/productos/9/ia/rechazar?borrador=HISTORIA': [204],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9?paso=historia')
+    expect(await screen.findByRole('heading', { name: 'Del agua a tu mesa' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Descartar borrador' }))
+    expect(await screen.findByText('Descartaste el borrador de la IA')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Del agua a tu mesa' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Generar borrador con IA' })).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/productor/productos/9/ia/rechazar?borrador=HISTORIA')).toHaveLength(1)
+    expect(llamadas(fetchMock, 'POST /api/productor/productos/9/historia/aprobar')).toHaveLength(0)
   })
 
   it('sin IA se escribe a mano y debe tener un minimo de caracteres', async () => {
