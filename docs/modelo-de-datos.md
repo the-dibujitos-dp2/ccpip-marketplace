@@ -711,6 +711,49 @@ proposito `RECUPERAR_CLAVE`. Como en `sesion`, solo se guarda el SHA-256 del tok
   estan registrados.
 - El enlace no inicia sesion: la persona ingresa con su contrasena despues de verificar.
 
+## Transferencias entre ubicaciones (CCPIP-73, 146, 164, 362, 277, 278)
+
+RNF-47: el productor lleva existencias de su almacen a un punto de acopio (CCPIP-73) o solicita
+moverlas entre puntos (CCPIP-277); el administrador del punto de destino las recibe y consulta su
+estado e historial (CCPIP-278). Migracion `V202610171700__transferencia.sql`.
+
+Las unidades no se duplican ni se pierden: saldo de los lotes de origen + unidades preparadas + en
+transito + lotes de destino se conserva. Solo `lote.cantidad_actual` cambia, siempre con su
+movimiento y su stock en la misma transaccion (RNF-15, ADR-10):
+
+| Paso | Estado | Lote | Movimiento |
+|---|---|---|---|
+| Iniciar (almacen a punto) | INICIADA | no cambia | ninguno |
+| Solicitar (entre puntos) | SOLICITADA | no cambia | ninguno; no avanza hasta que se defina quien aprueba (C8) |
+| Preparar (CCPIP-164) | PREPARADA | el de origen baja | TRANSFERENCIA_SALIDA por linea |
+| Despachar (CCPIP-362) | DESPACHADA | no cambia: ya se desconto | ninguno; en transito no se vende |
+| Recibir (CCPIP-278) | RECIBIDA | se crea uno en el destino, con el vencimiento del origen | TRANSFERENCIA_ENTRADA por linea |
+
+### transferencia
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| tipo | varchar(20) | no | ALMACEN_A_PUNTO o ENTRE_PUNTOS |
+| productor_id | bigint | no | RNF-05: el productor solo ve y opera las suyas |
+| origen_id, destino_id | bigint | no | Ubicaciones distintas (CHECK) |
+| estado | varchar(20) | no | INICIADA, SOLICITADA, PREPARADA, DESPACHADA, RECIBIDA |
+| observacion | varchar(255) | si | |
+| creada_por | bigint | si | Usuario |
+
+### transferencia_item, transferencia_historial
+`transferencia_item` guarda producto, lote de origen, cantidad y, al recibir, el lote de destino. Un
+lote va una sola vez por transferencia. `transferencia_historial` registra cada cambio de estado con
+quien y cuando.
+
+### movimiento_inventario (cambios)
+- `transferencia_item_id`: la linea de transferencia del movimiento. Un CHECK exige linea y lote en
+  todo movimiento TRANSFERENCIA_ENTRADA o TRANSFERENCIA_SALIDA.
+- Indice unico `(transferencia_item_id, tipo)`: una linea sale una sola vez y entra una sola vez; un
+  segundo intento choca en la base en vez de descontar o sumar dos veces.
+- `tipo` pasa a varchar(30): TRANSFERENCIA_ENTRADA tiene 21 caracteres y no cabia.
+
+El administrador del punto ve lo que entra o sale de los puntos de `usuario_ubicacion`, salvo lo
+que el productor aun no compromete (INICIADA). Solo el destino registra la recepcion.
+
 ## Fuera de este modelo
 
 Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehacer nada:
