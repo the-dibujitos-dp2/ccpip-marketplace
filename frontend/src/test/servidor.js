@@ -24,6 +24,8 @@ import comisionAdmin from './fixtures/admin-comision.json'
 import comisionesAdmin from './fixtures/admin-comisiones.json'
 // CCPIP-112: armado segun ResumenPedido del backend
 import misPedidos from './fixtures/mis-pedidos.json'
+// CCPIP-161: armado segun ProductoModelos.LoteDelProductor del backend
+import todosLosLotes from './fixtures/productor-lotes.json'
 
 export const USUARIO = {
   id: 1,
@@ -108,6 +110,7 @@ export const DATOS = {
   productosProductor,
   edicion,
   lotes,
+  todosLosLotes,
   ubicaciones,
   movimientos,
   pedidos,

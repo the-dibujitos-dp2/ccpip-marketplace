@@ -203,6 +203,11 @@ public class ProductosService {
 
     /** Reglas que valen incluso para un borrador: nunca guardar datos contradictorios. */
     private static void validarCoherencia(DatosProducto d) {
+        // CCPIP-87: el productor solo fija precios ordinarios; los descuentos son reglas de la plataforma
+        if (d.otros() != null && !d.otros().isEmpty()) {
+            throw ErrorNegocio.invalido("CAMPO_NO_PERMITIDO",
+                    "Solo fijas el precio ordinario: no existen descuentos ni precios promocionales.");
+        }
         boolean mayorista = d.modalidad() != Modalidad.MINORISTA;
         boolean minorista = d.modalidad() != Modalidad.MAYORISTA;
         if (mayorista && minorista && d.precio() != null && d.precioMayorista() != null
