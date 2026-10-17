@@ -12,6 +12,7 @@ import LayoutPanel from './LayoutPanel.jsx'
 const NAV = [
   { to: RUTAS.acopioPedidos, clave: 'pedidos', icono: iconoCaja, activo: (p) => p.startsWith(RUTAS.acopioPedidos) },
   { to: RUTAS.acopioMovimientos, clave: 'movimientos', icono: iconoMovimientos, activo: (p) => p.startsWith(RUTAS.acopioMovimientos) },
+  { to: RUTAS.acopioTransferencias, clave: 'transferencias', icono: iconoMovimientos, activo: (p) => p.startsWith(RUTAS.acopioTransferencias) },
 ]
 
 /** Estructura web del administrador de punto de acopio (Figma A-01 a A-08). */

@@ -21,3 +21,12 @@ export const marcarListo = (numero) => apiFetch(`/api/acopio/pedidos/${encodeURI
  */
 export const registrarRecojo = (numero, datos) =>
   apiFetch(`/api/acopio/pedidos/${encodeURIComponent(numero)}/recojo`, { method: 'POST', body: datos })
+
+/** CCPIP-278: lo que entra o sale de sus puntos y lo que espera su recepcion. */
+export const listarTransferencias = () => apiFetch('/api/acopio/transferencias')
+
+/** CCPIP-278: el detalle con su historial de estados. */
+export const obtenerTransferencia = (id) => apiFetch(`/api/acopio/transferencias/${encodeURIComponent(id)}`)
+
+/** CCPIP-278: el punto de destino registra la recepcion; las unidades entran a un lote del punto. */
+export const recibirTransferencia = (id) => apiFetch(`/api/acopio/transferencias/${encodeURIComponent(id)}/recibir`, { method: 'POST' })
