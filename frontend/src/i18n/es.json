@@ -67,6 +67,7 @@
       "inicio": "Inicio",
       "tienda": "Mi tienda",
       "productos": "Productos",
+      "almacen": "Almacén",
       "lotes": "Lotes",
       "pedidos": "Pedidos",
       "cuenta": "Cuenta bancaria"
@@ -161,6 +162,53 @@
         "VENCIDO": "Vencido"
       },
       "ubicacionPlaceholder": "Elige tu almacén o un punto de acopio"
+    },
+    "almacen": {
+      "titulo": "Mi almacén",
+      "error": "No pudimos cargar tu inventario",
+      "ubicaciones": "Ubicaciones del inventario",
+      "porProducto": "Por producto",
+      "kpi": {
+        "enAlmacen": "Unidades en el almacén",
+        "productos_one": "{{count}} producto",
+        "productos_other": "{{count}} productos",
+        "porVencer": "Por vencer",
+        "lotes_one": "{{count}} lote",
+        "lotes_other": "{{count}} lotes",
+        "proximos": "En los próximos {{dias}} días",
+        "enAcopios": "En puntos de acopio",
+        "sinAcopios": "Aún nada en puntos de acopio"
+      },
+      "vencidos_one": "Tienes {{count}} lote vencido",
+      "vencidos_other": "Tienes {{count}} lotes vencidos",
+      "vencidosTexto": "Siguen en la lista con su estado, pero no se cuentan como disponibles ni se venden.",
+      "inventarioAlmacen": "Inventario del almacén · {{departamento}}",
+      "inventarioPunto": "Inventario en {{nombre}}",
+      "inventarioProductos": "Inventario por producto",
+      "col": {
+        "fechas": "Cosecha y vencimiento",
+        "enAlmacen": "En almacén",
+        "enPunto": "En el punto",
+        "porUbicacion": "Por ubicación",
+        "lotes": "Lotes",
+        "disponible": "Disponible"
+      },
+      "lote": "Lote {{codigo}}",
+      "cosecha": "Cosecha {{mes}}",
+      "vence": "vence {{fecha}}",
+      "sinVencimiento": "Sin vencimiento",
+      "soloVencidos": "Solo lotes vencidos",
+      "estado": {
+        "DISPONIBLE": "Disponible",
+        "POR_VENCER": "Por vencer",
+        "VENCIDO": "Vencido"
+      },
+      "vacioAlmacen": "Tu almacén está vacío",
+      "vacioPunto": "No tienes existencias en este punto",
+      "vacioProductos": "Aún no tienes existencias",
+      "vacioTexto": "Las existencias aparecen aquí al registrar un lote.",
+      "unSoloInventario": "Un solo inventario virtual",
+      "unSoloInventarioTexto": "Tu almacén y los puntos de acopio forman un solo inventario: cada cantidad sale de tus lotes y sus movimientos, no de un stock aparte. Solo se vende lo que está en un punto de acopio, y baja al confirmarse cada compra."
     },
     "pedidos": {
       "titulo": "Pedidos",
@@ -983,7 +1031,7 @@
     "PRODUCTO_REQUERIDO": "Indica a qué producto pertenece la foto.",
     "PRODUCTOR_SIN_REGISTRO": "Tu cuenta aún no está asociada a una comunidad productora. Comunícate con la CCPIP.",
     "SIN_PERMISO": "Tu cuenta no tiene permiso para esta acción.",
-    "SOLO_MAYORISTA": "La compra mayorista estará disponible pronto.",
+    "MINIMO_MAYORISTA": "Este producto se vende solo por mayor y la cantidad no llega al mínimo.",
     "SOLO_PUBLICADOS": "Solo se puede despublicar un producto publicado.",
     "STOCK_INSUFICIENTE": "No quedan suficientes unidades disponibles.",
     "TIENDA_INCOMPLETA": "Para publicar tu tienda completa los datos que faltan.",
@@ -1170,8 +1218,9 @@
       "compraRapida": "Compra rápida",
       "cantidad": "Cantidad a agregar",
       "soloMayorista": "Este producto se vende solo por mayor: mínimo {{minimo}} und",
-      "mayoristaPronto": "La compra mayorista estará disponible pronto en el carrito.",
-      "ambas": "Desde {{minimo}} und el precio mayorista ({{precio}} c/u) estará disponible pronto; por ahora el carrito usa el precio minorista.",
+      "faltaParaAgregar_one": "Agrega {{count}} und más para poder agregarlo al carrito",
+      "faltaParaAgregar_other": "Agrega {{count}} und más para poder agregarlo al carrito",
+      "desdeMayorista": "Desde {{minimo}} und pagas {{precio}} c/u (precio mayorista).",
       "resumenMinorista": "{{precio}} minorista",
       "resumenMayorista": "{{precio}} desde {{minimo}} und"
     },
@@ -1184,7 +1233,7 @@
     "problema": {
       "STOCK_INSUFICIENTE": "Solo quedan {{quedan}}: ajusta la cantidad",
       "AGOTADO": "Agotado por ahora",
-      "SOLO_MAYORISTA": "Solo se vende por mayor",
+      "SOLO_MAYORISTA": "Solo por mayor: mínimo {{minimo}} und",
       "NO_DISPONIBLE": "Ya no está disponible",
       "VENTA_PAUSADA": "Venta pausada temporalmente"
     },
@@ -1210,6 +1259,19 @@
     "cosechaDe": "cosecha de {{mes}}",
     "deTienda": "de {{nombre}}",
     "precioCadaUno": "{{precio}} c/u",
+    "precioMayoristaCadaUno": "{{precio}} c/u · precio mayorista",
+    "mayorista": {
+      "falta_one": "Agrega {{count}} unidad más para acceder al precio mayorista",
+      "falta_other": "Agrega {{count}} unidades más para acceder al precio mayorista",
+      "faltaConPrecio_one": "Agrega {{count}} unidad más para acceder al precio mayorista ({{precio}} c/u)",
+      "faltaConPrecio_other": "Agrega {{count}} unidades más para acceder al precio mayorista ({{precio}} c/u)",
+      "avance": "{{cantidad}} de {{minimo}} und · el precio cambia solo al llegar al mínimo",
+      "avanceTienda": "{{cantidad}} de {{minimo}} und · el precio cambia solo al llegar al mínimo que definió {{tienda}}",
+      "aplicado": "Precio mayorista aplicado: {{precio}} c/u",
+      "ahorro": "Ahorras {{monto}} frente al precio minorista",
+      "faltaParaComprar_one": "Agrega {{count}} und más para poder comprarlo",
+      "faltaParaComprar_other": "Agrega {{count}} und más para poder comprarlo"
+    },
     "cantidadDe": "Cantidad de {{nombre}}",
     "guardando": "Guardando…",
     "quitar": "Quitar {{nombre}} del carrito",

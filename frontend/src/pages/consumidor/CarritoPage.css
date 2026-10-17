@@ -53,6 +53,8 @@
 .carrito__quitar:hover:not(:disabled) { background: var(--color-bg-surface-alt); color: var(--color-status-error-fg); }
 .carrito__quitar:disabled { color: var(--color-text-disabled); cursor: wait; }
 .carrito__aviso { margin-bottom: 16px; }
+/* CCPIP-134: aviso del minimo mayorista bajo los datos de la fila (Figma CW-05) */
+.carrito__mayorista { grid-column: 2 / -1; }
 
 .carrito__resumen {
   position: sticky;
@@ -95,4 +97,5 @@
   .carrito__cantidad,
   .carrito__cantidad-editable { grid-column: 2; justify-self: start; align-items: flex-start; text-align: left; }
   .carrito__subtotal { grid-column: 2; justify-self: start; text-align: left; }
+  .carrito__mayorista { grid-column: 1 / -1; }
 }

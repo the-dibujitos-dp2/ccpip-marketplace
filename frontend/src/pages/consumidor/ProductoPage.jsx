@@ -13,6 +13,7 @@ import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { capital, fecha, mesAnio, precio } from '../../formato.js'
 import { RUTAS } from '../../router.js'
+import { resolverTarifa } from '../../tarifa.js'
 import AgregarAlCarrito from './AgregarAlCarrito.jsx'
 import './ProductoPage.css'
 
@@ -23,6 +24,8 @@ export default function ProductoPage({ id }) {
   const [error, setError] = useState(null)
   const [foto, setFoto] = useState(0)
   const [modo, setModo] = useState('MINORISTA')
+  // CCPIP-134: la cantidad del panel de compra decide la tarifa, por eso se comparte con las tarjetas de precio
+  const [cantidad, setCantidad] = useState('1')
 
   useEffect(() => {
     let vigente = true
@@ -34,6 +37,8 @@ export default function ProductoPage({ id }) {
         if (!vigente) return
         setProducto(p)
         setModo(p.modalidad === 'MAYORISTA' ? 'MAYORISTA' : 'MINORISTA')
+        // Una oferta solo mayorista arranca en su minimo: menos no se puede comprar
+        setCantidad(String(p.modalidad === 'MAYORISTA' ? (p.cantidadMinimaMayorista ?? 1) : 1))
       })
       .catch((e) => vigente && setError(e))
     return () => {
@@ -75,6 +80,13 @@ export default function ProductoPage({ id }) {
   const conMayorista = producto.modalidad !== 'MINORISTA'
   const conMinorista = producto.modalidad !== 'MAYORISTA'
   const unidad = producto.contenido ?? producto.unidad?.nombre?.toLowerCase()
+  // CCPIP-134 (Figma CW-03c): desde el minimo el mayorista se aplica solo, aunque se haya elegido el minorista
+  const activa = resolverTarifa(producto, cantidad).tarifa === 'MAYORISTA' ? 'MAYORISTA' : modo
+  function elegirMinorista() {
+    setModo('MINORISTA')
+    // Volver al minorista desde el mayorista aplicado es volver a comprar por unidad
+    if (activa === 'MAYORISTA') setCantidad('1')
+  }
   const partes = historia?.partes
   const pasos = partes
     ? [
@@ -161,11 +173,11 @@ export default function ProductoPage({ id }) {
             <div className="ficha__compra">
               <div className="ficha__precios" role={conMinorista && conMayorista ? 'radiogroup' : undefined} aria-label={t('producto.precioSegunModalidad')}>
                 {conMinorista && (
-                  <PrecioOpcion activo={modo === 'MINORISTA'} interactivo={conMayorista} onElegir={() => setModo('MINORISTA')} titulo={t('producto.precioMinorista')} monto={producto.precio} detalle={unidad ? t('producto.porUnidadDe', { unidad }) : t('producto.porUnidad')} />
+                  <PrecioOpcion activo={activa === 'MINORISTA'} interactivo={conMayorista} onElegir={elegirMinorista} titulo={t('producto.precioMinorista')} monto={producto.precio} detalle={unidad ? t('producto.porUnidadDe', { unidad }) : t('producto.porUnidad')} />
                 )}
                 {conMayorista && (
                   <PrecioOpcion
-                    activo={modo === 'MAYORISTA'}
+                    activo={activa === 'MAYORISTA'}
                     interactivo={conMinorista}
                     onElegir={() => setModo('MAYORISTA')}
                     titulo={t('producto.precioMayorista')}
@@ -189,7 +201,7 @@ export default function ProductoPage({ id }) {
                     ? t('producto.estado.disponibleTexto')
                     : t('producto.estado.agotadoTexto')}
               </p>
-              <AgregarAlCarrito key={producto.id} producto={producto} />
+              <AgregarAlCarrito key={producto.id} producto={producto} cantidad={cantidad} onCantidad={setCantidad} modo={activa} />
             </div>
 
             {producto.descripcion && <p className="body-m ficha__descripcion">{producto.descripcion}</p>}

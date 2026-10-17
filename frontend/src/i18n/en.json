@@ -67,6 +67,7 @@
       "inicio": "Home",
       "tienda": "My store",
       "productos": "Products",
+      "almacen": "Warehouse",
       "lotes": "Batches",
       "pedidos": "Orders",
       "cuenta": "Bank account"
@@ -161,6 +162,53 @@
         "VENCIDO": "Expired"
       },
       "ubicacionPlaceholder": "Choose your warehouse or a collection point"
+    },
+    "almacen": {
+      "titulo": "My warehouse",
+      "error": "We couldn't load your inventory",
+      "ubicaciones": "Inventory locations",
+      "porProducto": "By product",
+      "kpi": {
+        "enAlmacen": "Units in the warehouse",
+        "productos_one": "{{count}} product",
+        "productos_other": "{{count}} products",
+        "porVencer": "Expiring soon",
+        "lotes_one": "{{count}} batch",
+        "lotes_other": "{{count}} batches",
+        "proximos": "In the next {{dias}} days",
+        "enAcopios": "At collection points",
+        "sinAcopios": "Nothing at collection points yet"
+      },
+      "vencidos_one": "You have {{count}} expired batch",
+      "vencidos_other": "You have {{count}} expired batches",
+      "vencidosTexto": "They stay on the list with their status, but they don't count as available and aren't sold.",
+      "inventarioAlmacen": "Warehouse inventory · {{departamento}}",
+      "inventarioPunto": "Inventory at {{nombre}}",
+      "inventarioProductos": "Inventory by product",
+      "col": {
+        "fechas": "Harvest and expiry",
+        "enAlmacen": "In warehouse",
+        "enPunto": "At the point",
+        "porUbicacion": "By location",
+        "lotes": "Batches",
+        "disponible": "Available"
+      },
+      "lote": "Batch {{codigo}}",
+      "cosecha": "Harvest {{mes}}",
+      "vence": "expires {{fecha}}",
+      "sinVencimiento": "No expiry",
+      "soloVencidos": "Expired batches only",
+      "estado": {
+        "DISPONIBLE": "Available",
+        "POR_VENCER": "Expiring soon",
+        "VENCIDO": "Expired"
+      },
+      "vacioAlmacen": "Your warehouse is empty",
+      "vacioPunto": "You have no stock at this point",
+      "vacioProductos": "You have no stock yet",
+      "vacioTexto": "Stock shows up here when you register a batch.",
+      "unSoloInventario": "One virtual inventory",
+      "unSoloInventarioTexto": "Your warehouse and the collection points make up one inventory: every quantity comes from your batches and their movements, not from a separate stock count. Only what is at a collection point is sold, and it goes down when each purchase is confirmed."
     },
     "pedidos": {
       "titulo": "Orders",
@@ -983,7 +1031,7 @@
     "PRODUCTO_REQUERIDO": "Indicate which product the photo belongs to.",
     "PRODUCTOR_SIN_REGISTRO": "Your account isn't linked to a producer community yet. Contact CCPIP.",
     "SIN_PERMISO": "Your account doesn't have permission for this action.",
-    "SOLO_MAYORISTA": "Wholesale purchasing will be available soon.",
+    "MINIMO_MAYORISTA": "This product is sold wholesale only and the quantity is below the minimum.",
     "SOLO_PUBLICADOS": "Only a published product can be unpublished.",
     "STOCK_INSUFICIENTE": "There aren't enough units available.",
     "TIENDA_INCOMPLETA": "Complete the missing details to publish your store.",
@@ -1170,8 +1218,9 @@
       "compraRapida": "Quick buy",
       "cantidad": "Quantity to add",
       "soloMayorista": "This product is sold wholesale only: minimum {{minimo}} units",
-      "mayoristaPronto": "Wholesale purchasing will be available in the cart soon.",
-      "ambas": "From {{minimo}} units the wholesale price ({{precio}} each) will be available soon; for now the cart uses the retail price.",
+      "faltaParaAgregar_one": "Add {{count}} more unit to be able to add it to your cart",
+      "faltaParaAgregar_other": "Add {{count}} more units to be able to add it to your cart",
+      "desdeMayorista": "From {{minimo}} units you pay {{precio}} each (wholesale price).",
       "resumenMinorista": "{{precio}} retail",
       "resumenMayorista": "{{precio}} from {{minimo}} units"
     },
@@ -1184,7 +1233,7 @@
     "problema": {
       "STOCK_INSUFICIENTE": "Only {{quedan}} left: adjust the quantity",
       "AGOTADO": "Out of stock for now",
-      "SOLO_MAYORISTA": "Sold wholesale only",
+      "SOLO_MAYORISTA": "Wholesale only: minimum {{minimo}} units",
       "NO_DISPONIBLE": "No longer available",
       "VENTA_PAUSADA": "Sales temporarily paused"
     },
@@ -1210,6 +1259,19 @@
     "cosechaDe": "{{mes}} harvest",
     "deTienda": "from {{nombre}}",
     "precioCadaUno": "{{precio}} each",
+    "precioMayoristaCadaUno": "{{precio}} each · wholesale price",
+    "mayorista": {
+      "falta_one": "Add {{count}} more unit to get the wholesale price",
+      "falta_other": "Add {{count}} more units to get the wholesale price",
+      "faltaConPrecio_one": "Add {{count}} more unit to get the wholesale price ({{precio}} each)",
+      "faltaConPrecio_other": "Add {{count}} more units to get the wholesale price ({{precio}} each)",
+      "avance": "{{cantidad}} of {{minimo}} units · the price changes only when you reach the minimum",
+      "avanceTienda": "{{cantidad}} of {{minimo}} units · the price changes only when you reach the minimum set by {{tienda}}",
+      "aplicado": "Wholesale price applied: {{precio}} each",
+      "ahorro": "You save {{monto}} compared with the retail price",
+      "faltaParaComprar_one": "Add {{count}} more unit to be able to buy it",
+      "faltaParaComprar_other": "Add {{count}} more units to be able to buy it"
+    },
     "cantidadDe": "Quantity of {{nombre}}",
     "guardando": "Saving…",
     "quitar": "Remove {{nombre}} from cart",

@@ -27,6 +27,7 @@ import ProductoPage from './pages/consumidor/ProductoPage.jsx'
 import TiendaPage from './pages/consumidor/TiendaPage.jsx'
 import VerificarCorreoPage from './pages/consumidor/VerificarCorreoPage.jsx'
 import CuentaBancariaPage from './pages/productor/CuentaBancariaPage.jsx'
+import AlmacenPage from './pages/productor/AlmacenPage.jsx'
 import EditorProductoPage from './pages/productor/EditorProductoPage.jsx'
 import LotesPage from './pages/productor/LotesPage.jsx'
 import PanelPage from './pages/productor/PanelPage.jsx'
@@ -226,6 +227,7 @@ export default function App() {
     else if (path === RUTAS.productor) pagina = <PanelPage path={path} />
     else if (path === RUTAS.productorTienda) pagina = <TiendaEditorPage path={path} />
     else if (path === RUTAS.productorProductos) pagina = <ProductosPage path={path} search={search} />
+    else if (path === RUTAS.productorAlmacen) pagina = <AlmacenPage path={path} />
     else if (path === RUTAS.productorLotes) pagina = <LotesPage path={path} search={search} />
     else if (path === RUTAS.productorCuenta) pagina = <CuentaBancariaPage path={path} />
     else if (path === RUTAS.productorPedidos) pagina = <PedidosProductorPage path={path} />
