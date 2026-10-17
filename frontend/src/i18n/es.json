@@ -118,7 +118,12 @@
       "cambiarProducto": "Cambiar producto",
       "deEsteProducto": "Lotes de este producto",
       "fefo": "Se vende primero el lote que vence antes",
-      "fefoTexto": "Un lote vencido no se vende y deja de contar como stock disponible."
+      "fefoTexto": "Un lote vencido no se vende y deja de contar como stock disponible.",
+      "todos": "Todos tus lotes",
+      "todosTexto": "De todos tus productos, primero el que vence antes. El stock de cada lote es lo que queda tras su entrada y sus ventas.",
+      "sinLotesTodos": "Aún no registraste lotes. Elige un producto para registrar el primero.",
+      "errorTodos": "No pudimos cargar tus lotes",
+      "verLotesDe": "Ver los lotes de {{producto}}"
     },
     "lote": {
       "validacion": {
@@ -146,6 +151,7 @@
       "registrando": "Registrando…",
       "sinLotes": "Aún no hay lotes registrados para este producto.",
       "tabla": {
+        "producto": "Producto",
         "lote": "Lote",
         "vence": "Vence",
         "stock": "Stock",
