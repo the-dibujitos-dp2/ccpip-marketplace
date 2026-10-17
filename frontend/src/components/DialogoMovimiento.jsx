@@ -1,12 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { fechaCorta, unidades } from '../formato.js'
-import { mensajeError } from '../i18n/errores.js'
+import { erroresPorCampo, mensajeError } from '../i18n/errores.js'
 import { nuevaClave } from '../movimientos.js'
-import i18n from '../i18n/index.js'
 import Alerta from './Alerta.jsx'
 import Campo from './Campo.jsx'
-import Dialogo from './Dialogo.jsx'
+import DialogoFormulario from './DialogoFormulario.jsx'
 import Pestanas from './Pestanas.jsx'
 import './DialogoMovimiento.css'
 
@@ -83,11 +82,8 @@ export default function DialogoMovimiento({ lotes, motivos, conProductor = false
     } catch (err) {
       // Un 401 ya lo maneja la app (vuelve a ingresar)
       if (err.status === 401) return
-      if (err.body?.campos) {
-        // Los mensajes por campo llegan en espanol: en ingles se marca el campo con el mensaje del code
-        const campos = err.body.campos
-        setErrores(i18n.resolvedLanguage === 'es' ? campos : Object.fromEntries(Object.keys(campos).map((c) => [c, mensajeError(err)])))
-      } else if (err.code === 'SALDO_INSUFICIENTE') setErrores({ cantidad: mensajeError(err) })
+      if (err.body?.campos) setErrores(erroresPorCampo(err))
+      else if (err.code === 'SALDO_INSUFICIENTE') setErrores({ cantidad: mensajeError(err) })
       else setError(err)
     } finally {
       setEnviando(false)
@@ -95,77 +91,88 @@ export default function DialogoMovimiento({ lotes, motivos, conProductor = false
   }
 
   return (
-    <Dialogo
-      abierto
+    <DialogoFormulario
       titulo={t('movimiento.titulo')}
-      confirmar={enviando ? t('productor.lote.registrando') : t(`movimiento.registrar.${tipo}`)}
-      onConfirmar={enviar}
+      confirmar={t(`movimiento.registrar.${tipo}`)}
+      enviando={enviando}
+      onEnviar={enviar}
       onCancelar={onCancelar}
-      ocupado={enviando}
+      className="movimiento__formulario"
+      error={error}
+      tituloError={t('movimiento.error')}
     >
-      <form className="movimiento__formulario" onSubmit={enviar} noValidate>
-        <Pestanas
-          etiqueta={t('movimiento.tipoEtiqueta')}
-          valor={tipo}
-          onCambiar={cambiarTipo}
-          opciones={TIPOS.map((v) => ({ valor: v, etiqueta: t(`movimiento.tipo.${v}`) }))}
-        />
-        {conProductor && (
-          <Campo
-            tipo="selector"
-            etiqueta={t('movimiento.productor')}
-            value={productorId}
-            onChange={(e) => { setProductorId(e.target.value); setProductoId(''); setLoteId('') }}
-            opciones={productores}
-          />
-        )}
+      <Pestanas
+        etiqueta={t('movimiento.tipoEtiqueta')}
+        valor={tipo}
+        onCambiar={cambiarTipo}
+        opciones={TIPOS.map((v) => ({ valor: v, etiqueta: t(`movimiento.tipo.${v}`) }))}
+      />
+      {conProductor && (
         <Campo
           tipo="selector"
-          etiqueta={t('movimiento.producto')}
-          value={productoId}
-          onChange={(e) => { setProductoId(e.target.value); setLoteId('') }}
-          opciones={productos}
+          etiqueta={t('movimiento.productor')}
+          value={productorId}
+          onChange={(e) => { setProductorId(e.target.value); setProductoId(''); setLoteId('') }}
+          opciones={productores}
         />
-        <Campo
-          tipo="selector"
-          etiqueta={t('movimiento.lote')}
-          value={loteId}
-          onChange={(e) => setLoteId(e.target.value)}
-          error={errores.loteId}
-          ayuda={productoId && delProducto.length === 0 ? t(`movimiento.sinLotes.${tipo}`) : undefined}
-          opciones={delProducto.map((l) => ({ valor: String(l.id), etiqueta: etiquetaLote(l, t) }))}
-        />
-        <Campo
-          etiqueta={t('movimiento.cantidad')}
-          value={cantidad}
-          onChange={(e) => { setCantidad(e.target.value); setErrores(({ cantidad: _, ...resto }) => resto) }}
-          error={errores.cantidad}
-          ayuda={resultante != null ? t('movimiento.resultante', { cantidad: unidades(resultante) }) : undefined}
-          inputMode="decimal"
-          maxLength={13}
-          autoComplete="off"
-        />
-        <Campo
-          tipo="selector"
-          etiqueta={t('movimiento.motivo')}
-          value={motivo}
-          onChange={(e) => setMotivo(e.target.value)}
-          error={errores.motivo}
-          opciones={motivos[tipo].map((m) => ({ valor: m, etiqueta: t(`movimiento.motivos.${m}`) }))}
-        />
-        <Campo
-          etiqueta={t('movimiento.observacion')}
-          value={observacion}
-          onChange={(e) => setObservacion(e.target.value)}
-          error={errores.observacion}
-          maxLength={255}
-          autoComplete="off"
-        />
-        {error && <Alerta tono="error" titulo={t('movimiento.error')} descripcion={mensajeError(error)} />}
-        {/* Enter en un campo envia el formulario, como el boton del dialogo */}
-        <button type="submit" hidden />
-      </form>
-    </Dialogo>
+      )}
+      <Campo
+        tipo="selector"
+        etiqueta={t('movimiento.producto')}
+        value={productoId}
+        onChange={(e) => { setProductoId(e.target.value); setLoteId('') }}
+        opciones={productos}
+      />
+      <Campo
+        tipo="selector"
+        etiqueta={t('movimiento.lote')}
+        value={loteId}
+        onChange={(e) => setLoteId(e.target.value)}
+        error={errores.loteId}
+        ayuda={productoId && delProducto.length === 0 ? t(`movimiento.sinLotes.${tipo}`) : undefined}
+        opciones={delProducto.map((l) => ({ valor: String(l.id), etiqueta: etiquetaLote(l, t) }))}
+      />
+      <Campo
+        etiqueta={t('movimiento.cantidad')}
+        value={cantidad}
+        onChange={(e) => { setCantidad(e.target.value); setErrores(({ cantidad: _, ...resto }) => resto) }}
+        error={errores.cantidad}
+        ayuda={resultante != null ? t('movimiento.resultante', { cantidad: unidades(resultante) }) : undefined}
+        inputMode="decimal"
+        maxLength={13}
+        autoComplete="off"
+      />
+      <Campo
+        tipo="selector"
+        etiqueta={t('movimiento.motivo')}
+        value={motivo}
+        onChange={(e) => setMotivo(e.target.value)}
+        error={errores.motivo}
+        opciones={motivos[tipo].map((m) => ({ valor: m, etiqueta: t(`movimiento.motivos.${m}`) }))}
+      />
+      <Campo
+        etiqueta={t('movimiento.observacion')}
+        value={observacion}
+        onChange={(e) => setObservacion(e.target.value)}
+        error={errores.observacion}
+        maxLength={255}
+        autoComplete="off"
+      />
+    </DialogoFormulario>
+  )
+}
+
+/** El aviso de exito tras registrar: el movimiento y el saldo que le queda al lote. */
+export function AvisoRegistrado({ registrado, onCerrar }) {
+  const { t } = useTranslation()
+  const { movimiento, saldoLote } = registrado
+  return (
+    <Alerta
+      tono="exito"
+      titulo={t(`movimiento.registrado.${movimiento.tipo}`, { cantidad: unidades(movimiento.cantidad), lote: movimiento.lote })}
+      descripcion={t('movimiento.saldo', { cantidad: unidades(saldoLote) })}
+      onCerrar={onCerrar}
+    />
   )
 }
 

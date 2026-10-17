@@ -6,7 +6,7 @@ import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
-import DialogoMovimiento from '../../components/DialogoMovimiento.jsx'
+import DialogoMovimiento, { AvisoRegistrado } from '../../components/DialogoMovimiento.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
@@ -95,16 +95,7 @@ export default function AlmacenPage({ path }) {
             ))
           )}
 
-          {registrado && (
-            <Alerta
-              tono="exito"
-              titulo={t(`movimiento.registrado.${registrado.movimiento.tipo}`, {
-                cantidad: unidades(registrado.movimiento.cantidad), lote: registrado.movimiento.lote,
-              })}
-              descripcion={t('movimiento.saldo', { cantidad: unidades(registrado.saldoLote) })}
-              onCerrar={() => setRegistrado(null)}
-            />
-          )}
+          {registrado && <AvisoRegistrado registrado={registrado} onCerrar={() => setRegistrado(null)} />}
 
           {avisoVisible && (
             <Alerta

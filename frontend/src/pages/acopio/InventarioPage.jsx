@@ -1,21 +1,20 @@
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { consultarInventario, listarLotesPunto, registrarMovimiento } from '../../api/acopio.js'
+import { consultarInventario } from '../../api/acopio.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Buscador from '../../components/Buscador.jsx'
 import Campo from '../../components/Campo.jsx'
-import DialogoMovimiento from '../../components/DialogoMovimiento.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
 import { fechaCorta, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
-import { MOTIVOS_PUNTO } from '../../movimientos.js'
 import '../productor/productor.css'
 import './InventarioPage.css'
+import { useMovimientoPunto } from './useMovimientoPunto.jsx'
 
 const TONO = { DISPONIBLE: 'exito', POR_VENCER: 'aviso', VENCIDO: 'error', AGOTADO: 'neutro' }
 const ESTADOS = ['ACTIVOS', 'AGOTADOS', 'TODOS']
@@ -35,33 +34,14 @@ export default function InventarioPage({ path }) {
   const [estado, setEstado] = useState('ACTIVOS')
   const [pagina, setPagina] = useState(0)
   const [avisoVisible, setAvisoVisible] = useState(true)
-  const [dialogo, setDialogo] = useState(null)
-  const [registrado, setRegistrado] = useState(null)
-  const [errorLotes, setErrorLotes] = useState(null)
   const consultar = useCallback(() => consultarInventario({ q, productor, estado, pagina }), [q, productor, estado, pagina])
   const { datos, error, recargar } = useConsulta(consultar)
+  const movimiento = useMovimientoPunto(recargar)
 
   function buscar(e) {
     e.preventDefault()
     setQ(texto.trim())
     setPagina(0)
-  }
-
-  /** El formulario necesita todos los lotes de sus puntos, aun sin saldo; se piden al abrirlo. */
-  async function abrir(loteInicial) {
-    setErrorLotes(null)
-    try {
-      const lotes = await listarLotesPunto()
-      setDialogo({ lotes, loteInicial, clave: Date.now() })
-    } catch (err) {
-      if (err.status !== 401) setErrorLotes(err)
-    }
-  }
-
-  function alRegistrar(r) {
-    setDialogo(null)
-    setRegistrado(r)
-    recargar()
   }
 
   return (
@@ -92,7 +72,7 @@ export default function InventarioPage({ path }) {
           onChange={(e) => { setEstado(e.target.value || 'ACTIVOS'); setPagina(0) }}
           opciones={ESTADOS.filter((e) => e !== 'ACTIVOS').map((e) => ({ valor: e, etiqueta: t(`acopio.inventario.estado.${e}`) }))}
         />
-        <Boton tamano="M" onClick={() => abrir()}>{t('movimiento.titulo')}</Boton>
+        <Boton tamano="M" onClick={() => movimiento.abrir()}>{t('movimiento.titulo')}</Boton>
       </div>
 
       {avisoVisible && (
@@ -104,20 +84,7 @@ export default function InventarioPage({ path }) {
         />
       )}
 
-      {registrado && (
-        <Alerta
-          tono="exito"
-          titulo={t(`movimiento.registrado.${registrado.movimiento.tipo}`, {
-            cantidad: unidades(registrado.movimiento.cantidad), lote: registrado.movimiento.lote,
-          })}
-          descripcion={t('movimiento.saldo', { cantidad: unidades(registrado.saldoLote) })}
-          onCerrar={() => setRegistrado(null)}
-        />
-      )}
-
-      {errorLotes && (
-        <Alerta tono="error" titulo={t('movimiento.errorLotes')} descripcion={mensajeError(errorLotes, 'comun.errorConexion')} onCerrar={() => setErrorLotes(null)} />
-      )}
+      {movimiento.avisos}
 
       {error && (
         <EstadoVacio titulo={t('acopio.inventario.errorCargar')} descripcion={mensajeError(error, 'comun.errorConexion')}>
@@ -141,7 +108,7 @@ export default function InventarioPage({ path }) {
 
       {!error && datos?.items.length > 0 && (
         <>
-          <TablaInventario items={datos.items} onMovimiento={abrir} />
+          <TablaInventario items={datos.items} onMovimiento={movimiento.abrir} />
           <div className="inventario__pie">
             <span className="caption">
               {t('acopio.inventario.mostrando', {
@@ -155,18 +122,7 @@ export default function InventarioPage({ path }) {
         </>
       )}
 
-      {dialogo && (
-        <DialogoMovimiento
-          key={dialogo.clave}
-          conProductor
-          lotes={dialogo.lotes}
-          loteInicial={dialogo.loteInicial}
-          motivos={MOTIVOS_PUNTO}
-          registrar={registrarMovimiento}
-          onRegistrado={alRegistrar}
-          onCancelar={() => setDialogo(null)}
-        />
-      )}
+      {movimiento.formulario}
     </LayoutAcopio>
   )
 }
