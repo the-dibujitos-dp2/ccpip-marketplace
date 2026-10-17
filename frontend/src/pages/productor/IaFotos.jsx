@@ -37,7 +37,12 @@ export function useValidaciones(productoId, imagenes) {
     }
   }, [productoId, ids])
 
-  async function validar(imagenId) {
+  async function validar(imagenId, { conLinea = true } = {}) {
+    if (!conLinea) {
+      // Sin linea elegida el servidor no puede validar (LINEA_REQUERIDA): se avisa sin pedirlo
+      setPorFoto((p) => ({ ...p, [imagenId]: { ...p[imagenId], imagenId, estado: 'ERROR', local: false, codigoError: 'LINEA_REQUERIDA' } }))
+      return
+    }
     setPorFoto((p) => ({ ...p, [imagenId]: { ...p[imagenId], imagenId, estado: 'ANALIZANDO', local: true } }))
     try {
       const v = await validarImagen(imagenId)

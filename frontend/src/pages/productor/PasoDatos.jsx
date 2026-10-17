@@ -182,7 +182,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
       const nueva = await subirImagen(archivo, { tipo: 'PRODUCTO', productoId: id })
       setSubidas((s) => s.filter((x) => x.clave !== clave))
       // CCPIP-144: cada foto nueva se valida contra la linea; el resultado solo recomienda
-      if (nueva?.id) void validar(nueva.id)
+      if (nueva?.id) void validar(nueva.id, { conLinea: d.lineas.length > 0 })
     } catch (err) {
       setSubidas((s) => s.map((x) => (x.clave === clave ? { ...x, estado: 'error', mensaje: mensajeError(err, 'productor.datos.seCorto') } : x)))
     }
@@ -225,7 +225,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
     const nueva = await accionFoto(() => reemplazarImagen(imagen.id, archivo), 'productor.datos.errorReemplazar')
     setReemplazando(null)
     // CCPIP-364: la que entra desde el aviso de la IA se vuelve a validar
-    if (nueva?.id) void validar(nueva.id)
+    if (nueva?.id) void validar(nueva.id, { conLinea: d.lineas.length > 0 })
   }
 
   // ---------- Mejora opcional con IA (CCPIP-176, 272, 281, 282) ----------
@@ -250,7 +250,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
       if (usar) {
         const nueva = await aceptarMejora(comparacion.imagenId)
         setAlerta({ tono: 'exito', titulo: t('productor.datos.mejora.aceptada'), descripcion: t('productor.datos.mejora.aceptadaTexto') })
-        if (nueva?.id) void validar(nueva.id)
+        if (nueva?.id) void validar(nueva.id, { conLinea: d.lineas.length > 0 })
       } else {
         await rechazarMejora(comparacion.imagenId)
         setAlerta({ tono: 'exito', titulo: t('productor.datos.mejora.conservada') })

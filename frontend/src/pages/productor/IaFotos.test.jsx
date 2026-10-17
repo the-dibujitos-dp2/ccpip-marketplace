@@ -102,6 +102,24 @@ describe('PW-04 Validacion de fotos con IA (CCPIP-144, 168, 364)', () => {
     expect(llamadas(fetchMock, `POST /api/productor/imagenes/${C}/validacion`)).toHaveLength(1)
   })
 
+  it('una foto subida antes de elegir la linea no se manda a validar y pide elegirla', async () => {
+    let subida = false
+    const sinLineas = () => ({ ...conFotos(...(subida ? [fotoDe(C, true)] : [])), lineas: [] })
+    const fetchMock = productor({
+      'GET /api/productor/productos/9': () => [200, sinLineas()],
+      'POST /api/productor/imagenes': () => {
+        subida = true
+        return [201, fotoDe(C, true)]
+      },
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.upload(await screen.findByLabelText('Arrastra fotos aquí o selecciónalas'), archivo())
+
+    expect(await screen.findByText('Elige la línea del producto y guarda para validar sus fotos.')).toBeInTheDocument()
+    expect(llamadas(fetchMock, `POST /api/productor/imagenes/${C}/validacion`)).toHaveLength(0)
+  })
+
   it('sin IA disponible lo dice, no bloquea y conserva la foto original', async () => {
     const fetchMock = productor({
       'GET /api/productor/productos/9': () => [200, conFotos(fotoDe(A, true))],
