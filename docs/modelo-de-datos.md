@@ -173,6 +173,39 @@ uno del informe de arquitectura: el modulo lo mencionaba y el modelo no lo tenia
 RNF-35: estar en el carrito **no reserva ni descuenta** stock. Un producto aparece una
 sola vez por carrito, agregarlo de nuevo suma cantidad.
 
+**Vigencia (CCPIP-142, RF-109, RNF-36).** Migracion `V202610171600__vigencia_carrito.sql`. El
+carrito se conserva durante la vigencia de `parametro_plataforma` (ver mas abajo), contada desde
+`actualizado_en`, que cambia al agregar, modificar o quitar; consultar no la renueva. No depende de
+la sesion: cerrar sesion o que expire no lo borra, y una sesion activa no mantiene vivo un carrito
+vencido. Vencido, se vacia (se borran sus `item_carrito`) al consultarlo o cambiarlo, o en el barrido
+programado cada 15 minutos, y se anota `vencido_en` para avisarle al comprador. No hay movimiento de
+inventario porque nunca reservo. Agregar de nuevo limpia `vencido_en`.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| actualizado_en | timestamptz | no | Ultimo cambio del comprador: base de la vigencia. Indice para el barrido |
+| vencido_en | timestamptz | si | Cuando se vacio por vencer. Nulo si no vencio o si ya se volvio a agregar |
+
+**Agrupado por productor (CCPIP-63, RF-44).** No cambia el modelo: la respuesta del carrito agrupa
+las ofertas por `producto.productor_id` (su tienda o comunidad) con el subtotal de lo comprable, y el
+total es la suma exacta de esos subtotales.
+
+### parametro_plataforma
+Historial de los parametros de SA-02 "Parametros de la plataforma" que fija el superadministrador.
+Rige la ultima fila de cada clave. Por ahora una sola clave, `CARRITO_VIGENCIA_HORAS`; las resenas
+minimas y la anticipacion de alertas entran con sus historias.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| clave | varchar(40) | no | `CARRITO_VIGENCIA_HORAS` |
+| valor | integer | no | Mayor que cero. La API acepta de 1 a 720 horas |
+| registrado_por, registrado_en | | no | Quien y cuando |
+
+Es la auditoria del cambio: un trigger impide editarla y borrarla. La migracion no siembra ningun
+valor porque la Camara no lo ha definido ("Pendiente de definicion del stakeholder" en el Figma).
+Sin filas rige `ccpip.carrito.vigencia-provisional` (2 h, el valor de ejemplo del Figma SA-02),
+documentado como **provisional** en `application.properties`.
+
 ### pedido, item_pedido, pedido_estado_historial
 | Columna | Tipo | Nulo | Nota |
 |---|---|---|---|
