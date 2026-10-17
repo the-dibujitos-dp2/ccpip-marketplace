@@ -1069,7 +1069,11 @@
     "CAMBIO_NO_CANCELABLE": "Only a change that hasn't taken effect yet can be cancelled.",
     "CAMBIO_NO_ENCONTRADO": "We couldn't find that commission change.",
     "RANGO_INVALIDO": "The start date must be on or before the end date.",
-    "RANGO_MUY_LARGO": "Query at most one year at a time."
+    "RANGO_MUY_LARGO": "Query at most one year at a time.",
+    "TRADUCCION_NO_DISPONIBLE": "Machine translation isn't available right now. Your content stays in its original language.",
+    "IDIOMA_NO_TRADUCIBLE": "Content is written in Spanish; it can only be translated into English.",
+    "CAMPO_NO_TRADUCIBLE": "That field doesn't exist or has no Spanish text to translate.",
+    "SIN_TRADUCCION_PENDIENTE": "There are no translations to publish."
   },
   "buscar": {
     "comunidad": "Community",
@@ -1540,5 +1544,67 @@
       "descripcion": "Check that you copied it completely or request a new one with your email."
     },
     "pedirNuevo": "Request a new link"
+  },
+  "traduccion": {
+    "aviso": "Translated content",
+    "origen": {
+      "AUTOMATICA": "Machine translation",
+      "COMUNIDAD": "Translated by the community"
+    },
+    "verOriginal": "View original",
+    "verTraduccion": "View translation",
+    "mostrandoOriginal": "Original text in Spanish",
+    "desactualizada": "The community changed part of this text and its translation is out of date: it is shown in Spanish, its original language.",
+    "idiomas": {
+      "en": "English",
+      "es": "Spanish"
+    },
+    "traducirAl": {
+      "en": "Translate into English",
+      "es": "Translate into Spanish"
+    },
+    "estado": {
+      "SIN": "Not translated",
+      "PENDIENTE": "To review",
+      "APROBADA": "Published",
+      "DESACTUALIZADA": "Out of date"
+    },
+    "campos": {
+      "PRODUCTO": {
+        "nombre": "Product name",
+        "descripcion": "Description"
+      },
+      "HISTORIA": {
+        "titulo": "Story title",
+        "texto": "Story",
+        "comunidad": "The community",
+        "cultivo": "The farming",
+        "proceso": "The process",
+        "significado": "Its meaning"
+      },
+      "TIENDA": {
+        "nombre": "Store name",
+        "descripcion": "Store description"
+      },
+      "COMUNIDAD": {
+        "historia": "Community story",
+        "cita": "Community quote"
+      }
+    },
+    "panel": {
+      "titulo": "Your content in {{idioma}}",
+      "texto": "Buyers who shop in {{idioma}} see the published translation. Anything not translated is shown in Spanish, its original language. If you change a text, its translation becomes out of date.",
+      "noDisponible": "Machine translation isn't available yet",
+      "noDisponibleTexto": "The Chamber is still deciding who translates the content. Your content is shown in Spanish, its original language.",
+      "sinTexto": "Save your content's texts first so you can translate them.",
+      "traduciendo": "Translating…",
+      "revisa": "Review the translation: {{campo}}",
+      "publicar": "Publish translation",
+      "publicando": "Publishing…",
+      "publicada": "You published the translation",
+      "vacia": "A translation can't be empty",
+      "error": "We couldn't translate your content",
+      "errorPublicar": "We couldn't publish the translation"
+    }
   }
 }
