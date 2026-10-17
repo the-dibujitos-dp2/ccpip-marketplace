@@ -5,14 +5,34 @@
 .carrito__cuerpo { display: grid; grid-template-columns: minmax(0, 1fr) 400px; align-items: start; gap: 32px; }
 .carrito__lista { display: flex; flex-direction: column; gap: 16px; }
 
-.carrito__items {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* CCPIP-63: un bloque por comunidad con su cabecera y su subtotal (Figma CW-05) */
+.carrito__grupo {
+  overflow: hidden;
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-xl);
   background: var(--color-bg-surface);
 }
+.carrito__grupo-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--color-bg-sand);
+}
+.carrito__grupo-titulo { display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 600; font-size: 14px; line-height: 20px; }
+.carrito__grupo-subtotal {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0;
+  padding: 16px 20px;
+  border-top: 1px solid var(--color-border-default);
+  color: var(--color-text-secondary);
+}
+.carrito__grupo-subtotal strong { color: var(--color-text-primary); font-size: 18px; line-height: 26px; }
+
+.carrito__items { margin: 0; padding: 0; list-style: none; }
 
 .carrito__item {
   display: grid;
@@ -81,6 +101,7 @@
 
 .carrito__nota { padding: 12px; border-radius: var(--radius-m); background: var(--color-bg-sand); }
 .carrito__nota p { margin: 0; }
+.carrito__nota .carrito__vigencia { margin-top: 8px; color: var(--color-text-primary); }
 .carrito__nota .carrito__nota-titulo { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-weight: 600; font-size: 14px; }
 
 @media (max-width: 960px) {
@@ -98,4 +119,6 @@
   .carrito__cantidad-editable { grid-column: 2; justify-self: start; align-items: flex-start; text-align: left; }
   .carrito__subtotal { grid-column: 2; justify-self: start; text-align: left; }
   .carrito__mayorista { grid-column: 1 / -1; }
+  .carrito__grupo-cabecera { flex-wrap: wrap; padding: 12px 16px; }
+  .carrito__grupo-subtotal { padding: 12px 16px; }
 }

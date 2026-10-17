@@ -16,6 +16,16 @@ export function mensajeError(error, respaldo = 'errores.generico') {
 }
 
 /**
+ * Los errores por campo de una validacion (`body.campos`). Llegan en espanol: en ingles se marca
+ * cada campo con el mensaje del code.
+ */
+export function erroresPorCampo(error) {
+  const campos = error.body.campos
+  if (i18n.resolvedLanguage === 'es') return campos
+  return Object.fromEntries(Object.keys(campos).map((c) => [c, mensajeError(error)]))
+}
+
+/**
  * Lo que falta para publicar un producto o una tienda llega del servidor como texto en espanol
  * (publicable.faltan y detalles de PRODUCTO_NO_PUBLICABLE, PRODUCTO_INCOMPLETO, TIENDA_INCOMPLETA).
  * Es un conjunto cerrado: se reconoce y se traduce; un texto nuevo se muestra tal cual.

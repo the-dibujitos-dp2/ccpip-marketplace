@@ -22,6 +22,27 @@ export const marcarListo = (numero) => apiFetch(`/api/acopio/pedidos/${encodeURI
 export const registrarRecojo = (numero, datos) =>
   apiFetch(`/api/acopio/pedidos/${encodeURIComponent(numero)}/recojo`, { method: 'POST', body: datos })
 
+/**
+ * CCPIP-162 (A-02): los lotes de sus puntos por producto, productor y estado. `estado`: ACTIVOS (por
+ * defecto), AGOTADOS o TODOS; `productor`, un id; `q`, producto o codigo de lote.
+ */
+export function consultarInventario({ q, productor, estado, pagina = 0 } = {}) {
+  const p = new URLSearchParams({ pagina: String(pagina) })
+  if (q?.trim()) p.set('q', q.trim())
+  if (productor) p.set('productor', String(productor))
+  if (estado && estado !== 'ACTIVOS') p.set('estado', estado)
+  return apiFetch(`/api/acopio/inventario?${p}`)
+}
+
+/** CCPIP-121 y CCPIP-287: todos los lotes de sus puntos, aun sin saldo, para el formulario de movimiento. */
+export const listarLotesPunto = () => apiFetch('/api/acopio/inventario/lotes')
+
+/**
+ * CCPIP-121 y CCPIP-287: registra una entrada o salida en un lote de su punto.
+ * `{ tipo, loteId, cantidad, motivo, observacion, clave }`; devuelve `{ movimiento, saldoLote, repetido }`.
+ */
+export const registrarMovimiento = (datos) => apiFetch('/api/acopio/movimientos', { method: 'POST', body: datos })
+
 /** CCPIP-278: lo que entra o sale de sus puntos y lo que espera su recepcion. */
 export const listarTransferencias = () => apiFetch('/api/acopio/transferencias')
 

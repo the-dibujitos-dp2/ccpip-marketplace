@@ -374,6 +374,51 @@
       "subiendo": "Uploading…",
       "agregar": "Add",
       "fotosAyuda": "Up to {{max}} photos. The first one is the main photo: it's the one shown in the catalog.",
+      "iaFotos": {
+        "titulo": "Photo check",
+        "analizandoTitulo": "Photo {{n}} · Checking",
+        "analizandoTexto": "We're checking that the photo matches the {{linea}} category.",
+        "analizandoSinLinea": "We're checking that the photo matches the product's category.",
+        "validaTitulo": "Photo {{n}} · Valid image",
+        "validaTexto": "Matches the {{linea}} category.",
+        "sospechosaTitulo": "Photo {{n}} · Possibly the wrong image",
+        "sospechosaTexto": "It looks like {{detectada}}, not {{esperada}}. Review it before publishing.",
+        "noBloquea": "This is only a recommendation: you can publish with this photo.",
+        "errorTitulo": "Photo {{n}} · We couldn't check the image",
+        "errorTexto": "Check your connection and try again. You can keep your photo.",
+        "noDisponibleTitulo": "Photo {{n}} · Check unavailable",
+        "noDisponibleTexto": "We couldn't check it right now. You can keep your original photo.",
+        "sinValidarTitulo": "Photo {{n}}",
+        "sinValidarTexto": "We haven't checked whether it matches the product's category yet.",
+        "lineaRequerida": "Choose the product line and save to check its photos.",
+        "validar": "Check photo",
+        "validarOtraVez": "Check again",
+        "reemplazar": "Replace image",
+        "revisar": "Review",
+        "prueba": "Test check",
+        "pruebaAyuda": "Result from a demo simulator, not an AI model. Use it only as a reference."
+      },
+      "mejora": {
+        "mejorar": "Enhance with AI",
+        "preparando": "Preparing the enhancement…",
+        "titulo": "Compare the enhanced photo",
+        "texto": "Only light, contrast and sharpness are adjusted: nothing is added to your product. Your original photo doesn't change until you choose.",
+        "prueba": "Test enhancement: made by a demo simulator, not an AI model.",
+        "original": "Original",
+        "mejorada": "Enhanced",
+        "altOriginal": "Original photo",
+        "altMejorada": "Enhanced photo",
+        "usar": "Use the enhanced one",
+        "conservar": "Keep the original",
+        "decidirDespues": "Decide later",
+        "aceptada": "We're using the enhanced photo",
+        "aceptadaTexto": "It takes the original's place; we keep the original in your history.",
+        "conservada": "You kept your original photo",
+        "noDisponible": "We couldn't enhance the photo right now",
+        "noDisponibleTexto": "Your original photo is kept and you can still publish.",
+        "errorPedir": "We couldn't enhance the photo",
+        "errorDecidir": "We couldn't save your choice"
+      },
       "nombre": "Product name",
       "nombreEjemplo": "Extra virgin sacha inchi oil",
       "ia": {
@@ -420,52 +465,7 @@
       "siguienteHistoria": "Next: story",
       "vistaPrevia": "Catalog preview",
       "recibiras": "You'll receive {{monto}} per unit",
-      "comision": "Chamber commission: {{porcentaje}} % (example value, configurable). Only the Chamber applies discounts.",
-      "iaFotos": {
-        "titulo": "Photo check",
-        "analizandoTitulo": "Photo {{n}} · Checking",
-        "analizandoTexto": "We're checking that the photo matches the {{linea}} category.",
-        "analizandoSinLinea": "We're checking that the photo matches the product's category.",
-        "validaTitulo": "Photo {{n}} · Valid image",
-        "validaTexto": "Matches the {{linea}} category.",
-        "sospechosaTitulo": "Photo {{n}} · Possibly the wrong image",
-        "sospechosaTexto": "It looks like {{detectada}}, not {{esperada}}. Review it before publishing.",
-        "noBloquea": "This is only a recommendation: you can publish with this photo.",
-        "errorTitulo": "Photo {{n}} · We couldn't check the image",
-        "errorTexto": "Check your connection and try again. You can keep your photo.",
-        "noDisponibleTitulo": "Photo {{n}} · Check unavailable",
-        "noDisponibleTexto": "We couldn't check it right now. You can keep your original photo.",
-        "sinValidarTitulo": "Photo {{n}}",
-        "sinValidarTexto": "We haven't checked whether it matches the product's category yet.",
-        "lineaRequerida": "Choose the product line and save to check its photos.",
-        "validar": "Check photo",
-        "validarOtraVez": "Check again",
-        "reemplazar": "Replace image",
-        "revisar": "Review",
-        "prueba": "Test check",
-        "pruebaAyuda": "Result from a demo simulator, not an AI model. Use it only as a reference."
-      },
-      "mejora": {
-        "mejorar": "Enhance with AI",
-        "preparando": "Preparing the enhancement…",
-        "titulo": "Compare the enhanced photo",
-        "texto": "Only light, contrast and sharpness are adjusted: nothing is added to your product. Your original photo doesn't change until you choose.",
-        "prueba": "Test enhancement: made by a demo simulator, not an AI model.",
-        "original": "Original",
-        "mejorada": "Enhanced",
-        "altOriginal": "Original photo",
-        "altMejorada": "Enhanced photo",
-        "usar": "Use the enhanced one",
-        "conservar": "Keep the original",
-        "decidirDespues": "Decide later",
-        "aceptada": "We're using the enhanced photo",
-        "aceptadaTexto": "It takes the original's place; we keep the original in your history.",
-        "conservada": "You kept your original photo",
-        "noDisponible": "We couldn't enhance the photo right now",
-        "noDisponibleTexto": "Your original photo is kept and you can still publish.",
-        "errorPedir": "We couldn't enhance the photo",
-        "errorDecidir": "We couldn't save your choice"
-      }
+      "comision": "Chamber commission: {{porcentaje}} % (example value, configurable). Only the Chamber applies discounts."
     },
     "historia": {
       "preguntas": {
@@ -741,6 +741,7 @@
     "nav": {
       "pedidos": "Orders",
       "movimientos": "Stock movements",
+      "inventario": "Inventory",
       "transferencias": "Transfers"
     },
     "pedidos": {
@@ -815,9 +816,44 @@
         "TRANSFERENCIA_ENTRADA": "Transfer",
         "SALIDA_VENTA": "Outgoing",
         "TRANSFERENCIA_SALIDA": "Transfer",
-        "AJUSTE": "Adjustment"
+        "AJUSTE": "Adjustment",
+        "SALIDA": "Outgoing"
       },
       "compraEnLinea": "Online purchase"
+    },
+    "inventario": {
+      "buscar": "Search product or batch…",
+      "productor": "Producer",
+      "todos": "All",
+      "estadoLote": "Batch status",
+      "estado": {
+        "ACTIVOS": "Active",
+        "AGOTADOS": "Sold out",
+        "TODOS": "All"
+      },
+      "unSoloInventario": "A single inventory, calculated from movements",
+      "unSoloInventarioTexto": "Stock available for sale is deducted when each purchase is confirmed, not when the buyer picks it up. Expired stock is not sold; stock in transit or written off does not count here.",
+      "errorCargar": "We couldn't load the inventory",
+      "resumen": "Stock: {{stock}} units · Sellable: {{vendible}} units · Not sellable: {{noVendible}} units",
+      "vacio": "No batches match these filters",
+      "vacioTexto": "Here you'll see your point's batches, with their incoming, outgoing and status.",
+      "mostrando": "Showing {{desde}}–{{hasta}} of {{total}} batches",
+      "lista": "Collection point inventory",
+      "col": {
+        "vence": "Expires",
+        "entradas": "Incoming",
+        "salidas": "Outgoing",
+        "stock": "Stock",
+        "accion": "Action"
+      },
+      "estados": {
+        "DISPONIBLE": "Available",
+        "POR_VENCER": "Expiring soon",
+        "VENCIDO": "Expired",
+        "AGOTADO": "Sold out"
+      },
+      "movimiento": "Movement",
+      "movimientoDe": "Record a movement for batch {{lote}}"
     },
     "transferencias": {
       "porRecibir": "Transfers to receive ({{total}})",
@@ -850,6 +886,7 @@
       "tablero": "Dashboard",
       "comision": "Commission",
       "comisiones": "Commission by order",
+      "parametros": "Parameters",
       "autorizaciones": "Authorizations"
     },
     "tablero": {
@@ -981,6 +1018,29 @@
       "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
       "sinComisionCelda": "No commission",
       "nota": "Commission and net are fixed when each order is confirmed; a later commission change doesn't alter them."
+    },
+    "parametros": {
+      "titulo": "Platform parameters",
+      "seccion": "Cart",
+      "pendiente": "Pending stakeholder definition",
+      "intro": "How long an unpaid cart is kept after its last change. Until the Chamber defines it, a provisional value applies.",
+      "campo": "Unpaid cart lifetime (hours)",
+      "ayuda": "Between {{minimo}} and {{maximo}} hours. The cart does not reserve stock; when it expires it is emptied and, when products are added again, they are revalidated.",
+      "guardar": "Save",
+      "provisional_one": "The provisional value of {{count}} hour applies: it has not been configured yet.",
+      "provisional_other": "The provisional value of {{count}} hours applies: it has not been configured yet.",
+      "configurada_one": "{{count}} hour applies · set by {{nombre}} on {{fecha}}.",
+      "configurada_other": "{{count}} hours apply · set by {{nombre}} on {{fecha}}.",
+      "rigeYa": "The change applies immediately, including carts already saved. Every change is kept in the history.",
+      "guardado_one": "The cart lifetime is now {{count}} hour",
+      "guardado_other": "The cart lifetime is now {{count}} hours",
+      "errorCargar": "We could not load the parameters",
+      "errorGuardar": "We could not save the cart lifetime",
+      "validacion": {
+        "vacio": "Enter how many hours the cart is kept.",
+        "rango": "Enter a whole number of hours between {{minimo}} and {{maximo}}.",
+        "mismo": "That value already applies."
+      }
     }
   },
   "sello": {
@@ -1156,6 +1216,8 @@
     "FECHAS_INVALIDAS": "The expiry date must be after the production date.",
     "FORMATO_NO_PERMITIDO": "Only JPG, PNG or WebP photos are accepted.",
     "IA_NO_DISPONIBLE": "Assisted writing isn't available right now. You can write the text in your own words.",
+    "LINEA_REQUERIDA": "Choose the product line to check its photos.",
+    "SIN_MEJORA_PENDIENTE": "There's no pending enhanced version for this photo.",
     "IMAGEN_DANADA": "We couldn't read the image. It may be damaged; try another one.",
     "IMAGEN_MUY_GRANDE": "The image has too many pixels. Use one under 40 megapixels.",
     "IMAGEN_NO_ENCONTRADA": "The image doesn't exist.",
@@ -1216,21 +1278,11 @@
     "CAMBIO_NO_ENCONTRADO": "We couldn't find that commission change.",
     "RANGO_INVALIDO": "The start date must be on or before the end date.",
     "RANGO_MUY_LARGO": "Query at most one year at a time.",
-    "DESTINO_INVALIDO": "Choose a collection point as the destination.",
-    "ORIGEN_INVALIDO": "Check the origin of the transfer.",
-    "MISMO_ORIGEN_DESTINO": "Origin and destination must be different.",
-    "LOTE_NO_ENCONTRADO": "The batch does not exist.",
-    "LOTE_FUERA_DE_ORIGEN": "One of the batches is not at the chosen origin.",
-    "LOTE_VENCIDO": "One of the batches has expired.",
-    "LOTE_YA_INCLUIDO": "Each batch goes only once in the transfer.",
-    "SALDO_INSUFICIENTE": "One of the batches no longer has enough units.",
-    "SIN_ALMACEN": "You do not have a registered warehouse yet.",
-    "APROBACION_PENDIENTE": "The request between points has no approver yet.",
-    "TRANSICION_INVALIDA": "The transfer changed status. Refresh the page.",
-    "TRANSFERENCIA_NO_ENCONTRADA": "The transfer does not exist.",
-    "NO_ES_DESTINO": "Only the destination point records the receipt.",
-    "LINEA_REQUERIDA": "Choose the product line to check its photos.",
-    "SIN_MEJORA_PENDIENTE": "There's no pending enhanced version for this photo.",
+    "SALDO_INSUFICIENTE": "The batch doesn't have that many units: no more than its stock can go out.",
+    "LOTE_VENCIDO": "The batch has expired: it can't receive more units.",
+    "LOTE_NO_ENCONTRADO": "The batch doesn't exist at your point or warehouse.",
+    "MOTIVO_INVALIDO": "That reason doesn't match this movement.",
+    "ENVIO_REUTILIZADO": "This submission was already used for another movement. Open the form again.",
     "TRADUCCION_NO_DISPONIBLE": "Machine translation isn't available right now. Your content stays in its original language.",
     "IDIOMA_NO_TRADUCIBLE": "Content is written in Spanish; it can only be translated into English.",
     "CAMPO_NO_TRADUCIBLE": "That field doesn't exist or has no Spanish text to translate.",
@@ -1244,7 +1296,17 @@
     "SIN_CERTIFICADO_VIGENTE": "To approve, the product needs at least one valid certificate of its own.",
     "SOLICITUD_YA_RESUELTA": "This request is no longer pending review.",
     "SOLICITUD_NO_ENCONTRADA": "The request doesn't exist.",
-    "MOTIVO_REQUERIDO": "Enter the reason for the decision."
+    "MOTIVO_REQUERIDO": "Enter the reason for the decision.",
+    "DESTINO_INVALIDO": "Choose a collection point as the destination.",
+    "ORIGEN_INVALIDO": "Check the origin of the transfer.",
+    "MISMO_ORIGEN_DESTINO": "Origin and destination must be different.",
+    "LOTE_FUERA_DE_ORIGEN": "One of the batches is not at the chosen origin.",
+    "LOTE_YA_INCLUIDO": "Each batch goes only once in the transfer.",
+    "SIN_ALMACEN": "You do not have a registered warehouse yet.",
+    "APROBACION_PENDIENTE": "The request between points has no approver yet.",
+    "TRANSICION_INVALIDA": "The transfer changed status. Refresh the page.",
+    "TRANSFERENCIA_NO_ENCONTRADA": "The transfer does not exist.",
+    "NO_ES_DESTINO": "Only the destination point records the receipt."
   },
   "buscar": {
     "comunidad": "Community",
@@ -1452,7 +1514,14 @@
     "quitar": "Remove {{nombre}} from cart",
     "quitarTitulo": "Remove from cart",
     "continuar": "Continue to delivery and payment",
-    "bloqueo": "Adjust or remove the highlighted products to continue."
+    "bloqueo": "Adjust or remove the highlighted products to continue.",
+    "subtotalComunidad": "Community subtotal",
+    "vigencia": {
+      "hasta": "We keep your cart until {{fecha}}. Every change you make renews the period.",
+      "vencido": "Your previous cart expired",
+      "vencidoTexto_one": "We kept it for {{count}} hour after your last change and emptied it on {{fecha}}. No stock was reserved: add the products again and we will check their price and availability.",
+      "vencidoTexto_other": "We kept it for {{count}} hours after your last change and emptied it on {{fecha}}. No stock was reserved: add the products again and we will check their price and availability."
+    }
   },
   "faltantes": {
     "linea": "At least one product line",
@@ -1730,37 +1799,48 @@
     },
     "pedirNuevo": "Request a new link"
   },
-  "transferencias": {
-    "estado": {
-      "INICIADA": "Started",
-      "SOLICITADA": "Requested",
-      "PREPARADA": "Prepared",
-      "DESPACHADA": "In transit",
-      "RECIBIDA": "Received"
-    },
+  "movimiento": {
+    "titulo": "Record movement",
+    "tipoEtiqueta": "Movement type",
     "tipo": {
-      "ALMACEN_A_PUNTO": "From my warehouse to a collection point",
-      "ENTRE_PUNTOS": "Between collection points"
+      "ENTRADA": "Incoming",
+      "SALIDA": "Outgoing"
     },
-    "miAlmacen": "My warehouse",
-    "origen": "Origin",
-    "destino": "Destination",
+    "registrar": {
+      "ENTRADA": "Record incoming",
+      "SALIDA": "Record outgoing"
+    },
     "productor": "Producer",
-    "ruta": "{{origen}} → {{destino}}",
-    "lotesDe": "Batches in transfer {{codigo}}",
-    "col": {
-      "producto": "Product",
-      "lote": "Origin batch",
-      "vence": "Expires",
-      "cantidad": "Quantity",
-      "loteDestino": "Destination batch"
+    "producto": "Product",
+    "lote": "Batch",
+    "cantidad": "Quantity",
+    "motivo": "Reason",
+    "observacion": "Note (optional)",
+    "resultante": "Resulting stock: {{cantidad}} units",
+    "vence": "expires {{fecha}}",
+    "sinLotes": {
+      "ENTRADA": "This product has no current batches here.",
+      "SALIDA": "This product has no batches with stock here."
     },
-    "sinVencimiento": "No expiry",
-    "observacion": "Note",
-    "historial": "History",
-    "verDetalle": "View details",
-    "ocultarDetalle": "Hide details",
-    "pendienteAprobador": "Who approves transfers between points is not defined yet: the request is recorded and does not commit any units."
+    "motivos": {
+      "RECEPCION": "Received from producer",
+      "DEVOLUCION_PRODUCTOR": "Returned to producer",
+      "PRODUCCION": "Harvest or production",
+      "RETIRO_PRODUCTOR": "Taken out by producer"
+    },
+    "validacion": {
+      "lote": "Choose the batch",
+      "cantidad": "Enter a quantity above zero, with up to 3 decimals",
+      "saldo": "The batch has {{cantidad}} units: no more can go out",
+      "motivo": "Choose the reason"
+    },
+    "error": "We couldn't record the movement",
+    "errorLotes": "We couldn't load the batches",
+    "registrado": {
+      "ENTRADA": "Incoming of {{cantidad}} units recorded in batch {{lote}}",
+      "SALIDA": "Outgoing of {{cantidad}} units recorded from batch {{lote}}"
+    },
+    "saldo": "The batch now has {{cantidad}} units."
   },
   "traduccion": {
     "aviso": "Translated content",
@@ -2020,5 +2100,37 @@
         "texto": "{{organizacion}} will see this reason and can attach new evidence. The decision is recorded and cannot be edited."
       }
     }
+  },
+  "transferencias": {
+    "estado": {
+      "INICIADA": "Started",
+      "SOLICITADA": "Requested",
+      "PREPARADA": "Prepared",
+      "DESPACHADA": "In transit",
+      "RECIBIDA": "Received"
+    },
+    "tipo": {
+      "ALMACEN_A_PUNTO": "From my warehouse to a collection point",
+      "ENTRE_PUNTOS": "Between collection points"
+    },
+    "miAlmacen": "My warehouse",
+    "origen": "Origin",
+    "destino": "Destination",
+    "productor": "Producer",
+    "ruta": "{{origen}} → {{destino}}",
+    "lotesDe": "Batches in transfer {{codigo}}",
+    "col": {
+      "producto": "Product",
+      "lote": "Origin batch",
+      "vence": "Expires",
+      "cantidad": "Quantity",
+      "loteDestino": "Destination batch"
+    },
+    "sinVencimiento": "No expiry",
+    "observacion": "Note",
+    "historial": "History",
+    "verDetalle": "View details",
+    "ocultarDetalle": "Hide details",
+    "pendienteAprobador": "Who approves transfers between points is not defined yet: the request is recorded and does not commit any units."
   }
 }

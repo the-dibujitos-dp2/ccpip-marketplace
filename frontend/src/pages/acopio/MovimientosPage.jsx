@@ -14,6 +14,7 @@ import { fechaHora, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
 import './MovimientosPage.css'
+import { useMovimientoPunto } from './useMovimientoPunto.jsx'
 
 const PESTANAS = ['', 'ENTRADAS', 'SALIDAS', 'AJUSTES']
 
@@ -23,14 +24,16 @@ const TIPOS = {
   TRANSFERENCIA_ENTRADA: { tono: 'exito', signo: '+' },
   // Una venta es una salida; la fila muestra su numero de pedido
   SALIDA_VENTA: { tono: 'info', signo: '−' },
+  // CCPIP-287: salida manual, con su motivo
+  SALIDA: { tono: 'info', signo: '−' },
   TRANSFERENCIA_SALIDA: { tono: 'info', signo: '−' },
   AJUSTE: { tono: 'neutro', signo: '' },
 }
 
 /**
  * A-03 · CCPIP-158 (RF-127): movimientos de existencias del punto, entre ellos el descuento que
- * genero cada compra confirmada, con su numero de pedido. Solo consulta: registrar entradas y
- * salidas (CCPIP-121, CCPIP-287) y recibir transferencias (CCPIP-277) llegan con sus historias.
+ * genero cada compra confirmada, con su numero de pedido. Registra entradas (CCPIP-121) y salidas
+ * (CCPIP-287) con el mismo formulario que A-02; recibir transferencias (CCPIP-277) llega con su historia.
  */
 export default function MovimientosPage({ path }) {
   const { t } = useTranslation()
@@ -40,6 +43,7 @@ export default function MovimientosPage({ path }) {
   const [pagina, setPagina] = useState(0)
   const consultar = useCallback(() => consultarMovimientos({ tipo, pedido: buscado, pagina }), [tipo, buscado, pagina])
   const { datos, error, recargar } = useConsulta(consultar)
+  const movimiento = useMovimientoPunto(recargar)
 
   function cambiarTipo(valor) {
     setTipo(valor)
@@ -71,7 +75,10 @@ export default function MovimientosPage({ path }) {
           onChange={(e) => setPedido(e.target.value)}
           onBuscar={buscar}
         />
+        <Boton tamano="M" onClick={() => movimiento.abrir()}>{t('movimiento.titulo')}</Boton>
       </div>
+
+      {movimiento.avisos}
 
       {error && (
         <EstadoVacio titulo={t('acopio.movimientos.errorCargar')} descripcion={mensajeError(error, 'comun.errorConexion')}>
@@ -98,6 +105,8 @@ export default function MovimientosPage({ path }) {
           <Paginacion pagina={datos.pagina} totalPaginas={datos.totalPaginas} onCambiar={setPagina} />
         </>
       )}
+
+      {movimiento.formulario}
     </LayoutAcopio>
   )
 }
@@ -123,7 +132,7 @@ function TablaMovimientos({ items }) {
                 <Badge tono={tipo.tono}>{t(`acopio.movimientos.tipo.${m.tipo}`, { defaultValue: m.tipo })}</Badge>
               </span>
               <span className="tabla__celda tabla__celda--flex">
-                {[m.producto, m.lote, m.pedido].filter(Boolean).join(' · ')}
+                {[m.producto, m.lote, m.pedido, m.motivo && t(`movimiento.motivos.${m.motivo}`)].filter(Boolean).join(' · ')}
               </span>
               <span className="tabla__celda movimientos__col-cantidad">{`${tipo.signo}${unidades(m.cantidad)}`}</span>
               <span className="tabla__celda movimientos__col-registro">

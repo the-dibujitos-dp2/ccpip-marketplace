@@ -12,6 +12,7 @@ const OPCIONES = {
   fechaLarga: { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' },
   diaMes: { day: 'numeric', month: 'short', timeZone: 'America/Lima' },
   fechaHora: { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima' },
+  fechaHoraLarga: { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima' },
 }
 
 // Crear un Intl.*Format es costoso: se guarda uno por formato y locale
@@ -79,4 +80,12 @@ export function mesAnterior(periodo) {
 /** "2026-11-16T14:12:00Z" -> "16 nov" · "16 Nov", en hora de Lima (listas de pedidos, CW-09) */
 export function diaMes(instante) {
   return instante ? formato('diaMes').format(new Date(instante)).replace('.', '') : ''
+}
+
+/**
+ * "2026-10-17T19:30:00Z" -> "17 de octubre, 14:30" · "17 October, 14:30", en hora de Lima (hasta cuando
+ * se guarda el carrito, CCPIP-142)
+ */
+export function fechaHoraLarga(instante) {
+  return instante ? formato('fechaHoraLarga').format(new Date(instante)).replace(' a las ', ', ').replace(' at ', ', ') : ''
 }

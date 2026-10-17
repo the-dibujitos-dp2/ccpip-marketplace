@@ -23,6 +23,9 @@ import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.ia.AsistenteRedaccion.Propuesta;
 import pe.ccpip.ia.AsistenteRedaccion.Variante;
+import pe.ccpip.inventario.InventarioModelos.DatosMovimiento;
+import pe.ccpip.inventario.InventarioModelos.MovimientoRegistrado;
+import pe.ccpip.inventario.MovimientoManualService;
 import pe.ccpip.productor.InventarioProductorModelos.Inventario;
 import pe.ccpip.productor.PedidosProductorModelos.Pedidos;
 import pe.ccpip.productor.ProductoModelos.AprobarHistoria;
@@ -61,10 +64,11 @@ public class ProductorController {
     private final PanelService panel;
     private final PedidosProductorService pedidos;
     private final InventarioProductorService inventario;
+    private final MovimientoManualService movimientos;
 
     public ProductorController(ProductorActual actual, ProductosService productos, HistoriaService historias,
                                LotesService lotes, PanelService panel, PedidosProductorService pedidos,
-                               InventarioProductorService inventario) {
+                               InventarioProductorService inventario, MovimientoManualService movimientos) {
         this.actual = actual;
         this.productos = productos;
         this.historias = historias;
@@ -72,6 +76,7 @@ public class ProductorController {
         this.panel = panel;
         this.pedidos = pedidos;
         this.inventario = inventario;
+        this.movimientos = movimientos;
     }
 
     @GetMapping("/panel")
@@ -179,6 +184,17 @@ public class ProductorController {
     @GetMapping("/inventario")
     public Inventario inventario(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s) {
         return inventario.obtener(actual.id(s));
+    }
+
+    /**
+     * CCPIP-283 (RF-203, PW-16): entrada o salida en un lote de su almacen virtual unico. 201 con el
+     * movimiento nuevo; 200 si la misma clave ya se habia registrado (no mueve nada).
+     */
+    @PostMapping("/almacen/movimientos")
+    public ResponseEntity<MovimientoRegistrado> registrarMovimiento(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                                                    @Valid @RequestBody DatosMovimiento datos) {
+        MovimientoRegistrado r = movimientos.registrarEnAlmacen(actual.id(s), s.userId(), datos);
+        return ResponseEntity.status(r.repetido() ? HttpStatus.OK : HttpStatus.CREATED).body(r);
     }
 
     /** CCPIP-66 (PW-07): pedidos con publicaciones propias; sin {@code estado}, todos los pagados. */

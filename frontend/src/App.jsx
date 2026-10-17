@@ -11,8 +11,10 @@ import AccesoRestringidoPage from './pages/admin/AccesoRestringidoPage.jsx'
 import AutorizacionesPage from './pages/admin/AutorizacionesPage.jsx'
 import ComisionesPage from './pages/admin/ComisionesPage.jsx'
 import ComisionPage from './pages/admin/ComisionPage.jsx'
+import ParametrosPage from './pages/admin/ParametrosPage.jsx'
 import ExpedienteAutorizacionPage from './pages/admin/ExpedienteAutorizacionPage.jsx'
 import TableroPage from './pages/admin/TableroPage.jsx'
+import InventarioPage from './pages/acopio/InventarioPage.jsx'
 import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
 import PedidosPage from './pages/acopio/PedidosPage.jsx'
 import TransferenciasPuntoPage from './pages/acopio/TransferenciasPage.jsx'
@@ -228,11 +230,12 @@ export default function App() {
   } else if (restringida) {
     pagina = <AccesoRestringidoPage path={path} seccion={restringida} />
   } else if (delAdmin) {
-    // Tablero (SA-01), comision (SA-02), comision por pedido y autorizaciones (S-01, S-02); los otros modulos llegan con sus historias
+    // Tablero (SA-01), comision y parametros (SA-02), comision por pedido y autorizaciones (S-01, S-02); los otros modulos llegan con sus historias
     if (!puedeVerAdmin(user, path)) pagina = null
     else if (path === RUTAS.admin) pagina = <TableroPage path={path} />
     else if (path === RUTAS.adminComision) pagina = <ComisionPage path={path} />
     else if (path === RUTAS.adminComisiones) pagina = <ComisionesPage path={path} />
+    else if (path === RUTAS.adminParametros) pagina = <ParametrosPage path={path} />
     else if (path === RUTAS.adminAutorizaciones) pagina = <AutorizacionesPage path={path} />
     else if (RUTA_EXPEDIENTE.test(path)) pagina = <ExpedienteAutorizacionPage path={RUTAS.adminAutorizaciones} id={path.match(RUTA_EXPEDIENTE)[1]} />
     else {
@@ -265,10 +268,12 @@ export default function App() {
     else if (RUTA_PEDIDO.test(path)) pagina = <PedidoPage id={path.match(RUTA_PEDIDO)[1]} />
     else pagina = <CarritoPage />
   } else if (delAcopio) {
-    // Por ahora el punto tiene Pedidos (A-05, CCPIP-159), Movimientos y Transferencias (A-03, CCPIP-158, CCPIP-278)
+    // Por ahora el punto tiene Pedidos (A-05, CCPIP-159), Movimientos (A-03, CCPIP-158), Inventario (A-02, CCPIP-162)
+    // y Transferencias (CCPIP-278)
     if (user.role !== 'ADMIN_PUNTO') pagina = null
     else if (path === RUTAS.acopioPedidos) pagina = <PedidosPage path={path} />
     else if (path === RUTAS.acopioMovimientos) pagina = <MovimientosPage path={path} />
+    else if (path === RUTAS.acopioInventario) pagina = <InventarioPage path={path} />
     else if (path === RUTAS.acopioTransferencias) pagina = <TransferenciasPuntoPage path={path} />
     else {
       navigate(RUTAS.acopioPedidos, { replace: true })

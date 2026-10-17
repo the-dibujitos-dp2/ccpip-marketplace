@@ -161,7 +161,7 @@ RNF-16: una correccion se hace con un movimiento de tipo AJUSTE que conserva el 
 |---|---|---|---|
 | id | bigserial | no | |
 | producto_id, ubicacion_id | bigint | no | |
-| tipo | varchar(20) | no | ENTRADA, SALIDA_VENTA, TRANSFERENCIA_ENTRADA, TRANSFERENCIA_SALIDA, AJUSTE |
+| tipo | varchar(20) | no | ENTRADA, SALIDA, SALIDA_VENTA, TRANSFERENCIA_ENTRADA, TRANSFERENCIA_SALIDA, AJUSTE |
 | cantidad | numeric(12,3) | no | Siempre positiva. El signo lo da el tipo |
 | pedido_id | bigint | si | Cuando el movimiento viene de una venta |
 | usuario_id | bigint | si | Quien lo registro |
@@ -172,6 +172,39 @@ uno del informe de arquitectura: el modulo lo mencionaba y el modelo no lo tenia
 
 RNF-35: estar en el carrito **no reserva ni descuenta** stock. Un producto aparece una
 sola vez por carrito, agregarlo de nuevo suma cantidad.
+
+**Vigencia (CCPIP-142, RF-109, RNF-36).** Migracion `V202610171600__vigencia_carrito.sql`. El
+carrito se conserva durante la vigencia de `parametro_plataforma` (ver mas abajo), contada desde
+`actualizado_en`, que cambia al agregar, modificar o quitar; consultar no la renueva. No depende de
+la sesion: cerrar sesion o que expire no lo borra, y una sesion activa no mantiene vivo un carrito
+vencido. Vencido, se vacia (se borran sus `item_carrito`) al consultarlo o cambiarlo, o en el barrido
+programado cada 15 minutos, y se anota `vencido_en` para avisarle al comprador. No hay movimiento de
+inventario porque nunca reservo. Agregar de nuevo limpia `vencido_en`.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| actualizado_en | timestamptz | no | Ultimo cambio del comprador: base de la vigencia. Indice para el barrido |
+| vencido_en | timestamptz | si | Cuando se vacio por vencer. Nulo si no vencio o si ya se volvio a agregar |
+
+**Agrupado por productor (CCPIP-63, RF-44).** No cambia el modelo: la respuesta del carrito agrupa
+las ofertas por `producto.productor_id` (su tienda o comunidad) con el subtotal de lo comprable, y el
+total es la suma exacta de esos subtotales.
+
+### parametro_plataforma
+Historial de los parametros de SA-02 "Parametros de la plataforma" que fija el superadministrador.
+Rige la ultima fila de cada clave. Por ahora una sola clave, `CARRITO_VIGENCIA_HORAS`; las resenas
+minimas y la anticipacion de alertas entran con sus historias.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| clave | varchar(40) | no | `CARRITO_VIGENCIA_HORAS` |
+| valor | integer | no | Mayor que cero. La API acepta de 1 a 720 horas |
+| registrado_por, registrado_en | | no | Quien y cuando |
+
+Es la auditoria del cambio: un trigger impide editarla y borrarla. La migracion no siembra ningun
+valor porque la Camara no lo ha definido ("Pendiente de definicion del stakeholder" en el Figma).
+Sin filas rige `ccpip.carrito.vigencia-provisional` (2 h, el valor de ejemplo del Figma SA-02),
+documentado como **provisional** en `application.properties`.
 
 ### pedido, item_pedido, pedido_estado_historial
 | Columna | Tipo | Nulo | Nota |
@@ -454,6 +487,44 @@ vencen hoy o despues (hora de Lima), el que vence antes sale primero y lo que no
 artesania, al final. Cada linea conserva de que lotes salio por sus movimientos `SALIDA_VENTA`
 (`item_pedido_id` + `lote_id`), y `/api/acopio/pedidos` los muestra en cada linea del pedido.
 
+## Entradas y salidas manuales (CCPIP-121, CCPIP-287, CCPIP-283)
+
+Migracion `V202610171500`. El administrador registra entradas y salidas en los lotes de los puntos
+que tiene en `usuario_ubicacion` (`POST /api/acopio/movimientos`, Figma A-02 y A-03) y el productor
+en los lotes de su almacen virtual unico (`POST /api/productor/almacen/movimientos`, PW-16). Un lote
+de otro punto o de otro productor no existe para quien registra (404, RNF-05).
+
+- `movimiento_inventario.tipo` admite `SALIDA`: la salida que no es venta ni transferencia.
+- `movimiento_inventario.motivo`: catalogo cerrado, cada motivo con su tipo y su lugar.
+
+  | Motivo | Tipo | Lugar | Uso |
+  |---|---|---|---|
+  | `RECEPCION` | ENTRADA | punto de acopio | El punto recibe mercaderia del productor en un lote suyo |
+  | `DEVOLUCION_PRODUCTOR` | SALIDA | punto de acopio | El punto devuelve al productor parte de un lote |
+  | `PRODUCCION` | ENTRADA | almacen del productor | Lo cosechado o elaborado se suma a un lote del almacen |
+  | `RETIRO_PRODUCTOR` | SALIDA | almacen del productor | Uso propio o venta fuera de la plataforma |
+
+  No hay "ajuste de conteo": el CHANGELOG del Figma del 30/09 quito la correccion por ajuste del
+  inventario del punto. La merma (A-04, A-07) tiene su propia historia y no es un motivo de salida.
+  Los movimientos automaticos (registro del lote, carga inicial, venta) no llevan motivo.
+- CHECK: una `SALIDA` siempre tiene `motivo`, `lote_id` y `usuario_id` (responsable). La fecha es
+  `registrado_en`.
+- `movimiento_inventario.clave_idempotencia` (uuid): la pantalla genera una por envio del formulario.
+  Indice unico parcial `(usuario_id, clave_idempotencia)`: un reintento devuelve el movimiento ya
+  registrado (200, `repetido: true`) sin mover nada; la misma clave con otro contenido es un 409.
+
+Lote, stock y movimiento cambian en la misma transaccion. El lote se bloquea con `FOR UPDATE`: dos
+salidas simultaneas se ordenan y la segunda se rechaza si ya no alcanza (409 `SALDO_INSUFICIENTE`),
+sin dejar negativos (RNF-09). Una entrada suma a `cantidad_actual` y tambien a `cantidad_inicial`,
+que pasa a ser lo ingresado al lote: asi el CHECK `actual <= inicial` sigue valiendo. Un lote vencido
+no recibe entradas.
+
+**Inventario del punto (A-02, CCPIP-162).** `GET /api/acopio/inventario` lista los lotes de los
+puntos del administrador con producto, productor, vencimiento, entradas, salidas, saldo y estado
+(`DISPONIBLE`, `POR_VENCER`, `VENCIDO`, `AGOTADO`). El saldo es `lote.cantidad_actual`, una vez por
+lote; entradas y salidas se suman en subconsultas para no multiplicar filas. Solo lo vigente con saldo
+es vendible; lo que esta en transito o es merma nunca llega a un lote del punto.
+
 ## Recojo del pedido (CCPIP-71)
 
 Migracion `V202610131800`. El administrador del punto entrega un pedido `LISTO_PARA_RECOJO` al
@@ -639,6 +710,49 @@ proposito `RECUPERAR_CLAVE`. Como en `sesion`, solo se guarda el SHA-256 del tok
   uno por minuto. La respuesta es la misma exista o no la cuenta, para no revelar que correos
   estan registrados.
 - El enlace no inicia sesion: la persona ingresa con su contrasena despues de verificar.
+
+## Transferencias entre ubicaciones (CCPIP-73, 146, 164, 362, 277, 278)
+
+RNF-47: el productor lleva existencias de su almacen a un punto de acopio (CCPIP-73) o solicita
+moverlas entre puntos (CCPIP-277); el administrador del punto de destino las recibe y consulta su
+estado e historial (CCPIP-278). Migracion `V202610171700__transferencia.sql`.
+
+Las unidades no se duplican ni se pierden: saldo de los lotes de origen + unidades preparadas + en
+transito + lotes de destino se conserva. Solo `lote.cantidad_actual` cambia, siempre con su
+movimiento y su stock en la misma transaccion (RNF-15, ADR-10):
+
+| Paso | Estado | Lote | Movimiento |
+|---|---|---|---|
+| Iniciar (almacen a punto) | INICIADA | no cambia | ninguno |
+| Solicitar (entre puntos) | SOLICITADA | no cambia | ninguno; no avanza hasta que se defina quien aprueba (C8) |
+| Preparar (CCPIP-164) | PREPARADA | el de origen baja | TRANSFERENCIA_SALIDA por linea |
+| Despachar (CCPIP-362) | DESPACHADA | no cambia: ya se desconto | ninguno; en transito no se vende |
+| Recibir (CCPIP-278) | RECIBIDA | se crea uno en el destino, con el vencimiento del origen | TRANSFERENCIA_ENTRADA por linea |
+
+### transferencia
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| tipo | varchar(20) | no | ALMACEN_A_PUNTO o ENTRE_PUNTOS |
+| productor_id | bigint | no | RNF-05: el productor solo ve y opera las suyas |
+| origen_id, destino_id | bigint | no | Ubicaciones distintas (CHECK) |
+| estado | varchar(20) | no | INICIADA, SOLICITADA, PREPARADA, DESPACHADA, RECIBIDA |
+| observacion | varchar(255) | si | |
+| creada_por | bigint | si | Usuario |
+
+### transferencia_item, transferencia_historial
+`transferencia_item` guarda producto, lote de origen, cantidad y, al recibir, el lote de destino. Un
+lote va una sola vez por transferencia. `transferencia_historial` registra cada cambio de estado con
+quien y cuando.
+
+### movimiento_inventario (cambios)
+- `transferencia_item_id`: la linea de transferencia del movimiento. Un CHECK exige linea y lote en
+  todo movimiento TRANSFERENCIA_ENTRADA o TRANSFERENCIA_SALIDA.
+- Indice unico `(transferencia_item_id, tipo)`: una linea sale una sola vez y entra una sola vez; un
+  segundo intento choca en la base en vez de descontar o sumar dos veces.
+- `tipo` pasa a varchar(30): TRANSFERENCIA_ENTRADA tiene 21 caracteres y no cabia.
+
+El administrador del punto ve lo que entra o sale de los puntos de `usuario_ubicacion`, salvo lo
+que el productor aun no compromete (INICIADA). Solo el destino registra la recepcion.
 
 ## Fuera de este modelo
 

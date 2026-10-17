@@ -374,6 +374,51 @@
       "subiendo": "Subiendo…",
       "agregar": "Agregar",
       "fotosAyuda": "Hasta {{max}} fotos. La primera es la principal: es la que se ve en el catálogo.",
+      "iaFotos": {
+        "titulo": "Validación de las fotos",
+        "analizandoTitulo": "Foto {{n}} · Analizando",
+        "analizandoTexto": "Verificamos que la foto corresponda a la categoría {{linea}}.",
+        "analizandoSinLinea": "Verificamos que la foto corresponda a la categoría del producto.",
+        "validaTitulo": "Foto {{n}} · Imagen válida",
+        "validaTexto": "Corresponde a la categoría {{linea}}.",
+        "sospechosaTitulo": "Foto {{n}} · Posible imagen incorrecta",
+        "sospechosaTexto": "Parece de la categoría {{detectada}}, no de {{esperada}}. Revísala antes de publicar.",
+        "noBloquea": "Es solo una recomendación: puedes publicar con esta foto.",
+        "errorTitulo": "Foto {{n}} · No pudimos analizar la imagen",
+        "errorTexto": "Revisa tu conexión e inténtalo otra vez. Puedes continuar con tu foto.",
+        "noDisponibleTitulo": "Foto {{n}} · Validación no disponible",
+        "noDisponibleTexto": "No pudimos analizarla en este momento. Puedes continuar con tu foto original.",
+        "sinValidarTitulo": "Foto {{n}}",
+        "sinValidarTexto": "Aún no verificamos si corresponde a la categoría del producto.",
+        "lineaRequerida": "Elige la línea del producto y guarda para validar sus fotos.",
+        "validar": "Validar foto",
+        "validarOtraVez": "Validar otra vez",
+        "reemplazar": "Reemplazar imagen",
+        "revisar": "Revisar",
+        "prueba": "Validación de prueba",
+        "pruebaAyuda": "Resultado de un simulador de demostración, no de un modelo de IA. Tómalo solo como referencia."
+      },
+      "mejora": {
+        "mejorar": "Mejorar con IA",
+        "preparando": "Preparando la mejora…",
+        "titulo": "Compara la foto mejorada",
+        "texto": "Solo se ajustan la luz, el contraste y la nitidez: no se agrega nada a tu producto. Tu foto original no cambia hasta que elijas.",
+        "prueba": "Mejora de prueba: la hace un simulador de demostración, no un modelo de IA.",
+        "original": "Original",
+        "mejorada": "Mejorada",
+        "altOriginal": "Foto original",
+        "altMejorada": "Foto mejorada",
+        "usar": "Usar la mejorada",
+        "conservar": "Conservar la original",
+        "decidirDespues": "Decidir después",
+        "aceptada": "Usamos la foto mejorada",
+        "aceptadaTexto": "Ocupa el lugar de la original, que guardamos en tu historial.",
+        "conservada": "Conservaste tu foto original",
+        "noDisponible": "No pudimos mejorar la foto ahora",
+        "noDisponibleTexto": "Tu foto original se conserva y puedes publicar igual.",
+        "errorPedir": "No pudimos mejorar la foto",
+        "errorDecidir": "No pudimos guardar tu elección"
+      },
       "nombre": "Nombre del producto",
       "nombreEjemplo": "Aceite de sacha inchi extra virgen",
       "ia": {
@@ -420,52 +465,7 @@
       "siguienteHistoria": "Siguiente: historia",
       "vistaPrevia": "Vista previa en el catálogo",
       "recibiras": "Recibirás {{monto}} por unidad",
-      "comision": "Comisión de la Cámara: {{porcentaje}} % (valor de ejemplo, configurable). Los descuentos solo los aplica la Cámara.",
-      "iaFotos": {
-        "titulo": "Validación de las fotos",
-        "analizandoTitulo": "Foto {{n}} · Analizando",
-        "analizandoTexto": "Verificamos que la foto corresponda a la categoría {{linea}}.",
-        "analizandoSinLinea": "Verificamos que la foto corresponda a la categoría del producto.",
-        "validaTitulo": "Foto {{n}} · Imagen válida",
-        "validaTexto": "Corresponde a la categoría {{linea}}.",
-        "sospechosaTitulo": "Foto {{n}} · Posible imagen incorrecta",
-        "sospechosaTexto": "Parece de la categoría {{detectada}}, no de {{esperada}}. Revísala antes de publicar.",
-        "noBloquea": "Es solo una recomendación: puedes publicar con esta foto.",
-        "errorTitulo": "Foto {{n}} · No pudimos analizar la imagen",
-        "errorTexto": "Revisa tu conexión e inténtalo otra vez. Puedes continuar con tu foto.",
-        "noDisponibleTitulo": "Foto {{n}} · Validación no disponible",
-        "noDisponibleTexto": "No pudimos analizarla en este momento. Puedes continuar con tu foto original.",
-        "sinValidarTitulo": "Foto {{n}}",
-        "sinValidarTexto": "Aún no verificamos si corresponde a la categoría del producto.",
-        "lineaRequerida": "Elige la línea del producto y guarda para validar sus fotos.",
-        "validar": "Validar foto",
-        "validarOtraVez": "Validar otra vez",
-        "reemplazar": "Reemplazar imagen",
-        "revisar": "Revisar",
-        "prueba": "Validación de prueba",
-        "pruebaAyuda": "Resultado de un simulador de demostración, no de un modelo de IA. Tómalo solo como referencia."
-      },
-      "mejora": {
-        "mejorar": "Mejorar con IA",
-        "preparando": "Preparando la mejora…",
-        "titulo": "Compara la foto mejorada",
-        "texto": "Solo se ajustan la luz, el contraste y la nitidez: no se agrega nada a tu producto. Tu foto original no cambia hasta que elijas.",
-        "prueba": "Mejora de prueba: la hace un simulador de demostración, no un modelo de IA.",
-        "original": "Original",
-        "mejorada": "Mejorada",
-        "altOriginal": "Foto original",
-        "altMejorada": "Foto mejorada",
-        "usar": "Usar la mejorada",
-        "conservar": "Conservar la original",
-        "decidirDespues": "Decidir después",
-        "aceptada": "Usamos la foto mejorada",
-        "aceptadaTexto": "Ocupa el lugar de la original, que guardamos en tu historial.",
-        "conservada": "Conservaste tu foto original",
-        "noDisponible": "No pudimos mejorar la foto ahora",
-        "noDisponibleTexto": "Tu foto original se conserva y puedes publicar igual.",
-        "errorPedir": "No pudimos mejorar la foto",
-        "errorDecidir": "No pudimos guardar tu elección"
-      }
+      "comision": "Comisión de la Cámara: {{porcentaje}} % (valor de ejemplo, configurable). Los descuentos solo los aplica la Cámara."
     },
     "historia": {
       "preguntas": {
@@ -741,6 +741,7 @@
     "nav": {
       "pedidos": "Pedidos",
       "movimientos": "Movimientos",
+      "inventario": "Inventario",
       "transferencias": "Transferencias"
     },
     "pedidos": {
@@ -815,9 +816,44 @@
         "TRANSFERENCIA_ENTRADA": "Transferencia",
         "SALIDA_VENTA": "Salida",
         "TRANSFERENCIA_SALIDA": "Transferencia",
-        "AJUSTE": "Ajuste"
+        "AJUSTE": "Ajuste",
+        "SALIDA": "Salida"
       },
       "compraEnLinea": "Compra en línea"
+    },
+    "inventario": {
+      "buscar": "Buscar producto o lote…",
+      "productor": "Productor",
+      "todos": "Todos",
+      "estadoLote": "Estado del lote",
+      "estado": {
+        "ACTIVOS": "Activos",
+        "AGOTADOS": "Agotados",
+        "TODOS": "Todos"
+      },
+      "unSoloInventario": "Un solo inventario, calculado a partir de los movimientos",
+      "unSoloInventarioTexto": "El stock disponible para venta se descuenta al confirmarse cada compra, no cuando el comprador recoge. Lo vencido no se vende; lo que está en tránsito o es merma no suma aquí.",
+      "errorCargar": "No pudimos cargar el inventario",
+      "resumen": "Stock: {{stock}} und · Vendible: {{vendible}} und · No vendible: {{noVendible}} und",
+      "vacio": "No hay lotes con estos filtros",
+      "vacioTexto": "Aquí verás los lotes de tu punto, con sus entradas, salidas y estado.",
+      "mostrando": "Mostrando {{desde}}–{{hasta}} de {{total}} lotes",
+      "lista": "Inventario del punto",
+      "col": {
+        "vence": "Vence",
+        "entradas": "Entradas",
+        "salidas": "Salidas",
+        "stock": "Stock",
+        "accion": "Acción"
+      },
+      "estados": {
+        "DISPONIBLE": "Disponible",
+        "POR_VENCER": "Por vencer",
+        "VENCIDO": "Vencido",
+        "AGOTADO": "Agotado"
+      },
+      "movimiento": "Movimiento",
+      "movimientoDe": "Registrar un movimiento del lote {{lote}}"
     },
     "transferencias": {
       "porRecibir": "Transferencias por recibir ({{total}})",
@@ -850,6 +886,7 @@
       "tablero": "Tablero",
       "comision": "Comisión",
       "comisiones": "Comisión por pedido",
+      "parametros": "Parámetros",
       "autorizaciones": "Autorizaciones"
     },
     "tablero": {
@@ -981,6 +1018,29 @@
       "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
       "sinComisionCelda": "Sin comisión",
       "nota": "La comisión y el neto quedan fijados al confirmar cada pedido; un cambio posterior de la comisión no los altera."
+    },
+    "parametros": {
+      "titulo": "Parámetros de la plataforma",
+      "seccion": "Carrito",
+      "pendiente": "Pendiente de definición del stakeholder",
+      "intro": "Cuánto tiempo se guarda un carrito sin pagar desde su último cambio. Mientras la Cámara no lo defina rige un valor provisional.",
+      "campo": "Vida del carrito sin pagar (horas)",
+      "ayuda": "Entre {{minimo}} y {{maximo}} horas. El carrito no reserva stock; al vencer se vacía y, al volver a agregar, se revalida.",
+      "guardar": "Guardar",
+      "provisional_one": "Rige el valor provisional de {{count}} hora: aún no se configuró.",
+      "provisional_other": "Rige el valor provisional de {{count}} horas: aún no se configuró.",
+      "configurada_one": "Rige {{count}} hora · configurada por {{nombre}} el {{fecha}}.",
+      "configurada_other": "Rige {{count}} horas · configurada por {{nombre}} el {{fecha}}.",
+      "rigeYa": "El cambio rige de inmediato, también para los carritos ya guardados. Cada cambio queda en el historial.",
+      "guardado_one": "La vida del carrito ahora es de {{count}} hora",
+      "guardado_other": "La vida del carrito ahora es de {{count}} horas",
+      "errorCargar": "No pudimos cargar los parámetros",
+      "errorGuardar": "No pudimos guardar la vida del carrito",
+      "validacion": {
+        "vacio": "Indica cuántas horas se guarda el carrito.",
+        "rango": "Escribe un número entero de horas entre {{minimo}} y {{maximo}}.",
+        "mismo": "Ya rige ese valor."
+      }
     }
   },
   "sello": {
@@ -1156,6 +1216,8 @@
     "FECHAS_INVALIDAS": "El vencimiento debe ser posterior a la producción.",
     "FORMATO_NO_PERMITIDO": "Solo se aceptan fotos JPG, PNG o WebP.",
     "IA_NO_DISPONIBLE": "La redacción asistida no está disponible en este momento. Puedes escribir el texto con tus palabras.",
+    "LINEA_REQUERIDA": "Elige la línea del producto para validar sus fotos.",
+    "SIN_MEJORA_PENDIENTE": "No hay una versión mejorada pendiente para esta foto.",
     "IMAGEN_DANADA": "No pudimos leer la imagen. Puede estar dañada; prueba con otra.",
     "IMAGEN_MUY_GRANDE": "La imagen tiene demasiados píxeles. Usa una de menos de 40 megapíxeles.",
     "IMAGEN_NO_ENCONTRADA": "La imagen no existe.",
@@ -1216,21 +1278,11 @@
     "CAMBIO_NO_ENCONTRADO": "No encontramos ese cambio de comisión.",
     "RANGO_INVALIDO": "La fecha inicial debe ser anterior o igual a la final.",
     "RANGO_MUY_LARGO": "Consulta como máximo un año a la vez.",
-    "DESTINO_INVALIDO": "Elige un punto de acopio como destino.",
-    "ORIGEN_INVALIDO": "Revisa el origen de la transferencia.",
-    "MISMO_ORIGEN_DESTINO": "El origen y el destino deben ser distintos.",
-    "LOTE_NO_ENCONTRADO": "El lote no existe.",
-    "LOTE_FUERA_DE_ORIGEN": "Uno de los lotes no está en el origen elegido.",
-    "LOTE_VENCIDO": "Uno de los lotes ya venció.",
-    "LOTE_YA_INCLUIDO": "Cada lote va una sola vez en la transferencia.",
-    "SALDO_INSUFICIENTE": "Uno de los lotes ya no tiene suficientes unidades.",
-    "SIN_ALMACEN": "Aún no tienes un almacén registrado.",
-    "APROBACION_PENDIENTE": "La solicitud entre puntos aún no tiene quien la apruebe.",
-    "TRANSICION_INVALIDA": "La transferencia cambió de estado. Actualiza la página.",
-    "TRANSFERENCIA_NO_ENCONTRADA": "La transferencia no existe.",
-    "NO_ES_DESTINO": "Solo el punto de destino registra la recepción.",
-    "LINEA_REQUERIDA": "Elige la línea del producto para validar sus fotos.",
-    "SIN_MEJORA_PENDIENTE": "No hay una versión mejorada pendiente para esta foto.",
+    "SALDO_INSUFICIENTE": "El lote no tiene tantas unidades: no puede salir más de su saldo.",
+    "LOTE_VENCIDO": "El lote está vencido: no puede recibir más unidades.",
+    "LOTE_NO_ENCONTRADO": "El lote no existe en tu punto o almacén.",
+    "MOTIVO_INVALIDO": "Ese motivo no corresponde a este movimiento.",
+    "ENVIO_REUTILIZADO": "Este envío ya se usó para otro movimiento. Vuelve a abrir el formulario.",
     "TRADUCCION_NO_DISPONIBLE": "La traducción automática no está disponible en este momento. Tu contenido se conserva en su idioma original.",
     "IDIOMA_NO_TRADUCIBLE": "El contenido se escribe en español; solo se puede traducir al inglés.",
     "CAMPO_NO_TRADUCIBLE": "Ese campo no existe o no tiene texto en español para traducir.",
@@ -1244,7 +1296,17 @@
     "SIN_CERTIFICADO_VIGENTE": "Para aprobar, el producto necesita al menos un certificado vigente propio.",
     "SOLICITUD_YA_RESUELTA": "Esta solicitud ya no está pendiente de revisión.",
     "SOLICITUD_NO_ENCONTRADA": "La solicitud no existe.",
-    "MOTIVO_REQUERIDO": "Escribe el motivo de la decisión."
+    "MOTIVO_REQUERIDO": "Escribe el motivo de la decisión.",
+    "DESTINO_INVALIDO": "Elige un punto de acopio como destino.",
+    "ORIGEN_INVALIDO": "Revisa el origen de la transferencia.",
+    "MISMO_ORIGEN_DESTINO": "El origen y el destino deben ser distintos.",
+    "LOTE_FUERA_DE_ORIGEN": "Uno de los lotes no está en el origen elegido.",
+    "LOTE_YA_INCLUIDO": "Cada lote va una sola vez en la transferencia.",
+    "SIN_ALMACEN": "Aún no tienes un almacén registrado.",
+    "APROBACION_PENDIENTE": "La solicitud entre puntos aún no tiene quien la apruebe.",
+    "TRANSICION_INVALIDA": "La transferencia cambió de estado. Actualiza la página.",
+    "TRANSFERENCIA_NO_ENCONTRADA": "La transferencia no existe.",
+    "NO_ES_DESTINO": "Solo el punto de destino registra la recepción."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -1452,7 +1514,14 @@
     "quitar": "Quitar {{nombre}} del carrito",
     "quitarTitulo": "Quitar del carrito",
     "continuar": "Continuar con la entrega y pago",
-    "bloqueo": "Ajusta o quita los productos marcados para continuar."
+    "bloqueo": "Ajusta o quita los productos marcados para continuar.",
+    "subtotalComunidad": "Subtotal de la comunidad",
+    "vigencia": {
+      "hasta": "Guardamos tu carrito hasta el {{fecha}}. Cada cambio que hagas renueva el plazo.",
+      "vencido": "Tu carrito anterior venció",
+      "vencidoTexto_one": "Lo guardamos {{count}} hora desde tu último cambio y lo vaciamos el {{fecha}}. No tenía stock reservado: vuelve a agregar los productos y revisaremos su precio y disponibilidad.",
+      "vencidoTexto_other": "Lo guardamos {{count}} horas desde tu último cambio y lo vaciamos el {{fecha}}. No tenía stock reservado: vuelve a agregar los productos y revisaremos su precio y disponibilidad."
+    }
   },
   "faltantes": {
     "linea": "Al menos una línea de producto",
@@ -1730,37 +1799,48 @@
     },
     "pedirNuevo": "Pedir un enlace nuevo"
   },
-  "transferencias": {
-    "estado": {
-      "INICIADA": "Iniciada",
-      "SOLICITADA": "Solicitada",
-      "PREPARADA": "Preparada",
-      "DESPACHADA": "En tránsito",
-      "RECIBIDA": "Recibida"
-    },
+  "movimiento": {
+    "titulo": "Registrar movimiento",
+    "tipoEtiqueta": "Tipo de movimiento",
     "tipo": {
-      "ALMACEN_A_PUNTO": "De mi almacén a un punto de acopio",
-      "ENTRE_PUNTOS": "Entre puntos de acopio"
+      "ENTRADA": "Entrada",
+      "SALIDA": "Salida"
     },
-    "miAlmacen": "Mi almacén",
-    "origen": "Origen",
-    "destino": "Destino",
+    "registrar": {
+      "ENTRADA": "Registrar entrada",
+      "SALIDA": "Registrar salida"
+    },
     "productor": "Productor",
-    "ruta": "{{origen}} → {{destino}}",
-    "lotesDe": "Lotes de la transferencia {{codigo}}",
-    "col": {
-      "producto": "Producto",
-      "lote": "Lote de origen",
-      "vence": "Vence",
-      "cantidad": "Cantidad",
-      "loteDestino": "Lote de destino"
+    "producto": "Producto",
+    "lote": "Lote",
+    "cantidad": "Cantidad",
+    "motivo": "Motivo",
+    "observacion": "Observación (opcional)",
+    "resultante": "Stock resultante: {{cantidad}} und",
+    "vence": "vence {{fecha}}",
+    "sinLotes": {
+      "ENTRADA": "Este producto no tiene lotes vigentes aquí.",
+      "SALIDA": "Este producto no tiene lotes con saldo aquí."
     },
-    "sinVencimiento": "Sin vencimiento",
-    "observacion": "Observación",
-    "historial": "Historial",
-    "verDetalle": "Ver detalle",
-    "ocultarDetalle": "Ocultar detalle",
-    "pendienteAprobador": "Aún no está definido quién aprueba las transferencias entre puntos: la solicitud queda registrada y no compromete unidades."
+    "motivos": {
+      "RECEPCION": "Recepción del productor",
+      "DEVOLUCION_PRODUCTOR": "Devolución al productor",
+      "PRODUCCION": "Cosecha o producción",
+      "RETIRO_PRODUCTOR": "Retiro del productor"
+    },
+    "validacion": {
+      "lote": "Elige el lote",
+      "cantidad": "Escribe una cantidad mayor a cero, con hasta 3 decimales",
+      "saldo": "El lote tiene {{cantidad}} und: no puede salir más",
+      "motivo": "Elige el motivo"
+    },
+    "error": "No pudimos registrar el movimiento",
+    "errorLotes": "No pudimos cargar los lotes",
+    "registrado": {
+      "ENTRADA": "Entrada de {{cantidad}} und registrada en el lote {{lote}}",
+      "SALIDA": "Salida de {{cantidad}} und registrada del lote {{lote}}"
+    },
+    "saldo": "El lote queda con {{cantidad}} und."
   },
   "traduccion": {
     "aviso": "Contenido traducido",
@@ -2020,5 +2100,37 @@
         "texto": "{{organizacion}} verá este motivo y podrá adjuntar nuevas evidencias. La decisión queda registrada y no se edita."
       }
     }
+  },
+  "transferencias": {
+    "estado": {
+      "INICIADA": "Iniciada",
+      "SOLICITADA": "Solicitada",
+      "PREPARADA": "Preparada",
+      "DESPACHADA": "En tránsito",
+      "RECIBIDA": "Recibida"
+    },
+    "tipo": {
+      "ALMACEN_A_PUNTO": "De mi almacén a un punto de acopio",
+      "ENTRE_PUNTOS": "Entre puntos de acopio"
+    },
+    "miAlmacen": "Mi almacén",
+    "origen": "Origen",
+    "destino": "Destino",
+    "productor": "Productor",
+    "ruta": "{{origen}} → {{destino}}",
+    "lotesDe": "Lotes de la transferencia {{codigo}}",
+    "col": {
+      "producto": "Producto",
+      "lote": "Lote de origen",
+      "vence": "Vence",
+      "cantidad": "Cantidad",
+      "loteDestino": "Lote de destino"
+    },
+    "sinVencimiento": "Sin vencimiento",
+    "observacion": "Observación",
+    "historial": "Historial",
+    "verDetalle": "Ver detalle",
+    "ocultarDetalle": "Ocultar detalle",
+    "pendienteAprobador": "Aún no está definido quién aprueba las transferencias entre puntos: la solicitud queda registrada y no compromete unidades."
   }
 }
