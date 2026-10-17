@@ -9,6 +9,14 @@
   .tabla--lotes .tabla__celda { width: auto; min-width: 0; }
 }
 
+/* CCPIP-161: todos sus lotes, con su producto y su unidad */
+.lotes__col-punto { width: 160px; }
+.lotes__unidad { color: var(--color-text-tertiary); }
+@media (min-width: 900px) {
+  .tabla--todos-lotes .tabla__fila { display: grid; grid-template-columns: minmax(160px, 1fr) 84px 92px 104px minmax(120px, 0.6fr) 128px; min-width: 0; }
+  .tabla--todos-lotes .tabla__celda { width: auto; min-width: 0; }
+}
+
 @media (max-width: 520px) {
   .formulario-lote__fila { grid-template-columns: minmax(0, 1fr); }
 }
