@@ -13,7 +13,7 @@ export default function AvisoTraduccion({ traducciones, campos, verOriginal, onA
   const infos = campos.map((c) => traducciones?.[c]).filter(Boolean)
   if (infos.length === 0) return null
   const vigentes = infos.filter((i) => i.vigente)
-  const origenes = [...new Set(vigentes.map((i) => i.origen))].sort()
+  const origenes = [...new Set(vigentes.map((i) => i.origen))].sort((a, b) => a.localeCompare(b))
   const desactualizada = infos.some((i) => !i.vigente)
 
   return (
