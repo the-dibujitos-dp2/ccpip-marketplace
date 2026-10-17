@@ -100,6 +100,15 @@ public final class ProductoModelos {
                        String tipoUbicacion, EstadoLote estado) {
     }
 
+    /**
+     * CCPIP-161: un lote en la lista de todos sus lotes. {@code cantidadActual} es el saldo que dejaron
+     * sus movimientos (entrada menos ventas), escrito junto a cada uno (RNF-15, ADR-10).
+     */
+    public record LoteDelProductor(long id, long productoId, String producto, String unidad, String codigo,
+                                   BigDecimal cantidadInicial, BigDecimal cantidadActual, LocalDate fechaVencimiento,
+                                   String ubicacion, String tipoUbicacion, EstadoLote estado) {
+    }
+
     public record Lotes(long productoId, String producto, String miniatura, String lineaCodigo, boolean requiereVencimiento,
                         BigDecimal stockTotal, BigDecimal enVenta, List<Lote> items) {
     }
