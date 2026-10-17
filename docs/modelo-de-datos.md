@@ -275,6 +275,25 @@ de la ficha y del editor, pero el registro y el archivo quedan y se siguen sirvi
 Al reemplazar una, `reemplazada_por` apunta a la nueva, que toma su orden y su `principal`.
 Solo las vigentes cuentan para el limite de seis fotos. Portada y galeria se siguen borrando.
 
+### imagen_validacion (CCPIP-144, 168)
+Migracion `V202610171300`. Cada vez que el productor pide validar una foto de producto queda
+una fila: `estado` (ANALIZANDO, VALIDA, SOSPECHOSA, ERROR), `linea_esperada` (la principal del
+producto), `linea_detectada` (la que coincide o a la que se parece), `motivo`, `proveedor`,
+`solicitada_por`, `solicitada_en` y `terminada_en` (nula solo mientras se analiza). La vigente
+es la ultima; las anteriores, incluidas las que fallaron, quedan como historial. Es solo una
+recomendacion: no bloquea la publicacion ni cambia la foto (RF-137). Hoy el proveedor es
+`simulado` (pruebas y demo) o `ninguno` (503); el modelo definitivo se conectara despues.
+
+### imagen_mejora (CCPIP-176, 272, 281, 282)
+Migracion `V202610171301`. La variante mejorada de una foto vive aparte, con su propia `clave`
+y `clave_miniatura` en el bucket (`productores/<id>/mejoras/<mejora>.jpg`), y se sirve solo a
+su dueno por `/api/productor/mejoras/{id}`. `estado` PENDIENTE, ACEPTADA o RECHAZADA, con
+`ajustes` (p. ej. AUTOCONTRASTE,NITIDEZ), `proveedor`, quien y cuando la pidio y la decidio.
+Una sola pendiente por foto (indice unico parcial). Al aceptarla se registra una `imagen` nueva
+con la clave de la variante que toma el lugar de la original, igual que un reemplazo: la
+original queda retirada y `reemplazada_por` apunta a la nueva; `imagen_resultante` la enlaza.
+Rechazarla no toca la original.
+
 ### producto_historia (CCPIP-48, 49)
 Las cuatro respuestas del productor (`quienes`, `como`, `significado`, `cuidado`), el texto
 que propuso la IA (`texto_propuesto`) y el aprobado (`texto_final`), con `asistida`,
