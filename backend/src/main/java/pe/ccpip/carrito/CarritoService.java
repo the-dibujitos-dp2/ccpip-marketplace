@@ -2,7 +2,11 @@ package pe.ccpip.carrito;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -14,8 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import pe.ccpip.carrito.CarritoModelos.Carrito;
 import pe.ccpip.carrito.CarritoModelos.EstadoItem;
+import pe.ccpip.carrito.CarritoModelos.Grupo;
 import pe.ccpip.carrito.CarritoModelos.Item;
 import pe.ccpip.carrito.Tarifas.Resolucion;
+import pe.ccpip.carrito.VigenciaCarritoService.Vigencia;
 import pe.ccpip.catalogo.CatalogoModelos.TiendaResumen;
 import pe.ccpip.catalogo.CatalogoRepository;
 import pe.ccpip.catalogo.CatalogoRepository.Vendible;
@@ -26,6 +32,9 @@ import pe.ccpip.imagenes.ImagenService;
  * Carrito persistido del comprador (CCPIP-58, CCPIP-155, CCPIP-268, CCPIP-156). Agregar solo consulta la disponibilidad: no
  * reserva ni descuenta existencias (RNF-35, ADR-11). El descuento ocurre al confirmar la compra. La tarifa
  * minorista o mayorista de cada oferta se resuelve aqui segun su modalidad y la cantidad (CCPIP-134, RF-108).
+ * El carrito se muestra agrupado por productor (CCPIP-63, RF-44) y se conserva durante la vigencia que
+ * configura la Camara, contada desde su ultimo cambio (CCPIP-142, RF-109): vencido, se vacia antes de
+ * leerlo o cambiarlo.
  */
 @Service
 public class CarritoService {
@@ -36,10 +45,12 @@ public class CarritoService {
 
     private final JdbcTemplate jdbc;
     private final CatalogoRepository catalogo;
+    private final VigenciaCarritoService vigencia;
 
-    public CarritoService(JdbcTemplate jdbc, CatalogoRepository catalogo) {
+    public CarritoService(JdbcTemplate jdbc, CatalogoRepository catalogo, VigenciaCarritoService vigencia) {
         this.jdbc = jdbc;
         this.catalogo = catalogo;
+        this.vigencia = vigencia;
     }
 
     /**
@@ -47,9 +58,14 @@ public class CarritoService {
      * mismo (RF-124). Sobrevive al cierre de sesion porque vive en la base, y consultarlo no reserva.
      * Tambien revalida que cada productor pueda vender (CCPIP-269): la confirmacion de la compra
      * debe volver a consultarlo justo antes del pago y aceptar solo items DISPONIBLE (RF-142).
+     * <p>
+     * CCPIP-142: si vencio se vacia aqui mismo, sin tocar el inventario, y se informa {@code vencidoEn};
+     * un carrito vigente se retoma revalidado. Consultar no renueva la vigencia: solo un cambio la renueva.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public Carrito consultar(long usuarioId) {
+        Vigencia vida = vigencia.vigente();
+        vigencia.vencerSiCorresponde(usuarioId, vida);
         List<ItemGuardado> guardados = jdbc.query("""
                 SELECT i.producto_id, i.cantidad, p.nombre, p.contenido, p.precio, um.nombre AS unidad,
                        (SELECT im.id FROM imagen im WHERE im.producto_id = p.id AND im.principal) AS imagen,
@@ -83,11 +99,39 @@ public class CarritoService {
         List<Item> items = guardados.stream().map(g -> revalidar(g, vendibles.get(g.productoId()))).toList();
 
         BigDecimal unidades = items.stream().map(Item::cantidad).reduce(BigDecimal.ZERO, BigDecimal::add);
-        List<Item> comprables = items.stream().filter(i -> i.estado() == EstadoItem.DISPONIBLE).toList();
-        BigDecimal total = comprables.stream().map(Item::subtotal).reduce(BigDecimal.ZERO, BigDecimal::add)
-                .setScale(2, RoundingMode.HALF_UP);
-        long comunidades = comprables.stream().map(i -> i.tienda().id()).distinct().count();
-        return new Carrito(items, unidades, comunidades, total);
+        List<Grupo> grupos = agrupar(items);
+        // CCPIP-63: el total es la suma de los grupos, sin otro redondeo (cada subtotal ya va a 2 decimales)
+        BigDecimal total = grupos.stream().map(Grupo::subtotal).reduce(BigDecimal.ZERO.setScale(2), BigDecimal::add);
+        long comunidades = grupos.stream().filter(g -> g.items().stream().anyMatch(CarritoService::comprable)).count();
+
+        record Estado(Timestamp actualizadoEn, Timestamp vencidoEn) {
+        }
+        Estado estado = jdbc.query("SELECT actualizado_en, vencido_en FROM carrito WHERE usuario_id = ?",
+                (rs, row) -> new Estado(rs.getTimestamp("actualizado_en"), rs.getTimestamp("vencido_en")), usuarioId)
+                .stream().findFirst().orElse(new Estado(null, null));
+        Instant hasta = items.isEmpty() || estado.actualizadoEn() == null
+                ? null : VigenciaCarritoService.vigenteHasta(estado.actualizadoEn(), vida);
+        Instant vencido = items.isEmpty() && estado.vencidoEn() != null ? estado.vencidoEn().toInstant() : null;
+        return new Carrito(items, grupos, unidades, comunidades, total, hasta, vida.horas(), vencido);
+    }
+
+    private static boolean comprable(Item item) {
+        return item.estado() == EstadoItem.DISPONIBLE;
+    }
+
+    /**
+     * CCPIP-63 (RF-44): un grupo por productor, en el orden en que aparecio su primera oferta. Se agrupa
+     * por el id del productor, no por el nombre de la comunidad: dos productores de la misma comunidad
+     * venden ofertas e inventarios distintos (CCPIP-172).
+     */
+    private static List<Grupo> agrupar(List<Item> items) {
+        Map<Long, List<Item>> porProductor = new LinkedHashMap<>();
+        items.forEach(i -> porProductor.computeIfAbsent(i.tienda().id(), id -> new ArrayList<>()).add(i));
+        return porProductor.values().stream().map(delProductor -> new Grupo(delProductor.get(0).tienda(),
+                List.copyOf(delProductor),
+                delProductor.stream().filter(CarritoService::comprable).map(Item::subtotal)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP)))
+                .toList();
     }
 
     private record ItemGuardado(long productoId, String nombre, String contenido, String unidad, String imagen,
@@ -141,6 +185,8 @@ public class CarritoService {
      */
     @Transactional
     public Agregado agregar(long usuarioId, long productoId, BigDecimal cantidad) {
+        // CCPIP-142: lo de un carrito vencido no se suma a lo nuevo
+        vigencia.vencerSiCorresponde(usuarioId, vigencia.vigente());
         Vendible oferta = catalogo.vendible(productoId).orElseThrow(() ->
                 ErrorNegocio.noEncontrado("PRODUCTO_NO_ENCONTRADO", "El producto no existe o ya no está disponible"));
         BigDecimal enCarrito = jdbc.query("""
@@ -160,7 +206,7 @@ public class CarritoService {
 
         Long carritoId = jdbc.queryForObject("""
                 INSERT INTO carrito (usuario_id) VALUES (?)
-                ON CONFLICT (usuario_id) DO UPDATE SET actualizado_en = now()
+                ON CONFLICT (usuario_id) DO UPDATE SET actualizado_en = now(), vencido_en = NULL
                 RETURNING id""", Long.class, usuarioId);
         // Un producto aparece una sola vez por carrito: agregarlo de nuevo suma cantidad
         BigDecimal total = jdbc.queryForObject("""
@@ -180,6 +226,8 @@ public class CarritoService {
      */
     @Transactional
     public Carrito modificar(long usuarioId, long productoId, BigDecimal cantidad) {
+        // CCPIP-142: en un carrito vencido la oferta ya no esta y se responde ITEM_NO_ENCONTRADO
+        vigencia.vencerSiCorresponde(usuarioId, vigencia.vigente());
         Long itemId = jdbc.query("""
                 SELECT i.id FROM item_carrito i JOIN carrito c ON c.id = i.carrito_id
                 WHERE c.usuario_id = ? AND i.producto_id = ?""",
@@ -204,6 +252,7 @@ public class CarritoService {
      */
     @Transactional
     public Carrito quitar(long usuarioId, long productoId) {
+        vigencia.vencerSiCorresponde(usuarioId, vigencia.vigente());
         int quitados = jdbc.update("""
                 DELETE FROM item_carrito i USING carrito c
                 WHERE c.id = i.carrito_id AND c.usuario_id = ? AND i.producto_id = ?""", usuarioId, productoId);
