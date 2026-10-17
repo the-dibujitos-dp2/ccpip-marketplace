@@ -5,9 +5,11 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
@@ -130,6 +132,23 @@ public class EvidenciasService {
     }
 
     public record Archivo(String nombre, String contentType, byte[] contenido) {
+        // Un record con un arreglo compara por referencia: se compara por contenido
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof Archivo a && Objects.equals(nombre, a.nombre)
+                    && Objects.equals(contentType, a.contentType) && Arrays.equals(contenido, a.contenido);
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * Objects.hash(nombre, contentType) + Arrays.hashCode(contenido);
+        }
+
+        @Override
+        public String toString() {
+            return "Archivo[nombre=" + nombre + ", contentType=" + contentType + ", bytes="
+                    + (contenido == null ? 0 : contenido.length) + "]";
+        }
     }
 
     // --- Consultas compartidas con la revision del subadministrador ---
