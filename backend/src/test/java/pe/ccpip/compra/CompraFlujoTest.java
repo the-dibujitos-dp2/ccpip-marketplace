@@ -220,6 +220,36 @@ class CompraFlujoTest extends IntegrationTest {
         assertThat(stock(producto)).isEqualByComparingTo("5");
     }
 
+    /**
+     * CCPIP-134 (RF-108): desde el minimo, el pedido copia el precio mayorista que resolvio el carrito, y
+     * editar la oferta despues no altera el pedido confirmado (RNF-13).
+     */
+    @Test
+    void el_pedido_confirmado_copia_el_precio_mayorista() throws Exception {
+        long producto = productoEnCusco("Canasta", 30);
+        jdbc.update("""
+                UPDATE producto SET modalidad = 'AMBAS', precio_mayorista = 20.00, cantidad_minima_mayorista = 12
+                WHERE id = ?""", producto);
+        alCarrito(producto, 12);
+
+        JsonNode pedido = objectMapper.readTree(confirmar(puntoCusco(), "987654321")
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.total").value(240.00))
+                .andExpect(jsonPath("$.lineas[0].precioUnitario").value(20.00))
+                .andExpect(jsonPath("$.lineas[0].subtotal").value(240.00))
+                .andReturn().getResponse().getContentAsString());
+        long id = pedido.get("id").asLong();
+        pagar(id, UUID.randomUUID(), APROBADA, "123")
+                .andExpect(jsonPath("$.estado").value("APROBADO"))
+                .andExpect(jsonPath("$.pedido.estado").value("CONFIRMADO"))
+                .andExpect(jsonPath("$.pedido.pagos[0].monto").value(240.00));
+
+        jdbc.update("UPDATE producto SET precio_mayorista = 22.00 WHERE id = ?", producto);
+        mockMvc.perform(get("/api/pedidos/" + id).cookie(comprador))
+                .andExpect(jsonPath("$.total").value(240.00))
+                .andExpect(jsonPath("$.lineas[0].precioUnitario").value(20.00));
+    }
+
     @Test
     void un_pago_aprobado_confirma_descuenta_y_vacia_el_carrito() throws Exception {
         long producto = productoEnCusco("Canasta", 5);

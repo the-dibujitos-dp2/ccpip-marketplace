@@ -3,6 +3,7 @@ package pe.ccpip.productor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,11 +17,12 @@ import pe.ccpip.productor.Auditoria.Accion;
 import pe.ccpip.productor.ProductoModelos.DatosLote;
 import pe.ccpip.productor.ProductoModelos.EstadoLote;
 import pe.ccpip.productor.ProductoModelos.Lote;
+import pe.ccpip.productor.ProductoModelos.LoteDelProductor;
 import pe.ccpip.productor.ProductoModelos.Lotes;
 import pe.ccpip.productor.ProductoModelos.Ubicacion;
 
 /**
- * CCPIP-41 y PW-06: registro de lotes. Lote, movimiento de entrada y stock se escriben en la
+ * CCPIP-41 y PW-06: registro de lotes; CCPIP-161: consulta de todos sus lotes por vencimiento. Lote, movimiento de entrada y stock se escriben en la
  * misma transaccion: el stock siempre queda explicado por un movimiento (RNF-15, ADR-10).
  */
 @Service
@@ -77,6 +79,40 @@ public class LotesService {
         String linea = producto.lineas().isEmpty() ? null : producto.lineas().get(0);
         return new Lotes(productoId, producto.nombre(), miniatura, linea, requiereVencimiento(productoId), total,
                 producto.enVenta(), items);
+    }
+
+    /**
+     * CCPIP-161 (RF-130): todos sus lotes, de cualquier producto y estado, primero el que vence antes.
+     * Cada uno con su unidad, ubicacion, saldo y estado, calculado como en la vista de un producto.
+     */
+    public List<LoteDelProductor> todos(long productorId) {
+        LocalDate hoy = LocalDate.now(LIMA);
+        record Fila(Lote lote, long productoId, String producto, String unidad) {
+        }
+        List<Fila> filas = jdbc.query("""
+                SELECT l.id, l.codigo, l.cantidad_inicial, l.cantidad_actual, l.fecha_produccion, l.fecha_vencimiento,
+                       u.id AS ubicacion_id, u.nombre AS ubicacion, u.tipo,
+                       p.id AS producto_id, p.nombre AS producto, um.nombre AS unidad
+                FROM lote l JOIN producto p ON p.id = l.producto_id JOIN ubicacion u ON u.id = l.ubicacion_id
+                LEFT JOIN unidad_medida um ON um.id = p.unidad_medida_id
+                WHERE p.productor_id = ?
+                ORDER BY l.fecha_vencimiento NULLS LAST, l.registrado_en, l.id""",
+                (rs, row) -> new Fila(new Lote(rs.getLong("id"), rs.getString("codigo"), rs.getBigDecimal("cantidad_inicial"),
+                        rs.getBigDecimal("cantidad_actual"), rs.getObject("fecha_produccion", LocalDate.class),
+                        rs.getObject("fecha_vencimiento", LocalDate.class), rs.getLong("ubicacion_id"),
+                        rs.getString("ubicacion"), rs.getString("tipo"), null),
+                        rs.getLong("producto_id"), rs.getString("producto"), rs.getString("unidad")),
+                productorId);
+        // "Vende primero" es por producto: su primer lote vendible en el orden por vencimiento
+        Map<Long, Long> vendePrimero = new HashMap<>();
+        filas.stream().filter(f -> vendible(f.lote(), hoy) && f.lote().fechaVencimiento() != null)
+                .forEach(f -> vendePrimero.putIfAbsent(f.productoId(), f.lote().id()));
+        return filas.stream().map(f -> {
+            Lote l = f.lote();
+            return new LoteDelProductor(l.id(), f.productoId(), f.producto(), f.unidad(), l.codigo(), l.cantidadInicial(),
+                    l.cantidadActual(), l.fechaVencimiento(), l.ubicacion(), l.tipoUbicacion(),
+                    estado(l, hoy, vendePrimero.get(f.productoId())));
+        }).toList();
     }
 
     @Transactional

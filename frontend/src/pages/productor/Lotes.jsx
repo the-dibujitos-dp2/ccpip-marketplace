@@ -6,9 +6,11 @@ import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Enlace from '../../components/Enlace.jsx'
 import { fechaCorta, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
+import { RUTAS } from '../../router.js'
 import './Lotes.css'
 
 const TONO = { VENDE_PRIMERO: 'error', DISPONIBLE: 'exito', EN_ALMACEN: 'info', AGOTADO: 'neutro', VENCIDO: 'neutro' }
@@ -108,6 +110,47 @@ export function FormularioLote({ productoId, requiereVencimiento, onRegistrado, 
         {enviando ? t('productor.lote.registrando') : t('productor.panel.registrarLote')}
       </Boton>
     </form>
+  )
+}
+
+/**
+ * CCPIP-161: todos sus lotes, de todos sus productos, en el orden del servidor (primero el que vence
+ * antes). Cada fila lleva a los lotes de su producto para registrar otro.
+ */
+export function TablaTodosLosLotes({ lotes }) {
+  const { t } = useTranslation()
+  return (
+    <div className="tabla tabla--todos-lotes">
+      <div className="tabla__fila tabla__fila--encabezado" aria-hidden="true">
+        <span className="tabla__celda tabla__celda--flex">{t('productor.lote.tabla.producto')}</span>
+        <span className="tabla__celda lotes__col">{t('productor.lote.tabla.lote')}</span>
+        <span className="tabla__celda lotes__col">{t('productor.lote.tabla.vence')}</span>
+        <span className="tabla__celda lotes__col">{t('productor.lote.tabla.stock')}</span>
+        <span className="tabla__celda lotes__col-punto">{t('productor.lote.tabla.punto')}</span>
+        <span className="tabla__celda lotes__col-estado">{t('productor.lote.tabla.estado')}</span>
+      </div>
+      <ul className="productos__lista" aria-label={t('productor.lotes.todos')}>
+        {lotes.map((l) => (
+          <li key={l.id} className="tabla__fila">
+            <span className="tabla__celda tabla__celda--flex">
+              <Enlace className="enlace-marca" to={`${RUTAS.productorLotes}?producto=${l.productoId}`} aria-label={t('productor.lotes.verLotesDe', { producto: l.producto })}>
+                {l.producto}
+              </Enlace>
+            </span>
+            <span className="tabla__celda lotes__col label-m">{l.codigo}</span>
+            <span className="tabla__celda lotes__col">{l.fechaVencimiento ? fechaCorta(l.fechaVencimiento) : t('productor.lote.noVence')}</span>
+            <span className="tabla__celda lotes__col">
+              {unidades(l.cantidadActual)}
+              {l.unidad && <span className="caption lotes__unidad"> {l.unidad}</span>}
+            </span>
+            <span className="tabla__celda lotes__col-punto lotes__punto">{l.tipoUbicacion === 'ALMACEN_PRODUCTOR' ? t('productor.lote.miAlmacen') : l.ubicacion}</span>
+            <span className="tabla__celda lotes__col-estado">
+              <Badge tono={TONO[l.estado]}>{t(`productor.lote.estado.${l.estado}`)}</Badge>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 

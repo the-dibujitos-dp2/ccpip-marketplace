@@ -6,38 +6,48 @@ import { agregarAlCarrito, recargarUnidadesCarrito } from '../../api/carrito.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
+import MinimoMayorista from '../../components/MinimoMayorista.jsx'
 import SelectorCantidad from '../../components/SelectorCantidad.jsx'
 import { precio } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import { navigate, RUTAS } from '../../router.js'
 import { useSesion } from '../../sesion.js'
+import { resolverTarifa } from '../../tarifa.js'
 import './AgregarAlCarrito.css'
 
 /**
  * CCPIP-58, panel de compra del Figma (CW-03c): el comprador agrega esta oferta al carrito
  * indicando la cantidad. Sin sesion lo lleva a ingresar y lo regresa a la ficha. La
  * disponibilidad real la valida el servidor; el carrito no reserva existencias (RNF-35).
- * La tarifa mayorista (CCPIP-134) llega en Sprint 1: por ahora se compra al precio minorista.
+ * CCPIP-134 (RF-108): la cantidad decide la tarifa. Desde el minimo se aplica el precio mayorista;
+ * una oferta solo mayorista arranca en su minimo y bajo el no se puede agregar. La ficha comparte la
+ * cantidad (`cantidad`, `onCantidad`) para marcar la tarjeta de precio que corresponde (`modo`).
  * Una oferta en "Venta pausada" (CCPIP-269) no ofrece compra: la ficha explica por que.
  */
-export default function AgregarAlCarrito({ producto }) {
+export default function AgregarAlCarrito({ producto, cantidad, onCantidad, modo }) {
   const { t } = useTranslation()
   const { user } = useSesion()
   const idError = useId()
-  const [cantidad, setCantidad] = useState('1')
   const [error, setError] = useState(null)
   const [aviso, setAviso] = useState(null)
   const [enviando, setEnviando] = useState(false)
   // Solo el comprador tiene carrito: a otros roles no se les ofrece (el servidor tambien lo niega)
   const ofrecer = producto.disponible && producto.comprable !== false && (!user || user.role === 'CONSUMIDOR')
-  const soloMayorista = producto.modalidad === 'MAYORISTA'
-  const [panel, panelFuera] = usePanelFuera(ofrecer && !soloMayorista)
+  const [panel, panelFuera] = usePanelFuera(ofrecer)
 
   if (!ofrecer) return null
 
+  const soloMayorista = producto.modalidad === 'MAYORISTA'
+  const minimo = soloMayorista ? (producto.cantidadMinimaMayorista ?? 1) : 1
+  const unidades = Number(cantidad)
+  const valida = cantidad !== '' && Number.isInteger(unidades) && unidades >= 1
+  const tarifa = resolverTarifa(producto, cantidad)
+  // Solo por mayor y bajo el minimo: no se agrega (el servidor tambien lo niega)
+  const bloqueado = valida && !tarifa.comprable
+
   function cambiar(valor) {
-    setCantidad(valor)
+    onCantidad(valor)
     setError(null)
     setAviso(null)
   }
@@ -48,11 +58,11 @@ export default function AgregarAlCarrito({ producto }) {
       navigate(`${RUTAS.ingresar}?volver=${encodeURIComponent(window.location.pathname)}`)
       return
     }
-    const unidades = Number(cantidad)
-    if (cantidad === '' || !Number.isInteger(unidades) || unidades < 1) {
+    if (!valida) {
       setError(t('carrito.agregar.minimo'))
       return
     }
+    if (bloqueado) return
     setEnviando(true)
     setAviso(null)
     try {
@@ -77,6 +87,7 @@ export default function AgregarAlCarrito({ producto }) {
   }
 
   const textoBoton = enviando ? t('carrito.agregar.agregando') : t('carrito.agregar.boton')
+  const faltaParaAgregar = bloqueado ? t('carrito.agregar.faltaParaAgregar', { count: tarifa.faltante }) : null
 
   return (
     <form className="agregar-carrito" onSubmit={agregar} noValidate>
@@ -84,11 +95,11 @@ export default function AgregarAlCarrito({ producto }) {
         <SelectorCantidad
           valor={cantidad}
           onCambiar={cambiar}
+          min={minimo}
           invalido={Boolean(error)}
-          disabled={soloMayorista}
           describedBy={error ? idError : undefined}
         />
-        <Boton tipo="primario" tamano="L" type="submit" icono={iconoBolsa} disabled={enviando || soloMayorista} className="agregar-carrito__boton">
+        <Boton tipo="primario" tamano="L" type="submit" icono={iconoBolsa} disabled={enviando || bloqueado} className="agregar-carrito__boton">
           {textoBoton}
         </Boton>
       </div>
@@ -99,12 +110,12 @@ export default function AgregarAlCarrito({ producto }) {
             <ImagenProducto url={producto.imagenes?.[0]?.miniatura} linea={producto.linea?.codigo} className="barra-compra__imagen" />
             <div className="barra-compra__datos">
               <p className="barra-compra__nombre">{producto.nombre}</p>
-              <p className={`caption barra-compra__detalle${aviso?.tono === 'error' || error ? ' barra-compra__detalle--error' : ''}`} role="status">
-                {error ?? (aviso ? (aviso.tono === 'exito' ? aviso.titulo : aviso.descripcion) : resumenPrecios(producto, t))}
+              <p className={`caption barra-compra__detalle${aviso?.tono === 'error' || error || bloqueado ? ' barra-compra__detalle--error' : ''}`} role="status">
+                {error ?? (aviso ? (aviso.tono === 'exito' ? aviso.titulo : aviso.descripcion) : (faltaParaAgregar ?? resumenPrecios(producto, t)))}
               </p>
             </div>
-            <SelectorCantidad valor={cantidad} onCambiar={cambiar} invalido={Boolean(error)} etiqueta={t('carrito.agregar.cantidad')} />
-            <Boton tipo="primario" tamano="L" type="submit" icono={iconoBolsa} disabled={enviando} className="barra-compra__boton">
+            <SelectorCantidad valor={cantidad} onCambiar={cambiar} min={minimo} invalido={Boolean(error)} etiqueta={t('carrito.agregar.cantidad')} />
+            <Boton tipo="primario" tamano="L" type="submit" icono={iconoBolsa} disabled={enviando || bloqueado} className="barra-compra__boton">
               {textoBoton}
             </Boton>
           </div>
@@ -116,22 +127,56 @@ export default function AgregarAlCarrito({ producto }) {
           {error}
         </p>
       )}
-      {soloMayorista ? (
-        <Alerta
-          tono="error"
-          titulo={t('carrito.agregar.soloMayorista', { minimo: producto.cantidadMinimaMayorista })}
-          descripcion={t('carrito.agregar.mayoristaPronto')}
-        />
-      ) : (
-        producto.modalidad === 'AMBAS' && (
-          <p className="caption">
-            {t('carrito.agregar.ambas', { minimo: producto.cantidadMinimaMayorista, precio: precio(producto.precioMayorista) })}
-          </p>
-        )
-      )}
+      <AvisoTarifa producto={producto} unidades={valida ? unidades : 0} tarifa={tarifa} modo={modo} faltaParaAgregar={faltaParaAgregar} />
       {aviso && <Alerta {...aviso} onCerrar={() => setAviso(null)} />}
     </form>
   )
+}
+
+/**
+ * CCPIP-134, estados del panel de compra (Figma CW-03c): cuanto falta para el precio mayorista, el
+ * mayorista ya aplicado con lo que se ahorra, o el bloqueo de una oferta solo mayorista bajo su minimo.
+ */
+function AvisoTarifa({ producto, unidades, tarifa, modo, faltaParaAgregar }) {
+  const { t } = useTranslation()
+  const minimo = producto.cantidadMinimaMayorista
+  if (tarifa.faltante == null) return null
+  if (faltaParaAgregar) {
+    return (
+      <MinimoMayorista
+        estado="bloqueado"
+        titulo={t('carrito.agregar.soloMayorista', { minimo })}
+        detalle={faltaParaAgregar}
+        cantidad={unidades}
+        minimo={minimo}
+      />
+    )
+  }
+  if (producto.modalidad === 'MAYORISTA') return null
+  if (tarifa.tarifa === 'MAYORISTA') {
+    const ahorro = unidades * (Number(producto.precio) - Number(producto.precioMayorista))
+    return (
+      <MinimoMayorista
+        estado="alcanzado"
+        titulo={t('carrito.mayorista.aplicado', { precio: precio(producto.precioMayorista) })}
+        detalle={t('carrito.mayorista.ahorro', { monto: precio(ahorro) })}
+        cantidad={unidades}
+        minimo={minimo}
+      />
+    )
+  }
+  if (modo === 'MAYORISTA') {
+    return (
+      <MinimoMayorista
+        estado="falta"
+        titulo={t('carrito.mayorista.falta', { count: tarifa.faltante })}
+        detalle={t('carrito.mayorista.avance', { cantidad: unidades, minimo })}
+        cantidad={unidades}
+        minimo={minimo}
+      />
+    )
+  }
+  return <p className="caption">{t('carrito.agregar.desdeMayorista', { minimo, precio: precio(producto.precioMayorista) })}</p>
 }
 
 /** "C.N. Yarina · S/ 18.00 minorista · S/ 14.50 desde 24 und", como en CW-03b. */
