@@ -285,6 +285,39 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
     expect(enviado.unidad).toBe(DATOS.catalogos.lineas.find((l) => l.codigo === 'ACEITES').unidadSugerida)
   })
 
+  it('solo fija precios ordinarios: sin descuentos ni promociones (CCPIP-87)', async () => {
+    const fetchMock = productor({
+      'POST /api/productor/productos': [422, { code: 'CAMPO_NO_PERMITIDO', error: 'Solo fijas el precio ordinario: no existen descuentos ni precios promocionales.' }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/nuevo')
+    await user.type(await screen.findByLabelText('Nombre del producto'), 'Aceite de sacha inchi')
+    // Solo minorista: no hay campo de descuento y se avisa que no existen promociones
+    await user.type(screen.getByLabelText('Precio minorista (S/)'), '32')
+    expect(screen.getByText('No se permiten descuentos ni precios promocionales.')).toBeInTheDocument()
+    expect(screen.queryByLabelText(/descuento|promoci/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/Los descuentos solo los aplica la Cámara\./)).toBeInTheDocument()
+
+    // La doble tarifa no es una promocion: el mayorista se aplica desde un minimo y es menor
+    await user.click(screen.getByRole('radio', { name: 'Minorista y mayorista' }))
+    await user.type(screen.getByLabelText('Precio mayorista (S/)'), '32')
+    await user.type(screen.getByLabelText('Cantidad mínima mayorista'), '12')
+    expect(screen.getByText(/se aplica solo desde 12 und\. Debe ser menor que el minorista\. No se permiten descuentos/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+    expect(screen.getAllByText('Debe ser menor que el precio minorista').length).toBeGreaterThan(0)
+    expect(llamadas(fetchMock, 'POST /api/productor/productos')).toHaveLength(0)
+
+    // Al servidor solo van los campos del contrato; si rechaza algo de promocion, se explica
+    await user.clear(screen.getByLabelText('Precio mayorista (S/)'))
+    await user.type(screen.getByLabelText('Precio mayorista (S/)'), '27')
+    await user.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+    expect(await screen.findByText('Solo fijas el precio ordinario: no existen descuentos ni precios promocionales.')).toBeInTheDocument()
+    expect(Object.keys(cuerpo(fetchMock, 'POST /api/productor/productos')).sort()).toEqual([
+      'cantidadMinimaMayorista', 'contenido', 'descripcion', 'descripcionAsistida', 'esMateriaPrima', 'lineas',
+      'modalidad', 'nombre', 'precio', 'precioMayorista', 'unidad',
+    ])
+  })
+
   it('no deja guardar con datos invalidos', async () => {
     const fetchMock = productor()
     const user = userEvent.setup()

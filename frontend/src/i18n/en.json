@@ -364,7 +364,7 @@
       "siguienteHistoria": "Next: story",
       "vistaPrevia": "Catalog preview",
       "recibiras": "You'll receive {{monto}} per unit",
-      "comision": "Chamber commission: {{porcentaje}} % (example value, configurable)."
+      "comision": "Chamber commission: {{porcentaje}} % (example value, configurable). Only the Chamber applies discounts."
     },
     "historia": {
       "preguntas": {
@@ -976,6 +976,7 @@
     "PEDIDO_NO_ENCONTRADO": "The order doesn't exist.",
     "PERSONA_NO_COINCIDE": "This person isn't the buyer or the authorized person for this order.",
     "PRECIO_MAYORISTA_INVALIDO": "The wholesale price must be lower than the retail price.",
+    "CAMPO_NO_PERMITIDO": "You only set the regular price: there are no discounts or promotional prices.",
     "PRODUCCION_FUTURA": "The production date can't be later than today.",
     "PRODUCTO_INCOMPLETO": "A published product must keep all its details.",
     "PRODUCTO_NO_ENCONTRADO": "The product doesn't exist or is no longer available.",
