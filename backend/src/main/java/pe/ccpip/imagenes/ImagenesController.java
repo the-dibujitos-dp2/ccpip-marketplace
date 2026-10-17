@@ -2,6 +2,7 @@ package pe.ccpip.imagenes;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.CacheControl;
@@ -76,12 +77,37 @@ public class ImagenesController {
         return ResponseEntity.noContent().build();
     }
 
-    /** Quitar una foto si se permite; lo que no existe es borrar productos (RNF-17). */
+    /** CCPIP-387: fotos vigentes de una publicacion propia. */
+    @RolesPermitidos(Rol.PRODUCTOR)
+    @GetMapping("/api/productor/imagenes")
+    public List<ImagenService.Imagen> dePublicacion(
+            @RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession session,
+            @RequestParam long productoId) {
+        return service.dePublicacion(productorActual.id(session), productoId);
+    }
+
+    /** CCPIP-388: otra foto en el mismo lugar; la anterior queda retirada, no borrada. */
+    @RolesPermitidos(Rol.PRODUCTOR)
+    @PostMapping(value = "/api/productor/imagenes/{id}/reemplazo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ImagenService.Imagen> reemplazar(
+            @RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession session,
+            @PathVariable UUID id, @RequestParam MultipartFile archivo) throws IOException {
+        if (archivo.isEmpty()) {
+            throw ErrorNegocio.invalido("ARCHIVO_VACIO", "El archivo está vacío.");
+        }
+        ImagenService.Imagen imagen = service.reemplazar(productorActual.id(session), session.userId(), id, archivo.getBytes());
+        return ResponseEntity.status(HttpStatus.CREATED).body(imagen);
+    }
+
+    /**
+     * Quitar una foto. La de un producto se retira de forma logica (CCPIP-389); lo que no existe
+     * es borrar productos (RNF-17).
+     */
     @RolesPermitidos(Rol.PRODUCTOR)
     @DeleteMapping("/api/productor/imagenes/{id}")
     public ResponseEntity<Void> eliminar(
             @RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession session, @PathVariable UUID id) {
-        service.eliminar(productorActual.id(session), id);
+        service.eliminar(productorActual.id(session), session.userId(), id);
         return ResponseEntity.noContent().build();
     }
 }

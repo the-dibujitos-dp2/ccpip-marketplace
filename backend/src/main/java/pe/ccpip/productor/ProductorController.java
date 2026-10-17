@@ -23,6 +23,7 @@ import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.ia.AsistenteRedaccion.Propuesta;
 import pe.ccpip.ia.AsistenteRedaccion.Variante;
+import pe.ccpip.productor.PedidosProductorModelos.Pedidos;
 import pe.ccpip.productor.ProductoModelos.AprobarHistoria;
 import pe.ccpip.productor.ProductoModelos.DatosHistoria;
 import pe.ccpip.productor.ProductoModelos.DatosLote;
@@ -35,7 +36,7 @@ import pe.ccpip.productor.ProductoModelos.ProductoEdicion;
 import pe.ccpip.productor.ProductoModelos.Ubicacion;
 
 /**
- * API del productor: panel, productos, historia, lotes y redaccion asistida. Todo opera sobre
+ * API del productor: panel, productos, historia, lotes, pedidos y redaccion asistida. Todo opera sobre
  * el productor de la sesion (RNF-05). No existe DELETE de productos (RNF-17).
  */
 @RolesPermitidos(Rol.PRODUCTOR)
@@ -56,14 +57,16 @@ public class ProductorController {
     private final HistoriaService historias;
     private final LotesService lotes;
     private final PanelService panel;
+    private final PedidosProductorService pedidos;
 
     public ProductorController(ProductorActual actual, ProductosService productos, HistoriaService historias,
-                               LotesService lotes, PanelService panel) {
+                               LotesService lotes, PanelService panel, PedidosProductorService pedidos) {
         this.actual = actual;
         this.productos = productos;
         this.historias = historias;
         this.lotes = lotes;
         this.panel = panel;
+        this.pedidos = pedidos;
     }
 
     @GetMapping("/panel")
@@ -128,6 +131,14 @@ public class ProductorController {
         return historias.aprobar(actual.id(s), s.userId(), id, datos);
     }
 
+    /** CCPIP-280: descartar el borrador de la IA; queda registrado y no se publica nada. */
+    @PostMapping("/productos/{id}/ia/rechazar")
+    public ResponseEntity<Void> rechazarBorrador(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                                 @PathVariable long id, @RequestParam HistoriaService.Borrador borrador) {
+        historias.rechazar(actual.id(s), s.userId(), id, borrador);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/ia/descripcion")
     public Propuesta proponerDescripcion(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                          @Valid @RequestBody PedirDescripcion pedido) {
@@ -151,5 +162,12 @@ public class ProductorController {
     public ResponseEntity<Lotes> registrarLote(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                                @PathVariable long id, @Valid @RequestBody DatosLote datos) {
         return ResponseEntity.status(HttpStatus.CREATED).body(lotes.registrar(actual.id(s), s.userId(), id, datos));
+    }
+
+    /** CCPIP-66 (PW-07): pedidos con publicaciones propias; sin {@code estado}, todos los pagados. */
+    @GetMapping("/pedidos")
+    public Pedidos pedidos(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                           @RequestParam(required = false) PedidosProductorModelos.Estado estado) {
+        return pedidos.listar(actual.id(s), estado);
     }
 }

@@ -27,10 +27,14 @@ export const aprobarHistoria = async (id, datos) => apiFetch(`${base}/productos/
 export const proponerDescripcion = (datos) => apiFetch(`${base}/ia/descripcion`, { method: 'POST', body: datos })
 
 export const listarUbicaciones = () => apiFetch(`${base}/ubicaciones`)
+
+// CCPIP-66 (PW-07): solo las lineas propias de cada pedido pagado, con conteos por estado
+export const listarPedidos = (estado) => apiFetch(`${base}/pedidos?${new URLSearchParams({ estado })}`)
 export const listarLotes = async (id) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`)
 export const registrarLote = async (id, datos) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`, { method: 'POST', body: datos })
 
 export const marcarPrincipal = async (imagenId) => apiFetch(`${base}/imagenes/${idRuta(imagenId)}/principal`, { method: 'PUT' })
+/** Una foto de producto se retira y se conserva para el historial (CCPIP-389); portada y galeria se borran. */
 export const eliminarImagen = async (imagenId) => apiFetch(`${base}/imagenes/${idRuta(imagenId)}`, { method: 'DELETE' })
 
 /**
@@ -43,7 +47,18 @@ export async function subirImagen(archivo, { tipo, categoria, productoId }) {
   datos.append('tipo', tipo)
   if (categoria) datos.append('categoria', categoria)
   if (productoId) datos.append('productoId', String(productoId))
-  const res = await fetch(`${base}/imagenes`, { method: 'POST', body: datos, credentials: 'same-origin' })
+  return enviarArchivo(`${base}/imagenes`, datos)
+}
+
+/** CCPIP-388: otra foto en el mismo lugar; la anterior queda retirada. */
+export async function reemplazarImagen(imagenId, archivo) {
+  const datos = new FormData()
+  datos.append('archivo', archivo)
+  return enviarArchivo(`${base}/imagenes/${idRuta(imagenId)}/reemplazo`, datos)
+}
+
+async function enviarArchivo(url, datos) {
+  const res = await fetch(url, { method: 'POST', body: datos, credentials: 'same-origin' })
   restartIdle()
   const cuerpo = await res.json().catch(() => ({}))
   if (!res.ok) throw new ApiError(res.status, cuerpo)

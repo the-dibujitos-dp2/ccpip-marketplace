@@ -68,6 +68,7 @@
       "tienda": "Mi tienda",
       "productos": "Productos",
       "lotes": "Lotes",
+      "pedidos": "Pedidos",
       "cuenta": "Cuenta bancaria"
     },
     "tabla": {
@@ -160,6 +161,52 @@
         "VENCIDO": "Vencido"
       },
       "ubicacionPlaceholder": "Elige tu almacén o un punto de acopio"
+    },
+    "pedidos": {
+      "titulo": "Pedidos",
+      "pestana": {
+        "CONFIRMADO": "Confirmados ({{total}})",
+        "EN_PREPARACION": "En preparación ({{total}})",
+        "LISTO_PARA_RECOJO": "Listos para recojo ({{total}})",
+        "ENTREGADO": "Entregados ({{total}})",
+        "CANCELADO": "Cancelados ({{total}})"
+      },
+      "estado": {
+        "CONFIRMADO": "Confirmado",
+        "EN_PREPARACION": "En preparación",
+        "LISTO_PARA_RECOJO": "Listo para recojo",
+        "ENTREGADO": "Entregado",
+        "CANCELADO": "Cancelado"
+      },
+      "vacio": {
+        "CONFIRMADO": "No tienes pedidos confirmados",
+        "EN_PREPARACION": "No tienes pedidos en preparación",
+        "LISTO_PARA_RECOJO": "Ningún pedido espera a su comprador",
+        "ENTREGADO": "Aún no se entregó ningún pedido",
+        "CANCELADO": "No tienes pedidos cancelados"
+      },
+      "vacioTexto": "Aquí aparecen los pedidos pagados que incluyen tus productos.",
+      "error": "No pudimos cargar tus pedidos",
+      "col": {
+        "pedido": "Pedido",
+        "modalidad": "Modalidad",
+        "pagado": "Pagado"
+      },
+      "verPedido": "Ver el pedido {{numero}}",
+      "yMas_one": "{{texto}} y {{count}} producto más",
+      "yMas_other": "{{texto}} y {{count}} productos más",
+      "recojoEn": "Recojo · {{punto}}",
+      "envio": "Envío a domicilio",
+      "pagadoEl": "Pagado el {{fecha}}",
+      "tusProductos": "Tus productos en este pedido",
+      "lote": "Lote {{codigo}} · {{cantidad}} und",
+      "loteVence": "Lote {{codigo}} · {{cantidad}} und · vence {{fecha}}",
+      "subtotal": "Tus ventas en este pedido",
+      "comision": "Comisión de la Cámara",
+      "neto": "Recibirás",
+      "sinComision": "Pedido confirmado antes de configurar la comisión: no tiene comisión calculada.",
+      "historial": "Cambios de estado",
+      "nota": "Solo ves tus productos de cada pedido. Los datos del comprador y lo que compró a otras comunidades no se muestran."
     },
     "productos": {
       "badge": {
@@ -262,6 +309,12 @@
       "principal": "Principal",
       "hacerPrincipal": "Hacer principal",
       "quitarFoto": "Quitar foto",
+      "reemplazarFoto": "Reemplazar foto",
+      "errorReemplazar": "No pudimos reemplazar la foto",
+      "retirarTitulo": "¿Retirar esta foto?",
+      "retirarTexto": "Deja de verse en la ficha y en el catálogo. La guardamos para el historial de tus pedidos.",
+      "retirarTextoPrincipal": "Es tu foto principal: la siguiente ocupará su lugar en el catálogo. La guardamos para el historial de tus pedidos.",
+      "retirarConfirmar": "Retirar foto",
       "subiendo": "Subiendo…",
       "agregar": "Agregar",
       "fotosAyuda": "Hasta {{max}} fotos. La primera es la principal: es la que se ve en el catálogo.",
