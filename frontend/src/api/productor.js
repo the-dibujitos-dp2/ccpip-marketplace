@@ -31,8 +31,13 @@ export const rechazarBorrador = async (id, borrador) =>
 
 export const listarUbicaciones = () => apiFetch(`${base}/ubicaciones`)
 
+// CCPIP-136 y CCPIP-162 (PW-16): su almacen virtual unico, por producto, ubicacion, lote y estado
+export const consultarInventario = () => apiFetch(`${base}/inventario`)
+
 // CCPIP-66 (PW-07): solo las lineas propias de cada pedido pagado, con conteos por estado
 export const listarPedidos = (estado) => apiFetch(`${base}/pedidos?${new URLSearchParams({ estado })}`)
+// CCPIP-161: todos sus lotes, de todos sus productos, primero el que vence antes
+export const listarTodosLosLotes = () => apiFetch(`${base}/lotes`)
 export const listarLotes = async (id) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`)
 export const registrarLote = async (id, datos) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`, { method: 'POST', body: datos })
 

@@ -32,6 +32,7 @@ import pe.ccpip.productor.ProductoModelos.DatosProducto;
 import pe.ccpip.productor.ProductoModelos.Estado;
 import pe.ccpip.productor.ProductoModelos.Historia;
 import pe.ccpip.productor.ProductoModelos.ListaProductos;
+import pe.ccpip.productor.ProductoModelos.LoteDelProductor;
 import pe.ccpip.productor.ProductoModelos.Lotes;
 import pe.ccpip.productor.ProductoModelos.ProductoEdicion;
 import pe.ccpip.productor.ProductoModelos.Ubicacion;
@@ -155,6 +156,12 @@ public class ProductorController {
     @GetMapping("/ubicaciones")
     public List<Ubicacion> ubicaciones(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s) {
         return lotes.ubicaciones(actual.id(s));
+    }
+
+    /** CCPIP-161: todos sus lotes, de todos sus productos, primero el que vence antes. */
+    @GetMapping("/lotes")
+    public List<LoteDelProductor> todosLosLotes(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s) {
+        return lotes.todos(actual.id(s));
     }
 
     @GetMapping("/productos/{id}/lotes")

@@ -1,0 +1,7 @@
+/* PW-16: columnas de la tabla del inventario, con los anchos del Figma */
+.almacen__producto { display: block; }
+.almacen__col-fechas { width: 190px; }
+.almacen__col-cantidad { width: 90px; }
+.almacen__col-estado { width: 110px; }
+.almacen__col-ubicaciones { width: 260px; }
+.almacen__col-lotes { width: 60px; }

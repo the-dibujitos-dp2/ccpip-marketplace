@@ -67,6 +67,7 @@
       "inicio": "Inicio",
       "tienda": "Mi tienda",
       "productos": "Productos",
+      "almacen": "Almacén",
       "lotes": "Lotes",
       "pedidos": "Pedidos",
       "cuenta": "Cuenta bancaria"
@@ -117,7 +118,12 @@
       "cambiarProducto": "Cambiar producto",
       "deEsteProducto": "Lotes de este producto",
       "fefo": "Se vende primero el lote que vence antes",
-      "fefoTexto": "Un lote vencido no se vende y deja de contar como stock disponible."
+      "fefoTexto": "Un lote vencido no se vende y deja de contar como stock disponible.",
+      "todos": "Todos tus lotes",
+      "todosTexto": "De todos tus productos, primero el que vence antes. El stock de cada lote es lo que queda tras su entrada y sus ventas.",
+      "sinLotesTodos": "Aún no registraste lotes. Elige un producto para registrar el primero.",
+      "errorTodos": "No pudimos cargar tus lotes",
+      "verLotesDe": "Ver los lotes de {{producto}}"
     },
     "lote": {
       "validacion": {
@@ -145,6 +151,7 @@
       "registrando": "Registrando…",
       "sinLotes": "Aún no hay lotes registrados para este producto.",
       "tabla": {
+        "producto": "Producto",
         "lote": "Lote",
         "vence": "Vence",
         "stock": "Stock",
@@ -161,6 +168,53 @@
         "VENCIDO": "Vencido"
       },
       "ubicacionPlaceholder": "Elige tu almacén o un punto de acopio"
+    },
+    "almacen": {
+      "titulo": "Mi almacén",
+      "error": "No pudimos cargar tu inventario",
+      "ubicaciones": "Ubicaciones del inventario",
+      "porProducto": "Por producto",
+      "kpi": {
+        "enAlmacen": "Unidades en el almacén",
+        "productos_one": "{{count}} producto",
+        "productos_other": "{{count}} productos",
+        "porVencer": "Por vencer",
+        "lotes_one": "{{count}} lote",
+        "lotes_other": "{{count}} lotes",
+        "proximos": "En los próximos {{dias}} días",
+        "enAcopios": "En puntos de acopio",
+        "sinAcopios": "Aún nada en puntos de acopio"
+      },
+      "vencidos_one": "Tienes {{count}} lote vencido",
+      "vencidos_other": "Tienes {{count}} lotes vencidos",
+      "vencidosTexto": "Siguen en la lista con su estado, pero no se cuentan como disponibles ni se venden.",
+      "inventarioAlmacen": "Inventario del almacén · {{departamento}}",
+      "inventarioPunto": "Inventario en {{nombre}}",
+      "inventarioProductos": "Inventario por producto",
+      "col": {
+        "fechas": "Cosecha y vencimiento",
+        "enAlmacen": "En almacén",
+        "enPunto": "En el punto",
+        "porUbicacion": "Por ubicación",
+        "lotes": "Lotes",
+        "disponible": "Disponible"
+      },
+      "lote": "Lote {{codigo}}",
+      "cosecha": "Cosecha {{mes}}",
+      "vence": "vence {{fecha}}",
+      "sinVencimiento": "Sin vencimiento",
+      "soloVencidos": "Solo lotes vencidos",
+      "estado": {
+        "DISPONIBLE": "Disponible",
+        "POR_VENCER": "Por vencer",
+        "VENCIDO": "Vencido"
+      },
+      "vacioAlmacen": "Tu almacén está vacío",
+      "vacioPunto": "No tienes existencias en este punto",
+      "vacioProductos": "Aún no tienes existencias",
+      "vacioTexto": "Las existencias aparecen aquí al registrar un lote.",
+      "unSoloInventario": "Un solo inventario virtual",
+      "unSoloInventarioTexto": "Tu almacén y los puntos de acopio forman un solo inventario: cada cantidad sale de tus lotes y sus movimientos, no de un stock aparte. Solo se vende lo que está en un punto de acopio, y baja al confirmarse cada compra."
     },
     "pedidos": {
       "titulo": "Pedidos",

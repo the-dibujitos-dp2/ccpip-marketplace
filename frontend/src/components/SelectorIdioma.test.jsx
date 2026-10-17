@@ -105,7 +105,8 @@ describe('Selector de idioma (CCPIP-265)', () => {
     abrirEn('/')
     await screen.findByRole('heading', { name: /Productos con historia/ })
     const idiomaDe = (llamada) => llamada[1].headers['Accept-Language']
-    expect(llamadas(fetchMock, 'GET /api/inicio').map(idiomaDe)).toEqual(['es'])
+    // El titulo es texto fijo y puede verse antes de que salga la peticion: se espera a que salga
+    await waitFor(() => expect(llamadas(fetchMock, 'GET /api/inicio').map(idiomaDe)).toEqual(['es']))
 
     await elegir(user, 'English')
     await screen.findByRole('heading', { name: 'Products with a story, straight from the Amazon' })

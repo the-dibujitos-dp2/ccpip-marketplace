@@ -20,6 +20,7 @@ function productor(rutas = {}) {
     'GET /api/productor/productos': () => [200, copia(DATOS.productosProductor)],
     'GET /api/productor/productos/9': () => [200, copia(DATOS.edicion)],
     'GET /api/productor/productos/9/lotes': () => [200, copia(DATOS.lotes)],
+    'GET /api/productor/lotes': () => [200, copia(DATOS.todosLosLotes)],
     'GET /api/productor/ubicaciones': () => [200, copia(DATOS.ubicaciones)],
     ...rutas,
   })
@@ -235,6 +236,44 @@ describe('PW-06 Registrar lote (CCPIP-41)', () => {
     abrirEn('/productor/lotes?producto=..%2F..%2Fauth%2Flogout')
     expect(await screen.findByText('Ese producto no existe')).toBeInTheDocument()
     expect(fetchMock.mock.calls.some(([u]) => u.includes('auth/logout') || u.includes('..'))).toBe(false)
+  })
+
+  it('sin producto elegido lista todos sus lotes, primero el que vence antes (CCPIP-161)', async () => {
+    const fetchMock = productor()
+    const user = userEvent.setup()
+    abrirEn('/productor/lotes')
+    const lista = await screen.findByRole('list', { name: 'Todos tus lotes' })
+    const filas = within(lista).getAllByRole('listitem')
+    expect(filas.map((f) => within(f).getByText(/^L-/).textContent)).toEqual(['L-0031', 'L-0032', 'L-0033', 'L-0009', 'L-0005'])
+    // Producto, unidad, vencimiento, ubicacion y estado de cada lote
+    expect(within(filas[0]).getByText('Aceite de aguaje 250 ml')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('Botella')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('Vencido')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('Centro Nacional Lima')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('Vende primero')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('Mi almacén')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('En tu almacén')).toBeInTheDocument()
+    expect(within(filas[4]).getByText('No vence')).toBeInTheDocument()
+    expect(within(filas[4]).getByText('Unidad')).toBeInTheDocument()
+    expect(within(filas[4]).getByText('Agotado')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'GET /api/productor/lotes')).toHaveLength(1)
+
+    // Desde un lote se abren los de su producto para registrar otro
+    await user.click(within(filas[3]).getByRole('link', { name: 'Ver los lotes de Camu camu en polvo 150 g' }))
+    expect(window.location.search).toBe('?producto=9')
+    expect(await screen.findByRole('list', { name: 'Lotes de este producto' })).toBeInTheDocument()
+    expect(screen.queryByRole('list', { name: 'Todos tus lotes' })).not.toBeInTheDocument()
+  })
+
+  it('sin lotes lo dice, y si falla la consulta lo avisa', async () => {
+    productor({ 'GET /api/productor/lotes': [200, []] })
+    const { unmount } = abrirEn('/productor/lotes')
+    expect(await screen.findByText('Aún no registraste lotes. Elige un producto para registrar el primero.')).toBeInTheDocument()
+    unmount()
+
+    productor({ 'GET /api/productor/lotes': [500, { code: 'ERROR' }] })
+    abrirEn('/productor/lotes')
+    expect(await screen.findByText('No pudimos cargar tus lotes')).toBeInTheDocument()
   })
 
   it('sin productos invita a crear uno', async () => {
