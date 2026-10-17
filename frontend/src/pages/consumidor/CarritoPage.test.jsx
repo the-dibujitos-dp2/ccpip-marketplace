@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import App from '../../App.jsx'
@@ -60,7 +60,10 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
     carrito.items.push(
       { ...carrito.items[1], productoId: 5, nombre: 'Café agotado', estado: 'AGOTADO', subtotal: null },
       { ...carrito.items[1], productoId: 6, nombre: 'Aceite retirado', estado: 'NO_DISPONIBLE', subtotal: null, precio: 30 },
-      { ...carrito.items[1], productoId: 7, nombre: 'Cacao por mayor', estado: 'SOLO_MAYORISTA', subtotal: null, precio: null },
+      {
+        ...carrito.items[1], productoId: 7, nombre: 'Cacao por mayor', estado: 'SOLO_MAYORISTA', subtotal: null,
+        tarifa: 'MAYORISTA', precio: 30, precioMinorista: null, precioMayorista: 30, minimoMayorista: 10, faltanteMayorista: 8,
+      },
     )
     carrito.total = 84
     carrito.comunidades = 1
@@ -71,7 +74,7 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
     expect(screen.getByText('Solo quedan 3: ajusta la cantidad')).toBeInTheDocument()
     expect(screen.getByText('Agotado por ahora')).toBeInTheDocument()
     expect(screen.getByText('Ya no está disponible')).toBeInTheDocument()
-    expect(screen.getByText('Solo se vende por mayor')).toBeInTheDocument()
+    expect(screen.getByText('Solo por mayor: mínimo 10 und')).toBeInTheDocument()
     const resumen = screen.getByRole('complementary', { name: 'Resumen del pedido' })
     expect(within(resumen).getByText('Productos (2)')).toBeInTheDocument()
     expect(within(resumen).getAllByText('S/ 84.00')).toHaveLength(2)
@@ -298,6 +301,83 @@ describe('CCPIP-268 Modificar la cantidad en el carrito', () => {
     await user.type(cantidad, '3')
     expect(await within(cantidad.closest('li')).findByText('S/ 156.00')).toBeInTheDocument()
     expect(screen.queryByText('Solo quedan 3: ajusta la cantidad')).not.toBeInTheDocument()
+  })
+})
+
+describe('CW-05 Tarifa mayorista en el carrito (CCPIP-134)', () => {
+  /** El cacao (S/ 42) tambien se vende por mayor: S/ 35 desde 12 und. */
+  function conCacaoMayorista(cantidad) {
+    const c = copia(DATOS.carrito)
+    const aplicada = cantidad >= 12
+    const precioAplicado = aplicada ? 35 : 42
+    c.items[1] = {
+      ...c.items[1], cantidad, precio: precioAplicado, subtotal: precioAplicado * cantidad,
+      tarifa: aplicada ? 'MAYORISTA' : 'MINORISTA', precioMinorista: 42, precioMayorista: 35, minimoMayorista: 12,
+      faltanteMayorista: Math.max(0, 12 - cantidad),
+    }
+    c.unidades = 14 + cantidad
+    c.total = 728 + precioAplicado * cantidad
+    return c
+  }
+
+  it('bajo el minimo dice cuanto falta y, al editar la cantidad, muestra el precio mayorista aplicado', async () => {
+    const fetchMock = servidor({
+      ...conSesion(conCacaoMayorista(2)),
+      'PUT /api/carrito/items/1': (o) => [200, conCacaoMayorista(JSON.parse(o.body).cantidad)],
+    })
+    abrirEn('/carrito')
+    const cantidad = await screen.findByLabelText('Cantidad de Cacao en grano fermentado 1 kg')
+    const fila = cantidad.closest('li')
+    expect(within(fila).getByText('S/ 42.00 c/u')).toBeInTheDocument()
+    expect(within(fila).getByText('Agrega 10 unidades más para acceder al precio mayorista (S/ 35.00 c/u)')).toBeInTheDocument()
+    expect(within(fila).getByText('2 de 12 und · el precio cambia solo al llegar al mínimo que definió C.N. Yarina')).toBeInTheDocument()
+
+    // Un solo cambio: borrar y teclear bajo carga puede cruzarse con la espera antes de guardar
+    fireEvent.change(cantidad, { target: { value: '12' } })
+    expect(await within(fila).findByText('S/ 35.00 c/u · precio mayorista')).toBeInTheDocument()
+    expect(within(fila).getByText('Precio mayorista aplicado: S/ 35.00 c/u')).toBeInTheDocument()
+    expect(within(fila).getByText('Ahorras S/ 84.00 frente al precio minorista')).toBeInTheDocument()
+    expect(within(fila).getByText('S/ 420.00')).toBeInTheDocument()
+    expect(within(fila).queryByText(/para acceder al precio mayorista/)).not.toBeInTheDocument()
+    expect(JSON.parse(llamadas(fetchMock, 'PUT /api/carrito/items/1').at(-1)[1].body)).toEqual({ cantidad: 12 })
+    const resumen = screen.getByRole('complementary', { name: 'Resumen del pedido' })
+    expect(within(resumen).getAllByText('S/ 1,148.00')).toHaveLength(2)
+  })
+
+  it('lo que solo se vende por mayor y no llega al minimo se marca y se resuelve subiendo la cantidad', async () => {
+    const carrito = copia(DATOS.carrito)
+    const cacao = {
+      ...carrito.items[1], cantidad: 4, tarifa: 'MAYORISTA', precio: 35, precioMinorista: null, precioMayorista: 35,
+      minimoMayorista: 12, faltanteMayorista: 8,
+    }
+    carrito.items[1] = { ...cacao, estado: 'SOLO_MAYORISTA', subtotal: null }
+    carrito.total = 728
+    const fetchMock = servidor({
+      ...conSesion(carrito),
+      'PUT /api/carrito/items/1': () => {
+        const c = copia(carrito)
+        c.items[1] = { ...cacao, cantidad: 12, estado: 'DISPONIBLE', subtotal: 420, faltanteMayorista: 0 }
+        c.total = 1148
+        return [200, c]
+      },
+    })
+    const user = userEvent.setup()
+    abrirEn('/carrito')
+    const cantidad = await screen.findByLabelText('Cantidad de Cacao en grano fermentado 1 kg')
+    const fila = cantidad.closest('li')
+    expect(within(fila).getByText('Solo por mayor: mínimo 12 und')).toBeInTheDocument()
+    expect(within(fila).getByText('Este producto se vende solo por mayor: mínimo 12 und')).toBeInTheDocument()
+    expect(within(fila).getByText('Agrega 8 und más para poder comprarlo')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Continuar con la entrega y pago' })).toBeDisabled()
+
+    // "+" lleva directo al minimo, y de ahi no se baja
+    await user.click(within(fila).getByRole('button', { name: 'Agregar una unidad' }))
+    expect(cantidad).toHaveValue('12')
+    expect(await within(fila).findByText('S/ 420.00')).toBeInTheDocument()
+    expect(JSON.parse(llamadas(fetchMock, 'PUT /api/carrito/items/1')[0][1].body)).toEqual({ cantidad: 12 })
+    expect(within(fila).getByRole('button', { name: 'Quitar una unidad' })).toBeDisabled()
+    expect(within(fila).queryByText(/para poder comprarlo/)).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Continuar con la entrega y pago' })).toBeInTheDocument()
   })
 })
 

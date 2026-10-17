@@ -29,6 +29,8 @@ import autorizacionesAdmin from './fixtures/admin-autorizaciones.json'
 import expedienteAdmin from './fixtures/admin-autorizacion-41.json'
 import analisisSimulado from './fixtures/admin-analisis-simulado.json'
 import evidenciasProductor from './fixtures/productor-evidencias-9.json'
+// CCPIP-161: armado segun ProductoModelos.LoteDelProductor del backend
+import todosLosLotes from './fixtures/productor-lotes.json'
 
 export const USUARIO = {
   id: 1,
@@ -113,6 +115,7 @@ export const DATOS = {
   productosProductor,
   edicion,
   lotes,
+  todosLosLotes,
   ubicaciones,
   movimientos,
   pedidos,

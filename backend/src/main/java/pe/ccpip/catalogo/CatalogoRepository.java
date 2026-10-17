@@ -86,10 +86,11 @@ public class CatalogoRepository {
     public enum Orden { RELEVANCIA, PRECIO_ASC, PRECIO_DESC, NOVEDADES }
 
     /**
-     * Lo que el carrito necesita saber de una oferta visible: su modalidad, cuanto hay en venta y si
-     * su productor puede venderla (CCPIP-269).
+     * Lo que el carrito necesita saber de una oferta visible: su modalidad y sus precios (CCPIP-134),
+     * cuanto hay en venta y si su productor puede venderla (CCPIP-269).
      */
-    public record Vendible(String modalidad, BigDecimal enVenta, boolean habilitada) {
+    public record Vendible(String modalidad, BigDecimal precio, BigDecimal precioMayorista, Integer minimoMayorista,
+                           BigDecimal enVenta, boolean habilitada) {
     }
 
     private final NamedParameterJdbcTemplate jdbc;
@@ -175,10 +176,13 @@ public class CatalogoRepository {
         if (ids.isEmpty()) {
             return vendibles;
         }
-        jdbc.query("SELECT p.id, p.modalidad, " + EN_VENTA + " AS en_venta, " + HABILITADA + " AS habilitada "
+        jdbc.query("SELECT p.id, p.modalidad, p.precio, p.precio_mayorista, p.cantidad_minima_mayorista, "
+                        + EN_VENTA + " AS en_venta, " + HABILITADA + " AS habilitada "
                         + VISIBLE + " AND p.id IN (:ids)",
                 new MapSqlParameterSource("ids", ids),
                 (RowCallbackHandler) rs -> vendibles.put(rs.getLong("id"), new Vendible(rs.getString("modalidad"),
+                        rs.getBigDecimal("precio"), rs.getBigDecimal("precio_mayorista"),
+                        (Integer) rs.getObject("cantidad_minima_mayorista"),
                         rs.getBigDecimal("en_venta"), rs.getBoolean("habilitada"))));
         return vendibles;
     }

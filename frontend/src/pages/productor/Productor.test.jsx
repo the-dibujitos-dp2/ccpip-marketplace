@@ -20,6 +20,7 @@ function productor(rutas = {}) {
     'GET /api/productor/productos': () => [200, copia(DATOS.productosProductor)],
     'GET /api/productor/productos/9': () => [200, copia(DATOS.edicion)],
     'GET /api/productor/productos/9/lotes': () => [200, copia(DATOS.lotes)],
+    'GET /api/productor/lotes': () => [200, copia(DATOS.todosLosLotes)],
     'GET /api/productor/ubicaciones': () => [200, copia(DATOS.ubicaciones)],
     ...rutas,
   })
@@ -237,6 +238,44 @@ describe('PW-06 Registrar lote (CCPIP-41)', () => {
     expect(fetchMock.mock.calls.some(([u]) => u.includes('auth/logout') || u.includes('..'))).toBe(false)
   })
 
+  it('sin producto elegido lista todos sus lotes, primero el que vence antes (CCPIP-161)', async () => {
+    const fetchMock = productor()
+    const user = userEvent.setup()
+    abrirEn('/productor/lotes')
+    const lista = await screen.findByRole('list', { name: 'Todos tus lotes' })
+    const filas = within(lista).getAllByRole('listitem')
+    expect(filas.map((f) => within(f).getByText(/^L-/).textContent)).toEqual(['L-0031', 'L-0032', 'L-0033', 'L-0009', 'L-0005'])
+    // Producto, unidad, vencimiento, ubicacion y estado de cada lote
+    expect(within(filas[0]).getByText('Aceite de aguaje 250 ml')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('Botella')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('Vencido')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('Centro Nacional Lima')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('Vende primero')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('Mi almacén')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('En tu almacén')).toBeInTheDocument()
+    expect(within(filas[4]).getByText('No vence')).toBeInTheDocument()
+    expect(within(filas[4]).getByText('Unidad')).toBeInTheDocument()
+    expect(within(filas[4]).getByText('Agotado')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'GET /api/productor/lotes')).toHaveLength(1)
+
+    // Desde un lote se abren los de su producto para registrar otro
+    await user.click(within(filas[3]).getByRole('link', { name: 'Ver los lotes de Camu camu en polvo 150 g' }))
+    expect(window.location.search).toBe('?producto=9')
+    expect(await screen.findByRole('list', { name: 'Lotes de este producto' })).toBeInTheDocument()
+    expect(screen.queryByRole('list', { name: 'Todos tus lotes' })).not.toBeInTheDocument()
+  })
+
+  it('sin lotes lo dice, y si falla la consulta lo avisa', async () => {
+    productor({ 'GET /api/productor/lotes': [200, []] })
+    const { unmount } = abrirEn('/productor/lotes')
+    expect(await screen.findByText('Aún no registraste lotes. Elige un producto para registrar el primero.')).toBeInTheDocument()
+    unmount()
+
+    productor({ 'GET /api/productor/lotes': [500, { code: 'ERROR' }] })
+    abrirEn('/productor/lotes')
+    expect(await screen.findByText('No pudimos cargar tus lotes')).toBeInTheDocument()
+  })
+
   it('sin productos invita a crear uno', async () => {
     productor({ 'GET /api/productor/productos': () => [200, { items: [], conteo: {} }] })
     abrirEn('/productor/lotes')
@@ -283,6 +322,39 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
     const enviado = cuerpo(fetchMock, 'POST /api/productor/productos')
     expect(enviado).toMatchObject({ nombre: 'Aceite de sacha inchi', lineas: ['ACEITES', 'SUPERFRUTOS'], modalidad: 'AMBAS', precio: 32, precioMayorista: 27, cantidadMinimaMayorista: 12 })
     expect(enviado.unidad).toBe(DATOS.catalogos.lineas.find((l) => l.codigo === 'ACEITES').unidadSugerida)
+  })
+
+  it('solo fija precios ordinarios: sin descuentos ni promociones (CCPIP-87)', async () => {
+    const fetchMock = productor({
+      'POST /api/productor/productos': [422, { code: 'CAMPO_NO_PERMITIDO', error: 'Solo fijas el precio ordinario: no existen descuentos ni precios promocionales.' }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/nuevo')
+    await user.type(await screen.findByLabelText('Nombre del producto'), 'Aceite de sacha inchi')
+    // Solo minorista: no hay campo de descuento y se avisa que no existen promociones
+    await user.type(screen.getByLabelText('Precio minorista (S/)'), '32')
+    expect(screen.getByText('No se permiten descuentos ni precios promocionales.')).toBeInTheDocument()
+    expect(screen.queryByLabelText(/descuento|promoci/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/Los descuentos solo los aplica la Cámara\./)).toBeInTheDocument()
+
+    // La doble tarifa no es una promocion: el mayorista se aplica desde un minimo y es menor
+    await user.click(screen.getByRole('radio', { name: 'Minorista y mayorista' }))
+    await user.type(screen.getByLabelText('Precio mayorista (S/)'), '32')
+    await user.type(screen.getByLabelText('Cantidad mínima mayorista'), '12')
+    expect(screen.getByText(/se aplica solo desde 12 und\. Debe ser menor que el minorista\. No se permiten descuentos/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+    expect(screen.getAllByText('Debe ser menor que el precio minorista').length).toBeGreaterThan(0)
+    expect(llamadas(fetchMock, 'POST /api/productor/productos')).toHaveLength(0)
+
+    // Al servidor solo van los campos del contrato; si rechaza algo de promocion, se explica
+    await user.clear(screen.getByLabelText('Precio mayorista (S/)'))
+    await user.type(screen.getByLabelText('Precio mayorista (S/)'), '27')
+    await user.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+    expect(await screen.findByText('Solo fijas el precio ordinario: no existen descuentos ni precios promocionales.')).toBeInTheDocument()
+    expect(Object.keys(cuerpo(fetchMock, 'POST /api/productor/productos')).sort()).toEqual([
+      'cantidadMinimaMayorista', 'contenido', 'descripcion', 'descripcionAsistida', 'esMateriaPrima', 'lineas',
+      'modalidad', 'nombre', 'precio', 'precioMayorista', 'unidad',
+    ])
   })
 
   it('no deja guardar con datos invalidos', async () => {

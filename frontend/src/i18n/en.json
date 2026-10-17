@@ -118,7 +118,12 @@
       "cambiarProducto": "Change product",
       "deEsteProducto": "Batches of this product",
       "fefo": "The batch that expires first is sold first",
-      "fefoTexto": "An expired batch isn't sold and no longer counts as available stock."
+      "fefoTexto": "An expired batch isn't sold and no longer counts as available stock.",
+      "todos": "All your batches",
+      "todosTexto": "From all your products, the one that expires first comes first. Each batch's stock is what remains after its entry and its sales.",
+      "sinLotesTodos": "You haven't registered any batches yet. Choose a product to register the first one.",
+      "errorTodos": "We couldn't load your batches",
+      "verLotesDe": "See the batches of {{producto}}"
     },
     "lote": {
       "validacion": {
@@ -146,6 +151,7 @@
       "registrando": "Registering…",
       "sinLotes": "No batches registered for this product yet.",
       "tabla": {
+        "producto": "Product",
         "lote": "Batch",
         "vence": "Expires",
         "stock": "Stock",
@@ -413,7 +419,7 @@
       "siguienteHistoria": "Next: story",
       "vistaPrevia": "Catalog preview",
       "recibiras": "You'll receive {{monto}} per unit",
-      "comision": "Chamber commission: {{porcentaje}} % (example value, configurable)."
+      "comision": "Chamber commission: {{porcentaje}} % (example value, configurable). Only the Chamber applies discounts."
     },
     "historia": {
       "preguntas": {
@@ -1026,6 +1032,7 @@
     "PEDIDO_NO_ENCONTRADO": "The order doesn't exist.",
     "PERSONA_NO_COINCIDE": "This person isn't the buyer or the authorized person for this order.",
     "PRECIO_MAYORISTA_INVALIDO": "The wholesale price must be lower than the retail price.",
+    "CAMPO_NO_PERMITIDO": "You only set the regular price: there are no discounts or promotional prices.",
     "PRODUCCION_FUTURA": "The production date can't be later than today.",
     "PRODUCTO_INCOMPLETO": "A published product must keep all its details.",
     "PRODUCTO_NO_ENCONTRADO": "The product doesn't exist or is no longer available.",
@@ -1033,7 +1040,7 @@
     "PRODUCTO_REQUERIDO": "Indicate which product the photo belongs to.",
     "PRODUCTOR_SIN_REGISTRO": "Your account isn't linked to a producer community yet. Contact CCPIP.",
     "SIN_PERMISO": "Your account doesn't have permission for this action.",
-    "SOLO_MAYORISTA": "Wholesale purchasing will be available soon.",
+    "MINIMO_MAYORISTA": "This product is sold wholesale only and the quantity is below the minimum.",
     "SOLO_PUBLICADOS": "Only a published product can be unpublished.",
     "STOCK_INSUFICIENTE": "There aren't enough units available.",
     "TIENDA_INCOMPLETA": "Complete the missing details to publish your store.",
@@ -1230,8 +1237,9 @@
       "compraRapida": "Quick buy",
       "cantidad": "Quantity to add",
       "soloMayorista": "This product is sold wholesale only: minimum {{minimo}} units",
-      "mayoristaPronto": "Wholesale purchasing will be available in the cart soon.",
-      "ambas": "From {{minimo}} units the wholesale price ({{precio}} each) will be available soon; for now the cart uses the retail price.",
+      "faltaParaAgregar_one": "Add {{count}} more unit to be able to add it to your cart",
+      "faltaParaAgregar_other": "Add {{count}} more units to be able to add it to your cart",
+      "desdeMayorista": "From {{minimo}} units you pay {{precio}} each (wholesale price).",
       "resumenMinorista": "{{precio}} retail",
       "resumenMayorista": "{{precio}} from {{minimo}} units"
     },
@@ -1244,7 +1252,7 @@
     "problema": {
       "STOCK_INSUFICIENTE": "Only {{quedan}} left: adjust the quantity",
       "AGOTADO": "Out of stock for now",
-      "SOLO_MAYORISTA": "Sold wholesale only",
+      "SOLO_MAYORISTA": "Wholesale only: minimum {{minimo}} units",
       "NO_DISPONIBLE": "No longer available",
       "VENTA_PAUSADA": "Sales temporarily paused"
     },
@@ -1270,6 +1278,19 @@
     "cosechaDe": "{{mes}} harvest",
     "deTienda": "from {{nombre}}",
     "precioCadaUno": "{{precio}} each",
+    "precioMayoristaCadaUno": "{{precio}} each · wholesale price",
+    "mayorista": {
+      "falta_one": "Add {{count}} more unit to get the wholesale price",
+      "falta_other": "Add {{count}} more units to get the wholesale price",
+      "faltaConPrecio_one": "Add {{count}} more unit to get the wholesale price ({{precio}} each)",
+      "faltaConPrecio_other": "Add {{count}} more units to get the wholesale price ({{precio}} each)",
+      "avance": "{{cantidad}} of {{minimo}} units · the price changes only when you reach the minimum",
+      "avanceTienda": "{{cantidad}} of {{minimo}} units · the price changes only when you reach the minimum set by {{tienda}}",
+      "aplicado": "Wholesale price applied: {{precio}} each",
+      "ahorro": "You save {{monto}} compared with the retail price",
+      "faltaParaComprar_one": "Add {{count}} more unit to be able to buy it",
+      "faltaParaComprar_other": "Add {{count}} more units to be able to buy it"
+    },
     "cantidadDe": "Quantity of {{nombre}}",
     "guardando": "Saving…",
     "quitar": "Remove {{nombre}} from cart",
