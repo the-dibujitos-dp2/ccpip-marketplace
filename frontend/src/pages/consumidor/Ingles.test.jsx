@@ -50,6 +50,24 @@ describe('Tienda en inglés (CCPIP-98)', () => {
     expect(await screen.findByText('The email or password is incorrect.')).toBeInTheDocument()
   })
 
+  it('el panel de compra explica la tarifa mayorista en inglés (CCPIP-134)', async () => {
+    servidor({
+      ...PUBLICAS,
+      'GET /api/auth/me': [200, SESION],
+      'GET /api/productos/1': [200, { ...copia(DATOS.detalle), modalidad: 'AMBAS', precioMayorista: 35, cantidadMinimaMayorista: 12 }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productos/1')
+    expect(await screen.findByText('From 12 units you pay S/ 35.00 each (wholesale price).')).toBeInTheDocument()
+    await user.click(screen.getByRole('radio', { name: /Wholesale price/ }))
+    expect(screen.getByText('Add 11 more units to get the wholesale price')).toBeInTheDocument()
+    const cantidad = screen.getByLabelText('Quantity')
+    await user.clear(cantidad)
+    await user.type(cantidad, '12')
+    expect(screen.getByText('Wholesale price applied: S/ 35.00 each')).toBeInTheDocument()
+    expect(screen.getByText('You save S/ 84.00 compared with the retail price')).toBeInTheDocument()
+  })
+
   it('un error del servidor se muestra por su código, no con el mensaje en español', async () => {
     servidor({
       ...PUBLICAS,
