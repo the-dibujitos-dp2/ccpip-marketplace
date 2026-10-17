@@ -1079,6 +1079,10 @@
     "CAMBIO_NO_ENCONTRADO": "No encontramos ese cambio de comisión.",
     "RANGO_INVALIDO": "La fecha inicial debe ser anterior o igual a la final.",
     "RANGO_MUY_LARGO": "Consulta como máximo un año a la vez.",
+    "TRADUCCION_NO_DISPONIBLE": "La traducción automática no está disponible en este momento. Tu contenido se conserva en su idioma original.",
+    "IDIOMA_NO_TRADUCIBLE": "El contenido se escribe en español; solo se puede traducir al inglés.",
+    "CAMPO_NO_TRADUCIBLE": "Ese campo no existe o no tiene texto en español para traducir.",
+    "SIN_TRADUCCION_PENDIENTE": "No hay traducciones por publicar.",
     "AUTORIZACION_VIGENTE": "Este producto ya está autorizado. Sus evidencias sustentan esa decisión y no se cambian.",
     "EVIDENCIA_EN_USO": "Esta evidencia sustenta la autorización vigente del producto y no se puede retirar.",
     "EVIDENCIA_NO_ENCONTRADA": "La evidencia no existe.",
@@ -1573,6 +1577,68 @@
       "descripcion": "Revisa que lo hayas copiado completo o pide uno nuevo con tu correo."
     },
     "pedirNuevo": "Pedir un enlace nuevo"
+  },
+  "traduccion": {
+    "aviso": "Contenido traducido",
+    "origen": {
+      "AUTOMATICA": "Traducción automática",
+      "COMUNIDAD": "Traducido por la comunidad"
+    },
+    "verOriginal": "Ver original",
+    "verTraduccion": "Ver traducción",
+    "mostrandoOriginal": "Texto original en español",
+    "desactualizada": "La comunidad cambió parte de este texto y su traducción está desactualizada: se muestra en español, su idioma original.",
+    "idiomas": {
+      "en": "inglés",
+      "es": "español"
+    },
+    "traducirAl": {
+      "en": "Traducir al inglés",
+      "es": "Traducir al español"
+    },
+    "estado": {
+      "SIN": "Sin traducir",
+      "PENDIENTE": "Por revisar",
+      "APROBADA": "Publicada",
+      "DESACTUALIZADA": "Desactualizada"
+    },
+    "campos": {
+      "PRODUCTO": {
+        "nombre": "Nombre del producto",
+        "descripcion": "Descripción"
+      },
+      "HISTORIA": {
+        "titulo": "Título de la historia",
+        "texto": "Historia",
+        "comunidad": "La comunidad",
+        "cultivo": "El cultivo",
+        "proceso": "El proceso",
+        "significado": "Su significado"
+      },
+      "TIENDA": {
+        "nombre": "Nombre de la tienda",
+        "descripcion": "Descripción de la tienda"
+      },
+      "COMUNIDAD": {
+        "historia": "Historia de la comunidad",
+        "cita": "Frase de la comunidad"
+      }
+    },
+    "panel": {
+      "titulo": "Tu contenido en {{idioma}}",
+      "texto": "Quien compra en {{idioma}} ve la traducción publicada. Lo que no esté traducido se muestra en español, su idioma original. Si cambias un texto, su traducción queda desactualizada.",
+      "noDisponible": "La traducción automática aún no está disponible",
+      "noDisponibleTexto": "La Cámara todavía está definiendo quién traduce el contenido. Tu contenido se muestra en español, su idioma original.",
+      "sinTexto": "Guarda primero los textos de tu contenido para poder traducirlos.",
+      "traduciendo": "Traduciendo…",
+      "revisa": "Revisa la traducción: {{campo}}",
+      "publicar": "Publicar traducción",
+      "publicando": "Publicando…",
+      "publicada": "Publicaste la traducción",
+      "vacia": "Una traducción no puede quedar vacía",
+      "error": "No pudimos traducir tu contenido",
+      "errorPublicar": "No pudimos publicar la traducción"
+    }
   },
   "evidencias": {
     "titulo": "Certificados y evidencias",

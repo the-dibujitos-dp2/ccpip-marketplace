@@ -16,6 +16,7 @@ import Badge from '../../components/Badge.jsx'
 import { mensajeError, traducirFaltante } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import PaginaProductor from './PaginaProductor.jsx'
+import PanelTraduccion from './PanelTraduccion.jsx'
 import './productor.css'
 import './TiendaEditorPage.css'
 
@@ -278,6 +279,9 @@ export default function TiendaEditorPage({ path }) {
           <p className="caption">{t('productor.tienda.senal')}</p>
         </section>
       </div>
+
+      {/* CCPIP-147: traducir la tienda; se recarga al guardar por si cambio el original (CCPIP-373) */}
+      <PanelTraduccion key={[tienda.nombreTienda, tienda.descripcionCorta, tienda.historia, tienda.cita].join('|')} />
     </PaginaProductor>
   )
 }

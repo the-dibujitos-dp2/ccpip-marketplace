@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
@@ -185,7 +185,8 @@ describe('Comisión por pedido (CCPIP-91)', () => {
     abrirEn('/admin/comisiones')
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Comisión por pedido' })).toBeInTheDocument()
-    expect(await screen.findByLabelText('Desde')).toHaveValue('2026-10-01')
+    // El campo existe antes de que llegue la respuesta: se espera a que traiga el rango del servidor
+    await waitFor(() => expect(screen.getByLabelText('Desde')).toHaveValue('2026-10-01'))
     expect(screen.getByLabelText('Hasta')).toHaveValue('2026-10-16')
 
     const kpi = (nombre) => within(screen.getByRole('region', { name: nombre }))
