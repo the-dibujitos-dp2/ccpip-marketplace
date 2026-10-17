@@ -253,7 +253,8 @@
       "publicar": "Publish",
       "nota": "You only see your own products. “For sale” is the stock at collection points; what's in your warehouse is sold after you transfer it.",
       "confirmarTitulo": "Unpublish this product?",
-      "confirmarTexto": "will no longer appear in the catalog or in your store. It isn't deleted: it stays in orders and history, and you can publish it again whenever you want."
+      "confirmarTexto": "will no longer appear in the catalog or in your store. It isn't deleted: it stays in orders and history, and you can publish it again whenever you want.",
+      "evidencias": "Certificates and evidence"
     },
     "editor": {
       "nombreAntesFotos": "Enter the product name before adding photos",
@@ -657,7 +658,8 @@
     "nav": {
       "tablero": "Dashboard",
       "comision": "Commission",
-      "comisiones": "Commission by order"
+      "comisiones": "Commission by order",
+      "autorizaciones": "Authorizations"
     },
     "tablero": {
       "titulo": "Operations dashboard",
@@ -1021,7 +1023,17 @@
     "CAMBIO_NO_CANCELABLE": "Only a change that hasn't taken effect yet can be cancelled.",
     "CAMBIO_NO_ENCONTRADO": "We couldn't find that commission change.",
     "RANGO_INVALIDO": "The start date must be on or before the end date.",
-    "RANGO_MUY_LARGO": "Query at most one year at a time."
+    "RANGO_MUY_LARGO": "Query at most one year at a time.",
+    "AUTORIZACION_VIGENTE": "This product is already authorized. Its evidence supports that decision and cannot be changed.",
+    "EVIDENCIA_EN_USO": "This evidence supports the product's current authorization and cannot be removed.",
+    "EVIDENCIA_NO_ENCONTRADA": "The evidence doesn't exist.",
+    "LIMITE_DE_EVIDENCIAS": "You reached the maximum number of items. Remove one to add another.",
+    "VIGENCIA_REQUERIDA": "State until when the certificate is valid.",
+    "VIGENCIA_INVALIDA": "The validity ends before it starts.",
+    "SIN_CERTIFICADO_VIGENTE": "To approve, the product needs at least one valid certificate of its own.",
+    "SOLICITUD_YA_RESUELTA": "This request is no longer pending review.",
+    "SOLICITUD_NO_ENCONTRADA": "The request doesn't exist.",
+    "MOTIVO_REQUERIDO": "Enter the reason for the decision."
   },
   "buscar": {
     "comunidad": "Community",
@@ -1492,5 +1504,202 @@
       "descripcion": "Check that you copied it completely or request a new one with your email."
     },
     "pedirNuevo": "Request a new link"
+  },
+  "evidencias": {
+    "titulo": "Certificates and evidence",
+    "intro": "Attach what supports the authorization to sell {{producto}}. Each file is valid only for this product.",
+    "volver": "Back to my products",
+    "error": "We couldn't load the evidence",
+    "errorSubir": "We couldn't upload the file",
+    "errorRetirar": "We couldn't remove the evidence",
+    "subida": "You uploaded “{{titulo}}”. The Chamber will review it.",
+    "retirada": "You removed “{{titulo}}”.",
+    "limite": "You reached the maximum of {{maximo}} items. Remove one to add another.",
+    "privadas": "Only the Chamber and you can see them.",
+    "decisionHumana": "The preliminary AI review only helps the Chamber: a person makes the decision.",
+    "estado": {
+      "SIN_SOLICITUD": "You haven't requested authorization yet",
+      "SIN_SOLICITUDTexto": "Upload at least one valid certificate for this product to send the request to the Chamber.",
+      "SOLICITADA": "Under review by the Chamber",
+      "SOLICITADATexto": "You can add or remove evidence while it is reviewed. We'll let you know the decision.",
+      "APROBADA": "Authorized to sell",
+      "aprobadaHasta": "The authorization is valid until {{fecha}}, when your first certificate expires.",
+      "RECHAZADA": "The Chamber rejected the request",
+      "REVOCADA": "The authorization was revoked",
+      "conMotivo": "Reason: “{{motivo}}”. Attach new evidence to request it again."
+    },
+    "tipo": {
+      "CERTIFICADO": "Certificates",
+      "DOCUMENTO": "Documents",
+      "EVIDENCIA": "Process evidence"
+    },
+    "ayuda": {
+      "CERTIFICADO": "Organic certificate, health registration or another one naming this product. Always state until when it is valid.",
+      "DOCUMENTO": "Community record, organization certificate or signed statement.",
+      "EVIDENCIA": "Photos or records of the process and of the people who make the product."
+    },
+    "agregar": {
+      "CERTIFICADO": "Add certificate",
+      "DOCUMENTO": "Add document",
+      "EVIDENCIA": "Add evidence"
+    },
+    "necesitas": {
+      "titulo": "What do you need?",
+      "CERTIFICADO": "At least one valid certificate for this product",
+      "DOCUMENTO": "Organization documents, if you have them",
+      "EVIDENCIA": "Photos or records of how it is made"
+    },
+    "archivos_one": "{{count}} file",
+    "archivos_other": "{{count}} files",
+    "pendiente": "Pending",
+    "vigenteHasta": "Valid until {{fecha}}",
+    "vencida": "Expired on {{fecha}}",
+    "sinVencimiento": "No expiry",
+    "ver": "View",
+    "verDe": "View {{titulo}}",
+    "retirar": "Remove",
+    "retirarDe": "Remove {{titulo}}",
+    "retirarTitulo": "Remove this evidence?",
+    "retirarTexto": "“{{titulo}}” will no longer support the request. The Chamber keeps a record of what it reviewed.",
+    "form": {
+      "titulo": "Document name",
+      "emisor": "Issued by",
+      "opcional": "Optional",
+      "opcionalCorto": "(optional)",
+      "desde": "Valid from (optional)",
+      "hasta": "Valid until",
+      "archivo": "File",
+      "formatos": "PDF, JPG or PNG · max. 10 MB",
+      "subir": "Upload",
+      "subiendo": "Uploading…",
+      "errorTitulo": "Enter the document name",
+      "errorVigencia": "State until when the certificate is valid",
+      "errorOrden": "The validity ends before it starts",
+      "errorArchivo": "Choose a file",
+      "errorFormato": "Only PDF, JPG or PNG files are accepted",
+      "errorPeso": "The file is larger than 10 MB"
+    }
+  },
+  "autorizaciones": {
+    "titulo": "Product authorizations",
+    "error": "We couldn't load the requests",
+    "volver": "Back to authorizations",
+    "nota": "The preliminary AI review is a suggestion: only your decision with a reason authorizes a product.",
+    "pestanasEtiqueta": "Request status",
+    "pestana": {
+      "SOLICITADA": "Pending",
+      "APROBADA": "Approved",
+      "RECHAZADA": "Rejected"
+    },
+    "vacio": {
+      "SOLICITADA": "There are no pending requests.",
+      "APROBADA": "You haven't approved any requests yet.",
+      "RECHAZADA": "You haven't rejected any requests yet."
+    },
+    "kpi": {
+      "pendientes": "Pending",
+      "pendientesDetalle": "Awaiting your review",
+      "aprobadas": "Approved this month",
+      "rechazadas": "Rejected this month",
+      "conMotivo": "With a recorded reason"
+    },
+    "col": {
+      "producto": "Product",
+      "organizacion": "Organization",
+      "evidencias": "Evidence",
+      "analisis": "AI analysis",
+      "enviada": "Sent",
+      "decidida": "Decided",
+      "accion": "Action"
+    },
+    "evidencias_one": "{{count}} file",
+    "evidencias_other": "{{count}} files",
+    "certificados_one": "{{count}} valid certificate",
+    "certificados_other": "{{count}} valid certificates",
+    "sinCertificado": "No valid certificate",
+    "revisar": "Review",
+    "ver": "View",
+    "revisarDe": "Review {{producto}} from {{organizacion}}",
+    "recomendacion": {
+      "SIN_OBSERVACIONES": "No findings",
+      "REVISAR": "With findings",
+      "ninguna": "Not analyzed"
+    },
+    "estado": {
+      "SOLICITADA": "Under review",
+      "APROBADA": "Approved",
+      "RECHAZADA": "Rejected",
+      "REVOCADA": "Revoked"
+    },
+    "hallazgo": {
+      "CONFORME": "OK",
+      "INCONSISTENCIA": "Check",
+      "FALTANTE": "Missing"
+    },
+    "analisis": {
+      "titulo": "Preliminary analysis",
+      "pedir": "Request preliminary analysis",
+      "otraVez": "Analyze again",
+      "analizando": "Analyzing…",
+      "noDecide": "The AI neither approves nor rejects. Its findings are suggestions for your review.",
+      "sugerencia": "Assisted preliminary review (suggestion)",
+      "sugerenciaPrueba": "Test result (simulated suggestion)",
+      "simuladoTitulo": "Test result, not a real analysis",
+      "simuladoTexto": "It was produced by the simulated analyzer with fixed rules on the declared data; it did not read the files. It will be replaced when the definitive AI provider is connected.",
+      "recomendacion": "Recommendation:",
+      "faltantes": "What is missing",
+      "pedido": "Requested on {{fecha}} · provider: {{proveedor}}",
+      "desactualizado": "The evidence changed after this analysis.",
+      "noDisponible": "Analysis unavailable: manual review",
+      "noDisponibleTexto": "Review the evidence and decide with your reason. The request is not blocked.",
+      "errorAnalisis": "We couldn't request the analysis"
+    },
+    "expediente": {
+      "titulo": "Case file",
+      "error": "We couldn't load the case file",
+      "solicitud": "Request",
+      "enviada": "Sent on {{fecha}}",
+      "evidencias_one": "Evidence ({{count}})",
+      "evidencias_other": "Evidence ({{count}})",
+      "privadas": "Visible only to the administration and the producer",
+      "sinEvidencias": "The producer hasn't attached valid evidence yet.",
+      "desde": "from {{fecha}}",
+      "historial": "Decision history",
+      "decididaPor": "{{nombre}} · {{fecha}}",
+      "conAnalisis": "with preliminary analysis",
+      "manual": "manual review",
+      "decision": "Decision",
+      "certificadosVigentes_one": "{{count}} valid certificate for the product",
+      "certificadosVigentes_other": "{{count}} valid certificates for the product",
+      "analisisListo": "Preliminary analysis available",
+      "revisionManual": "Manual review",
+      "sinAnalisis": "No preliminary analysis (optional)",
+      "motivo": "Reason for the decision",
+      "motivoAyuda": "Required. The producer will see it.",
+      "motivoRequerido": "Enter the reason for the decision",
+      "sinCertificado": "To approve, the product needs at least one valid certificate of its own.",
+      "aprobar": "Approve authorization",
+      "rechazar": "Reject request",
+      "aprobadaHasta": "Authorized until {{fecha}}.",
+      "resuelta": "This request has already been resolved.",
+      "hecho": {
+        "aprobar": "You approved the request. The product can now be bought.",
+        "rechazar": "You rejected the request. The producer will see your reason."
+      },
+      "errorDecision": "We couldn't record the decision"
+    },
+    "dialogo": {
+      "motivo": "Reason: “{{motivo}}”",
+      "aprobar": {
+        "titulo": "Approve {{producto}}",
+        "confirmar": "Approve",
+        "texto": "{{organizacion}} will be able to sell this product while its certificates are valid. The decision is recorded."
+      },
+      "rechazar": {
+        "titulo": "Reject {{producto}}",
+        "confirmar": "Reject request",
+        "texto": "{{organizacion}} will see this reason and can attach new evidence. The decision is recorded and cannot be edited."
+      }
+    }
   }
 }

@@ -1,0 +1,37 @@
+{
+  "contadores": { "pendientes": 2, "aprobadasMes": 3, "rechazadasMes": 1 },
+  "solicitudes": [
+    {
+      "id": 41,
+      "estado": "SOLICITADA",
+      "productoId": 9,
+      "producto": "Camu camu en polvo 150 g",
+      "linea": "Superfrutos",
+      "productorId": 1,
+      "organizacion": "Asoc. Nii Joi",
+      "pueblo": "Shipibo-Konibo",
+      "region": "Ucayali",
+      "evidencias": 3,
+      "certificadosVigentes": 1,
+      "recomendacion": "REVISAR",
+      "solicitadaEn": "2026-10-12T15:00:00Z",
+      "decididaEn": null
+    },
+    {
+      "id": 42,
+      "estado": "SOLICITADA",
+      "productoId": 15,
+      "producto": "Cacao en grano fermentado 1 kg",
+      "linea": "Cacao",
+      "productorId": 2,
+      "organizacion": "C.N. Yarina",
+      "pueblo": "Awajún",
+      "region": "Amazonas",
+      "evidencias": 1,
+      "certificadosVigentes": 0,
+      "recomendacion": null,
+      "solicitadaEn": "2026-10-15T15:00:00Z",
+      "decididaEn": null
+    }
+  ]
+}
