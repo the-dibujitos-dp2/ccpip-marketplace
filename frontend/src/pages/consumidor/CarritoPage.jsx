@@ -11,6 +11,7 @@ import Enlace from '../../components/Enlace.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
+import MinimoMayorista from '../../components/MinimoMayorista.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import SelectorCantidad from '../../components/SelectorCantidad.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
@@ -21,8 +22,11 @@ import './CarritoPage.css'
 
 const PASOS = ['carrito', 'entrega', 'confirmacion']
 
-/** Se puede cambiar la cantidad si la oferta sigue comprable; con stock insuficiente, para bajarla. */
-const EDITABLES = new Set(['DISPONIBLE', 'STOCK_INSUFICIENTE'])
+/**
+ * Se puede cambiar la cantidad si la oferta sigue comprable; con stock insuficiente, para bajarla; y
+ * solo por mayor bajo el minimo (CCPIP-134), para subirla hasta el.
+ */
+const EDITABLES = new Set(['DISPONIBLE', 'STOCK_INSUFICIENTE', 'SOLO_MAYORISTA'])
 /** Espera tras el ultimo cambio antes de guardar: varios clics en "+" son una sola peticion. */
 const ESPERA_GUARDAR_MS = 500
 /** El motivo de un rechazo del servidor se lee y se va: la cantidad ya volvio a la correcta. */
@@ -32,7 +36,8 @@ const DURACION_RECHAZO_MS = 6000
 const PROBLEMAS = {
   STOCK_INSUFICIENTE: (item, t) => ({ tono: 'aviso', texto: t('carrito.problema.STOCK_INSUFICIENTE', { quedan: Number(item.disponibles) }) }),
   AGOTADO: (item, t) => ({ tono: 'error', texto: t('carrito.problema.AGOTADO') }),
-  SOLO_MAYORISTA: (item, t) => ({ tono: 'neutro', texto: t('carrito.problema.SOLO_MAYORISTA') }),
+  // CCPIP-134: solo se vende por mayor y la cantidad no llega al minimo
+  SOLO_MAYORISTA: (item, t) => ({ tono: 'neutro', texto: t('carrito.problema.SOLO_MAYORISTA', { minimo: item.minimoMayorista }) }),
   NO_DISPONIBLE: (item, t) => ({ tono: 'neutro', texto: t('carrito.problema.NO_DISPONIBLE') }),
   // CCPIP-269: el productor no tiene cuenta bancaria activa o autorizacion vigente
   VENTA_PAUSADA: (item, t) => ({ tono: 'aviso', texto: t('carrito.problema.VENTA_PAUSADA') }),
@@ -211,7 +216,11 @@ function ItemCarrito({ item, onCambiarCantidad, onQuitar }) {
             .filter(Boolean)
             .join(' · ')}
         </p>
-        {item.precio != null && <p className="body-s">{t('carrito.precioCadaUno', { precio: precio(item.precio) })}</p>}
+        {item.precio != null && (
+          <p className="body-s">
+            {t(item.tarifa === 'MAYORISTA' ? 'carrito.precioMayoristaCadaUno' : 'carrito.precioCadaUno', { precio: precio(item.precio) })}
+          </p>
+        )}
       </div>
       {EDITABLES.has(item.estado) ? (
         <CantidadEditable item={item} onCambiar={onCambiarCantidad} />
@@ -222,7 +231,48 @@ function ItemCarrito({ item, onCambiarCantidad, onQuitar }) {
         {problema ? <Badge tono={problema.tono}>{problema.texto}</Badge> : <strong>{precio(item.subtotal)}</strong>}
       </div>
       <BotonQuitar item={item} onQuitar={onQuitar} />
+      <AvisoMayorista item={item} />
     </li>
+  )
+}
+
+/**
+ * CCPIP-134 (Figma CW-05): bajo el minimo mayorista, cuanto falta para el precio mayorista o, si solo se
+ * vende por mayor, para poder comprarlo; con ambas modalidades y el minimo alcanzado, el mayorista
+ * aplicado. Todo llega resuelto del servidor (tarifa, precios, minimo y faltante).
+ */
+function AvisoMayorista({ item }) {
+  const { t } = useTranslation()
+  const faltante = Number(item.faltanteMayorista)
+  const cantidad = Number(item.cantidad)
+  const minimo = item.minimoMayorista
+  if (item.faltanteMayorista == null || !['DISPONIBLE', 'STOCK_INSUFICIENTE', 'SOLO_MAYORISTA'].includes(item.estado)) return null
+  let aviso
+  if (item.estado === 'SOLO_MAYORISTA') {
+    aviso = {
+      estado: 'bloqueado',
+      titulo: t('carrito.agregar.soloMayorista', { minimo }),
+      detalle: t('carrito.mayorista.faltaParaComprar', { count: faltante }),
+    }
+  } else if (faltante > 0) {
+    aviso = {
+      estado: 'falta',
+      titulo: t('carrito.mayorista.faltaConPrecio', { count: faltante, precio: precio(item.precioMayorista) }),
+      detalle: t('carrito.mayorista.avanceTienda', { cantidad, minimo, tienda: item.tienda.nombre }),
+    }
+  } else if (item.precioMinorista != null) {
+    aviso = {
+      estado: 'alcanzado',
+      titulo: t('carrito.mayorista.aplicado', { precio: precio(item.precio) }),
+      detalle: t('carrito.mayorista.ahorro', { monto: precio(cantidad * (Number(item.precioMinorista) - Number(item.precio))) }),
+    }
+  } else {
+    return null
+  }
+  return (
+    <div className="carrito__mayorista">
+      <MinimoMayorista {...aviso} cantidad={cantidad} minimo={minimo} />
+    </div>
   )
 }
 
@@ -290,6 +340,8 @@ function CantidadEditable({ item, onCambiar }) {
       <SelectorCantidad
         valor={valor}
         onCambiar={cambiar}
+        // CCPIP-134: lo que solo se vende por mayor no baja de su minimo; "+" lleva directo a el
+        min={item.precioMinorista == null && item.minimoMayorista != null ? item.minimoMayorista : 1}
         etiqueta={t('carrito.cantidadDe', { nombre: item.nombre })}
         invalido={Boolean(error)}
         describedBy={mensaje ? idError : undefined}
