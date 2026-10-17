@@ -19,4 +19,10 @@ public class IaNoDisponible extends ErrorNegocio {
     public static IaNoDisponible imagenes() {
         return new IaNoDisponible("No pudimos analizar la imagen en este momento. Puedes continuar con tu foto original.");
     }
+
+    /** CCPIP-50: sin analisis asistido la solicitud se revisa a mano; la decision sigue siendo posible. */
+    public static IaNoDisponible paraRevision() {
+        return new IaNoDisponible("El análisis asistido no está disponible. La solicitud pasa a revisión manual: "
+                + "revisa las evidencias y decide con tu motivo.");
+    }
 }
