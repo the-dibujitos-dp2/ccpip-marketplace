@@ -15,6 +15,11 @@ public class IaNoDisponible extends ErrorNegocio {
         super(HttpStatus.SERVICE_UNAVAILABLE, "IA_NO_DISPONIBLE", mensaje);
     }
 
+    /** CCPIP-168 y CCPIP-176: sin IA de imagenes se sigue con la foto original. */
+    public static IaNoDisponible imagenes() {
+        return new IaNoDisponible("No pudimos analizar la imagen en este momento. Puedes continuar con tu foto original.");
+    }
+
     /** CCPIP-50: sin analisis asistido la solicitud se revisa a mano; la decision sigue siendo posible. */
     public static IaNoDisponible paraRevision() {
         return new IaNoDisponible("El análisis asistido no está disponible. La solicitud pasa a revisión manual: "
