@@ -117,7 +117,12 @@
       "cambiarProducto": "Change product",
       "deEsteProducto": "Batches of this product",
       "fefo": "The batch that expires first is sold first",
-      "fefoTexto": "An expired batch isn't sold and no longer counts as available stock."
+      "fefoTexto": "An expired batch isn't sold and no longer counts as available stock.",
+      "todos": "All your batches",
+      "todosTexto": "From all your products, the one that expires first comes first. Each batch's stock is what remains after its entry and its sales.",
+      "sinLotesTodos": "You haven't registered any batches yet. Choose a product to register the first one.",
+      "errorTodos": "We couldn't load your batches",
+      "verLotesDe": "See the batches of {{producto}}"
     },
     "lote": {
       "validacion": {
@@ -145,6 +150,7 @@
       "registrando": "Registering…",
       "sinLotes": "No batches registered for this product yet.",
       "tabla": {
+        "producto": "Product",
         "lote": "Batch",
         "vence": "Expires",
         "stock": "Stock",
