@@ -3,10 +3,12 @@ package pe.ccpip.productor;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.ia.AsistenteRedaccion;
 import pe.ccpip.ia.AsistenteRedaccion.Propuesta;
 import pe.ccpip.ia.AsistenteRedaccion.Variante;
@@ -111,5 +113,37 @@ public class HistoriaService {
             jdbc.update("UPDATE producto SET descripcion_propuesta = ? WHERE id = ?", propuesta.texto(), productoId);
         }
         return propuesta;
+    }
+
+    /** Que borrador de la IA se descarta: la descripcion de PW-04 o la historia de PW-05. */
+    public enum Borrador { DESCRIPCION, HISTORIA }
+
+    /**
+     * CCPIP-280 (RF-180): el productor rechaza el borrador de la IA. No se publica nada; la propuesta
+     * sale del editor y el texto rechazado queda en la auditoria, que es de solo insercion (RNF-29).
+     * Sin un borrador pendiente no hay nada que rechazar (409).
+     */
+    @Transactional
+    public void rechazar(long productorId, long usuarioId, long productoId, Borrador borrador) {
+        productos.obtener(productorId, productoId);
+        // Sin fila o con la columna vacia es lo mismo: no hay borrador pendiente
+        List<String> pendiente = switch (borrador) {
+            case DESCRIPCION -> jdbc.query("SELECT descripcion_propuesta FROM producto WHERE id = ? FOR UPDATE",
+                    (rs, row) -> rs.getString(1), productoId);
+            case HISTORIA -> jdbc.query("SELECT texto_propuesto FROM producto_historia WHERE producto_id = ? AND aprobada_en IS NULL FOR UPDATE",
+                    (rs, row) -> rs.getString(1), productoId);
+        };
+        String texto = pendiente.isEmpty() ? null : pendiente.get(0);
+        if (texto == null) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "SIN_BORRADOR", "No hay un borrador de la IA para descartar.");
+        }
+        if (borrador == Borrador.DESCRIPCION) {
+            jdbc.update("UPDATE producto SET descripcion_propuesta = NULL WHERE id = ?", productoId);
+            auditoria.registrar(productoId, usuarioId, Accion.EDITAR, Map.of("descripcionIaRechazada", texto));
+        } else {
+            jdbc.update("UPDATE producto_historia SET texto_propuesto = NULL, proveedor_ia = NULL, actualizado_en = now() WHERE producto_id = ?",
+                    productoId);
+            auditoria.registrar(productoId, usuarioId, Accion.HISTORIA, Map.of("historiaIaRechazada", texto));
+        }
     }
 }

@@ -330,7 +330,10 @@
         "borrador": "Borrador asistido por IA · revisa antes de publicar",
         "editalo": "Edítalo con tus palabras; no se publica hasta que lo aceptes.",
         "generarOtra": "Generar otra",
-        "aceptar": "Aceptar descripción"
+        "aceptar": "Aceptar descripción",
+        "descartar": "Descartar",
+        "descartada": "Descartaste el borrador. Escribe la descripción con tus palabras o pide otro.",
+        "errorDescartar": "No pudimos descartar el borrador"
       },
       "descripcionAsistida": "Descripción (borrador asistido por IA, editable)",
       "descripcion": "Descripción",
@@ -414,7 +417,10 @@
       "tituloOpcional": "Título (opcional)",
       "tituloEjemplo": "Aceite de las abuelas del monte",
       "caracteres": "{{total}} caracteres · mínimo {{minimo}}",
-      "historiaPlaceholder": "Cuenta quiénes lo hacen, cómo y por qué importa para tu comunidad."
+      "historiaPlaceholder": "Cuenta quiénes lo hacen, cómo y por qué importa para tu comunidad.",
+      "descartar": "Descartar borrador",
+      "descartada": "Descartaste el borrador de la IA",
+      "descartadaTexto": "Tus respuestas siguen aquí: pide otra versión o escribe la historia a mano."
     },
     "tienda": {
       "categorias": {
