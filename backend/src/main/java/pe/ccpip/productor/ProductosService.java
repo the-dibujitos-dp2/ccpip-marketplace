@@ -27,6 +27,8 @@ import pe.ccpip.productor.ProductoModelos.ProductoEdicion;
 import pe.ccpip.productor.ProductoModelos.ProductoFila;
 import pe.ccpip.productor.ProductoModelos.Publicable;
 import pe.ccpip.productor.ProductoModelos.Ubicado;
+import pe.ccpip.traduccion.InvalidacionTraducciones;
+import pe.ccpip.traduccion.Traducciones.Entidad;
 
 /**
  * Alta, edicion y estado de los productos del productor (CCPIP-40, 47, 160, 45, 132).
@@ -50,11 +52,14 @@ public class ProductosService {
     private final JdbcTemplate jdbc;
     private final ImagenService imagenes;
     private final Auditoria auditoria;
+    private final InvalidacionTraducciones invalidacion;
 
-    public ProductosService(JdbcTemplate jdbc, ImagenService imagenes, Auditoria auditoria) {
+    public ProductosService(JdbcTemplate jdbc, ImagenService imagenes, Auditoria auditoria,
+                            InvalidacionTraducciones invalidacion) {
         this.jdbc = jdbc;
         this.imagenes = imagenes;
         this.auditoria = auditoria;
+        this.invalidacion = invalidacion;
     }
 
     // ---------- Consulta ----------
@@ -127,6 +132,9 @@ public class ProductosService {
                         "Un producto publicado debe conservar sus datos completos.", faltan);
             }
         }
+        // CCPIP-373: si cambio el original, sus traducciones dejan de publicarse
+        invalidacion.siCambio(Entidad.PRODUCTO, id, "nombre", antes.nombre(), despues.nombre());
+        invalidacion.siCambio(Entidad.PRODUCTO, id, "descripcion", antes.descripcion(), despues.descripcion());
         Map<String, Object> cambios = diferencias(antes, despues);
         if (!cambios.isEmpty()) {
             auditoria.registrar(id, usuarioId, Accion.EDITAR, cambios);

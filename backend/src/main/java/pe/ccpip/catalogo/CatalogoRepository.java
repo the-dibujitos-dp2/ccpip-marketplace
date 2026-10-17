@@ -160,7 +160,7 @@ public class CatalogoRepository {
                             r.linea(), lineas(r.id()), r.modalidad(), r.precio(), r.precioMayorista(),
                             (Integer) rs.getObject("cantidad_minima_mayorista"), r.disponible(),
                             rs.getBoolean("comprable"), imagenes(r.id()),
-                            r.tienda(), historia(r.id()), cosecha(r.id()), relacionados(r));
+                            r.tienda(), historia(r.id()), cosecha(r.id()), relacionados(r), null);
                 }).stream().findFirst();
     }
 
