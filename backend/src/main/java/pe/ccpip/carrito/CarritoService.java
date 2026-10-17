@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.ccpip.carrito.CarritoModelos.Carrito;
 import pe.ccpip.carrito.CarritoModelos.EstadoItem;
 import pe.ccpip.carrito.CarritoModelos.Item;
+import pe.ccpip.carrito.Tarifas.Resolucion;
 import pe.ccpip.catalogo.CatalogoModelos.TiendaResumen;
 import pe.ccpip.catalogo.CatalogoRepository;
 import pe.ccpip.catalogo.CatalogoRepository.Vendible;
@@ -23,7 +24,8 @@ import pe.ccpip.imagenes.ImagenService;
 
 /**
  * Carrito persistido del comprador (CCPIP-58, CCPIP-155, CCPIP-268, CCPIP-156). Agregar solo consulta la disponibilidad: no
- * reserva ni descuenta existencias (RNF-35, ADR-11). El descuento ocurre al confirmar la compra.
+ * reserva ni descuenta existencias (RNF-35, ADR-11). El descuento ocurre al confirmar la compra. La tarifa
+ * minorista o mayorista de cada oferta se resuelve aqui segun su modalidad y la cantidad (CCPIP-134, RF-108).
  */
 @Service
 public class CarritoService {
@@ -93,13 +95,20 @@ public class CarritoService {
     }
 
     private static Item revalidar(ItemGuardado g, Vendible oferta) {
+        if (oferta == null) {
+            // Ya no esta visible: se muestra con su ultimo precio, sin tarifa, para que se quite
+            return new Item(g.productoId(), g.nombre(), g.contenido(), g.unidad(), g.imagen(), g.linea(), g.cosecha(),
+                    g.tienda(), g.precio(), g.cantidad(), null, EstadoItem.NO_DISPONIBLE, null, null, null, null, null, null);
+        }
+        // CCPIP-134: la tarifa se recalcula con la cantidad actual en cada consulta
+        Resolucion tarifa = tarifa(oferta, g.cantidad());
         EstadoItem estado;
         BigDecimal disponibles = null;
-        if (oferta == null) {
-            estado = EstadoItem.NO_DISPONIBLE;
-        } else if (!oferta.habilitada()) {
+        if (!oferta.habilitada()) {
             estado = EstadoItem.VENTA_PAUSADA;
-        } else if ("MAYORISTA".equals(oferta.modalidad()) || g.precio() == null) {
+        } else if (tarifa.precio() == null) {
+            estado = EstadoItem.NO_DISPONIBLE;
+        } else if (!tarifa.comprable()) {
             estado = EstadoItem.SOLO_MAYORISTA;
         } else if (oferta.enVenta().signum() == 0) {
             estado = EstadoItem.AGOTADO;
@@ -109,28 +118,38 @@ public class CarritoService {
         } else {
             estado = EstadoItem.DISPONIBLE;
         }
+        BigDecimal precio = tarifa.precio() == null ? g.precio() : tarifa.precio();
         BigDecimal subtotal = estado == EstadoItem.DISPONIBLE
-                ? g.precio().multiply(g.cantidad()).setScale(2, RoundingMode.HALF_UP)
+                ? precio.multiply(g.cantidad()).setScale(2, RoundingMode.HALF_UP)
                 : null;
+        boolean minorista = !"MAYORISTA".equals(oferta.modalidad());
+        boolean mayorista = !"MINORISTA".equals(oferta.modalidad());
         return new Item(g.productoId(), g.nombre(), g.contenido(), g.unidad(), g.imagen(), g.linea(), g.cosecha(), g.tienda(),
-                g.precio(), g.cantidad(), subtotal, estado, disponibles);
+                precio, g.cantidad(), subtotal, estado, disponibles, tarifa.tarifa(),
+                minorista ? oferta.precio() : null, mayorista ? oferta.precioMayorista() : null,
+                mayorista ? oferta.minimoMayorista() : null, tarifa.faltante());
+    }
+
+    private static Resolucion tarifa(Vendible oferta, BigDecimal cantidad) {
+        return Tarifas.resolver(oferta.modalidad(), oferta.precio(), oferta.precioMayorista(), oferta.minimoMayorista(),
+                cantidad);
     }
 
     /**
-     * La oferta debe estar visible, venderse al por menor (la tarifa mayorista llega con CCPIP-134)
-     * y tener saldo vendible para lo que ya estaba en el carrito mas lo nuevo (RNF-09).
+     * La oferta debe estar visible, tener tarifa para la cantidad que quedaria en el carrito (una solo
+     * mayorista, desde su minimo: CCPIP-134) y saldo vendible para lo que ya estaba mas lo nuevo (RNF-09).
      */
     @Transactional
     public Agregado agregar(long usuarioId, long productoId, BigDecimal cantidad) {
         Vendible oferta = catalogo.vendible(productoId).orElseThrow(() ->
                 ErrorNegocio.noEncontrado("PRODUCTO_NO_ENCONTRADO", "El producto no existe o ya no está disponible"));
-        exigirComprable(oferta);
-
         BigDecimal enCarrito = jdbc.query("""
                 SELECT i.cantidad FROM item_carrito i JOIN carrito c ON c.id = i.carrito_id
                 WHERE c.usuario_id = ? AND i.producto_id = ?""",
                 (rs, row) -> rs.getBigDecimal("cantidad"), usuarioId, productoId)
                 .stream().findFirst().orElse(BigDecimal.ZERO);
+        exigirComprable(oferta, enCarrito.add(cantidad));
+
         if (enCarrito.add(cantidad).compareTo(oferta.enVenta()) > 0) {
             String quedan = oferta.enVenta().stripTrailingZeros().toPlainString();
             throw new ErrorNegocio(HttpStatus.CONFLICT, "STOCK_INSUFICIENTE", enCarrito.signum() == 0
@@ -155,7 +174,8 @@ public class CarritoService {
 
     /**
      * CCPIP-268: reemplaza la cantidad de una oferta que ya esta en el carrito, revalidando precio y
-     * stock en ese momento (RF-141), y devuelve el carrito recalculado. No reserva ni descuenta (RNF-35).
+     * stock en ese momento (RF-141), y devuelve el carrito recalculado con la tarifa que corresponde a la
+     * nueva cantidad (CCPIP-134). No reserva ni descuenta (RNF-35).
      * Una oferta que ya no se puede comprar no se modifica: se quita (CCPIP-156).
      */
     @Transactional
@@ -168,7 +188,7 @@ public class CarritoService {
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("ITEM_NO_ENCONTRADO", "Este producto ya no está en tu carrito."));
         Vendible oferta = catalogo.vendible(productoId).orElseThrow(() -> new ErrorNegocio(HttpStatus.CONFLICT,
                 "NO_DISPONIBLE", "Este producto ya no está disponible. Quítalo de tu carrito."));
-        exigirComprable(oferta);
+        exigirComprable(oferta, cantidad);
         if (cantidad.compareTo(oferta.enVenta()) > 0) {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "STOCK_INSUFICIENTE",
                     "Solo quedan " + oferta.enVenta().stripTrailingZeros().toPlainString() + " unidades disponibles.");
@@ -195,16 +215,23 @@ public class CarritoService {
     }
 
     /**
-     * Reglas comunes para agregar y modificar: el productor puede vender (CCPIP-269), por ahora solo
-     * al por menor y con saldo vendible.
+     * Reglas comunes para agregar y modificar: el productor puede vender (CCPIP-269), hay tarifa para la
+     * cantidad que quedaria en el carrito (CCPIP-134: el minimo mayorista es obligatorio para una oferta
+     * solo mayorista) y hay saldo vendible.
      */
-    private static void exigirComprable(Vendible oferta) {
+    private static void exigirComprable(Vendible oferta, BigDecimal cantidad) {
         if (!oferta.habilitada()) {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "VENTA_PAUSADA",
                     "La venta de este producto está pausada por ahora. Puedes verlo, pero aún no comprarlo.");
         }
-        if ("MAYORISTA".equals(oferta.modalidad())) {
-            throw ErrorNegocio.invalido("SOLO_MAYORISTA", "La compra mayorista estará disponible pronto.");
+        Resolucion tarifa = tarifa(oferta, cantidad);
+        if (tarifa.precio() == null) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "NO_DISPONIBLE", "Este producto ya no está disponible.");
+        }
+        if (!tarifa.comprable()) {
+            throw ErrorNegocio.invalido("MINIMO_MAYORISTA", "Este producto se vende solo por mayor: mínimo "
+                    + oferta.minimoMayorista() + " und. Te faltan " + tarifa.faltante().stripTrailingZeros().toPlainString()
+                    + " und para poder comprarlo.");
         }
         if (oferta.enVenta().signum() == 0) {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "AGOTADO", "Este producto está agotado por ahora.");

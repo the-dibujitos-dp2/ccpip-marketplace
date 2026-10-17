@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import iconoCheck from '../../assets/icons/check.svg'
 import iconoEditar from '../../assets/icons/editar.svg'
 import iconoIa from '../../assets/icons/ia.svg'
-import { aprobarHistoria, guardarHistoria, proponerHistoria } from '../../api/productor.js'
+import { aprobarHistoria, guardarHistoria, proponerHistoria, rechazarBorrador } from '../../api/productor.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
@@ -68,6 +68,22 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
       } else {
         setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.ia.error') })
       }
+    } finally {
+      setEstado(null)
+    }
+  }
+
+  // CCPIP-280: el borrador sale del editor y queda registrado; las respuestas se conservan
+  async function descartar() {
+    setEstado('descartando')
+    setAlerta(null)
+    try {
+      await rechazarBorrador(producto.id, 'HISTORIA')
+      setPropuesta(null)
+      setModo('inicial')
+      setAlerta({ tono: 'info', titulo: t('productor.historia.descartada'), descripcion: t('productor.historia.descartadaTexto') })
+    } catch (err) {
+      setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.ia.errorDescartar') })
     } finally {
       setEstado(null)
     }
@@ -212,6 +228,9 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
               </Boton>
               <Boton tipo="terciario" tamano="S" onClick={() => pedir('CORTA')} disabled={estado === 'generando'}>
                 {t('productor.historia.masCorto')}
+              </Boton>
+              <Boton tipo="terciario" tamano="S" onClick={() => void descartar()} disabled={estado === 'descartando'}>
+                {t('productor.historia.descartar')}
               </Boton>
             </div>
             <p className="caption">{t('productor.historia.noSePublica')}</p>
