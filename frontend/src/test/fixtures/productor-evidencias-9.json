@@ -1,0 +1,39 @@
+{
+  "productoId": 9,
+  "producto": "Camu camu en polvo 150 g",
+  "autorizacion": { "id": 41, "estado": "SOLICITADA", "motivo": null, "solicitadaEn": "2026-10-12T15:00:00Z", "decididaEn": null, "vigenteHasta": null },
+  "evidencias": [
+    {
+      "id": "6f1c2a4e-1b2c-4d3e-8f90-112233445566",
+      "productoId": 9,
+      "tipo": "CERTIFICADO",
+      "titulo": "Certificado orgánico de camu camu",
+      "emisor": "Control Unión",
+      "vigenteDesde": "2026-01-10",
+      "vigenteHasta": "2027-03-31",
+      "vencida": false,
+      "nombreArchivo": "certificado_organico_2026.pdf",
+      "formato": "PDF",
+      "bytes": 182044,
+      "subidaEn": "2026-10-12T15:00:00Z",
+      "url": "/api/productor/evidencias/6f1c2a4e-1b2c-4d3e-8f90-112233445566/archivo"
+    },
+    {
+      "id": "9c4f5d71-4e5f-4061-9c23-445566778899",
+      "productoId": 9,
+      "tipo": "CERTIFICADO",
+      "titulo": "Certificado de comercio justo",
+      "emisor": "FLO",
+      "vigenteDesde": null,
+      "vigenteHasta": "2026-09-30",
+      "vencida": true,
+      "nombreArchivo": "comercio_justo.png",
+      "formato": "PNG",
+      "bytes": 70210,
+      "subidaEn": "2026-10-12T15:02:00Z",
+      "url": "/api/productor/evidencias/9c4f5d71-4e5f-4061-9c23-445566778899/archivo"
+    }
+  ],
+  "puedeAdjuntar": true,
+  "maximo": 10
+}
