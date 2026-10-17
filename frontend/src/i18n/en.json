@@ -330,7 +330,10 @@
         "borrador": "AI-assisted draft · review before publishing",
         "editalo": "Edit it in your own words; it isn't published until you accept it.",
         "generarOtra": "Generate another",
-        "aceptar": "Accept description"
+        "aceptar": "Accept description",
+        "descartar": "Discard",
+        "descartada": "You discarded the draft. Write the description in your own words or ask for another one.",
+        "errorDescartar": "We couldn't discard the draft"
       },
       "descripcionAsistida": "Description (AI-assisted draft, editable)",
       "descripcion": "Description",
@@ -414,7 +417,10 @@
       "tituloOpcional": "Title (optional)",
       "tituloEjemplo": "The forest grandmothers' oil",
       "caracteres": "{{total}} characters · minimum {{minimo}}",
-      "historiaPlaceholder": "Tell who makes it, how, and why it matters to your community."
+      "historiaPlaceholder": "Tell who makes it, how, and why it matters to your community.",
+      "descartar": "Discard draft",
+      "descartada": "You discarded the AI draft",
+      "descartadaTexto": "Your answers are still here: ask for another version or write the story yourself."
     },
     "tienda": {
       "categorias": {

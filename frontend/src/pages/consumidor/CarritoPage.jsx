@@ -290,7 +290,13 @@ function CantidadEditable({ item, onCambiar }) {
   const [rechazo, setRechazo] = useState(null)
   const [guardando, setGuardando] = useState(false)
 
-  useEffect(() => setValor(guardada), [guardada])
+  // Si el servidor cambia la cantidad guardada, el campo la sigue. Se ajusta al renderizar y no en un
+  // efecto: un efecto de montaje podia correr despues de lo primero que se escribio y borrarlo
+  const [guardadaAntes, setGuardadaAntes] = useState(guardada)
+  if (guardada !== guardadaAntes) {
+    setGuardadaAntes(guardada)
+    setValor(guardada)
+  }
 
   useEffect(() => {
     if (!rechazo) return undefined
