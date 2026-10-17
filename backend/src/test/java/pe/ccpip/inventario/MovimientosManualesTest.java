@@ -255,7 +255,7 @@ class MovimientosManualesTest extends IntegrationTest {
         otro.put("cantidad", new BigDecimal("2"));
         registrar(admin, ACOPIO, otro)
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("CLAVE_REUTILIZADA"));
+                .andExpect(jsonPath("$.code").value("ENVIO_REUTILIZADO"));
         assertThat(saldo(lote)).isEqualByComparingTo("7");
     }
 

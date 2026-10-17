@@ -126,7 +126,7 @@ public class MovimientoManualService {
                     observacion, d.clave());
         } catch (DuplicateKeyException e) {
             // La misma clave en otro lote, en paralelo: el indice unico la frena
-            throw claveReutilizada();
+            throw envioReutilizado();
         }
         return new MovimientoRegistrado(movimientos.obtener(id), saldo, false);
     }
@@ -181,13 +181,13 @@ public class MovimientoManualService {
         boolean mismo = previo.loteId() == lote.id() && previo.tipo().equals(motivo.tipo())
                 && previo.motivo().equals(motivo.name()) && previo.cantidad().compareTo(d.cantidad()) == 0;
         if (!mismo) {
-            throw claveReutilizada();
+            throw envioReutilizado();
         }
         return new MovimientoRegistrado(movimientos.obtener(previo.id()), lote.cantidad(), true);
     }
 
-    private static ErrorNegocio claveReutilizada() {
-        return new ErrorNegocio(HttpStatus.CONFLICT, "CLAVE_REUTILIZADA",
+    private static ErrorNegocio envioReutilizado() {
+        return new ErrorNegocio(HttpStatus.CONFLICT, "ENVIO_REUTILIZADO",
                 "Este envío ya se usó para otro movimiento. Vuelve a abrir el formulario.");
     }
 }
