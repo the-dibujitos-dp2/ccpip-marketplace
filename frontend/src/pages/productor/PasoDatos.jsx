@@ -6,7 +6,9 @@ import iconoEditar from '../../assets/icons/editar.svg'
 import iconoIa from '../../assets/icons/ia.svg'
 import iconoInfo from '../../assets/icons/info-pequeno.svg'
 import { obtenerCatalogos } from '../../api/catalogo.js'
-import { eliminarImagen, marcarPrincipal, proponerDescripcion, rechazarBorrador, reemplazarImagen, subirImagen } from '../../api/productor.js'
+import {
+  aceptarMejora, eliminarImagen, marcarPrincipal, mejorarImagen, proponerDescripcion, rechazarBorrador, rechazarMejora, reemplazarImagen, subirImagen,
+} from '../../api/productor.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
@@ -20,6 +22,7 @@ import { ApiError } from '../../api/http.js'
 import { precio } from '../../formato.js'
 import { mensajeError, traducirFaltante } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
+import { AvisosFotos, ChipRevisar, ComparacionMejora, useValidaciones } from './IaFotos.jsx'
 import './Editor.css'
 
 export const MAX_FOTOS = 6
@@ -91,6 +94,9 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
   const [retirando, setRetirando] = useState(false)
   const [reemplazando, setReemplazando] = useState(null)
   const [ia, setIa] = useState({ estado: 'inicial' })
+  const [mejorando, setMejorando] = useState(null)
+  const [comparacion, setComparacion] = useState(null)
+  const [decidiendo, setDecidiendo] = useState(false)
 
   useEffect(() => {
     obtenerCatalogos().then(setCatalogos).catch(() => {})
@@ -109,6 +115,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
   }, [producto?.id])
 
   const imagenes = producto?.imagenes ?? []
+  const { porFoto, validar } = useValidaciones(producto?.id, imagenes)
   // Un producto publicado no vuelve a borrador: lo que se guarda se ve al instante (CCPIP-47)
   const publicado = producto?.estado === 'PUBLICADO'
   const set = (campo) => (e) => setD({ ...d, [campo]: e?.target ? (e.target.type === 'checkbox' ? e.target.checked : e.target.value) : e })
@@ -172,8 +179,10 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
     }
     setSubidas((s) => [...s.filter((x) => x.clave !== clave), { clave, archivo, estado: 'subiendo' }])
     try {
-      await subirImagen(archivo, { tipo: 'PRODUCTO', productoId: id })
+      const nueva = await subirImagen(archivo, { tipo: 'PRODUCTO', productoId: id })
       setSubidas((s) => s.filter((x) => x.clave !== clave))
+      // CCPIP-144: cada foto nueva se valida contra la linea; el resultado solo recomienda
+      if (nueva?.id) void validar(nueva.id, { conLinea: d.lineas.length > 0 })
     } catch (err) {
       setSubidas((s) => s.map((x) => (x.clave === clave ? { ...x, estado: 'error', mensaje: mensajeError(err, 'productor.datos.seCorto') } : x)))
     }
@@ -187,12 +196,14 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
 
   /** Retirar, reemplazar o hacer principal una foto: si el servidor falla, se avisa y la lista se recarga. */
   async function accionFoto(accion, mensaje) {
+    let resultado
     try {
-      await accion()
+      resultado = await accion()
     } catch (err) {
       setAlerta({ tono: 'error', titulo: mensajeError(err, mensaje) })
     }
     onImagenes(producto.id)
+    return resultado
   }
 
   // CCPIP-389: retirar pide confirmacion; la foto sale de la ficha pero se conserva
@@ -211,9 +222,49 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
       return
     }
     setReemplazando(imagen.id)
-    await accionFoto(() => reemplazarImagen(imagen.id, archivo), 'productor.datos.errorReemplazar')
+    const nueva = await accionFoto(() => reemplazarImagen(imagen.id, archivo), 'productor.datos.errorReemplazar')
     setReemplazando(null)
+    // CCPIP-364: la que entra desde el aviso de la IA se vuelve a validar
+    if (nueva?.id) void validar(nueva.id, { conLinea: d.lineas.length > 0 })
   }
+
+  // ---------- Mejora opcional con IA (CCPIP-176, 272, 281, 282) ----------
+
+  async function mejorar(imagen) {
+    setMejorando(imagen.id)
+    try {
+      setComparacion(await mejorarImagen(imagen.id))
+    } catch (err) {
+      setAlerta(err.code === 'IA_NO_DISPONIBLE'
+        ? { tono: 'aviso', titulo: t('productor.datos.mejora.noDisponible'), descripcion: t('productor.datos.mejora.noDisponibleTexto') }
+        : { tono: 'error', titulo: mensajeError(err, 'productor.datos.mejora.errorPedir'), descripcion: t('productor.datos.mejora.noDisponibleTexto') })
+    } finally {
+      setMejorando(null)
+    }
+  }
+
+  // Solo una eleccion expresa cambia algo: usar la mejorada la pone en el lugar de la original
+  async function decidirMejora(usar) {
+    setDecidiendo(true)
+    try {
+      if (usar) {
+        const nueva = await aceptarMejora(comparacion.imagenId)
+        setAlerta({ tono: 'exito', titulo: t('productor.datos.mejora.aceptada'), descripcion: t('productor.datos.mejora.aceptadaTexto') })
+        if (nueva?.id) void validar(nueva.id, { conLinea: d.lineas.length > 0 })
+      } else {
+        await rechazarMejora(comparacion.imagenId)
+        setAlerta({ tono: 'exito', titulo: t('productor.datos.mejora.conservada') })
+      }
+    } catch (err) {
+      setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.mejora.errorDecidir') })
+    } finally {
+      setDecidiendo(false)
+      setComparacion(null)
+      onImagenes(producto.id)
+    }
+  }
+
+  const nombreLinea = (codigo) => (codigo ? (catalogos.lineas.find((l) => l.codigo === codigo)?.nombre ?? codigo) : null)
 
   const principal = (imagen) => accionFoto(() => marcarPrincipal(imagen.id), 'productor.datos.errorPrincipal')
 
@@ -272,6 +323,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
             {imagenes.map((img) => (
               <li key={img.id} className={`editor__miniatura${img.principal ? ' editor__miniatura--principal' : ''}`}>
                 <img src={img.urlMiniatura} alt={t('productor.datos.fotoProducto')} />
+                {porFoto[img.id]?.estado === 'SOSPECHOSA' && <ChipRevisar imagenId={img.id} />}
                 {img.principal ? (
                   <span className="editor__principal">{t('productor.datos.principal')}</span>
                 ) : (
@@ -310,6 +362,17 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
               </li>
             )}
           </ul>
+          <AvisosFotos
+            imagenes={imagenes}
+            porFoto={porFoto}
+            nombreLinea={nombreLinea}
+            lineaActual={d.lineas[0]}
+            onValidar={validar}
+            onReemplazar={reemplazar}
+            onMejorar={mejorar}
+            reemplazando={reemplazando !== null}
+            mejorando={mejorando}
+          />
           {imagenes.length < MAX_FOTOS && <ZonaArchivos onArchivos={subir} />}
           <p className="caption">{t('productor.datos.fotosAyuda', { max: MAX_FOTOS })}</p>
           <Dialogo
@@ -323,6 +386,13 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
           >
             <p>{t(aRetirar?.principal ? 'productor.datos.retirarTextoPrincipal' : 'productor.datos.retirarTexto')}</p>
           </Dialogo>
+          <ComparacionMejora
+            comparacion={comparacion}
+            ocupado={decidiendo}
+            onUsar={() => void decidirMejora(true)}
+            onConservar={() => void decidirMejora(false)}
+            onCerrar={() => setComparacion(null)}
+          />
         </section>
 
         <Campo etiqueta={t('productor.datos.nombre')} value={d.nombre} onChange={set('nombre')} error={errores.nombre} maxLength={200} placeholder={t('productor.datos.nombreEjemplo')} />

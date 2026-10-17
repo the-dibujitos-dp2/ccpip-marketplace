@@ -131,10 +131,10 @@ describe('SA-02 Parámetros de la plataforma: vida del carrito (CCPIP-142)', () 
     }
   })
 
-  it('el sub administrador no entra: vuelve a la comisión por pedido', async () => {
+  it('el sub administrador no entra: vuelve a autorizaciones', async () => {
     const fetchMock = servidor(comoSuper({ 'GET /api/auth/me': [200, SESION_SUB] }))
     abrirEn('/admin/parametros')
-    await waitFor(() => expect(window.location.pathname).toBe('/admin/comisiones'))
+    await waitFor(() => expect(window.location.pathname).toBe('/admin/autorizaciones'))
     expect(llamadas(fetchMock, `GET ${VIGENCIA}`)).toHaveLength(0)
   })
 

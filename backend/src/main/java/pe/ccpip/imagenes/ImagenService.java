@@ -98,10 +98,8 @@ public class ImagenService {
             throw ErrorNegocio.invalido("SOLO_FOTOS_DE_PRODUCTO", "Solo se reemplazan las fotos de tus productos.");
         }
         ProcesadorImagen.Procesada procesada = procesador.procesar(archivo);
-        // Primero se libera la principal: solo puede haber una por producto
-        jdbc.update("UPDATE imagen SET principal = false, retirada_en = now(), retirada_por = ? WHERE id = ?", usuarioId, id);
-        UUID nueva = guardar(productorId, usuarioId, Tipo.PRODUCTO, null, foto.productoId(), procesada, foto.orden(), foto.principal());
-        jdbc.update("UPDATE imagen SET reemplazada_por = ? WHERE id = ?", nueva, id);
+        UUID nueva = UUID.randomUUID();
+        ocuparLugar(productorId, usuarioId, id, nueva, subirAlBucket(productorId, nueva, procesada));
         auditoria.registrar(foto.productoId(), usuarioId, Accion.IMAGEN, Map.of("reemplazada", id.toString(), "nueva", nueva.toString()));
         return buscar(nueva).orElseThrow();
     }
@@ -172,19 +170,65 @@ public class ImagenService {
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("IMAGEN_NO_ENCONTRADA", "La imagen no existe."));
     }
 
+    /** Un archivo ya guardado en el bucket: la foto, su miniatura y sus datos. */
+    record Archivo(String clave, String claveMiniatura, int ancho, int alto, int bytes) {
+    }
+
+    /** Datos de una foto de producto propia y vigente, para la IA de imagenes (CCPIP-144, CCPIP-176). */
+    record FotoProducto(UUID id, long productoId, String clave, String claveMiniatura, int ancho, int alto) {
+    }
+
+    /** Una foto de producto propia y vigente; portada y galeria no pasan por la IA. */
+    FotoProducto fotoDeProducto(long productorId, UUID id) {
+        FotoProducto foto = jdbc.query("""
+                        SELECT id, producto_id, clave, clave_miniatura, ancho, alto FROM imagen
+                        WHERE id = ? AND productor_id = ? AND retirada_en IS NULL""",
+                        (rs, row) -> new FotoProducto(id, rs.getLong(2), rs.getString(3), rs.getString(4), rs.getInt(5), rs.getInt(6)),
+                        id, productorId)
+                .stream().findFirst()
+                .orElseThrow(() -> ErrorNegocio.noEncontrado("IMAGEN_NO_ENCONTRADA", "La imagen no existe."));
+        if (foto.productoId() == 0) {
+            throw ErrorNegocio.invalido("SOLO_FOTOS_DE_PRODUCTO", "Solo se analizan las fotos de tus productos.");
+        }
+        return foto;
+    }
+
+    /**
+     * CCPIP-388 y CCPIP-282: la nueva foto toma el lugar (orden y principal) de una vigente, que
+     * queda retirada y apunta a ella.
+     */
+    void ocuparLugar(long productorId, long usuarioId, UUID anterior, UUID nueva, Archivo archivo) {
+        Vigente foto = vigente(productorId, anterior);
+        // Primero se libera la principal: solo puede haber una por producto
+        jdbc.update("UPDATE imagen SET principal = false, retirada_en = now(), retirada_por = ? WHERE id = ?", usuarioId, anterior);
+        registrar(productorId, usuarioId, Tipo.PRODUCTO, null, foto.productoId(), archivo, foto.orden(), foto.principal(), nueva);
+        jdbc.update("UPDATE imagen SET reemplazada_por = ? WHERE id = ?", nueva, anterior);
+    }
+
     /** Sube al bucket la foto ya procesada y la registra. */
     private UUID guardar(long productorId, long usuarioId, Tipo tipo, String categoria, Long productoId,
                          ProcesadorImagen.Procesada procesada, int orden, boolean principal) {
         UUID id = UUID.randomUUID();
-        String base = "productores/" + productorId + "/" + id;
+        return registrar(productorId, usuarioId, tipo, categoria, productoId, subirAlBucket(productorId, id, procesada),
+                orden, principal, id);
+    }
+
+    /** Guarda la foto y su miniatura en {@code productores/<productor>/<nombre>}. */
+    Archivo subirAlBucket(long productorId, Object nombre, ProcesadorImagen.Procesada procesada) {
+        String base = "productores/" + productorId + "/" + nombre;
         storage.guardar(base + ".jpg", procesada.imagen(), "image/jpeg");
         storage.guardar(base + "_min.jpg", procesada.miniatura(), "image/jpeg");
+        return new Archivo(base + ".jpg", base + "_min.jpg", procesada.ancho(), procesada.alto(), procesada.imagen().length);
+    }
+
+    private UUID registrar(long productorId, long usuarioId, Tipo tipo, String categoria, Long productoId,
+                           Archivo archivo, int orden, boolean principal, UUID id) {
         jdbc.update("""
                 INSERT INTO imagen (id, productor_id, producto_id, tipo, categoria, clave, clave_miniatura,
                                     ancho, alto, bytes, orden, principal, subida_por)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                id, productorId, productoId, tipo.name(), categoria, base + ".jpg", base + "_min.jpg",
-                procesada.ancho(), procesada.alto(), procesada.imagen().length, orden, principal, usuarioId);
+                id, productorId, productoId, tipo.name(), categoria, archivo.clave(), archivo.claveMiniatura(),
+                archivo.ancho(), archivo.alto(), archivo.bytes(), orden, principal, usuarioId);
         return id;
     }
 

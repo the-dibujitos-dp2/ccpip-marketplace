@@ -26,6 +26,11 @@ import comisionesAdmin from './fixtures/admin-comisiones.json'
 import vigenciaCarritoAdmin from './fixtures/admin-vigencia-carrito.json'
 // CCPIP-112: armado segun ResumenPedido del backend
 import misPedidos from './fixtures/mis-pedidos.json'
+// CCPIP-36, 50, 174 y 284: armados segun AutorizacionModelos del backend
+import autorizacionesAdmin from './fixtures/admin-autorizaciones.json'
+import expedienteAdmin from './fixtures/admin-autorizacion-41.json'
+import analisisSimulado from './fixtures/admin-analisis-simulado.json'
+import evidenciasProductor from './fixtures/productor-evidencias-9.json'
 // CCPIP-161: armado segun ProductoModelos.LoteDelProductor del backend
 import todosLosLotes from './fixtures/productor-lotes.json'
 
@@ -123,6 +128,10 @@ export const DATOS = {
   comisionesAdmin,
   vigenciaCarritoAdmin,
   misPedidos,
+  autorizacionesAdmin,
+  expedienteAdmin,
+  analisisSimulado,
+  evidenciasProductor,
 }
 
 /** Copia profunda para que cada prueba pueda modificar los datos sin afectar a otras. */

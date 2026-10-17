@@ -71,7 +71,7 @@ public class TiendasRepository {
                             rs.getString("localidad"), (Integer) rs.getObject("socios"), rs.getBoolean("origen_verificado"),
                             desde == null ? null : desde.getYear(),
                             portada == null ? null : ImagenService.url((UUID) portada), galeria(id), lineas(id),
-                            productos, destacados(id));
+                            productos, destacados(id), null);
                 }).stream().findFirst();
     }
 
