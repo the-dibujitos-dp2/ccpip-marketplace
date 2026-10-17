@@ -640,6 +640,81 @@ proposito `RECUPERAR_CLAVE`. Como en `sesion`, solo se guarda el SHA-256 del tok
   estan registrados.
 - El enlace no inicia sesion: la persona ingresa con su contrasena despues de verificar.
 
+## Calificaciones y denuncias (CCPIP-81, CCPIP-82, CCPIP-83, CCPIP-84, CCPIP-116, CCPIP-323)
+
+Migraciones `V202610172200__calificacion.sql` y `V202610172201__denuncia.sql`.
+
+### calificacion
+CCPIP-81 (RF-88): el comprador califica con 1 a 5 estrellas cada linea de un pedido que recibio. Una
+calificacion por linea (`item_pedido`): tres unidades en la misma linea cuentan como una. Solo
+insercion: no se edita ni se borra.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| item_pedido_id | bigint | no | Unico. La linea calificada |
+| pedido_id | bigint | no | |
+| producto_id, productor_id | bigint | no | Copiados de la linea; llave foranea a la oferta (CCPIP-172) |
+| usuario_id | bigint | no | Comprador. Nunca sale en la ficha ni al productor |
+| estrellas | smallint | no | De 1 a 5 |
+| comentario | varchar(500) | si | Opcional. Se publica sin nombre |
+| calificado_en | timestamptz | no | |
+
+- Compra verificada en la base: un trigger exige que la linea sea del mismo comprador, que el pedido
+  este `ENTREGADO` y que producto y productor coincidan con la linea. El servicio valida lo mismo
+  antes y responde `PEDIDO_NO_RECIBIDO` o `LINEA_YA_CALIFICADA`.
+- CCPIP-82 (RF-89): el promedio de una oferta se calcula al consultar (`avg(estrellas)`, a un decimal)
+  y solo se publica con al menos `ccpip.calificaciones.minimo-para-promedio` calificaciones (3 por
+  defecto, provisional hasta que la Camara fije el umbral como parametro de la plataforma). Con menos,
+  la respuesta trae el conteo y el umbral, sin promedio, distribucion ni resenas: nunca un promedio cero.
+
+### denuncia
+CCPIP-83 (RF-90): denuncia de un comprador sobre una oferta (`producto_id`) o sobre la comunidad
+(`producto_id` nulo), con motivo y descripcion, sin aprobacion previa. Nunca se borra.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| denunciante_id | bigint | no | RNF-41: identidad protegida, no sale en ninguna respuesta |
+| productor_id | bigint | no | Denunciado. Con producto, el de esa oferta (llave foranea compuesta) |
+| producto_id | bigint | si | Nulo si se denuncia a la comunidad |
+| motivo | varchar(30) | no | `NO_CORRESPONDE`, `CALIDAD`, `ORIGEN_DUDOSO`, `PRACTICA_INDEBIDA`, `CONTENIDO_INAPROPIADO`, `OTRO` |
+| descripcion | varchar(1000) | no | Al productor y al subadministrador llega con correos y telefonos ocultos |
+| estado | varchar(20) | no | `RECIBIDA`, `EN_REVISION`, `RESUELTA`, `DESESTIMADA` |
+| respuesta_productor | varchar(1000) | si | CCPIP-323: una sola vez, mientras la denuncia este abierta |
+| respondida_en | timestamptz | si | Nula si y solo si no hay respuesta |
+| creada_en, actualizada_en | timestamptz | no | |
+
+- Lo denunciado (denunciante, productor, oferta, motivo, descripcion, fecha) no cambia despues de
+  registrar, y la respuesta no se reemplaza: lo impide un trigger. DELETE esta bloqueado.
+- Un comprador no tiene dos denuncias abiertas sobre lo mismo (`DENUNCIA_DUPLICADA`).
+- Transiciones del subadministrador: `RECIBIDA` a `EN_REVISION`, `RESUELTA` o `DESESTIMADA`;
+  `EN_REVISION` a `RESUELTA` o `DESESTIMADA`. Cerrada, ya no cambia.
+
+### denuncia_evento
+Historial y auditoria de cada denuncia. Solo insercion.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| denuncia_id | bigint | no | |
+| tipo | varchar(20) | no | `REGISTRADA`, `RESPUESTA`, `CAMBIO_ESTADO` |
+| estado | varchar(20) | no | Estado de la denuncia despues del evento |
+| nota | varchar(1000) | si | Respuesta del productor o nota obligatoria del subadministrador |
+| usuario_id | bigint | no | Quien dio el paso. En `REGISTRADA` es el denunciante y no se expone |
+| rol | varchar(20) | no | `CONSUMIDOR`, `PRODUCTOR` o `SUB_ADMIN` |
+| registrado_en | timestamptz | no | |
+
+Que ve cada rol (filtrado en el servidor, RNF-05 y RNF-41):
+
+- **Comprador:** sus propias denuncias, con estado y respuesta del productor.
+- **Productor (CCPIP-116):** solo las de su productor de sesion; sin denunciante, sin hora (solo el
+  dia) y con correos y telefonos de la descripcion ocultos.
+- **Subadministrador (CCPIP-84):** bandeja por productor ordenada por cantidad de denuncias, separada
+  del tablero analitico, y el historial con el nombre del subadministrador en cada cambio de estado.
+  Del denunciante solo sabe si recibio algun pedido de ese productor (`compraVerificada`). El
+  superadministrador consulta en modo lectura.
+
 ## Fuera de este modelo
 
 Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehacer nada:
@@ -647,7 +722,6 @@ Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehac
 - Cobertura del punto de acopio y division politica del Peru, Sprint 1, CCPIP-149
 - Liquidacion y transferencia a cada productor (PW-11)
 - Merma y sus causas, Sprint 2
-- Valoraciones y denuncias, Sprint 2
 - Fidelizacion, Sprint 3, CCPIP-86
 
 ## Convencion de nombres de las migraciones

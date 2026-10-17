@@ -55,7 +55,8 @@ public class CatalogoRepository {
                          WHERE a.producto_id = p.id AND a.productor_id = pr.id AND a.estado = 'APROBADA'
                            AND (a.vigente_hasta IS NULL OR a.vigente_hasta >= %s)))""".formatted(HOY);
 
-    static final String VISIBLE = """
+    /** Ofertas que el catalogo publico muestra: publicadas, de un productor activo con tienda publicada. */
+    public static final String VISIBLE = """
             FROM producto p
             JOIN productor pr ON pr.id = p.productor_id AND pr.activo AND pr.tienda_publicada
             LEFT JOIN linea_producto l ON l.id = p.linea_id
