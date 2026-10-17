@@ -1,6 +1,6 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import App from '../../App.jsx'
 import ilustracionAceites from '../../assets/lineas/aceites.svg'
 import ilustracionCacao from '../../assets/lineas/cacao.svg'
@@ -210,6 +210,28 @@ describe('CCPIP-268 Modificar la cantidad en el carrito', () => {
     expect(await within(cantidad.closest('li')).findByText('S/ 780.00')).toBeInTheDocument()
   })
 
+  /**
+   * Reloj simulado para la espera antes de guardar (500 ms): la prueba decide cuando pasa, en vez de
+   * depender de cuanto tarda la maquina. Sigue avanzando con el tiempo real para que las esperas de
+   * Testing Library no se queden colgadas; afterEach vuelve al reloj real.
+   */
+  function relojSimulado() {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    return userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+  }
+
+  /** Deja pasar mas que la espera antes de guardar: si hubiera un guardado pendiente, ya salio. */
+  const pasaLaEspera = () => act(() => vi.advanceTimersByTimeAsync(1000))
+
+  /** Espera a que el campo muestre `valor` marcado como invalido, con el motivo en su fila. */
+  async function esperarInvalido(cantidad, valor) {
+    await waitFor(() => {
+      expect(cantidad).toHaveValue(valor)
+      expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+      expect(within(cantidad.closest('li')).getByRole('alert')).toHaveTextContent('La cantidad mínima es una unidad')
+    })
+  }
+
   it('desde 0 o vacio, "+" lleva a una unidad y borra el error', async () => {
     const fetchMock = servidor({
       ...conSesion(),
@@ -219,33 +241,38 @@ describe('CCPIP-268 Modificar la cantidad en el carrito', () => {
         return [200, c]
       },
     })
-    const user = userEvent.setup()
+    const user = relojSimulado()
     abrirEn('/carrito')
     const cantidad = await screen.findByLabelText('Cantidad de Cacao en grano fermentado 1 kg')
     const fila = cantidad.closest('li')
     await user.clear(cantidad)
+    await esperarInvalido(cantidad, '')
     await user.type(cantidad, '0')
-    expect(await within(fila).findByRole('alert')).toHaveTextContent('La cantidad mínima es una unidad')
+    await esperarInvalido(cantidad, '0')
     expect(within(fila).getByRole('button', { name: 'Quitar una unidad' })).toBeDisabled()
 
     await user.click(within(fila).getByRole('button', { name: 'Agregar una unidad' }))
     expect(cantidad).toHaveValue('1')
     expect(within(fila).queryByRole('alert')).not.toBeInTheDocument()
+    await pasaLaEspera()
     expect(await within(fila).findByText('S/ 42.00')).toBeInTheDocument()
-    expect(JSON.parse(llamadas(fetchMock, 'PUT /api/carrito/items/1')[0][1].body)).toEqual({ cantidad: 1 })
+    const pedidos = llamadas(fetchMock, 'PUT /api/carrito/items/1')
+    expect(pedidos).toHaveLength(1)
+    expect(JSON.parse(pedidos[0][1].body)).toEqual({ cantidad: 1 })
   })
 
   it('una cantidad menor a una unidad no se envia', async () => {
     const fetchMock = servidor(conSesion())
-    const user = userEvent.setup()
+    const user = relojSimulado()
     abrirEn('/carrito')
     const cantidad = await screen.findByLabelText('Cantidad de Aceite de aguaje 250 ml')
     await user.clear(cantidad)
+    await esperarInvalido(cantidad, '')
     await user.type(cantidad, '0')
-    expect(await screen.findByRole('alert')).toHaveTextContent('La cantidad mínima es una unidad')
-    expect(cantidad).toHaveAttribute('aria-invalid', 'true')
-    await new Promise((r) => setTimeout(r, 600))
+    await esperarInvalido(cantidad, '0')
+    await pasaLaEspera()
     expect(llamadas(fetchMock, 'PUT /api/carrito/items/8')).toHaveLength(0)
+    expect(cantidad).toHaveValue('0')
   })
 
   it('con stock insuficiente se puede bajar la cantidad; lo agotado o retirado no se edita', async () => {
