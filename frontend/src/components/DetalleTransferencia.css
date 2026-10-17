@@ -1,0 +1,8 @@
+.detalle-transferencia { display: flex; flex-direction: column; gap: 16px; padding: 16px 20px; background: var(--color-bg-surface-alt); }
+.detalle-transferencia__ruta { display: flex; flex-wrap: wrap; gap: 24px; margin: 0; }
+.detalle-transferencia__ruta dd { margin: 4px 0 0; }
+.detalle-transferencia__tabla { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 20px; }
+.detalle-transferencia__tabla th { text-align: left; font-weight: 500; font-size: 12px; color: var(--color-text-tertiary); padding: 6px 8px; }
+.detalle-transferencia__tabla td { padding: 6px 8px; border-top: 1px solid var(--color-border-default); color: var(--color-text-primary); }
+.detalle-transferencia__historial { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 8px 0 0; padding: 0; list-style: none; }
+.detalle-transferencia__historial li { display: flex; align-items: center; gap: 8px; }

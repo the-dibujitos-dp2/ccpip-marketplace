@@ -1,0 +1,26 @@
+.transferencias__lista { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); background: var(--color-bg-surface); overflow: hidden; }
+.transferencias__item { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--color-border-default); }
+.transferencias__item:first-child { border-top: 0; }
+.transferencias__item > .productor__nota { padding: 0 20px 12px; }
+.transferencias__fila { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 14px 20px; font-size: 14px; line-height: 20px; color: var(--color-text-secondary); }
+.transferencias__codigo { flex: 0 0 72px; color: var(--color-text-primary); }
+.transferencias__ruta { display: flex; flex-direction: column; flex: 1 1 240px; min-width: 0; color: var(--color-text-primary); }
+.transferencias__cantidad { flex: 0 0 160px; }
+.transferencias__fecha { flex: 0 0 96px; }
+.transferencias__acciones { display: flex; gap: 8px; margin-left: auto; }
+
+/* PW-18 */
+.nueva-transferencia { display: flex; flex-direction: column; gap: 24px; max-width: 880px; }
+.nueva-transferencia fieldset { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; border: 0; }
+.nueva-transferencia legend { margin-bottom: 8px; }
+.nueva-transferencia__tipos { display: flex; flex-wrap: wrap; gap: 12px; }
+.nueva-transferencia__tipo { display: flex; flex: 1 1 260px; gap: 12px; align-items: flex-start; padding: 16px; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); background: var(--color-bg-surface); cursor: pointer; }
+.nueva-transferencia__tipo span { display: flex; flex-direction: column; gap: 4px; }
+.nueva-transferencia__lugares { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.nueva-transferencia__ficha { margin: 0; padding: 12px 16px; border-radius: var(--radius-m); background: var(--color-bg-surface-alt); font-size: 14px; line-height: 20px; }
+.nueva-transferencia__lote { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; padding: 12px 16px; border-top: 1px solid var(--color-border-default); }
+.nueva-transferencia__lote:first-of-type { border-top: 0; }
+.nueva-transferencia__lote-datos { display: flex; flex-direction: column; flex: 1 1 260px; }
+.nueva-transferencia__lote .campo { flex: 0 0 180px; }
+.nueva-transferencia__acciones { display: flex; flex-wrap: wrap; gap: 12px; }
+.nueva-transferencia__ficha dd { margin: 0; }

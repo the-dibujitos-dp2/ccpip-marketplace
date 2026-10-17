@@ -15,6 +15,7 @@ const NAV = [
   { to: RUTAS.acopioMovimientos, clave: 'movimientos', icono: iconoMovimientos, activo: (p) => p.startsWith(RUTAS.acopioMovimientos) },
   // A-02 (CCPIP-162): inventario por producto, productor y lote
   { to: RUTAS.acopioInventario, clave: 'inventario', icono: iconoAlmacen, activo: (p) => p.startsWith(RUTAS.acopioInventario) },
+  { to: RUTAS.acopioTransferencias, clave: 'transferencias', icono: iconoMovimientos, activo: (p) => p.startsWith(RUTAS.acopioTransferencias) },
 ]
 
 /** Estructura web del administrador de punto de acopio (Figma A-01 a A-08). */

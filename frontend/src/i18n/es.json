@@ -70,7 +70,8 @@
       "almacen": "Almacén",
       "lotes": "Lotes",
       "pedidos": "Pedidos",
-      "cuenta": "Cuenta bancaria"
+      "cuenta": "Cuenta bancaria",
+      "transferencias": "Transferencias"
     },
     "tabla": {
       "producto": "Producto",
@@ -666,6 +667,73 @@
         "AHORROS": "Cuenta de ahorros",
         "CORRIENTE": "Cuenta corriente"
       }
+    },
+    "transferencias": {
+      "titulo": "Mis transferencias",
+      "nueva": "Nueva transferencia",
+      "vistas": "Transferencias",
+      "enCurso": "En curso ({{total}})",
+      "historial": "Historial ({{total}})",
+      "lista": "Lista de transferencias",
+      "resumen": "{{lotes}} lote(s) · {{cantidad}} und",
+      "creada": "Registramos la transferencia {{codigo}}",
+      "errorCargar": "No pudimos cargar tus transferencias",
+      "errorDetalle": "No pudimos cargar el detalle",
+      "vacioEnCurso": "No tienes transferencias en curso",
+      "vacioHistorial": "Aún no tienes transferencias cerradas",
+      "vacioTexto": "Inicia una transferencia para llevar existencias de tu almacén a un punto de acopio.",
+      "enTransito": "En tránsito: no se venden hasta que el punto de destino registre la recepción.",
+      "preparar": {
+        "boton": "Registrar preparación",
+        "etiqueta": "Registrar la preparación de {{codigo}}",
+        "titulo": "¿Registrar la preparación de {{codigo}}?",
+        "texto": "Se separarán {{cantidad}} und de los lotes de origen para llevarlas a {{destino}}. Ya no podrás venderlas ni usarlas en otra transferencia.",
+        "hecho": "La transferencia {{codigo}} está preparada",
+        "error": "No pudimos registrar la preparación"
+      },
+      "despachar": {
+        "boton": "Registrar despacho",
+        "etiqueta": "Registrar el despacho de {{codigo}}",
+        "titulo": "¿Registrar el despacho de {{codigo}}?",
+        "texto": "Las {{cantidad}} und preparadas salen hacia {{destino}}. No se vuelven a descontar y no se venden hasta que el punto las reciba.",
+        "hecho": "La transferencia {{codigo}} está en tránsito",
+        "error": "No pudimos registrar el despacho"
+      },
+      "form": {
+        "titulo": "Nueva transferencia",
+        "tipo": "Tipo de transferencia",
+        "tipoTexto": {
+          "ALMACEN_A_PUNTO": "Lleva existencias de tu almacén a un punto de acopio para venderlas.",
+          "ENTRE_PUNTOS": "Solicita mover existencias que ya están en un punto de acopio a otro."
+        },
+        "solicitud": "Se registrará como solicitud",
+        "lugares": "Origen y destino",
+        "elegirPunto": "Elige un punto de acopio",
+        "fichaOrigen": "Ubicación del origen",
+        "fichaDestino": "Ubicación del destino",
+        "nombre": "Nombre",
+        "zona": "Distrito, provincia y departamento",
+        "direccion": "Dirección",
+        "sinRutas": "Se muestra la ubicación registrada de cada lugar; no se calculan rutas.",
+        "lotes": "Lotes y cantidades",
+        "primeroOrigen": "Elige el origen para ver sus lotes.",
+        "sinLotes": "No hay lotes vigentes en {{lugar}}",
+        "sinLotesTexto": "Registra un lote o elige otro origen.",
+        "loteDatos": "Lote {{codigo}} · vence {{vence}} · {{cantidad}} und disponibles",
+        "cantidadDe": "Cantidad del lote {{codigo}}",
+        "observacion": "Observación (opcional)",
+        "observacionAyuda": "Máximo 255 caracteres.",
+        "errorOrigen": "Elige el origen",
+        "errorDestino": "Elige el destino",
+        "errorCantidad": "Escribe una cantidad mayor a cero, con hasta 3 decimales",
+        "errorSaldo": "Solo hay {{cantidad}} und disponibles",
+        "errorLotes": "Escribe la cantidad de al menos un lote",
+        "errorCargar": "No pudimos cargar tus ubicaciones y lotes",
+        "errorEnviar": "No pudimos registrar la transferencia",
+        "iniciar": "Iniciar transferencia",
+        "solicitar": "Solicitar transferencia",
+        "enviando": "Enviando…"
+      }
     }
   },
   "acopio": {
@@ -673,7 +741,8 @@
     "nav": {
       "pedidos": "Pedidos",
       "movimientos": "Movimientos",
-      "inventario": "Inventario"
+      "inventario": "Inventario",
+      "transferencias": "Transferencias"
     },
     "pedidos": {
       "vence": "vence {{fecha}}",
@@ -785,6 +854,29 @@
       },
       "movimiento": "Movimiento",
       "movimientoDe": "Registrar un movimiento del lote {{lote}}"
+    },
+    "transferencias": {
+      "porRecibir": "Transferencias por recibir ({{total}})",
+      "listaPorRecibir": "Transferencias por recibir",
+      "todas": "Entradas y salidas de tu punto",
+      "listaTodas": "Todas las transferencias",
+      "nadaPorRecibir": "No hay transferencias en tránsito hacia tu punto",
+      "nadaPorRecibirTexto": "Cuando un productor despache existencias hacia tu punto, aparecerán aquí.",
+      "vacio": "Aún no hay transferencias",
+      "vacioTexto": "Aquí verás las transferencias que entran o salen de tu punto, con su historial.",
+      "sentido": {
+        "ENTRANTE": "Entrante",
+        "SALIENTE": "Saliente"
+      },
+      "recibir": "Registrar recepción",
+      "recibirEtiqueta": "Registrar la recepción de {{codigo}}",
+      "confirmarTitulo": "¿Registrar la recepción de {{codigo}}?",
+      "confirmarTexto": "Llegan {{cantidad}} und de {{productor}} desde {{origen}}. Entrarán a un lote nuevo de tu punto y quedarán disponibles para la venta.",
+      "recibida": "Recibiste la transferencia {{codigo}}",
+      "recibidaTexto": "Las unidades ya están en un lote de tu punto.",
+      "errorRecibir": "No pudimos registrar la recepción",
+      "errorCargar": "No pudimos cargar las transferencias",
+      "errorDetalle": "No pudimos cargar el detalle"
     }
   },
   "admin": {
@@ -1204,7 +1296,17 @@
     "SIN_CERTIFICADO_VIGENTE": "Para aprobar, el producto necesita al menos un certificado vigente propio.",
     "SOLICITUD_YA_RESUELTA": "Esta solicitud ya no está pendiente de revisión.",
     "SOLICITUD_NO_ENCONTRADA": "La solicitud no existe.",
-    "MOTIVO_REQUERIDO": "Escribe el motivo de la decisión."
+    "MOTIVO_REQUERIDO": "Escribe el motivo de la decisión.",
+    "DESTINO_INVALIDO": "Elige un punto de acopio como destino.",
+    "ORIGEN_INVALIDO": "Revisa el origen de la transferencia.",
+    "MISMO_ORIGEN_DESTINO": "El origen y el destino deben ser distintos.",
+    "LOTE_FUERA_DE_ORIGEN": "Uno de los lotes no está en el origen elegido.",
+    "LOTE_YA_INCLUIDO": "Cada lote va una sola vez en la transferencia.",
+    "SIN_ALMACEN": "Aún no tienes un almacén registrado.",
+    "APROBACION_PENDIENTE": "La solicitud entre puntos aún no tiene quien la apruebe.",
+    "TRANSICION_INVALIDA": "La transferencia cambió de estado. Actualiza la página.",
+    "TRANSFERENCIA_NO_ENCONTRADA": "La transferencia no existe.",
+    "NO_ES_DESTINO": "Solo el punto de destino registra la recepción."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -1998,5 +2100,37 @@
         "texto": "{{organizacion}} verá este motivo y podrá adjuntar nuevas evidencias. La decisión queda registrada y no se edita."
       }
     }
+  },
+  "transferencias": {
+    "estado": {
+      "INICIADA": "Iniciada",
+      "SOLICITADA": "Solicitada",
+      "PREPARADA": "Preparada",
+      "DESPACHADA": "En tránsito",
+      "RECIBIDA": "Recibida"
+    },
+    "tipo": {
+      "ALMACEN_A_PUNTO": "De mi almacén a un punto de acopio",
+      "ENTRE_PUNTOS": "Entre puntos de acopio"
+    },
+    "miAlmacen": "Mi almacén",
+    "origen": "Origen",
+    "destino": "Destino",
+    "productor": "Productor",
+    "ruta": "{{origen}} → {{destino}}",
+    "lotesDe": "Lotes de la transferencia {{codigo}}",
+    "col": {
+      "producto": "Producto",
+      "lote": "Lote de origen",
+      "vence": "Vence",
+      "cantidad": "Cantidad",
+      "loteDestino": "Lote de destino"
+    },
+    "sinVencimiento": "Sin vencimiento",
+    "observacion": "Observación",
+    "historial": "Historial",
+    "verDetalle": "Ver detalle",
+    "ocultarDetalle": "Ocultar detalle",
+    "pendienteAprobador": "Aún no está definido quién aprueba las transferencias entre puntos: la solicitud queda registrada y no compromete unidades."
   }
 }

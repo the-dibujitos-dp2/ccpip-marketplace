@@ -70,7 +70,8 @@
       "almacen": "Warehouse",
       "lotes": "Batches",
       "pedidos": "Orders",
-      "cuenta": "Bank account"
+      "cuenta": "Bank account",
+      "transferencias": "Transfers"
     },
     "tabla": {
       "producto": "Product",
@@ -666,6 +667,73 @@
         "AHORROS": "Savings account",
         "CORRIENTE": "Checking account"
       }
+    },
+    "transferencias": {
+      "titulo": "My transfers",
+      "nueva": "New transfer",
+      "vistas": "Transfers",
+      "enCurso": "In progress ({{total}})",
+      "historial": "History ({{total}})",
+      "lista": "Transfer list",
+      "resumen": "{{lotes}} batch(es) · {{cantidad}} units",
+      "creada": "Transfer {{codigo}} recorded",
+      "errorCargar": "We could not load your transfers",
+      "errorDetalle": "We could not load the details",
+      "vacioEnCurso": "You have no transfers in progress",
+      "vacioHistorial": "You have no closed transfers yet",
+      "vacioTexto": "Start a transfer to move stock from your warehouse to a collection point.",
+      "enTransito": "In transit: not for sale until the destination point records the receipt.",
+      "preparar": {
+        "boton": "Record preparation",
+        "etiqueta": "Record the preparation of {{codigo}}",
+        "titulo": "Record the preparation of {{codigo}}?",
+        "texto": "{{cantidad}} units will be set aside from the origin batches to take to {{destino}}. You will no longer be able to sell them or use them in another transfer.",
+        "hecho": "Transfer {{codigo}} is prepared",
+        "error": "We could not record the preparation"
+      },
+      "despachar": {
+        "boton": "Record dispatch",
+        "etiqueta": "Record the dispatch of {{codigo}}",
+        "titulo": "Record the dispatch of {{codigo}}?",
+        "texto": "The {{cantidad}} prepared units leave for {{destino}}. They are not deducted again and are not sold until the point receives them.",
+        "hecho": "Transfer {{codigo}} is in transit",
+        "error": "We could not record the dispatch"
+      },
+      "form": {
+        "titulo": "New transfer",
+        "tipo": "Transfer type",
+        "tipoTexto": {
+          "ALMACEN_A_PUNTO": "Move stock from your warehouse to a collection point to sell it.",
+          "ENTRE_PUNTOS": "Request to move stock already at one collection point to another."
+        },
+        "solicitud": "It will be recorded as a request",
+        "lugares": "Origin and destination",
+        "elegirPunto": "Choose a collection point",
+        "fichaOrigen": "Origin location",
+        "fichaDestino": "Destination location",
+        "nombre": "Name",
+        "zona": "District, province and region",
+        "direccion": "Address",
+        "sinRutas": "Each place shows its registered location; no routes are calculated.",
+        "lotes": "Batches and quantities",
+        "primeroOrigen": "Choose the origin to see its batches.",
+        "sinLotes": "There are no valid batches at {{lugar}}",
+        "sinLotesTexto": "Register a batch or choose another origin.",
+        "loteDatos": "Batch {{codigo}} · expires {{vence}} · {{cantidad}} units available",
+        "cantidadDe": "Quantity from batch {{codigo}}",
+        "observacion": "Note (optional)",
+        "observacionAyuda": "Up to 255 characters.",
+        "errorOrigen": "Choose the origin",
+        "errorDestino": "Choose the destination",
+        "errorCantidad": "Enter a quantity greater than zero, with up to 3 decimals",
+        "errorSaldo": "Only {{cantidad}} units are available",
+        "errorLotes": "Enter the quantity for at least one batch",
+        "errorCargar": "We could not load your locations and batches",
+        "errorEnviar": "We could not record the transfer",
+        "iniciar": "Start transfer",
+        "solicitar": "Request transfer",
+        "enviando": "Sending…"
+      }
     }
   },
   "acopio": {
@@ -673,7 +741,8 @@
     "nav": {
       "pedidos": "Orders",
       "movimientos": "Stock movements",
-      "inventario": "Inventory"
+      "inventario": "Inventory",
+      "transferencias": "Transfers"
     },
     "pedidos": {
       "vence": "expires {{fecha}}",
@@ -785,6 +854,29 @@
       },
       "movimiento": "Movement",
       "movimientoDe": "Record a movement for batch {{lote}}"
+    },
+    "transferencias": {
+      "porRecibir": "Transfers to receive ({{total}})",
+      "listaPorRecibir": "Transfers to receive",
+      "todas": "Incoming and outgoing at your point",
+      "listaTodas": "All transfers",
+      "nadaPorRecibir": "No transfers in transit to your point",
+      "nadaPorRecibirTexto": "When a producer dispatches stock to your point, it will appear here.",
+      "vacio": "No transfers yet",
+      "vacioTexto": "Here you will see the transfers entering or leaving your point, with their history.",
+      "sentido": {
+        "ENTRANTE": "Incoming",
+        "SALIENTE": "Outgoing"
+      },
+      "recibir": "Record receipt",
+      "recibirEtiqueta": "Record the receipt of {{codigo}}",
+      "confirmarTitulo": "Record the receipt of {{codigo}}?",
+      "confirmarTexto": "{{cantidad}} units from {{productor}} arrive from {{origen}}. They will go into a new batch at your point and be available for sale.",
+      "recibida": "You received transfer {{codigo}}",
+      "recibidaTexto": "The units are now in a batch at your point.",
+      "errorRecibir": "We could not record the receipt",
+      "errorCargar": "We could not load the transfers",
+      "errorDetalle": "We could not load the details"
     }
   },
   "admin": {
@@ -1204,7 +1296,17 @@
     "SIN_CERTIFICADO_VIGENTE": "To approve, the product needs at least one valid certificate of its own.",
     "SOLICITUD_YA_RESUELTA": "This request is no longer pending review.",
     "SOLICITUD_NO_ENCONTRADA": "The request doesn't exist.",
-    "MOTIVO_REQUERIDO": "Enter the reason for the decision."
+    "MOTIVO_REQUERIDO": "Enter the reason for the decision.",
+    "DESTINO_INVALIDO": "Choose a collection point as the destination.",
+    "ORIGEN_INVALIDO": "Check the origin of the transfer.",
+    "MISMO_ORIGEN_DESTINO": "Origin and destination must be different.",
+    "LOTE_FUERA_DE_ORIGEN": "One of the batches is not at the chosen origin.",
+    "LOTE_YA_INCLUIDO": "Each batch goes only once in the transfer.",
+    "SIN_ALMACEN": "You do not have a registered warehouse yet.",
+    "APROBACION_PENDIENTE": "The request between points has no approver yet.",
+    "TRANSICION_INVALIDA": "The transfer changed status. Refresh the page.",
+    "TRANSFERENCIA_NO_ENCONTRADA": "The transfer does not exist.",
+    "NO_ES_DESTINO": "Only the destination point records the receipt."
   },
   "buscar": {
     "comunidad": "Community",
@@ -1998,5 +2100,37 @@
         "texto": "{{organizacion}} will see this reason and can attach new evidence. The decision is recorded and cannot be edited."
       }
     }
+  },
+  "transferencias": {
+    "estado": {
+      "INICIADA": "Started",
+      "SOLICITADA": "Requested",
+      "PREPARADA": "Prepared",
+      "DESPACHADA": "In transit",
+      "RECIBIDA": "Received"
+    },
+    "tipo": {
+      "ALMACEN_A_PUNTO": "From my warehouse to a collection point",
+      "ENTRE_PUNTOS": "Between collection points"
+    },
+    "miAlmacen": "My warehouse",
+    "origen": "Origin",
+    "destino": "Destination",
+    "productor": "Producer",
+    "ruta": "{{origen}} → {{destino}}",
+    "lotesDe": "Batches in transfer {{codigo}}",
+    "col": {
+      "producto": "Product",
+      "lote": "Origin batch",
+      "vence": "Expires",
+      "cantidad": "Quantity",
+      "loteDestino": "Destination batch"
+    },
+    "sinVencimiento": "No expiry",
+    "observacion": "Note",
+    "historial": "History",
+    "verDetalle": "View details",
+    "ocultarDetalle": "Hide details",
+    "pendienteAprobador": "Who approves transfers between points is not defined yet: the request is recorded and does not commit any units."
   }
 }
