@@ -29,6 +29,16 @@ export const proponerDescripcion = (datos) => apiFetch(`${base}/ia/descripcion`,
 export const rechazarBorrador = async (id, borrador) =>
   apiFetch(`${base}/productos/${idRuta(id)}/ia/rechazar?${new URLSearchParams({ borrador })}`, { method: 'POST' })
 
+// CCPIP-147 y CCPIP-170: traduccion del producto (PW-04) y de la tienda (PW-08). `idioma` es el de
+// destino. Traducir responde 503 TRADUCCION_NO_DISPONIBLE si no hay proveedor; nada se publica
+// hasta aprobar, donde `textos` lleva las correcciones [{ entidad, campo, texto }].
+const rutaTraducciones = (productoId, idioma) =>
+  productoId ? `${base}/productos/${idRuta(productoId)}/traducciones/${idioma}` : `${base}/tienda/traducciones/${idioma}`
+export const consultarTraducciones = async (productoId, idioma) => apiFetch(rutaTraducciones(productoId, idioma))
+export const traducirContenido = async (productoId, idioma) => apiFetch(rutaTraducciones(productoId, idioma), { method: 'POST' })
+export const aprobarTraducciones = async (productoId, idioma, textos = []) =>
+  apiFetch(`${rutaTraducciones(productoId, idioma)}/aprobar`, { method: 'POST', body: { textos } })
+
 export const listarUbicaciones = () => apiFetch(`${base}/ubicaciones`)
 
 // CCPIP-136 y CCPIP-162 (PW-16): su almacen virtual unico, por producto, ubicacion, lote y estado
@@ -36,6 +46,8 @@ export const consultarInventario = () => apiFetch(`${base}/inventario`)
 
 // CCPIP-66 (PW-07): solo las lineas propias de cada pedido pagado, con conteos por estado
 export const listarPedidos = (estado) => apiFetch(`${base}/pedidos?${new URLSearchParams({ estado })}`)
+// CCPIP-161: todos sus lotes, de todos sus productos, primero el que vence antes
+export const listarTodosLosLotes = () => apiFetch(`${base}/lotes`)
 export const listarLotes = async (id) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`)
 export const registrarLote = async (id, datos) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`, { method: 'POST', body: datos })
 
@@ -62,6 +74,19 @@ export async function reemplazarImagen(imagenId, archivo) {
   datos.append('archivo', archivo)
   return enviarArchivo(`${base}/imagenes/${idRuta(imagenId)}/reemplazo`, datos)
 }
+
+// IA sobre las fotos (PW-04). Solo recomienda o propone: nada bloquea publicar ni cambia una foto solo.
+/** CCPIP-144: pedir la validacion de correspondencia con la linea. 503 IA_NO_DISPONIBLE si no hay IA. */
+export const validarImagen = async (imagenId) => apiFetch(`${base}/imagenes/${idRuta(imagenId)}/validacion`, { method: 'POST' })
+/** CCPIP-168: la ultima validacion de cada foto vigente del producto. */
+export const listarValidaciones = async (productoId) =>
+  apiFetch(`${base}/imagenes/validaciones?${new URLSearchParams({ productoId: String(productoId) })}`)
+/** CCPIP-176 y CCPIP-272: pide (o recupera) la version mejorada pendiente, con lo necesario para comparar. */
+export const mejorarImagen = async (imagenId) => apiFetch(`${base}/imagenes/${idRuta(imagenId)}/mejora`, { method: 'POST' })
+/** CCPIP-282: usar la mejorada; devuelve la foto nueva que toma el lugar de la original. */
+export const aceptarMejora = async (imagenId) => apiFetch(`${base}/imagenes/${idRuta(imagenId)}/mejora/aceptar`, { method: 'POST' })
+/** CCPIP-281: conservar la original. */
+export const rechazarMejora = async (imagenId) => apiFetch(`${base}/imagenes/${idRuta(imagenId)}/mejora/rechazar`, { method: 'POST' })
 
 async function enviarArchivo(url, datos) {
   const res = await fetch(url, { method: 'POST', body: datos, credentials: 'same-origin' })

@@ -29,8 +29,9 @@ FROM (VALUES
     ('UNIDAD', 'SOBRE', 'Sachet')
 ) AS d(entidad, clave, texto)
 ON CONFLICT (entidad, clave, campo, idioma) DO UPDATE SET
-    texto = EXCLUDED.texto, estado = 'APROBADA', aprobada_en = coalesce(traduccion.aprobada_en, now()), actualizado_en = now()
-WHERE traduccion.texto <> EXCLUDED.texto OR traduccion.estado <> 'APROBADA';
+    texto = EXCLUDED.texto, estado = 'APROBADA', origen = 'COMUNIDAD', proveedor = NULL,
+    aprobada_en = coalesce(traduccion.aprobada_en, now()), actualizado_en = now()
+WHERE traduccion.estado <> 'DESACTUALIZADA' AND (traduccion.texto <> EXCLUDED.texto OR traduccion.estado <> 'APROBADA');
 
 -- Productos sembrados: nombre, descripcion e historia aprobada (CCPIP-166)
 INSERT INTO traduccion (entidad, clave, campo, idioma, texto, estado, aprobada_en)
@@ -72,8 +73,9 @@ JOIN productor p ON p.id = pr.productor_id
 JOIN usuario u ON u.id = p.usuario_id
 WHERE u.correo IN ('productor@ccpip.test', 'productor2@ccpip.test', 'productor3@ccpip.test')
 ON CONFLICT (entidad, clave, campo, idioma) DO UPDATE SET
-    texto = EXCLUDED.texto, estado = 'APROBADA', aprobada_en = coalesce(traduccion.aprobada_en, now()), actualizado_en = now()
-WHERE traduccion.texto <> EXCLUDED.texto OR traduccion.estado <> 'APROBADA';
+    texto = EXCLUDED.texto, estado = 'APROBADA', origen = 'COMUNIDAD', proveedor = NULL,
+    aprobada_en = coalesce(traduccion.aprobada_en, now()), actualizado_en = now()
+WHERE traduccion.estado <> 'DESACTUALIZADA' AND (traduccion.texto <> EXCLUDED.texto OR traduccion.estado <> 'APROBADA');
 
 -- Tiendas (CCPIP-357) y comunidades (CCPIP-358) sembradas. Los nombres propios no se traducen.
 INSERT INTO traduccion (entidad, clave, campo, idioma, texto, estado, aprobada_en)
@@ -92,5 +94,6 @@ FROM (VALUES
 JOIN usuario u ON u.correo = d.correo
 JOIN productor p ON p.usuario_id = u.id
 ON CONFLICT (entidad, clave, campo, idioma) DO UPDATE SET
-    texto = EXCLUDED.texto, estado = 'APROBADA', aprobada_en = coalesce(traduccion.aprobada_en, now()), actualizado_en = now()
-WHERE traduccion.texto <> EXCLUDED.texto OR traduccion.estado <> 'APROBADA';
+    texto = EXCLUDED.texto, estado = 'APROBADA', origen = 'COMUNIDAD', proveedor = NULL,
+    aprobada_en = coalesce(traduccion.aprobada_en, now()), actualizado_en = now()
+WHERE traduccion.estado <> 'DESACTUALIZADA' AND (traduccion.texto <> EXCLUDED.texto OR traduccion.estado <> 'APROBADA');

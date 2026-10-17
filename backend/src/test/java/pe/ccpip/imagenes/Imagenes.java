@@ -26,6 +26,28 @@ public final class Imagenes {
         return codificar(lienzo(ancho, alto, BufferedImage.TYPE_INT_ARGB), "png");
     }
 
+    /** Una foto de un solo color, para el validador simulado (CCPIP-144). */
+    public static byte[] color(int ancho, int alto, Color color) {
+        BufferedImage img = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = img.createGraphics();
+        g.setColor(color);
+        g.fillRect(0, 0, ancho, alto);
+        g.dispose();
+        return codificar(img, "jpg");
+    }
+
+    /** Degradado gris de poco contraste (de 100 a 150), para que la mejora tenga que estirar algo. */
+    public static byte[] apagada(int ancho, int alto) {
+        BufferedImage img = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+        for (int x = 0; x < ancho; x++) {
+            int v = 100 + 50 * x / Math.max(1, ancho - 1);
+            for (int y = 0; y < alto; y++) {
+                img.setRGB(x, y, (v << 16) | (v << 8) | v);
+            }
+        }
+        return codificar(img, "jpg");
+    }
+
     /** Mitad izquierda roja y derecha azul: permite verificar hacia donde se giro la imagen. */
     static BufferedImage lienzo(int ancho, int alto, int tipo) {
         BufferedImage img = new BufferedImage(ancho, alto, tipo);

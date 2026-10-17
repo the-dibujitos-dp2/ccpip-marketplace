@@ -1,0 +1,63 @@
+{
+  "id": 41,
+  "estado": "SOLICITADA",
+  "motivo": null,
+  "solicitadaEn": "2026-10-12T15:00:00Z",
+  "decididaEn": null,
+  "vigenteHasta": null,
+  "productoId": 9,
+  "producto": "Camu camu en polvo 150 g",
+  "linea": "Superfrutos",
+  "productor": { "id": 1, "organizacion": "Asoc. Nii Joi", "comunidad": "Comunidad Shipibo Konibo de Yarinacocha", "pueblo": "Shipibo-Konibo", "region": "Ucayali" },
+  "evidencias": [
+    {
+      "id": "6f1c2a4e-1b2c-4d3e-8f90-112233445566",
+      "productoId": 9,
+      "tipo": "CERTIFICADO",
+      "titulo": "Certificado orgánico de camu camu",
+      "emisor": "Control Unión",
+      "vigenteDesde": "2026-01-10",
+      "vigenteHasta": "2027-03-31",
+      "vencida": false,
+      "nombreArchivo": "certificado_organico_2026.pdf",
+      "formato": "PDF",
+      "bytes": 182044,
+      "subidaEn": "2026-10-12T15:00:00Z",
+      "url": "/api/admin/autorizaciones/41/evidencias/6f1c2a4e-1b2c-4d3e-8f90-112233445566/archivo"
+    },
+    {
+      "id": "7a2d3b5f-2c3d-4e4f-9a01-223344556677",
+      "productoId": 9,
+      "tipo": "CERTIFICADO",
+      "titulo": "Registro sanitario de cacao",
+      "emisor": "DIGESA",
+      "vigenteDesde": null,
+      "vigenteHasta": "2027-06-30",
+      "vencida": false,
+      "nombreArchivo": "registro_sanitario.jpg",
+      "formato": "JPG",
+      "bytes": 90122,
+      "subidaEn": "2026-10-12T15:05:00Z",
+      "url": "/api/admin/autorizaciones/41/evidencias/7a2d3b5f-2c3d-4e4f-9a01-223344556677/archivo"
+    },
+    {
+      "id": "8b3e4c60-3d4e-4f50-8b12-334455667788",
+      "productoId": 9,
+      "tipo": "DOCUMENTO",
+      "titulo": "Acta comunal 2025",
+      "emisor": null,
+      "vigenteDesde": null,
+      "vigenteHasta": null,
+      "vencida": false,
+      "nombreArchivo": "acta_comunal_2025.pdf",
+      "formato": "PDF",
+      "bytes": 45120,
+      "subidaEn": "2026-10-12T15:07:00Z",
+      "url": "/api/admin/autorizaciones/41/evidencias/8b3e4c60-3d4e-4f50-8b12-334455667788/archivo"
+    }
+  ],
+  "certificadosVigentes": 2,
+  "analisis": null,
+  "decisiones": [],
+  "puedeDecidir": true
+}
