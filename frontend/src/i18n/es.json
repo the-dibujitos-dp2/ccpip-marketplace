@@ -672,7 +672,8 @@
     "rol": "Punto de acopio",
     "nav": {
       "pedidos": "Pedidos",
-      "movimientos": "Movimientos"
+      "movimientos": "Movimientos",
+      "inventario": "Inventario"
     },
     "pedidos": {
       "vence": "vence {{fecha}}",
@@ -746,9 +747,44 @@
         "TRANSFERENCIA_ENTRADA": "Transferencia",
         "SALIDA_VENTA": "Salida",
         "TRANSFERENCIA_SALIDA": "Transferencia",
-        "AJUSTE": "Ajuste"
+        "AJUSTE": "Ajuste",
+        "SALIDA": "Salida"
       },
       "compraEnLinea": "Compra en línea"
+    },
+    "inventario": {
+      "buscar": "Buscar producto o lote…",
+      "productor": "Productor",
+      "todos": "Todos",
+      "estadoLote": "Estado del lote",
+      "estado": {
+        "ACTIVOS": "Activos",
+        "AGOTADOS": "Agotados",
+        "TODOS": "Todos"
+      },
+      "unSoloInventario": "Un solo inventario, calculado a partir de los movimientos",
+      "unSoloInventarioTexto": "El stock disponible para venta se descuenta al confirmarse cada compra, no cuando el comprador recoge. Lo vencido no se vende; lo que está en tránsito o es merma no suma aquí.",
+      "errorCargar": "No pudimos cargar el inventario",
+      "resumen": "Stock: {{stock}} und · Vendible: {{vendible}} und · No vendible: {{noVendible}} und",
+      "vacio": "No hay lotes con estos filtros",
+      "vacioTexto": "Aquí verás los lotes de tu punto, con sus entradas, salidas y estado.",
+      "mostrando": "Mostrando {{desde}}–{{hasta}} de {{total}} lotes",
+      "lista": "Inventario del punto",
+      "col": {
+        "vence": "Vence",
+        "entradas": "Entradas",
+        "salidas": "Salidas",
+        "stock": "Stock",
+        "accion": "Acción"
+      },
+      "estados": {
+        "DISPONIBLE": "Disponible",
+        "POR_VENCER": "Por vencer",
+        "VENCIDO": "Vencido",
+        "AGOTADO": "Agotado"
+      },
+      "movimiento": "Movimiento",
+      "movimientoDe": "Registrar un movimiento del lote {{lote}}"
     }
   },
   "admin": {
@@ -1126,6 +1162,11 @@
     "CAMBIO_NO_ENCONTRADO": "No encontramos ese cambio de comisión.",
     "RANGO_INVALIDO": "La fecha inicial debe ser anterior o igual a la final.",
     "RANGO_MUY_LARGO": "Consulta como máximo un año a la vez.",
+    "SALDO_INSUFICIENTE": "El lote no tiene tantas unidades: no puede salir más de su saldo.",
+    "LOTE_VENCIDO": "El lote está vencido: no puede recibir más unidades.",
+    "LOTE_NO_ENCONTRADO": "El lote no existe en tu punto o almacén.",
+    "MOTIVO_INVALIDO": "Ese motivo no corresponde a este movimiento.",
+    "ENVIO_REUTILIZADO": "Este envío ya se usó para otro movimiento. Vuelve a abrir el formulario.",
     "TRADUCCION_NO_DISPONIBLE": "La traducción automática no está disponible en este momento. Tu contenido se conserva en su idioma original.",
     "IDIOMA_NO_TRADUCIBLE": "El contenido se escribe en español; solo se puede traducir al inglés.",
     "CAMPO_NO_TRADUCIBLE": "Ese campo no existe o no tiene texto en español para traducir.",
@@ -1624,6 +1665,49 @@
       "descripcion": "Revisa que lo hayas copiado completo o pide uno nuevo con tu correo."
     },
     "pedirNuevo": "Pedir un enlace nuevo"
+  },
+  "movimiento": {
+    "titulo": "Registrar movimiento",
+    "tipoEtiqueta": "Tipo de movimiento",
+    "tipo": {
+      "ENTRADA": "Entrada",
+      "SALIDA": "Salida"
+    },
+    "registrar": {
+      "ENTRADA": "Registrar entrada",
+      "SALIDA": "Registrar salida"
+    },
+    "productor": "Productor",
+    "producto": "Producto",
+    "lote": "Lote",
+    "cantidad": "Cantidad",
+    "motivo": "Motivo",
+    "observacion": "Observación (opcional)",
+    "resultante": "Stock resultante: {{cantidad}} und",
+    "vence": "vence {{fecha}}",
+    "sinLotes": {
+      "ENTRADA": "Este producto no tiene lotes vigentes aquí.",
+      "SALIDA": "Este producto no tiene lotes con saldo aquí."
+    },
+    "motivos": {
+      "RECEPCION": "Recepción del productor",
+      "DEVOLUCION_PRODUCTOR": "Devolución al productor",
+      "PRODUCCION": "Cosecha o producción",
+      "RETIRO_PRODUCTOR": "Retiro del productor"
+    },
+    "validacion": {
+      "lote": "Elige el lote",
+      "cantidad": "Escribe una cantidad mayor a cero, con hasta 3 decimales",
+      "saldo": "El lote tiene {{cantidad}} und: no puede salir más",
+      "motivo": "Elige el motivo"
+    },
+    "error": "No pudimos registrar el movimiento",
+    "errorLotes": "No pudimos cargar los lotes",
+    "registrado": {
+      "ENTRADA": "Entrada de {{cantidad}} und registrada en el lote {{lote}}",
+      "SALIDA": "Salida de {{cantidad}} und registrada del lote {{lote}}"
+    },
+    "saldo": "El lote queda con {{cantidad}} und."
   },
   "traduccion": {
     "aviso": "Contenido traducido",
