@@ -75,6 +75,19 @@ export async function reemplazarImagen(imagenId, archivo) {
   return enviarArchivo(`${base}/imagenes/${idRuta(imagenId)}/reemplazo`, datos)
 }
 
+// IA sobre las fotos (PW-04). Solo recomienda o propone: nada bloquea publicar ni cambia una foto solo.
+/** CCPIP-144: pedir la validacion de correspondencia con la linea. 503 IA_NO_DISPONIBLE si no hay IA. */
+export const validarImagen = async (imagenId) => apiFetch(`${base}/imagenes/${idRuta(imagenId)}/validacion`, { method: 'POST' })
+/** CCPIP-168: la ultima validacion de cada foto vigente del producto. */
+export const listarValidaciones = async (productoId) =>
+  apiFetch(`${base}/imagenes/validaciones?${new URLSearchParams({ productoId: String(productoId) })}`)
+/** CCPIP-176 y CCPIP-272: pide (o recupera) la version mejorada pendiente, con lo necesario para comparar. */
+export const mejorarImagen = async (imagenId) => apiFetch(`${base}/imagenes/${idRuta(imagenId)}/mejora`, { method: 'POST' })
+/** CCPIP-282: usar la mejorada; devuelve la foto nueva que toma el lugar de la original. */
+export const aceptarMejora = async (imagenId) => apiFetch(`${base}/imagenes/${idRuta(imagenId)}/mejora/aceptar`, { method: 'POST' })
+/** CCPIP-281: conservar la original. */
+export const rechazarMejora = async (imagenId) => apiFetch(`${base}/imagenes/${idRuta(imagenId)}/mejora/rechazar`, { method: 'POST' })
+
 async function enviarArchivo(url, datos) {
   const res = await fetch(url, { method: 'POST', body: datos, credentials: 'same-origin' })
   restartIdle()
