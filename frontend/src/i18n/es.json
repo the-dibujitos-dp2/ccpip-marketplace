@@ -118,7 +118,12 @@
       "cambiarProducto": "Cambiar producto",
       "deEsteProducto": "Lotes de este producto",
       "fefo": "Se vende primero el lote que vence antes",
-      "fefoTexto": "Un lote vencido no se vende y deja de contar como stock disponible."
+      "fefoTexto": "Un lote vencido no se vende y deja de contar como stock disponible.",
+      "todos": "Todos tus lotes",
+      "todosTexto": "De todos tus productos, primero el que vence antes. El stock de cada lote es lo que queda tras su entrada y sus ventas.",
+      "sinLotesTodos": "Aún no registraste lotes. Elige un producto para registrar el primero.",
+      "errorTodos": "No pudimos cargar tus lotes",
+      "verLotesDe": "Ver los lotes de {{producto}}"
     },
     "lote": {
       "validacion": {
@@ -146,6 +151,7 @@
       "registrando": "Registrando…",
       "sinLotes": "Aún no hay lotes registrados para este producto.",
       "tabla": {
+        "producto": "Producto",
         "lote": "Lote",
         "vence": "Vence",
         "stock": "Stock",
@@ -458,7 +464,7 @@
       "siguienteHistoria": "Siguiente: historia",
       "vistaPrevia": "Vista previa en el catálogo",
       "recibiras": "Recibirás {{monto}} por unidad",
-      "comision": "Comisión de la Cámara: {{porcentaje}} % (valor de ejemplo, configurable)."
+      "comision": "Comisión de la Cámara: {{porcentaje}} % (valor de ejemplo, configurable). Los descuentos solo los aplica la Cámara."
     },
     "historia": {
       "preguntas": {
@@ -1073,6 +1079,7 @@
     "PEDIDO_NO_ENCONTRADO": "El pedido no existe.",
     "PERSONA_NO_COINCIDE": "La persona no es quien compró ni la persona autorizada de este pedido.",
     "PRECIO_MAYORISTA_INVALIDO": "El precio mayorista debe ser menor que el minorista.",
+    "CAMPO_NO_PERMITIDO": "Solo fijas el precio ordinario: no existen descuentos ni precios promocionales.",
     "PRODUCCION_FUTURA": "La fecha de producción no puede ser posterior a hoy.",
     "PRODUCTO_INCOMPLETO": "Un producto publicado debe conservar sus datos completos.",
     "PRODUCTO_NO_ENCONTRADO": "El producto no existe o ya no está disponible.",
@@ -1080,7 +1087,7 @@
     "PRODUCTO_REQUERIDO": "Indica a qué producto pertenece la foto.",
     "PRODUCTOR_SIN_REGISTRO": "Tu cuenta aún no está asociada a una comunidad productora. Comunícate con la CCPIP.",
     "SIN_PERMISO": "Tu cuenta no tiene permiso para esta acción.",
-    "SOLO_MAYORISTA": "La compra mayorista estará disponible pronto.",
+    "MINIMO_MAYORISTA": "Este producto se vende solo por mayor y la cantidad no llega al mínimo.",
     "SOLO_PUBLICADOS": "Solo se puede despublicar un producto publicado.",
     "STOCK_INSUFICIENTE": "No quedan suficientes unidades disponibles.",
     "TIENDA_INCOMPLETA": "Para publicar tu tienda completa los datos que faltan.",
@@ -1277,8 +1284,9 @@
       "compraRapida": "Compra rápida",
       "cantidad": "Cantidad a agregar",
       "soloMayorista": "Este producto se vende solo por mayor: mínimo {{minimo}} und",
-      "mayoristaPronto": "La compra mayorista estará disponible pronto en el carrito.",
-      "ambas": "Desde {{minimo}} und el precio mayorista ({{precio}} c/u) estará disponible pronto; por ahora el carrito usa el precio minorista.",
+      "faltaParaAgregar_one": "Agrega {{count}} und más para poder agregarlo al carrito",
+      "faltaParaAgregar_other": "Agrega {{count}} und más para poder agregarlo al carrito",
+      "desdeMayorista": "Desde {{minimo}} und pagas {{precio}} c/u (precio mayorista).",
       "resumenMinorista": "{{precio}} minorista",
       "resumenMayorista": "{{precio}} desde {{minimo}} und"
     },
@@ -1291,7 +1299,7 @@
     "problema": {
       "STOCK_INSUFICIENTE": "Solo quedan {{quedan}}: ajusta la cantidad",
       "AGOTADO": "Agotado por ahora",
-      "SOLO_MAYORISTA": "Solo se vende por mayor",
+      "SOLO_MAYORISTA": "Solo por mayor: mínimo {{minimo}} und",
       "NO_DISPONIBLE": "Ya no está disponible",
       "VENTA_PAUSADA": "Venta pausada temporalmente"
     },
@@ -1317,6 +1325,19 @@
     "cosechaDe": "cosecha de {{mes}}",
     "deTienda": "de {{nombre}}",
     "precioCadaUno": "{{precio}} c/u",
+    "precioMayoristaCadaUno": "{{precio}} c/u · precio mayorista",
+    "mayorista": {
+      "falta_one": "Agrega {{count}} unidad más para acceder al precio mayorista",
+      "falta_other": "Agrega {{count}} unidades más para acceder al precio mayorista",
+      "faltaConPrecio_one": "Agrega {{count}} unidad más para acceder al precio mayorista ({{precio}} c/u)",
+      "faltaConPrecio_other": "Agrega {{count}} unidades más para acceder al precio mayorista ({{precio}} c/u)",
+      "avance": "{{cantidad}} de {{minimo}} und · el precio cambia solo al llegar al mínimo",
+      "avanceTienda": "{{cantidad}} de {{minimo}} und · el precio cambia solo al llegar al mínimo que definió {{tienda}}",
+      "aplicado": "Precio mayorista aplicado: {{precio}} c/u",
+      "ahorro": "Ahorras {{monto}} frente al precio minorista",
+      "faltaParaComprar_one": "Agrega {{count}} und más para poder comprarlo",
+      "faltaParaComprar_other": "Agrega {{count}} und más para poder comprarlo"
+    },
     "cantidadDe": "Cantidad de {{nombre}}",
     "guardando": "Guardando…",
     "quitar": "Quitar {{nombre}} del carrito",

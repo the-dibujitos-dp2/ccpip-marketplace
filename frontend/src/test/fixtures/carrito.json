@@ -21,7 +21,12 @@
             "cantidad": 14.0,
             "subtotal": 728.0,
             "estado": "DISPONIBLE",
-            "disponibles": null
+            "disponibles": null,
+            "tarifa": "MINORISTA",
+            "precioMinorista": 52.0,
+            "precioMayorista": null,
+            "minimoMayorista": null,
+            "faltanteMayorista": null
         },
         {
             "productoId": 1,
@@ -44,7 +49,12 @@
             "cantidad": 2.0,
             "subtotal": 84.0,
             "estado": "DISPONIBLE",
-            "disponibles": null
+            "disponibles": null,
+            "tarifa": "MINORISTA",
+            "precioMinorista": 42.0,
+            "precioMayorista": null,
+            "minimoMayorista": null,
+            "faltanteMayorista": null
         }
     ],
     "unidades": 16.0,

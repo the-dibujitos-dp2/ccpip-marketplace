@@ -1,0 +1,13 @@
+/* CCPIP-134: "Cantidad mínima mayorista" (Figma 175:730) */
+.minimo-mayorista { display: flex; flex-direction: column; gap: 8px; width: 100%; padding: 12px; border-radius: var(--radius-m); }
+.minimo-mayorista p { margin: 0; }
+.minimo-mayorista__titulo { display: flex; align-items: flex-start; gap: 8px; font-weight: 600; font-size: 14px; line-height: 20px; }
+.minimo-mayorista__titulo .icono { flex-shrink: 0; margin-top: 1px; }
+.minimo-mayorista__barra { height: 4px; border-radius: 2px; background: var(--color-bg-surface); overflow: hidden; }
+.minimo-mayorista__barra span { display: block; height: 100%; border-radius: 2px; background: var(--color-bg-brand); }
+.minimo-mayorista__detalle { color: var(--color-text-secondary); }
+
+.minimo-mayorista--falta { background: var(--color-bg-sand); color: var(--color-text-primary); }
+.minimo-mayorista--alcanzado { background: var(--color-status-success-bg); color: var(--color-status-success-fg); }
+.minimo-mayorista--bloqueado { background: var(--color-status-error-bg); color: var(--color-status-error-fg); }
+.minimo-mayorista--bloqueado .minimo-mayorista__barra span { background: var(--color-status-error-fg); }

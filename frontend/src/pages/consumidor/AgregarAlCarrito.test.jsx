@@ -63,7 +63,7 @@ describe('CW-03b Barra de compra persistente (CCPIP-58)', () => {
     await waitFor(() => expect(barra()).not.toBeInTheDocument())
   })
 
-  it('muestra en la barra el error de cantidad y no aparece en ofertas solo mayoristas', async () => {
+  it('muestra en la barra el error de cantidad y el minimo de las ofertas solo mayoristas', async () => {
     servidor({ ...conSesion, ...ficha({ modalidad: 'AMBAS', precioMayorista: 35, cantidadMinimaMayorista: 12 }) })
     const user = userEvent.setup()
     const { unmount } = abrirEn('/productos/1')
@@ -76,12 +76,19 @@ describe('CW-03b Barra de compra persistente (CCPIP-58)', () => {
     expect(within(compra).getByRole('status')).toHaveTextContent('La cantidad mínima es una unidad')
     unmount()
 
+    // CCPIP-134: la barra arranca en el minimo y, bajo el, dice cuanto falta y no deja agregar
     servidor({ ...conSesion, ...ficha({ modalidad: 'MAYORISTA', precio: null, precioMayorista: 30, cantidadMinimaMayorista: 10 }) })
     abrirEn('/productos/1')
-    await screen.findByText(/se vende solo por mayor/)
+    await screen.findByRole('button', { name: 'Agregar al carrito' })
     moverPanel('arriba')
-    await new Promise((r) => requestAnimationFrame(r))
-    expect(barra()).not.toBeInTheDocument()
+    const mayorista = await screen.findByRole('region', { name: 'Compra rápida' })
+    const cantidad = within(mayorista).getByLabelText('Cantidad a agregar')
+    expect(cantidad).toHaveValue('10')
+    expect(within(mayorista).getByRole('status')).toHaveTextContent('S/ 30.00 desde 10 und')
+    await user.clear(cantidad)
+    await user.type(cantidad, '4')
+    expect(within(mayorista).getByRole('status')).toHaveTextContent('Agrega 6 und más para poder agregarlo al carrito')
+    expect(within(mayorista).getByRole('button', { name: 'Agregar al carrito' })).toBeDisabled()
   })
 })
 
@@ -185,23 +192,94 @@ describe('CCPIP-58 Agregar al carrito desde la ficha', () => {
     expect(screen.queryByLabelText('Cantidad')).not.toBeInTheDocument()
   })
 
-  it('una oferta solo mayorista se muestra pero aun no se puede agregar (CW-03c)', async () => {
+})
+
+describe('CW-03c Tarifa mayorista en el panel de compra (CCPIP-134)', () => {
+  const soloMayorista = ficha({ modalidad: 'MAYORISTA', precio: null, precioMayorista: 30, cantidadMinimaMayorista: 10 })
+  const ambas = ficha({ modalidad: 'AMBAS', precioMayorista: 35, cantidadMinimaMayorista: 12 })
+
+  it('una oferta solo mayorista arranca en su minimo y bajo el no se puede agregar', async () => {
     const fetchMock = servidor({
       ...conSesion,
-      ...ficha({ modalidad: 'MAYORISTA', precio: null, precioMayorista: 30, cantidadMinimaMayorista: 10 }),
+      ...soloMayorista,
+      'POST /api/carrito/items': [200, { productoId: 1, cantidad: 10, articulos: 1 }],
     })
+    const user = userEvent.setup()
     abrirEn('/productos/1')
-    expect(await screen.findByRole('alert')).toHaveTextContent('Este producto se vende solo por mayor: mínimo 10 und')
+    const campo = await screen.findByLabelText('Cantidad')
+    expect(campo).toHaveValue('10')
+    // No baja de su minimo
+    expect(screen.getByRole('button', { name: 'Quitar una unidad' })).toBeDisabled()
+
+    await escribirCantidad(user, '4')
+    expect(screen.getByText('Este producto se vende solo por mayor: mínimo 10 und')).toBeInTheDocument()
+    expect(screen.getByText('Agrega 6 und más para poder agregarlo al carrito')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Agregar al carrito' })).toBeDisabled()
-    expect(screen.getByLabelText('Cantidad')).toBeDisabled()
-    expect(llamadas(fetchMock, 'POST /api/carrito/items')).toHaveLength(0)
+
+    // "+" lleva directo al minimo
+    await user.click(screen.getByRole('button', { name: 'Agregar una unidad' }))
+    expect(campo).toHaveValue('10')
+    expect(screen.queryByText(/para poder agregarlo al carrito/)).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Agregar al carrito' }))
+    expect(await screen.findByText('Agregaste 10 unidades a tu carrito')).toBeInTheDocument()
+    const enviados = llamadas(fetchMock, 'POST /api/carrito/items')
+    expect(enviados).toHaveLength(1)
+    expect(JSON.parse(enviados[0][1].body).cantidad).toBe(10)
   })
 
-  it('en una oferta con ambas modalidades avisa que por ahora se compra al precio minorista', async () => {
-    servidor({ ...conSesion, ...ficha({ modalidad: 'AMBAS', precioMayorista: 35, cantidadMinimaMayorista: 12 }) })
+  it('con ambas modalidades el mayorista se aplica solo desde el minimo y se informa cuanto falta', async () => {
+    servidor({ ...conSesion, ...ambas })
+    const user = userEvent.setup()
     abrirEn('/productos/1')
-    expect(await screen.findByText(/Desde 12 und el precio mayorista \(S\/\s?35\.00 c\/u\)/)).toBeInTheDocument()
-    expect(screen.getByText(/por ahora el carrito usa el precio minorista/)).toBeInTheDocument()
+    expect(await screen.findByText('Desde 12 und pagas S/ 35.00 c/u (precio mayorista).')).toBeInTheDocument()
+    const minorista = screen.getByRole('radio', { name: /Precio minorista/ })
+    const mayorista = screen.getByRole('radio', { name: /Precio mayorista/ })
+    expect(minorista).toHaveAttribute('aria-checked', 'true')
+
+    // Elegir el mayorista bajo el minimo dice cuanto falta, sin aplicarlo
+    await user.click(mayorista)
+    expect(mayorista).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByText('Agrega 11 unidades más para acceder al precio mayorista')).toBeInTheDocument()
+    expect(screen.getByText('1 de 12 und · el precio cambia solo al llegar al mínimo')).toBeInTheDocument()
+    await escribirCantidad(user, '11')
+    expect(screen.getByText('Agrega 1 unidad más para acceder al precio mayorista')).toBeInTheDocument()
+
+    await escribirCantidad(user, '12')
+    expect(screen.getByText('Precio mayorista aplicado: S/ 35.00 c/u')).toBeInTheDocument()
+    expect(screen.getByText('Ahorras S/ 84.00 frente al precio minorista')).toBeInTheDocument()
+    expect(screen.queryByText(/para acceder al precio mayorista/)).not.toBeInTheDocument()
+
+    // Volver al minorista es volver a comprar por unidad
+    await user.click(minorista)
+    expect(minorista).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByLabelText('Cantidad')).toHaveValue('1')
+    expect(screen.getByText('Desde 12 und pagas S/ 35.00 c/u (precio mayorista).')).toBeInTheDocument()
+  })
+
+  it('llegar al minimo con el selector marca el precio mayorista aunque se haya elegido el minorista', async () => {
+    servidor({ ...conSesion, ...ambas })
+    const user = userEvent.setup()
+    abrirEn('/productos/1')
+    await escribirCantidad(user, '20')
+    expect(screen.getByRole('radio', { name: /Precio mayorista/ })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByText('Ahorras S/ 140.00 frente al precio minorista')).toBeInTheDocument()
+  })
+
+  it('si el servidor rechaza la cantidad por el minimo mayorista, explica el motivo', async () => {
+    servidor({
+      ...conSesion,
+      ...soloMayorista,
+      'POST /api/carrito/items': [422, {
+        code: 'MINIMO_MAYORISTA',
+        error: 'Este producto se vende solo por mayor: mínimo 12 und. Te faltan 2 und para poder comprarlo.',
+      }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productos/1')
+    await user.click(await screen.findByRole('button', { name: 'Agregar al carrito' }))
+    const alerta = await screen.findByRole('alert')
+    expect(alerta).toHaveTextContent('No pudimos agregarlo')
+    expect(alerta).toHaveTextContent('mínimo 12 und. Te faltan 2 und para poder comprarlo.')
   })
 })
 

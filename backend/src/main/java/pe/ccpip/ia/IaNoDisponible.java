@@ -8,7 +8,16 @@ import pe.ccpip.comun.ErrorNegocio;
 public class IaNoDisponible extends ErrorNegocio {
 
     public IaNoDisponible() {
-        super(HttpStatus.SERVICE_UNAVAILABLE, "IA_NO_DISPONIBLE",
-                "La redacción asistida no está disponible en este momento. Puedes escribir el texto con tus palabras.");
+        this("La redacción asistida no está disponible en este momento. Puedes escribir el texto con tus palabras.");
+    }
+
+    private IaNoDisponible(String mensaje) {
+        super(HttpStatus.SERVICE_UNAVAILABLE, "IA_NO_DISPONIBLE", mensaje);
+    }
+
+    /** CCPIP-50: sin analisis asistido la solicitud se revisa a mano; la decision sigue siendo posible. */
+    public static IaNoDisponible paraRevision() {
+        return new IaNoDisponible("El análisis asistido no está disponible. La solicitud pasa a revisión manual: "
+                + "revisa las evidencias y decide con tu motivo.");
     }
 }

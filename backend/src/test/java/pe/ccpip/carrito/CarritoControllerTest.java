@@ -26,6 +26,7 @@ import pe.ccpip.support.IntegrationTest;
  * CCPIP-58, 155, 268 y 156: el comprador agrega una oferta especifica con su cantidad, consulta
  * su carrito, cambia cantidades y quita ofertas, siempre con precio y stock revalidados. Cada
  * producto de prueba nace con un lote de 5 unidades (ver {@link IntegrationTest#productoConLote}).
+ * CCPIP-134: la tarifa minorista o mayorista que corresponde a la modalidad y la cantidad.
  */
 @Transactional
 class CarritoControllerTest extends IntegrationTest {
@@ -123,14 +124,111 @@ class CarritoControllerTest extends IntegrationTest {
         agregar(consumidor, enAlmacen, 1).andExpect(jsonPath("$.code").value("AGOTADO"));
     }
 
+    // ---------- Tarifa minorista o mayorista (CCPIP-134, RF-108) ----------
+
     @Test
-    void unaOfertaSoloMayoristaAunNoSeAgrega() throws Exception {
-        jdbc.update("""
-                UPDATE producto SET modalidad = 'MAYORISTA', precio = NULL, precio_mayorista = 15,
-                                    cantidad_minima_mayorista = 10 WHERE id = ?""", oferta);
-        agregar(consumidor, oferta, 1)
+    void unaOfertaSoloMayoristaSeAgregaSoloDesdeSuMinimo() throws Exception {
+        aMayorista(oferta, "MAYORISTA");
+        agregar(consumidor, oferta, 4)
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.code").value("SOLO_MAYORISTA"));
+                .andExpect(jsonPath("$.code").value("MINIMO_MAYORISTA"))
+                .andExpect(jsonPath("$.error").value(
+                        "Este producto se vende solo por mayor: mínimo 10 und. Te faltan 6 und para poder comprarlo."));
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM item_carrito WHERE producto_id = ?", Integer.class, oferta))
+                .isZero();
+
+        agregar(consumidor, oferta, 10)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cantidad").value(10));
+        consultar(consumidor)
+                .andExpect(jsonPath("$.items[0].estado").value("DISPONIBLE"))
+                .andExpect(jsonPath("$.items[0].tarifa").value("MAYORISTA"))
+                .andExpect(jsonPath("$.items[0].precio").value(15))
+                .andExpect(jsonPath("$.items[0].precioMinorista").doesNotExist())
+                .andExpect(jsonPath("$.items[0].precioMayorista").value(15))
+                .andExpect(jsonPath("$.items[0].minimoMayorista").value(10))
+                .andExpect(jsonPath("$.items[0].faltanteMayorista").value(0))
+                .andExpect(jsonPath("$.items[0].subtotal").value(150))
+                .andExpect(jsonPath("$.total").value(150));
+    }
+
+    @Test
+    void elMinimoSeCuentaConLoQueYaEstaEnElCarrito() throws Exception {
+        agregar(consumidor, oferta, 5).andExpect(status().isOk());
+        aMayorista(oferta, "MAYORISTA");
+        agregar(consumidor, oferta, 4)
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("MINIMO_MAYORISTA"));
+        agregar(consumidor, oferta, 5)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cantidad").value(10));
+    }
+
+    @Test
+    void conAmbasElMayoristaSeAplicaDesdeElMinimoYSeRecalculaAlEditar() throws Exception {
+        aMayorista(oferta, "AMBAS");
+        agregar(consumidor, oferta, 4).andExpect(status().isOk());
+        consultar(consumidor)
+                .andExpect(jsonPath("$.items[0].estado").value("DISPONIBLE"))
+                .andExpect(jsonPath("$.items[0].tarifa").value("MINORISTA"))
+                .andExpect(jsonPath("$.items[0].precio").value(20))
+                .andExpect(jsonPath("$.items[0].precioMinorista").value(20))
+                .andExpect(jsonPath("$.items[0].precioMayorista").value(15))
+                .andExpect(jsonPath("$.items[0].minimoMayorista").value(10))
+                .andExpect(jsonPath("$.items[0].faltanteMayorista").value(6))
+                .andExpect(jsonPath("$.items[0].subtotal").value(80));
+
+        modificar(consumidor, oferta, 10)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].tarifa").value("MAYORISTA"))
+                .andExpect(jsonPath("$.items[0].precio").value(15))
+                .andExpect(jsonPath("$.items[0].faltanteMayorista").value(0))
+                .andExpect(jsonPath("$.items[0].subtotal").value(150))
+                .andExpect(jsonPath("$.total").value(150));
+
+        // Nunca se aplica el mayorista bajo el minimo
+        modificar(consumidor, oferta, 9)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].tarifa").value("MINORISTA"))
+                .andExpect(jsonPath("$.items[0].precio").value(20))
+                .andExpect(jsonPath("$.items[0].faltanteMayorista").value(1))
+                .andExpect(jsonPath("$.items[0].subtotal").value(180));
+    }
+
+    @Test
+    void siElProductorSubeElMinimoLaTarifaSeRevalidaEnLaConsulta() throws Exception {
+        aMayorista(oferta, "AMBAS");
+        agregar(consumidor, oferta, 10).andExpect(status().isOk());
+        consultar(consumidor).andExpect(jsonPath("$.items[0].tarifa").value("MAYORISTA"));
+
+        jdbc.update("UPDATE producto SET cantidad_minima_mayorista = 12 WHERE id = ?", oferta);
+        consultar(consumidor)
+                .andExpect(jsonPath("$.items[0].tarifa").value("MINORISTA"))
+                .andExpect(jsonPath("$.items[0].faltanteMayorista").value(2))
+                .andExpect(jsonPath("$.total").value(200));
+    }
+
+    @Test
+    void unaOfertaSoloMayoristaNoBajaDelMinimoAlModificar() throws Exception {
+        aMayorista(oferta, "MAYORISTA");
+        agregar(consumidor, oferta, 12).andExpect(status().isOk());
+        modificar(consumidor, oferta, 9)
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("MINIMO_MAYORISTA"))
+                .andExpect(jsonPath("$.error").value(
+                        "Este producto se vende solo por mayor: mínimo 10 und. Te faltan 1 und para poder comprarlo."));
+        consultar(consumidor).andExpect(jsonPath("$.items[0].cantidad").value(12));
+    }
+
+    @Test
+    void unaOfertaMinoristaNoInformaTarifaMayorista() throws Exception {
+        agregar(consumidor, oferta, 2).andExpect(status().isOk());
+        consultar(consumidor)
+                .andExpect(jsonPath("$.items[0].tarifa").value("MINORISTA"))
+                .andExpect(jsonPath("$.items[0].precioMinorista").value(20))
+                .andExpect(jsonPath("$.items[0].precioMayorista").doesNotExist())
+                .andExpect(jsonPath("$.items[0].minimoMayorista").doesNotExist())
+                .andExpect(jsonPath("$.items[0].faltanteMayorista").doesNotExist());
     }
 
     @Test
@@ -176,6 +274,7 @@ class CarritoControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.items[0].cosecha").value(EN_UN_MES.minusDays(60).toString()))
                 .andExpect(jsonPath("$.items[0].tienda.nombre").value("Asoc. Nii Joi"))
                 .andExpect(jsonPath("$.items[0].precio").value(20))
+                .andExpect(jsonPath("$.items[0].tarifa").value("MINORISTA"))
                 .andExpect(jsonPath("$.items[0].cantidad").value(2))
                 .andExpect(jsonPath("$.items[0].subtotal").value(40))
                 .andExpect(jsonPath("$.items[0].estado").value("DISPONIBLE"))
@@ -227,14 +326,22 @@ class CarritoControllerTest extends IntegrationTest {
     }
 
     @Test
-    void unaOfertaQuePasaASoloMayoristaQuedaMarcada() throws Exception {
+    void unaOfertaQuePasaASoloMayoristaQuedaMarcadaHastaLlegarAlMinimo() throws Exception {
         agregar(consumidor, oferta, 1).andExpect(status().isOk());
-        jdbc.update("""
-                UPDATE producto SET modalidad = 'MAYORISTA', precio = NULL, precio_mayorista = 15,
-                                    cantidad_minima_mayorista = 10 WHERE id = ?""", oferta);
+        aMayorista(oferta, "MAYORISTA");
         consultar(consumidor)
                 .andExpect(jsonPath("$.items[0].estado").value("SOLO_MAYORISTA"))
+                .andExpect(jsonPath("$.items[0].tarifa").value("MAYORISTA"))
+                .andExpect(jsonPath("$.items[0].precio").value(15))
+                .andExpect(jsonPath("$.items[0].faltanteMayorista").value(9))
+                .andExpect(jsonPath("$.items[0].subtotal").doesNotExist())
                 .andExpect(jsonPath("$.total").value(0));
+
+        // CCPIP-134: subir la cantidad hasta el minimo la vuelve comprable
+        modificar(consumidor, oferta, 10)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].estado").value("DISPONIBLE"))
+                .andExpect(jsonPath("$.total").value(150));
     }
 
     @Test
@@ -348,9 +455,7 @@ class CarritoControllerTest extends IntegrationTest {
         agregar(consumidor, agotada, 1).andExpect(status().isOk());
         jdbc.update("UPDATE producto SET estado = 'RETIRADO' WHERE id = ?", retirada);
         jdbc.update("UPDATE lote SET cantidad_actual = 0 WHERE producto_id = ?", agotada);
-        jdbc.update("""
-                UPDATE producto SET modalidad = 'MAYORISTA', precio = NULL, precio_mayorista = 15,
-                                    cantidad_minima_mayorista = 10 WHERE id = ?""", oferta);
+        aMayorista(oferta, "MAYORISTA");
 
         modificar(consumidor, retirada, 2)
                 .andExpect(status().isConflict())
@@ -360,7 +465,7 @@ class CarritoControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.code").value("AGOTADO"));
         modificar(consumidor, oferta, 2)
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.code").value("SOLO_MAYORISTA"));
+                .andExpect(jsonPath("$.code").value("MINIMO_MAYORISTA"));
     }
 
     @Test
@@ -570,6 +675,18 @@ class CarritoControllerTest extends IntegrationTest {
         consultar(consumidor)
                 .andExpect(jsonPath("$.items[0].estado").value("DISPONIBLE"))
                 .andExpect(jsonPath("$.total").value(60));
+    }
+
+    /**
+     * CCPIP-134: la oferta pasa a {@code modalidad} (MAYORISTA o AMBAS) con S/ 15 desde 10 und; solo
+     * mayorista pierde el precio minorista. Su lote sube a 40 unidades para que el stock no estorbe.
+     */
+    private void aMayorista(long producto, String modalidad) {
+        jdbc.update("""
+                UPDATE producto SET modalidad = ?, precio = CASE WHEN ? = 'MAYORISTA' THEN NULL ELSE precio END,
+                                    precio_mayorista = 15, cantidad_minima_mayorista = 10 WHERE id = ?""",
+                modalidad, modalidad, producto);
+        jdbc.update("UPDATE lote SET cantidad_inicial = 40, cantidad_actual = 40 WHERE producto_id = ?", producto);
     }
 
     private ResultActions quitar(Cookie sesion, long productoId) throws Exception {

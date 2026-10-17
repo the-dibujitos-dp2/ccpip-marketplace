@@ -25,4 +25,19 @@ public class IaConfig {
         log.info("Redacción asistida por IA: proveedor '{}'", asistente.proveedor());
         return asistente;
     }
+
+    /**
+     * CCPIP-50: mismo selector para el analisis preliminar de evidencias. "simulado" es un resultado
+     * de prueba y se marca como tal; "ninguno" deriva cada solicitud a revision manual.
+     */
+    @Bean
+    AnalistaEvidencias analistaEvidencias(@Value("${ccpip.ia.proveedor:ninguno}") String proveedor) {
+        AnalistaEvidencias analista = switch (proveedor) {
+            case "simulado" -> new AnalistaSimulado();
+            case "ninguno" -> new AnalistaNoConfigurado();
+            default -> throw new IllegalStateException("Proveedor de IA desconocido: " + proveedor);
+        };
+        log.info("Análisis preliminar de evidencias: proveedor '{}'", analista.proveedor());
+        return analista;
+    }
 }
