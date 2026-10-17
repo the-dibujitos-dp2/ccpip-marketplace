@@ -69,3 +69,15 @@
   .admin__barra { grid-template-columns: 1fr 110px; }
   .admin__pista { grid-column: 1 / -1; grid-row: 2; }
 }
+
+/* SA-02 Parametros de la plataforma (CCPIP-142) */
+.parametros { max-width: 720px; gap: 16px; }
+.parametros__cabecera { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.parametros__cabecera .heading-h4, .parametros p { margin: 0; }
+.parametros__texto { color: var(--color-text-secondary); }
+.parametros__formulario { display: grid; grid-template-columns: minmax(0, 320px) auto; align-items: start; gap: 16px; }
+.parametros__formulario .boton { margin-top: 28px; }
+@media (max-width: 640px) {
+  .parametros__formulario { grid-template-columns: minmax(0, 1fr); }
+  .parametros__formulario .boton { margin-top: 0; justify-self: start; }
+}

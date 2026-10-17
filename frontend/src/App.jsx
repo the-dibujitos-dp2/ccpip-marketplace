@@ -10,6 +10,7 @@ import CuentaPage from './pages/CuentaPage.jsx'
 import AccesoRestringidoPage from './pages/admin/AccesoRestringidoPage.jsx'
 import ComisionesPage from './pages/admin/ComisionesPage.jsx'
 import ComisionPage from './pages/admin/ComisionPage.jsx'
+import ParametrosPage from './pages/admin/ParametrosPage.jsx'
 import TableroPage from './pages/admin/TableroPage.jsx'
 import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
 import PedidosPage from './pages/acopio/PedidosPage.jsx'
@@ -212,11 +213,12 @@ export default function App() {
   } else if (restringida) {
     pagina = <AccesoRestringidoPage path={path} seccion={restringida} />
   } else if (delAdmin) {
-    // Tablero (SA-01), comision (SA-02) y comision por pedido; los otros modulos llegan con sus historias
+    // Tablero (SA-01), comision y parametros (SA-02) y comision por pedido; los otros modulos llegan con sus historias
     if (!puedeVerAdmin(user, path)) pagina = null
     else if (path === RUTAS.admin) pagina = <TableroPage path={path} />
     else if (path === RUTAS.adminComision) pagina = <ComisionPage path={path} />
     else if (path === RUTAS.adminComisiones) pagina = <ComisionesPage path={path} />
+    else if (path === RUTAS.adminParametros) pagina = <ParametrosPage path={path} />
     else {
       navigate(RUTAS.admin, { replace: true })
       pagina = null
