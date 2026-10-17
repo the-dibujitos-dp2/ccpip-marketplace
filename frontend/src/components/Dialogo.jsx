@@ -1,10 +1,16 @@
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import iconoCerrar from '../assets/icons/cerrar.svg'
 import Boton from './Boton.jsx'
 import './Dialogo.css'
 
-/** Modal de confirmacion (Figma 36:484). Accesible: <dialog> nativo, Escape cierra y el foco queda dentro. */
-export default function Dialogo({ abierto, titulo, children, confirmar, tipoConfirmar = 'primario', onConfirmar, onCancelar, ocupado }) {
+/**
+ * Modal de confirmacion (Figma 36:484). Accesible: <dialog> nativo, Escape cierra y el foco queda dentro.
+ * `cancelar` y `onCerrar` (opcionales): cuando el boton secundario es una decision (p. ej. "Conservar la
+ * original", CCPIP-281), Escape y la X solo cierran sin decidir. `ancho`: "amplio" para contenido lado a lado.
+ */
+export default function Dialogo({ abierto, titulo, children, confirmar, tipoConfirmar = 'primario', onConfirmar, onCancelar, ocupado,
+  cancelar, tipoCancelar = 'terciario', onCerrar, etiquetaCerrar, ancho }) {
   const { t } = useTranslation()
   const ref = useRef(null)
   useEffect(() => {
@@ -20,14 +26,20 @@ export default function Dialogo({ abierto, titulo, children, confirmar, tipoConf
     }
   }, [abierto])
   return (
-    <dialog ref={ref} className="dialogo" aria-labelledby="dialogo-titulo" onCancel={(e) => { e.preventDefault(); onCancelar() }}>
+    <dialog ref={ref} className={`dialogo${ancho ? ` dialogo--${ancho}` : ''}`} aria-labelledby="dialogo-titulo"
+      onCancel={(e) => { e.preventDefault(); (onCerrar ?? onCancelar)() }}>
       {abierto && (
         <div className="dialogo__contenido">
           <h2 id="dialogo-titulo" className="heading-h2">{titulo}</h2>
+          {onCerrar && (
+            <button type="button" className="dialogo__cerrar" onClick={onCerrar} disabled={ocupado} aria-label={etiquetaCerrar ?? t('comun.cerrarAviso')}>
+              <img src={iconoCerrar} width="20" height="20" alt="" />
+            </button>
+          )}
           <div className="body-s">{children}</div>
           <div className="dialogo__acciones">
-            <Boton tipo="terciario" tamano="M" onClick={onCancelar} disabled={ocupado}>
-              {t('comun.cancelar')}
+            <Boton tipo={tipoCancelar} tamano="M" onClick={onCancelar} disabled={ocupado}>
+              {cancelar ?? t('comun.cancelar')}
             </Boton>
             <Boton tipo={tipoConfirmar} tamano="M" onClick={onConfirmar} disabled={ocupado}>
               {confirmar ?? t('comun.confirmar')}

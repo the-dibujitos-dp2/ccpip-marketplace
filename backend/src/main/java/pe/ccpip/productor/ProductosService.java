@@ -27,6 +27,8 @@ import pe.ccpip.productor.ProductoModelos.ProductoEdicion;
 import pe.ccpip.productor.ProductoModelos.ProductoFila;
 import pe.ccpip.productor.ProductoModelos.Publicable;
 import pe.ccpip.productor.ProductoModelos.Ubicado;
+import pe.ccpip.traduccion.InvalidacionTraducciones;
+import pe.ccpip.traduccion.Traducciones.Entidad;
 
 /**
  * Alta, edicion y estado de los productos del productor (CCPIP-40, 47, 160, 45, 132).
@@ -39,7 +41,7 @@ public class ProductosService {
     /** Stock en venta por debajo del cual PW-03 marca "Stock bajo". */
     static final BigDecimal STOCK_BAJO = BigDecimal.TEN;
     /** Dias de anticipacion para avisar que un lote vence (PW-01: "segun tu alerta de 15 dias"). */
-    static final int DIAS_ALERTA_VENCIMIENTO = 15;
+    public static final int DIAS_ALERTA_VENCIMIENTO = 15;
 
     /** Stock vendible: lotes vigentes con saldo en puntos de acopio (lo que esta en el almacen aun no se vende). */
     static final String EN_VENTA = """
@@ -50,11 +52,14 @@ public class ProductosService {
     private final JdbcTemplate jdbc;
     private final ImagenService imagenes;
     private final Auditoria auditoria;
+    private final InvalidacionTraducciones invalidacion;
 
-    public ProductosService(JdbcTemplate jdbc, ImagenService imagenes, Auditoria auditoria) {
+    public ProductosService(JdbcTemplate jdbc, ImagenService imagenes, Auditoria auditoria,
+                            InvalidacionTraducciones invalidacion) {
         this.jdbc = jdbc;
         this.imagenes = imagenes;
         this.auditoria = auditoria;
+        this.invalidacion = invalidacion;
     }
 
     // ---------- Consulta ----------
@@ -127,6 +132,9 @@ public class ProductosService {
                         "Un producto publicado debe conservar sus datos completos.", faltan);
             }
         }
+        // CCPIP-373: si cambio el original, sus traducciones dejan de publicarse
+        invalidacion.siCambio(Entidad.PRODUCTO, id, "nombre", antes.nombre(), despues.nombre());
+        invalidacion.siCambio(Entidad.PRODUCTO, id, "descripcion", antes.descripcion(), despues.descripcion());
         Map<String, Object> cambios = diferencias(antes, despues);
         if (!cambios.isEmpty()) {
             auditoria.registrar(id, usuarioId, Accion.EDITAR, cambios);

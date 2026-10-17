@@ -1,0 +1,23 @@
+/* CCPIP-171: etiqueta del contenido traducido y "Ver original" */
+.aviso-traduccion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 8px 0 12px;
+}
+
+.aviso-traduccion__alternar {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.aviso-traduccion__desactualizada {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--color-status-warning-fg);
+}

@@ -27,6 +27,30 @@ public class IaConfig {
     }
 
     /**
+     * CCPIP-144 y CCPIP-176: IA de imagenes. Por defecto sigue a {@code ccpip.ia.proveedor}; el
+     * modelo definitivo se agregara aqui como otro valor.
+     */
+    @Bean
+    ValidadorImagen validadorImagen(@Value("${ccpip.ia.imagenes.proveedor:${ccpip.ia.proveedor:ninguno}}") String proveedor) {
+        ValidadorImagen validador = switch (proveedor) {
+            case "simulado" -> new ValidadorImagenSimulado();
+            case "ninguno" -> new ValidadorImagenNoConfigurado();
+            default -> throw new IllegalStateException("Proveedor de IA de imágenes desconocido: " + proveedor);
+        };
+        log.info("Validación de imágenes por IA: proveedor '{}'", validador.proveedor());
+        return validador;
+    }
+
+    @Bean
+    MejoradorImagen mejoradorImagen(@Value("${ccpip.ia.imagenes.proveedor:${ccpip.ia.proveedor:ninguno}}") String proveedor) {
+        return switch (proveedor) {
+            case "simulado" -> new MejoradorImagenSimulado();
+            case "ninguno" -> new MejoradorImagenNoConfigurado();
+            default -> throw new IllegalStateException("Proveedor de IA de imágenes desconocido: " + proveedor);
+        };
+    }
+
+    /**
      * CCPIP-50: mismo selector para el analisis preliminar de evidencias. "simulado" es un resultado
      * de prueba y se marca como tal; "ninguno" deriva cada solicitud a revision manual.
      */

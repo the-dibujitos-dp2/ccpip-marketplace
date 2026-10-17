@@ -307,7 +307,8 @@
       "publicar": "Publish",
       "nota": "You only see your own products. “For sale” is the stock at collection points; what's in your warehouse is sold after you transfer it.",
       "confirmarTitulo": "Unpublish this product?",
-      "confirmarTexto": "will no longer appear in the catalog or in your store. It isn't deleted: it stays in orders and history, and you can publish it again whenever you want."
+      "confirmarTexto": "will no longer appear in the catalog or in your store. It isn't deleted: it stays in orders and history, and you can publish it again whenever you want.",
+      "evidencias": "Certificates and evidence"
     },
     "editor": {
       "nombreAntesFotos": "Enter the product name before adding photos",
@@ -372,6 +373,51 @@
       "subiendo": "Uploading…",
       "agregar": "Add",
       "fotosAyuda": "Up to {{max}} photos. The first one is the main photo: it's the one shown in the catalog.",
+      "iaFotos": {
+        "titulo": "Photo check",
+        "analizandoTitulo": "Photo {{n}} · Checking",
+        "analizandoTexto": "We're checking that the photo matches the {{linea}} category.",
+        "analizandoSinLinea": "We're checking that the photo matches the product's category.",
+        "validaTitulo": "Photo {{n}} · Valid image",
+        "validaTexto": "Matches the {{linea}} category.",
+        "sospechosaTitulo": "Photo {{n}} · Possibly the wrong image",
+        "sospechosaTexto": "It looks like {{detectada}}, not {{esperada}}. Review it before publishing.",
+        "noBloquea": "This is only a recommendation: you can publish with this photo.",
+        "errorTitulo": "Photo {{n}} · We couldn't check the image",
+        "errorTexto": "Check your connection and try again. You can keep your photo.",
+        "noDisponibleTitulo": "Photo {{n}} · Check unavailable",
+        "noDisponibleTexto": "We couldn't check it right now. You can keep your original photo.",
+        "sinValidarTitulo": "Photo {{n}}",
+        "sinValidarTexto": "We haven't checked whether it matches the product's category yet.",
+        "lineaRequerida": "Choose the product line and save to check its photos.",
+        "validar": "Check photo",
+        "validarOtraVez": "Check again",
+        "reemplazar": "Replace image",
+        "revisar": "Review",
+        "prueba": "Test check",
+        "pruebaAyuda": "Result from a demo simulator, not an AI model. Use it only as a reference."
+      },
+      "mejora": {
+        "mejorar": "Enhance with AI",
+        "preparando": "Preparing the enhancement…",
+        "titulo": "Compare the enhanced photo",
+        "texto": "Only light, contrast and sharpness are adjusted: nothing is added to your product. Your original photo doesn't change until you choose.",
+        "prueba": "Test enhancement: made by a demo simulator, not an AI model.",
+        "original": "Original",
+        "mejorada": "Enhanced",
+        "altOriginal": "Original photo",
+        "altMejorada": "Enhanced photo",
+        "usar": "Use the enhanced one",
+        "conservar": "Keep the original",
+        "decidirDespues": "Decide later",
+        "aceptada": "We're using the enhanced photo",
+        "aceptadaTexto": "It takes the original's place; we keep the original in your history.",
+        "conservada": "You kept your original photo",
+        "noDisponible": "We couldn't enhance the photo right now",
+        "noDisponibleTexto": "Your original photo is kept and you can still publish.",
+        "errorPedir": "We couldn't enhance the photo",
+        "errorDecidir": "We couldn't save your choice"
+      },
       "nombre": "Product name",
       "nombreEjemplo": "Extra virgin sacha inchi oil",
       "ia": {
@@ -711,7 +757,8 @@
     "nav": {
       "tablero": "Dashboard",
       "comision": "Commission",
-      "comisiones": "Commission by order"
+      "comisiones": "Commission by order",
+      "autorizaciones": "Authorizations"
     },
     "tablero": {
       "titulo": "Operations dashboard",
@@ -1017,6 +1064,8 @@
     "FECHAS_INVALIDAS": "The expiry date must be after the production date.",
     "FORMATO_NO_PERMITIDO": "Only JPG, PNG or WebP photos are accepted.",
     "IA_NO_DISPONIBLE": "Assisted writing isn't available right now. You can write the text in your own words.",
+    "LINEA_REQUERIDA": "Choose the product line to check its photos.",
+    "SIN_MEJORA_PENDIENTE": "There's no pending enhanced version for this photo.",
     "IMAGEN_DANADA": "We couldn't read the image. It may be damaged; try another one.",
     "IMAGEN_MUY_GRANDE": "The image has too many pixels. Use one under 40 megapixels.",
     "IMAGEN_NO_ENCONTRADA": "The image doesn't exist.",
@@ -1076,7 +1125,21 @@
     "CAMBIO_NO_CANCELABLE": "Only a change that hasn't taken effect yet can be cancelled.",
     "CAMBIO_NO_ENCONTRADO": "We couldn't find that commission change.",
     "RANGO_INVALIDO": "The start date must be on or before the end date.",
-    "RANGO_MUY_LARGO": "Query at most one year at a time."
+    "RANGO_MUY_LARGO": "Query at most one year at a time.",
+    "TRADUCCION_NO_DISPONIBLE": "Machine translation isn't available right now. Your content stays in its original language.",
+    "IDIOMA_NO_TRADUCIBLE": "Content is written in Spanish; it can only be translated into English.",
+    "CAMPO_NO_TRADUCIBLE": "That field doesn't exist or has no Spanish text to translate.",
+    "SIN_TRADUCCION_PENDIENTE": "There are no translations to publish.",
+    "AUTORIZACION_VIGENTE": "This product is already authorized. Its evidence supports that decision and cannot be changed.",
+    "EVIDENCIA_EN_USO": "This evidence supports the product's current authorization and cannot be removed.",
+    "EVIDENCIA_NO_ENCONTRADA": "The evidence doesn't exist.",
+    "LIMITE_DE_EVIDENCIAS": "You reached the maximum number of items. Remove one to add another.",
+    "VIGENCIA_REQUERIDA": "State until when the certificate is valid.",
+    "VIGENCIA_INVALIDA": "The validity ends before it starts.",
+    "SIN_CERTIFICADO_VIGENTE": "To approve, the product needs at least one valid certificate of its own.",
+    "SOLICITUD_YA_RESUELTA": "This request is no longer pending review.",
+    "SOLICITUD_NO_ENCONTRADA": "The request doesn't exist.",
+    "MOTIVO_REQUERIDO": "Enter the reason for the decision."
   },
   "buscar": {
     "comunidad": "Community",
@@ -1561,5 +1624,264 @@
       "descripcion": "Check that you copied it completely or request a new one with your email."
     },
     "pedirNuevo": "Request a new link"
+  },
+  "traduccion": {
+    "aviso": "Translated content",
+    "origen": {
+      "AUTOMATICA": "Machine translation",
+      "COMUNIDAD": "Translated by the community"
+    },
+    "verOriginal": "View original",
+    "verTraduccion": "View translation",
+    "mostrandoOriginal": "Original text in Spanish",
+    "desactualizada": "The community changed part of this text and its translation is out of date: it is shown in Spanish, its original language.",
+    "idiomas": {
+      "en": "English",
+      "es": "Spanish"
+    },
+    "traducirAl": {
+      "en": "Translate into English",
+      "es": "Translate into Spanish"
+    },
+    "estado": {
+      "SIN": "Not translated",
+      "PENDIENTE": "To review",
+      "APROBADA": "Published",
+      "DESACTUALIZADA": "Out of date"
+    },
+    "campos": {
+      "PRODUCTO": {
+        "nombre": "Product name",
+        "descripcion": "Description"
+      },
+      "HISTORIA": {
+        "titulo": "Story title",
+        "texto": "Story",
+        "comunidad": "The community",
+        "cultivo": "The farming",
+        "proceso": "The process",
+        "significado": "Its meaning"
+      },
+      "TIENDA": {
+        "nombre": "Store name",
+        "descripcion": "Store description"
+      },
+      "COMUNIDAD": {
+        "historia": "Community story",
+        "cita": "Community quote"
+      }
+    },
+    "panel": {
+      "titulo": "Your content in {{idioma}}",
+      "texto": "Buyers who shop in {{idioma}} see the published translation. Anything not translated is shown in Spanish, its original language. If you change a text, its translation becomes out of date.",
+      "noDisponible": "Machine translation isn't available yet",
+      "noDisponibleTexto": "The Chamber is still deciding who translates the content. Your content is shown in Spanish, its original language.",
+      "sinTexto": "Save your content's texts first so you can translate them.",
+      "traduciendo": "Translating…",
+      "revisa": "Review the translation: {{campo}}",
+      "publicar": "Publish translation",
+      "publicando": "Publishing…",
+      "publicada": "You published the translation",
+      "vacia": "A translation can't be empty",
+      "error": "We couldn't translate your content",
+      "errorPublicar": "We couldn't publish the translation"
+    }
+  },
+  "evidencias": {
+    "titulo": "Certificates and evidence",
+    "intro": "Attach what supports the authorization to sell {{producto}}. Each file is valid only for this product.",
+    "volver": "Back to my products",
+    "error": "We couldn't load the evidence",
+    "errorSubir": "We couldn't upload the file",
+    "errorRetirar": "We couldn't remove the evidence",
+    "subida": "You uploaded “{{titulo}}”. The Chamber will review it.",
+    "retirada": "You removed “{{titulo}}”.",
+    "limite": "You reached the maximum of {{maximo}} items. Remove one to add another.",
+    "privadas": "Only the Chamber and you can see them.",
+    "decisionHumana": "The preliminary AI review only helps the Chamber: a person makes the decision.",
+    "estado": {
+      "SIN_SOLICITUD": "You haven't requested authorization yet",
+      "SIN_SOLICITUDTexto": "Upload at least one valid certificate for this product to send the request to the Chamber.",
+      "SOLICITADA": "Under review by the Chamber",
+      "SOLICITADATexto": "You can add or remove evidence while it is reviewed. We'll let you know the decision.",
+      "APROBADA": "Authorized to sell",
+      "aprobadaHasta": "The authorization is valid until {{fecha}}, when your first certificate expires.",
+      "RECHAZADA": "The Chamber rejected the request",
+      "REVOCADA": "The authorization was revoked",
+      "conMotivo": "Reason: “{{motivo}}”. Attach new evidence to request it again."
+    },
+    "tipo": {
+      "CERTIFICADO": "Certificates",
+      "DOCUMENTO": "Documents",
+      "EVIDENCIA": "Process evidence"
+    },
+    "ayuda": {
+      "CERTIFICADO": "Organic certificate, health registration or another one naming this product. Always state until when it is valid.",
+      "DOCUMENTO": "Community record, organization certificate or signed statement.",
+      "EVIDENCIA": "Photos or records of the process and of the people who make the product."
+    },
+    "agregar": {
+      "CERTIFICADO": "Add certificate",
+      "DOCUMENTO": "Add document",
+      "EVIDENCIA": "Add evidence"
+    },
+    "necesitas": {
+      "titulo": "What do you need?",
+      "CERTIFICADO": "At least one valid certificate for this product",
+      "DOCUMENTO": "Organization documents, if you have them",
+      "EVIDENCIA": "Photos or records of how it is made"
+    },
+    "archivos_one": "{{count}} file",
+    "archivos_other": "{{count}} files",
+    "pendiente": "Pending",
+    "vigenteHasta": "Valid until {{fecha}}",
+    "vencida": "Expired on {{fecha}}",
+    "sinVencimiento": "No expiry",
+    "ver": "View",
+    "verDe": "View {{titulo}}",
+    "retirar": "Remove",
+    "retirarDe": "Remove {{titulo}}",
+    "retirarTitulo": "Remove this evidence?",
+    "retirarTexto": "“{{titulo}}” will no longer support the request. The Chamber keeps a record of what it reviewed.",
+    "form": {
+      "titulo": "Document name",
+      "emisor": "Issued by",
+      "opcional": "Optional",
+      "opcionalCorto": "(optional)",
+      "desde": "Valid from (optional)",
+      "hasta": "Valid until",
+      "archivo": "File",
+      "formatos": "PDF, JPG or PNG · max. 10 MB",
+      "subir": "Upload",
+      "subiendo": "Uploading…",
+      "errorTitulo": "Enter the document name",
+      "errorVigencia": "State until when the certificate is valid",
+      "errorOrden": "The validity ends before it starts",
+      "errorArchivo": "Choose a file",
+      "errorFormato": "Only PDF, JPG or PNG files are accepted",
+      "errorPeso": "The file is larger than 10 MB"
+    }
+  },
+  "autorizaciones": {
+    "titulo": "Product authorizations",
+    "error": "We couldn't load the requests",
+    "volver": "Back to authorizations",
+    "nota": "The preliminary AI review is a suggestion: only your decision with a reason authorizes a product.",
+    "pestanasEtiqueta": "Request status",
+    "pestana": {
+      "SOLICITADA": "Pending",
+      "APROBADA": "Approved",
+      "RECHAZADA": "Rejected"
+    },
+    "vacio": {
+      "SOLICITADA": "There are no pending requests.",
+      "APROBADA": "You haven't approved any requests yet.",
+      "RECHAZADA": "You haven't rejected any requests yet."
+    },
+    "kpi": {
+      "pendientes": "Pending",
+      "pendientesDetalle": "Awaiting your review",
+      "aprobadas": "Approved this month",
+      "rechazadas": "Rejected this month",
+      "conMotivo": "With a recorded reason"
+    },
+    "col": {
+      "producto": "Product",
+      "organizacion": "Organization",
+      "evidencias": "Evidence",
+      "analisis": "AI analysis",
+      "enviada": "Sent",
+      "decidida": "Decided",
+      "accion": "Action"
+    },
+    "evidencias_one": "{{count}} file",
+    "evidencias_other": "{{count}} files",
+    "certificados_one": "{{count}} valid certificate",
+    "certificados_other": "{{count}} valid certificates",
+    "sinCertificado": "No valid certificate",
+    "revisar": "Review",
+    "ver": "View",
+    "revisarDe": "Review {{producto}} from {{organizacion}}",
+    "recomendacion": {
+      "SIN_OBSERVACIONES": "No findings",
+      "REVISAR": "With findings",
+      "ninguna": "Not analyzed"
+    },
+    "estado": {
+      "SOLICITADA": "Under review",
+      "APROBADA": "Approved",
+      "RECHAZADA": "Rejected",
+      "REVOCADA": "Revoked"
+    },
+    "hallazgo": {
+      "CONFORME": "OK",
+      "INCONSISTENCIA": "Check",
+      "FALTANTE": "Missing"
+    },
+    "analisis": {
+      "titulo": "Preliminary analysis",
+      "pedir": "Request preliminary analysis",
+      "otraVez": "Analyze again",
+      "analizando": "Analyzing…",
+      "noDecide": "The AI neither approves nor rejects. Its findings are suggestions for your review.",
+      "sugerencia": "Assisted preliminary review (suggestion)",
+      "sugerenciaPrueba": "Test result (simulated suggestion)",
+      "simuladoTitulo": "Test result, not a real analysis",
+      "simuladoTexto": "It was produced by the simulated analyzer with fixed rules on the declared data; it did not read the files. It will be replaced when the definitive AI provider is connected.",
+      "recomendacion": "Recommendation:",
+      "faltantes": "What is missing",
+      "pedido": "Requested on {{fecha}} · provider: {{proveedor}}",
+      "desactualizado": "The evidence changed after this analysis.",
+      "noDisponible": "Analysis unavailable: manual review",
+      "noDisponibleTexto": "Review the evidence and decide with your reason. The request is not blocked.",
+      "errorAnalisis": "We couldn't request the analysis"
+    },
+    "expediente": {
+      "titulo": "Case file",
+      "error": "We couldn't load the case file",
+      "solicitud": "Request",
+      "enviada": "Sent on {{fecha}}",
+      "evidencias_one": "Evidence ({{count}})",
+      "evidencias_other": "Evidence ({{count}})",
+      "privadas": "Visible only to the administration and the producer",
+      "sinEvidencias": "The producer hasn't attached valid evidence yet.",
+      "desde": "from {{fecha}}",
+      "historial": "Decision history",
+      "decididaPor": "{{nombre}} · {{fecha}}",
+      "conAnalisis": "with preliminary analysis",
+      "manual": "manual review",
+      "decision": "Decision",
+      "certificadosVigentes_one": "{{count}} valid certificate for the product",
+      "certificadosVigentes_other": "{{count}} valid certificates for the product",
+      "analisisListo": "Preliminary analysis available",
+      "revisionManual": "Manual review",
+      "sinAnalisis": "No preliminary analysis (optional)",
+      "motivo": "Reason for the decision",
+      "motivoAyuda": "Required. The producer will see it.",
+      "motivoRequerido": "Enter the reason for the decision",
+      "sinCertificado": "To approve, the product needs at least one valid certificate of its own.",
+      "aprobar": "Approve authorization",
+      "rechazar": "Reject request",
+      "aprobadaHasta": "Authorized until {{fecha}}.",
+      "resuelta": "This request has already been resolved.",
+      "hecho": {
+        "aprobar": "You approved the request. The product can now be bought.",
+        "rechazar": "You rejected the request. The producer will see your reason."
+      },
+      "errorDecision": "We couldn't record the decision"
+    },
+    "dialogo": {
+      "motivo": "Reason: “{{motivo}}”",
+      "aprobar": {
+        "titulo": "Approve {{producto}}",
+        "confirmar": "Approve",
+        "texto": "{{organizacion}} will be able to sell this product while its certificates are valid. The decision is recorded."
+      },
+      "rechazar": {
+        "titulo": "Reject {{producto}}",
+        "confirmar": "Reject request",
+        "texto": "{{organizacion}} will see this reason and can attach new evidence. The decision is recorded and cannot be edited."
+      }
+    }
   }
 }

@@ -161,7 +161,7 @@ RNF-16: una correccion se hace con un movimiento de tipo AJUSTE que conserva el 
 |---|---|---|---|
 | id | bigserial | no | |
 | producto_id, ubicacion_id | bigint | no | |
-| tipo | varchar(20) | no | ENTRADA, SALIDA_VENTA, TRANSFERENCIA_ENTRADA, TRANSFERENCIA_SALIDA, AJUSTE |
+| tipo | varchar(20) | no | ENTRADA, SALIDA, SALIDA_VENTA, TRANSFERENCIA_ENTRADA, TRANSFERENCIA_SALIDA, AJUSTE |
 | cantidad | numeric(12,3) | no | Siempre positiva. El signo lo da el tipo |
 | pedido_id | bigint | si | Cuando el movimiento viene de una venta |
 | usuario_id | bigint | si | Quien lo registro |
@@ -274,6 +274,25 @@ Las fotos de producto no se borran (CCPIP-388, 389): `retirada_en` y `retirada_p
 de la ficha y del editor, pero el registro y el archivo quedan y se siguen sirviendo por su id.
 Al reemplazar una, `reemplazada_por` apunta a la nueva, que toma su orden y su `principal`.
 Solo las vigentes cuentan para el limite de seis fotos. Portada y galeria se siguen borrando.
+
+### imagen_validacion (CCPIP-144, 168)
+Migracion `V202610171300`. Cada vez que el productor pide validar una foto de producto queda
+una fila: `estado` (ANALIZANDO, VALIDA, SOSPECHOSA, ERROR), `linea_esperada` (la principal del
+producto), `linea_detectada` (la que coincide o a la que se parece), `motivo`, `proveedor`,
+`solicitada_por`, `solicitada_en` y `terminada_en` (nula solo mientras se analiza). La vigente
+es la ultima; las anteriores, incluidas las que fallaron, quedan como historial. Es solo una
+recomendacion: no bloquea la publicacion ni cambia la foto (RF-137). Hoy el proveedor es
+`simulado` (pruebas y demo) o `ninguno` (503); el modelo definitivo se conectara despues.
+
+### imagen_mejora (CCPIP-176, 272, 281, 282)
+Migracion `V202610171301`. La variante mejorada de una foto vive aparte, con su propia `clave`
+y `clave_miniatura` en el bucket (`productores/<id>/mejoras/<mejora>.jpg`), y se sirve solo a
+su dueno por `/api/productor/mejoras/{id}`. `estado` PENDIENTE, ACEPTADA o RECHAZADA, con
+`ajustes` (p. ej. AUTOCONTRASTE,NITIDEZ), `proveedor`, quien y cuando la pidio y la decidio.
+Una sola pendiente por foto (indice unico parcial). Al aceptarla se registra una `imagen` nueva
+con la clave de la variante que toma el lugar de la original, igual que un reemplazo: la
+original queda retirada y `reemplazada_por` apunta a la nueva; `imagen_resultante` la enlaza.
+Rechazarla no toca la original.
 
 ### producto_historia (CCPIP-48, 49)
 Las cuatro respuestas del productor (`quienes`, `como`, `significado`, `cuidado`), el texto
@@ -435,6 +454,44 @@ vencen hoy o despues (hora de Lima), el que vence antes sale primero y lo que no
 artesania, al final. Cada linea conserva de que lotes salio por sus movimientos `SALIDA_VENTA`
 (`item_pedido_id` + `lote_id`), y `/api/acopio/pedidos` los muestra en cada linea del pedido.
 
+## Entradas y salidas manuales (CCPIP-121, CCPIP-287, CCPIP-283)
+
+Migracion `V202610171500`. El administrador registra entradas y salidas en los lotes de los puntos
+que tiene en `usuario_ubicacion` (`POST /api/acopio/movimientos`, Figma A-02 y A-03) y el productor
+en los lotes de su almacen virtual unico (`POST /api/productor/almacen/movimientos`, PW-16). Un lote
+de otro punto o de otro productor no existe para quien registra (404, RNF-05).
+
+- `movimiento_inventario.tipo` admite `SALIDA`: la salida que no es venta ni transferencia.
+- `movimiento_inventario.motivo`: catalogo cerrado, cada motivo con su tipo y su lugar.
+
+  | Motivo | Tipo | Lugar | Uso |
+  |---|---|---|---|
+  | `RECEPCION` | ENTRADA | punto de acopio | El punto recibe mercaderia del productor en un lote suyo |
+  | `DEVOLUCION_PRODUCTOR` | SALIDA | punto de acopio | El punto devuelve al productor parte de un lote |
+  | `PRODUCCION` | ENTRADA | almacen del productor | Lo cosechado o elaborado se suma a un lote del almacen |
+  | `RETIRO_PRODUCTOR` | SALIDA | almacen del productor | Uso propio o venta fuera de la plataforma |
+
+  No hay "ajuste de conteo": el CHANGELOG del Figma del 30/09 quito la correccion por ajuste del
+  inventario del punto. La merma (A-04, A-07) tiene su propia historia y no es un motivo de salida.
+  Los movimientos automaticos (registro del lote, carga inicial, venta) no llevan motivo.
+- CHECK: una `SALIDA` siempre tiene `motivo`, `lote_id` y `usuario_id` (responsable). La fecha es
+  `registrado_en`.
+- `movimiento_inventario.clave_idempotencia` (uuid): la pantalla genera una por envio del formulario.
+  Indice unico parcial `(usuario_id, clave_idempotencia)`: un reintento devuelve el movimiento ya
+  registrado (200, `repetido: true`) sin mover nada; la misma clave con otro contenido es un 409.
+
+Lote, stock y movimiento cambian en la misma transaccion. El lote se bloquea con `FOR UPDATE`: dos
+salidas simultaneas se ordenan y la segunda se rechaza si ya no alcanza (409 `SALDO_INSUFICIENTE`),
+sin dejar negativos (RNF-09). Una entrada suma a `cantidad_actual` y tambien a `cantidad_inicial`,
+que pasa a ser lo ingresado al lote: asi el CHECK `actual <= inicial` sigue valiendo. Un lote vencido
+no recibe entradas.
+
+**Inventario del punto (A-02, CCPIP-162).** `GET /api/acopio/inventario` lista los lotes de los
+puntos del administrador con producto, productor, vencimiento, entradas, salidas, saldo y estado
+(`DISPONIBLE`, `POR_VENCER`, `VENCIDO`, `AGOTADO`). El saldo es `lote.cantidad_actual`, una vez por
+lote; entradas y salidas se suman en subconsultas para no multiplicar filas. Solo lo vigente con saldo
+es vendible; lo que esta en transito o es merma nunca llega a un lote del punto.
+
 ## Recojo del pedido (CCPIP-71)
 
 Migracion `V202610131800`. El administrador del punto entrega un pedido `LISTO_PARA_RECOJO` al
@@ -558,12 +615,40 @@ traduccion asistida) esta pendiente de definir con el cliente, por eso cada fila
 | campo | varchar(40) | no | nombre, descripcion, titulo, texto, historia, cita o una parte de la historia |
 | idioma | varchar(2) | no | Solo `en`: el espanol no se traduce |
 | texto | text | no | No vacio |
-| estado | varchar(10) | no | PENDIENTE o APROBADA. Solo la aprobada se publica |
+| estado | varchar(14) | no | PENDIENTE, APROBADA o DESACTUALIZADA. Solo la aprobada se publica |
 | aprobada_en | timestamptz | si | Obligatoria si esta APROBADA |
+| origen | varchar(12) | no | COMUNIDAD (la escribio o reviso una persona) o AUTOMATICA (CCPIP-147). Por defecto COMUNIDAD |
+| proveedor | varchar(40) | si | Proveedor de la traduccion automatica; obligatorio si es AUTOMATICA |
+| version_original | integer | no | Version del original (`contenido_version`) desde la que se tradujo. Por defecto 1 |
+| desactualizada_en | timestamptz | si | Cuando cambio el original. Obligatoria si y solo si esta DESACTUALIZADA |
 
-Unica por (entidad, clave, campo, idioma). Los textos en ingles de los datos de demostracion
-estan en `R__03_traducciones_demo.sql`. Invalidar una traduccion cuando cambia el original es
-CCPIP-373.
+Unica por (entidad, clave, campo, idioma): traducir otra vez reemplaza la fila, nunca la duplica
+(CCPIP-170). Los textos en ingles de los datos de demostracion estan en
+`R__03_traducciones_demo.sql`, que no reactiva una traduccion desactualizada.
+
+### contenido_version
+CCPIP-170 y CCPIP-373 (migracion `V202610171400__traduccion_version.sql`). Version de cada campo
+original traducible. Sin fila, el campo esta en su version 1.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| entidad, clave, campo | | no | Clave primaria; mismos valores que en `traduccion` |
+| version | integer | no | Sube en 1 cada vez que el productor cambia ese texto |
+| actualizado_en | timestamptz | no | |
+
+Ciclo de una traduccion:
+
+- **CCPIP-373.** Cuando el productor cambia un texto original (nombre o descripcion del producto,
+  titulo, texto o partes de la historia, nombre, descripcion, historia o cita de la tienda), sube la
+  version del campo y sus traducciones pasan a DESACTUALIZADA. No se borran. El catalogo deja de
+  servirlas: muestra el original y avisa que la traduccion esta desactualizada. Guardar el mismo
+  texto no cuenta como cambio.
+- **CCPIP-147.** La traduccion automatica nace PENDIENTE, con `origen = AUTOMATICA` y su proveedor, y
+  solo se publica cuando el productor la revisa (RNF-33). Si la corrige, pasa a `origen =
+  COMUNIDAD`. No reemplaza una traduccion aprobada que siga al dia. Sin proveedor responde 503 y no
+  cambia nada (RNF-34).
+- **CCPIP-171.** La ficha y la tienda devuelven, en otro idioma, `traducciones` por campo con su
+  origen, si esta vigente y el texto original para "Ver original".
 
 ## Registro y verificacion del correo (CCPIP-26, CCPIP-328)
 
