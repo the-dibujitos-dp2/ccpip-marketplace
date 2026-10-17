@@ -1,4 +1,9 @@
 .dialogo { width: min(480px, calc(100vw - 32px)); padding: 0; border: 0; border-radius: var(--radius-xl); background: var(--color-bg-surface); box-shadow: var(--shadow-menu); color: var(--color-text-primary); }
 .dialogo::backdrop { background: rgba(8, 38, 23, 0.45); }
-.dialogo__contenido { display: flex; flex-direction: column; gap: 12px; padding: 24px; }
+.dialogo__contenido { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 24px; }
 .dialogo__acciones { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.dialogo--amplio { width: min(720px, calc(100vw - 32px)); }
+.dialogo__acciones { flex-wrap: wrap; }
+.dialogo__cerrar { position: absolute; top: 16px; right: 16px; display: flex; padding: 6px; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+.dialogo__cerrar:focus-visible { outline: 2px solid var(--color-border-focus); }
+.dialogo__contenido:has(.dialogo__cerrar) > h2 { padding-right: 36px; }

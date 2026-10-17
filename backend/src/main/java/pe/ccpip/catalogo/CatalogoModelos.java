@@ -3,6 +3,7 @@ package pe.ccpip.catalogo;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -64,7 +65,20 @@ public final class CatalogoModelos {
                                   Codigo linea, List<Codigo> lineas, String modalidad, BigDecimal precio,
                                   BigDecimal precioMayorista, Integer cantidadMinimaMayorista, boolean disponible,
                                   boolean comprable, List<Imagen> imagenes, TiendaResumen tienda, HistoriaPublica historia, Cosecha cosecha,
-                                  List<ProductoResumen> relacionados) {
+                                  List<ProductoResumen> relacionados, Map<String, CampoTraducido> traducciones) {
+    }
+
+    /**
+     * CCPIP-171 (RF-163) y CCPIP-373: que textos de la ficha o de la tienda llegan traducidos y de
+     * donde salieron, por nombre de campo ("descripcion", "historia.texto", "cita"...). Solo en otro
+     * idioma que el original.
+     * - {@code origen}: COMUNIDAD (una persona) o AUTOMATICA (CCPIP-147), para etiquetarla.
+     * - {@code vigente}: falso si el original cambio despues de traducirlo; entonces el texto servido
+     *   ya es el original y la pantalla avisa que la traduccion esta desactualizada.
+     * - {@code original}: el texto en su idioma original, para "Ver original". Solo si es vigente.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record CampoTraducido(String origen, boolean vigente, String original) {
     }
 
     public record TiendaTarjeta(long id, String nombre, String pueblo, String comunidad, String region, String localidad,
@@ -75,7 +89,8 @@ public final class CatalogoModelos {
     public record TiendaDetalle(long id, String nombre, String descripcion, String historia, String cita, String pueblo,
                                 String comunidad, String region, String localidad, Integer socios, boolean origenVerificado,
                                 Integer desde, String portada, List<GaleriaItem> galeria, List<Faceta> lineas,
-                                List<ProductoResumen> productos, List<Long> destacados) {
+                                List<ProductoResumen> productos, List<Long> destacados,
+                                Map<String, CampoTraducido> traducciones) {
     }
 
     public record GaleriaItem(String id, String categoria, String url, String miniatura) {

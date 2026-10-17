@@ -12,6 +12,7 @@ import i18n from '../../i18n/index.js'
 import { navigate, RUTAS } from '../../router.js'
 import { FormularioLote, TablaLotes } from './Lotes.jsx'
 import PaginaProductor from './PaginaProductor.jsx'
+import PanelTraduccion from './PanelTraduccion.jsx'
 import PasoDatos from './PasoDatos.jsx'
 import PasoHistoria from './PasoHistoria.jsx'
 import './productor.css'
@@ -136,6 +137,8 @@ export default function EditorProductoPage({ path, id, search }) {
           onImagenes={(cual) => cargar(cual).catch(() => setAlerta({ tono: 'error', titulo: t('productor.editor.errorFotos'), descripcion: t('productor.editor.errorFotosTexto') }))}
         />
       )}
+      {/* CCPIP-147: traducir el producto y su historia aprobada; se recarga al guardar por si cambio el original (CCPIP-373) */}
+      {paso === 0 && producto?.id && <PanelTraduccion key={`${producto.id}-${producto.nombre}-${producto.descripcion}`} productoId={producto.id} />}
 
       {paso === 1 && producto && (
         <PasoHistoria

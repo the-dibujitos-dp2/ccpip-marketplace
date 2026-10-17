@@ -3,6 +3,7 @@ package pe.ccpip.catalogo;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +11,7 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 import pe.ccpip.catalogo.CatalogoModelos.Busqueda;
+import pe.ccpip.catalogo.CatalogoModelos.CampoTraducido;
 import pe.ccpip.catalogo.CatalogoModelos.Catalogos;
 import pe.ccpip.catalogo.CatalogoModelos.Codigo;
 import pe.ccpip.catalogo.CatalogoModelos.Faceta;
@@ -26,11 +28,16 @@ import pe.ccpip.catalogo.CatalogoModelos.TiendaTarjeta;
 import pe.ccpip.comun.Idioma;
 import pe.ccpip.traduccion.Traducciones;
 import pe.ccpip.traduccion.Traducciones.Entidad;
+import pe.ccpip.traduccion.Traducciones.Publicada;
 
 /**
  * Pone el contenido aprobado en ingles sobre las respuestas del catalogo (CCPIP-166 productos,
  * CCPIP-357 tiendas, CCPIP-358 comunidades). Cada texto sin traduccion aprobada queda en su
  * original en espanol. En espanol devuelve la misma respuesta sin consultar nada.
+ *
+ * CCPIP-373: una traduccion cuyo original cambio ya no se sirve; se muestra el original. CCPIP-171:
+ * la ficha y la tienda dicen que campos llegan traducidos, su origen y su texto original, para
+ * etiquetarlos y ofrecer "Ver original".
  */
 @Component
 public class TraductorCatalogo {
@@ -54,13 +61,17 @@ public class TraductorCatalogo {
         c.codigo(Entidad.UNIDAD, p.unidad());
         p.relacionados().forEach(c::resumen);
         Textos t = cargar(c, idioma);
-        return new ProductoDetalle(p.id(), t.de(Entidad.PRODUCTO, p.id(), "nombre", p.nombre()),
-                t.de(Entidad.PRODUCTO, p.id(), "descripcion", p.descripcion()), p.contenido(),
+        String id = String.valueOf(p.id());
+        Map<String, CampoTraducido> campos = new LinkedHashMap<>();
+        String nombre = t.de(campos, "nombre", Entidad.PRODUCTO, id, "nombre", p.nombre());
+        String descripcion = t.de(campos, "descripcion", Entidad.PRODUCTO, id, "descripcion", p.descripcion());
+        HistoriaPublica historia = t.historia(campos, id, p.historia());
+        return new ProductoDetalle(p.id(), nombre, descripcion, p.contenido(),
                 t.codigo(Entidad.UNIDAD, p.unidad()), t.codigo(Entidad.LINEA, p.linea()),
                 p.lineas().stream().map(l -> t.codigo(Entidad.LINEA, l)).toList(), p.modalidad(), p.precio(),
                 p.precioMayorista(), p.cantidadMinimaMayorista(), p.disponible(), p.comprable(), p.imagenes(),
-                t.tienda(p.tienda()), t.historia(p.id(), p.historia()), p.cosecha(),
-                p.relacionados().stream().map(t::resumen).toList());
+                t.tienda(p.tienda()), historia, p.cosecha(),
+                p.relacionados().stream().map(t::resumen).toList(), campos.isEmpty() ? null : campos);
     }
 
     public Busqueda busqueda(Busqueda b, Idioma idioma) {
@@ -99,12 +110,14 @@ public class TraductorCatalogo {
         d.productos().forEach(c::resumen);
         Textos t = cargar(c, idioma);
         String id = String.valueOf(d.id());
-        return new TiendaDetalle(d.id(), t.de(Entidad.TIENDA, id, "nombre", d.nombre()),
-                t.de(Entidad.TIENDA, id, "descripcion", d.descripcion()),
-                t.de(Entidad.COMUNIDAD, id, "historia", d.historia()), t.de(Entidad.COMUNIDAD, id, "cita", d.cita()),
+        Map<String, CampoTraducido> campos = new LinkedHashMap<>();
+        return new TiendaDetalle(d.id(), t.de(campos, "nombre", Entidad.TIENDA, id, "nombre", d.nombre()),
+                t.de(campos, "descripcion", Entidad.TIENDA, id, "descripcion", d.descripcion()),
+                t.de(campos, "historia", Entidad.COMUNIDAD, id, "historia", d.historia()),
+                t.de(campos, "cita", Entidad.COMUNIDAD, id, "cita", d.cita()),
                 d.pueblo(), d.comunidad(), d.region(), d.localidad(), d.socios(), d.origenVerificado(), d.desde(),
                 d.portada(), d.galeria(), t.facetas(Entidad.LINEA, d.lineas()),
-                d.productos().stream().map(t::resumen).toList(), d.destacados());
+                d.productos().stream().map(t::resumen).toList(), d.destacados(), campos.isEmpty() ? null : campos);
     }
 
     public Inicio inicio(Inicio i, Idioma idioma) {
@@ -138,8 +151,8 @@ public class TraductorCatalogo {
     }
 
     private Textos cargar(Claves claves, Idioma idioma) {
-        Map<Entidad, Map<String, Map<String, String>>> textos = new EnumMap<>(Entidad.class);
-        claves.porEntidad.forEach((entidad, lista) -> textos.put(entidad, traducciones.aprobadas(entidad, lista, idioma)));
+        Map<Entidad, Map<String, Map<String, Publicada>>> textos = new EnumMap<>(Entidad.class);
+        claves.porEntidad.forEach((entidad, lista) -> textos.put(entidad, traducciones.publicables(entidad, lista, idioma)));
         return new Textos(textos);
     }
 
@@ -188,21 +201,42 @@ public class TraductorCatalogo {
         }
     }
 
-    /** Las traducciones leidas; cada consulta devuelve la traduccion o, si no hay, el original. */
+    /**
+     * Las traducciones leidas; cada consulta devuelve la traduccion vigente o, si no hay o quedo
+     * desactualizada (CCPIP-373), el original.
+     */
     private static final class Textos {
 
-        private final Map<Entidad, Map<String, Map<String, String>>> textos;
+        private final Map<Entidad, Map<String, Map<String, Publicada>>> textos;
 
-        Textos(Map<Entidad, Map<String, Map<String, String>>> textos) {
+        Textos(Map<Entidad, Map<String, Map<String, Publicada>>> textos) {
             this.textos = textos;
+        }
+
+        private Publicada publicada(Entidad entidad, String clave, String campo) {
+            return textos.getOrDefault(entidad, Map.of()).getOrDefault(clave, Map.of()).get(campo);
         }
 
         String de(Entidad entidad, String clave, String campo, String original) {
             if (original == null) {
                 return null;
             }
-            String traducido = textos.getOrDefault(entidad, Map.of()).getOrDefault(clave, Map.of()).get(campo);
-            return traducido != null ? traducido : original;
+            Publicada t = publicada(entidad, clave, campo);
+            return t != null && t.vigente() ? t.texto() : original;
+        }
+
+        /** Como {@link #de}, y anota en {@code campos} el origen y el original del texto (CCPIP-171). */
+        String de(Map<String, CampoTraducido> campos, String nombre, Entidad entidad, String clave, String campo,
+                  String original) {
+            if (original == null) {
+                return null;
+            }
+            Publicada t = publicada(entidad, clave, campo);
+            if (t == null) {
+                return original;
+            }
+            campos.put(nombre, new CampoTraducido(t.origen().name(), t.vigente(), t.vigente() ? original : null));
+            return t.vigente() ? t.texto() : original;
         }
 
         String de(Entidad entidad, long id, String campo, String original) {
@@ -238,17 +272,20 @@ public class TraductorCatalogo {
                     codigo(Entidad.LINEA, r.linea()), r.lineas(), r.imagen(), r.disponible(), tienda(r.tienda()));
         }
 
-        HistoriaPublica historia(long productoId, HistoriaPublica h) {
+        HistoriaPublica historia(Map<String, CampoTraducido> campos, String id, HistoriaPublica h) {
             if (h == null) {
                 return null;
             }
-            String id = String.valueOf(productoId);
             PartesHistoria p = h.partes();
             PartesHistoria partes = p == null ? null : new PartesHistoria(
-                    de(Entidad.HISTORIA, id, "comunidad", p.comunidad()), de(Entidad.HISTORIA, id, "cultivo", p.cultivo()),
-                    de(Entidad.HISTORIA, id, "proceso", p.proceso()), de(Entidad.HISTORIA, id, "significado", p.significado()));
-            return new HistoriaPublica(de(Entidad.HISTORIA, id, "titulo", h.titulo()), de(Entidad.HISTORIA, id, "texto", h.texto()),
+                    parte(campos, id, "comunidad", p.comunidad()), parte(campos, id, "cultivo", p.cultivo()),
+                    parte(campos, id, "proceso", p.proceso()), parte(campos, id, "significado", p.significado()));
+            return new HistoriaPublica(parte(campos, id, "titulo", h.titulo()), parte(campos, id, "texto", h.texto()),
                     h.asistida(), partes);
+        }
+
+        private String parte(Map<String, CampoTraducido> campos, String id, String campo, String original) {
+            return de(campos, "historia." + campo, Entidad.HISTORIA, id, campo, original);
         }
     }
 }

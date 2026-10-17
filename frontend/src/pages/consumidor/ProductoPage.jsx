@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoIa from '../../assets/icons/ia.svg'
 import { obtenerProducto } from '../../api/catalogo.js'
+import AvisoTraduccion from '../../components/AvisoTraduccion.jsx'
 import Boton from '../../components/Boton.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
@@ -13,17 +14,27 @@ import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { capital, fecha, mesAnio, precio } from '../../formato.js'
 import { RUTAS } from '../../router.js'
+import { idiomaSegun, textoSegun } from '../../traduccion.js'
 import { resolverTarifa } from '../../tarifa.js'
 import AgregarAlCarrito from './AgregarAlCarrito.jsx'
 import './ProductoPage.css'
 
-/** CW-03: ficha publica del producto (CCPIP-53) con su historia de origen (CCPIP-152). */
+// CCPIP-171: campos traducibles de cada seccion, con los nombres que usa el catalogo
+const CAMPOS_FICHA = ['nombre', 'descripcion']
+const CAMPOS_HISTORIA = ['historia.titulo', 'historia.texto', 'historia.comunidad', 'historia.cultivo', 'historia.proceso', 'historia.significado']
+
+/**
+ * CW-03: ficha publica del producto (CCPIP-53) con su historia de origen (CCPIP-152). En ingles,
+ * cada seccion traducida lleva su etiqueta y "Ver original" (CCPIP-171, CW-03-EN).
+ */
 export default function ProductoPage({ id }) {
   const { t } = useTranslation()
   const [producto, setProducto] = useState(null)
   const [error, setError] = useState(null)
   const [foto, setFoto] = useState(0)
   const [modo, setModo] = useState('MINORISTA')
+  const [originalFicha, setOriginalFicha] = useState(false)
+  const [originalHistoria, setOriginalHistoria] = useState(false)
   // CCPIP-134: la cantidad del panel de compra decide la tarifa, por eso se comparte con las tarjetas de precio
   const [cantidad, setCantidad] = useState('1')
 
@@ -32,6 +43,8 @@ export default function ProductoPage({ id }) {
     setProducto(null)
     setError(null)
     setFoto(0)
+    setOriginalFicha(false)
+    setOriginalHistoria(false)
     obtenerProducto(id)
       .then((p) => {
         if (!vigente) return
@@ -74,7 +87,17 @@ export default function ProductoPage({ id }) {
     )
   }
 
-  const { tienda, historia, cosecha } = producto
+  const { tienda, historia: historiaServida, cosecha, traducciones } = producto
+  // "Ver original" cambia cada texto traducido de la seccion por su original
+  const ficha = (campo, valor) => textoSegun(traducciones, campo, valor, originalFicha)
+  const deHistoria = (campo, valor) => textoSegun(traducciones, `historia.${campo}`, valor, originalHistoria)
+  const historia = historiaServida && {
+    ...historiaServida,
+    titulo: deHistoria('titulo', historiaServida.titulo),
+    texto: deHistoria('texto', historiaServida.texto),
+    partes: historiaServida.partes && Object.fromEntries(Object.entries(historiaServida.partes).map(([k, v]) => [k, deHistoria(k, v)])),
+  }
+  const idiomaHistoria = idiomaSegun(traducciones, 'historia.texto', originalHistoria)
   const imagenes = producto.imagenes ?? []
   const actual = imagenes[foto]
   const conMayorista = producto.modalidad !== 'MINORISTA'
@@ -152,7 +175,8 @@ export default function ProductoPage({ id }) {
 
           <div className="ficha__info">
             <p className="overline">{[producto.linea?.nombre, tienda.region].filter(Boolean).join(' · ')}</p>
-            <h1 className="ficha__titulo">{producto.nombre}</h1>
+            <h1 className="ficha__titulo" lang={idiomaSegun(traducciones, 'nombre', originalFicha)}>{ficha('nombre', producto.nombre)}</h1>
+            <AvisoTraduccion traducciones={traducciones} campos={CAMPOS_FICHA} verOriginal={originalFicha} onAlternar={() => setOriginalFicha((v) => !v)} />
             <p className="ficha__productor">
               <Icono src={iconoComunidad} tamano={20} />
               {t('producto.hechoPor')}{' '}
@@ -164,7 +188,7 @@ export default function ProductoPage({ id }) {
             {tienda.origenVerificado && <SelloOrigen variante="compacto" />}
 
             {historia && (
-              <blockquote className="ficha__cita">
+              <blockquote className="ficha__cita" lang={idiomaHistoria}>
                 <p>“{historia.titulo ?? resumen(historia.texto)}”</p>
                 <a href="#historia" className="enlace-marca">{t('producto.leerHistoria')} <span aria-hidden="true">↓</span></a>
               </blockquote>
@@ -204,7 +228,11 @@ export default function ProductoPage({ id }) {
               <AgregarAlCarrito key={producto.id} producto={producto} cantidad={cantidad} onCantidad={setCantidad} modo={activa} />
             </div>
 
-            {producto.descripcion && <p className="body-m ficha__descripcion">{producto.descripcion}</p>}
+            {producto.descripcion && (
+              <p className="body-m ficha__descripcion" lang={idiomaSegun(traducciones, 'descripcion', originalFicha)}>
+                {ficha('descripcion', producto.descripcion)}
+              </p>
+            )}
           </div>
         </div>
 
@@ -214,8 +242,9 @@ export default function ProductoPage({ id }) {
             <div className="historia__texto">
               <p className="overline historia__overline">{t('producto.historia.overline')}</p>
               <h2 id="titulo-historia" className="historia__titulo">{historia.titulo ?? t('producto.historia.titulo')}</h2>
+              <AvisoTraduccion traducciones={traducciones} campos={CAMPOS_HISTORIA} verOriginal={originalHistoria} onAlternar={() => setOriginalHistoria((v) => !v)} />
               {pasos.length > 0 ? (
-                <ol className="historia__pasos">
+                <ol className="historia__pasos" lang={idiomaHistoria}>
                   {pasos.map((p, i) => (
                     <li key={p.titulo} className="historia__paso">
                       <span className="historia__numero">{i + 1}</span>
@@ -227,7 +256,7 @@ export default function ProductoPage({ id }) {
                   ))}
                 </ol>
               ) : null}
-              <p className="historia__relato">{historia.texto}</p>
+              <p className="historia__relato" lang={idiomaHistoria}>{historia.texto}</p>
               <p className="historia__nota">
                 {historia.asistida
                   ? t('producto.historia.asistida')

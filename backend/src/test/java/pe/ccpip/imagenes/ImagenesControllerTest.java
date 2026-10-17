@@ -30,6 +30,9 @@ class ImagenesControllerTest extends IntegrationTest {
 
     @BeforeEach
     void preparar() {
+        // La IA de imagenes (CCPIP-144, CCPIP-176) cuelga de la imagen
+        jdbc.update("DELETE FROM imagen_mejora");
+        jdbc.update("DELETE FROM imagen_validacion");
         jdbc.update("DELETE FROM imagen");
         productor = loginAsUnchecked("productor@ccpip.test");
         producto = jdbc.queryForObject("SELECT id FROM producto WHERE nombre = 'Aceite de ungurahui 250 ml'", Long.class);
