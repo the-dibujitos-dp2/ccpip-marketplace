@@ -16,6 +16,8 @@ import pe.ccpip.productor.Auditoria.Accion;
 import pe.ccpip.productor.ProductoModelos.AprobarHistoria;
 import pe.ccpip.productor.ProductoModelos.DatosHistoria;
 import pe.ccpip.productor.ProductoModelos.Historia;
+import pe.ccpip.traduccion.InvalidacionTraducciones;
+import pe.ccpip.traduccion.Traducciones.Entidad;
 
 /**
  * Historia del producto (PW-05, CCPIP-48 y CCPIP-49). El productor responde cuatro preguntas;
@@ -29,18 +31,22 @@ public class HistoriaService {
     private final ProductosService productos;
     private final AsistenteRedaccion asistente;
     private final Auditoria auditoria;
+    private final InvalidacionTraducciones invalidacion;
 
-    public HistoriaService(JdbcTemplate jdbc, ProductosService productos, AsistenteRedaccion asistente, Auditoria auditoria) {
+    public HistoriaService(JdbcTemplate jdbc, ProductosService productos, AsistenteRedaccion asistente, Auditoria auditoria,
+                           InvalidacionTraducciones invalidacion) {
         this.jdbc = jdbc;
         this.productos = productos;
         this.asistente = asistente;
         this.auditoria = auditoria;
+        this.invalidacion = invalidacion;
     }
 
     /** Guarda respuestas y borrador sin publicar nada. */
     @Transactional
     public Historia guardar(long productorId, long productoId, DatosHistoria d) {
         productos.obtener(productorId, productoId);
+        Historia antes = productos.historia(productoId);
         jdbc.update("""
                 INSERT INTO producto_historia (producto_id, quienes, como, significado, cuidado, titulo, texto_final, actualizado_en)
                 VALUES (?, ?, ?, ?, ?, ?, ?, now())
@@ -50,13 +56,14 @@ public class HistoriaService {
                 productoId, TiendaService.limpio(d.quienes()), TiendaService.limpio(d.como()),
                 TiendaService.limpio(d.significado()), TiendaService.limpio(d.cuidado()), TiendaService.limpio(d.titulo()),
                 TiendaService.limpio(d.textoFinal()));
-        return productos.historia(productoId);
+        return invalidarCambios(productoId, antes, productos.historia(productoId));
     }
 
     /** Pide a la IA un borrador a partir de las respuestas. Si no esta disponible responde 503 y se escribe a mano. */
     @Transactional
     public Propuesta proponer(long productorId, long productoId, DatosHistoria d, Variante variante) {
         String producto = productos.obtener(productorId, productoId).nombre();
+        Historia antes = productos.historia(productoId);
         String comunidad = jdbc.queryForObject("SELECT coalesce(nombre_tienda, comunidad) FROM productor WHERE id = ?",
                 String.class, productorId);
         Propuesta propuesta = asistente.proponerHistoria(new AsistenteRedaccion.DatosHistoria(producto, comunidad,
@@ -71,6 +78,7 @@ public class HistoriaService {
                 productoId, TiendaService.limpio(d.quienes()), TiendaService.limpio(d.como()),
                 TiendaService.limpio(d.significado()), TiendaService.limpio(d.cuidado()), propuesta.titulo(),
                 propuesta.texto(), propuesta.proveedor());
+        invalidarCambios(productoId, antes, productos.historia(productoId));
         return propuesta;
     }
 
@@ -78,6 +86,7 @@ public class HistoriaService {
     @Transactional
     public Historia aprobar(long productorId, long usuarioId, long productoId, AprobarHistoria d) {
         productos.obtener(productorId, productoId);
+        Historia antes = productos.historia(productoId);
         Boolean hayPropuesta = jdbc.query("SELECT texto_propuesto IS NOT NULL FROM producto_historia WHERE producto_id = ?",
                 (rs, row) -> rs.getBoolean(1), productoId).stream().findFirst().orElse(false);
         boolean asistida = d.asistida() && hayPropuesta;
@@ -92,7 +101,21 @@ public class HistoriaService {
         // Lo que lee el comprador es la version aprobada
         jdbc.update("UPDATE producto SET historia_origen = ?, actualizado_en = now() WHERE id = ?", texto, productoId);
         auditoria.registrar(productoId, usuarioId, Accion.HISTORIA, Map.of("asistida", asistida));
-        return productos.historia(productoId);
+        return invalidarCambios(productoId, antes, productos.historia(productoId));
+    }
+
+    /**
+     * CCPIP-373: invalida las traducciones de cada parte de la historia que cambio. Los nombres de
+     * campo son los que lee el catalogo (CW-03: comunidad, cultivo, proceso y significado).
+     */
+    private Historia invalidarCambios(long productoId, Historia antes, Historia despues) {
+        invalidacion.siCambio(Entidad.HISTORIA, productoId, "titulo", antes.titulo(), despues.titulo());
+        invalidacion.siCambio(Entidad.HISTORIA, productoId, "texto", antes.textoFinal(), despues.textoFinal());
+        invalidacion.siCambio(Entidad.HISTORIA, productoId, "comunidad", antes.quienes(), despues.quienes());
+        invalidacion.siCambio(Entidad.HISTORIA, productoId, "cultivo", antes.cuidado(), despues.cuidado());
+        invalidacion.siCambio(Entidad.HISTORIA, productoId, "proceso", antes.como(), despues.como());
+        invalidacion.siCambio(Entidad.HISTORIA, productoId, "significado", antes.significado(), despues.significado());
+        return despues;
     }
 
     /** CCPIP-48 en PW-04: borrador de descripcion. Se guarda como propuesta; el productor decide si la usa. */

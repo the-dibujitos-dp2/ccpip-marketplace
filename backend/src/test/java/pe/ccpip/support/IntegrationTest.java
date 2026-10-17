@@ -30,7 +30,7 @@ import pe.ccpip.auth.controller.AuthController;
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(CorreosDePrueba.class)
+@Import({CorreosDePrueba.class, TraductorDePrueba.class})
 public abstract class IntegrationTest {
 
     /** Un solo S3Mock para toda la suite; Testcontainers lo apaga al terminar. */
@@ -49,6 +49,7 @@ public abstract class IntegrationTest {
         registry.add("ccpip.imagenes.bucket", () -> "ccpip-test");
         registry.add("ccpip.imagenes.crear-bucket", () -> "true");
         registry.add("ccpip.ia.proveedor", () -> "simulado");
+        registry.add("ccpip.traduccion.proveedor", () -> "simulado");
     }
 
     /** Clave comun de las cuentas de demostracion sembradas en R__02 (publica a proposito, CCPIP-23). */
@@ -67,8 +68,13 @@ public abstract class IntegrationTest {
     @Autowired
     protected CorreosDePrueba.Bandeja correos;
 
+    /** CCPIP-147: proveedor de traduccion simulado; cada prueba vuelve a tenerlo disponible. */
+    @Autowired
+    protected TraductorDePrueba.Conmutable traductor;
+
     @BeforeEach
     void resetAuthState() {
+        traductor.sinProveedor(false);
         jdbc.update("DELETE FROM sesion");
         jdbc.update("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL, idioma = 'es'");
         correos.vaciar();
