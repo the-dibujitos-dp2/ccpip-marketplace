@@ -20,6 +20,7 @@ const comoSuper = (rutas = {}) => ({
   'GET /api/auth/me': [200, SESION_SUPER],
   [`GET ${COMISION}`]: () => [200, copia(DATOS.comisionAdmin)],
   [`GET ${PEDIDOS}`]: () => [200, copia(DATOS.comisionesAdmin)],
+  'GET /api/admin/autorizaciones': () => [200, copia(DATOS.autorizacionesAdmin)],
   ...rutas,
 })
 
@@ -169,11 +170,11 @@ describe('SA-02 Comisión (CCPIP-90)', () => {
     expect(screen.getByText('Aún no hay cambios registrados.')).toBeInTheDocument()
   })
 
-  it('el sub administrador no configura la comisión: va a la comisión por pedido', async () => {
+  it('el sub administrador no configura la comisión: va a su módulo de autorizaciones', async () => {
     const fetchMock = servidor(comoSub())
     abrirEn('/admin/comision')
-    expect(await screen.findByRole('heading', { level: 1, name: 'Comisión por pedido' })).toBeInTheDocument()
-    expect(window.location.pathname).toBe('/admin/comisiones')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Autorizaciones de productos' })).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/admin/autorizaciones')
     expect(llamadas(fetchMock, `GET ${COMISION}`)).toHaveLength(0)
   })
 })
@@ -225,7 +226,7 @@ describe('Comisión por pedido (CCPIP-91)', () => {
     expect(screen.queryByText(/sin comisión configurada/)).not.toBeInTheDocument()
   })
 
-  it('el sub administrador ingresa directo aquí y solo ve este módulo', async () => {
+  it('el sub administrador ingresa a autorizaciones y solo ve sus dos módulos', async () => {
     let conSesion = false
     servidor(comoSub({
       'GET /api/auth/me': () => (conSesion ? [200, SESION_SUB] : SIN_SESION),
@@ -238,16 +239,18 @@ describe('Comisión por pedido (CCPIP-91)', () => {
     await userEvent.type(await screen.findByLabelText('Correo electrónico'), 'sub_admin@ccpip.test')
     await userEvent.type(screen.getByLabelText('Contraseña'), 'Demo1234!')
     await userEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }))
-    expect(await screen.findByRole('heading', { level: 1, name: 'Comisión por pedido' })).toBeInTheDocument()
-    expect(window.location.pathname).toBe('/admin/comisiones')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Autorizaciones de productos' })).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/admin/autorizaciones')
     const nav = within(screen.getByRole('navigation', { name: 'Sub administrador' }))
-    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Comisión por pedido'])
+    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Autorizaciones', 'Comisión por pedido'])
+    await userEvent.click(nav.getByRole('link', { name: 'Comisión por pedido' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Comisión por pedido' })).toBeInTheDocument()
   })
 
   it('el tablero tampoco es del sub administrador', async () => {
     const fetchMock = servidor(comoSub())
     abrirEn('/admin')
-    expect(await screen.findByRole('heading', { level: 1, name: 'Comisión por pedido' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Autorizaciones de productos' })).toBeInTheDocument()
     expect(llamadas(fetchMock, 'GET /api/admin/tablero')).toHaveLength(0)
   })
 
