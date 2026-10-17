@@ -1229,7 +1229,14 @@
     "quitar": "Remove {{nombre}} from cart",
     "quitarTitulo": "Remove from cart",
     "continuar": "Continue to delivery and payment",
-    "bloqueo": "Adjust or remove the highlighted products to continue."
+    "bloqueo": "Adjust or remove the highlighted products to continue.",
+    "subtotalComunidad": "Community subtotal",
+    "vigencia": {
+      "hasta": "We keep your cart until {{fecha}}. Every change you make renews the period.",
+      "vencido": "Your previous cart expired",
+      "vencidoTexto_one": "We kept it for {{count}} hour after your last change and emptied it on {{fecha}}. No stock was reserved: add the products again and we will check their price and availability.",
+      "vencidoTexto_other": "We kept it for {{count}} hours after your last change and emptied it on {{fecha}}. No stock was reserved: add the products again and we will check their price and availability."
+    }
   },
   "faltantes": {
     "linea": "At least one product line",

@@ -1229,7 +1229,14 @@
     "quitar": "Quitar {{nombre}} del carrito",
     "quitarTitulo": "Quitar del carrito",
     "continuar": "Continuar con la entrega y pago",
-    "bloqueo": "Ajusta o quita los productos marcados para continuar."
+    "bloqueo": "Ajusta o quita los productos marcados para continuar.",
+    "subtotalComunidad": "Subtotal de la comunidad",
+    "vigencia": {
+      "hasta": "Guardamos tu carrito hasta el {{fecha}}. Cada cambio que hagas renueva el plazo.",
+      "vencido": "Tu carrito anterior venció",
+      "vencidoTexto_one": "Lo guardamos {{count}} hora desde tu último cambio y lo vaciamos el {{fecha}}. No tenía stock reservado: vuelve a agregar los productos y revisaremos su precio y disponibilidad.",
+      "vencidoTexto_other": "Lo guardamos {{count}} horas desde tu último cambio y lo vaciamos el {{fecha}}. No tenía stock reservado: vuelve a agregar los productos y revisaremos su precio y disponibilidad."
+    }
   },
   "faltantes": {
     "linea": "Al menos una línea de producto",
