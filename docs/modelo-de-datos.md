@@ -161,7 +161,7 @@ RNF-16: una correccion se hace con un movimiento de tipo AJUSTE que conserva el 
 |---|---|---|---|
 | id | bigserial | no | |
 | producto_id, ubicacion_id | bigint | no | |
-| tipo | varchar(20) | no | ENTRADA, SALIDA_VENTA, TRANSFERENCIA_ENTRADA, TRANSFERENCIA_SALIDA, AJUSTE |
+| tipo | varchar(20) | no | ENTRADA, SALIDA, SALIDA_VENTA, TRANSFERENCIA_ENTRADA, TRANSFERENCIA_SALIDA, AJUSTE |
 | cantidad | numeric(12,3) | no | Siempre positiva. El signo lo da el tipo |
 | pedido_id | bigint | si | Cuando el movimiento viene de una venta |
 | usuario_id | bigint | si | Quien lo registro |
@@ -382,6 +382,44 @@ puntos que tiene en `usuario_ubicacion` y sin los datos del comprador (RNF-05).
 vencen hoy o despues (hora de Lima), el que vence antes sale primero y lo que no vence, como una
 artesania, al final. Cada linea conserva de que lotes salio por sus movimientos `SALIDA_VENTA`
 (`item_pedido_id` + `lote_id`), y `/api/acopio/pedidos` los muestra en cada linea del pedido.
+
+## Entradas y salidas manuales (CCPIP-121, CCPIP-287, CCPIP-283)
+
+Migracion `V202610171500`. El administrador registra entradas y salidas en los lotes de los puntos
+que tiene en `usuario_ubicacion` (`POST /api/acopio/movimientos`, Figma A-02 y A-03) y el productor
+en los lotes de su almacen virtual unico (`POST /api/productor/almacen/movimientos`, PW-16). Un lote
+de otro punto o de otro productor no existe para quien registra (404, RNF-05).
+
+- `movimiento_inventario.tipo` admite `SALIDA`: la salida que no es venta ni transferencia.
+- `movimiento_inventario.motivo`: catalogo cerrado, cada motivo con su tipo y su lugar.
+
+  | Motivo | Tipo | Lugar | Uso |
+  |---|---|---|---|
+  | `RECEPCION` | ENTRADA | punto de acopio | El punto recibe mercaderia del productor en un lote suyo |
+  | `DEVOLUCION_PRODUCTOR` | SALIDA | punto de acopio | El punto devuelve al productor parte de un lote |
+  | `PRODUCCION` | ENTRADA | almacen del productor | Lo cosechado o elaborado se suma a un lote del almacen |
+  | `RETIRO_PRODUCTOR` | SALIDA | almacen del productor | Uso propio o venta fuera de la plataforma |
+
+  No hay "ajuste de conteo": el CHANGELOG del Figma del 30/09 quito la correccion por ajuste del
+  inventario del punto. La merma (A-04, A-07) tiene su propia historia y no es un motivo de salida.
+  Los movimientos automaticos (registro del lote, carga inicial, venta) no llevan motivo.
+- CHECK: una `SALIDA` siempre tiene `motivo`, `lote_id` y `usuario_id` (responsable). La fecha es
+  `registrado_en`.
+- `movimiento_inventario.clave_idempotencia` (uuid): la pantalla genera una por envio del formulario.
+  Indice unico parcial `(usuario_id, clave_idempotencia)`: un reintento devuelve el movimiento ya
+  registrado (200, `repetido: true`) sin mover nada; la misma clave con otro contenido es un 409.
+
+Lote, stock y movimiento cambian en la misma transaccion. El lote se bloquea con `FOR UPDATE`: dos
+salidas simultaneas se ordenan y la segunda se rechaza si ya no alcanza (409 `SALDO_INSUFICIENTE`),
+sin dejar negativos (RNF-09). Una entrada suma a `cantidad_actual` y tambien a `cantidad_inicial`,
+que pasa a ser lo ingresado al lote: asi el CHECK `actual <= inicial` sigue valiendo. Un lote vencido
+no recibe entradas.
+
+**Inventario del punto (A-02, CCPIP-162).** `GET /api/acopio/inventario` lista los lotes de los
+puntos del administrador con producto, productor, vencimiento, entradas, salidas, saldo y estado
+(`DISPONIBLE`, `POR_VENCER`, `VENCIDO`, `AGOTADO`). El saldo es `lote.cantidad_actual`, una vez por
+lote; entradas y salidas se suman en subconsultas para no multiplicar filas. Solo lo vigente con saldo
+es vendible; lo que esta en transito o es merma nunca llega a un lote del punto.
 
 ## Recojo del pedido (CCPIP-71)
 
