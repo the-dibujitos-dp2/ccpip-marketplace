@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listarLotes, listarProductos } from '../../api/productor.js'
+import { listarLotes, listarProductos, listarTodosLosLotes } from '../../api/productor.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
@@ -8,12 +8,12 @@ import EstadoVacio from '../../components/EstadoVacio.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import { unidades } from '../../formato.js'
 import { navigate, RUTAS } from '../../router.js'
-import { FormularioLote, TablaLotes } from './Lotes.jsx'
+import { FormularioLote, TablaLotes, TablaTodosLosLotes } from './Lotes.jsx'
 import PaginaProductor from './PaginaProductor.jsx'
 import './productor.css'
 import './Lotes.css'
 
-/** PW-06: registrar un lote de cualquiera de sus productos (CCPIP-41). */
+/** PW-06: registrar un lote de cualquiera de sus productos (CCPIP-41); sin producto, todos sus lotes (CCPIP-161). */
 export default function LotesPage({ path, search }) {
   const { t } = useTranslation()
   const productoId = new URLSearchParams(search).get('producto')
@@ -21,6 +21,8 @@ export default function LotesPage({ path, search }) {
   const [lotes, setLotes] = useState(null)
   const [cambiando, setCambiando] = useState(!productoId)
   const [noEncontrado, setNoEncontrado] = useState(false)
+  const [todos, setTodos] = useState(null)
+  const [errorTodos, setErrorTodos] = useState(false)
 
   useEffect(() => {
     // Todos sus productos, sin importar el estado: tambien se reponen los despublicados
@@ -42,6 +44,15 @@ export default function LotesPage({ path, search }) {
           setCambiando(true)
         })
     }
+  }, [productoId])
+
+  useEffect(() => {
+    // CCPIP-161: sin producto elegido, todos sus lotes por vencimiento proximo
+    if (productoId) return
+    setErrorTodos(false)
+    listarTodosLosLotes()
+      .then(setTodos)
+      .catch(() => setErrorTodos(true))
   }, [productoId])
 
   const vigentes = lotes ? lotes.items.filter((l) => l.estado !== 'VENCIDO').length : 0
@@ -67,6 +78,16 @@ export default function LotesPage({ path, search }) {
             opciones={productos.map((p) => ({ valor: String(p.id), etiqueta: p.nombre }))}
           />
         </div>
+      )}
+
+      {!productoId && productos?.length > 0 && (
+        <section className="productor__seccion" aria-labelledby="titulo-todos-lotes">
+          <h2 id="titulo-todos-lotes" className="heading-h4">{t('productor.lotes.todos')}</h2>
+          <p className="body-s">{t('productor.lotes.todosTexto')}</p>
+          {errorTodos && <Alerta tono="error" titulo={t('productor.lotes.errorTodos')} />}
+          {todos?.length === 0 && <p className="body-s">{t('productor.lotes.sinLotesTodos')}</p>}
+          {todos?.length > 0 && <TablaTodosLosLotes lotes={todos} />}
+        </section>
       )}
 
       {lotes && !cambiando && (
