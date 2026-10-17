@@ -6,7 +6,7 @@ import iconoEditar from '../../assets/icons/editar.svg'
 import iconoIa from '../../assets/icons/ia.svg'
 import iconoInfo from '../../assets/icons/info-pequeno.svg'
 import { obtenerCatalogos } from '../../api/catalogo.js'
-import { eliminarImagen, marcarPrincipal, proponerDescripcion, reemplazarImagen, subirImagen } from '../../api/productor.js'
+import { eliminarImagen, marcarPrincipal, proponerDescripcion, rechazarBorrador, reemplazarImagen, subirImagen } from '../../api/productor.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
@@ -233,6 +233,22 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
     }
   }
 
+  // CCPIP-280: un borrador de un producto ya guardado quedo en el servidor; descartarlo lo registra
+  async function descartarDescripcion() {
+    if (producto?.id) {
+      try {
+        await rechazarBorrador(producto.id, 'DESCRIPCION')
+      } catch (err) {
+        // 409: el servidor no guardo ese borrador (se pidio antes de crear el producto); igual se descarta
+        if (err.status !== 409) {
+          setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.ia.errorDescartar') })
+          return
+        }
+      }
+    }
+    setIa({ estado: 'descartada' })
+  }
+
   function aceptarDescripcion(editar) {
     setD({ ...d, descripcion: ia.texto, descripcionAsistida: true })
     setIa({ estado: 'aceptada' })
@@ -320,12 +336,13 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
         />
 
         <div className="editor__ia" aria-live="polite">
-          {ia.estado === 'inicial' || ia.estado === 'aceptada' ? (
+          {['inicial', 'aceptada', 'descartada'].includes(ia.estado) ? (
             <button type="button" className="editor__ia-boton" onClick={sugerir}>
               <Icono src={iconoIa} tamano={18} />
               {ia.estado === 'aceptada' ? t('productor.datos.ia.otra') : t('productor.datos.ia.sugerir')}
             </button>
           ) : null}
+          {ia.estado === 'descartada' && <p className="caption">{t('productor.datos.ia.descartada')}</p>}
           {ia.estado === 'cargando' && <p className="body-s">{t('productor.datos.ia.preparando')}</p>}
           {ia.estado === 'no-disponible' && (
             <Alerta tono="aviso" titulo={t('productor.datos.ia.noDisponible')} descripcion={t('productor.datos.ia.noDisponibleTexto')} onCerrar={() => setIa({ estado: 'inicial' })} />
@@ -345,6 +362,9 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
                 </Boton>
                 <Boton tipo="terciario" tamano="S" onClick={sugerir}>
                   {t('productor.datos.ia.generarOtra')}
+                </Boton>
+                <Boton tipo="terciario" tamano="S" onClick={() => void descartarDescripcion()}>
+                  {t('productor.datos.ia.descartar')}
                 </Boton>
                 <Boton tamano="S" onClick={() => aceptarDescripcion(false)}>
                   {t('productor.datos.ia.aceptar')}

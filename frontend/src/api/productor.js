@@ -25,8 +25,14 @@ export const proponerHistoria = async (id, respuestas, variante = 'NORMAL') =>
   apiFetch(`${base}/productos/${idRuta(id)}/historia/propuesta`, { method: 'POST', body: { respuestas, variante } })
 export const aprobarHistoria = async (id, datos) => apiFetch(`${base}/productos/${idRuta(id)}/historia/aprobar`, { method: 'POST', body: datos })
 export const proponerDescripcion = (datos) => apiFetch(`${base}/ia/descripcion`, { method: 'POST', body: datos })
+/** CCPIP-280: `borrador` DESCRIPCION | HISTORIA. Queda registrado y no se publica nada. */
+export const rechazarBorrador = async (id, borrador) =>
+  apiFetch(`${base}/productos/${idRuta(id)}/ia/rechazar?${new URLSearchParams({ borrador })}`, { method: 'POST' })
 
 export const listarUbicaciones = () => apiFetch(`${base}/ubicaciones`)
+
+// CCPIP-136 y CCPIP-162 (PW-16): su almacen virtual unico, por producto, ubicacion, lote y estado
+export const consultarInventario = () => apiFetch(`${base}/inventario`)
 
 // CCPIP-66 (PW-07): solo las lineas propias de cada pedido pagado, con conteos por estado
 export const listarPedidos = (estado) => apiFetch(`${base}/pedidos?${new URLSearchParams({ estado })}`)
