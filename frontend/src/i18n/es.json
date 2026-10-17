@@ -307,7 +307,8 @@
       "publicar": "Publicar",
       "nota": "Solo ves tus propios productos. “En venta” es el stock en puntos de acopio; lo que está en tu almacén se vende después de transferirlo.",
       "confirmarTitulo": "¿Despublicar este producto?",
-      "confirmarTexto": "dejará de aparecer en el catálogo y en tu tienda. No se borra: sigue en los pedidos y en el historial, y puedes volver a publicarlo cuando quieras."
+      "confirmarTexto": "dejará de aparecer en el catálogo y en tu tienda. No se borra: sigue en los pedidos y en el historial, y puedes volver a publicarlo cuando quieras.",
+      "evidencias": "Certificados y evidencias"
     },
     "editor": {
       "nombreAntesFotos": "Escribe el nombre del producto antes de agregar fotos",
@@ -711,7 +712,8 @@
     "nav": {
       "tablero": "Tablero",
       "comision": "Comisión",
-      "comisiones": "Comisión por pedido"
+      "comisiones": "Comisión por pedido",
+      "autorizaciones": "Autorizaciones"
     },
     "tablero": {
       "titulo": "Tablero de operación",
@@ -1080,7 +1082,17 @@
     "TRADUCCION_NO_DISPONIBLE": "La traducción automática no está disponible en este momento. Tu contenido se conserva en su idioma original.",
     "IDIOMA_NO_TRADUCIBLE": "El contenido se escribe en español; solo se puede traducir al inglés.",
     "CAMPO_NO_TRADUCIBLE": "Ese campo no existe o no tiene texto en español para traducir.",
-    "SIN_TRADUCCION_PENDIENTE": "No hay traducciones por publicar."
+    "SIN_TRADUCCION_PENDIENTE": "No hay traducciones por publicar.",
+    "AUTORIZACION_VIGENTE": "Este producto ya está autorizado. Sus evidencias sustentan esa decisión y no se cambian.",
+    "EVIDENCIA_EN_USO": "Esta evidencia sustenta la autorización vigente del producto y no se puede retirar.",
+    "EVIDENCIA_NO_ENCONTRADA": "La evidencia no existe.",
+    "LIMITE_DE_EVIDENCIAS": "Llegaste al máximo de evidencias. Retira una para agregar otra.",
+    "VIGENCIA_REQUERIDA": "Indica hasta cuándo vale el certificado.",
+    "VIGENCIA_INVALIDA": "La vigencia termina antes de empezar.",
+    "SIN_CERTIFICADO_VIGENTE": "Para aprobar, el producto necesita al menos un certificado vigente propio.",
+    "SOLICITUD_YA_RESUELTA": "Esta solicitud ya no está pendiente de revisión.",
+    "SOLICITUD_NO_ENCONTRADA": "La solicitud no existe.",
+    "MOTIVO_REQUERIDO": "Escribe el motivo de la decisión."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -1626,6 +1638,203 @@
       "vacia": "Una traducción no puede quedar vacía",
       "error": "No pudimos traducir tu contenido",
       "errorPublicar": "No pudimos publicar la traducción"
+    }
+  },
+  "evidencias": {
+    "titulo": "Certificados y evidencias",
+    "intro": "Adjunta lo que sustenta la autorización para vender {{producto}}. Cada archivo vale solo para este producto.",
+    "volver": "Volver a mis productos",
+    "error": "No pudimos cargar las evidencias",
+    "errorSubir": "No pudimos subir el archivo",
+    "errorRetirar": "No pudimos retirar la evidencia",
+    "subida": "Subiste «{{titulo}}». La Cámara la revisará.",
+    "retirada": "Retiraste «{{titulo}}».",
+    "limite": "Llegaste al máximo de {{maximo}} evidencias. Retira una para agregar otra.",
+    "privadas": "Solo la Cámara y tú pueden verlas.",
+    "decisionHumana": "La revisión preliminar con IA solo ayuda a la Cámara: la decisión la toma una persona.",
+    "estado": {
+      "SIN_SOLICITUD": "Aún no solicitas la autorización",
+      "SIN_SOLICITUDTexto": "Sube al menos un certificado vigente de este producto para enviar la solicitud a la Cámara.",
+      "SOLICITADA": "En revisión por la Cámara",
+      "SOLICITADATexto": "Puedes agregar o retirar evidencias mientras la revisan. Te avisaremos con la decisión.",
+      "APROBADA": "Autorizado para vender",
+      "aprobadaHasta": "La autorización vale hasta el {{fecha}}, cuando vence tu primer certificado.",
+      "RECHAZADA": "La Cámara rechazó la solicitud",
+      "REVOCADA": "La autorización fue revocada",
+      "conMotivo": "Motivo: «{{motivo}}». Adjunta nuevas evidencias para volver a solicitarla."
+    },
+    "tipo": {
+      "CERTIFICADO": "Certificados",
+      "DOCUMENTO": "Documentos",
+      "EVIDENCIA": "Evidencias del proceso"
+    },
+    "ayuda": {
+      "CERTIFICADO": "Certificado orgánico, registro sanitario u otro que nombre este producto. Siempre indica hasta cuándo vale.",
+      "DOCUMENTO": "Acta comunal, constancia de la organización o declaración firmada.",
+      "EVIDENCIA": "Fotos o registros del proceso y de las personas que elaboran el producto."
+    },
+    "agregar": {
+      "CERTIFICADO": "Agregar certificado",
+      "DOCUMENTO": "Agregar documento",
+      "EVIDENCIA": "Agregar evidencia"
+    },
+    "necesitas": {
+      "titulo": "¿Qué necesitas?",
+      "CERTIFICADO": "Al menos un certificado vigente de este producto",
+      "DOCUMENTO": "Documentos de la organización, si los tienes",
+      "EVIDENCIA": "Fotos o registros del proceso de elaboración"
+    },
+    "archivos_one": "{{count}} archivo",
+    "archivos_other": "{{count}} archivos",
+    "pendiente": "Pendiente",
+    "vigenteHasta": "Vigente hasta {{fecha}}",
+    "vencida": "Venció el {{fecha}}",
+    "sinVencimiento": "Sin vencimiento",
+    "ver": "Ver",
+    "verDe": "Ver {{titulo}}",
+    "retirar": "Retirar",
+    "retirarDe": "Retirar {{titulo}}",
+    "retirarTitulo": "¿Retirar esta evidencia?",
+    "retirarTexto": "«{{titulo}}» dejará de sustentar la solicitud. La Cámara conserva el registro de lo que revisó.",
+    "form": {
+      "titulo": "Nombre del documento",
+      "emisor": "Quién lo emite",
+      "opcional": "Opcional",
+      "opcionalCorto": "(opcional)",
+      "desde": "Vigente desde (opcional)",
+      "hasta": "Vigente hasta",
+      "archivo": "Archivo",
+      "formatos": "PDF, JPG o PNG · máx. 10 MB",
+      "subir": "Subir",
+      "subiendo": "Subiendo…",
+      "errorTitulo": "Escribe el nombre del documento",
+      "errorVigencia": "Indica hasta cuándo vale el certificado",
+      "errorOrden": "La vigencia termina antes de empezar",
+      "errorArchivo": "Elige un archivo",
+      "errorFormato": "Solo se aceptan archivos PDF, JPG o PNG",
+      "errorPeso": "El archivo pesa más de 10 MB"
+    }
+  },
+  "autorizaciones": {
+    "titulo": "Autorizaciones de productos",
+    "error": "No pudimos cargar las solicitudes",
+    "volver": "Volver a autorizaciones",
+    "nota": "La revisión preliminar con IA es una sugerencia: solo tu decisión con motivo autoriza un producto.",
+    "pestanasEtiqueta": "Estado de las solicitudes",
+    "pestana": {
+      "SOLICITADA": "Pendientes",
+      "APROBADA": "Aprobadas",
+      "RECHAZADA": "Rechazadas"
+    },
+    "vacio": {
+      "SOLICITADA": "No hay solicitudes pendientes.",
+      "APROBADA": "Aún no apruebas solicitudes.",
+      "RECHAZADA": "Aún no rechazas solicitudes."
+    },
+    "kpi": {
+      "pendientes": "Pendientes",
+      "pendientesDetalle": "Esperan tu revisión",
+      "aprobadas": "Aprobadas este mes",
+      "rechazadas": "Rechazadas este mes",
+      "conMotivo": "Con motivo registrado"
+    },
+    "col": {
+      "producto": "Producto",
+      "organizacion": "Organización",
+      "evidencias": "Evidencias",
+      "analisis": "Análisis IA",
+      "enviada": "Enviada",
+      "decidida": "Decidida",
+      "accion": "Acción"
+    },
+    "evidencias_one": "{{count}} archivo",
+    "evidencias_other": "{{count}} archivos",
+    "certificados_one": "{{count}} certificado vigente",
+    "certificados_other": "{{count}} certificados vigentes",
+    "sinCertificado": "Sin certificado vigente",
+    "revisar": "Revisar",
+    "ver": "Ver",
+    "revisarDe": "Revisar {{producto}} de {{organizacion}}",
+    "recomendacion": {
+      "SIN_OBSERVACIONES": "Sin observaciones",
+      "REVISAR": "Con observaciones",
+      "ninguna": "Sin análisis"
+    },
+    "estado": {
+      "SOLICITADA": "En revisión",
+      "APROBADA": "Aprobada",
+      "RECHAZADA": "Rechazada",
+      "REVOCADA": "Revocada"
+    },
+    "hallazgo": {
+      "CONFORME": "Conforme",
+      "INCONSISTENCIA": "Revisar",
+      "FALTANTE": "Falta"
+    },
+    "analisis": {
+      "titulo": "Análisis preliminar",
+      "pedir": "Pedir análisis preliminar",
+      "otraVez": "Volver a analizar",
+      "analizando": "Analizando…",
+      "noDecide": "La IA no aprueba ni rechaza. Sus observaciones son sugerencias para tu revisión.",
+      "sugerencia": "Revisión preliminar asistida (sugerencia)",
+      "sugerenciaPrueba": "Resultado de prueba (sugerencia simulada)",
+      "simuladoTitulo": "Resultado de prueba, no es un análisis real",
+      "simuladoTexto": "Lo generó el analista simulado con reglas fijas sobre lo declarado; no leyó los archivos. Se reemplazará al conectar el proveedor de IA definitivo.",
+      "recomendacion": "Recomendación:",
+      "faltantes": "Lo que falta",
+      "pedido": "Pedido el {{fecha}} · proveedor: {{proveedor}}",
+      "desactualizado": "Las evidencias cambiaron después de este análisis.",
+      "noDisponible": "Análisis no disponible: revisión manual",
+      "noDisponibleTexto": "Revisa las evidencias y decide con tu motivo. La solicitud no queda bloqueada.",
+      "errorAnalisis": "No pudimos pedir el análisis"
+    },
+    "expediente": {
+      "titulo": "Expediente",
+      "error": "No pudimos cargar el expediente",
+      "solicitud": "Solicitud",
+      "enviada": "Enviada el {{fecha}}",
+      "evidencias_one": "Evidencias ({{count}})",
+      "evidencias_other": "Evidencias ({{count}})",
+      "privadas": "Visibles solo para la administración y el productor",
+      "sinEvidencias": "El productor aún no adjunta evidencias vigentes.",
+      "desde": "desde {{fecha}}",
+      "historial": "Historial de decisiones",
+      "decididaPor": "{{nombre}} · {{fecha}}",
+      "conAnalisis": "con análisis preliminar",
+      "manual": "revisión manual",
+      "decision": "Decisión",
+      "certificadosVigentes_one": "{{count}} certificado vigente del producto",
+      "certificadosVigentes_other": "{{count}} certificados vigentes del producto",
+      "analisisListo": "Análisis preliminar disponible",
+      "revisionManual": "Revisión manual",
+      "sinAnalisis": "Sin análisis preliminar (opcional)",
+      "motivo": "Motivo de la decisión",
+      "motivoAyuda": "Obligatorio. El productor lo verá.",
+      "motivoRequerido": "Escribe el motivo de la decisión",
+      "sinCertificado": "Para aprobar, el producto necesita al menos un certificado vigente propio.",
+      "aprobar": "Aprobar autorización",
+      "rechazar": "Rechazar solicitud",
+      "aprobadaHasta": "Autorizada hasta el {{fecha}}.",
+      "resuelta": "Esta solicitud ya fue resuelta.",
+      "hecho": {
+        "aprobar": "Aprobaste la solicitud. El producto ya se puede comprar.",
+        "rechazar": "Rechazaste la solicitud. El productor verá tu motivo."
+      },
+      "errorDecision": "No pudimos registrar la decisión"
+    },
+    "dialogo": {
+      "motivo": "Motivo: «{{motivo}}»",
+      "aprobar": {
+        "titulo": "Aprobar {{producto}}",
+        "confirmar": "Aprobar",
+        "texto": "{{organizacion}} podrá vender este producto mientras sus certificados estén vigentes. La decisión queda registrada."
+      },
+      "rechazar": {
+        "titulo": "Rechazar {{producto}}",
+        "confirmar": "Rechazar solicitud",
+        "texto": "{{organizacion}} verá este motivo y podrá adjuntar nuevas evidencias. La decisión queda registrada y no se edita."
+      }
     }
   }
 }

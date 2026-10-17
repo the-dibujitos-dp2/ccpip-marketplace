@@ -275,6 +275,25 @@ de la ficha y del editor, pero el registro y el archivo quedan y se siguen sirvi
 Al reemplazar una, `reemplazada_por` apunta a la nueva, que toma su orden y su `principal`.
 Solo las vigentes cuentan para el limite de seis fotos. Portada y galeria se siguen borrando.
 
+### imagen_validacion (CCPIP-144, 168)
+Migracion `V202610171300`. Cada vez que el productor pide validar una foto de producto queda
+una fila: `estado` (ANALIZANDO, VALIDA, SOSPECHOSA, ERROR), `linea_esperada` (la principal del
+producto), `linea_detectada` (la que coincide o a la que se parece), `motivo`, `proveedor`,
+`solicitada_por`, `solicitada_en` y `terminada_en` (nula solo mientras se analiza). La vigente
+es la ultima; las anteriores, incluidas las que fallaron, quedan como historial. Es solo una
+recomendacion: no bloquea la publicacion ni cambia la foto (RF-137). Hoy el proveedor es
+`simulado` (pruebas y demo) o `ninguno` (503); el modelo definitivo se conectara despues.
+
+### imagen_mejora (CCPIP-176, 272, 281, 282)
+Migracion `V202610171301`. La variante mejorada de una foto vive aparte, con su propia `clave`
+y `clave_miniatura` en el bucket (`productores/<id>/mejoras/<mejora>.jpg`), y se sirve solo a
+su dueno por `/api/productor/mejoras/{id}`. `estado` PENDIENTE, ACEPTADA o RECHAZADA, con
+`ajustes` (p. ej. AUTOCONTRASTE,NITIDEZ), `proveedor`, quien y cuando la pidio y la decidio.
+Una sola pendiente por foto (indice unico parcial). Al aceptarla se registra una `imagen` nueva
+con la clave de la variante que toma el lugar de la original, igual que un reemplazo: la
+original queda retirada y `reemplazada_por` apunta a la nueva; `imagen_resultante` la enlaza.
+Rechazarla no toca la original.
+
 ### producto_historia (CCPIP-48, 49)
 Las cuatro respuestas del productor (`quienes`, `como`, `significado`, `cuidado`), el texto
 que propuso la IA (`texto_propuesto`) y el aprobado (`texto_final`), con `asistida`,
@@ -282,7 +301,7 @@ que propuso la IA (`texto_propuesto`) y el aprobado (`texto_final`), con `asisti
 
 ### producto_auditoria (CCPIP-47)
 Quien cambio que y cuando: `accion` (CREAR, EDITAR, PUBLICAR, RETIRAR, REPUBLICAR, HISTORIA,
-LOTE, IMAGEN) y `cambios` en jsonb con el antes y el despues. Solo insercion: un trigger
+LOTE, IMAGEN, y desde `V202610171200` EVIDENCIA y AUTORIZACION) y `cambios` en jsonb con el antes y el despues. Solo insercion: un trigger
 rechaza UPDATE y DELETE, igual que en `movimiento_inventario`.
 
 ## Cuenta bancaria y autorizacion para vender (CCPIP-269)
@@ -343,26 +362,78 @@ vale. El servidor lo controla en cada paso donde se puede comprar:
 | Confirmar la compra (`POST /api/pedidos`) | `409 CARRITO_CON_PROBLEMAS` |
 | Pagar (`POST /api/pedidos/{id}/pagos`), por si se revoco despues de crear el pedido | No se cobra, el pedido se cancela y responde `409 VENTA_PAUSADA` |
 
-### Revision manual de autorizaciones (MVP)
+## Evidencias y revision de autorizaciones (CCPIP-36, CCPIP-50, CCPIP-174, CCPIP-284)
 
-Mientras no exista la bandeja del subadministrador (CCPIP-359, pantallas S-01 y S-02), la
-autorizacion se decide fuera de la plataforma y se registra en la base:
+Migraciones `V202610171200` (evidencias y decisiones) y `V202610171201` (analisis preliminar).
+El productor adjunta certificados, documentos y evidencias a cada producto (RF-13, Figma PW-14);
+el subadministrador los revisa en la bandeja (S-01) y el expediente (S-02), puede pedir un
+analisis preliminar asistido (RF-74) y aprueba o rechaza con motivo (RF-166, RF-204).
 
-1. El productor envia por correo a la Camara la evidencia de que puede vender ese producto
-   (por ejemplo, registro sanitario o certificado de origen) y su vigencia, si la tiene.
-2. Un subadministrador la revisa. Al decidir, deja constancia en el acta de la semana: productor,
-   producto, decision, motivo y vigencia.
-3. Registra la decision. Los productos sembrados ya entran aprobados por `R__02`; para uno nuevo
-   o para cambiar una decision, en la base del ambiente:
-   ```sql
-   INSERT INTO autorizacion_producto (productor_id, producto_id, estado, motivo, decidido_por, decidido_en, vigente_hasta)
-   VALUES (:productor, :producto, 'APROBADA', 'Registro sanitario vigente', :subadministrador, now(), '2027-06-30')
-   ON CONFLICT (productor_id, producto_id) DO UPDATE
-   SET estado = EXCLUDED.estado, motivo = EXCLUDED.motivo, decidido_por = EXCLUDED.decidido_por,
-       decidido_en = EXCLUDED.decidido_en, vigente_hasta = EXCLUDED.vigente_hasta;
-   ```
-   Para pausar la venta: `estado = 'REVOCADA'` o `'RECHAZADA'` con su `motivo`. El cambio rige de
-   inmediato en el catalogo, los carritos y los pagos pendientes; no hace falta redesplegar.
+```mermaid
+erDiagram
+    autorizacion_producto ||--o{ evidencia_producto : sustenta
+    autorizacion_producto ||--o{ autorizacion_decision : decide
+    autorizacion_producto ||--o{ analisis_evidencias : analiza
+    analisis_evidencias ||--o{ analisis_hallazgo : explica
+    evidencia_producto ||--o{ analisis_hallazgo : observa
+    analisis_evidencias |o--o{ autorizacion_decision : acompana
+```
+
+**Integracion con la regla de compra.** No hay un segundo estado: la solicitud ES la fila de
+`autorizacion_producto`. Subir la primera evidencia la crea en `SOLICITADA`. Aprobar la deja
+`APROBADA`, con `vigente_hasta` igual al certificado vigente que vence primero y `decision_id`
+apuntando a la decision. Asi la regla de CCPIP-269/270 (APROBADA y vigente) habilita la compra
+sin cambios, y cuando el certificado vence la oferta vuelve sola a "Venta pausada". Lo aprobado
+por la migracion `V202610121000` y por las semillas queda con `decision_id` nula.
+
+| Estado actual | Evidencia nueva del productor | Retirar evidencia |
+|---|---|---|
+| sin fila | crea la solicitud en SOLICITADA | no aplica |
+| SOLICITADA | se agrega | se retira (logico) |
+| RECHAZADA, REVOCADA o APROBADA vencida | vuelve a SOLICITADA y limpia motivo y decision | se retira |
+| APROBADA vigente | `409 AUTORIZACION_VIGENTE` | `409 EVIDENCIA_EN_USO` |
+
+### autorizacion_producto (columnas nuevas)
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| solicitada_en | timestamptz | si | Cuando entro (o volvio) a SOLICITADA. Ordena la bandeja |
+| decision_id | bigint | si | La decision que fijo el estado actual. Nula en lo aprobado antes de la bandeja |
+
+Se agrega el unico `(id, productor_id, producto_id)` para la llave compuesta de las evidencias.
+
+### evidencia_producto
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| id | uuid | no | Identificador; el archivo se sirve solo con sesion (RNF-08) |
+| autorizacion_id, productor_id, producto_id | bigint | no | Llave foranea compuesta a `autorizacion_producto`: un certificado de otro producto no puede sustentar el solicitado |
+| tipo | varchar(12) | no | `CERTIFICADO`, `DOCUMENTO` o `EVIDENCIA` |
+| titulo, emisor | varchar(160) | emisor si | Nombre del documento y quien lo emite |
+| vigente_desde, vigente_hasta | date | si | Vigencia en hora de Lima. `vigente_hasta` es obligatoria en certificados |
+| nombre_archivo, content_type, bytes, clave | | no | PDF, JPG o PNG reconocido por sus primeros bytes, hasta 10 MB; vive en el bucket bajo `evidencias/` |
+| subida_en, subida_por | | no | Quien la subio |
+| retirada_en, retirada_por | | si | Retiro logico: se conserva porque las decisiones la citan |
+
+Hasta 10 evidencias vigentes por producto.
+
+### autorizacion_decision
+`decision` (APROBADA, RECHAZADA), `motivo` obligatorio (hasta 500), `evidencias` (uuid[] de las
+vigentes al decidir; al aprobar no puede ir vacio), `vigente_hasta`, `analisis_id` (nulo si se
+reviso a mano), `decidido_por` y `decidido_en`. Solo insercion por trigger (`solo_insercion()`).
+Aprobar exige al menos un certificado vigente propio (`409 SIN_CERTIFICADO_VIGENTE`); una
+solicitud que no esta SOLICITADA no se decide (`409 SOLICITUD_YA_RESUELTA`). Cada decision y cada
+evidencia subida o retirada tambien queda en `producto_auditoria` (`AUTORIZACION`, `EVIDENCIA`).
+
+### analisis_evidencias, analisis_hallazgo
+El analisis es una sugerencia y nunca cambia el estado (RNF-30). `estado` COMPLETADO o
+NO_DISPONIBLE, `proveedor`, `simulado`, `recomendacion` (SIN_OBSERVACIONES, REVISAR), `resumen`
+y `evidencias` analizadas. Cada hallazgo (FALTANTE, INCONSISTENCIA, CONFORME) apunta a la
+evidencia que lo origina (RNF-48). Ambas tablas son de solo insercion.
+
+El proveedor se elige con `ccpip.ia.proveedor`, igual que la redaccion asistida. El definitivo
+aun no esta elegido: `ninguno` (por defecto) responde `503 IA_NO_DISPONIBLE`, queda registrado
+como NO_DISPONIBLE y la solicitud se decide a mano; `simulado` aplica reglas fijas sobre lo
+declarado (sin leer el archivo) y se marca `simulado = true` en la base y en la pantalla como
+resultado de prueba. Solo se usa en pruebas y demo.
 
 ## Descuento de existencias por venta (CCPIP-158)
 
