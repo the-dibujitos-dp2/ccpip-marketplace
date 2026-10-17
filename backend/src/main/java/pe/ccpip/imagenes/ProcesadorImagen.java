@@ -78,6 +78,26 @@ public class ProcesadorImagen {
         return new Procesada(jpeg(imagen, 0.85f), jpeg(miniatura, 0.8f), imagen.getWidth(), imagen.getHeight());
     }
 
+    /** CCPIP-176: comprime y genera la miniatura de una imagen ya decodificada (la variante mejorada). */
+    public Procesada desde(BufferedImage original) {
+        BufferedImage imagen = redimensionar(original, LADO_MAXIMO);
+        BufferedImage miniatura = redimensionar(original, LADO_MINIATURA);
+        return new Procesada(jpeg(imagen, 0.85f), jpeg(miniatura, 0.8f), imagen.getWidth(), imagen.getHeight());
+    }
+
+    /** Decodifica una foto que ya paso por {@link #procesar}, leida del bucket. */
+    public static BufferedImage leerGuardada(byte[] jpeg) {
+        try {
+            BufferedImage img = ImageIO.read(new ByteArrayInputStream(jpeg));
+            if (img == null) {
+                throw new IllegalStateException("La imagen guardada no se pudo leer");
+            }
+            return img;
+        } catch (IOException e) {
+            throw new IllegalStateException("La imagen guardada no se pudo leer", e);
+        }
+    }
+
     private static BufferedImage leer(byte[] archivo) {
         try (ImageInputStream entrada = ImageIO.createImageInputStream(new ByteArrayInputStream(archivo))) {
             Iterator<ImageReader> lectores = ImageIO.getImageReaders(entrada);

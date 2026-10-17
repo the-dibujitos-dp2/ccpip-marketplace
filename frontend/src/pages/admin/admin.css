@@ -69,3 +69,42 @@
   .admin__barra { grid-template-columns: 1fr 110px; }
   .admin__pista { grid-column: 1 / -1; grid-row: 2; }
 }
+
+/* S-01 y S-02 Autorizaciones de productos (CCPIP-36, CCPIP-50, CCPIP-174, CCPIP-284) */
+.autorizaciones__organizacion { flex: 0 0 200px; display: flex; flex-direction: column; }
+.autorizaciones__evidencias { flex: 0 0 170px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.autorizaciones__analisis { flex: 0 0 150px; }
+.autorizaciones__fecha { flex: 0 0 80px; }
+.autorizaciones__accion { flex: 0 0 110px; display: flex; justify-content: flex-end; }
+.autorizaciones__linea { display: block; color: var(--color-text-secondary); }
+.tabla__celda--flex .label-m { display: block; }
+
+.expediente { display: grid; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; gap: 24px; }
+.expediente__principal { display: flex; flex-direction: column; gap: 20px; }
+.expediente__cabecera { flex-direction: row; align-items: flex-start; justify-content: space-between; }
+.expediente__cabecera .heading-h3, .expediente__cabecera .body-s { margin: 0 0 4px; }
+.expediente__titulo-seccion { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.expediente__titulo-seccion .heading-h4 { margin: 0; }
+.expediente__evidencias { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.expediente__evidencia { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); }
+.expediente__evidencia-fila { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.expediente__evidencia-datos { display: flex; flex: 1 1 220px; flex-direction: column; min-width: 0; }
+.expediente__evidencia-datos .caption { color: var(--color-text-secondary); }
+.expediente__sugerencia { display: flex; gap: 10px; padding: 10px 12px; border-radius: var(--radius-m); background: var(--color-status-info-bg); }
+.expediente__sugerencia p { margin: 0; }
+.expediente__historial { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.expediente__historial li { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.expediente__historial .caption { color: var(--color-text-secondary); }
+.expediente__decision { gap: 14px; }
+.expediente__decision .heading-h3 { margin: 0; }
+.expediente__checklist { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.expediente__checklist li { display: flex; align-items: center; gap: 8px; }
+.expediente__ia { display: flex; gap: 8px; padding: 10px 12px; border-radius: var(--radius-m); background: var(--color-bg-sand); }
+.expediente__ia p { margin: 0; }
+.expediente__analisis { display: flex; flex-direction: column; gap: 8px; }
+.expediente__analisis p { margin: 0; }
+.expediente__faltantes { margin: 0; padding-left: 18px; }
+
+@media (max-width: 1100px) {
+  .expediente { grid-template-columns: 1fr; }
+}
