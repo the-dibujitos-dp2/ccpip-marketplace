@@ -11,6 +11,7 @@ import AccesoRestringidoPage from './pages/admin/AccesoRestringidoPage.jsx'
 import AutorizacionesPage from './pages/admin/AutorizacionesPage.jsx'
 import ComisionesPage from './pages/admin/ComisionesPage.jsx'
 import ComisionPage from './pages/admin/ComisionPage.jsx'
+import ParametrosPage from './pages/admin/ParametrosPage.jsx'
 import ExpedienteAutorizacionPage from './pages/admin/ExpedienteAutorizacionPage.jsx'
 import TableroPage from './pages/admin/TableroPage.jsx'
 import InventarioPage from './pages/acopio/InventarioPage.jsx'
@@ -226,11 +227,12 @@ export default function App() {
   } else if (restringida) {
     pagina = <AccesoRestringidoPage path={path} seccion={restringida} />
   } else if (delAdmin) {
-    // Tablero (SA-01), comision (SA-02), comision por pedido y autorizaciones (S-01, S-02); los otros modulos llegan con sus historias
+    // Tablero (SA-01), comision y parametros (SA-02), comision por pedido y autorizaciones (S-01, S-02); los otros modulos llegan con sus historias
     if (!puedeVerAdmin(user, path)) pagina = null
     else if (path === RUTAS.admin) pagina = <TableroPage path={path} />
     else if (path === RUTAS.adminComision) pagina = <ComisionPage path={path} />
     else if (path === RUTAS.adminComisiones) pagina = <ComisionesPage path={path} />
+    else if (path === RUTAS.adminParametros) pagina = <ParametrosPage path={path} />
     else if (path === RUTAS.adminAutorizaciones) pagina = <AutorizacionesPage path={path} />
     else if (RUTA_EXPEDIENTE.test(path)) pagina = <ExpedienteAutorizacionPage path={RUTAS.adminAutorizaciones} id={path.match(RUTA_EXPEDIENTE)[1]} />
     else {

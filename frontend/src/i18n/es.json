@@ -794,6 +794,7 @@
       "tablero": "Tablero",
       "comision": "Comisión",
       "comisiones": "Comisión por pedido",
+      "parametros": "Parámetros",
       "autorizaciones": "Autorizaciones"
     },
     "tablero": {
@@ -925,6 +926,29 @@
       "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
       "sinComisionCelda": "Sin comisión",
       "nota": "La comisión y el neto quedan fijados al confirmar cada pedido; un cambio posterior de la comisión no los altera."
+    },
+    "parametros": {
+      "titulo": "Parámetros de la plataforma",
+      "seccion": "Carrito",
+      "pendiente": "Pendiente de definición del stakeholder",
+      "intro": "Cuánto tiempo se guarda un carrito sin pagar desde su último cambio. Mientras la Cámara no lo defina rige un valor provisional.",
+      "campo": "Vida del carrito sin pagar (horas)",
+      "ayuda": "Entre {{minimo}} y {{maximo}} horas. El carrito no reserva stock; al vencer se vacía y, al volver a agregar, se revalida.",
+      "guardar": "Guardar",
+      "provisional_one": "Rige el valor provisional de {{count}} hora: aún no se configuró.",
+      "provisional_other": "Rige el valor provisional de {{count}} horas: aún no se configuró.",
+      "configurada_one": "Rige {{count}} hora · configurada por {{nombre}} el {{fecha}}.",
+      "configurada_other": "Rige {{count}} horas · configurada por {{nombre}} el {{fecha}}.",
+      "rigeYa": "El cambio rige de inmediato, también para los carritos ya guardados. Cada cambio queda en el historial.",
+      "guardado_one": "La vida del carrito ahora es de {{count}} hora",
+      "guardado_other": "La vida del carrito ahora es de {{count}} horas",
+      "errorCargar": "No pudimos cargar los parámetros",
+      "errorGuardar": "No pudimos guardar la vida del carrito",
+      "validacion": {
+        "vacio": "Indica cuántas horas se guarda el carrito.",
+        "rango": "Escribe un número entero de horas entre {{minimo}} y {{maximo}}.",
+        "mismo": "Ya rige ese valor."
+      }
     }
   },
   "sello": {
@@ -1388,7 +1412,14 @@
     "quitar": "Quitar {{nombre}} del carrito",
     "quitarTitulo": "Quitar del carrito",
     "continuar": "Continuar con la entrega y pago",
-    "bloqueo": "Ajusta o quita los productos marcados para continuar."
+    "bloqueo": "Ajusta o quita los productos marcados para continuar.",
+    "subtotalComunidad": "Subtotal de la comunidad",
+    "vigencia": {
+      "hasta": "Guardamos tu carrito hasta el {{fecha}}. Cada cambio que hagas renueva el plazo.",
+      "vencido": "Tu carrito anterior venció",
+      "vencidoTexto_one": "Lo guardamos {{count}} hora desde tu último cambio y lo vaciamos el {{fecha}}. No tenía stock reservado: vuelve a agregar los productos y revisaremos su precio y disponibilidad.",
+      "vencidoTexto_other": "Lo guardamos {{count}} horas desde tu último cambio y lo vaciamos el {{fecha}}. No tenía stock reservado: vuelve a agregar los productos y revisaremos su precio y disponibilidad."
+    }
   },
   "faltantes": {
     "linea": "Al menos una línea de producto",

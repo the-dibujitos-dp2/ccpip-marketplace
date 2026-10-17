@@ -794,6 +794,7 @@
       "tablero": "Dashboard",
       "comision": "Commission",
       "comisiones": "Commission by order",
+      "parametros": "Parameters",
       "autorizaciones": "Authorizations"
     },
     "tablero": {
@@ -925,6 +926,29 @@
       "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
       "sinComisionCelda": "No commission",
       "nota": "Commission and net are fixed when each order is confirmed; a later commission change doesn't alter them."
+    },
+    "parametros": {
+      "titulo": "Platform parameters",
+      "seccion": "Cart",
+      "pendiente": "Pending stakeholder definition",
+      "intro": "How long an unpaid cart is kept after its last change. Until the Chamber defines it, a provisional value applies.",
+      "campo": "Unpaid cart lifetime (hours)",
+      "ayuda": "Between {{minimo}} and {{maximo}} hours. The cart does not reserve stock; when it expires it is emptied and, when products are added again, they are revalidated.",
+      "guardar": "Save",
+      "provisional_one": "The provisional value of {{count}} hour applies: it has not been configured yet.",
+      "provisional_other": "The provisional value of {{count}} hours applies: it has not been configured yet.",
+      "configurada_one": "{{count}} hour applies · set by {{nombre}} on {{fecha}}.",
+      "configurada_other": "{{count}} hours apply · set by {{nombre}} on {{fecha}}.",
+      "rigeYa": "The change applies immediately, including carts already saved. Every change is kept in the history.",
+      "guardado_one": "The cart lifetime is now {{count}} hour",
+      "guardado_other": "The cart lifetime is now {{count}} hours",
+      "errorCargar": "We could not load the parameters",
+      "errorGuardar": "We could not save the cart lifetime",
+      "validacion": {
+        "vacio": "Enter how many hours the cart is kept.",
+        "rango": "Enter a whole number of hours between {{minimo}} and {{maximo}}.",
+        "mismo": "That value already applies."
+      }
     }
   },
   "sello": {
@@ -1388,7 +1412,14 @@
     "quitar": "Remove {{nombre}} from cart",
     "quitarTitulo": "Remove from cart",
     "continuar": "Continue to delivery and payment",
-    "bloqueo": "Adjust or remove the highlighted products to continue."
+    "bloqueo": "Adjust or remove the highlighted products to continue.",
+    "subtotalComunidad": "Community subtotal",
+    "vigencia": {
+      "hasta": "We keep your cart until {{fecha}}. Every change you make renews the period.",
+      "vencido": "Your previous cart expired",
+      "vencidoTexto_one": "We kept it for {{count}} hour after your last change and emptied it on {{fecha}}. No stock was reserved: add the products again and we will check their price and availability.",
+      "vencidoTexto_other": "We kept it for {{count}} hours after your last change and emptied it on {{fecha}}. No stock was reserved: add the products again and we will check their price and availability."
+    }
   },
   "faltantes": {
     "linea": "At least one product line",
