@@ -418,7 +418,7 @@
       "siguienteHistoria": "Siguiente: historia",
       "vistaPrevia": "Vista previa en el catálogo",
       "recibiras": "Recibirás {{monto}} por unidad",
-      "comision": "Comisión de la Cámara: {{porcentaje}} % (valor de ejemplo, configurable)."
+      "comision": "Comisión de la Cámara: {{porcentaje}} % (valor de ejemplo, configurable). Los descuentos solo los aplica la Cámara."
     },
     "historia": {
       "preguntas": {
@@ -1030,6 +1030,7 @@
     "PEDIDO_NO_ENCONTRADO": "El pedido no existe.",
     "PERSONA_NO_COINCIDE": "La persona no es quien compró ni la persona autorizada de este pedido.",
     "PRECIO_MAYORISTA_INVALIDO": "El precio mayorista debe ser menor que el minorista.",
+    "CAMPO_NO_PERMITIDO": "Solo fijas el precio ordinario: no existen descuentos ni precios promocionales.",
     "PRODUCCION_FUTURA": "La fecha de producción no puede ser posterior a hoy.",
     "PRODUCTO_INCOMPLETO": "Un producto publicado debe conservar sus datos completos.",
     "PRODUCTO_NO_ENCONTRADO": "El producto no existe o ya no está disponible.",
