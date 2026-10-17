@@ -240,6 +240,54 @@ class ProductorFlujoTest extends IntegrationTest {
     }
 
     @Test
+    void soloFijaPreciosOrdinariosSinDescuentosNiPromociones() throws Exception {
+        // CCPIP-87 (RF-23): un campo de promocion se rechaza, no se ignora en silencio
+        Integer antes = jdbc.queryForObject("SELECT count(*) FROM producto", Integer.class);
+        Map<String, Object> conDescuento = datosAceite();
+        conDescuento.put("descuento", 15);
+        mockMvc.perform(post("/api/productor/productos").cookie(nuevo).contentType(MediaType.APPLICATION_JSON)
+                        .content(json(conDescuento)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("CAMPO_NO_PERMITIDO"))
+                .andExpect(jsonPath("$.error").value(containsString("no existen descuentos ni precios promocionales")));
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM producto", Integer.class)).isEqualTo(antes);
+
+        long id = crearProducto(datosAceite());
+        Map<String, Object> promocion = datosAceite();
+        promocion.put("precio", 20.00);
+        promocion.put("precioPromocional", 9.90);
+        mockMvc.perform(put("/api/productor/productos/{id}", id).cookie(nuevo).contentType(MediaType.APPLICATION_JSON)
+                        .content(json(promocion)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("CAMPO_NO_PERMITIDO"));
+        assertThat(jdbc.queryForObject("SELECT precio FROM producto WHERE id = ?", Double.class, id)).isEqualTo(42.50);
+
+        // Un precio 0 no es un precio ordinario
+        Map<String, Object> gratis = datosAceite();
+        gratis.put("precio", 0);
+        gratis.put("precioMayorista", 0);
+        mockMvc.perform(post("/api/productor/productos").cookie(nuevo).contentType(MediaType.APPLICATION_JSON)
+                        .content(json(gratis)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.precio").exists())
+                .andExpect(jsonPath("$.campos.precioMayorista").exists());
+
+        // Doble tarifa no es promocion: el mayorista debe ser menor, nunca igual al minorista
+        Map<String, Object> igual = datosAceite();
+        igual.put("precioMayorista", 42.50);
+        mockMvc.perform(post("/api/productor/productos").cookie(nuevo).contentType(MediaType.APPLICATION_JSON)
+                        .content(json(igual)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("PRECIO_MAYORISTA_INVALIDO"));
+
+        // Ni el producto ni la linea de pedido tienen donde guardar un descuento
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM information_schema.columns
+                WHERE table_name IN ('producto', 'item_pedido')
+                  AND (column_name LIKE '%descuento%' OR column_name LIKE '%promo%')""", Integer.class)).isZero();
+    }
+
+    @Test
     void validaLosLotes() throws Exception {
         long id = crearProducto(datosAceite());
         // Ayer en Lima, como lo valida el servidor: el CI corre en UTC
