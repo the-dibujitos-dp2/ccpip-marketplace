@@ -58,6 +58,32 @@
 .editor__reemplazar:focus-within { outline: 2px solid var(--color-border-focus); outline-offset: 1px; }
 .editor__reemplazar--ocupado { opacity: 0.6; cursor: progress; }
 
+/* CCPIP-144 y CCPIP-168 (Figma 185:4509): un aviso por foto con la recomendacion de la IA */
+.editor__revisar { position: absolute; top: 50%; left: 50%; display: inline-flex; align-items: center; gap: 4px; padding: 6px 8px; border: 0; border-radius: var(--radius-m); background: var(--color-bg-surface); box-shadow: var(--shadow-menu); font-weight: 500; font-size: 12px; color: var(--color-text-primary); transform: translate(-50%, -50%); cursor: pointer; }
+.editor__ia-fotos { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.editor__ia-foto { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: var(--radius-l); background: var(--color-bg-surface-alt); }
+.editor__ia-foto:focus { outline: 2px solid var(--color-border-focus); outline-offset: 2px; }
+.editor__ia-foto--exito { background: var(--color-status-success-bg); }
+.editor__ia-foto--aviso { background: var(--color-status-warning-bg); }
+.editor__ia-foto--error { background: var(--color-status-error-bg); }
+.editor__ia-foto--info { background: var(--color-status-info-bg); }
+.editor__ia-foto-texto { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
+.editor__ia-foto-titulo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; color: var(--color-text-primary); }
+.editor__ia-foto--exito .editor__ia-foto-titulo { color: var(--color-status-success-fg); }
+.editor__ia-foto--aviso .editor__ia-foto-titulo { color: var(--color-status-warning-fg); }
+.editor__ia-foto--error .editor__ia-foto-titulo { color: var(--color-status-error-fg); }
+.editor__ia-foto--info .editor__ia-foto-titulo { color: var(--color-status-info-fg); }
+.editor__ia-prueba { padding: 1px 8px; border: 1px solid var(--color-border-default); border-radius: var(--radius-pill); background: var(--color-bg-surface); font-weight: 500; font-size: 11px; color: var(--color-text-secondary); }
+.editor__ia-foto-acciones { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 4px; }
+.editor__ia-enlace { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font-weight: 600; font-size: 14px; color: var(--color-text-brand); text-decoration: underline; cursor: pointer; }
+.editor__ia-enlace:disabled, .editor__ia-enlace--ocupado { opacity: 0.6; cursor: progress; }
+.editor__ia-enlace:focus-within, .editor__ia-enlace:focus-visible { outline: 2px solid var(--color-border-focus); outline-offset: 2px; }
+
+/* CCPIP-272: original y mejorada lado a lado; en un celular, una sobre otra */
+.editor__comparacion { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
+.editor__comparacion figure { display: flex; flex-direction: column; gap: 6px; margin: 0; }
+.editor__comparacion img { width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: var(--radius-l); background: var(--color-bg-surface-alt); }
+
 .editor__ia { display: flex; flex-direction: column; gap: 10px; }
 .editor__ia-boton { display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; padding: 0; border: 0; background: none; font-weight: 600; font-size: 14px; color: var(--color-text-brand); cursor: pointer; }
 .editor__ia-boton:hover { text-decoration: underline; }
@@ -101,5 +127,5 @@
 }
 
 @media (max-width: 520px) {
-  .editor__fila { grid-template-columns: minmax(0, 1fr); }
+  .editor__fila, .editor__comparacion { grid-template-columns: minmax(0, 1fr); }
 }
