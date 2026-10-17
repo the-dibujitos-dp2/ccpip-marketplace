@@ -633,6 +633,31 @@ un porcentaje que no regia.
 Triggers: una vez copiada la comision, no cambian el total ni la comision del pedido, ni la
 cantidad, precio, subtotal, comision y neto de sus lineas, y las lineas no se borran (RNF-13).
 
+## Interes de compra y avisos (CCPIP-105, CCPIP-106, CCPIP-273, CCPIP-69)
+
+### interes_compra
+Intencion de compra de un consumidor en una oferta agotada o en "Venta pausada". No reserva stock, no
+cobra y no mueve inventario.
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| usuario_id, producto_id | bigint | Indice unico parcial: un interes `PENDIENTE` por comprador y oferta; registrar otra vez cambia la cantidad |
+| productor_id | bigint | Copia del productor de la oferta; un trigger impide que no coincida o que cambie |
+| cantidad | integer | 1 a 9999 unidades de venta |
+| motivo | varchar(20) | `AGOTADO` o `VENTA_PAUSADA`, al registrarlo |
+| estado | varchar(20) | `PENDIENTE`, `AVISADO` (con `avisado_en`) o `RETIRADO` |
+
+El productor (CCPIP-106) ve los pendientes de sus ofertas agrupados: interesados y cantidad, sin datos
+de los compradores. Una tarea periodica (`ccpip.intereses.revision`, 5 min) cierra en `AVISADO` los
+intereses de las ofertas que ya se pueden comprar (stock en un punto, cuenta activa y autorizacion
+vigente) y avisa por correo a cada interesado (CCPIP-273).
+
+### aviso
+Registro de cada aviso a una persona: `tipo` (`PEDIDO_LISTO`, `INTERES_VENDIBLE`), `referencia_id`
+(pedido o interes), `canal` (`CORREO` mientras CCPIP-103 no defina otro) y `estado` (`PENDIENTE`,
+`ENVIADO`, `FALLIDO` con `error`). La clave unica `(tipo, referencia_id, usuario_id, canal)` impide
+avisar dos veces lo mismo. Un correo caido queda `FALLIDO` y no detiene la operacion que lo origino.
+
 ### traduccion
 Contenido aprobado en ingles (CCPIP-166 productos, CCPIP-357 tiendas, CCPIP-358 comunidades).
 Adelanta el modelo de CCPIP-170. El espanol es el original y se queda en su tabla; aqui va solo
