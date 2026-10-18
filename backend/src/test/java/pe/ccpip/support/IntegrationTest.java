@@ -146,6 +146,19 @@ public abstract class IntegrationTest {
         return id;
     }
 
+    /**
+     * Comprueba que la base rechace la sentencia con ese mensaje, dentro de un savepoint: la transaccion
+     * de la prueba sigue disponible para las siguientes sentencias.
+     */
+    protected void assertRechazaLaBase(Runnable sentencia, String mensaje) {
+        jdbc.execute("SAVEPOINT rechazo_esperado");
+        try {
+            org.assertj.core.api.Assertions.assertThatThrownBy(sentencia::run).hasMessageContaining(mensaje);
+        } finally {
+            jdbc.execute("ROLLBACK TO SAVEPOINT rechazo_esperado");
+        }
+    }
+
     /** Inicia sesion y devuelve la cookie para usarla en las siguientes peticiones. */
     protected Cookie loginAs(String email) throws Exception {
         Cookie cookie = mockMvc.perform(login(email, DEMO_PASSWORD))
