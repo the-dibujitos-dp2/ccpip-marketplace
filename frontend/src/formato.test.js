@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { capital, diaMes, fecha, fechaCorta, fechaHoraLarga, mesAnio, mesAnterior, precio, unidades } from './formato'
+import { capital, diaMes, fecha, fechaCorta, fechaHoraLarga, mesAnio, mesAnterior, precio, primeraOracion, unidades } from './formato'
 import i18n from './i18n/index.js'
 
 // Intl separa la moneda con un espacio no separable (U+00A0): se normaliza para comparar
@@ -85,6 +85,16 @@ describe('formato', () => {
     it('muestra hasta tres decimales', () => {
       expect(unidades('12.5000')).toBe('12.5')
       expect(unidades(3)).toBe('3')
+    })
+  })
+
+  describe('primeraOracion', () => {
+    it('corta en el primer punto', () => {
+      expect(primeraOracion('Crece bajo sombra. Se fermenta seis dias.')).toBe('Crece bajo sombra.')
+    })
+
+    it('sin una oracion corta, recorta y agrega puntos suspensivos', () => {
+      expect(primeraOracion('a'.repeat(200))).toBe(`${'a'.repeat(140)}…`)
     })
   })
 })

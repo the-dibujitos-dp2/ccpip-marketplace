@@ -76,12 +76,26 @@ public class RecuperacionService {
         if (reciente) {
             return Optional.empty();
         }
-        store.descartarEnlacesSinUsar(c.id(), Proposito.RECUPERAR_CLAVE);
+        return Optional.of(new EnlaceEmitido(c.correo(), c.nombre(), emitir(c.id(), ahora, vigencia)));
+    }
+
+    /**
+     * CCPIP-301, 304: enlace de bienvenida para que una cuenta creada por la Camara elija su contrasena.
+     * Es el mismo enlace de restablecer, con su propia vigencia; anula los anteriores sin usar. Devuelve el
+     * token en claro solo para el correo: no se guarda ni se responde a la pantalla.
+     */
+    @Transactional
+    public String emitirEnlaceDeAcceso(long usuarioId, Duration vigenciaAcceso) {
+        return emitir(usuarioId, clock.instant(), vigenciaAcceso);
+    }
+
+    private String emitir(long usuarioId, Instant ahora, Duration plazo) {
+        store.descartarEnlacesSinUsar(usuarioId, Proposito.RECUPERAR_CLAVE);
         byte[] bytes = new byte[32];
         RANDOM.nextBytes(bytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-        store.guardarEnlace(c.id(), Proposito.RECUPERAR_CLAVE, SessionService.hash(token), ahora, ahora.plus(vigencia));
-        return Optional.of(new EnlaceEmitido(c.correo(), c.nombre(), token));
+        store.guardarEnlace(usuarioId, Proposito.RECUPERAR_CLAVE, SessionService.hash(token), ahora, ahora.plus(plazo));
+        return token;
     }
 
     /**

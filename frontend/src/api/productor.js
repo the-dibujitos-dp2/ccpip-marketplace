@@ -4,6 +4,8 @@ import { ApiError, apiFetch, idRuta, restartIdle } from './http.js'
 const base = '/api/productor'
 
 export const obtenerPanel = () => apiFetch(`${base}/panel`)
+/** CCPIP-106: interesados y cantidad pedida en cada oferta propia agotada o pausada. */
+export const listarIntereses = () => apiFetch(`${base}/intereses`)
 
 export const obtenerTienda = () => apiFetch(`${base}/tienda`)
 export const guardarTienda = (datos) => apiFetch(`${base}/tienda`, { method: 'PUT', body: datos })
