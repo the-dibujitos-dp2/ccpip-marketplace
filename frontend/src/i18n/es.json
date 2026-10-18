@@ -887,7 +887,8 @@
       "comision": "Comisión",
       "comisiones": "Comisión por pedido",
       "parametros": "Parámetros",
-      "autorizaciones": "Autorizaciones"
+      "autorizaciones": "Autorizaciones",
+      "cuentas": "Cuentas"
     },
     "tablero": {
       "titulo": "Tablero de operación",
@@ -1263,7 +1264,7 @@
     "ENLACE_VENCIDO": "El enlace venció. Pide uno nuevo con tu correo.",
     "CUENTA_NO_REGISTRADA": "Aún no registras tu cuenta bancaria. Regístrala para poder vender.",
     "CUENTA_YA_REGISTRADA": "Ya registraste tu cuenta bancaria. Puedes actualizar sus datos.",
-    "CUENTA_DESACTIVADA": "Tu cuenta está desactivada. Revisa sus datos y reactívala.",
+    "CUENTA_DESACTIVADA": "Una cuenta desactivada ya no se modifica.",
     "CUENTA_ACTIVA": "Tu cuenta ya está activa.",
     "CONTRASENA_INCORRECTA": "La contraseña no es correcta.",
     "BANCO_INVALIDO": "Elige un banco de la lista.",
@@ -1306,7 +1307,17 @@
     "APROBACION_PENDIENTE": "La solicitud entre puntos aún no tiene quien la apruebe.",
     "TRANSICION_INVALIDA": "La transferencia cambió de estado. Actualiza la página.",
     "TRANSFERENCIA_NO_ENCONTRADA": "La transferencia no existe.",
-    "NO_ES_DESTINO": "Solo el punto de destino registra la recepción."
+    "NO_ES_DESTINO": "Solo el punto de destino registra la recepción.",
+    "CORREO_EN_USO": "Ya hay una cuenta con ese correo.",
+    "ROL_NO_PERMITIDO": "Solo se crean cuentas de sub administrador o de administrador de punto de acopio.",
+    "PUNTOS_REQUERIDOS": "Asigna al menos un punto de acopio.",
+    "PUNTO_INVALIDO": "Solo se asignan puntos de acopio activos de la Cámara.",
+    "PUNTOS_NO_APLICAN": "Solo el administrador de punto de acopio tiene puntos asignados.",
+    "CUENTA_PROPIA": "No puedes gestionar tu propia cuenta desde la administración.",
+    "CUENTA_NO_ENCONTRADA": "No encontramos esa cuenta.",
+    "ESTADO_NO_PERMITE": "El estado actual de la cuenta no permite esta acción. Actualiza la pantalla.",
+    "ACCESO_YA_CONFIGURADO": "La persona ya eligió su contraseña.",
+    "ROL_FUERA_DE_ALCANCE": "Tu rol no permite consultar cuentas de ese tipo."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -2132,5 +2143,127 @@
     "verDetalle": "Ver detalle",
     "ocultarDetalle": "Ocultar detalle",
     "pendienteAprobador": "Aún no está definido quién aprueba las transferencias entre puntos: la solicitud queda registrada y no compromete unidades."
+  },
+  "cuentas": {
+    "titulo": "Cuentas",
+    "introSuper": "Consulta y gestiona las cuentas de la plataforma. Tú creas, modificas y desactivas las de sub administradores y administradores de punto de acopio.",
+    "introSub": "Busca cuentas de consumidores, productores y distribuidores. Puedes suspenderlas o reactivarlas con un motivo.",
+    "nueva": "Nueva cuenta",
+    "nuevaTitulo": "Nueva cuenta administrativa",
+    "crear": "Crear cuenta",
+    "todas": "Todas",
+    "pestanasEtiqueta": "Tipo de cuenta",
+    "rolPlural": {
+      "CONSUMIDOR": "Consumidores",
+      "PRODUCTOR": "Productores",
+      "ADMIN_PUNTO": "Administradores de punto",
+      "SUB_ADMIN": "Sub administradores",
+      "SUPER_ADMIN": "Super administradores",
+      "DISTRIBUIDOR": "Distribuidores"
+    },
+    "buscar": "Buscar cuentas",
+    "buscarEjemplo": "Busca por nombre o correo",
+    "filtroEstado": "Estado",
+    "todosLosEstados": "Todos los estados",
+    "estado": {
+      "ACTIVA": "Activa",
+      "SUSPENDIDA": "Suspendida",
+      "DESACTIVADA": "Desactivada"
+    },
+    "accesoPendiente": "Acceso pendiente",
+    "tabla": "Cuentas encontradas",
+    "col": {
+      "cuenta": "Cuenta",
+      "rol": "Rol",
+      "puntos": "Puntos de acopio",
+      "estado": "Estado",
+      "creada": "Creada",
+      "accion": "Acción"
+    },
+    "total_one": "{{count}} cuenta",
+    "total_other": "{{count}} cuentas",
+    "ver": "Ver",
+    "verDe": "Ver la cuenta de {{nombre}}",
+    "vacio": "No hay cuentas para mostrar",
+    "vacioFiltros": "Prueba con otro nombre, correo o estado.",
+    "errorCargar": "No pudimos cargar las cuentas.",
+    "errorCrear": "No pudimos crear la cuenta.",
+    "errorGuardar": "No pudimos guardar los cambios.",
+    "errorReenviar": "No pudimos reenviar el acceso.",
+    "nota": "Ninguna cuenta se borra: se suspende o se desactiva y su historial se conserva.",
+    "detalle": "Cuenta",
+    "datos": "Datos de la cuenta",
+    "editar": "Editar",
+    "editarDatos": "Editar datos de la cuenta",
+    "guardar": "Guardar cambios",
+    "noEditables": "El correo y el rol no se modifican. Para otro rol, crea una cuenta nueva.",
+    "campo": {
+      "nombre": "Nombre completo",
+      "correo": "Correo",
+      "telefono": "Teléfono",
+      "rol": "Rol",
+      "puntos": "Puntos de acopio",
+      "creada": "Creada",
+      "motivo": "Motivo",
+      "estado": "Estado"
+    },
+    "opcional": "Opcional.",
+    "ayudaCorreo": "Aquí le llegará el enlace para elegir su contraseña.",
+    "ayudaPuntos": "Solo verá y operará los puntos que marques.",
+    "ayudaMotivo": "Queda en el historial y se le envía a la persona por correo.",
+    "avisoAcceso": "Nadie escribe una contraseña por la persona: le enviaremos un enlace de un solo uso para que elija la suya.",
+    "validacion": {
+      "nombre": "Escribe el nombre",
+      "correo": "Escribe un correo válido",
+      "telefono": "Escribe un teléfono válido",
+      "rol": "Elige el rol",
+      "puntos": "Marca al menos un punto de acopio",
+      "motivo": "Escribe el motivo"
+    },
+    "accionesTitulo": "Acciones",
+    "accionesNota": "Cada acción queda en el historial con tu nombre y su motivo.",
+    "reenviar": "Reenviar enlace de acceso",
+    "suspender": "Suspender",
+    "reactivar": "Reactivar",
+    "desactivar": "Desactivar",
+    "desactivadaNota": "Esta cuenta está desactivada. Se conserva con su historial y ya no puede ingresar.",
+    "dialogo": {
+      "suspender": {
+        "titulo": "¿Suspender la cuenta de {{nombre}}?",
+        "texto": "No podrá ingresar y sus sesiones abiertas se cerrarán. Podrás reactivarla después.",
+        "confirmar": "Suspender cuenta"
+      },
+      "reactivar": {
+        "titulo": "¿Reactivar la cuenta de {{nombre}}?",
+        "texto": "Podrá ingresar de nuevo con su contraseña.",
+        "confirmar": "Reactivar cuenta"
+      },
+      "desactivar": {
+        "titulo": "¿Desactivar la cuenta de {{nombre}}?",
+        "texto": "Es definitivo: no podrá ingresar y la cuenta no se podrá reactivar. Se conserva con su historial.",
+        "confirmar": "Desactivar cuenta"
+      }
+    },
+    "hecho": {
+      "crear": "Cuenta creada. Le enviamos el enlace para elegir su contraseña.",
+      "modificar": "Cambios guardados.",
+      "suspender": "Cuenta suspendida.",
+      "reactivar": "Cuenta reactivada.",
+      "desactivar": "Cuenta desactivada.",
+      "reenviar": "Enlace de acceso reenviado."
+    },
+    "sinCorreo": "El correo de aviso no se pudo enviar. Avísale por otro medio o inténtalo de nuevo.",
+    "historial": "Historial",
+    "sinHistorial": "Sin cambios registrados desde la plataforma.",
+    "porQuien": "{{fecha}} · {{nombre}}",
+    "motivo": "Motivo: {{motivo}}",
+    "accion": {
+      "CREAR": "Cuenta creada",
+      "MODIFICAR": "Datos modificados",
+      "SUSPENDER": "Suspendida",
+      "REACTIVAR": "Reactivada",
+      "DESACTIVAR": "Desactivada",
+      "REENVIAR_ACCESO": "Enlace de acceso reenviado"
+    }
   }
 }
