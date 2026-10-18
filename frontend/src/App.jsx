@@ -12,6 +12,9 @@ import AutorizacionesPage from './pages/admin/AutorizacionesPage.jsx'
 import ComisionesPage from './pages/admin/ComisionesPage.jsx'
 import ComisionPage from './pages/admin/ComisionPage.jsx'
 import ParametrosPage from './pages/admin/ParametrosPage.jsx'
+import DetalleCuentaPage from './pages/admin/DetalleCuentaPage.jsx'
+import CuentasPage from './pages/admin/CuentasPage.jsx'
+import NuevaCuentaPage from './pages/admin/NuevaCuentaPage.jsx'
 import ExpedienteAutorizacionPage from './pages/admin/ExpedienteAutorizacionPage.jsx'
 import FichaProductorPage from './pages/admin/FichaProductorPage.jsx'
 import ProductoresPage from './pages/admin/ProductoresPage.jsx'
@@ -54,6 +57,7 @@ const RUTA_PEDIDO = /^\/pedidos\/(\d+)$/
 const RUTA_EVIDENCIAS = /^\/productor\/productos\/(\d+)\/evidencias$/
 const RUTA_EXPEDIENTE = /^\/admin\/autorizaciones\/(\d+)$/
 const RUTA_FICHA_PRODUCTOR = /^\/admin\/productores\/(\d+)$/
+const RUTA_CUENTA = /^\/admin\/cuentas\/(\d+)$/
 
 /**
  * Rutas del modulo del sub administrador: autorizaciones de productos (S-01, S-02) y su expediente, y
@@ -69,7 +73,9 @@ const delModuloSub = (path) =>
  */
 function puedeVerAdmin(user, path) {
   if (user?.role === 'SUPER_ADMIN') return !delModuloSub(path)
-  return user?.role === 'SUB_ADMIN' && (path === RUTAS.adminComisiones || delModuloSub(path))
+  // CCPIP-95, 307, 308: el sub administrador busca, suspende y reactiva cuentas de la operacion; no crea cuentas
+  const cuentas = path === RUTAS.adminCuentas || RUTA_CUENTA.test(path)
+  return user?.role === 'SUB_ADMIN' && (path === RUTAS.adminComisiones || cuentas || delModuloSub(path))
 }
 
 /** A donde va cada rol al ingresar si no venia de ninguna pagina. */
@@ -247,6 +253,9 @@ export default function App() {
     else if (RUTA_EXPEDIENTE.test(path)) pagina = <ExpedienteAutorizacionPage path={RUTAS.adminAutorizaciones} id={path.match(RUTA_EXPEDIENTE)[1]} />
     else if (path === RUTAS.adminProductores) pagina = <ProductoresPage path={path} />
     else if (RUTA_FICHA_PRODUCTOR.test(path)) pagina = <FichaProductorPage path={RUTAS.adminProductores} id={path.match(RUTA_FICHA_PRODUCTOR)[1]} />
+    else if (path === RUTAS.adminCuentas) pagina = <CuentasPage path={path} />
+    else if (path === RUTAS.adminCuentaNueva) pagina = <NuevaCuentaPage path={RUTAS.adminCuentas} />
+    else if (RUTA_CUENTA.test(path)) pagina = <DetalleCuentaPage path={RUTAS.adminCuentas} id={path.match(RUTA_CUENTA)[1]} search={search} />
     else {
       navigate(RUTAS.admin, { replace: true })
       pagina = null

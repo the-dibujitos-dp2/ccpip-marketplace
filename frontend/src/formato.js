@@ -89,3 +89,9 @@ export function diaMes(instante) {
 export function fechaHoraLarga(instante) {
   return instante ? formato('fechaHoraLarga').format(new Date(instante)).replace(' a las ', ', ').replace(' at ', ', ') : ''
 }
+
+/** Primera oracion de un relato, para citarlo destacado; si no hay una corta, sus primeros 140 caracteres. */
+export function primeraOracion(texto) {
+  const corte = texto.search(/[.!?](\s|$)/)
+  return corte > 0 && corte < 160 ? texto.slice(0, corte + 1) : `${texto.slice(0, 140).trim()}…`
+}

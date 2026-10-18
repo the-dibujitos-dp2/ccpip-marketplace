@@ -34,6 +34,8 @@ ON CONFLICT (codigo) DO NOTHING;
 
 -- CCPIP-45: cada linea sugiere su unidad y decide si el lote vence. Las artesanias y los
 -- textiles no vencen. Nombres y orden segun el prototipo (CW-01, CW-02).
+-- CCPIP-310: desde que el superadministrador edita las lineas en el catalogo maestro, la semilla solo
+-- crea las que faltan y nunca pisa lo que la Camara cambio.
 INSERT INTO linea_producto (codigo, nombre, requiere_vencimiento, unidad_sugerida_id, orden)
 SELECT d.codigo, d.nombre, d.vence, u.id, d.orden
 FROM (VALUES
@@ -46,11 +48,7 @@ FROM (VALUES
     ('TEXTIL',      'Textiles',           false, 'UNIDAD',  7)
 ) AS d(codigo, nombre, vence, unidad, orden)
 JOIN unidad_medida u ON u.codigo = d.unidad
-ON CONFLICT (codigo) DO UPDATE SET
-    nombre = EXCLUDED.nombre,
-    requiere_vencimiento = EXCLUDED.requiere_vencimiento,
-    unidad_sugerida_id = EXCLUDED.unidad_sugerida_id,
-    orden = EXCLUDED.orden;
+ON CONFLICT (codigo) DO NOTHING;
 
 -- CCPIP-24: los cinco centros regionales y el centro nacional de Lima.
 INSERT INTO ubicacion (tipo, nombre, departamento, provincia, distrito, direccion) VALUES
