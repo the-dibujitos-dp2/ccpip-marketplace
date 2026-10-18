@@ -589,7 +589,11 @@
       "fotoGaleria": "Gallery photo",
       "agregarFoto": "Add photo",
       "categoriaNuevas": "Category for new photos",
-      "senal": "If the signal drops, only the missing photo is retried: the others are kept."
+      "senal": "If the signal drops, only the missing photo is retried: the others are kept.",
+      "ventaRevocada": "The Chamber revoked your organization's sale authorization",
+      "ventaRevocadaTexto": "Reason: «{{motivo}}». Your products are still visible but cannot be purchased. Confirmed orders are fulfilled as usual.",
+      "sinHabilitar": "Your store is not enabled yet",
+      "sinHabilitarTexto": "You can build and save it. The Chamber enables it and we will email you so you can publish it."
     },
     "cuenta": {
       "titulo": "Bank account",
@@ -901,9 +905,10 @@
       "comisiones": "Commission by order",
       "parametros": "Parameters",
       "autorizaciones": "Authorizations",
+      "productores": "Producers",
       "cuentas": "Accounts",
-      "denuncias": "Reports",
-      "catalogo": "Master catalog"
+      "catalogo": "Master catalog",
+      "denuncias": "Reports"
     },
     "tablero": {
       "titulo": "Operations dashboard",
@@ -1323,6 +1328,13 @@
     "TRANSICION_INVALIDA": "The transfer changed status. Refresh the page.",
     "TRANSFERENCIA_NO_ENCONTRADA": "The transfer does not exist.",
     "NO_ES_DESTINO": "Only the destination point records the receipt.",
+    "AUTORIZACION_NO_APROBADA": "Only an approved authorization can be revoked.",
+    "TIENDA_NO_HABILITADA": "The Chamber has not enabled your store yet. You can publish it as soon as it does.",
+    "TIENDA_YA_HABILITADA": "This producer's store is already enabled.",
+    "VENTA_REVOCADA": "This producer's sale is revoked: restore it before enabling their store.",
+    "VENTA_YA_REVOCADA": "This producer's sale is already revoked.",
+    "VENTA_NO_REVOCADA": "This producer's sale is not revoked.",
+    "PRODUCTOR_NO_ENCONTRADO": "The producer does not exist.",
     "CORREO_EN_USO": "There is already an account with that email.",
     "ROL_NO_PERMITIDO": "Only sub administrator or collection point administrator accounts can be created.",
     "PUNTOS_REQUERIDOS": "Assign at least one collection point.",
@@ -1335,11 +1347,6 @@
     "ROL_FUERA_DE_ALCANCE": "Your role cannot view accounts of that type.",
     "OFERTA_DISPONIBLE": "This product is available: you can add it to your cart.",
     "SIN_INTERES": "You have no interest registered in this product.",
-    "PEDIDO_NO_RECIBIDO": "You can rate the products once you receive your order.",
-    "LINEA_YA_CALIFICADA": "You already rated this product from your order.",
-    "DENUNCIA_DUPLICADA": "You already have an open report about this.",
-    "DENUNCIA_YA_RESPONDIDA": "You already replied to this report.",
-    "DENUNCIA_CERRADA": "The Chamber has already closed this report.",
     "CODIGO_DUPLICADO": "A record with that code already exists.",
     "NOMBRE_DUPLICADO": "A line with that name already exists.",
     "PRODUCTO_DUPLICADO": "A product with that name already exists in the line.",
@@ -1349,7 +1356,12 @@
     "LINEA_YA_ACTIVA": "The line is already active.",
     "PRODUCTO_YA_INACTIVO": "The product is already deactivated.",
     "PRODUCTO_YA_ACTIVO": "The product is already active.",
-    "PARAMETRO_INVALIDO": "One of the filters is not valid."
+    "PARAMETRO_INVALIDO": "One of the filters is not valid.",
+    "PEDIDO_NO_RECIBIDO": "You can rate the products once you receive your order.",
+    "LINEA_YA_CALIFICADA": "You already rated this product from your order.",
+    "DENUNCIA_DUPLICADA": "You already have an open report about this.",
+    "DENUNCIA_YA_RESPONDIDA": "You already replied to this report.",
+    "DENUNCIA_CERRADA": "The Chamber has already closed this report."
   },
   "buscar": {
     "comunidad": "Community",
@@ -1979,7 +1991,9 @@
       "aprobadaHasta": "The authorization is valid until {{fecha}}, when your first certificate expires.",
       "RECHAZADA": "The Chamber rejected the request",
       "REVOCADA": "The authorization was revoked",
-      "conMotivo": "Reason: “{{motivo}}”. Attach new evidence to request it again."
+      "conMotivo": "Reason: “{{motivo}}”. Attach new evidence to request it again.",
+      "lineaNueva": "The authorization does not cover a new line",
+      "lineaNuevaTexto": "You added a line the Chamber did not review: the sale is paused. Attach evidence to request a new review."
     },
     "tipo": {
       "CERTIFICADO": "Certificates",
@@ -2042,19 +2056,22 @@
     "pestana": {
       "SOLICITADA": "Pending",
       "APROBADA": "Approved",
-      "RECHAZADA": "Rejected"
+      "RECHAZADA": "Rejected",
+      "REVOCADA": "Revoked"
     },
     "vacio": {
       "SOLICITADA": "There are no pending requests.",
       "APROBADA": "You haven't approved any requests yet.",
-      "RECHAZADA": "You haven't rejected any requests yet."
+      "RECHAZADA": "You haven't rejected any requests yet.",
+      "REVOCADA": "You have not revoked any authorization yet."
     },
     "kpi": {
       "pendientes": "Pending",
       "pendientesDetalle": "Awaiting your review",
       "aprobadas": "Approved this month",
       "rechazadas": "Rejected this month",
-      "conMotivo": "With a recorded reason"
+      "conMotivo": "With a recorded reason",
+      "revocadas": "Revoked this month"
     },
     "col": {
       "producto": "Product",
@@ -2137,9 +2154,13 @@
       "resuelta": "This request has already been resolved.",
       "hecho": {
         "aprobar": "You approved the request. The product can now be bought.",
-        "rechazar": "You rejected the request. The producer will see your reason."
+        "rechazar": "You rejected the request. The producer will see your reason.",
+        "revocar": "You revoked the authorization. The product's sale is now paused."
       },
-      "errorDecision": "We couldn't record the decision"
+      "errorDecision": "We couldn't record the decision",
+      "motivoRevocacion": "Reason for revocation",
+      "revocarAyuda": "Required. The product stops selling immediately; confirmed orders do not change.",
+      "revocar": "Revoke authorization"
     },
     "dialogo": {
       "motivo": "Reason: “{{motivo}}”",
@@ -2152,6 +2173,11 @@
         "titulo": "Reject {{producto}}",
         "confirmar": "Reject request",
         "texto": "{{organizacion}} will see this reason and can attach new evidence. The decision is recorded and cannot be edited."
+      },
+      "revocar": {
+        "titulo": "Revoke {{producto}}",
+        "confirmar": "Revoke authorization",
+        "texto": "{{organizacion}} will not be able to sell it from now on. Confirmed orders are still fulfilled and they can request it again. The decision is recorded and cannot be edited."
       }
     }
   },
@@ -2186,6 +2212,84 @@
     "verDetalle": "View details",
     "ocultarDetalle": "Hide details",
     "pendienteAprobador": "Who approves transfers between points is not defined yet: the request is recorded and does not commit any units."
+  },
+  "productores": {
+    "titulo": "Producers and authorized products",
+    "intro": "Each producer sells only the products the Chamber authorized, one by one, with evidence. Here you enable their store or revoke their sale, always with a reason.",
+    "error": "We could not load the producers",
+    "errorFicha": "We could not load the producer",
+    "vacio": "There are no onboarded producers yet.",
+    "ficha": "Producer",
+    "volver": "Back to producers",
+    "col": {
+      "productos": "Products",
+      "estado": "Store and sale"
+    },
+    "autorizados_one": "{{count}} of {{total}} authorized",
+    "autorizados_other": "{{count}} of {{total}} authorized",
+    "pendientes_one": "{{count}} under review",
+    "pendientes_other": "{{count}} under review",
+    "verDe": "View {{organizacion}}",
+    "tienda": {
+      "habilitada": "Store enabled",
+      "sinHabilitar": "Store not enabled"
+    },
+    "venta": {
+      "vigente": "Sale active",
+      "revocada": "Sale revoked"
+    },
+    "sinCuenta": "No active bank account: their products cannot be purchased.",
+    "productos_one": "Products they can sell ({{count}})",
+    "productos_other": "Products they can sell ({{count}})",
+    "productosAyuda": "Authorization is individual per product and covers only the reviewed lines: changing lines does not extend it.",
+    "sinProductos": "No products registered yet.",
+    "lineas": "Lines: {{lineas}}",
+    "lineasAutorizadas": "authorized: {{lineas}}",
+    "lineaSinAutorizar": "Unauthorized line",
+    "estado": {
+      "SIN_SOLICITUD": "No request",
+      "SOLICITADA": "Under review",
+      "APROBADA": "Authorized",
+      "RECHAZADA": "Rejected",
+      "REVOCADA": "Revoked"
+    },
+    "vencida": "Authorization expired",
+    "hasta": "until {{fecha}}",
+    "vendible": "On sale",
+    "pausada": "Sale paused",
+    "verExpediente": "View file of {{producto}}",
+    "decision": {
+      "HABILITAR_TIENDA": "Store enabled",
+      "REVOCAR_VENTA": "Sale revoked",
+      "RESTITUIR_VENTA": "Sale restored"
+    },
+    "alcance_one": "{{count}} authorized product affected",
+    "alcance_other": "{{count}} authorized products affected",
+    "decisionTexto": "Enable their store so they can publish it, or revoke the sale of all their products.",
+    "revocadaTexto": "Their sale is revoked: their products show as sale paused. You can restore it with a reason.",
+    "accion": {
+      "habilitar-tienda": {
+        "boton": "Enable store",
+        "titulo": "Enable the store of {{organizacion}}",
+        "confirmar": "Enable store",
+        "texto": "The producer will be able to publish their store. Each product still needs its own authorization to be sold.",
+        "hecho": "You enabled the store. We notified the producer."
+      },
+      "revocar": {
+        "boton": "Revoke producer's sale",
+        "titulo": "Revoke the sale of {{organizacion}}",
+        "confirmar": "Revoke sale",
+        "texto": "None of their products can be purchased from now on. Confirmed orders are still fulfilled and their product authorizations are kept. The decision is recorded and cannot be edited.",
+        "hecho": "You revoked the producer's sale. Their products are now sale paused."
+      },
+      "restituir": {
+        "boton": "Restore sale",
+        "titulo": "Restore the sale of {{organizacion}}",
+        "confirmar": "Restore sale",
+        "texto": "Their authorized, valid products are on sale again. The decision is recorded.",
+        "hecho": "You restored the producer's sale."
+      }
+    }
   },
   "cuentas": {
     "titulo": "Accounts",
@@ -2335,6 +2439,118 @@
     "retirado": "We withdrew your interest in this product",
     "errorRetirar": "We couldn't withdraw your interest"
   },
+  "catalogoMaestro": {
+    "titulo": "Master catalog",
+    "intro": "The Chamber's reference lines and products. They are not the commercial offer: each producer publishes their offers with their own name, price and stock.",
+    "nota": "Nothing is deleted: deactivating keeps the offers, orders and history that reference it. Every change is audited.",
+    "pestanas": "Master catalog sections",
+    "vista": {
+      "lineas": "Lines",
+      "productos": "Products"
+    },
+    "estado": {
+      "TODOS": "All",
+      "ACTIVOS": "Active",
+      "INACTIVOS": "Inactive"
+    },
+    "activo": "Active",
+    "inactivo": "Inactive",
+    "inactiva": "inactive",
+    "filtro": {
+      "buscar": "Search by name",
+      "estado": "Status",
+      "linea": "Line",
+      "todas": "All lines",
+      "aplicar": "Search"
+    },
+    "contadores": "{{activos}} active · {{inactivos}} inactive",
+    "col": {
+      "estado": "Status",
+      "acciones": "Actions"
+    },
+    "editar": "Edit",
+    "desactivar": "Deactivate",
+    "reactivar": "Reactivate",
+    "editarDe": "Edit {{nombre}}",
+    "desactivarDe": "Deactivate {{nombre}}",
+    "reactivarDe": "Reactivate {{nombre}}",
+    "guardar": "Save changes",
+    "crear": "Create",
+    "errorCargar": "We couldn't load the master catalog",
+    "errorEstado": "We couldn't change the status",
+    "lineas": {
+      "nueva": "New line",
+      "vacio": "No lines match these filters",
+      "col": {
+        "linea": "Line",
+        "vencimiento": "Expiry",
+        "unidad": "Suggested unit",
+        "productos": "Products",
+        "ofertas": "Offers"
+      },
+      "vence": "Expires",
+      "noVence": "Does not expire",
+      "form": {
+        "tituloNueva": "New line",
+        "tituloEditar": "Edit line",
+        "codigo": "Code",
+        "codigoAyuda": "Letters, numbers or underscore. It can't be changed later.",
+        "nombre": "Name",
+        "nombreEn": "English name (optional)",
+        "nombreEnAyuda": "If you change the name and don't translate it, the Spanish name is shown in English.",
+        "unidad": "Suggested unit",
+        "sinUnidad": "No suggested unit",
+        "orden": "Catalog order",
+        "ordenAyuda": "Empty: goes last.",
+        "vencimiento": "Its batches have an expiry date"
+      },
+      "creada": "Line {{nombre}} created.",
+      "guardada": "Changes saved to {{nombre}}.",
+      "desactivarTitulo": "Deactivate the line {{nombre}}?",
+      "desactivarTexto": "It will no longer be offered for new offers and products. Its {{productos}} master products and {{ofertas}} offers are kept, with their orders and history.",
+      "reactivarTitulo": "Reactivate the line {{nombre}}?",
+      "reactivarTexto": "It will be offered again to producers and in the catalog.",
+      "desactivada": "Line {{nombre}} deactivated. Its {{ofertas}} offers are kept.",
+      "reactivada": "Line {{nombre}} reactivated."
+    },
+    "productos": {
+      "nuevo": "New product",
+      "vacio": "No products match these filters",
+      "col": {
+        "producto": "Product",
+        "linea": "Line",
+        "ofertas": "Offers"
+      },
+      "ofertas": "{{total}} · {{publicadas}} published",
+      "lineaInactiva": "Inactive line",
+      "form": {
+        "tituloNuevo": "New product",
+        "tituloEditar": "Edit product",
+        "codigo": "Code",
+        "codigoAyuda": "Letters, numbers, hyphen or underscore. It can't be changed later.",
+        "nombre": "Generic name",
+        "descripcion": "Description (optional)",
+        "linea": "Line",
+        "historico": "Changes don't modify its {{total}} offers or existing orders."
+      },
+      "creado": "Product {{nombre}} created.",
+      "guardado": "Changes saved to {{nombre}}.",
+      "desactivarTitulo": "Deactivate the product {{nombre}}?",
+      "desactivarTexto": "It will no longer be offered as a reference. Its {{ofertas}} offers ({{publicadas}} published) stay the same, with their orders and history.",
+      "reactivarTitulo": "Reactivate the product {{nombre}}?",
+      "reactivarTexto": "It will be offered as a reference again.",
+      "desactivado": "Product {{nombre}} deactivated. Its {{ofertas}} offers are kept.",
+      "reactivado": "Product {{nombre}} reactivated."
+    },
+    "validacion": {
+      "codigo": "Use 2 to 40 letters, numbers or underscores, no spaces.",
+      "codigoProducto": "Use 2 to 40 letters, numbers, hyphens or underscores, no spaces.",
+      "nombre": "Enter the name.",
+      "orden": "Use a number from 0 to 999.",
+      "linea": "Choose the line.",
+      "revisar": "Check this field."
+    }
+  },
   "calificaciones": {
     "titulo": "Ratings",
     "deCinco": "{{valor}} out of 5 stars",
@@ -2478,117 +2694,5 @@
     "errorCargar": "We could not load the minimum ratings.",
     "errorGuardar": "We could not save the change.",
     "guardar": "Save minimum"
-  },
-  "catalogoMaestro": {
-    "titulo": "Master catalog",
-    "intro": "The Chamber's reference lines and products. They are not the commercial offer: each producer publishes their offers with their own name, price and stock.",
-    "nota": "Nothing is deleted: deactivating keeps the offers, orders and history that reference it. Every change is audited.",
-    "pestanas": "Master catalog sections",
-    "vista": {
-      "lineas": "Lines",
-      "productos": "Products"
-    },
-    "estado": {
-      "TODOS": "All",
-      "ACTIVOS": "Active",
-      "INACTIVOS": "Inactive"
-    },
-    "activo": "Active",
-    "inactivo": "Inactive",
-    "inactiva": "inactive",
-    "filtro": {
-      "buscar": "Search by name",
-      "estado": "Status",
-      "linea": "Line",
-      "todas": "All lines",
-      "aplicar": "Search"
-    },
-    "contadores": "{{activos}} active · {{inactivos}} inactive",
-    "col": {
-      "estado": "Status",
-      "acciones": "Actions"
-    },
-    "editar": "Edit",
-    "desactivar": "Deactivate",
-    "reactivar": "Reactivate",
-    "editarDe": "Edit {{nombre}}",
-    "desactivarDe": "Deactivate {{nombre}}",
-    "reactivarDe": "Reactivate {{nombre}}",
-    "guardar": "Save changes",
-    "crear": "Create",
-    "errorCargar": "We couldn't load the master catalog",
-    "errorEstado": "We couldn't change the status",
-    "lineas": {
-      "nueva": "New line",
-      "vacio": "No lines match these filters",
-      "col": {
-        "linea": "Line",
-        "vencimiento": "Expiry",
-        "unidad": "Suggested unit",
-        "productos": "Products",
-        "ofertas": "Offers"
-      },
-      "vence": "Expires",
-      "noVence": "Does not expire",
-      "form": {
-        "tituloNueva": "New line",
-        "tituloEditar": "Edit line",
-        "codigo": "Code",
-        "codigoAyuda": "Letters, numbers or underscore. It can't be changed later.",
-        "nombre": "Name",
-        "nombreEn": "English name (optional)",
-        "nombreEnAyuda": "If you change the name and don't translate it, the Spanish name is shown in English.",
-        "unidad": "Suggested unit",
-        "sinUnidad": "No suggested unit",
-        "orden": "Catalog order",
-        "ordenAyuda": "Empty: goes last.",
-        "vencimiento": "Its batches have an expiry date"
-      },
-      "creada": "Line {{nombre}} created.",
-      "guardada": "Changes saved to {{nombre}}.",
-      "desactivarTitulo": "Deactivate the line {{nombre}}?",
-      "desactivarTexto": "It will no longer be offered for new offers and products. Its {{productos}} master products and {{ofertas}} offers are kept, with their orders and history.",
-      "reactivarTitulo": "Reactivate the line {{nombre}}?",
-      "reactivarTexto": "It will be offered again to producers and in the catalog.",
-      "desactivada": "Line {{nombre}} deactivated. Its {{ofertas}} offers are kept.",
-      "reactivada": "Line {{nombre}} reactivated."
-    },
-    "productos": {
-      "nuevo": "New product",
-      "vacio": "No products match these filters",
-      "col": {
-        "producto": "Product",
-        "linea": "Line",
-        "ofertas": "Offers"
-      },
-      "ofertas": "{{total}} · {{publicadas}} published",
-      "lineaInactiva": "Inactive line",
-      "form": {
-        "tituloNuevo": "New product",
-        "tituloEditar": "Edit product",
-        "codigo": "Code",
-        "codigoAyuda": "Letters, numbers, hyphen or underscore. It can't be changed later.",
-        "nombre": "Generic name",
-        "descripcion": "Description (optional)",
-        "linea": "Line",
-        "historico": "Changes don't modify its {{total}} offers or existing orders."
-      },
-      "creado": "Product {{nombre}} created.",
-      "guardado": "Changes saved to {{nombre}}.",
-      "desactivarTitulo": "Deactivate the product {{nombre}}?",
-      "desactivarTexto": "It will no longer be offered as a reference. Its {{ofertas}} offers ({{publicadas}} published) stay the same, with their orders and history.",
-      "reactivarTitulo": "Reactivate the product {{nombre}}?",
-      "reactivarTexto": "It will be offered as a reference again.",
-      "desactivado": "Product {{nombre}} deactivated. Its {{ofertas}} offers are kept.",
-      "reactivado": "Product {{nombre}} reactivated."
-    },
-    "validacion": {
-      "codigo": "Use 2 to 40 letters, numbers or underscores, no spaces.",
-      "codigoProducto": "Use 2 to 40 letters, numbers, hyphens or underscores, no spaces.",
-      "nombre": "Enter the name.",
-      "orden": "Use a number from 0 to 999.",
-      "linea": "Choose the line.",
-      "revisar": "Check this field."
-    }
   }
 }

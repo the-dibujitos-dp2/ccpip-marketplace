@@ -1,0 +1,90 @@
+{
+  "id": 1,
+  "organizacion": "Asoc. Nii Joi",
+  "comunidad": "Comunidad Shipibo Konibo de Yarinacocha",
+  "pueblo": "Shipibo-Konibo",
+  "region": "Ucayali",
+  "tiendaHabilitada": true,
+  "tiendaPublicada": true,
+  "ventaRevocada": false,
+  "cuentaActiva": true,
+  "productos": [
+    {
+      "productoId": 1,
+      "producto": "Aceite de ungurahui 250 ml",
+      "estadoProducto": "PUBLICADO",
+      "lineas": [
+        "Aceites"
+      ],
+      "autorizacionId": 1,
+      "estado": "APROBADA",
+      "motivo": null,
+      "decididaEn": "2026-10-12T15:00:00Z",
+      "vigenteHasta": null,
+      "vencida": false,
+      "lineasAutorizadas": [
+        "Aceites"
+      ],
+      "cubreLineas": true,
+      "vendible": true
+    },
+    {
+      "productoId": 3,
+      "producto": "Camu camu en polvo 150 g",
+      "estadoProducto": "PUBLICADO",
+      "lineas": [
+        "Superfrutos",
+        "Café"
+      ],
+      "autorizacionId": 41,
+      "estado": "APROBADA",
+      "motivo": "Certificados vigentes",
+      "decididaEn": "2026-10-14T15:00:00Z",
+      "vigenteHasta": "2027-03-31",
+      "vencida": false,
+      "lineasAutorizadas": [
+        "Superfrutos"
+      ],
+      "cubreLineas": false,
+      "vendible": false
+    },
+    {
+      "productoId": 4,
+      "producto": "Textil bordado shipibo",
+      "estadoProducto": "PUBLICADO",
+      "lineas": [
+        "Textil"
+      ],
+      "autorizacionId": 7,
+      "estado": "REVOCADA",
+      "motivo": "Certificado suspendido",
+      "decididaEn": "2026-10-15T15:00:00Z",
+      "vigenteHasta": null,
+      "vencida": false,
+      "lineasAutorizadas": [
+        "Textil"
+      ],
+      "cubreLineas": true,
+      "vendible": false
+    },
+    {
+      "productoId": 12,
+      "producto": "Miel de abeja nativa",
+      "estadoProducto": "BORRADOR",
+      "lineas": [
+        "Superfrutos"
+      ],
+      "autorizacionId": null,
+      "estado": "SIN_SOLICITUD",
+      "motivo": null,
+      "decididaEn": null,
+      "vigenteHasta": null,
+      "vencida": false,
+      "lineasAutorizadas": [],
+      "cubreLineas": true,
+      "vendible": false
+    }
+  ],
+  "decisiones": [],
+  "puedeHabilitarTienda": false
+}

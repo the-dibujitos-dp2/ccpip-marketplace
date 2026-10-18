@@ -11,6 +11,7 @@ import {
   aprobarAutorizacion,
   expedienteAutorizacion,
   rechazarAutorizacion,
+  revocarAutorizacion,
 } from '../../api/autorizaciones.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -29,11 +30,13 @@ import './admin.css'
 
 const TONO_ESTADO = { SOLICITADA: 'info', APROBADA: 'exito', RECHAZADA: 'error', REVOCADA: 'error' }
 const TONO_HALLAZGO = { CONFORME: 'exito', INCONSISTENCIA: 'aviso', FALTANTE: 'error' }
+const ENVIAR = { aprobar: aprobarAutorizacion, rechazar: rechazarAutorizacion, revocar: revocarAutorizacion }
 
 /**
  * S-02 adaptada: expediente de la solicitud de autorizacion de un producto. El sub administrador revisa
  * las evidencias, puede pedir el analisis preliminar (CCPIP-50) y decide con motivo: aprobar (CCPIP-174)
  * o rechazar (CCPIP-284). La decision humana es la unica que autoriza; sin analisis se decide a mano.
+ * Una autorizacion aprobada se puede revocar con motivo (CCPIP-39): deja de venderse al instante.
  */
 export default function ExpedienteAutorizacionPage({ path, id }) {
   const { t } = useTranslation()
@@ -44,7 +47,7 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
   const [sinServicio, setSinServicio] = useState(false)
   const [motivo, setMotivo] = useState('')
   const [errorMotivo, setErrorMotivo] = useState(null)
-  const [confirmar, setConfirmar] = useState(null) // 'aprobar' | 'rechazar'
+  const [confirmar, setConfirmar] = useState(null) // 'aprobar' | 'rechazar' | 'revocar'
   const [decidiendo, setDecidiendo] = useState(false)
 
   const cargar = useCallback(async () => {
@@ -92,13 +95,12 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
   async function decidir() {
     setDecidiendo(true)
     try {
-      const enviar = confirmar === 'aprobar' ? aprobarAutorizacion : rechazarAutorizacion
-      setExp(await enviar(id, motivo.trim()))
+      setExp(await ENVIAR[confirmar](id, motivo.trim()))
       setAviso({ tono: 'exito', titulo: t(`autorizaciones.expediente.hecho.${confirmar}`) })
       setMotivo('')
     } catch (e) {
       setAviso({ tono: 'error', titulo: mensajeError(e, 'autorizaciones.expediente.errorDecision') })
-      if (e.code === 'SOLICITUD_YA_RESUELTA') await cargar()
+      if (e.code === 'SOLICITUD_YA_RESUELTA' || e.code === 'AUTORIZACION_NO_APROBADA') await cargar()
     } finally {
       setDecidiendo(false)
       setConfirmar(null)
@@ -261,6 +263,22 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
                 : t('autorizaciones.expediente.resuelta')}
             </p>
           )}
+          {exp.puedeRevocar && (
+            <>
+              <Campo
+                tipo="area"
+                etiqueta={t('autorizaciones.expediente.motivoRevocacion')}
+                ayuda={t('autorizaciones.expediente.revocarAyuda')}
+                error={errorMotivo}
+                value={motivo}
+                maxLength={500}
+                onChange={(e) => setMotivo(e.target.value)}
+              />
+              <Boton tipo="destructivo" tamano="M" icono={iconoProhibido} anchoCompleto onClick={() => pedirConfirmacion('revocar')} disabled={decidiendo}>
+                {t('autorizaciones.expediente.revocar')}
+              </Boton>
+            </>
+          )}
         </aside>
       </div>
 
@@ -268,7 +286,7 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
         abierto={confirmar !== null}
         titulo={confirmar ? t(`autorizaciones.dialogo.${confirmar}.titulo`, { producto: exp.producto }) : ''}
         confirmar={confirmar ? t(`autorizaciones.dialogo.${confirmar}.confirmar`) : undefined}
-        tipoConfirmar={confirmar === 'rechazar' ? 'destructivo' : 'primario'}
+        tipoConfirmar={confirmar === 'aprobar' ? 'primario' : 'destructivo'}
         ocupado={decidiendo}
         onCancelar={() => setConfirmar(null)}
         onConfirmar={decidir}

@@ -32,5 +32,8 @@
             "id": 5,
             "nombre": "Textil bordado shipibo"
         }
-    ]
+    ],
+    "habilitada": true,
+    "ventaRevocada": false,
+    "motivoRevocacion": null
 }

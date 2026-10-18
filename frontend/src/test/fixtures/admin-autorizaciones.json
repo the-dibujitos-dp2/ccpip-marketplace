@@ -1,5 +1,5 @@
 {
-  "contadores": { "pendientes": 2, "aprobadasMes": 3, "rechazadasMes": 1 },
+  "contadores": { "pendientes": 2, "aprobadasMes": 3, "rechazadasMes": 1, "revocadasMes": 0 },
   "solicitudes": [
     {
       "id": 41,

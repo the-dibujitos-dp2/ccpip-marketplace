@@ -1,0 +1,28 @@
+[
+  {
+    "id": 1,
+    "organizacion": "Asoc. Nii Joi",
+    "comunidad": "Comunidad Shipibo Konibo de Yarinacocha",
+    "pueblo": "Shipibo-Konibo",
+    "region": "Ucayali",
+    "tiendaHabilitada": true,
+    "tiendaPublicada": true,
+    "ventaRevocada": false,
+    "productos": 4,
+    "autorizados": 3,
+    "pendientes": 1
+  },
+  {
+    "id": 4,
+    "organizacion": "Comunidad Kukama de Nauta",
+    "comunidad": "Comunidad Kukama de Nauta",
+    "pueblo": null,
+    "region": "Loreto",
+    "tiendaHabilitada": false,
+    "tiendaPublicada": false,
+    "ventaRevocada": false,
+    "productos": 0,
+    "autorizados": 0,
+    "pendientes": 0
+  }
+]

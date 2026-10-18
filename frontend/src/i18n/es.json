@@ -589,7 +589,11 @@
       "fotoGaleria": "Foto de la galería",
       "agregarFoto": "Agregar foto",
       "categoriaNuevas": "Categoría de las fotos nuevas",
-      "senal": "Si la señal se corta, solo se reintenta la foto que faltó: las demás se conservan."
+      "senal": "Si la señal se corta, solo se reintenta la foto que faltó: las demás se conservan.",
+      "ventaRevocada": "La Cámara revocó la venta de tu organización",
+      "ventaRevocadaTexto": "Motivo: «{{motivo}}». Tus productos siguen visibles, pero no se pueden comprar. Los pedidos confirmados se atienden con normalidad.",
+      "sinHabilitar": "Tu tienda aún no está habilitada",
+      "sinHabilitarTexto": "Puedes armarla y guardarla. La Cámara la habilita y te avisaremos por correo para que la publiques."
     },
     "cuenta": {
       "titulo": "Cuenta bancaria",
@@ -901,9 +905,10 @@
       "comisiones": "Comisión por pedido",
       "parametros": "Parámetros",
       "autorizaciones": "Autorizaciones",
+      "productores": "Productores",
       "cuentas": "Cuentas",
-      "denuncias": "Denuncias",
-      "catalogo": "Catálogo maestro"
+      "catalogo": "Catálogo maestro",
+      "denuncias": "Denuncias"
     },
     "tablero": {
       "titulo": "Tablero de operación",
@@ -1323,6 +1328,13 @@
     "TRANSICION_INVALIDA": "La transferencia cambió de estado. Actualiza la página.",
     "TRANSFERENCIA_NO_ENCONTRADA": "La transferencia no existe.",
     "NO_ES_DESTINO": "Solo el punto de destino registra la recepción.",
+    "AUTORIZACION_NO_APROBADA": "Solo se puede revocar una autorización aprobada.",
+    "TIENDA_NO_HABILITADA": "La Cámara aún no habilita tu tienda. Podrás publicarla en cuanto la habilite.",
+    "TIENDA_YA_HABILITADA": "La tienda de este productor ya está habilitada.",
+    "VENTA_REVOCADA": "La venta de este productor está revocada: restitúyela antes de habilitar su tienda.",
+    "VENTA_YA_REVOCADA": "La venta de este productor ya está revocada.",
+    "VENTA_NO_REVOCADA": "La venta de este productor no está revocada.",
+    "PRODUCTOR_NO_ENCONTRADO": "El productor no existe.",
     "CORREO_EN_USO": "Ya hay una cuenta con ese correo.",
     "ROL_NO_PERMITIDO": "Solo se crean cuentas de sub administrador o de administrador de punto de acopio.",
     "PUNTOS_REQUERIDOS": "Asigna al menos un punto de acopio.",
@@ -1335,11 +1347,6 @@
     "ROL_FUERA_DE_ALCANCE": "Tu rol no permite consultar cuentas de ese tipo.",
     "OFERTA_DISPONIBLE": "Este producto está disponible: puedes agregarlo a tu carrito.",
     "SIN_INTERES": "No tienes un interés registrado en este producto.",
-    "PEDIDO_NO_RECIBIDO": "Podrás calificar los productos cuando recibas tu pedido.",
-    "LINEA_YA_CALIFICADA": "Ya calificaste este producto de tu pedido.",
-    "DENUNCIA_DUPLICADA": "Ya tienes una denuncia abierta sobre esto.",
-    "DENUNCIA_YA_RESPONDIDA": "Ya respondiste esta denuncia.",
-    "DENUNCIA_CERRADA": "La denuncia ya fue cerrada por la Cámara.",
     "CODIGO_DUPLICADO": "Ya existe un registro con ese código.",
     "NOMBRE_DUPLICADO": "Ya existe una línea con ese nombre.",
     "PRODUCTO_DUPLICADO": "Ya existe un producto con ese nombre en la línea.",
@@ -1349,7 +1356,12 @@
     "LINEA_YA_ACTIVA": "La línea ya está activa.",
     "PRODUCTO_YA_INACTIVO": "El producto ya está desactivado.",
     "PRODUCTO_YA_ACTIVO": "El producto ya está activo.",
-    "PARAMETRO_INVALIDO": "Uno de los filtros no es válido."
+    "PARAMETRO_INVALIDO": "Uno de los filtros no es válido.",
+    "PEDIDO_NO_RECIBIDO": "Podrás calificar los productos cuando recibas tu pedido.",
+    "LINEA_YA_CALIFICADA": "Ya calificaste este producto de tu pedido.",
+    "DENUNCIA_DUPLICADA": "Ya tienes una denuncia abierta sobre esto.",
+    "DENUNCIA_YA_RESPONDIDA": "Ya respondiste esta denuncia.",
+    "DENUNCIA_CERRADA": "La denuncia ya fue cerrada por la Cámara."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -1979,7 +1991,9 @@
       "aprobadaHasta": "La autorización vale hasta el {{fecha}}, cuando vence tu primer certificado.",
       "RECHAZADA": "La Cámara rechazó la solicitud",
       "REVOCADA": "La autorización fue revocada",
-      "conMotivo": "Motivo: «{{motivo}}». Adjunta nuevas evidencias para volver a solicitarla."
+      "conMotivo": "Motivo: «{{motivo}}». Adjunta nuevas evidencias para volver a solicitarla.",
+      "lineaNueva": "La autorización no cubre una línea nueva",
+      "lineaNuevaTexto": "Agregaste una línea que la Cámara no revisó: la venta está pausada. Adjunta evidencias para pedir una nueva revisión."
     },
     "tipo": {
       "CERTIFICADO": "Certificados",
@@ -2042,19 +2056,22 @@
     "pestana": {
       "SOLICITADA": "Pendientes",
       "APROBADA": "Aprobadas",
-      "RECHAZADA": "Rechazadas"
+      "RECHAZADA": "Rechazadas",
+      "REVOCADA": "Revocadas"
     },
     "vacio": {
       "SOLICITADA": "No hay solicitudes pendientes.",
       "APROBADA": "Aún no apruebas solicitudes.",
-      "RECHAZADA": "Aún no rechazas solicitudes."
+      "RECHAZADA": "Aún no rechazas solicitudes.",
+      "REVOCADA": "Aún no revocas autorizaciones."
     },
     "kpi": {
       "pendientes": "Pendientes",
       "pendientesDetalle": "Esperan tu revisión",
       "aprobadas": "Aprobadas este mes",
       "rechazadas": "Rechazadas este mes",
-      "conMotivo": "Con motivo registrado"
+      "conMotivo": "Con motivo registrado",
+      "revocadas": "Revocadas este mes"
     },
     "col": {
       "producto": "Producto",
@@ -2137,9 +2154,13 @@
       "resuelta": "Esta solicitud ya fue resuelta.",
       "hecho": {
         "aprobar": "Aprobaste la solicitud. El producto ya se puede comprar.",
-        "rechazar": "Rechazaste la solicitud. El productor verá tu motivo."
+        "rechazar": "Rechazaste la solicitud. El productor verá tu motivo.",
+        "revocar": "Revocaste la autorización. El producto quedó en venta pausada."
       },
-      "errorDecision": "No pudimos registrar la decisión"
+      "errorDecision": "No pudimos registrar la decisión",
+      "motivoRevocacion": "Motivo de la revocación",
+      "revocarAyuda": "Obligatorio. El producto deja de venderse al instante; los pedidos confirmados no cambian.",
+      "revocar": "Revocar autorización"
     },
     "dialogo": {
       "motivo": "Motivo: «{{motivo}}»",
@@ -2152,6 +2173,11 @@
         "titulo": "Rechazar {{producto}}",
         "confirmar": "Rechazar solicitud",
         "texto": "{{organizacion}} verá este motivo y podrá adjuntar nuevas evidencias. La decisión queda registrada y no se edita."
+      },
+      "revocar": {
+        "titulo": "Revocar {{producto}}",
+        "confirmar": "Revocar autorización",
+        "texto": "{{organizacion}} no podrá venderlo desde ahora. Los pedidos confirmados se atienden igual y podrá volver a solicitarla. La decisión queda registrada y no se edita."
       }
     }
   },
@@ -2186,6 +2212,84 @@
     "verDetalle": "Ver detalle",
     "ocultarDetalle": "Ocultar detalle",
     "pendienteAprobador": "Aún no está definido quién aprueba las transferencias entre puntos: la solicitud queda registrada y no compromete unidades."
+  },
+  "productores": {
+    "titulo": "Productores y productos autorizados",
+    "intro": "Cada productor vende solo los productos que la Cámara le autorizó, uno por uno, con evidencias. Aquí habilitas su tienda o revocas su venta, siempre con motivo.",
+    "error": "No pudimos cargar los productores",
+    "errorFicha": "No pudimos cargar el productor",
+    "vacio": "Aún no hay productores incorporados.",
+    "ficha": "Productor",
+    "volver": "Volver a productores",
+    "col": {
+      "productos": "Productos",
+      "estado": "Tienda y venta"
+    },
+    "autorizados_one": "{{count}} de {{total}} autorizado",
+    "autorizados_other": "{{count}} de {{total}} autorizados",
+    "pendientes_one": "{{count}} en revisión",
+    "pendientes_other": "{{count}} en revisión",
+    "verDe": "Ver {{organizacion}}",
+    "tienda": {
+      "habilitada": "Tienda habilitada",
+      "sinHabilitar": "Tienda sin habilitar"
+    },
+    "venta": {
+      "vigente": "Venta vigente",
+      "revocada": "Venta revocada"
+    },
+    "sinCuenta": "Sin cuenta bancaria activa: sus productos no se pueden comprar.",
+    "productos_one": "Productos que puede vender ({{count}})",
+    "productos_other": "Productos que puede vender ({{count}})",
+    "productosAyuda": "La autorización es individual por producto y cubre solo las líneas revisadas: cambiar de línea no extiende el permiso.",
+    "sinProductos": "Aún no registra productos.",
+    "lineas": "Líneas: {{lineas}}",
+    "lineasAutorizadas": "autorizadas: {{lineas}}",
+    "lineaSinAutorizar": "Línea sin autorizar",
+    "estado": {
+      "SIN_SOLICITUD": "Sin solicitud",
+      "SOLICITADA": "En revisión",
+      "APROBADA": "Autorizado",
+      "RECHAZADA": "Rechazado",
+      "REVOCADA": "Revocado"
+    },
+    "vencida": "Autorización vencida",
+    "hasta": "hasta {{fecha}}",
+    "vendible": "Se vende",
+    "pausada": "Venta pausada",
+    "verExpediente": "Ver expediente de {{producto}}",
+    "decision": {
+      "HABILITAR_TIENDA": "Tienda habilitada",
+      "REVOCAR_VENTA": "Venta revocada",
+      "RESTITUIR_VENTA": "Venta restituida"
+    },
+    "alcance_one": "{{count}} producto autorizado alcanzado",
+    "alcance_other": "{{count}} productos autorizados alcanzados",
+    "decisionTexto": "Habilita su tienda para que pueda publicarla, o revoca la venta de todos sus productos.",
+    "revocadaTexto": "Su venta está revocada: sus productos se ven en venta pausada. Puedes restituirla con un motivo.",
+    "accion": {
+      "habilitar-tienda": {
+        "boton": "Habilitar tienda",
+        "titulo": "Habilitar la tienda de {{organizacion}}",
+        "confirmar": "Habilitar tienda",
+        "texto": "El productor podrá publicar su tienda. Cada producto sigue necesitando su propia autorización para venderse.",
+        "hecho": "Habilitaste la tienda. Avisamos al productor."
+      },
+      "revocar": {
+        "boton": "Revocar venta del productor",
+        "titulo": "Revocar la venta de {{organizacion}}",
+        "confirmar": "Revocar venta",
+        "texto": "Ninguno de sus productos se podrá comprar desde ahora. Los pedidos confirmados se atienden igual y sus autorizaciones por producto se conservan. La decisión queda registrada y no se edita.",
+        "hecho": "Revocaste la venta del productor. Sus productos quedaron en venta pausada."
+      },
+      "restituir": {
+        "boton": "Restituir venta",
+        "titulo": "Restituir la venta de {{organizacion}}",
+        "confirmar": "Restituir venta",
+        "texto": "Sus productos autorizados y vigentes vuelven a venderse. La decisión queda registrada.",
+        "hecho": "Restituiste la venta del productor."
+      }
+    }
   },
   "cuentas": {
     "titulo": "Cuentas",
@@ -2335,6 +2439,118 @@
     "retirado": "Retiramos tu interés en este producto",
     "errorRetirar": "No pudimos retirar tu interés"
   },
+  "catalogoMaestro": {
+    "titulo": "Catálogo maestro",
+    "intro": "Líneas y productos de referencia de la Cámara. No son la oferta comercial: cada productor publica sus ofertas con su propio nombre, precio y stock.",
+    "nota": "Nada se borra: desactivar conserva las ofertas, los pedidos y el historial que lo referencian. Cada cambio queda auditado.",
+    "pestanas": "Secciones del catálogo maestro",
+    "vista": {
+      "lineas": "Líneas",
+      "productos": "Productos"
+    },
+    "estado": {
+      "TODOS": "Todos",
+      "ACTIVOS": "Activos",
+      "INACTIVOS": "Inactivos"
+    },
+    "activo": "Activo",
+    "inactivo": "Inactivo",
+    "inactiva": "inactiva",
+    "filtro": {
+      "buscar": "Buscar por nombre",
+      "estado": "Estado",
+      "linea": "Línea",
+      "todas": "Todas las líneas",
+      "aplicar": "Buscar"
+    },
+    "contadores": "{{activos}} activos · {{inactivos}} inactivos",
+    "col": {
+      "estado": "Estado",
+      "acciones": "Acciones"
+    },
+    "editar": "Editar",
+    "desactivar": "Desactivar",
+    "reactivar": "Reactivar",
+    "editarDe": "Editar {{nombre}}",
+    "desactivarDe": "Desactivar {{nombre}}",
+    "reactivarDe": "Reactivar {{nombre}}",
+    "guardar": "Guardar cambios",
+    "crear": "Crear",
+    "errorCargar": "No pudimos cargar el catálogo maestro",
+    "errorEstado": "No pudimos cambiar el estado",
+    "lineas": {
+      "nueva": "Nueva línea",
+      "vacio": "No hay líneas con estos filtros",
+      "col": {
+        "linea": "Línea",
+        "vencimiento": "Vencimiento",
+        "unidad": "Unidad sugerida",
+        "productos": "Productos",
+        "ofertas": "Ofertas"
+      },
+      "vence": "Vence",
+      "noVence": "No vence",
+      "form": {
+        "tituloNueva": "Nueva línea",
+        "tituloEditar": "Editar línea",
+        "codigo": "Código",
+        "codigoAyuda": "Letras, números o guion bajo. No se puede cambiar después.",
+        "nombre": "Nombre",
+        "nombreEn": "Nombre en inglés (opcional)",
+        "nombreEnAyuda": "Si cambias el nombre y no lo traduces, en inglés se mostrará el nombre en español.",
+        "unidad": "Unidad sugerida",
+        "sinUnidad": "Sin unidad sugerida",
+        "orden": "Orden en el catálogo",
+        "ordenAyuda": "Vacío: va al final.",
+        "vencimiento": "Sus lotes tienen fecha de vencimiento"
+      },
+      "creada": "Línea {{nombre}} creada.",
+      "guardada": "Cambios guardados en {{nombre}}.",
+      "desactivarTitulo": "¿Desactivar la línea {{nombre}}?",
+      "desactivarTexto": "Dejará de ofrecerse para nuevas ofertas y productos. Se conservan sus {{productos}} productos maestros y {{ofertas}} ofertas, con sus pedidos e historial.",
+      "reactivarTitulo": "¿Reactivar la línea {{nombre}}?",
+      "reactivarTexto": "Volverá a ofrecerse a los productores y en el catálogo.",
+      "desactivada": "Línea {{nombre}} desactivada. Se conservan sus {{ofertas}} ofertas.",
+      "reactivada": "Línea {{nombre}} reactivada."
+    },
+    "productos": {
+      "nuevo": "Nuevo producto",
+      "vacio": "No hay productos con estos filtros",
+      "col": {
+        "producto": "Producto",
+        "linea": "Línea",
+        "ofertas": "Ofertas"
+      },
+      "ofertas": "{{total}} · {{publicadas}} publicadas",
+      "lineaInactiva": "Línea inactiva",
+      "form": {
+        "tituloNuevo": "Nuevo producto",
+        "tituloEditar": "Editar producto",
+        "codigo": "Código",
+        "codigoAyuda": "Letras, números, guion o guion bajo. No se puede cambiar después.",
+        "nombre": "Nombre genérico",
+        "descripcion": "Descripción (opcional)",
+        "linea": "Línea",
+        "historico": "Los cambios no modifican sus {{total}} ofertas ni los pedidos que ya existen."
+      },
+      "creado": "Producto {{nombre}} creado.",
+      "guardado": "Cambios guardados en {{nombre}}.",
+      "desactivarTitulo": "¿Desactivar el producto {{nombre}}?",
+      "desactivarTexto": "Dejará de ofrecerse como referencia. Sus {{ofertas}} ofertas ({{publicadas}} publicadas) siguen igual, con sus pedidos e historial.",
+      "reactivarTitulo": "¿Reactivar el producto {{nombre}}?",
+      "reactivarTexto": "Volverá a ofrecerse como referencia.",
+      "desactivado": "Producto {{nombre}} desactivado. Se conservan sus {{ofertas}} ofertas.",
+      "reactivado": "Producto {{nombre}} reactivado."
+    },
+    "validacion": {
+      "codigo": "Usa de 2 a 40 letras, números o guion bajo, sin espacios.",
+      "codigoProducto": "Usa de 2 a 40 letras, números, guion o guion bajo, sin espacios.",
+      "nombre": "Escribe el nombre.",
+      "orden": "Usa un número entre 0 y 999.",
+      "linea": "Elige la línea.",
+      "revisar": "Revisa este dato."
+    }
+  },
   "calificaciones": {
     "titulo": "Calificaciones",
     "deCinco": "{{valor}} de 5 estrellas",
@@ -2478,117 +2694,5 @@
     "errorCargar": "No pudimos cargar las calificaciones mínimas.",
     "errorGuardar": "No pudimos guardar el cambio.",
     "guardar": "Guardar mínimo"
-  },
-  "catalogoMaestro": {
-    "titulo": "Catálogo maestro",
-    "intro": "Líneas y productos de referencia de la Cámara. No son la oferta comercial: cada productor publica sus ofertas con su propio nombre, precio y stock.",
-    "nota": "Nada se borra: desactivar conserva las ofertas, los pedidos y el historial que lo referencian. Cada cambio queda auditado.",
-    "pestanas": "Secciones del catálogo maestro",
-    "vista": {
-      "lineas": "Líneas",
-      "productos": "Productos"
-    },
-    "estado": {
-      "TODOS": "Todos",
-      "ACTIVOS": "Activos",
-      "INACTIVOS": "Inactivos"
-    },
-    "activo": "Activo",
-    "inactivo": "Inactivo",
-    "inactiva": "inactiva",
-    "filtro": {
-      "buscar": "Buscar por nombre",
-      "estado": "Estado",
-      "linea": "Línea",
-      "todas": "Todas las líneas",
-      "aplicar": "Buscar"
-    },
-    "contadores": "{{activos}} activos · {{inactivos}} inactivos",
-    "col": {
-      "estado": "Estado",
-      "acciones": "Acciones"
-    },
-    "editar": "Editar",
-    "desactivar": "Desactivar",
-    "reactivar": "Reactivar",
-    "editarDe": "Editar {{nombre}}",
-    "desactivarDe": "Desactivar {{nombre}}",
-    "reactivarDe": "Reactivar {{nombre}}",
-    "guardar": "Guardar cambios",
-    "crear": "Crear",
-    "errorCargar": "No pudimos cargar el catálogo maestro",
-    "errorEstado": "No pudimos cambiar el estado",
-    "lineas": {
-      "nueva": "Nueva línea",
-      "vacio": "No hay líneas con estos filtros",
-      "col": {
-        "linea": "Línea",
-        "vencimiento": "Vencimiento",
-        "unidad": "Unidad sugerida",
-        "productos": "Productos",
-        "ofertas": "Ofertas"
-      },
-      "vence": "Vence",
-      "noVence": "No vence",
-      "form": {
-        "tituloNueva": "Nueva línea",
-        "tituloEditar": "Editar línea",
-        "codigo": "Código",
-        "codigoAyuda": "Letras, números o guion bajo. No se puede cambiar después.",
-        "nombre": "Nombre",
-        "nombreEn": "Nombre en inglés (opcional)",
-        "nombreEnAyuda": "Si cambias el nombre y no lo traduces, en inglés se mostrará el nombre en español.",
-        "unidad": "Unidad sugerida",
-        "sinUnidad": "Sin unidad sugerida",
-        "orden": "Orden en el catálogo",
-        "ordenAyuda": "Vacío: va al final.",
-        "vencimiento": "Sus lotes tienen fecha de vencimiento"
-      },
-      "creada": "Línea {{nombre}} creada.",
-      "guardada": "Cambios guardados en {{nombre}}.",
-      "desactivarTitulo": "¿Desactivar la línea {{nombre}}?",
-      "desactivarTexto": "Dejará de ofrecerse para nuevas ofertas y productos. Se conservan sus {{productos}} productos maestros y {{ofertas}} ofertas, con sus pedidos e historial.",
-      "reactivarTitulo": "¿Reactivar la línea {{nombre}}?",
-      "reactivarTexto": "Volverá a ofrecerse a los productores y en el catálogo.",
-      "desactivada": "Línea {{nombre}} desactivada. Se conservan sus {{ofertas}} ofertas.",
-      "reactivada": "Línea {{nombre}} reactivada."
-    },
-    "productos": {
-      "nuevo": "Nuevo producto",
-      "vacio": "No hay productos con estos filtros",
-      "col": {
-        "producto": "Producto",
-        "linea": "Línea",
-        "ofertas": "Ofertas"
-      },
-      "ofertas": "{{total}} · {{publicadas}} publicadas",
-      "lineaInactiva": "Línea inactiva",
-      "form": {
-        "tituloNuevo": "Nuevo producto",
-        "tituloEditar": "Editar producto",
-        "codigo": "Código",
-        "codigoAyuda": "Letras, números, guion o guion bajo. No se puede cambiar después.",
-        "nombre": "Nombre genérico",
-        "descripcion": "Descripción (opcional)",
-        "linea": "Línea",
-        "historico": "Los cambios no modifican sus {{total}} ofertas ni los pedidos que ya existen."
-      },
-      "creado": "Producto {{nombre}} creado.",
-      "guardado": "Cambios guardados en {{nombre}}.",
-      "desactivarTitulo": "¿Desactivar el producto {{nombre}}?",
-      "desactivarTexto": "Dejará de ofrecerse como referencia. Sus {{ofertas}} ofertas ({{publicadas}} publicadas) siguen igual, con sus pedidos e historial.",
-      "reactivarTitulo": "¿Reactivar el producto {{nombre}}?",
-      "reactivarTexto": "Volverá a ofrecerse como referencia.",
-      "desactivado": "Producto {{nombre}} desactivado. Se conservan sus {{ofertas}} ofertas.",
-      "reactivado": "Producto {{nombre}} reactivado."
-    },
-    "validacion": {
-      "codigo": "Usa de 2 a 40 letras, números o guion bajo, sin espacios.",
-      "codigoProducto": "Usa de 2 a 40 letras, números, guion o guion bajo, sin espacios.",
-      "nombre": "Escribe el nombre.",
-      "orden": "Usa un número entre 0 y 999.",
-      "linea": "Elige la línea.",
-      "revisar": "Revisa este dato."
-    }
   }
 }
