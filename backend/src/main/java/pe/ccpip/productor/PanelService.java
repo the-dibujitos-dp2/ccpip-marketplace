@@ -7,6 +7,8 @@ import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import pe.ccpip.alerta.PreferenciasAlerta;
+
 /** PW-01: el inicio del productor, solo con datos que la plataforma ya maneja. */
 @Service
 public class PanelService {
@@ -20,9 +22,11 @@ public class PanelService {
     }
 
     private final JdbcTemplate jdbc;
+    private final PreferenciasAlerta preferencias;
 
-    public PanelService(JdbcTemplate jdbc) {
+    public PanelService(JdbcTemplate jdbc, PreferenciasAlerta preferencias) {
         this.jdbc = jdbc;
+        this.preferencias = preferencias;
     }
 
     public Panel obtener(long productorId) {
@@ -35,7 +39,7 @@ public class PanelService {
                 ORDER BY l.fecha_vencimiento""",
                 (rs, row) -> new LotePorVencer(rs.getLong("id"), rs.getString("nombre"), rs.getString("codigo"),
                         rs.getString("ubicacion"), rs.getObject("fecha_vencimiento", LocalDate.class)),
-                productorId, ProductosService.DIAS_ALERTA_VENCIMIENTO);
+                productorId, preferencias.diasVencimientoProductor(productorId));
         List<TiendaService.ProductoOpcion> sinStock = jdbc.query("""
                 SELECT p.id, p.nombre FROM producto p
                 WHERE p.productor_id = ? AND p.estado = 'PUBLICADO' AND %s = 0

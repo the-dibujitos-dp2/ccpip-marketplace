@@ -29,8 +29,12 @@ public final class AutorizacionModelos {
                             String formato, int bytes, Instant subidaEn, String url) {
     }
 
+    /**
+     * {@code cubreLineas} es falso si el producto tiene ahora una linea que su aprobacion no cubria
+     * (CCPIP-292): la oferta queda en Venta pausada y el productor puede pedir una nueva revision.
+     */
     public record Autorizacion(Long id, Estado estado, String motivo, Instant solicitadaEn, Instant decididaEn,
-                               LocalDate vigenteHasta) {
+                               LocalDate vigenteHasta, boolean cubreLineas) {
     }
 
     /** Vista del productor: la solicitud de su producto y sus evidencias vigentes. */
@@ -50,7 +54,7 @@ public final class AutorizacionModelos {
                        String recomendacion, Instant solicitadaEn, Instant decididaEn) {
     }
 
-    public record Contadores(int pendientes, int aprobadasMes, int rechazadasMes) {
+    public record Contadores(int pendientes, int aprobadasMes, int rechazadasMes, int revocadasMes) {
     }
 
     public record Bandeja(Contadores contadores, List<Fila> solicitudes) {
@@ -77,10 +81,44 @@ public final class AutorizacionModelos {
     public record Expediente(long id, Estado estado, String motivo, Instant solicitadaEn, Instant decididaEn,
                              LocalDate vigenteHasta, long productoId, String producto, String linea,
                              Productor productor, List<Evidencia> evidencias, int certificadosVigentes,
-                             Analisis analisis, List<Decision> decisiones, boolean puedeDecidir) {
+                             Analisis analisis, List<Decision> decisiones, boolean puedeDecidir,
+                             boolean puedeRevocar) {
     }
 
-    /** CCPIP-174 y CCPIP-284: la decision humana siempre lleva motivo. */
+    // --- Productores y sus productos autorizados (CCPIP-292, CCPIP-291, CCPIP-330) ---
+
+    /** Decisiones sobre el productor completo. */
+    public enum DecisionProductor { HABILITAR_TIENDA, REVOCAR_VENTA, RESTITUIR_VENTA }
+
+    /** Un productor en la lista del subadministrador, con el resumen de su asociacion de productos. */
+    public record ProductorFila(long id, String organizacion, String comunidad, String pueblo, String region,
+                                boolean tiendaHabilitada, boolean tiendaPublicada, boolean ventaRevocada,
+                                int productos, int autorizados, int pendientes) {
+    }
+
+    /**
+     * CCPIP-292: la asociacion de un productor con UN producto. {@code lineasAutorizadas} son las que
+     * cubrio la aprobacion; si el producto tiene otra, {@code cubreLineas} es falso y no se vende.
+     * {@code vendible} aplica la misma regla de compra del catalogo.
+     */
+    public record Asociacion(long productoId, String producto, String estadoProducto, List<String> lineas,
+                             Long autorizacionId, Estado estado, String motivo, Instant decididaEn,
+                             LocalDate vigenteHasta, boolean vencida, List<String> lineasAutorizadas,
+                             boolean cubreLineas, boolean vendible) {
+    }
+
+    public record DecisionSobreProductor(long id, DecisionProductor decision, String motivo, String decididoPor,
+                                         Instant decididoEn, int alcance) {
+    }
+
+    /** Ficha del productor: estado de su tienda y de su venta, sus productos y el historial de decisiones. */
+    public record FichaProductor(long id, String organizacion, String comunidad, String pueblo, String region,
+                                 boolean tiendaHabilitada, boolean tiendaPublicada, boolean ventaRevocada,
+                                 boolean cuentaActiva, List<Asociacion> productos,
+                                 List<DecisionSobreProductor> decisiones, boolean puedeHabilitarTienda) {
+    }
+
+    /** CCPIP-174, CCPIP-284, CCPIP-39, CCPIP-291 y CCPIP-330: la decision humana siempre lleva motivo. */
     public record NuevaDecision(
             @NotBlank(message = "Escribe el motivo de la decisión") @Size(max = 500, message = "El motivo admite hasta 500 caracteres") String motivo) {
     }

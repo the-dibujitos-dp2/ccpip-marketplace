@@ -227,7 +227,7 @@ describe('Comisión por pedido (CCPIP-91)', () => {
     expect(screen.queryByText(/sin comisión configurada/)).not.toBeInTheDocument()
   })
 
-  it('el sub administrador ingresa a autorizaciones y solo ve sus dos módulos', async () => {
+  it('el sub administrador ingresa a autorizaciones y solo ve sus módulos (autorizaciones, productores, denuncias, comisión por pedido y cuentas)', async () => {
     let conSesion = false
     servidor(comoSub({
       'GET /api/auth/me': () => (conSesion ? [200, SESION_SUB] : SIN_SESION),
@@ -243,7 +243,7 @@ describe('Comisión por pedido (CCPIP-91)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Autorizaciones de productos' })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/admin/autorizaciones')
     const nav = within(screen.getByRole('navigation', { name: 'Sub administrador' }))
-    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Autorizaciones', 'Comisión por pedido'])
+    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Autorizaciones', 'Productores', 'Denuncias', 'Comisión por pedido', 'Cuentas'])
     await userEvent.click(nav.getByRole('link', { name: 'Comisión por pedido' }))
     expect(await screen.findByRole('heading', { level: 1, name: 'Comisión por pedido' })).toBeInTheDocument()
   })

@@ -1,0 +1,168 @@
+{
+  "contadores": {
+    "activos": 10,
+    "inactivos": 0
+  },
+  "productos": [
+    {
+      "id": 5,
+      "codigo": "CACAO-GRANO",
+      "nombre": "Cacao en grano fermentado",
+      "descripcion": "Grano de cacao fermentado y secado, listo para tostar.",
+      "linea": {
+        "codigo": "CACAO",
+        "nombre": "Cacao y chocolates",
+        "activa": true
+      },
+      "activo": true,
+      "ofertas": 2,
+      "ofertasPublicadas": 2,
+      "actualizadoEn": "2026-10-17T05:00:00Z",
+      "desactivadoEn": null
+    },
+    {
+      "id": 6,
+      "codigo": "PASTA-CACAO",
+      "nombre": "Pasta de cacao",
+      "descripcion": "Cacao molido sin azúcar añadida.",
+      "linea": {
+        "codigo": "CACAO",
+        "nombre": "Cacao y chocolates",
+        "activa": true
+      },
+      "activo": true,
+      "ofertas": 1,
+      "ofertasPublicadas": 1,
+      "actualizadoEn": "2026-10-17T05:00:00Z",
+      "desactivadoEn": null
+    },
+    {
+      "id": 9,
+      "codigo": "CAFE-MOLIDO",
+      "nombre": "Café molido",
+      "descripcion": "Café de altura tostado y molido.",
+      "linea": {
+        "codigo": "CAFE",
+        "nombre": "Café",
+        "activa": true
+      },
+      "activo": true,
+      "ofertas": 1,
+      "ofertasPublicadas": 1,
+      "actualizadoEn": "2026-10-17T05:00:00Z",
+      "desactivadoEn": null
+    },
+    {
+      "id": 8,
+      "codigo": "CAFE-GRANO",
+      "nombre": "Café tostado en grano",
+      "descripcion": "Café de altura tostado, en grano entero.",
+      "linea": {
+        "codigo": "CAFE",
+        "nombre": "Café",
+        "activa": true
+      },
+      "activo": true,
+      "ofertas": 1,
+      "ofertasPublicadas": 1,
+      "actualizadoEn": "2026-10-17T05:00:00Z",
+      "desactivadoEn": null
+    },
+    {
+      "id": 3,
+      "codigo": "CAMU-CAMU-POLVO",
+      "nombre": "Camu camu en polvo",
+      "descripcion": "Fruto de camu camu deshidratado y molido.",
+      "linea": {
+        "codigo": "SUPERFRUTOS",
+        "nombre": "Superfrutos",
+        "activa": true
+      },
+      "activo": true,
+      "ofertas": 1,
+      "ofertasPublicadas": 1,
+      "actualizadoEn": "2026-10-17T05:00:00Z",
+      "desactivadoEn": null
+    },
+    {
+      "id": 2,
+      "codigo": "ACEITE-AGUAJE",
+      "nombre": "Aceite de aguaje",
+      "descripcion": "Aceite del fruto del aguaje, rico en vitamina A.",
+      "linea": {
+        "codigo": "ACEITES",
+        "nombre": "Aceites",
+        "activa": true
+      },
+      "activo": true,
+      "ofertas": 1,
+      "ofertasPublicadas": 1,
+      "actualizadoEn": "2026-10-17T05:00:00Z",
+      "desactivadoEn": null
+    },
+    {
+      "id": 1,
+      "codigo": "ACEITE-UNGURAHUI",
+      "nombre": "Aceite de ungurahui",
+      "descripcion": "Aceite del fruto de la palmera de ungurahui, prensado en frio.",
+      "linea": {
+        "codigo": "ACEITES",
+        "nombre": "Aceites",
+        "activa": true
+      },
+      "activo": true,
+      "ofertas": 1,
+      "ofertasPublicadas": 1,
+      "actualizadoEn": "2026-10-17T05:00:00Z",
+      "desactivadoEn": null
+    },
+    {
+      "id": 7,
+      "codigo": "GUAYUSA",
+      "nombre": "Infusión de guayusa",
+      "descripcion": "Hoja de guayusa secada para infusión.",
+      "linea": {
+        "codigo": "INFUSIONES",
+        "nombre": "Infusiones",
+        "activa": true
+      },
+      "activo": true,
+      "ofertas": 1,
+      "ofertasPublicadas": 1,
+      "actualizadoEn": "2026-10-17T05:00:00Z",
+      "desactivadoEn": null
+    },
+    {
+      "id": 10,
+      "codigo": "CANASTA-TAMSHI",
+      "nombre": "Canasta tejida de tamshi",
+      "descripcion": "Canasta tejida con fibra de tamshi.",
+      "linea": {
+        "codigo": "ARTESANIA",
+        "nombre": "Artesanías",
+        "activa": true
+      },
+      "activo": true,
+      "ofertas": 1,
+      "ofertasPublicadas": 1,
+      "actualizadoEn": "2026-10-17T05:00:00Z",
+      "desactivadoEn": null
+    },
+    {
+      "id": 4,
+      "codigo": "TEXTIL-KENE",
+      "nombre": "Textil bordado kené",
+      "descripcion": "Tela bordada a mano con diseños kené.",
+      "linea": {
+        "codigo": "TEXTIL",
+        "nombre": "Textiles",
+        "activa": true
+      },
+      "activo": true,
+      "ofertas": 1,
+      "ofertasPublicadas": 1,
+      "actualizadoEn": "2026-10-17T05:00:00Z",
+      "desactivadoEn": null
+    }
+  ]
+}

@@ -20,7 +20,7 @@ public final class InventarioProductorModelos {
 
     /**
      * Estado de un lote con saldo, como lo ve el productor en PW-16. POR_VENCER: vence dentro del
-     * aviso de {@link ProductosService#DIAS_ALERTA_VENCIMIENTO} dias (el mismo del inicio, PW-01).
+     * la anticipacion que el productor configuro en sus alertas (PW-21; la misma del inicio, PW-01).
      * Un lote vencido sigue en el inventario hasta que se retire, pero no suma a lo disponible.
      */
     public enum EstadoInventario { DISPONIBLE, POR_VENCER, VENCIDO }

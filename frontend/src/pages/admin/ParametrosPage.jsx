@@ -9,6 +9,7 @@ import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { fechaHoraLarga } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
+import MinimoCalificaciones from './MinimoCalificaciones.jsx'
 import './admin.css'
 
 const MINIMO = 1
@@ -27,7 +28,8 @@ function horasValidas(texto) {
  * SA-02 "Parametros de la plataforma" (CCPIP-142, RF-109), por ahora solo la vida del carrito sin pagar:
  * cuantas horas se guarda desde su ultimo cambio. Mientras la Camara no la configure rige un valor
  * provisional, que se marca como pendiente de definicion (Figma SA-02). El cambio rige de inmediato.
- * El servidor guarda el historial, pero solo informa la ultima configuracion.
+ * El servidor guarda el historial, pero solo informa la ultima configuracion. Tambien las calificaciones
+ * minimas para mostrar el promedio de una oferta (CCPIP-82).
  */
 export default function ParametrosPage({ path }) {
   const { t } = useTranslation()
@@ -107,6 +109,7 @@ export default function ParametrosPage({ path }) {
           <p className="caption">{t('admin.parametros.rigeYa')}</p>
         </section>
       )}
+      <MinimoCalificaciones />
     </LayoutAdmin>
   )
 }

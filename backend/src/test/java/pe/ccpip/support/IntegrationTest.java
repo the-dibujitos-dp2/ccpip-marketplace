@@ -52,6 +52,10 @@ public abstract class IntegrationTest {
         registry.add("ccpip.traduccion.proveedor", () -> "simulado");
         // CCPIP-273: la revision periodica de intereses no corre sola; las pruebas llaman a revisar()
         registry.add("ccpip.intereses.revision-inicial", () -> "PT24H");
+        // CCPIP-75: la merma automatica tampoco corre sola; las pruebas llaman a revisar()
+        registry.add("ccpip.merma.revision-inicial", () -> "PT24H");
+        // Alertas (PW-21, A-08): tampoco corren solas; las pruebas llaman a revisar()
+        registry.add("ccpip.alertas.revision-inicial", () -> "PT24H");
     }
 
     /** Clave comun de las cuentas de demostracion sembradas en R__02 (publica a proposito, CCPIP-23). */
@@ -144,6 +148,19 @@ public abstract class IntegrationTest {
                 INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id)
                 SELECT ?, 'CONFIRMADO', usuario_id FROM pedido WHERE id = ?""", id, id);
         return id;
+    }
+
+    /**
+     * Comprueba que la base rechace la sentencia con ese mensaje, dentro de un savepoint: la transaccion
+     * de la prueba sigue disponible para las siguientes sentencias.
+     */
+    protected void assertRechazaLaBase(Runnable sentencia, String mensaje) {
+        jdbc.execute("SAVEPOINT rechazo_esperado");
+        try {
+            org.assertj.core.api.Assertions.assertThatThrownBy(sentencia::run).hasMessageContaining(mensaje);
+        } finally {
+            jdbc.execute("ROLLBACK TO SAVEPOINT rechazo_esperado");
+        }
     }
 
     /** Inicia sesion y devuelve la cookie para usarla en las siguientes peticiones. */

@@ -120,3 +120,73 @@
 @media (max-width: 1100px) {
   .expediente { grid-template-columns: 1fr; }
 }
+
+/* CCPIP-292, CCPIP-291, CCPIP-330: productores y su venta */
+.productores__productos { flex: 0 0 200px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.productores__estado { flex: 0 0 220px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+/* Catalogo maestro (CCPIP-96, 309-314, 351) */
+.catalogo-maestro__intro { max-width: 760px; margin: 0; color: var(--color-text-secondary); }
+.catalogo-maestro__barra { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.catalogo-maestro__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.catalogo-maestro__filtros .campo { width: 200px; }
+.catalogo-maestro__resumen { display: flex; align-items: center; gap: 16px; }
+.catalogo-maestro__resumen .caption { color: var(--color-text-secondary); }
+.catalogo-maestro__detalle { display: block; color: var(--color-text-secondary); }
+.catalogo-maestro__col { flex: 0 0 130px; }
+.catalogo-maestro__linea { flex: 0 0 170px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.catalogo-maestro__num { flex: 0 0 90px; text-align: right; font-variant-numeric: tabular-nums; }
+.catalogo-maestro__estado { flex: 0 0 100px; }
+.catalogo-maestro__acciones { flex: 0 0 210px; }
+.catalogo-maestro__formulario { display: flex; flex-direction: column; gap: 16px; min-width: min(480px, 80vw); }
+.catalogo-maestro__casilla { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--color-text-primary); }
+.catalogo-maestro__aviso { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 10px 12px; border-radius: var(--radius-m); background: var(--color-status-info-bg); color: var(--color-text-secondary); }
+
+@media (max-width: 600px) {
+  .catalogo-maestro__filtros .campo { width: 100%; }
+}
+
+/* SA-03 y SA-04 Cuentas (CCPIP-95, 124, 125, 301 a 308) */
+.cuentas__barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.cuentas__intro { margin: 0; max-width: 720px; color: var(--color-text-secondary); }
+.cuentas__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
+.cuentas__filtros .buscador { flex: 1 1 320px; }
+.cuentas__filtros .campo { width: 220px; }
+.cuentas__correo { display: block; color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.cuentas__rol { flex: 0 0 200px; }
+.cuentas__puntos-col { flex: 0 0 200px; white-space: normal; }
+.cuentas__estado-col { flex: 0 0 190px; }
+.cuentas__estado { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.cuentas__fecha { flex: 0 0 90px; }
+.cuentas__accion { flex: 0 0 80px; display: flex; justify-content: flex-end; }
+.cuentas__formulario { display: flex; flex-direction: column; gap: 20px; max-width: 880px; }
+.cuentas__campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.cuentas__puntos { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 16px; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); }
+.cuentas__puntos .caption { margin: 0; color: var(--color-text-secondary); }
+.cuentas__punto { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.cuentas__punto .caption { color: var(--color-text-tertiary); }
+.cuentas__error { margin: 0; color: var(--color-status-error-fg); font-size: 13px; }
+.cuentas__aviso { display: flex; gap: 12px; padding: 14px 16px; border-left: 4px solid var(--color-status-info-fg); border-radius: var(--radius-l); background: var(--color-status-info-bg); color: var(--color-status-info-fg); }
+.cuentas__aviso p { margin: 0; color: var(--color-text-primary); }
+.cuentas__acciones { display: flex; justify-content: flex-end; gap: 12px; }
+
+.cuenta-admin { display: grid; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; gap: 24px; }
+.cuenta-admin__principal { display: flex; flex-direction: column; gap: 20px; }
+.cuenta-admin__cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.cuenta-admin__cabecera .heading-h3 { margin: 0 0 8px; }
+.cuenta-admin__datos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; }
+.cuenta-admin__datos dd { margin: 2px 0 0; color: var(--color-text-primary); overflow-wrap: anywhere; }
+.cuenta-admin__lateral { display: flex; flex-direction: column; gap: 14px; padding: 24px; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
+.cuenta-admin__lateral .heading-h4 { margin: 0; }
+.cuenta-admin__historial { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.cuenta-admin__historial li { display: flex; flex-direction: column; gap: 2px; padding-bottom: 12px; border-bottom: 1px solid var(--color-border-default); }
+.cuenta-admin__historial .caption { color: var(--color-text-secondary); overflow-wrap: anywhere; }
+
+@media (max-width: 1100px) {
+  .cuenta-admin { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .cuentas__campos, .cuenta-admin__datos { grid-template-columns: 1fr; }
+  .cuentas__filtros .campo { width: 100%; }
+}

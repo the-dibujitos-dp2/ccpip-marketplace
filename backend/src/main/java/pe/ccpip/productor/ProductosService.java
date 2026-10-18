@@ -15,6 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import pe.ccpip.alerta.PreferenciasAlerta;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.imagenes.ImagenService;
 import pe.ccpip.productor.Auditoria.Accion;
@@ -40,23 +41,23 @@ public class ProductosService {
 
     /** Stock en venta por debajo del cual PW-03 marca "Stock bajo". */
     static final BigDecimal STOCK_BAJO = BigDecimal.TEN;
-    /** Dias de anticipacion para avisar que un lote vence (PW-01: "segun tu alerta de 15 dias"). */
-    public static final int DIAS_ALERTA_VENCIMIENTO = 15;
 
     /** Stock vendible: lotes vigentes con saldo en puntos de acopio (lo que esta en el almacen aun no se vende). */
-    static final String EN_VENTA = """
+    public static final String EN_VENTA = """
             (SELECT coalesce(sum(l.cantidad_actual), 0) FROM lote l JOIN ubicacion u ON u.id = l.ubicacion_id
              WHERE l.producto_id = p.id AND u.tipo = 'PUNTO_ACOPIO'
                AND (l.fecha_vencimiento IS NULL OR l.fecha_vencimiento >= (now() AT TIME ZONE 'America/Lima')::date))""";
 
     private final JdbcTemplate jdbc;
+    private final PreferenciasAlerta preferencias;
     private final ImagenService imagenes;
     private final Auditoria auditoria;
     private final InvalidacionTraducciones invalidacion;
 
     public ProductosService(JdbcTemplate jdbc, ImagenService imagenes, Auditoria auditoria,
-                            InvalidacionTraducciones invalidacion) {
+                            InvalidacionTraducciones invalidacion, PreferenciasAlerta preferencias) {
         this.jdbc = jdbc;
+        this.preferencias = preferencias;
         this.imagenes = imagenes;
         this.auditoria = auditoria;
         this.invalidacion = invalidacion;
@@ -73,14 +74,14 @@ public class ProductosService {
                        EXISTS (SELECT 1 FROM lote x JOIN ubicacion u ON u.id = x.ubicacion_id
                                WHERE x.producto_id = p.id AND x.cantidad_actual > 0 AND u.tipo = 'PUNTO_ACOPIO'
                                  AND x.fecha_vencimiento BETWEEN (now() AT TIME ZONE 'America/Lima')::date
-                                     AND (now() AT TIME ZONE 'America/Lima')::date + %d) AS por_vencer
+                                     AND (now() AT TIME ZONE 'America/Lima')::date + ?) AS por_vencer
                 FROM producto p
                 LEFT JOIN linea_producto l ON l.id = p.linea_id
                 WHERE p.productor_id = ? AND p.estado = ?
                   AND (?::text IS NULL OR lower(inmutable_unaccent(p.nombre)) LIKE lower(inmutable_unaccent(?)) ESCAPE '\\')
-                ORDER BY p.actualizado_en DESC, p.id DESC""".formatted(EN_VENTA, DIAS_ALERTA_VENCIMIENTO),
+                ORDER BY p.actualizado_en DESC, p.id DESC""".formatted(EN_VENTA),
                 (rs, row) -> fila(rs, stockPorUbicacion(rs.getLong("id"))),
-                productorId, estado.name(), termino, termino);
+                preferencias.diasVencimientoProductor(productorId), productorId, estado.name(), termino, termino);
 
         Map<Estado, Integer> conteo = new EnumMap<>(Estado.class);
         for (Estado e : Estado.values()) {
@@ -178,7 +179,7 @@ public class ProductosService {
     // ---------- Internos ----------
 
     private void escribir(long id, long productorId, long usuarioId, DatosProducto d) {
-        List<Short> lineas = idsLineas(d.lineas());
+        List<Short> lineas = idsLineas(d.lineas(), id);
         Short unidad = d.unidad() == null || d.unidad().isBlank() ? null : idUnidad(d.unidad());
         boolean mayorista = d.modalidad() != Modalidad.MINORISTA;
         boolean minorista = d.modalidad() != Modalidad.MAYORISTA;
@@ -310,13 +311,21 @@ public class ProductosService {
                 productoId);
     }
 
-    private List<Short> idsLineas(List<String> codigos) {
+    /**
+     * CCPIP-311: solo se eligen lineas activas, pero una oferta conserva la linea que ya tenia aunque la
+     * Camara la haya desactivado despues (referencia historica).
+     */
+    private List<Short> idsLineas(List<String> codigos, long productoId) {
         if (codigos == null) {
             return List.of();
         }
         List<Short> ids = new ArrayList<>();
         for (String codigo : codigos.stream().distinct().toList()) {
-            ids.add(jdbc.query("SELECT id FROM linea_producto WHERE codigo = ? AND activo", (rs, row) -> rs.getShort(1), codigo)
+            ids.add(jdbc.query("""
+                    SELECT l.id FROM linea_producto l
+                    WHERE l.codigo = ? AND (l.activo OR EXISTS (
+                        SELECT 1 FROM producto_linea pl WHERE pl.producto_id = ? AND pl.linea_id = l.id))""",
+                            (rs, row) -> rs.getShort(1), codigo, productoId)
                     .stream().findFirst()
                     .orElseThrow(() -> ErrorNegocio.invalido("LINEA_INVALIDA", "La línea " + codigo + " no existe.")));
         }

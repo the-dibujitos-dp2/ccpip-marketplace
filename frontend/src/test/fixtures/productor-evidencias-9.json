@@ -1,7 +1,7 @@
 {
   "productoId": 9,
   "producto": "Camu camu en polvo 150 g",
-  "autorizacion": { "id": 41, "estado": "SOLICITADA", "motivo": null, "solicitadaEn": "2026-10-12T15:00:00Z", "decididaEn": null, "vigenteHasta": null },
+  "autorizacion": { "id": 41, "estado": "SOLICITADA", "motivo": null, "solicitadaEn": "2026-10-12T15:00:00Z", "decididaEn": null, "vigenteHasta": null, "cubreLineas": true },
   "evidencias": [
     {
       "id": "6f1c2a4e-1b2c-4d3e-8f90-112233445566",

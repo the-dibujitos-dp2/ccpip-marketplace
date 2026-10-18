@@ -34,6 +34,7 @@ function decidido(decision, motivo, conAnalisis = false) {
 }
 
 const decision = () => within(screen.getByRole('complementary', { name: 'Decisión' }))
+const decisionCargada = async (nombre = 'Decisión') => within(await screen.findByRole('complementary', { name: nombre }))
 const evidencia = (titulo) => within(screen.getByText(titulo).closest('li'))
 
 afterEach(async () => {
@@ -253,5 +254,70 @@ describe('S-02 Expediente: análisis preliminar y decisión (CCPIP-50, CCPIP-174
     expect(await screen.findByText('Test result, not a real analysis')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Approve authorization' })).toBeInTheDocument()
     expect(screen.getByText('The AI neither approves nor rejects. Its findings are suggestions for your review.')).toBeInTheDocument()
+  })
+})
+
+describe('Revocar una autorización aprobada (CCPIP-39)', () => {
+  const aprobada = () => {
+    const e = decidido('APROBADA', 'Certificados vigentes')
+    e.puedeRevocar = true
+    return e
+  }
+
+  it('se revoca con motivo, confirmado en un diálogo, y queda en el historial', async () => {
+    const motivo = 'El certificado orgánico fue suspendido'
+    const revocada = decidido('REVOCADA', motivo)
+    revocada.puedeRevocar = false
+    const fetchMock = comoSub({
+      [`GET ${EXPEDIENTE}`]: () => [200, aprobada()],
+      [`POST ${EXPEDIENTE}/revocar`]: () => [200, revocada],
+    })
+    abrirEn('/admin/autorizaciones/41')
+    await userEvent.click(await (await decisionCargada()).findByRole('button', { name: 'Revocar autorización' }))
+    expect(decision().getByText('Escribe el motivo de la decisión')).toBeInTheDocument()
+
+    await userEvent.type(decision().getByLabelText('Motivo de la revocación'), motivo)
+    await userEvent.click(decision().getByRole('button', { name: 'Revocar autorización' }))
+    const dialogo = within(screen.getByRole('dialog'))
+    expect(dialogo.getByRole('heading', { name: 'Revocar Camu camu en polvo 150 g' })).toBeInTheDocument()
+    expect(dialogo.getByText(/Los pedidos confirmados se atienden igual/)).toBeInTheDocument()
+    await userEvent.click(dialogo.getByRole('button', { name: 'Revocar autorización' }))
+
+    expect(await screen.findByText('Revocaste la autorización. El producto quedó en venta pausada.')).toBeInTheDocument()
+    const [[, opciones]] = llamadas(fetchMock, `POST ${EXPEDIENTE}/revocar`)
+    expect(JSON.parse(opciones.body)).toEqual({ motivo })
+    expect(screen.getByText('Revocada', { selector: '.expediente__cabecera *' })).toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: 'Historial de decisiones' })).getByText(`«${motivo}»`)).toBeInTheDocument()
+    expect(decision().queryByRole('button', { name: 'Revocar autorización' })).not.toBeInTheDocument()
+  })
+
+  it('si ya no estaba aprobada muestra el error y recarga', async () => {
+    let revocada = false
+    comoSub({
+      [`GET ${EXPEDIENTE}`]: () => {
+        if (!revocada) return [200, aprobada()]
+        return [200, decidido('REVOCADA', 'Otra persona la revocó')]
+      },
+      [`POST ${EXPEDIENTE}/revocar`]: () => {
+        revocada = true
+        return [409, { code: 'AUTORIZACION_NO_APROBADA', error: 'Solo se puede revocar una autorización aprobada.' }]
+      },
+    })
+    abrirEn('/admin/autorizaciones/41')
+    await userEvent.type(await (await decisionCargada()).findByLabelText('Motivo de la revocación'), 'Motivo')
+    await userEvent.click(decision().getByRole('button', { name: 'Revocar autorización' }))
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Revocar autorización' }))
+    expect(await screen.findByText('Solo se puede revocar una autorización aprobada.')).toBeInTheDocument()
+    expect(await screen.findByText('«Otra persona la revocó»')).toBeInTheDocument()
+  })
+
+  it('la pestaña de revocadas consulta las revocadas', async () => {
+    const vacia = { ...copia(DATOS.autorizacionesAdmin), solicitudes: [] }
+    const fetchMock = comoSub({ [`GET ${BANDEJA}?estado=REVOCADA`]: [200, vacia] })
+    abrirEn('/admin/autorizaciones')
+    expect(await screen.findByRole('region', { name: 'Revocadas este mes' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: 'Revocadas' }))
+    expect(await screen.findByText('Aún no revocas autorizaciones.')).toBeInTheDocument()
+    expect(llamadas(fetchMock, `GET ${BANDEJA}?estado=REVOCADA`)).toHaveLength(1)
   })
 })
