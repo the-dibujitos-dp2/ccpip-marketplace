@@ -134,7 +134,7 @@ class RecuperacionControllerTest extends IntegrationTest {
     @Test
     void responderIgualExistaONoLaCuentaYNoAvisaACuentasInactivas() throws Exception {
         solicitar("nadie@recuperar.test").andExpect(status().isAccepted());
-        jdbc.update("UPDATE usuario SET activo = false WHERE correo = ?", CORREO);
+        jdbc.update("UPDATE usuario SET activo = false, estado = 'DESACTIVADA' WHERE correo = ?", CORREO);
         solicitar(CORREO).andExpect(status().isAccepted());
         assertThat(correos.enviados()).isEmpty();
     }

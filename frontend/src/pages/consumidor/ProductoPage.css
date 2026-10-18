@@ -70,7 +70,15 @@ div.ficha__precio { cursor: default; }
 .ficha__volumen { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 720px; padding: 24px; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
 .ficha__volumen dl { width: 100%; }
 
+/* CCPIP-42, Figma CW-03 "Volumen y otras ofertas": volumen a la izquierda y los demas productores en 420px */
+.ficha__volumen-ofertas { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: stretch; }
+.ficha__volumen-ofertas:has(.ficha__volumen):has(.otras-ofertas) { grid-template-columns: minmax(0, 1fr) 420px; }
+.ficha__volumen-ofertas:has(.otras-ofertas) .ficha__volumen { max-width: none; }
+.ficha__volumen-ofertas > .otras-ofertas:only-child { max-width: 420px; }
+
 @media (max-width: 900px) {
+  .ficha__volumen-ofertas:has(.ficha__volumen):has(.otras-ofertas) { grid-template-columns: minmax(0, 1fr); }
+  .ficha__volumen-ofertas > .otras-ofertas:only-child { max-width: none; }
   .ficha__principal, .historia, .ficha__confianza { grid-template-columns: minmax(0, 1fr); }
   .historia { padding: 28px; }
 }

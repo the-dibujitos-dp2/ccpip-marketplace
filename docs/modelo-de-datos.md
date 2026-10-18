@@ -69,6 +69,7 @@ Sprint 0, eso es CCPIP-28.
 | bloqueado_hasta | timestamptz | si | Nulo significa no bloqueado. RNF-02 |
 | idioma | varchar(2) | no | `es` o `en`, por defecto `es`. Preferencia de idioma de la cuenta, CCPIP-265. El visitante la guarda solo en su navegador |
 | telefono | varchar(20) | si | Celular opcional que se da al registrarse. CCPIP-26 |
+| estado | varchar(20) | no | `ACTIVA`, `SUSPENDIDA` o `DESACTIVADA`. Restriccion: `activo = (estado = 'ACTIVA')`. CCPIP-303, 306, 307 |
 
 ### sesion
 Sesion con token opaco aleatorio, entregado en cookie HttpOnly y guardado en el servidor.
@@ -836,6 +837,38 @@ proposito `RECUPERAR_CLAVE`. Como en `sesion`, solo se guarda el SHA-256 del tok
   uno por minuto. La respuesta es la misma exista o no la cuenta, para no revelar que correos
   estan registrados.
 - El enlace no inicia sesion: la persona ingresa con su contrasena despues de verificar.
+
+## Cuentas de la administracion (CCPIP-95, 124, 125, 301 a 308)
+
+Migracion `V202610172000__cuentas_administracion.sql`. El superadministrador crea, modifica y
+desactiva cuentas de sub administrador y de administrador de punto de acopio (SA-03, SA-04); un
+administrador autorizado busca, suspende y reactiva cuentas segun el alcance de su rol. Ninguna
+cuenta se borra (RNF-18): cambia `usuario.estado` y el cambio queda en `cuenta_historial`.
+
+- `usuario.estado`: `ACTIVA`, `SUSPENDIDA` (se reactiva) o `DESACTIVADA` (definitiva). `activo` se
+  conserva porque el inicio de sesion y la validacion de sesiones lo leen; una restriccion los
+  mantiene coherentes. Al dejar de estar activa se borran sus sesiones y sus enlaces sin usar.
+- Alcance (en el servidor, `AlcanceCuentas`): el superadministrador ve todas las cuentas menos las
+  de superadministradores; el sub administrador, solo consumidores, productores y distribuidores.
+  Nadie actua sobre su propia cuenta. El rol y el correo no se modifican.
+- Alta segura: la cuenta nace con el hash de una clave aleatoria que nadie conoce y
+  `correo_confirmado = false`; la persona elige su contrasena con un enlace de `token_un_uso`
+  (proposito `RECUPERAR_CLAVE`, vigencia `ccpip.cuentas.enlace-acceso-vigencia`, 72 h).
+- Puntos: el administrador de punto tiene al menos un punto de acopio activo en
+  `usuario_ubicacion`; el sub administrador ninguno. Los cambios de asignacion quedan en el historial.
+
+### cuenta_historial
+Solo insercion: un trigger impide editarla y borrarla.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| usuario_id | bigint | no | Cuenta afectada. Indexado con `realizado_en` |
+| accion | varchar(20) | no | `CREAR`, `MODIFICAR`, `SUSPENDER`, `REACTIVAR`, `DESACTIVAR` o `REENVIAR_ACCESO` |
+| motivo | varchar(300) | si | Obligatorio para suspender, reactivar y desactivar |
+| cambios | jsonb | si | Antes y despues (nombre, telefono, puntos, estado). Nunca contrasenas ni tokens |
+| realizado_por | bigint | no | Quien hizo el cambio |
+| realizado_en | timestamptz | no | |
 
 ## Transferencias entre ubicaciones (CCPIP-73, 146, 164, 362, 277, 278)
 
