@@ -1,11 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { registrarRecojo } from '../../api/acopio.js'
-import Alerta from '../../components/Alerta.jsx'
 import Campo from '../../components/Campo.jsx'
-import Dialogo from '../../components/Dialogo.jsx'
-import { mensajeError } from '../../i18n/errores.js'
-import i18n from '../../i18n/index.js'
+import DialogoFormulario from '../../components/DialogoFormulario.jsx'
+import { erroresPorCampo, mensajeError } from '../../i18n/errores.js'
 import './DialogoRecojo.css'
 
 /** Que campo corrige cada rechazo del servidor. Ninguno dice cual era el dato correcto (RNF-05). */
@@ -48,11 +46,8 @@ export default function DialogoRecojo({ pedido, onCancelar, onRegistrado, onDesa
       // Un 401 ya lo maneja la app (vuelve a ingresar)
       if (err.status === 401) return
       if (err.status === 404 || err.status === 409) onDesactualizado(err)
-      else if (err.body?.campos) {
-        // Los mensajes por campo llegan en espanol: en ingles se marca el campo con el mensaje del code
-        const campos = err.body.campos
-        setErrores(i18n.resolvedLanguage === 'es' ? campos : Object.fromEntries(Object.keys(campos).map((c) => [c, mensajeError(err)])))
-      } else if (CAMPO_POR_CODIGO[err.code]) setErrores({ [CAMPO_POR_CODIGO[err.code]]: mensajeError(err) })
+      else if (err.body?.campos) setErrores(erroresPorCampo(err))
+      else if (CAMPO_POR_CODIGO[err.code]) setErrores({ [CAMPO_POR_CODIGO[err.code]]: mensajeError(err) })
       else setError(err)
     } finally {
       setEnviando(false)
@@ -60,38 +55,35 @@ export default function DialogoRecojo({ pedido, onCancelar, onRegistrado, onDesa
   }
 
   return (
-    <Dialogo
-      abierto
+    <DialogoFormulario
       titulo={t('acopio.recojo.titulo', { numero: pedido.numero })}
-      confirmar={enviando ? t('productor.lote.registrando') : t('acopio.recojo.registrar')}
-      onConfirmar={enviar}
+      confirmar={t('acopio.recojo.registrar')}
+      enviando={enviando}
+      onEnviar={enviar}
       onCancelar={onCancelar}
-      ocupado={enviando}
+      className="recojo__formulario"
+      error={error}
+      tituloError={t('acopio.recojo.error')}
     >
-      <form className="recojo__formulario" onSubmit={enviar} noValidate>
-        <p>{t('acopio.recojo.instrucciones')}</p>
-        <Campo
-          etiqueta={t('acopio.recojo.nombre')}
-          value={persona}
-          onChange={(e) => setPersona(e.target.value)}
-          error={errores.persona}
-          maxLength={160}
-          autoComplete="off"
-        />
-        <Campo
-          etiqueta={t('compra.celular')}
-          ayuda={t('acopio.recojo.celularAyuda')}
-          value={celular}
-          onChange={(e) => setCelular(e.target.value)}
-          error={errores.celular}
-          maxLength={20}
-          inputMode="tel"
-          autoComplete="off"
-        />
-        {error && <Alerta tono="error" titulo={t('acopio.recojo.error')} descripcion={mensajeError(error)} />}
-        {/* Enter en un campo envia el formulario, como el boton del dialogo */}
-        <button type="submit" hidden />
-      </form>
-    </Dialogo>
+      <p>{t('acopio.recojo.instrucciones')}</p>
+      <Campo
+        etiqueta={t('acopio.recojo.nombre')}
+        value={persona}
+        onChange={(e) => setPersona(e.target.value)}
+        error={errores.persona}
+        maxLength={160}
+        autoComplete="off"
+      />
+      <Campo
+        etiqueta={t('compra.celular')}
+        ayuda={t('acopio.recojo.celularAyuda')}
+        value={celular}
+        onChange={(e) => setCelular(e.target.value)}
+        error={errores.celular}
+        maxLength={20}
+        inputMode="tel"
+        autoComplete="off"
+      />
+    </DialogoFormulario>
   )
 }

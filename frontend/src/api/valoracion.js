@@ -40,3 +40,9 @@ export const cambiarEstadoDenuncia = (id, estado, nota) =>
   apiFetch(`/api/admin/denuncias/${idRuta(id)}/estado`, { method: 'POST', body: { estado, nota: nota.trim() } })
 
 export const MOTIVOS_DENUNCIA = ['NO_CORRESPONDE', 'CALIDAD', 'ORIGEN_DUDOSO', 'PRACTICA_INDEBIDA', 'CONTENIDO_INAPROPIADO', 'OTRO']
+
+/** SA-02 (CCPIP-82): calificaciones minimas para mostrar el promedio. { calificaciones, provisional, registradoPor, registradoEn } */
+export const obtenerMinimoCalificaciones = () => apiFetch('/api/admin/parametros/minimo-calificaciones')
+
+export const configurarMinimoCalificaciones = (calificaciones) =>
+  apiFetch('/api/admin/parametros/minimo-calificaciones', { method: 'PUT', body: { calificaciones } })

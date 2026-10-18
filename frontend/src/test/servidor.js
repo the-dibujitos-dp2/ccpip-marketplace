@@ -22,6 +22,8 @@ import tableroAdmin from './fixtures/admin-tablero.json'
 // CCPIP-90 y CCPIP-91: armados segun ComisionModelos.Estado y ComisionesPorPedido del backend
 import comisionAdmin from './fixtures/admin-comision.json'
 import comisionesAdmin from './fixtures/admin-comisiones.json'
+// CCPIP-142: armado segun VigenciaCarritoService.Vigencia del backend, sin configurar (provisional)
+import vigenciaCarritoAdmin from './fixtures/admin-vigencia-carrito.json'
 // CCPIP-112: armado segun ResumenPedido del backend
 import misPedidos from './fixtures/mis-pedidos.json'
 // CCPIP-36, 50, 174 y 284: armados segun AutorizacionModelos del backend
@@ -130,6 +132,7 @@ export const DATOS = {
   tableroAdmin,
   comisionAdmin,
   comisionesAdmin,
+  vigenciaCarritoAdmin,
   misPedidos,
   autorizacionesAdmin,
   expedienteAdmin,

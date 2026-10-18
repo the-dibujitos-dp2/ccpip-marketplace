@@ -12,11 +12,14 @@ import AutorizacionesPage from './pages/admin/AutorizacionesPage.jsx'
 import ComisionesPage from './pages/admin/ComisionesPage.jsx'
 import ComisionPage from './pages/admin/ComisionPage.jsx'
 import DenunciasAdminPage from './pages/admin/DenunciasPage.jsx'
+import ParametrosPage from './pages/admin/ParametrosPage.jsx'
 import ExpedienteAutorizacionPage from './pages/admin/ExpedienteAutorizacionPage.jsx'
 import ExpedienteDenunciasPage from './pages/admin/ExpedienteDenunciasPage.jsx'
 import TableroPage from './pages/admin/TableroPage.jsx'
+import InventarioPage from './pages/acopio/InventarioPage.jsx'
 import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
 import PedidosPage from './pages/acopio/PedidosPage.jsx'
+import TransferenciasPuntoPage from './pages/acopio/TransferenciasPage.jsx'
 import BuscarPage from './pages/consumidor/BuscarPage.jsx'
 import CarritoPage from './pages/consumidor/CarritoPage.jsx'
 import CompraPage from './pages/consumidor/CompraPage.jsx'
@@ -38,8 +41,10 @@ import EvidenciasPage from './pages/productor/EvidenciasPage.jsx'
 import LotesPage from './pages/productor/LotesPage.jsx'
 import PanelPage from './pages/productor/PanelPage.jsx'
 import PedidosProductorPage from './pages/productor/PedidosPage.jsx'
+import NuevaTransferenciaPage from './pages/productor/NuevaTransferenciaPage.jsx'
 import ProductosPage from './pages/productor/ProductosPage.jsx'
 import TiendaEditorPage from './pages/productor/TiendaEditorPage.jsx'
+import TransferenciasPage from './pages/productor/TransferenciasPage.jsx'
 import { navigate, RUTAS, rutaInterna, useLocation } from './router.js'
 import { SesionContexto } from './sesion.js'
 
@@ -232,11 +237,12 @@ export default function App() {
   } else if (restringida) {
     pagina = <AccesoRestringidoPage path={path} seccion={restringida} />
   } else if (delAdmin) {
-    // Tablero (SA-01), comision (SA-02), comision por pedido y autorizaciones (S-01, S-02); los otros modulos llegan con sus historias
+    // Tablero (SA-01), comision y parametros (SA-02), comision por pedido y autorizaciones (S-01, S-02); los otros modulos llegan con sus historias
     if (!puedeVerAdmin(user, path)) pagina = null
     else if (path === RUTAS.admin) pagina = <TableroPage path={path} />
     else if (path === RUTAS.adminComision) pagina = <ComisionPage path={path} />
     else if (path === RUTAS.adminComisiones) pagina = <ComisionesPage path={path} />
+    else if (path === RUTAS.adminParametros) pagina = <ParametrosPage path={path} />
     else if (path === RUTAS.adminAutorizaciones) pagina = <AutorizacionesPage path={path} />
     else if (RUTA_EXPEDIENTE.test(path)) pagina = <ExpedienteAutorizacionPage path={RUTAS.adminAutorizaciones} id={path.match(RUTA_EXPEDIENTE)[1]} />
     else if (path === RUTAS.adminDenuncias) pagina = <DenunciasAdminPage path={path} />
@@ -256,6 +262,8 @@ export default function App() {
     else if (path === RUTAS.productorCuenta) pagina = <CuentaBancariaPage path={path} />
     else if (path === RUTAS.productorPedidos) pagina = <PedidosProductorPage path={path} />
     else if (path === RUTAS.productorDenuncias) pagina = <DenunciasProductorPage path={path} />
+    else if (path === RUTAS.productorTransferencias) pagina = <TransferenciasPage key={search} path={path} search={search} />
+    else if (path === RUTAS.productorTransferenciaNueva) pagina = <NuevaTransferenciaPage />
     else if (RUTA_EVIDENCIAS.test(path)) pagina = <EvidenciasPage path={RUTAS.productorProductos} productoId={path.match(RUTA_EVIDENCIAS)[1]} />
     else if (editor) {
       // Sin key por producto: al subir la primera foto el borrador nace y la URL pasa de /nuevo a
@@ -270,10 +278,13 @@ export default function App() {
     else if (RUTA_PEDIDO.test(path)) pagina = <PedidoPage id={path.match(RUTA_PEDIDO)[1]} />
     else pagina = <CarritoPage />
   } else if (delAcopio) {
-    // Por ahora el punto tiene Pedidos (A-05, CCPIP-159) y Movimientos (A-03, CCPIP-158)
+    // Por ahora el punto tiene Pedidos (A-05, CCPIP-159), Movimientos (A-03, CCPIP-158), Inventario (A-02, CCPIP-162)
+    // y Transferencias (CCPIP-278)
     if (user.role !== 'ADMIN_PUNTO') pagina = null
     else if (path === RUTAS.acopioPedidos) pagina = <PedidosPage path={path} />
     else if (path === RUTAS.acopioMovimientos) pagina = <MovimientosPage path={path} />
+    else if (path === RUTAS.acopioInventario) pagina = <InventarioPage path={path} />
+    else if (path === RUTAS.acopioTransferencias) pagina = <TransferenciasPuntoPage path={path} />
     else {
       navigate(RUTAS.acopioPedidos, { replace: true })
       pagina = null

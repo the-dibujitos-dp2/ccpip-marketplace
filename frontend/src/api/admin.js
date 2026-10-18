@@ -21,3 +21,9 @@ export function comisionesPorPedido({ desde, hasta } = {}) {
   const consulta = q.toString()
   return apiFetch(`/api/admin/comision/pedidos${consulta ? `?${consulta}` : ''}`)
 }
+
+/** CCPIP-142 (SA-02): cuantas horas se guarda el carrito desde su ultimo cambio. Solo superadministrador. */
+export const obtenerVigenciaCarrito = () => apiFetch('/api/admin/parametros/vigencia-carrito')
+
+/** Rige de inmediato, tambien para los carritos ya guardados. Horas enteras de 1 a 720. */
+export const configurarVigenciaCarrito = (horas) => apiFetch('/api/admin/parametros/vigencia-carrito', { method: 'PUT', body: { horas } })

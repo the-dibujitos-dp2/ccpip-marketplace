@@ -3,6 +3,7 @@ import iconoAviso from '../../assets/icons/alerta-aviso.svg'
 import iconoBillete from '../../assets/icons/billete.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import iconoPorcentaje from '../../assets/icons/porcentaje.svg'
+import iconoReloj from '../../assets/icons/reloj.svg'
 import iconoTablero from '../../assets/icons/tablero.svg'
 import { RUTAS } from '../../router.js'
 import { useSesion } from '../../sesion.js'
@@ -18,6 +19,7 @@ const NAV = [
   { to: RUTAS.adminDenuncias, clave: 'denuncias', icono: iconoAviso, roles: ['SUB_ADMIN', 'SUPER_ADMIN'], prefijo: true },
   { to: RUTAS.adminComision, clave: 'comision', icono: iconoPorcentaje, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminComisiones, clave: 'comisiones', icono: iconoBillete, roles: ['SUPER_ADMIN', 'SUB_ADMIN'] },
+  { to: RUTAS.adminParametros, clave: 'parametros', icono: iconoReloj, roles: ['SUPER_ADMIN'] },
 ]
 
 /** Estructura web de la administracion de la Camara (Figma SA-01 a SA-10). */
