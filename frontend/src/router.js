@@ -22,6 +22,7 @@ export const RUTAS = {
   productorAlmacen: '/productor/almacen',
   productorCuenta: '/productor/cuenta-bancaria',
   productorPedidos: '/productor/pedidos',
+  productorDenuncias: '/productor/denuncias',
   acopio: '/acopio',
   acopioPedidos: '/acopio/pedidos',
   acopioMovimientos: '/acopio/movimientos',
@@ -29,6 +30,7 @@ export const RUTAS = {
   adminComision: '/admin/comision',
   adminComisiones: '/admin/comisiones',
   adminAutorizaciones: '/admin/autorizaciones',
+  adminDenuncias: '/admin/denuncias',
 }
 
 export function navigate(path, { replace = false } = {}) {

@@ -70,7 +70,8 @@
       "almacen": "Warehouse",
       "lotes": "Batches",
       "pedidos": "Orders",
-      "cuenta": "Bank account"
+      "cuenta": "Bank account",
+      "denuncias": "Reports"
     },
     "tabla": {
       "producto": "Product",
@@ -758,7 +759,8 @@
       "tablero": "Dashboard",
       "comision": "Commission",
       "comisiones": "Commission by order",
-      "autorizaciones": "Authorizations"
+      "autorizaciones": "Authorizations",
+      "denuncias": "Reports"
     },
     "tablero": {
       "titulo": "Operations dashboard",
@@ -1139,7 +1141,13 @@
     "SIN_CERTIFICADO_VIGENTE": "To approve, the product needs at least one valid certificate of its own.",
     "SOLICITUD_YA_RESUELTA": "This request is no longer pending review.",
     "SOLICITUD_NO_ENCONTRADA": "The request doesn't exist.",
-    "MOTIVO_REQUERIDO": "Enter the reason for the decision."
+    "MOTIVO_REQUERIDO": "Enter the reason for the decision.",
+    "PEDIDO_NO_RECIBIDO": "You can rate the products once you receive your order.",
+    "LINEA_YA_CALIFICADA": "You already rated this product from your order.",
+    "DENUNCIA_DUPLICADA": "You already have an open report about this.",
+    "DENUNCIA_YA_RESPONDIDA": "You already replied to this report.",
+    "DENUNCIA_CERRADA": "The Chamber has already closed this report.",
+    "TRANSICION_INVALIDA": "The report cannot move to that status."
   },
   "buscar": {
     "comunidad": "Community",
@@ -1883,5 +1891,133 @@
         "texto": "{{organizacion}} will see this reason and can attach new evidence. The decision is recorded and cannot be edited."
       }
     }
+  },
+  "calificaciones": {
+    "titulo": "Ratings",
+    "deCinco": "{{valor}} out of 5 stars",
+    "estrellas_one": "{{count}} star",
+    "estrellas_other": "{{count}} stars",
+    "basadoEn_one": "Based on {{count}} rating",
+    "basadoEn_other": "Based on {{count}} ratings",
+    "distribucion": "Ratings by stars",
+    "sinCalificaciones": "This product has no ratings yet.",
+    "insuficiente_one": "There is {{count}} rating. We will show the average once there are at least {{minimo}}.",
+    "insuficiente_other": "There are {{count}} ratings. We will show the average once there are at least {{minimo}}.",
+    "resenas": "Buyer reviews",
+    "compraVerificada": "Verified purchase · {{fecha}}",
+    "comoSeCalifica": "Only people who received this product in an order can rate it. We do not show their names.",
+    "calificaTusProductos": "Rate your products",
+    "pendientes_one": "You have {{count}} product left to rate.",
+    "pendientes_other": "You have {{count}} products left to rate.",
+    "todoCalificado": "You have rated every product in this order. Thank you!",
+    "eligeEstrellas": "Choose 1 to 5 stars.",
+    "errorEnvio": "We could not save your rating. Please try again.",
+    "calificadoEl": "Rated on {{fecha}}",
+    "tuCalificacion": "Your rating",
+    "comentario": "Comment (optional)",
+    "comentarioAyuda": "Published without your name. Up to 500 characters.",
+    "enviando": "Sending…",
+    "enviar": "Submit rating"
+  },
+  "denuncia": {
+    "titulo": "File a report",
+    "enviar": "Send report",
+    "sobre": "About: {{nombre}}",
+    "errores": {
+      "motivo": "Choose the reason for the report.",
+      "descripcion": "Describe what happened (at least {{minimo}} characters).",
+      "envio": "We could not file your report. Please try again."
+    },
+    "motivo": "Reason",
+    "descripcion": "Description",
+    "descripcionAyuda": "Tell us what happened. Up to 1000 characters.",
+    "privacidad": "The Chamber reviews every report. The producer sees it without your name or contact details.",
+    "motivos": {
+      "NO_CORRESPONDE": "Not as described",
+      "CALIDAD": "Poor quality or damaged",
+      "ORIGEN_DUDOSO": "Questionable origin or certification",
+      "PRACTICA_INDEBIDA": "Improper practice by the producer",
+      "CONTENIDO_INAPROPIADO": "Inappropriate content",
+      "OTRO": "Other reason"
+    },
+    "estado": {
+      "RECIBIDA": "Received",
+      "EN_REVISION": "Under review",
+      "RESUELTA": "Resolved",
+      "DESESTIMADA": "Dismissed"
+    },
+    "enviada": "We received your report",
+    "enviadaTexto": "The Chamber will review it. The producer will not know who filed it.",
+    "denunciarProducto": "Report this product",
+    "ingresaParaDenunciar": "Sign in to report this product",
+    "denunciar": "Report",
+    "denunciarDe": "Report {{nombre}}"
+  },
+  "denunciasProductor": {
+    "titulo": "Reports received",
+    "anonimas": "Anonymous reports",
+    "anonimasTexto": "We do not show who filed each report: the Chamber protects the buyer's identity.",
+    "error": "We could not load your reports",
+    "resumen": "{{total}} in total · {{abiertas}} open · {{sinResponder}} awaiting your reply",
+    "vacio": "You have no reports",
+    "vacioTexto": "Reports about your products or your community will appear here.",
+    "sobreComunidad": "About your community",
+    "respuestaCorta": "Write your reply (at least {{minimo}} characters).",
+    "errorRespuesta": "We could not send your reply. Please try again.",
+    "denunciaDe": "Report about {{titulo}} from {{fecha}}",
+    "recibida": "Received on {{fecha}} · {{motivo}}",
+    "tuRespuesta": "Your reply ({{fecha}})",
+    "responder": "Your reply",
+    "responderAyuda": "The Chamber and the buyer will see it. You can reply only once.",
+    "enviarRespuesta": "Send reply",
+    "cerradaSinRespuesta": "The Chamber closed this report without a reply from you."
+  },
+  "denunciasAdmin": {
+    "titulo": "Reports against producers",
+    "kpi": {
+      "recibidas": "Received",
+      "sinRevisar": "not reviewed",
+      "enRevision": "Under review",
+      "abiertas": "open",
+      "resueltas": "Resolved",
+      "cerradas": "closed",
+      "desestimadas": "Dismissed"
+    },
+    "error": "We could not load the reports",
+    "vacio": "There are no reports",
+    "tabla": "Producers with reports",
+    "col": {
+      "productor": "Producer",
+      "total": "Reports",
+      "abiertas": "Open",
+      "ultima": "Latest",
+      "accion": "Action"
+    },
+    "verHistorial": "View history",
+    "verHistorialDe": "View report history of {{organizacion}}",
+    "notaPie": "Sorted by number of reports. The identity of whoever reports is protected. Analytical reports are on the dashboard.",
+    "volver": "← Back to reports",
+    "sinDenuncias": "This community has no reports",
+    "resumenProductor": "{{total}} reports · {{abiertas}} open",
+    "historial": "Report history",
+    "contraComunidad": "Against the community",
+    "denuncia": "Report {{id}}: {{titulo}}",
+    "compraVerificada": "Verified purchase",
+    "recibida": "Received on {{fecha}} · {{motivo}}",
+    "respuestaProductor": "Producer's reply",
+    "historialDe": "History of report {{id}}",
+    "evento": {
+      "REGISTRADA": "Filed",
+      "RESPUESTA": "Producer's reply",
+      "CAMBIO_ESTADO": "Moved to {{estado}}"
+    },
+    "compradorProtegido": "Buyer (identity protected)",
+    "faltaEstadoONota": "Choose the new status and write a note (at least 5 characters).",
+    "errorCambio": "We could not change the status. Please try again.",
+    "gestionar": "Manage report {{id}}",
+    "nuevoEstado": "New status",
+    "nota": "Note",
+    "notaAyuda": "It stays in the history with your name.",
+    "guardar": "Save change"
   }
 }
