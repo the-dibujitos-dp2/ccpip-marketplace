@@ -43,6 +43,12 @@ import cuentaAdmin from './fixtures/admin-cuenta-4.json'
 import puntosCuentas from './fixtures/admin-cuentas-puntos.json'
 // CCPIP-161: armado segun ProductoModelos.LoteDelProductor del backend
 import todosLosLotes from './fixtures/productor-lotes.json'
+// CCPIP-81 a CCPIP-84, CCPIP-116 y CCPIP-323: armados segun ValoracionModelos del backend
+import calificacionesProducto from './fixtures/productos-1-calificaciones.json'
+import calificacionesPedido from './fixtures/pedido-60-calificaciones.json'
+import denunciasProductor from './fixtures/productor-denuncias.json'
+import denunciasAdmin from './fixtures/admin-denuncias.json'
+import expedienteDenuncias from './fixtures/admin-denuncias-productor-2.json'
 
 export const USUARIO = {
   id: 1,
@@ -146,6 +152,11 @@ export const DATOS = {
   evidenciasProductor,
   productoresAdmin,
   fichaProductorAdmin,
+  calificacionesProducto,
+  calificacionesPedido,
+  denunciasProductor,
+  denunciasAdmin,
+  expedienteDenuncias,
   cuentasAdmin,
   cuentaAdmin,
   puntosCuentas,

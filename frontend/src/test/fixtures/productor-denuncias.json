@@ -1,0 +1,11 @@
+{
+  "resumen": { "total": 2, "abiertas": 1, "sinResponder": 1 },
+  "denuncias": [
+    { "id": 12, "producto": { "id": 1, "nombre": "Aceite de ungurahui 250 ml" }, "motivo": "CALIDAD",
+      "descripcion": "Llegó rancio. Escríbeme a [correo oculto].", "estado": "RECIBIDA", "fecha": "2026-10-15",
+      "puedeResponder": true },
+    { "id": 9, "motivo": "PRACTICA_INDEBIDA", "descripcion": "No respetaron lo acordado.", "estado": "RESUELTA",
+      "fecha": "2026-10-02", "respuesta": "Ya lo conversamos con la Cámara.", "respondidaEn": "2026-10-03T15:00:00Z",
+      "puedeResponder": false }
+  ]
+}

@@ -49,13 +49,18 @@ public class CatalogoRepository {
     /**
      * CCPIP-269 (RF-142): la oferta p del productor pr se puede comprar solo si el productor tiene una
      * cuenta bancaria ACTIVA y una autorizacion APROBADA y vigente para ese producto. Sin eso sigue
-     * visible, pero en "Venta pausada" (Figma CW-03c).
+     * visible, pero en "Venta pausada" (Figma CW-03c). Tampoco se compra si la venta del productor esta
+     * revocada (CCPIP-330) ni si el producto tiene una linea que su autorizacion no cubre (CCPIP-292).
+     * Una revocacion del producto (CCPIP-39) lo deja en REVOCADA, que ya no es APROBADA.
      */
-    static final String HABILITADA = """
-            (EXISTS (SELECT 1 FROM cuenta_bancaria cb WHERE cb.productor_id = pr.id AND cb.estado = 'ACTIVA')
+    public static final String HABILITADA = """
+            (NOT pr.venta_revocada
+             AND EXISTS (SELECT 1 FROM cuenta_bancaria cb WHERE cb.productor_id = pr.id AND cb.estado = 'ACTIVA')
              AND EXISTS (SELECT 1 FROM autorizacion_producto a
                          WHERE a.producto_id = p.id AND a.productor_id = pr.id AND a.estado = 'APROBADA'
-                           AND (a.vigente_hasta IS NULL OR a.vigente_hasta >= %s)))""".formatted(HOY);
+                           AND (a.vigente_hasta IS NULL OR a.vigente_hasta >= %s)
+                           AND NOT EXISTS (SELECT 1 FROM producto_linea pl
+                                           WHERE pl.producto_id = p.id AND pl.linea_id <> ALL (a.lineas))))""".formatted(HOY);
 
     /** Ofertas que el catalogo publico muestra: publicadas, de un productor activo con tienda publicada. */
     public static final String VISIBLE = """

@@ -1,0 +1,19 @@
+.valoraciones { display: flex; flex-direction: column; gap: 16px; }
+.valoraciones__resumen { display: flex; flex-wrap: wrap; gap: 32px; align-items: center; }
+.valoraciones__promedio { display: flex; flex-direction: column; gap: 4px; }
+.valoraciones__numero { font-size: 40px; font-weight: 700; line-height: 1; }
+.valoraciones__distribucion { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; min-width: 240px; }
+.valoraciones__distribucion li { display: grid; grid-template-columns: 96px 1fr 32px; gap: 8px; align-items: center; font-size: 14px; }
+.valoraciones__barra { height: 8px; border-radius: 4px; background: var(--color-bg-surface-alt); overflow: hidden; }
+.valoraciones__barra span { display: block; height: 100%; background: var(--color-bg-accent); }
+.valoraciones__resenas { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.valoraciones__resena { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border: 1px solid var(--color-border-default); border-radius: var(--radius-lg, 12px); }
+.valoraciones__denuncia { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.calificar { display: flex; flex-direction: column; gap: 16px; }
+.calificar__linea { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-top: 1px solid var(--color-border-default); }
+.calificar__linea:first-of-type { border-top: 0; }
+.calificar__cabecera { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+.calificar__acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.valoraciones__historial { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 0; padding: 0 0 0 16px; border-left: 2px solid var(--color-border-default); list-style: none; font-size: 14px; }
+.valoraciones__historial li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.valoraciones__historial .caption { color: var(--color-text-secondary); }

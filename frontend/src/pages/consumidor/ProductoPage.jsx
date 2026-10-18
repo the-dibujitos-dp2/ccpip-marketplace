@@ -17,6 +17,7 @@ import { RUTAS } from '../../router.js'
 import { idiomaSegun, textoSegun } from '../../traduccion.js'
 import { resolverTarifa } from '../../tarifa.js'
 import AgregarAlCarrito from './AgregarAlCarrito.jsx'
+import CalificacionesProducto from './CalificacionesProducto.jsx'
 import MeInteresa from './MeInteresa.jsx'
 import OfertasMaestro from './OfertasMaestro.jsx'
 import './ProductoPage.css'
@@ -27,7 +28,8 @@ const CAMPOS_HISTORIA = ['historia.titulo', 'historia.texto', 'historia.comunida
 
 /**
  * CW-03: ficha publica del producto (CCPIP-53) con su historia de origen (CCPIP-152). En ingles,
- * cada seccion traducida lleva su etiqueta y "Ver original" (CCPIP-171, CW-03-EN).
+ * cada seccion traducida lleva su etiqueta y "Ver original" (CCPIP-171, CW-03-EN). Calificaciones y
+ * denuncia de la oferta: CCPIP-82 y CCPIP-83.
  */
 export default function ProductoPage({ id }) {
   const { t } = useTranslation()
@@ -271,6 +273,8 @@ export default function ProductoPage({ id }) {
             </div>
           </section>
         )}
+
+        <CalificacionesProducto producto={producto} />
 
         <section className="seccion" aria-labelledby="titulo-confianza">
           <h2 id="titulo-confianza" className="seccion__titulo">{t('producto.confianza')}</h2>

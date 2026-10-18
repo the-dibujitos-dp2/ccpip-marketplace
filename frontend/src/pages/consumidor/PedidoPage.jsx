@@ -12,6 +12,7 @@ import SeguimientoPedido, { conSeguimiento } from '../../components/SeguimientoP
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { fechaHora, precio, unidades } from '../../formato.js'
 import { RUTAS } from '../../router.js'
+import CalificarPedido from './CalificarPedido.jsx'
 import './PedidoPage.css'
 
 const PASOS = ['carrito', 'entrega', 'confirmacion']
@@ -24,7 +25,7 @@ const TONO_PAGO = { APROBADO: 'exito', RECHAZADO: 'error', ERROR: 'error', PENDI
  * CW-05, paso "Confirmación" · CCPIP-64: numero de pedido, articulos e importes con el precio
  * pagado (no el vigente), punto de recojo y quien recoge. CCPIP-163: cada intento de pago con su
  * estado y monto, sin datos de la tarjeta salvo la marca. CCPIP-70 y CCPIP-340: la etapa del pedido y
- * su historial de estados en orden cronologico.
+ * su historial de estados en orden cronologico. CCPIP-81 y CCPIP-83: recibido, se califica y se denuncia.
  */
 export default function PedidoPage({ id }) {
   const { t } = useTranslation()
@@ -170,6 +171,7 @@ function Detalle({ pedido }) {
               <strong>{precio(pedido.total)}</strong>
             </p>
           </section>
+          {pedido.estado === 'ENTREGADO' && <CalificarPedido pedidoId={pedido.id} />}
           {pedido.confirmadoEn && <Condiciones pedido={pedido} />}
           {pedido.historial?.length > 0 && (
             <section className="pedido__tarjeta" aria-labelledby="pedido-historial">

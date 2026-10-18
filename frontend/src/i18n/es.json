@@ -71,7 +71,8 @@
       "lotes": "Lotes",
       "pedidos": "Pedidos",
       "cuenta": "Cuenta bancaria",
-      "transferencias": "Transferencias"
+      "transferencias": "Transferencias",
+      "denuncias": "Denuncias"
     },
     "tabla": {
       "producto": "Producto",
@@ -906,7 +907,8 @@
       "autorizaciones": "Autorizaciones",
       "productores": "Productores",
       "cuentas": "Cuentas",
-      "catalogo": "Catálogo maestro"
+      "catalogo": "Catálogo maestro",
+      "denuncias": "Denuncias"
     },
     "tablero": {
       "titulo": "Tablero de operación",
@@ -1354,7 +1356,12 @@
     "LINEA_YA_ACTIVA": "La línea ya está activa.",
     "PRODUCTO_YA_INACTIVO": "El producto ya está desactivado.",
     "PRODUCTO_YA_ACTIVO": "El producto ya está activo.",
-    "PARAMETRO_INVALIDO": "Uno de los filtros no es válido."
+    "PARAMETRO_INVALIDO": "Uno de los filtros no es válido.",
+    "PEDIDO_NO_RECIBIDO": "Podrás calificar los productos cuando recibas tu pedido.",
+    "LINEA_YA_CALIFICADA": "Ya calificaste este producto de tu pedido.",
+    "DENUNCIA_DUPLICADA": "Ya tienes una denuncia abierta sobre esto.",
+    "DENUNCIA_YA_RESPONDIDA": "Ya respondiste esta denuncia.",
+    "DENUNCIA_CERRADA": "La denuncia ya fue cerrada por la Cámara."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -2543,5 +2550,149 @@
       "linea": "Elige la línea.",
       "revisar": "Revisa este dato."
     }
+  },
+  "calificaciones": {
+    "titulo": "Calificaciones",
+    "deCinco": "{{valor}} de 5 estrellas",
+    "estrellas_one": "{{count}} estrella",
+    "estrellas_other": "{{count}} estrellas",
+    "basadoEn_one": "Basado en {{count}} calificación",
+    "basadoEn_other": "Basado en {{count}} calificaciones",
+    "distribucion": "Calificaciones por estrellas",
+    "sinCalificaciones": "Este producto aún no tiene calificaciones.",
+    "insuficiente_one": "Hay {{count}} calificación. Mostraremos el promedio cuando haya al menos {{minimo}}.",
+    "insuficiente_other": "Hay {{count}} calificaciones. Mostraremos el promedio cuando haya al menos {{minimo}}.",
+    "resenas": "Opiniones de compradores",
+    "compraVerificada": "Compra verificada · {{fecha}}",
+    "comoSeCalifica": "Solo califican quienes recibieron este producto en un pedido. No mostramos sus nombres.",
+    "calificaTusProductos": "Califica tus productos",
+    "pendientes_one": "Te falta calificar {{count}} producto.",
+    "pendientes_other": "Te faltan calificar {{count}} productos.",
+    "todoCalificado": "Ya calificaste todos los productos de este pedido. ¡Gracias!",
+    "eligeEstrellas": "Elige de 1 a 5 estrellas.",
+    "errorEnvio": "No pudimos guardar tu calificación. Inténtalo otra vez.",
+    "calificadoEl": "Calificado el {{fecha}}",
+    "tuCalificacion": "Tu calificación",
+    "comentario": "Comentario (opcional)",
+    "comentarioAyuda": "Se publica sin tu nombre. Hasta 500 caracteres.",
+    "enviando": "Enviando…",
+    "enviar": "Enviar calificación"
+  },
+  "denuncia": {
+    "titulo": "Presentar una denuncia",
+    "enviar": "Enviar denuncia",
+    "sobre": "Sobre: {{nombre}}",
+    "errores": {
+      "motivo": "Elige el motivo de la denuncia.",
+      "descripcion": "Describe lo que ocurrió (al menos {{minimo}} caracteres).",
+      "envio": "No pudimos registrar tu denuncia. Inténtalo otra vez."
+    },
+    "motivo": "Motivo",
+    "descripcion": "Descripción",
+    "descripcionAyuda": "Cuéntanos qué pasó. Hasta 1000 caracteres.",
+    "privacidad": "La Cámara revisa cada denuncia. El productor la ve sin tu nombre ni tus datos de contacto.",
+    "motivos": {
+      "NO_CORRESPONDE": "No corresponde a lo descrito",
+      "CALIDAD": "Mala calidad o en mal estado",
+      "ORIGEN_DUDOSO": "Origen o certificación dudosa",
+      "PRACTICA_INDEBIDA": "Práctica indebida del productor",
+      "CONTENIDO_INAPROPIADO": "Contenido inapropiado",
+      "OTRO": "Otro motivo"
+    },
+    "estado": {
+      "RECIBIDA": "Recibida",
+      "EN_REVISION": "En revisión",
+      "RESUELTA": "Resuelta",
+      "DESESTIMADA": "Desestimada"
+    },
+    "enviada": "Recibimos tu denuncia",
+    "enviadaTexto": "La Cámara la revisará. El productor no sabrá quién la presentó.",
+    "denunciarProducto": "Denunciar este producto",
+    "ingresaParaDenunciar": "Ingresa para denunciar este producto",
+    "denunciar": "Denunciar",
+    "denunciarDe": "Denunciar {{nombre}}"
+  },
+  "denunciasProductor": {
+    "titulo": "Denuncias recibidas",
+    "anonimas": "Denuncias anónimas",
+    "anonimasTexto": "No mostramos quién presentó cada denuncia: la Cámara protege la identidad del comprador.",
+    "error": "No pudimos cargar tus denuncias",
+    "resumen": "{{total}} en total · {{abiertas}} abiertas · {{sinResponder}} sin responder",
+    "vacio": "No tienes denuncias",
+    "vacioTexto": "Aquí verás las denuncias sobre tus productos o tu comunidad.",
+    "sobreComunidad": "Sobre tu comunidad",
+    "respuestaCorta": "Escribe tu respuesta (al menos {{minimo}} caracteres).",
+    "errorRespuesta": "No pudimos enviar tu respuesta. Inténtalo otra vez.",
+    "denunciaDe": "Denuncia sobre {{titulo}} del {{fecha}}",
+    "recibida": "Recibida el {{fecha}} · {{motivo}}",
+    "tuRespuesta": "Tu respuesta ({{fecha}})",
+    "responder": "Tu respuesta",
+    "responderAyuda": "La verán la Cámara y el comprador. Solo puedes responder una vez.",
+    "enviarRespuesta": "Enviar respuesta",
+    "cerradaSinRespuesta": "La Cámara cerró esta denuncia sin respuesta tuya."
+  },
+  "denunciasAdmin": {
+    "titulo": "Denuncias contra productores",
+    "kpi": {
+      "recibidas": "Recibidas",
+      "sinRevisar": "sin revisar",
+      "enRevision": "En revisión",
+      "abiertas": "abiertas",
+      "resueltas": "Resueltas",
+      "cerradas": "cerradas",
+      "desestimadas": "Desestimadas"
+    },
+    "error": "No pudimos cargar las denuncias",
+    "vacio": "No hay denuncias registradas",
+    "tabla": "Productores con denuncias",
+    "col": {
+      "productor": "Productor",
+      "total": "Denuncias",
+      "abiertas": "Abiertas",
+      "ultima": "Última",
+      "accion": "Acción"
+    },
+    "verHistorial": "Ver historial",
+    "verHistorialDe": "Ver historial de denuncias de {{organizacion}}",
+    "notaPie": "Ordenadas por cantidad de denuncias. La identidad de quien denuncia está protegida. Los reportes analíticos están en el tablero.",
+    "volver": "← Volver a denuncias",
+    "sinDenuncias": "Esta comunidad no tiene denuncias",
+    "resumenProductor": "{{total}} denuncias · {{abiertas}} abiertas",
+    "historial": "Historial de denuncias",
+    "contraComunidad": "Contra la comunidad",
+    "denuncia": "Denuncia {{id}}: {{titulo}}",
+    "compraVerificada": "Compra verificada",
+    "recibida": "Recibida el {{fecha}} · {{motivo}}",
+    "respuestaProductor": "Respuesta del productor",
+    "historialDe": "Historial de la denuncia {{id}}",
+    "evento": {
+      "REGISTRADA": "Registrada",
+      "RESPUESTA": "Respuesta del productor",
+      "CAMBIO_ESTADO": "Pasa a {{estado}}"
+    },
+    "compradorProtegido": "Comprador (identidad protegida)",
+    "faltaEstadoONota": "Elige el nuevo estado y escribe una nota (al menos 5 caracteres).",
+    "errorCambio": "No pudimos cambiar el estado. Inténtalo otra vez.",
+    "gestionar": "Gestionar la denuncia {{id}}",
+    "nuevoEstado": "Nuevo estado",
+    "nota": "Nota",
+    "notaAyuda": "Queda en el historial con tu nombre.",
+    "guardar": "Guardar cambio"
+  },
+  "minimoCalificaciones": {
+    "seccion": "Calificaciones mínimas para mostrar el promedio",
+    "intro": "Una oferta muestra su calificación promedio recién cuando reúne este número de calificaciones de compras recibidas. Con menos, la ficha no muestra promedio.",
+    "campo": "Calificaciones mínimas",
+    "ayuda": "Un número entero de 1 a {{maximo}}.",
+    "rango": "Escribe un número entero de 1 a {{maximo}}.",
+    "guardado_one": "Listo: el promedio se muestra desde {{count}} calificación.",
+    "guardado_other": "Listo: el promedio se muestra desde {{count}} calificaciones.",
+    "provisional_one": "Rige el valor provisional: {{count}} calificación.",
+    "provisional_other": "Rige el valor provisional: {{count}} calificaciones.",
+    "configurado_one": "Rige {{count}} calificación, fijado por {{nombre}} el {{fecha}}.",
+    "configurado_other": "Rigen {{count}} calificaciones, fijadas por {{nombre}} el {{fecha}}.",
+    "errorCargar": "No pudimos cargar las calificaciones mínimas.",
+    "errorGuardar": "No pudimos guardar el cambio.",
+    "guardar": "Guardar mínimo"
   }
 }

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import iconoAviso from '../../assets/icons/alerta-aviso.svg'
 import iconoBillete from '../../assets/icons/billete.svg'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoEtiqueta from '../../assets/icons/etiqueta.svg'
@@ -19,6 +20,7 @@ const NAV = [
   { to: RUTAS.admin, clave: 'tablero', icono: iconoTablero, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminAutorizaciones, clave: 'autorizaciones', icono: iconoEscudo, roles: ['SUB_ADMIN'], prefijo: true },
   { to: RUTAS.adminProductores, clave: 'productores', icono: iconoComunidad, roles: ['SUB_ADMIN'], prefijo: true },
+  { to: RUTAS.adminDenuncias, clave: 'denuncias', icono: iconoAviso, roles: ['SUB_ADMIN', 'SUPER_ADMIN'], prefijo: true },
   { to: RUTAS.adminComision, clave: 'comision', icono: iconoPorcentaje, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminComisiones, clave: 'comisiones', icono: iconoBillete, roles: ['SUPER_ADMIN', 'SUB_ADMIN'] },
   { to: RUTAS.adminParametros, clave: 'parametros', icono: iconoReloj, roles: ['SUPER_ADMIN'] },
