@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -149,6 +150,35 @@ class CalificacionesTest extends IntegrationTest {
                 .andExpect(jsonPath("$..usuarioId").doesNotExist())
                 .andReturn().getResponse().getContentAsString();
         assertThat(cuerpo).doesNotContain(NOMBRE_COMPRADORA).doesNotContain(COMPRADORA);
+    }
+
+    @Test
+    void elSuperadministradorFijaElMinimoEnLosParametrosDeLaPlataforma() throws Exception {
+        Cookie sudo = loginAs("sudo@ccpip.test");
+        mockMvc.perform(get("/api/admin/parametros/minimo-calificaciones").cookie(sudo))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.calificaciones").value(3))
+                .andExpect(jsonPath("$.provisional").value(true));
+        calificarEntregado(5, null);
+        calificarEntregado(2, null);
+
+        mockMvc.perform(put("/api/admin/parametros/minimo-calificaciones").cookie(sudo)
+                        .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("calificaciones", 2))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.calificaciones").value(2))
+                .andExpect(jsonPath("$.provisional").value(false))
+                .andExpect(jsonPath("$.registradoPor").value("Super Administrador de Prueba"));
+        mockMvc.perform(get("/api/productos/" + aguaje + "/calificaciones"))
+                .andExpect(jsonPath("$.minimo").value(2))
+                .andExpect(jsonPath("$.suficiente").value(true))
+                .andExpect(jsonPath("$.promedio").value(3.5));
+
+        mockMvc.perform(put("/api/admin/parametros/minimo-calificaciones").cookie(sudo)
+                        .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("calificaciones", 0))))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(put("/api/admin/parametros/minimo-calificaciones").cookie(loginAs("sub_admin@ccpip.test"))
+                        .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("calificaciones", 1))))
+                .andExpect(status().isForbidden());
     }
 
     @Test

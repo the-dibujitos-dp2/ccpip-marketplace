@@ -738,7 +738,8 @@ proposito `RECUPERAR_CLAVE`. Como en `sesion`, solo se guarda el SHA-256 del tok
 
 ## Calificaciones y denuncias (CCPIP-81, CCPIP-82, CCPIP-83, CCPIP-84, CCPIP-116, CCPIP-323)
 
-Migraciones `V202610172200__calificacion.sql` y `V202610172201__denuncia.sql`.
+Migraciones `V202610172200__calificacion.sql`, `V202610172201__denuncia.sql` y
+`V202610172202__parametro_minimo_calificaciones.sql`.
 
 ### calificacion
 CCPIP-81 (RF-88): el comprador califica con 1 a 5 estrellas cada linea de un pedido que recibio. Una
@@ -760,9 +761,12 @@ insercion: no se edita ni se borra.
   este `ENTREGADO` y que producto y productor coincidan con la linea. El servicio valida lo mismo
   antes y responde `PEDIDO_NO_RECIBIDO` o `LINEA_YA_CALIFICADA`.
 - CCPIP-82 (RF-89): el promedio de una oferta se calcula al consultar (`avg(estrellas)`, a un decimal)
-  y solo se publica con al menos `ccpip.calificaciones.minimo-para-promedio` calificaciones (3 por
-  defecto, provisional hasta que la Camara fije el umbral como parametro de la plataforma). Con menos,
-  la respuesta trae el conteo y el umbral, sin promedio, distribucion ni resenas: nunca un promedio cero.
+  y solo se publica con un minimo de calificaciones. El minimo es el parametro de SA-02
+  `CALIFICACIONES_MINIMO_PROMEDIO` en `parametro_plataforma` (migracion
+  `V202610172202__parametro_minimo_calificaciones.sql`, que amplia el CHECK de claves; lo fija el
+  superadministrador en `/api/admin/parametros/minimo-calificaciones`). Mientras no lo fije rige el
+  provisional `ccpip.calificaciones.minimo-para-promedio` (3). Con menos, la respuesta trae el conteo y
+  el umbral, sin promedio, distribucion ni resenas: nunca un promedio cero.
 
 ### denuncia
 CCPIP-83 (RF-90): denuncia de un comprador sobre una oferta (`producto_id`) o sobre la comunidad

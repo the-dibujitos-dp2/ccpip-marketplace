@@ -8,7 +8,6 @@ import java.sql.Timestamp;
 import java.time.ZoneId;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -27,8 +26,8 @@ import pe.ccpip.valoracion.ValoracionModelos.ResumenCalificaciones;
 
 /**
  * CCPIP-81 (RF-88): el comprador califica con 1 a 5 estrellas cada linea de un pedido que recibio
- * (ENTREGADO), una sola vez. CCPIP-82 (RF-89): el promedio publico de una oferta solo se muestra con al
- * menos {@code ccpip.calificaciones.minimo-para-promedio} calificaciones; sin ellas no hay promedio.
+ * (ENTREGADO), una sola vez. CCPIP-82 (RF-89): el promedio publico de una oferta solo se muestra con el
+ * minimo de calificaciones de SA-02 ({@link MinimoCalificacionesService}); sin ellas no hay promedio.
  */
 @Service
 public class CalificacionesService {
@@ -37,16 +36,11 @@ public class CalificacionesService {
     private static final int RESENAS_PUBLICAS = 10;
 
     private final JdbcTemplate jdbc;
-    private final int minimo;
+    private final MinimoCalificacionesService minimos;
 
-    /**
-     * {@code minimo}: valor provisional (3) mientras la Camara no fije el umbral como parametro de la
-     * plataforma. Se cambia por propiedad, sin tocar codigo.
-     */
-    public CalificacionesService(JdbcTemplate jdbc,
-                                 @Value("${ccpip.calificaciones.minimo-para-promedio:3}") int minimo) {
+    public CalificacionesService(JdbcTemplate jdbc, MinimoCalificacionesService minimos) {
         this.jdbc = jdbc;
-        this.minimo = Math.max(1, minimo);
+        this.minimos = minimos;
     }
 
     /** Las lineas del pedido propio con su calificacion. Un pedido ajeno no existe (RNF-05). */
@@ -104,6 +98,7 @@ public class CalificacionesService {
         if (visible == null || visible == 0) {
             throw ErrorNegocio.noEncontrado("PRODUCTO_NO_ENCONTRADO", "El producto no existe o ya no está disponible");
         }
+        int minimo = minimos.vigente().calificaciones();
         return jdbc.queryForObject("""
                 SELECT count(*) AS total, avg(estrellas) AS promedio,
                        count(*) FILTER (WHERE estrellas = 5) AS e5, count(*) FILTER (WHERE estrellas = 4) AS e4,
