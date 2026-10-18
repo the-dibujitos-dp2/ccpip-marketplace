@@ -52,6 +52,8 @@ public abstract class IntegrationTest {
         registry.add("ccpip.traduccion.proveedor", () -> "simulado");
         // CCPIP-273: la revision periodica de intereses no corre sola; las pruebas llaman a revisar()
         registry.add("ccpip.intereses.revision-inicial", () -> "PT24H");
+        // CCPIP-75: la merma automatica tampoco corre sola; las pruebas llaman a revisar()
+        registry.add("ccpip.merma.revision-inicial", () -> "PT24H");
     }
 
     /** Clave comun de las cuentas de demostracion sembradas en R__02 (publica a proposito, CCPIP-23). */

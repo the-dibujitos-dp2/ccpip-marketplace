@@ -26,7 +26,8 @@ public final class InventarioModelos {
     /** Pestanas de A-03: cada una agrupa tipos de movimiento. */
     public enum Grupo {
         ENTRADAS(List.of("ENTRADA", "TRANSFERENCIA_ENTRADA")),
-        SALIDAS(List.of("SALIDA", "SALIDA_VENTA", "TRANSFERENCIA_SALIDA")),
+        // La merma (CCPIP-76, CCPIP-75) tambien saca existencias del lote
+        SALIDAS(List.of("SALIDA", "SALIDA_VENTA", "TRANSFERENCIA_SALIDA", "MERMA")),
         AJUSTES(List.of("AJUSTE"));
 
         private final List<String> tipos;
