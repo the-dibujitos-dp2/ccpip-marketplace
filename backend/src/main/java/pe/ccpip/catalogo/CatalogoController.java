@@ -25,6 +25,7 @@ import pe.ccpip.catalogo.CatalogoModelos.Facetas;
 import pe.ccpip.catalogo.CatalogoModelos.Inicio;
 import pe.ccpip.catalogo.CatalogoModelos.LineaCatalogo;
 import pe.ccpip.catalogo.CatalogoModelos.ProductoDetalle;
+import pe.ccpip.catalogo.CatalogoModelos.ProductoMaestro;
 import pe.ccpip.catalogo.CatalogoModelos.TiendaDetalle;
 import pe.ccpip.catalogo.CatalogoModelos.TiendaTarjeta;
 import pe.ccpip.catalogo.CatalogoRepository.Filtro;
@@ -110,6 +111,16 @@ public class CatalogoController {
         ProductoDetalle detalle = catalogo.detalle(id).orElseThrow(() ->
                 ErrorNegocio.noEncontrado("PRODUCTO_NO_ENCONTRADO", "El producto no existe o ya no está disponible"));
         return traductor.detalle(detalle, idioma(acceptLanguage, response));
+    }
+
+    /** CCPIP-42 (RF-18): las ofertas de distintos productores para un mismo producto del catalogo maestro. */
+    @GetMapping("/api/maestros/{id}")
+    public ProductoMaestro maestro(@PathVariable long id,
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            HttpServletResponse response) {
+        ProductoMaestro maestro = catalogo.maestro(id).orElseThrow(() ->
+                ErrorNegocio.noEncontrado("MAESTRO_NO_ENCONTRADO", "El producto no existe en el catálogo de la Cámara"));
+        return traductor.maestro(maestro, idioma(acceptLanguage, response));
     }
 
     /** CCPIP-153: comunidades con tienda publicada. */

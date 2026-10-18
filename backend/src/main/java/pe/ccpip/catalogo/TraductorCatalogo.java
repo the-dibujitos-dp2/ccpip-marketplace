@@ -19,8 +19,10 @@ import pe.ccpip.catalogo.CatalogoModelos.Facetas;
 import pe.ccpip.catalogo.CatalogoModelos.HistoriaPublica;
 import pe.ccpip.catalogo.CatalogoModelos.Inicio;
 import pe.ccpip.catalogo.CatalogoModelos.LineaCatalogo;
+import pe.ccpip.catalogo.CatalogoModelos.Oferta;
 import pe.ccpip.catalogo.CatalogoModelos.PartesHistoria;
 import pe.ccpip.catalogo.CatalogoModelos.ProductoDetalle;
+import pe.ccpip.catalogo.CatalogoModelos.ProductoMaestro;
 import pe.ccpip.catalogo.CatalogoModelos.ProductoResumen;
 import pe.ccpip.catalogo.CatalogoModelos.TiendaDetalle;
 import pe.ccpip.catalogo.CatalogoModelos.TiendaResumen;
@@ -60,6 +62,7 @@ public class TraductorCatalogo {
         p.lineas().forEach(l -> c.codigo(Entidad.LINEA, l));
         c.codigo(Entidad.UNIDAD, p.unidad());
         p.relacionados().forEach(c::resumen);
+        c.maestro(p.maestro());
         Textos t = cargar(c, idioma);
         String id = String.valueOf(p.id());
         Map<String, CampoTraducido> campos = new LinkedHashMap<>();
@@ -71,7 +74,18 @@ public class TraductorCatalogo {
                 p.lineas().stream().map(l -> t.codigo(Entidad.LINEA, l)).toList(), p.modalidad(), p.precio(),
                 p.precioMayorista(), p.cantidadMinimaMayorista(), p.disponible(), p.comprable(), p.imagenes(),
                 t.tienda(p.tienda()), historia, p.cosecha(),
-                p.relacionados().stream().map(t::resumen).toList(), campos.isEmpty() ? null : campos);
+                p.relacionados().stream().map(t::resumen).toList(), campos.isEmpty() ? null : campos,
+                t.maestro(p.maestro()));
+    }
+
+    /** CCPIP-42: el maestro con el nombre, la tienda y la historia de cada oferta en el idioma pedido. */
+    public ProductoMaestro maestro(ProductoMaestro m, Idioma idioma) {
+        if (idioma == Idioma.ES) {
+            return m;
+        }
+        Claves c = new Claves();
+        c.maestro(m);
+        return cargar(c, idioma).maestro(m);
     }
 
     public Busqueda busqueda(Busqueda b, Idioma idioma) {
@@ -199,6 +213,19 @@ public class TraductorCatalogo {
             codigo(Entidad.UNIDAD, r.unidad());
             tienda(r.tienda());
         }
+
+        void maestro(ProductoMaestro m) {
+            if (m == null) {
+                return;
+            }
+            codigo(Entidad.LINEA, m.linea());
+            for (Oferta o : m.ofertas()) {
+                producto(o.id());
+                historia(o.id());
+                codigo(Entidad.UNIDAD, o.unidad());
+                tienda(o.tienda());
+            }
+        }
     }
 
     /**
@@ -270,6 +297,19 @@ public class TraductorCatalogo {
             return new ProductoResumen(r.id(), de(Entidad.PRODUCTO, r.id(), "nombre", r.nombre()), r.modalidad(),
                     r.precio(), r.precioMayorista(), r.contenido(), codigo(Entidad.UNIDAD, r.unidad()),
                     codigo(Entidad.LINEA, r.linea()), r.lineas(), r.imagen(), r.disponible(), tienda(r.tienda()));
+        }
+
+        /** El nombre del maestro lo define la Camara y aun no tiene traduccion propia: va en su original. */
+        ProductoMaestro maestro(ProductoMaestro m) {
+            return m == null ? null : new ProductoMaestro(m.id(), m.codigo(), m.nombre(), m.descripcion(),
+                    codigo(Entidad.LINEA, m.linea()), m.ofertas().stream().map(this::oferta).toList());
+        }
+
+        Oferta oferta(Oferta o) {
+            String id = String.valueOf(o.id());
+            return new Oferta(o.id(), de(Entidad.PRODUCTO, id, "nombre", o.nombre()), o.modalidad(), o.precio(),
+                    o.precioMayorista(), o.contenido(), codigo(Entidad.UNIDAD, o.unidad()), o.imagen(), o.disponible(),
+                    o.comprable(), tienda(o.tienda()), historia(new LinkedHashMap<>(), id, o.historia()));
         }
 
         HistoriaPublica historia(Map<String, CampoTraducido> campos, String id, HistoriaPublica h) {
