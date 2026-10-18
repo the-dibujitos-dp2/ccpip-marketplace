@@ -119,7 +119,8 @@ public final class InventarioModelos {
     public enum EstadoLote { DISPONIBLE, POR_VENCER, VENCIDO, AGOTADO }
 
     /** Filtro "Estado del lote" de A-02. ACTIVOS: con saldo. */
-    public enum FiltroEstado { ACTIVOS, AGOTADOS, TODOS }
+    /** POR_VENCER (CCPIP-145): con saldo, vigentes y dentro de la anticipacion del punto. */
+    public enum FiltroEstado { ACTIVOS, POR_VENCER, AGOTADOS, TODOS }
 
     /**
      * Una fila de A-02: un lote de un punto del administrador. {@code entradas} y {@code salidas}

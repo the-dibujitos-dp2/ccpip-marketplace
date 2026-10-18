@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import pe.ccpip.alerta.PreferenciasAlerta;
 import pe.ccpip.imagenes.ImagenService;
 import pe.ccpip.productor.InventarioProductorModelos.EstadoInventario;
 import pe.ccpip.productor.InventarioProductorModelos.Existencia;
@@ -47,14 +48,17 @@ public class InventarioProductorService {
     }
 
     private final JdbcTemplate jdbc;
+    private final PreferenciasAlerta preferencias;
 
-    public InventarioProductorService(JdbcTemplate jdbc) {
+    public InventarioProductorService(JdbcTemplate jdbc, PreferenciasAlerta preferencias) {
         this.jdbc = jdbc;
+        this.preferencias = preferencias;
     }
 
     @Transactional(readOnly = true)
     public Inventario obtener(long productorId) {
         LocalDate hoy = LocalDate.now(LotesService.LIMA);
+        int dias = preferencias.diasVencimientoProductor(productorId);
         List<Fila> filas = jdbc.query("""
                 SELECT p.id AS producto_id, p.nombre AS producto,
                        (SELECT i.id FROM imagen i WHERE i.producto_id = p.id AND i.principal) AS imagen,
@@ -71,24 +75,27 @@ public class InventarioProductorService {
                     return new Fila(rs.getLong("producto_id"), rs.getString("producto"), rs.getObject("imagen", UUID.class),
                             new LoteInventario(rs.getLong("id"), rs.getString("codigo"), rs.getLong("ubicacion_id"),
                                     rs.getString("ubicacion"), rs.getString("tipo"), rs.getBigDecimal("cantidad_actual"),
-                                    rs.getObject("fecha_produccion", LocalDate.class), vence, estado(vence, hoy)),
+                                    rs.getObject("fecha_produccion", LocalDate.class), vence, estado(vence, hoy, dias)),
                             rs.getString("departamento"));
                 },
                 productorId);
 
-        return new Inventario(resumen(filas), ProductosService.DIAS_ALERTA_VENCIMIENTO, ubicaciones(productorId, filas),
+        return new Inventario(resumen(filas), dias, ubicaciones(productorId, filas),
                 productos(filas));
     }
 
-    /** Vencido desde el dia siguiente a su fecha; por vencer dentro del aviso, como en el inicio (PW-01). */
-    static EstadoInventario estado(LocalDate vence, LocalDate hoy) {
+    /**
+     * Vencido desde el dia siguiente a su fecha; por vencer dentro de la anticipacion que el productor
+     * configuro en sus alertas (PW-21), la misma del inicio (PW-01).
+     */
+    static EstadoInventario estado(LocalDate vence, LocalDate hoy, int dias) {
         if (vence == null) {
             return EstadoInventario.DISPONIBLE;
         }
         if (vence.isBefore(hoy)) {
             return EstadoInventario.VENCIDO;
         }
-        return vence.isAfter(hoy.plusDays(ProductosService.DIAS_ALERTA_VENCIMIENTO))
+        return vence.isAfter(hoy.plusDays(dias))
                 ? EstadoInventario.DISPONIBLE : EstadoInventario.POR_VENCER;
     }
 
