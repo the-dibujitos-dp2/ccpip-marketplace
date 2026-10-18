@@ -20,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.ccpip.support.IntegrationTest;
 
 /**
- * Catalogo publico contra los productos sembrados en R__02: 10 productos publicados de 3
- * tiendas, cada uno con un lote vigente en el Centro Nacional Lima. Cada prueba corre en una
+ * Catalogo publico contra las ofertas sembradas en R__02: 11 publicadas de 3 tiendas, dos de ellas del
+ * mismo producto maestro (el cacao en grano), cada uno con un lote vigente en el Centro Nacional Lima. Cada prueba corre en una
  * transaccion que se revierte.
  */
 @Transactional
@@ -37,7 +37,7 @@ class CatalogoControllerTest extends IntegrationTest {
     void sinTerminoListaElCatalogoDisponibleSinSesion() throws Exception {
         mockMvc.perform(get("/api/productos"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.total").value(10))
+                .andExpect(jsonPath("$.total").value(11))
                 .andExpect(jsonPath("$.totalComunidades").value(3))
                 .andExpect(jsonPath("$.items[0].tienda.nombre").exists())
                 .andExpect(jsonPath("$.items[0].tienda.pueblo").exists())
@@ -61,9 +61,9 @@ class CatalogoControllerTest extends IntegrationTest {
     @Test
     void losResultadosSePaginan() throws Exception {
         mockMvc.perform(get("/api/productos").param("tamano", "4").param("pagina", "2"))
-                .andExpect(jsonPath("$.total").value(10))
+                .andExpect(jsonPath("$.total").value(11))
                 .andExpect(jsonPath("$.totalPaginas").value(3))
-                .andExpect(jsonPath("$.items.length()").value(2));
+                .andExpect(jsonPath("$.items.length()").value(3));
     }
 
     @Test
@@ -86,9 +86,9 @@ class CatalogoControllerTest extends IntegrationTest {
     @Test
     void filtraPorLineaRegionComunidadYPrecio() throws Exception {
         mockMvc.perform(get("/api/productos").param("linea", "CACAO"))
-                .andExpect(jsonPath("$.total").value(2));
+                .andExpect(jsonPath("$.total").value(3));
         mockMvc.perform(get("/api/productos").param("region", "Junin"))
-                .andExpect(jsonPath("$.total").value(3))
+                .andExpect(jsonPath("$.total").value(4))
                 .andExpect(jsonPath("$.items[*].tienda.region", everyItem(Matchers.is("Junin"))));
         mockMvc.perform(get("/api/productos").param("precioMin", "40").param("precioMax", "55"))
                 .andExpect(jsonPath("$.items[*].precio", everyItem(Matchers.both(
@@ -137,7 +137,7 @@ class CatalogoControllerTest extends IntegrationTest {
         mockMvc.perform(get("/api/productos"))
                 .andExpect(jsonPath("$.facetas.lineas[?(@.codigo == 'CAFE')].total").value(hasItem(2)))
                 .andExpect(jsonPath("$.facetas.regiones[?(@.codigo == 'Ucayali')].total").value(hasItem(4)))
-                .andExpect(jsonPath("$.facetas.modalidades[?(@.codigo == 'MINORISTA')].total").value(hasItem(10)))
+                .andExpect(jsonPath("$.facetas.modalidades[?(@.codigo == 'MINORISTA')].total").value(hasItem(11)))
                 .andExpect(jsonPath("$.facetas.comunidades.length()").value(3));
     }
 
@@ -165,7 +165,7 @@ class CatalogoControllerTest extends IntegrationTest {
     @Test
     void unaTiendaSinPublicarNoMuestraSusProductos() throws Exception {
         jdbc.update("UPDATE productor SET tienda_publicada = false WHERE nombre_tienda = 'C.N. Yarina'");
-        mockMvc.perform(get("/api/productos")).andExpect(jsonPath("$.total").value(7));
+        mockMvc.perform(get("/api/productos")).andExpect(jsonPath("$.total").value(8));
     }
 
     @Test
@@ -258,6 +258,74 @@ class CatalogoControllerTest extends IntegrationTest {
         mockMvc.perform(get("/api/productos/{id}", id)).andExpect(jsonPath("$.historia").doesNotExist());
     }
 
+    // --- CCPIP-42: ofertas de distintos productores para un mismo producto del catalogo maestro ---
+
+    @Test
+    void elMaestroListaLaOfertaDeCadaProductorConSuPrecioHistoriaYDisponibilidad() throws Exception {
+        mockMvc.perform(get("/api/maestros/{id}", maestroDe("CACAO-GRANO")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Cacao en grano fermentado"))
+                .andExpect(jsonPath("$.linea.codigo").value("CACAO"))
+                .andExpect(jsonPath("$.ofertas.length()").value(2))
+                // Lo disponible primero y, entre eso, lo mas barato
+                .andExpect(jsonPath("$.ofertas[0].nombre").value("Cacao en grano fermentado 1 kg"))
+                .andExpect(jsonPath("$.ofertas[0].precio").value(42.00))
+                .andExpect(jsonPath("$.ofertas[0].tienda.nombre").value("C.N. Yarina"))
+                .andExpect(jsonPath("$.ofertas[0].historia.texto").value(containsString("bosque primario")))
+                .andExpect(jsonPath("$.ofertas[1].nombre").value("Cacao fino de aroma 1 kg"))
+                .andExpect(jsonPath("$.ofertas[1].precio").value(44.00))
+                .andExpect(jsonPath("$.ofertas[1].tienda.nombre").value("Coop. Río Ene"))
+                .andExpect(jsonPath("$.ofertas[1].historia.texto").value(containsString("cafetales del Ene")))
+                .andExpect(jsonPath("$.ofertas[*].disponible", everyItem(Matchers.is(true))))
+                .andExpect(jsonPath("$.ofertas[*].comprable", everyItem(Matchers.is(true))))
+                .andExpect(content().string(not(containsString("L-00"))));
+    }
+
+    @Test
+    void laFichaTraeSuMaestroConLasOfertasDeLasDemasComunidades() throws Exception {
+        mockMvc.perform(get("/api/productos/{id}", idDe("Cacao en grano fermentado 1 kg")))
+                .andExpect(jsonPath("$.maestro.codigo").value("CACAO-GRANO"))
+                .andExpect(jsonPath("$.maestro.ofertas[*].tienda.nombre").value(Matchers.containsInAnyOrder("C.N. Yarina", "Coop. Río Ene")));
+        // Una oferta sin maestro asociado no lo trae
+        long suelta = productoConLote("Miel sin maestro", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_ANIO);
+        mockMvc.perform(get("/api/productos/{id}", suelta)).andExpect(jsonPath("$.maestro").doesNotExist());
+    }
+
+    @Test
+    void unaOfertaAgotadaOPausadaSigueListadaDespuesDeLasQueSeVenden() throws Exception {
+        long maestro = maestroDe("CACAO-GRANO");
+        long agotada = productoConLote("Cacao agotado", "PUBLICADO", "PUNTO_ACOPIO", HOY.minusDays(1));
+        jdbc.update("UPDATE producto SET producto_maestro_id = ?, precio = 10 WHERE id = ?", maestro, agotada);
+        long yarina = idDe("Cacao en grano fermentado 1 kg");
+        jdbc.update("UPDATE cuenta_bancaria SET estado = 'DESACTIVADA', motivo_desactivacion = 'OTRO', desactivada_en = now() WHERE productor_id = (SELECT productor_id FROM producto WHERE id = ?)",
+                yarina);
+
+        mockMvc.perform(get("/api/maestros/{id}", maestro))
+                .andExpect(jsonPath("$.ofertas.length()").value(3))
+                .andExpect(jsonPath("$.ofertas[2].id").value(agotada))
+                .andExpect(jsonPath("$.ofertas[2].disponible").value(false))
+                .andExpect(jsonPath("$.ofertas[?(@.id == " + yarina + ")].comprable").value(hasItem(false)));
+    }
+
+    @Test
+    void soloListaOfertasVisiblesYUnMaestroDesactivadoNoExiste() throws Exception {
+        long maestro = maestroDe("CACAO-GRANO");
+        long borrador = productoConLote("Cacao en borrador", "BORRADOR", "PUNTO_ACOPIO", EN_UN_ANIO);
+        jdbc.update("UPDATE producto SET producto_maestro_id = ? WHERE id = ?", maestro, borrador);
+        jdbc.update("UPDATE productor SET tienda_publicada = false WHERE nombre_tienda = 'C.N. Yarina'");
+
+        mockMvc.perform(get("/api/maestros/{id}", maestro))
+                .andExpect(jsonPath("$.ofertas.length()").value(1))
+                .andExpect(jsonPath("$.ofertas[0].tienda.nombre").value("Coop. Río Ene"));
+
+        jdbc.update("UPDATE producto_maestro SET activo = false WHERE id = ?", maestro);
+        mockMvc.perform(get("/api/maestros/{id}", maestro))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("MAESTRO_NO_ENCONTRADO"));
+        mockMvc.perform(get("/api/productos/{id}", idDe("Cacao fino de aroma 1 kg"))).andExpect(jsonPath("$.maestro").doesNotExist());
+        mockMvc.perform(get("/api/maestros/{id}", 999_999)).andExpect(status().isNotFound());
+    }
+
     // --- CCPIP-153, 154 y 56: tiendas ---
 
     @Test
@@ -302,5 +370,9 @@ class CatalogoControllerTest extends IntegrationTest {
 
     private long idDe(String nombre) {
         return jdbc.queryForObject("SELECT id FROM producto WHERE nombre = ?", Long.class, nombre);
+    }
+
+    private long maestroDe(String codigo) {
+        return jdbc.queryForObject("SELECT id FROM producto_maestro WHERE codigo = ?", Long.class, codigo);
     }
 }

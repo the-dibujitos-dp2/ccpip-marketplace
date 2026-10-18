@@ -69,6 +69,7 @@ Sprint 0, eso es CCPIP-28.
 | bloqueado_hasta | timestamptz | si | Nulo significa no bloqueado. RNF-02 |
 | idioma | varchar(2) | no | `es` o `en`, por defecto `es`. Preferencia de idioma de la cuenta, CCPIP-265. El visitante la guarda solo en su navegador |
 | telefono | varchar(20) | si | Celular opcional que se da al registrarse. CCPIP-26 |
+| estado | varchar(20) | no | `ACTIVA`, `SUSPENDIDA` o `DESACTIVADA`. Restriccion: `activo = (estado = 'ACTIVA')`. CCPIP-303, 306, 307 |
 
 ### sesion
 Sesion con token opaco aleatorio, entregado en cookie HttpOnly y guardado en el servidor.
@@ -90,7 +91,8 @@ obligaba a reemitir tokens. ADR-05 se actualiza a token opaco.
 
 ### linea_producto, unidad_medida
 Catalogos cerrados. RNF-32: el productor no crea unidades de medida, las solicita al
-administrador, que es CCPIP-119 y CCPIP-137 en Sprint 1.
+administrador, que es CCPIP-119 y CCPIP-137 en Sprint 1. Las lineas las administra el
+superadministrador desde el catalogo maestro (ver "Catalogo maestro" mas abajo).
 
 ### productor
 | Columna | Tipo | Nulo | Nota |
@@ -376,8 +378,8 @@ pedidos ya pagados siguen su curso (supuesto de PW-20, por validar con el stakeh
 ### autorizacion_producto
 `productor_id`, `producto_id`, `estado` (SOLICITADA, APROBADA, RECHAZADA, REVOCADA), `motivo`,
 `decidido_por`, `decidido_en` y `vigente_hasta` (nula si no vence). Unica por productor y
-producto. El diccionario la liga a `producto_maestro`, que aun no existe: por ahora apunta a
-`producto`. La migracion deja APROBADA lo que ya se vendia.
+producto. El diccionario la liga a `producto_maestro`; la tabla ya existe (V202610171900), pero la
+autorizacion sigue apuntando a `producto` hasta que una historia migre el vinculo. La migracion deja APROBADA lo que ya se vendia.
 
 **Una oferta es comprable** si su productor tiene una cuenta ACTIVA y una autorizacion APROBADA
 para ese producto con `vigente_hasta` nula o de hoy en adelante (hora de Lima). Si no, sigue
@@ -467,6 +469,42 @@ aun no esta elegido: `ninguno` (por defecto) responde `503 IA_NO_DISPONIBLE`, qu
 como NO_DISPONIBLE y la solicitud se decide a mano; `simulado` aplica reglas fijas sobre lo
 declarado (sin leer el archivo) y se marca `simulado = true` en la base y en la pantalla como
 resultado de prueba. Solo se usa en pruebas y demo.
+
+## Catalogo maestro y ofertas por productor (CCPIP-42)
+
+Migracion `V202610171900`. RF-18: el visitante consulta las ofertas de distintos productores
+para un mismo producto del catalogo maestro. La fila de `producto` pasa a ser **la oferta** de
+un productor; el maestro es el producto generico que define la Camara.
+
+```mermaid
+erDiagram
+    linea_producto ||--o{ producto_maestro : clasifica
+    producto_maestro ||--o{ producto : ofertado_como
+```
+
+### producto_maestro
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | PK |
+| codigo | varchar(40) | no | Unico, por ejemplo `CACAO-GRANO` |
+| nombre | varchar(150) | no | Nombre generico, sin presentacion: "Cacao en grano fermentado" |
+| descripcion | text | si | |
+| linea_id | smallint | no | FK a `linea_producto` |
+| activo | boolean | no | Se desactiva, nunca se borra (CCPIP-314) |
+
+`producto.producto_maestro_id` (nula) liga cada oferta a su maestro. Una oferta creada por el
+productor nace sin maestro hasta que la Camara la asocie; crear, modificar y desactivar maestros
+desde la plataforma es CCPIP-312, 313 y 314. Por ahora los maestros entran sembrados en `R__02`,
+que agrega una segunda oferta de cacao en grano (Coop. Río Ene) junto a la de C.N. Yarina.
+
+**Cada oferta conserva lo suyo.** Nombre, presentacion, precio, historia, existencias y estado
+de venta siguen en la oferta, no en el maestro. `GET /api/maestros/{id}` devuelve el maestro con
+sus ofertas visibles (misma regla que el catalogo), primero las que tienen saldo en venta y luego
+por precio; las agotadas o en "Venta pausada" se listan marcadas. La ficha de una oferta trae su
+`maestro` con las mismas ofertas. Un maestro desactivado responde 404.
+
+`autorizacion_producto` sigue apuntando a `producto` (la oferta): moverla a `producto_maestro_id`
+cambia la regla de CCPIP-269 y queda para cuando la Camara decida si autoriza por maestro.
 
 ## Descuento de existencias por venta (CCPIP-158)
 
@@ -736,6 +774,81 @@ proposito `RECUPERAR_CLAVE`. Como en `sesion`, solo se guarda el SHA-256 del tok
   estan registrados.
 - El enlace no inicia sesion: la persona ingresa con su contrasena despues de verificar.
 
+## Cuentas de la administracion (CCPIP-95, 124, 125, 301 a 308)
+
+Migracion `V202610172000__cuentas_administracion.sql`. El superadministrador crea, modifica y
+desactiva cuentas de sub administrador y de administrador de punto de acopio (SA-03, SA-04); un
+administrador autorizado busca, suspende y reactiva cuentas segun el alcance de su rol. Ninguna
+cuenta se borra (RNF-18): cambia `usuario.estado` y el cambio queda en `cuenta_historial`.
+
+- `usuario.estado`: `ACTIVA`, `SUSPENDIDA` (se reactiva) o `DESACTIVADA` (definitiva). `activo` se
+  conserva porque el inicio de sesion y la validacion de sesiones lo leen; una restriccion los
+  mantiene coherentes. Al dejar de estar activa se borran sus sesiones y sus enlaces sin usar.
+- Alcance (en el servidor, `AlcanceCuentas`): el superadministrador ve todas las cuentas menos las
+  de superadministradores; el sub administrador, solo consumidores, productores y distribuidores.
+  Nadie actua sobre su propia cuenta. El rol y el correo no se modifican.
+- Alta segura: la cuenta nace con el hash de una clave aleatoria que nadie conoce y
+  `correo_confirmado = false`; la persona elige su contrasena con un enlace de `token_un_uso`
+  (proposito `RECUPERAR_CLAVE`, vigencia `ccpip.cuentas.enlace-acceso-vigencia`, 72 h).
+- Puntos: el administrador de punto tiene al menos un punto de acopio activo en
+  `usuario_ubicacion`; el sub administrador ninguno. Los cambios de asignacion quedan en el historial.
+
+### cuenta_historial
+Solo insercion: un trigger impide editarla y borrarla.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| usuario_id | bigint | no | Cuenta afectada. Indexado con `realizado_en` |
+| accion | varchar(20) | no | `CREAR`, `MODIFICAR`, `SUSPENDER`, `REACTIVAR`, `DESACTIVAR` o `REENVIAR_ACCESO` |
+| motivo | varchar(300) | si | Obligatorio para suspender, reactivar y desactivar |
+| cambios | jsonb | si | Antes y despues (nombre, telefono, puntos, estado). Nunca contrasenas ni tokens |
+| realizado_por | bigint | no | Quien hizo el cambio |
+| realizado_en | timestamptz | no | |
+
+## Transferencias entre ubicaciones (CCPIP-73, 146, 164, 362, 277, 278)
+
+RNF-47: el productor lleva existencias de su almacen a un punto de acopio (CCPIP-73) o solicita
+moverlas entre puntos (CCPIP-277); el administrador del punto de destino las recibe y consulta su
+estado e historial (CCPIP-278). Migracion `V202610171700__transferencia.sql`.
+
+Las unidades no se duplican ni se pierden: saldo de los lotes de origen + unidades preparadas + en
+transito + lotes de destino se conserva. Solo `lote.cantidad_actual` cambia, siempre con su
+movimiento y su stock en la misma transaccion (RNF-15, ADR-10):
+
+| Paso | Estado | Lote | Movimiento |
+|---|---|---|---|
+| Iniciar (almacen a punto) | INICIADA | no cambia | ninguno |
+| Solicitar (entre puntos) | SOLICITADA | no cambia | ninguno; no avanza hasta que se defina quien aprueba (C8) |
+| Preparar (CCPIP-164) | PREPARADA | el de origen baja | TRANSFERENCIA_SALIDA por linea |
+| Despachar (CCPIP-362) | DESPACHADA | no cambia: ya se desconto | ninguno; en transito no se vende |
+| Recibir (CCPIP-278) | RECIBIDA | se crea uno en el destino, con el vencimiento del origen | TRANSFERENCIA_ENTRADA por linea |
+
+### transferencia
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| tipo | varchar(20) | no | ALMACEN_A_PUNTO o ENTRE_PUNTOS |
+| productor_id | bigint | no | RNF-05: el productor solo ve y opera las suyas |
+| origen_id, destino_id | bigint | no | Ubicaciones distintas (CHECK) |
+| estado | varchar(20) | no | INICIADA, SOLICITADA, PREPARADA, DESPACHADA, RECIBIDA |
+| observacion | varchar(255) | si | |
+| creada_por | bigint | si | Usuario |
+
+### transferencia_item, transferencia_historial
+`transferencia_item` guarda producto, lote de origen, cantidad y, al recibir, el lote de destino. Un
+lote va una sola vez por transferencia. `transferencia_historial` registra cada cambio de estado con
+quien y cuando.
+
+### movimiento_inventario (cambios)
+- `transferencia_item_id`: la linea de transferencia del movimiento. Un CHECK exige linea y lote en
+  todo movimiento TRANSFERENCIA_ENTRADA o TRANSFERENCIA_SALIDA.
+- Indice unico `(transferencia_item_id, tipo)`: una linea sale una sola vez y entra una sola vez; un
+  segundo intento choca en la base en vez de descontar o sumar dos veces.
+- `tipo` pasa a varchar(30): TRANSFERENCIA_ENTRADA tiene 21 caracteres y no cabia.
+
+El administrador del punto ve lo que entra o sale de los puntos de `usuario_ubicacion`, salvo lo
+que el productor aun no compromete (INICIADA). Solo el destino registra la recepcion.
+
 ## Calificaciones y denuncias (CCPIP-81, CCPIP-82, CCPIP-83, CCPIP-84, CCPIP-116, CCPIP-323)
 
 Migraciones `V202610172500__calificacion.sql`, `V202610172501__denuncia.sql` y
@@ -815,49 +928,6 @@ Que ve cada rol (filtrado en el servidor, RNF-05 y RNF-41):
   Del denunciante solo sabe si recibio algun pedido de ese productor (`compraVerificada`). El
   superadministrador consulta en modo lectura.
 
-## Transferencias entre ubicaciones (CCPIP-73, 146, 164, 362, 277, 278)
-
-RNF-47: el productor lleva existencias de su almacen a un punto de acopio (CCPIP-73) o solicita
-moverlas entre puntos (CCPIP-277); el administrador del punto de destino las recibe y consulta su
-estado e historial (CCPIP-278). Migracion `V202610171700__transferencia.sql`.
-
-Las unidades no se duplican ni se pierden: saldo de los lotes de origen + unidades preparadas + en
-transito + lotes de destino se conserva. Solo `lote.cantidad_actual` cambia, siempre con su
-movimiento y su stock en la misma transaccion (RNF-15, ADR-10):
-
-| Paso | Estado | Lote | Movimiento |
-|---|---|---|---|
-| Iniciar (almacen a punto) | INICIADA | no cambia | ninguno |
-| Solicitar (entre puntos) | SOLICITADA | no cambia | ninguno; no avanza hasta que se defina quien aprueba (C8) |
-| Preparar (CCPIP-164) | PREPARADA | el de origen baja | TRANSFERENCIA_SALIDA por linea |
-| Despachar (CCPIP-362) | DESPACHADA | no cambia: ya se desconto | ninguno; en transito no se vende |
-| Recibir (CCPIP-278) | RECIBIDA | se crea uno en el destino, con el vencimiento del origen | TRANSFERENCIA_ENTRADA por linea |
-
-### transferencia
-| Columna | Tipo | Nulo | Nota |
-|---|---|---|---|
-| tipo | varchar(20) | no | ALMACEN_A_PUNTO o ENTRE_PUNTOS |
-| productor_id | bigint | no | RNF-05: el productor solo ve y opera las suyas |
-| origen_id, destino_id | bigint | no | Ubicaciones distintas (CHECK) |
-| estado | varchar(20) | no | INICIADA, SOLICITADA, PREPARADA, DESPACHADA, RECIBIDA |
-| observacion | varchar(255) | si | |
-| creada_por | bigint | si | Usuario |
-
-### transferencia_item, transferencia_historial
-`transferencia_item` guarda producto, lote de origen, cantidad y, al recibir, el lote de destino. Un
-lote va una sola vez por transferencia. `transferencia_historial` registra cada cambio de estado con
-quien y cuando.
-
-### movimiento_inventario (cambios)
-- `transferencia_item_id`: la linea de transferencia del movimiento. Un CHECK exige linea y lote en
-  todo movimiento TRANSFERENCIA_ENTRADA o TRANSFERENCIA_SALIDA.
-- Indice unico `(transferencia_item_id, tipo)`: una linea sale una sola vez y entra una sola vez; un
-  segundo intento choca en la base en vez de descontar o sumar dos veces.
-- `tipo` pasa a varchar(30): TRANSFERENCIA_ENTRADA tiene 21 caracteres y no cabia.
-
-El administrador del punto ve lo que entra o sale de los puntos de `usuario_ubicacion`, salvo lo
-que el productor aun no compromete (INICIADA). Solo el destino registra la recepcion.
-
 ## Fuera de este modelo
 
 Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehacer nada:
@@ -919,3 +989,61 @@ El criterio de aceptacion de CCPIP-19 dice que ninguna migracion se escribe ante
 este modelo este aprobado. Las migraciones ya estan escritas y probadas, asi que lo que
 falta es que el equipo lo revise. Si cambia algo, se corrige antes de que alguien mas
 corra V1 a V5, porque despues ya no se puede editar un archivo aplicado.
+
+## Administracion del catalogo maestro (CCPIP-96, 309, 310, 311, 351, 312, 313 y 314)
+
+Migracion `V202610172300`, sobre `producto_maestro` y `producto.producto_maestro_id` de CCPIP-42
+(`V202610171900`, seccion anterior). El catalogo maestro son las lineas y los productos de
+referencia de la Camara. **No es la oferta comercial**: una oferta es una fila de `producto` de un
+productor, con su propio nombre, precio, lineas y estado (CCPIP-172). Lo administra el
+superadministrador (`/api/admin/catalogo`, Figma: modulo "lineas" del superadministrador); los
+demas roles reciben 403.
+
+```mermaid
+erDiagram
+    linea_producto ||--o{ producto_maestro : agrupa
+    producto_maestro |o--o{ producto : referencia
+    usuario ||--o{ catalogo_maestro_auditoria : registra
+```
+
+Nada se borra (RNF-17, RNF-18): `linea_producto` y `producto_maestro` tienen un trigger que rechaza
+DELETE; se desactivan con `activo = false`, y otro trigger llena o limpia `desactivado_en` cada vez
+que cambia `activo`.
+
+### linea_producto (columnas nuevas)
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| creado_en, actualizado_en | timestamptz | no | |
+| desactivado_en | timestamptz | si | Desde cuando esta inactiva. `activo = (desactivado_en IS NULL)` |
+
+El `codigo` no cambia (trigger): es la clave de las traducciones (`traduccion.entidad = 'LINEA'`) y de
+las validaciones de imagen. El nombre es unico sin importar mayusculas ni tildes. El nombre en ingles
+lo escribe el superadministrador y se guarda como traduccion APROBADA; si cambia el nombre en espanol
+sin dar uno nuevo en ingles, la traduccion queda DESACTUALIZADA (CCPIP-373). R__01 ya no pisa lo que
+la Camara edito (`ON CONFLICT DO NOTHING`).
+
+Una linea inactiva sale de `/api/catalogos` (formularios del productor y del consumidor) y del
+tablero, y no recibe productos maestros nuevos. Las ofertas que ya la tienen la conservan, se siguen
+mostrando con ella y el productor puede guardarlas sin quitarla, pero no elegirla para otra oferta.
+
+### producto_maestro (columnas y reglas nuevas)
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| actualizado_en | timestamptz | no | |
+| desactivado_en | timestamptz | si | `activo = (desactivado_en IS NULL)` |
+
+El `codigo` (CCPIP-42) se valida (`^[A-Z0-9][A-Z0-9_-]{1,39}$`) y no cambia (trigger). El nombre es
+unico dentro de su linea sin importar mayusculas ni tildes. Un producto maestro nace en una linea
+activa; puede quedarse en su linea si esta se desactiva, pero no pasar a otra inactiva.
+
+No tiene precio, unidad, stock ni productor. Modificarlo solo escribe su fila (CCPIP-313): las
+ofertas que lo referencian conservan nombre, precio y lineas, y los pedidos su copia de precio
+(RNF-13). Desactivarlo (CCPIP-314) no desvincula ni pausa ninguna oferta; el publico deja de verlo en
+`GET /api/maestros/{id}` (404, regla de CCPIP-42) mientras sus ofertas siguen en el catalogo.
+Reactivarlo exige que su linea este activa.
+
+### catalogo_maestro_auditoria
+`entidad` (LINEA o PRODUCTO), `entidad_id`, `usuario_id`, `accion` (CREAR, EDITAR, DESACTIVAR,
+REACTIVAR), `cambios` (jsonb: la foto al crear, `{campo: {antes, despues}}` al editar, las ofertas y
+productos conservados al desactivar) y `registrado_en`. Solo insercion (triggers), igual que
+`producto_auditoria`.

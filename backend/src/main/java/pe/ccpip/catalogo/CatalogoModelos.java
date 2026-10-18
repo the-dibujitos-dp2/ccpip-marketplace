@@ -65,7 +65,7 @@ public final class CatalogoModelos {
                                   Codigo linea, List<Codigo> lineas, String modalidad, BigDecimal precio,
                                   BigDecimal precioMayorista, Integer cantidadMinimaMayorista, boolean disponible,
                                   boolean comprable, List<Imagen> imagenes, TiendaResumen tienda, HistoriaPublica historia, Cosecha cosecha,
-                                  List<ProductoResumen> relacionados, Map<String, CampoTraducido> traducciones) {
+                                  List<ProductoResumen> relacionados, Map<String, CampoTraducido> traducciones, ProductoMaestro maestro) {
     }
 
     /**
@@ -79,6 +79,21 @@ public final class CatalogoModelos {
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record CampoTraducido(String origen, boolean vigente, String original) {
+    }
+
+    /**
+     * CCPIP-42 (RF-18): una oferta visible de un producto del catalogo maestro. Cada una conserva su
+     * productor, historia, precio y disponibilidad propios.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record Oferta(long id, String nombre, String modalidad, BigDecimal precio, BigDecimal precioMayorista,
+                         String contenido, Codigo unidad, String imagen, boolean disponible, boolean comprable,
+                         TiendaResumen tienda, HistoriaPublica historia) {
+    }
+
+    /** CCPIP-42: el producto generico de la Camara con las ofertas de cada productor, lo disponible primero. */
+    public record ProductoMaestro(long id, String codigo, String nombre, String descripcion, Codigo linea,
+                                  List<Oferta> ofertas) {
     }
 
     public record TiendaTarjeta(long id, String nombre, String pueblo, String comunidad, String region, String localidad,

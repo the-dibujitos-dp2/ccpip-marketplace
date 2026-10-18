@@ -1,0 +1,42 @@
+{
+  "items": [
+    {
+      "id": 7,
+      "nombre": "Lucía Paredes",
+      "correo": "sub_admin@ccpip.test",
+      "rol": "SUB_ADMIN",
+      "rolNombre": "Sub administrador",
+      "estado": "ACTIVA",
+      "accesoPendiente": false,
+      "puntos": [],
+      "creadaEn": "2026-10-02T15:00:00Z"
+    },
+    {
+      "id": 21,
+      "nombre": "Rosa Huamán",
+      "correo": "rosa@ccpip.test",
+      "rol": "SUB_ADMIN",
+      "rolNombre": "Sub administrador",
+      "estado": "ACTIVA",
+      "accesoPendiente": true,
+      "puntos": [],
+      "creadaEn": "2026-10-17T14:30:00Z"
+    },
+    {
+      "id": 22,
+      "nombre": "Mario Tello",
+      "correo": "mario@ccpip.test",
+      "rol": "SUB_ADMIN",
+      "rolNombre": "Sub administrador",
+      "estado": "SUSPENDIDA",
+      "accesoPendiente": false,
+      "puntos": [],
+      "creadaEn": "2026-10-05T10:00:00Z"
+    }
+  ],
+  "pagina": 0,
+  "tamano": 20,
+  "total": 3,
+  "totalPaginas": 1,
+  "roles": ["CONSUMIDOR", "PRODUCTOR", "ADMIN_PUNTO", "SUB_ADMIN", "DISTRIBUIDOR"]
+}

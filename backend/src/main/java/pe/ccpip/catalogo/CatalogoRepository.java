@@ -22,8 +22,10 @@ import pe.ccpip.catalogo.CatalogoModelos.Cosecha;
 import pe.ccpip.catalogo.CatalogoModelos.Faceta;
 import pe.ccpip.catalogo.CatalogoModelos.HistoriaPublica;
 import pe.ccpip.catalogo.CatalogoModelos.Imagen;
+import pe.ccpip.catalogo.CatalogoModelos.Oferta;
 import pe.ccpip.catalogo.CatalogoModelos.PartesHistoria;
 import pe.ccpip.catalogo.CatalogoModelos.ProductoDetalle;
+import pe.ccpip.catalogo.CatalogoModelos.ProductoMaestro;
 import pe.ccpip.catalogo.CatalogoModelos.ProductoResumen;
 import pe.ccpip.catalogo.CatalogoModelos.TiendaResumen;
 import pe.ccpip.imagenes.ImagenService;
@@ -154,16 +156,43 @@ public class CatalogoRepository {
     public Optional<ProductoDetalle> detalle(long id) {
         MapSqlParameterSource p = new MapSqlParameterSource("id", id);
         return jdbc.query("""
-                SELECT %s, p.descripcion, p.cantidad_minima_mayorista, %s AS comprable
+                SELECT %s, p.descripcion, p.cantidad_minima_mayorista, p.producto_maestro_id, %s AS comprable
                 %s AND p.id = :id""".formatted(COLUMNAS, HABILITADA, VISIBLE), p,
                 (rs, row) -> {
                     ProductoResumen r = resumen(rs, row);
+                    Long maestro = (Long) rs.getObject("producto_maestro_id");
                     return new ProductoDetalle(r.id(), r.nombre(), rs.getString("descripcion"), r.contenido(), r.unidad(),
                             r.linea(), lineas(r.id()), r.modalidad(), r.precio(), r.precioMayorista(),
                             (Integer) rs.getObject("cantidad_minima_mayorista"), r.disponible(),
                             rs.getBoolean("comprable"), imagenes(r.id()),
-                            r.tienda(), historia(r.id()), cosecha(r.id()), relacionados(r), null);
+                            r.tienda(), historia(r.id()), cosecha(r.id()), relacionados(r), null,
+                            maestro == null ? null : maestro(maestro).orElse(null));
                 }).stream().findFirst();
+    }
+
+    /**
+     * CCPIP-42 (RF-18): el producto del catalogo maestro con la oferta visible de cada productor, cada
+     * una con su precio, historia y disponibilidad. Las agotadas o en venta pausada tambien se listan,
+     * marcadas, despues de las que hay en venta. Un maestro desactivado no existe para el publico.
+     */
+    public Optional<ProductoMaestro> maestro(long id) {
+        MapSqlParameterSource p = new MapSqlParameterSource("id", id);
+        List<Oferta> ofertas = jdbc.query("""
+                SELECT %s, %s AS comprable
+                %s AND p.producto_maestro_id = :id
+                ORDER BY %s > 0 DESC, coalesce(p.precio, p.precio_mayorista), p.id""".formatted(COLUMNAS, HABILITADA, VISIBLE, EN_VENTA),
+                p, (rs, row) -> {
+                    ProductoResumen r = resumen(rs, row);
+                    return new Oferta(r.id(), r.nombre(), r.modalidad(), r.precio(), r.precioMayorista(), r.contenido(),
+                            r.unidad(), r.imagen(), r.disponible(), rs.getBoolean("comprable"), r.tienda(), historia(r.id()));
+                });
+        return jdbc.query("""
+                SELECT m.id, m.codigo, m.nombre, m.descripcion, l.codigo AS l_codigo, l.nombre AS l_nombre
+                FROM producto_maestro m JOIN linea_producto l ON l.id = m.linea_id
+                WHERE m.id = :id AND m.activo""", p,
+                (rs, row) -> new ProductoMaestro(rs.getLong("id"), rs.getString("codigo"), rs.getString("nombre"),
+                        rs.getString("descripcion"), new Codigo(rs.getString("l_codigo"), rs.getString("l_nombre")), ofertas))
+                .stream().findFirst();
     }
 
     /** CCPIP-58: misma regla de visibilidad y saldo vendible que la ficha publica. */

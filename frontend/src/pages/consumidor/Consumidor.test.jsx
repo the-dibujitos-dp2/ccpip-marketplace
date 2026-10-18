@@ -229,6 +229,57 @@ describe('CW-03 Ficha del producto (CCPIP-53, 152)', () => {
     abrirEn('/productos/1')
     expect(await screen.findByText('No pudimos cargar el producto')).toBeInTheDocument()
   })
+
+  // CCPIP-42 (RF-18): el mismo producto del catalogo maestro ofrecido por otras comunidades
+  const tiendaRioEne = { id: 3, nombre: 'Coop. Río Ene', pueblo: 'Asháninka', comunidad: 'Comunidad Asháninka de Chanchamayo', region: 'Junin', localidad: 'Chanchamayo', origenVerificado: true }
+  const oferta = (id, extra) => ({ id, nombre: 'Cacao fino de aroma 1 kg', modalidad: 'MINORISTA', precio: 44, unidad: { codigo: 'KG', nombre: 'Kilogramo' }, disponible: true, comprable: true, tienda: tiendaRioEne, ...extra })
+  const conMaestro = (ofertas) => ({
+    ...copia(DATOS.detalle),
+    maestro: { id: 5, codigo: 'CACAO-GRANO', nombre: 'Cacao en grano fermentado', linea: { codigo: 'CACAO', nombre: 'Cacao y chocolates' }, ofertas },
+  })
+
+  it('lista los otros productores del mismo producto con su precio y disponibilidad (Figma "También lo ofrecen")', async () => {
+    const actual = copia(DATOS.detalle)
+    servidor({
+      ...sinSesion,
+      'GET /api/productos/1': [200, conMaestro([
+        { ...actual, imagen: null },
+        oferta(11),
+        oferta(12, { nombre: 'Cacao de Nauta 1 kg', precio: 39, disponible: false, tienda: { ...tiendaRioEne, id: 4, nombre: 'Kukama', pueblo: null } }),
+        oferta(13, { nombre: 'Cacao pausado 1 kg', comprable: false, tienda: { ...tiendaRioEne, id: 5, nombre: 'Asoc. Pausada', pueblo: 'Shipibo' } }),
+      ])],
+    })
+    abrirEn('/productos/1')
+
+    const seccion = await screen.findByRole('region', { name: 'Otros productores de cacao en grano fermentado' })
+    expect(within(seccion).getByText(/Cada oferta es de un productor distinto/)).toBeInTheDocument()
+    // La oferta que se esta viendo no se repite entre las demas
+    const filas = within(seccion).getAllByRole('listitem')
+    expect(filas).toHaveLength(3)
+    expect(within(seccion).queryByText(/C\.N\. Yarina/)).not.toBeInTheDocument()
+
+    const [rioEne, nauta, pausada] = filas
+    expect(within(rioEne).getByText('Coop. Río Ene · Asháninka')).toBeInTheDocument()
+    expect(within(rioEne).getByText(/S\/\s44\.00 · disponible/)).toBeInTheDocument()
+    expect(within(rioEne).getByRole('link', { name: 'Ver la oferta de Coop. Río Ene' })).toHaveAttribute('href', '/productos/11')
+
+    // Agotada: "Me interesa" lleva a la ficha de esa oferta, donde se registra el interes (CW-11)
+    expect(within(nauta).getByText('Kukama')).toBeInTheDocument()
+    expect(within(nauta).getByText(/S\/\s39\.00 · agotado/)).toBeInTheDocument()
+    expect(within(nauta).getByRole('link', { name: 'Me interesa la oferta de Kukama' })).toHaveAttribute('href', '/productos/12')
+
+    expect(within(pausada).getByText(/venta pausada/)).toBeInTheDocument()
+    expect(within(pausada).getByRole('link', { name: 'Ver la oferta de Asoc. Pausada' })).toBeInTheDocument()
+    // Nunca muestra cantidades de stock (CCPIP-53)
+    expect(within(seccion).queryByText(/und/)).not.toBeInTheDocument()
+  })
+
+  it('sin otras ofertas del maestro no muestra el recuadro', async () => {
+    servidor({ ...sinSesion, 'GET /api/productos/1': [200, conMaestro([{ ...copia(DATOS.detalle) }])] })
+    abrirEn('/productos/1')
+    expect(await screen.findByRole('heading', { level: 1, name: DATOS.detalle.nombre })).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: /Otros productores de/ })).not.toBeInTheDocument()
+  })
 })
 
 describe('CW-04 Tienda de la comunidad (CCPIP-56, 154)', () => {
