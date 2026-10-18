@@ -119,7 +119,7 @@ public class InventarioPuntoService {
                           AND m.tipo IN ('ENTRADA', 'TRANSFERENCIA_ENTRADA')) AS entradas,
                        (SELECT coalesce(sum(m.cantidad), 0) FROM movimiento_inventario m
                         WHERE m.lote_id = l.id AND m.ubicacion_id = l.ubicacion_id
-                          AND m.tipo IN ('SALIDA', 'SALIDA_VENTA', 'TRANSFERENCIA_SALIDA')) AS salidas
+                          AND m.tipo IN ('SALIDA', 'SALIDA_VENTA', 'TRANSFERENCIA_SALIDA', 'MERMA')) AS salidas
                 """.formatted(VENCIDO, POR_VENCER, PRODUCTOR) + donde + """
                 ORDER BY p.nombre, p.id, l.fecha_vencimiento NULLS LAST, l.codigo
                 LIMIT :limite OFFSET :desde""", p,
