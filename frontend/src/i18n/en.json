@@ -902,7 +902,8 @@
       "parametros": "Parameters",
       "autorizaciones": "Authorizations",
       "cuentas": "Accounts",
-      "denuncias": "Reports"
+      "denuncias": "Reports",
+      "catalogo": "Master catalog"
     },
     "tablero": {
       "titulo": "Operations dashboard",
@@ -1338,7 +1339,17 @@
     "LINEA_YA_CALIFICADA": "You already rated this product from your order.",
     "DENUNCIA_DUPLICADA": "You already have an open report about this.",
     "DENUNCIA_YA_RESPONDIDA": "You already replied to this report.",
-    "DENUNCIA_CERRADA": "The Chamber has already closed this report."
+    "DENUNCIA_CERRADA": "The Chamber has already closed this report.",
+    "CODIGO_DUPLICADO": "A record with that code already exists.",
+    "NOMBRE_DUPLICADO": "A line with that name already exists.",
+    "PRODUCTO_DUPLICADO": "A product with that name already exists in the line.",
+    "LINEA_INACTIVA": "The line is deactivated. Choose an active line.",
+    "LINEA_NO_ENCONTRADA": "The line does not exist.",
+    "LINEA_YA_INACTIVA": "The line is already deactivated.",
+    "LINEA_YA_ACTIVA": "The line is already active.",
+    "PRODUCTO_YA_INACTIVO": "The product is already deactivated.",
+    "PRODUCTO_YA_ACTIVO": "The product is already active.",
+    "PARAMETRO_INVALIDO": "One of the filters is not valid."
   },
   "buscar": {
     "comunidad": "Community",
@@ -2467,5 +2478,117 @@
     "errorCargar": "We could not load the minimum ratings.",
     "errorGuardar": "We could not save the change.",
     "guardar": "Save minimum"
+  },
+  "catalogoMaestro": {
+    "titulo": "Master catalog",
+    "intro": "The Chamber's reference lines and products. They are not the commercial offer: each producer publishes their offers with their own name, price and stock.",
+    "nota": "Nothing is deleted: deactivating keeps the offers, orders and history that reference it. Every change is audited.",
+    "pestanas": "Master catalog sections",
+    "vista": {
+      "lineas": "Lines",
+      "productos": "Products"
+    },
+    "estado": {
+      "TODOS": "All",
+      "ACTIVOS": "Active",
+      "INACTIVOS": "Inactive"
+    },
+    "activo": "Active",
+    "inactivo": "Inactive",
+    "inactiva": "inactive",
+    "filtro": {
+      "buscar": "Search by name",
+      "estado": "Status",
+      "linea": "Line",
+      "todas": "All lines",
+      "aplicar": "Search"
+    },
+    "contadores": "{{activos}} active · {{inactivos}} inactive",
+    "col": {
+      "estado": "Status",
+      "acciones": "Actions"
+    },
+    "editar": "Edit",
+    "desactivar": "Deactivate",
+    "reactivar": "Reactivate",
+    "editarDe": "Edit {{nombre}}",
+    "desactivarDe": "Deactivate {{nombre}}",
+    "reactivarDe": "Reactivate {{nombre}}",
+    "guardar": "Save changes",
+    "crear": "Create",
+    "errorCargar": "We couldn't load the master catalog",
+    "errorEstado": "We couldn't change the status",
+    "lineas": {
+      "nueva": "New line",
+      "vacio": "No lines match these filters",
+      "col": {
+        "linea": "Line",
+        "vencimiento": "Expiry",
+        "unidad": "Suggested unit",
+        "productos": "Products",
+        "ofertas": "Offers"
+      },
+      "vence": "Expires",
+      "noVence": "Does not expire",
+      "form": {
+        "tituloNueva": "New line",
+        "tituloEditar": "Edit line",
+        "codigo": "Code",
+        "codigoAyuda": "Letters, numbers or underscore. It can't be changed later.",
+        "nombre": "Name",
+        "nombreEn": "English name (optional)",
+        "nombreEnAyuda": "If you change the name and don't translate it, the Spanish name is shown in English.",
+        "unidad": "Suggested unit",
+        "sinUnidad": "No suggested unit",
+        "orden": "Catalog order",
+        "ordenAyuda": "Empty: goes last.",
+        "vencimiento": "Its batches have an expiry date"
+      },
+      "creada": "Line {{nombre}} created.",
+      "guardada": "Changes saved to {{nombre}}.",
+      "desactivarTitulo": "Deactivate the line {{nombre}}?",
+      "desactivarTexto": "It will no longer be offered for new offers and products. Its {{productos}} master products and {{ofertas}} offers are kept, with their orders and history.",
+      "reactivarTitulo": "Reactivate the line {{nombre}}?",
+      "reactivarTexto": "It will be offered again to producers and in the catalog.",
+      "desactivada": "Line {{nombre}} deactivated. Its {{ofertas}} offers are kept.",
+      "reactivada": "Line {{nombre}} reactivated."
+    },
+    "productos": {
+      "nuevo": "New product",
+      "vacio": "No products match these filters",
+      "col": {
+        "producto": "Product",
+        "linea": "Line",
+        "ofertas": "Offers"
+      },
+      "ofertas": "{{total}} · {{publicadas}} published",
+      "lineaInactiva": "Inactive line",
+      "form": {
+        "tituloNuevo": "New product",
+        "tituloEditar": "Edit product",
+        "codigo": "Code",
+        "codigoAyuda": "Letters, numbers, hyphen or underscore. It can't be changed later.",
+        "nombre": "Generic name",
+        "descripcion": "Description (optional)",
+        "linea": "Line",
+        "historico": "Changes don't modify its {{total}} offers or existing orders."
+      },
+      "creado": "Product {{nombre}} created.",
+      "guardado": "Changes saved to {{nombre}}.",
+      "desactivarTitulo": "Deactivate the product {{nombre}}?",
+      "desactivarTexto": "It will no longer be offered as a reference. Its {{ofertas}} offers ({{publicadas}} published) stay the same, with their orders and history.",
+      "reactivarTitulo": "Reactivate the product {{nombre}}?",
+      "reactivarTexto": "It will be offered as a reference again.",
+      "desactivado": "Product {{nombre}} deactivated. Its {{ofertas}} offers are kept.",
+      "reactivado": "Product {{nombre}} reactivated."
+    },
+    "validacion": {
+      "codigo": "Use 2 to 40 letters, numbers or underscores, no spaces.",
+      "codigoProducto": "Use 2 to 40 letters, numbers, hyphens or underscores, no spaces.",
+      "nombre": "Enter the name.",
+      "orden": "Use a number from 0 to 999.",
+      "linea": "Choose the line.",
+      "revisar": "Check this field."
+    }
   }
 }

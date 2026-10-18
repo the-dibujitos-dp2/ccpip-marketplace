@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import iconoAviso from '../../assets/icons/alerta-aviso.svg'
 import iconoBillete from '../../assets/icons/billete.svg'
+import iconoEtiqueta from '../../assets/icons/etiqueta.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import iconoPorcentaje from '../../assets/icons/porcentaje.svg'
 import iconoReloj from '../../assets/icons/reloj.svg'
@@ -11,7 +12,8 @@ import { useSesion } from '../../sesion.js'
 import LayoutPanel from './LayoutPanel.jsx'
 
 /**
- * Solo los modulos que ya existen. Lineas, reportes y auditoria (SA-05 a SA-10) llegan con sus historias. `roles`: quienes ven cada modulo.
+ * Solo los modulos que ya existen. Reportes y auditoria (SA-05 a SA-10) llegan con sus historias.
+ * El catalogo maestro (lineas y productos) es del superadministrador. `roles`: quienes ven cada modulo.
  */
 const NAV = [
   { to: RUTAS.admin, clave: 'tablero', icono: iconoTablero, roles: ['SUPER_ADMIN'] },
@@ -20,6 +22,7 @@ const NAV = [
   { to: RUTAS.adminComision, clave: 'comision', icono: iconoPorcentaje, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminComisiones, clave: 'comisiones', icono: iconoBillete, roles: ['SUPER_ADMIN', 'SUB_ADMIN'] },
   { to: RUTAS.adminParametros, clave: 'parametros', icono: iconoReloj, roles: ['SUPER_ADMIN'] },
+  { to: RUTAS.adminCatalogo, clave: 'catalogo', icono: iconoEtiqueta, roles: ['SUPER_ADMIN'] },
   // SA-03, SA-04 (CCPIP-95, 124, 125, 301 a 308): lo que cada rol ve lo decide el servidor
   { to: RUTAS.adminCuentas, clave: 'cuentas', icono: iconoUsuario, roles: ['SUPER_ADMIN', 'SUB_ADMIN'], prefijo: true },
 ]
