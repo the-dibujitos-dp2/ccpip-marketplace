@@ -4,7 +4,37 @@ import { describe, expect, it, vi } from 'vitest'
 import App from '../../App.jsx'
 import ilustracionAceites from '../../assets/lineas/aceites.svg'
 import ilustracionCacao from '../../assets/lineas/cacao.svg'
-import { copia, DATOS, llamadas, PUBLICAS, servidor, SESION, SESION_PRODUCTOR, SIN_SESION } from '../../test/servidor.js'
+import { copia, DATOS, llamadas, PUBLICAS, servidor as servidorBase, SESION, SESION_PRODUCTOR, SIN_SESION } from '../../test/servidor.js'
+
+/**
+ * CCPIP-63: como el servidor, un grupo por productor en el orden de su primera oferta, con el subtotal de
+ * lo comprable. Las pruebas que arman el carrito cambiando `items` lo reagrupan con esto.
+ */
+function agrupado(carrito) {
+  const grupos = []
+  for (const item of carrito.items) {
+    let grupo = grupos.find((g) => g.tienda.id === item.tienda.id)
+    if (!grupo) {
+      grupo = { tienda: item.tienda, items: [], subtotal: 0 }
+      grupos.push(grupo)
+    }
+    grupo.items.push(item)
+    if (item.estado === 'DISPONIBLE') grupo.subtotal += Number(item.subtotal)
+  }
+  return { ...carrito, grupos }
+}
+
+/** Reagrupa cada carrito que responde /api/carrito; el resto de rutas pasa igual. */
+function conGrupos(respuesta) {
+  if (typeof respuesta === 'function') return async (...args) => conGrupos(await respuesta(...args))
+  if (!Array.isArray(respuesta) || respuesta[0] !== 200 || !respuesta[1]?.items) return respuesta
+  return [200, agrupado(respuesta[1])]
+}
+
+function servidor(rutas) {
+  return servidorBase(Object.fromEntries(Object.entries(rutas).map(([clave, respuesta]) =>
+    [clave, clave.includes(' /api/carrito') ? conGrupos(respuesta) : respuesta])))
+}
 
 function abrirEn(ruta) {
   window.history.replaceState(null, '', ruta)
@@ -28,11 +58,10 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
     const filas = within(screen.getByRole('region', { name: 'Productos en tu carrito' })).getAllByRole('listitem')
     expect(filas).toHaveLength(2)
     expect(within(filas[0]).getByRole('link', { name: 'Aceite de aguaje 250 ml' })).toHaveAttribute('href', '/productos/8')
-    expect(within(filas[0]).getByText('mililitro · cosecha de setiembre 2026 · de Asoc. Nii Joi')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('mililitro · cosecha de setiembre 2026')).toBeInTheDocument()
     expect(within(filas[0]).getByText('S/ 52.00 c/u')).toBeInTheDocument()
     expect(within(filas[0]).getByLabelText('Cantidad de Aceite de aguaje 250 ml')).toHaveValue('14')
     expect(within(filas[0]).getByText('S/ 728.00')).toBeInTheDocument()
-    expect(within(filas[1]).getByText('de C.N. Yarina', { exact: false })).toBeInTheDocument()
     // Sin foto del productor, cada oferta muestra la ilustracion de su linea (Figma CW-05)
     expect(filas[0].querySelector('img')).toHaveAttribute('src', ilustracionAceites)
     expect(filas[1].querySelector('img')).toHaveAttribute('src', ilustracionCacao)
@@ -51,7 +80,8 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
     carrito.items[0] = { ...carrito.items[0], cosecha: null }
     servidor(conSesion(carrito))
     abrirEn('/carrito')
-    expect(await screen.findByText('mililitro · de Asoc. Nii Joi')).toBeInTheDocument()
+    const fila = (await screen.findByRole('link', { name: 'Aceite de aguaje 250 ml' })).closest('li')
+    expect(within(fila).getByText('mililitro')).toBeInTheDocument()
   })
 
   it('lo que ya no se puede comprar se marca, avisa y no cuenta en el resumen', async () => {
@@ -188,7 +218,7 @@ describe('CCPIP-268 Modificar la cantidad en el carrito', () => {
     await user.type(cantidad, '40')
     expect(await screen.findByRole('alert')).toHaveTextContent('Solo quedan 15 unidades disponibles.')
     expect(cantidad).toHaveValue('14')
-    expect(screen.getByText('S/ 728.00')).toBeInTheDocument()
+    expect(within(cantidad.closest('li')).getByText('S/ 728.00')).toBeInTheDocument()
 
     // La cantidad ya es la correcta: el motivo se va solo
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument(), { timeout: 8000 })
@@ -495,5 +525,128 @@ describe('Boton "Carrito" de la cabecera (CCPIP-155)', () => {
     await user.click(screen.getByRole('button', { name: 'Agregar una unidad' }))
     await user.click(screen.getByRole('button', { name: 'Agregar al carrito' }))
     expect(await screen.findByRole('link', { name: 'Carrito · 18' })).toBeInTheDocument()
+  })
+})
+
+describe('CW-05 Carrito agrupado por comunidad (CCPIP-63)', () => {
+  /** Dos ofertas de Asoc. Nii Joi y una de C.N. Yarina, con los subtotales que calculo el servidor. */
+  function dosProductores() {
+    const c = copia(DATOS.carrito)
+    const [aceite, cacao] = c.items
+    const camu = { ...aceite, productoId: 9, nombre: 'Camu camu en polvo', cantidad: 1, precio: 24.5, subtotal: 24.5 }
+    c.items = [aceite, cacao, camu]
+    c.grupos = [
+      { tienda: aceite.tienda, items: [aceite, camu], subtotal: 752.5 },
+      { tienda: cacao.tienda, items: [cacao], subtotal: 84 },
+    ]
+    c.unidades = 17
+    c.total = 836.5
+    return c
+  }
+
+  it('muestra cada comunidad con su cabecera, sus ofertas y su subtotal; el total es la suma', async () => {
+    servidorBase({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION], 'GET /api/carrito': [200, dosProductores()] })
+    abrirEn('/carrito')
+    const nii = await screen.findByRole('region', { name: 'Asoc. Nii Joi · Shipibo-Konibo · Ucayali' })
+    const yarina = screen.getByRole('region', { name: 'C.N. Yarina · Awajún · Amazonas' })
+
+    // Las ofertas de cada productor van en su grupo, en el orden del servidor
+    expect(within(nii).getAllByRole('link').map((a) => a.textContent)).toEqual(['Aceite de aguaje 250 ml', 'Camu camu en polvo'])
+    expect(within(yarina).getAllByRole('link').map((a) => a.textContent)).toEqual(['Cacao en grano fermentado 1 kg'])
+    expect(within(nii).getByText('Origen verificado')).toBeInTheDocument()
+    expect(within(nii).getByText('Subtotal de la comunidad').nextSibling).toHaveTextContent('S/ 752.50')
+    expect(within(yarina).getByText('Subtotal de la comunidad').nextSibling).toHaveTextContent('S/ 84.00')
+
+    const resumen = screen.getByRole('complementary', { name: 'Resumen del pedido' })
+    expect(within(resumen).getAllByText('S/ 836.50')).toHaveLength(2)
+  })
+
+  it('un productor sin origen verificado no lleva el sello', async () => {
+    const c = dosProductores()
+    c.grupos[1].tienda = { ...c.grupos[1].tienda, origenVerificado: false }
+    servidorBase({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION], 'GET /api/carrito': [200, c] })
+    abrirEn('/carrito')
+    const yarina = await screen.findByRole('region', { name: 'C.N. Yarina · Awajún · Amazonas' })
+    expect(within(yarina).queryByText('Origen verificado')).not.toBeInTheDocument()
+  })
+
+  it('lo que no se puede comprar queda en su grupo y no suma al subtotal', async () => {
+    const c = dosProductores()
+    const agotado = { ...c.items[1], estado: 'AGOTADO', subtotal: null }
+    c.items[1] = agotado
+    c.grupos[1] = { ...c.grupos[1], items: [agotado], subtotal: 0 }
+    c.total = 752.5
+    servidorBase({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION], 'GET /api/carrito': [200, c] })
+    abrirEn('/carrito')
+    const yarina = await screen.findByRole('region', { name: 'C.N. Yarina · Awajún · Amazonas' })
+    expect(within(yarina).getByText('Agotado por ahora')).toBeInTheDocument()
+    expect(within(yarina).getByText('Subtotal de la comunidad').nextSibling).toHaveTextContent('S/ 0.00')
+    const resumen = screen.getByRole('complementary', { name: 'Resumen del pedido' })
+    expect(within(resumen).getAllByText('S/ 752.50')).toHaveLength(2)
+  })
+
+  it('al cambiar una cantidad se actualiza el subtotal de su grupo', async () => {
+    servidor({
+      ...conSesion(),
+      'PUT /api/carrito/items/1': (o) => {
+        const c = copia(DATOS.carrito)
+        const cantidad = JSON.parse(o.body).cantidad
+        c.items[1] = { ...c.items[1], cantidad, subtotal: 42 * cantidad }
+        c.total = 728 + 42 * cantidad
+        return [200, c]
+      },
+    })
+    abrirEn('/carrito')
+    const cantidad = await screen.findByLabelText('Cantidad de Cacao en grano fermentado 1 kg')
+    fireEvent.change(cantidad, { target: { value: '3' } })
+    const yarina = screen.getByRole('region', { name: 'C.N. Yarina · Awajún · Amazonas' })
+    await waitFor(() => expect(within(yarina).getByText('Subtotal de la comunidad').nextSibling).toHaveTextContent('S/ 126.00'))
+  })
+})
+
+describe('CW-05 Vigencia del carrito (CCPIP-142)', () => {
+  it('dice hasta cuando se guarda el carrito y que no reserva stock', async () => {
+    servidor(conSesion())
+    abrirEn('/carrito')
+    const resumen = await screen.findByRole('complementary', { name: 'Resumen del pedido' })
+    expect(within(resumen).getByText('Tu carrito no reserva stock')).toBeInTheDocument()
+    // 19:30 UTC son las 14:30 en Lima
+    expect(within(resumen).getByText('Guardamos tu carrito hasta el 17 de octubre, 14:30. Cada cambio que hagas renueva el plazo.'))
+      .toBeInTheDocument()
+  })
+
+  it('cada cambio muestra el nuevo plazo que devuelve el servidor', async () => {
+    servidor({
+      ...conSesion(),
+      'PUT /api/carrito/items/1': () => {
+        const c = copia(DATOS.carrito)
+        c.items[1] = { ...c.items[1], cantidad: 3, subtotal: 126 }
+        c.total = 854
+        c.vigenteHasta = '2026-10-17T21:05:00Z'
+        return [200, c]
+      },
+    })
+    abrirEn('/carrito')
+    fireEvent.change(await screen.findByLabelText('Cantidad de Cacao en grano fermentado 1 kg'), { target: { value: '3' } })
+    expect(await screen.findByText(/Guardamos tu carrito hasta el 17 de octubre, 16:05/)).toBeInTheDocument()
+  })
+
+  it('si vencio, avisa que se vacio y por que, e invita a volver a agregar', async () => {
+    servidor(conSesion({
+      items: [], unidades: 0, comunidades: 0, total: 0, vigenteHasta: null, vigenciaHoras: 2, vencidoEn: '2026-10-17T15:00:00Z',
+    }))
+    abrirEn('/carrito')
+    const aviso = (await screen.findByText('Tu carrito anterior venció')).closest('[role="status"]')
+    expect(aviso).toHaveTextContent('Lo guardamos 2 horas desde tu último cambio y lo vaciamos el 17 de octubre, 10:00.')
+    expect(aviso).toHaveTextContent('No tenía stock reservado')
+    expect(screen.getByText('Tu carrito está vacío')).toBeInTheDocument()
+    expect(screen.queryByText(/Guardamos tu carrito hasta/)).not.toBeInTheDocument()
+  })
+
+  it('un carrito vacio que no vencio no muestra el aviso', async () => {
+    servidor(conSesion({ items: [], unidades: 0, comunidades: 0, total: 0, vigenteHasta: null, vigenciaHoras: 2, vencidoEn: null }))
+    abrirEn('/carrito')
+    expect(await screen.findByText('Tu carrito está vacío')).toBeInTheDocument()
+    expect(screen.queryByText('Tu carrito anterior venció')).not.toBeInTheDocument()
   })
 })

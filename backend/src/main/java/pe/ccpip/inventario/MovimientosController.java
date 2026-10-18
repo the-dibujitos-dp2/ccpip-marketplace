@@ -2,13 +2,18 @@ package pe.ccpip.inventario;
 
 import java.util.Locale;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import pe.ccpip.auth.access.RolesPermitidos;
@@ -16,12 +21,14 @@ import pe.ccpip.auth.filter.SessionAuthFilter;
 import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.inventario.InventarioModelos.DatosMovimiento;
 import pe.ccpip.inventario.InventarioModelos.Grupo;
+import pe.ccpip.inventario.InventarioModelos.MovimientoRegistrado;
 import pe.ccpip.inventario.InventarioModelos.Movimientos;
 
 /**
- * Movimientos del punto de acopio (Figma A-03). Solo el administrador de punto: el super
- * administrador no ve el stock de los acopios (Figma SA-08).
+ * Movimientos del punto de acopio (Figma A-03): consulta y registro de entradas y salidas. Solo
+ * el administrador de punto: el super administrador no ve el stock de los acopios (Figma SA-08).
  */
 @RolesPermitidos(Rol.ADMIN_PUNTO)
 @Validated
@@ -30,9 +37,11 @@ import pe.ccpip.inventario.InventarioModelos.Movimientos;
 public class MovimientosController {
 
     private final MovimientosService movimientos;
+    private final MovimientoManualService manuales;
 
-    public MovimientosController(MovimientosService movimientos) {
+    public MovimientosController(MovimientosService movimientos, MovimientoManualService manuales) {
         this.movimientos = movimientos;
+        this.manuales = manuales;
     }
 
     /**
@@ -53,5 +62,16 @@ public class MovimientosController {
             }
         }
         return movimientos.listar(s.userId(), grupo, pedido, pagina);
+    }
+
+    /**
+     * CCPIP-121 (RF-59) y CCPIP-287 (RF-208): registra una entrada o salida en un lote de su punto.
+     * 201 con el movimiento nuevo; 200 si la misma clave ya se habia registrado (no mueve nada).
+     */
+    @PostMapping
+    public ResponseEntity<MovimientoRegistrado> registrar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                                          @Valid @RequestBody DatosMovimiento datos) {
+        MovimientoRegistrado r = manuales.registrarEnPunto(s.userId(), datos);
+        return ResponseEntity.status(r.repetido() ? HttpStatus.OK : HttpStatus.CREATED).body(r);
     }
 }
