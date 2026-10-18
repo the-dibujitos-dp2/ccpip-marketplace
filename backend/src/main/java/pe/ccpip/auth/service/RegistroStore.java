@@ -39,11 +39,13 @@ public class RegistroStore {
      * Crea la cuenta de consumidor sin confirmar. Si el correo ya existe, la base lo rechaza con
      * {@link org.springframework.dao.DuplicateKeyException} (indice usuario_correo_lower_idx).
      */
-    public long crearConsumidor(String correo, String contrasenaHash, String nombre, String telefono) {
+    public long crearConsumidor(String correo, String contrasenaHash, String nombres, String apellidos, String telefono) {
+        // CCPIP-113: nombres y apellidos por separado para Mis datos; "nombre" es el completo
         return jdbc.queryForObject("""
-                INSERT INTO usuario (correo, contrasena_hash, nombre, telefono, rol_id, correo_confirmado)
-                SELECT ?, ?, ?, ?, id, false FROM rol WHERE codigo = 'CONSUMIDOR'
-                RETURNING id""", Long.class, correo, contrasenaHash, nombre, telefono);
+                INSERT INTO usuario (correo, contrasena_hash, nombre, nombres, apellidos, telefono, rol_id, correo_confirmado)
+                SELECT ?, ?, ?, ?, ?, ?, id, false FROM rol WHERE codigo = 'CONSUMIDOR'
+                RETURNING id""", Long.class, correo, contrasenaHash, (nombres + " " + apellidos).trim(), nombres, apellidos,
+                telefono);
     }
 
     public Optional<Cuenta> cuentaPorCorreo(String correo) {

@@ -69,11 +69,13 @@ public class RegistroService {
             throw ErrorNegocio.invalido("CONTRASENA_MUY_LARGA", "La contraseña es demasiado larga.");
         }
         String correo = datos.correo().trim().toLowerCase(Locale.ROOT);
-        String nombre = (espacios(datos.nombres()) + " " + espacios(datos.apellidos())).trim();
+        String nombres = espacios(datos.nombres());
+        String apellidos = espacios(datos.apellidos());
+        String nombre = (nombres + " " + apellidos).trim();
         String telefono = datos.telefono() == null || datos.telefono().isBlank() ? null : espacios(datos.telefono());
         long id;
         try {
-            id = store.crearConsumidor(correo, passwordEncoder.encode(datos.contrasena()), nombre, telefono);
+            id = store.crearConsumidor(correo, passwordEncoder.encode(datos.contrasena()), nombres, apellidos, telefono);
         } catch (DuplicateKeyException e) {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "CORREO_YA_REGISTRADO",
                     "Ya existe una cuenta con ese correo. Inicia sesión o pide un nuevo enlace de verificación.");
