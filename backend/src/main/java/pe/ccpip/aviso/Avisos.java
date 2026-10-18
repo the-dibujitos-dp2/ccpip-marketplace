@@ -20,7 +20,8 @@ public class Avisos {
     private static final Logger LOG = LoggerFactory.getLogger(Avisos.class);
     private static final int MAX_ERROR = 300;
 
-    public enum Tipo { PEDIDO_LISTO, INTERES_VENDIBLE }
+    /** DECISION_AUTORIZACION y DECISION_PRODUCTOR: decisiones del subadministrador sobre la venta del productor. */
+    public enum Tipo { PEDIDO_LISTO, INTERES_VENDIBLE, DECISION_AUTORIZACION, DECISION_PRODUCTOR }
 
     private final NamedParameterJdbcTemplate jdbc;
     private final EnvioCorreo envio;

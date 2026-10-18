@@ -62,7 +62,7 @@ public class EvidenciasService {
         List<Evidencia> evidencias = autorizacion
                 .map(a -> vigentes(a.id(), EvidenciasService::urlProductor))
                 .orElse(List.of());
-        Autorizacion vista = autorizacion.orElse(new Autorizacion(null, Estado.SIN_SOLICITUD, null, null, null, null));
+        Autorizacion vista = autorizacion.orElse(new Autorizacion(null, Estado.SIN_SOLICITUD, null, null, null, null, true));
         return new EvidenciasProducto(productoId, nombre, vista, evidencias,
                 admiteCambios(vista) && evidencias.size() < MAX_EVIDENCIAS, MAX_EVIDENCIAS);
     }
@@ -171,9 +171,19 @@ public class EvidenciasService {
         return jdbc.query(SELECT + " WHERE " + condicion, (rs, row) -> mapear(rs, url), parametro).stream().findFirst();
     }
 
+    /**
+     * Una aprobacion vencida, o que ya no cubre las lineas del producto (CCPIP-292), admite evidencias
+     * nuevas para volver a revision.
+     */
     static boolean admiteCambios(Autorizacion a) {
-        return a.estado() != Estado.APROBADA || a.vigenteHasta() != null && a.vigenteHasta().isBefore(hoyLima());
+        return a.estado() != Estado.APROBADA || !a.cubreLineas()
+                || a.vigenteHasta() != null && a.vigenteHasta().isBefore(hoyLima());
     }
+
+    /** CCPIP-292: verdadero si la autorizacion a cubre todas las lineas actuales de su producto. */
+    static final String CUBRE_LINEAS = """
+            (a.lineas IS NULL OR NOT EXISTS (SELECT 1 FROM producto_linea pl
+                                             WHERE pl.producto_id = a.producto_id AND pl.linea_id <> ALL (a.lineas)))""";
 
     private static final String SELECT = """
             SELECT e.id, e.producto_id, e.tipo, e.titulo, e.emisor, e.vigente_desde, e.vigente_hasta,
@@ -211,11 +221,12 @@ public class EvidenciasService {
 
     private Optional<Autorizacion> autorizacion(long productorId, long productoId) {
         return jdbc.query("""
-                        SELECT id, estado, motivo, solicitada_en, decidido_en, vigente_hasta
-                        FROM autorizacion_producto WHERE productor_id = ? AND producto_id = ?""",
+                        SELECT a.id, a.estado, a.motivo, a.solicitada_en, a.decidido_en, a.vigente_hasta,
+                               %s AS cubre_lineas
+                        FROM autorizacion_producto a WHERE a.productor_id = ? AND a.producto_id = ?""".formatted(CUBRE_LINEAS),
                 (rs, row) -> new Autorizacion(rs.getLong("id"), Estado.valueOf(rs.getString("estado")),
                         rs.getString("motivo"), instante(rs, "solicitada_en"), instante(rs, "decidido_en"),
-                        rs.getObject("vigente_hasta", LocalDate.class)),
+                        rs.getObject("vigente_hasta", LocalDate.class), rs.getBoolean("cubre_lineas")),
                 productorId, productoId).stream().findFirst();
     }
 
