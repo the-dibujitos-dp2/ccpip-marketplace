@@ -35,6 +35,16 @@ test.describe('capturas para comparar con el Figma', () => {
     await page.getByRole('menuitem', { name: 'Registrar lote' }).click()
     await page.getByRole('heading', { name: 'Lotes de este producto' }).waitFor()
     await capturar(page, 'PW-06-lote')
+    await page.goto('/productor/alertas')
+    await page.getByRole('form', { name: 'Configurar alertas' }).waitFor()
+    await capturar(page, 'PW-21-alertas')
+  })
+
+  test('punto de acopio', async ({ page }) => {
+    await ingresar(page, 'admin_acopio@ccpip.test')
+    await page.goto('/acopio/alertas')
+    await page.getByRole('form', { name: 'Configurar alertas' }).waitFor()
+    await capturar(page, 'A-08-alertas')
   })
 
   test('cuenta del consumidor', async ({ page }) => {

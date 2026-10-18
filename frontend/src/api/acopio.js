@@ -24,7 +24,8 @@ export const registrarRecojo = (numero, datos) =>
 
 /**
  * CCPIP-162 (A-02): los lotes de sus puntos por producto, productor y estado. `estado`: ACTIVOS (por
- * defecto), AGOTADOS o TODOS; `productor`, un id; `q`, producto o codigo de lote.
+ * defecto), POR_VENCER (CCPIP-145, segun la anticipacion del punto), AGOTADOS o TODOS; `productor`, un
+ * id; `q`, producto o codigo de lote.
  */
 export function consultarInventario({ q, productor, estado, pagina = 0 } = {}) {
   const p = new URLSearchParams({ pagina: String(pagina) })

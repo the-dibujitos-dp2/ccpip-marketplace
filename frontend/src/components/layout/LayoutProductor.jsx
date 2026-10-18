@@ -3,6 +3,7 @@ import iconoAviso from '../../assets/icons/alerta-aviso.svg'
 import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoBillete from '../../assets/icons/billete.svg'
 import iconoCaja from '../../assets/icons/caja.svg'
+import iconoCampana from '../../assets/icons/campana.svg'
 import iconoEtiqueta from '../../assets/icons/etiqueta.svg'
 import iconoMovimientos from '../../assets/icons/movimientos.svg'
 import iconoPaquete from '../../assets/icons/paquete.svg'
@@ -23,6 +24,8 @@ const NAV = [
   { to: RUTAS.productorPedidos, clave: 'pedidos', icono: iconoPaquete, activo: (p) => p.startsWith(RUTAS.productorPedidos) },
   { to: RUTAS.productorDenuncias, clave: 'denuncias', icono: iconoAviso, activo: (p) => p.startsWith(RUTAS.productorDenuncias) },
   { to: RUTAS.productorCuenta, clave: 'cuenta', icono: iconoBillete, activo: (p) => p.startsWith(RUTAS.productorCuenta) },
+  // PW-21: alertas y su configuracion
+  { to: RUTAS.productorAlertas, clave: 'alertas', icono: iconoCampana, activo: (p) => p.startsWith(RUTAS.productorAlertas) },
 ]
 
 /** Estructura web del productor (PW): su menu y un buscador de sus productos en la barra superior. */

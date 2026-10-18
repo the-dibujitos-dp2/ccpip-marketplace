@@ -26,6 +26,7 @@ import InventarioPage from './pages/acopio/InventarioPage.jsx'
 import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
 import PedidosPage from './pages/acopio/PedidosPage.jsx'
 import TransferenciasPuntoPage from './pages/acopio/TransferenciasPage.jsx'
+import AlertasPuntoPage from './pages/acopio/AlertasPage.jsx'
 import BuscarPage from './pages/consumidor/BuscarPage.jsx'
 import CarritoPage from './pages/consumidor/CarritoPage.jsx'
 import CompraPage from './pages/consumidor/CompraPage.jsx'
@@ -51,6 +52,7 @@ import NuevaTransferenciaPage from './pages/productor/NuevaTransferenciaPage.jsx
 import ProductosPage from './pages/productor/ProductosPage.jsx'
 import TiendaEditorPage from './pages/productor/TiendaEditorPage.jsx'
 import TransferenciasPage from './pages/productor/TransferenciasPage.jsx'
+import AlertasProductorPage from './pages/productor/AlertasPage.jsx'
 import { navigate, RUTAS, rutaInterna, useLocation } from './router.js'
 import { SesionContexto } from './sesion.js'
 
@@ -283,6 +285,7 @@ export default function App() {
     else if (path === RUTAS.productorPedidos) pagina = <PedidosProductorPage path={path} />
     else if (path === RUTAS.productorDenuncias) pagina = <DenunciasProductorPage path={path} />
     else if (path === RUTAS.productorTransferencias) pagina = <TransferenciasPage key={search} path={path} search={search} />
+    else if (path === RUTAS.productorAlertas) pagina = <AlertasProductorPage path={path} />
     else if (path === RUTAS.productorTransferenciaNueva) pagina = <NuevaTransferenciaPage />
     else if (RUTA_EVIDENCIAS.test(path)) pagina = <EvidenciasPage path={RUTAS.productorProductos} productoId={path.match(RUTA_EVIDENCIAS)[1]} />
     else if (editor) {
@@ -305,6 +308,7 @@ export default function App() {
     else if (path === RUTAS.acopioMovimientos) pagina = <MovimientosPage path={path} />
     else if (path === RUTAS.acopioInventario) pagina = <InventarioPage path={path} />
     else if (path === RUTAS.acopioTransferencias) pagina = <TransferenciasPuntoPage path={path} />
+    else if (path === RUTAS.acopioAlertas) pagina = <AlertasPuntoPage path={path} />
     else {
       navigate(RUTAS.acopioPedidos, { replace: true })
       pagina = null
