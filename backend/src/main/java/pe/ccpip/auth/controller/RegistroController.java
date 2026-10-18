@@ -33,7 +33,7 @@ public class RegistroController {
 
     /**
      * Formulario de CW-08. Sin genero ni fecha de nacimiento (RF-01). Nombres y apellidos se guardan
-     * juntos en usuario.nombre. Los terminos se simulan mientras no exista el texto aprobado.
+     * por separado y juntos en usuario.nombre (CCPIP-113). Los terminos se simulan mientras no exista el texto aprobado.
      */
     public record RegistroRequest(
             @NotBlank(message = "Escribe tus nombres") @Size(max = 80, message = "Máximo 80 caracteres")
