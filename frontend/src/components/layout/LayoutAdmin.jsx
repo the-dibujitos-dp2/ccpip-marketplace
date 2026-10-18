@@ -4,6 +4,7 @@ import iconoBillete from '../../assets/icons/billete.svg'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoEtiqueta from '../../assets/icons/etiqueta.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
+import iconoMerma from '../../assets/icons/merma.svg'
 import iconoPorcentaje from '../../assets/icons/porcentaje.svg'
 import iconoReloj from '../../assets/icons/reloj.svg'
 import iconoTablero from '../../assets/icons/tablero.svg'
@@ -27,6 +28,8 @@ const NAV = [
   { to: RUTAS.adminCatalogo, clave: 'catalogo', icono: iconoEtiqueta, roles: ['SUPER_ADMIN'] },
   // SA-03, SA-04 (CCPIP-95, 124, 125, 301 a 308): lo que cada rol ve lo decide el servidor
   { to: RUTAS.adminCuentas, clave: 'cuentas', icono: iconoUsuario, roles: ['SUPER_ADMIN', 'SUB_ADMIN'], prefijo: true },
+  // CCPIP-77, 298, 299 y 300: catalogo de causas de merma
+  { to: RUTAS.adminMotivosMerma, clave: 'motivosMerma', icono: iconoMerma, roles: ['SUPER_ADMIN'] },
 ]
 
 /** Estructura web de la administracion de la Camara (Figma SA-01 a SA-10). */

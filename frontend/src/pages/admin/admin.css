@@ -190,3 +190,16 @@
   .cuentas__campos, .cuenta-admin__datos { grid-template-columns: 1fr; }
   .cuentas__filtros .campo { width: 100%; }
 }
+/* Causas de merma (CCPIP-77, 298, 299 y 300) */
+.motivos__barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.motivos__barra p { margin: 0; color: var(--color-text-primary); }
+.motivos__col-ingles { flex: 0 0 180px; }
+.motivos__col-detalle { flex: 0 0 110px; }
+.motivos__col-usos { flex: 0 0 80px; text-align: right; font-variant-numeric: tabular-nums; }
+.motivos__col-estado { flex: 0 0 110px; }
+.motivos__col-acciones { flex: 0 0 210px; }
+.motivos__sistema { display: block; color: var(--color-text-secondary); }
+.motivos__formulario { display: flex; flex-direction: column; gap: 16px; margin-top: 4px; color: var(--color-text-primary); }
+.motivos__formulario p { margin: 0; }
+.motivos__check { display: flex; align-items: center; gap: 10px; font-size: 15px; cursor: pointer; }
+.motivos__check input { width: 18px; height: 18px; margin: 0; accent-color: var(--color-bg-brand); }

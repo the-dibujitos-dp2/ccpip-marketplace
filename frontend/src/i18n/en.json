@@ -73,7 +73,8 @@
       "cuenta": "Bank account",
       "transferencias": "Transfers",
       "denuncias": "Reports",
-      "alertas": "Alerts"
+      "alertas": "Alerts",
+      "merma": "Shrinkage"
     },
     "tabla": {
       "producto": "Product",
@@ -761,7 +762,8 @@
       "movimientos": "Stock movements",
       "inventario": "Inventory",
       "transferencias": "Transfers",
-      "alertas": "Alerts"
+      "alertas": "Alerts",
+      "merma": "Shrinkage"
     },
     "pedidos": {
       "vence": "expires {{fecha}}",
@@ -836,7 +838,8 @@
         "SALIDA_VENTA": "Outgoing",
         "TRANSFERENCIA_SALIDA": "Transfer",
         "AJUSTE": "Adjustment",
-        "SALIDA": "Outgoing"
+        "SALIDA": "Outgoing",
+        "MERMA": "Shrinkage"
       },
       "compraEnLinea": "Online purchase"
     },
@@ -911,7 +914,8 @@
       "productores": "Producers",
       "cuentas": "Accounts",
       "catalogo": "Master catalog",
-      "denuncias": "Reports"
+      "denuncias": "Reports",
+      "motivosMerma": "Shrinkage causes"
     },
     "tablero": {
       "titulo": "Operations dashboard",
@@ -1065,6 +1069,50 @@
         "rango": "Enter a whole number of hours between {{minimo}} and {{maximo}}.",
         "mismo": "That value already applies."
       }
+    },
+    "motivosMerma": {
+      "titulo": "Shrinkage causes",
+      "resumen": "{{activos}} active causes out of {{total}}",
+      "nuevo": "New cause",
+      "intro": "These are the causes the point and the producer choose when marking shrinkage. Changing or deactivating a cause does not alter recorded shrinkage: it keeps the name it was marked with.",
+      "errorCargar": "We could not load the causes",
+      "errorGuardar": "We could not save the cause",
+      "errorEstado": "We could not change the cause status",
+      "col": {
+        "nombre": "Name",
+        "ingles": "In English",
+        "detalle": "Asks for detail",
+        "usos": "Uses",
+        "estado": "Status",
+        "acciones": "Actions"
+      },
+      "sistema": "Used by automatic shrinkage from expiry",
+      "si": "Yes",
+      "no": "No",
+      "activa": "Active",
+      "inactiva": "Inactive",
+      "editar": "Edit",
+      "editarDe": "Edit {{nombre}}",
+      "desactivar": "Deactivate",
+      "desactivarDe": "Deactivate {{nombre}}",
+      "activar": "Activate",
+      "activarDe": "Activate {{nombre}}",
+      "confirmarTitulo": "Deactivate “{{nombre}}”?",
+      "confirmarTexto_one": "It will no longer be offered when marking shrinkage. Shrinkage already recorded with this cause ({{count}}) keeps it.",
+      "confirmarTexto_other": "It will no longer be offered when marking shrinkage. Shrinkage already recorded with this cause ({{count}}) keeps it.",
+      "editarTitulo": "Edit cause",
+      "guardar": "Save",
+      "campoNombre": "Name in Spanish",
+      "campoNombreEn": "Name in English",
+      "campoDetalle": "Asks to describe the cause (like “Other”)",
+      "faltaNombre": "Enter the name in Spanish.",
+      "faltaNombreEn": "Enter the name in English.",
+      "conservaHistorial_one": "{{count}} recorded shrinkage keeps the current name.",
+      "conservaHistorial_other": "{{count}} recorded shrinkages keep the current name.",
+      "creado": "Cause “{{nombre}}” created",
+      "modificado": "Cause “{{nombre}}” updated",
+      "desactivado": "Cause “{{nombre}}” deactivated",
+      "activado": "Cause “{{nombre}}” activated"
     }
   },
   "sello": {
@@ -1364,7 +1412,12 @@
     "LINEA_YA_CALIFICADA": "You already rated this product from your order.",
     "DENUNCIA_DUPLICADA": "You already have an open report about this.",
     "DENUNCIA_YA_RESPONDIDA": "You already replied to this report.",
-    "DENUNCIA_CERRADA": "The Chamber has already closed this report."
+    "DENUNCIA_CERRADA": "The Chamber has already closed this report.",
+    "CONFIRMACION_REQUERIDA": "Confirm the shrinkage: it cannot be undone.",
+    "DETALLE_REQUERIDO": "Describe the cause of the shrinkage.",
+    "MOTIVO_REPETIDO": "A cause with that name already exists.",
+    "MOTIVO_DEL_SISTEMA": "Automatic shrinkage from expiry uses this cause: it cannot be deactivated.",
+    "MOTIVO_NO_ENCONTRADO": "The shrinkage cause does not exist."
   },
   "buscar": {
     "comunidad": "Community",
@@ -2795,6 +2848,63 @@
       "correo": "Email for important alerts",
       "guardar": "Save preferences",
       "guardado": "Preferences saved"
+    }
+  },
+  "merma": {
+    "accion": "Shrinkage",
+    "marcarDe": "Mark batch {{lote}} as shrinkage",
+    "titulo": "Mark as shrinkage",
+    "loteTitulo": "{{producto}} · {{lote}}",
+    "loteDetalle": "{{detalle}} · current stock {{stock}} units",
+    "cantidad": "Quantity",
+    "resultante": "Resulting stock: {{stock}} units",
+    "causa": "Cause (required)",
+    "especificar": "{{causa}} (specify)",
+    "detalle": "Describe the cause",
+    "aviso": "You will see a summary before saving",
+    "avisoTexto": "Marking as shrinkage changes the status of those units and cannot be undone from the interface.",
+    "continuar": "Continue",
+    "error": "We could not mark the shrinkage",
+    "errorCausas": "We could not load the causes",
+    "errores": {
+      "cantidad": "Enter a quantity greater than zero, with up to 3 decimals.",
+      "excede": "It cannot exceed the batch stock ({{stock}} units).",
+      "causa": "Choose the cause.",
+      "detalle": "Describe the cause of the shrinkage."
+    },
+    "confirmar": {
+      "titulo": "Confirm shrinkage",
+      "boton": "Confirm shrinkage",
+      "marcando": "Marking…",
+      "resumen": "You are about to mark {{cantidad}} units of {{producto}} ({{lote}} · {{detalle}}) as shrinkage due to {{causa}}. The batch stock will go from {{antes}} to {{despues}} units and it will be recorded under your user.",
+      "irreversible": "This action cannot be undone."
+    },
+    "marcada": "Shrinkage recorded: {{cantidad}} units of batch {{lote}}",
+    "marcadaSaldo": "The batch has {{saldo}} units left.",
+    "lista": {
+      "titulo": "Recorded shrinkage",
+      "tituloProductor": "Shrinkage of my batches",
+      "comoMarcarPunto": "Shrinkage is marked from the batch, in the point inventory. Expired batches become shrinkage automatically the next day.",
+      "comoMarcarProductor": "Shrinkage in your warehouse is marked from the batch, in My warehouse; at a point, the point marks it. Expired batches become shrinkage automatically the next day.",
+      "irInventario": "Go to inventory",
+      "irAlmacen": "Go to My warehouse",
+      "errorCargar": "We could not load the shrinkage",
+      "vacio": "No shrinkage yet",
+      "vacioTexto": "Here you will see marked shrinkage and automatic shrinkage from expiry.",
+      "col": {
+        "fecha": "Date",
+        "producto": "Product and batch",
+        "ubicacion": "Location",
+        "causa": "Cause",
+        "cantidad": "Quantity",
+        "registro": "Recorded by",
+        "estado": "Status"
+      },
+      "automaticaCausa": "{{causa}} · automatic",
+      "sistema": "System",
+      "elPunto": "The collection point",
+      "automatica": "Automatic",
+      "confirmada": "Confirmed shrinkage"
     }
   }
 }

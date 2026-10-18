@@ -90,8 +90,9 @@ describe('A-02 Inventario del punto de acopio (CCPIP-162)', () => {
     expect(screen.getByText('Stock: 94 und · Vendible: 92 und · No vendible: 2 und')).toBeInTheDocument()
     expect(screen.getByText('Mostrando 1–3 de 3 lotes')).toBeInTheDocument()
     expect(screen.getByText('Un solo inventario, calculado a partir de los movimientos')).toBeInTheDocument()
-    // Sin merma ni ajustes: llegan con sus historias
-    expect(screen.queryByText(/merma/i, { selector: 'button' })).not.toBeInTheDocument()
+    // CCPIP-76: cada lote con saldo se puede marcar como merma; sin ajustes de conteo
+    expect(screen.getByRole('button', { name: 'Marcar como merma el lote L-0231' })).toBeInTheDocument()
+    expect(screen.queryByText(/ajuste/i, { selector: 'button' })).not.toBeInTheDocument()
   })
 
   it('filtra por estado, productor y búsqueda en el servidor', async () => {
