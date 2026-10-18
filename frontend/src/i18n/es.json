@@ -1455,7 +1455,18 @@
       "minimo": "Pedido mínimo mayorista",
       "precioUnidad": "Precio por unidad"
     },
-    "tambienDe": "También de {{linea}}"
+    "tambienDe": "También de {{linea}}",
+    "otrasOfertas": {
+      "titulo": "Otros productores de {{producto}}",
+      "texto": "Cada oferta es de un productor distinto. Si una está agotada, tu “Me interesa” llega solo a ese productor.",
+      "disponible": "disponible",
+      "agotado": "agotado",
+      "pausada": "venta pausada",
+      "ver": "Ver oferta",
+      "verAria": "Ver la oferta de {{tienda}}",
+      "meInteresa": "Me interesa",
+      "meInteresaAria": "Me interesa la oferta de {{tienda}}"
+    }
   },
   "carrito": {
     "agregar": {
