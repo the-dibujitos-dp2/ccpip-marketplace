@@ -91,6 +91,21 @@ class TraduccionCatalogoTest extends IntegrationTest {
     }
 
     @Test
+    void lasOfertasDelMaestroEnInglesTraducenSuNombreEHistoriaYLaOfertaSinTraduccionQuedaEnSuOriginal() throws Exception {
+        long maestro = jdbc.queryForObject("SELECT id FROM producto_maestro WHERE codigo = 'CACAO-GRANO'", Long.class);
+        mockMvc.perform(get("/api/maestros/{id}", maestro).header(HttpHeaders.ACCEPT_LANGUAGE, "en"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_LANGUAGE, "en"))
+                .andExpect(jsonPath("$.linea.nombre").value("Cacao & chocolate"))
+                .andExpect(jsonPath("$.ofertas[0].nombre").value("Fermented cacao beans 1 kg"))
+                .andExpect(jsonPath("$.ofertas[0].historia.texto").value("It grows in the shade of primary forest, without deforestation."))
+                .andExpect(jsonPath("$.ofertas[1].nombre").value("Cacao fino de aroma 1 kg"));
+        // CCPIP-42: la ficha trae las mismas ofertas traducidas
+        mockMvc.perform(get("/api/productos/{id}", producto("Cacao fino de aroma 1 kg")).header(HttpHeaders.ACCEPT_LANGUAGE, "en"))
+                .andExpect(jsonPath("$.maestro.ofertas[*].nombre", hasItem("Fermented cacao beans 1 kg")));
+    }
+
+    @Test
     void laBusquedaEnInglesTraduceProductosYLineas() throws Exception {
         mockMvc.perform(get("/api/productos").header(HttpHeaders.ACCEPT_LANGUAGE, "en"))
                 .andExpect(status().isOk())

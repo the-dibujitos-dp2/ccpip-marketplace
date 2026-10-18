@@ -67,6 +67,19 @@ WHERE NOT EXISTS (
     SELECT 1 FROM producto x WHERE x.productor_id = p.id AND x.nombre = d.nombre
 );
 
+-- CCPIP-42: una segunda oferta del mismo producto maestro que el cacao awajun, con su propio
+-- precio e historia. Va aparte para no mover los ids de los diez de arriba (e2e y fixtures).
+INSERT INTO producto (productor_id, nombre, descripcion, historia_origen, linea_id, unidad_medida_id, precio, es_materia_prima, estado)
+SELECT p.id, 'Cacao fino de aroma 1 kg', 'Secado al sol sobre tarimas de madera.',
+       'Lo sembramos entre los cafetales del Ene, bajo la misma sombra de bosque.', l.id, m.id, 44.00, false, 'PUBLICADO'
+FROM productor p
+JOIN linea_producto l ON l.codigo = 'CACAO'
+JOIN unidad_medida m ON m.codigo = 'KG'
+WHERE p.comunidad = 'Comunidad Asháninka de Chanchamayo'
+  AND NOT EXISTS (
+    SELECT 1 FROM producto x WHERE x.productor_id = p.id AND x.nombre = 'Cacao fino de aroma 1 kg'
+);
+
 -- ---------------------------------------------------------------------------------------
 -- Tienda, almacen, lotes, lineas e historia (CCPIP-30, CCPIP-41, CCPIP-45, CCPIP-49).
 -- Agregado con el flujo del productor. Todo es idempotente y nunca pisa lo que el
@@ -124,14 +137,14 @@ WHERE pr.historia_origen IS NOT NULL AND btrim(pr.historia_origen) <> ''
         'Aceite de ungurahui 250 ml', 'Aceite de aguaje 250 ml', 'Camu camu en polvo 150 g',
         'Textil bordado shipibo', 'Cacao en grano fermentado 1 kg', 'Pasta de cacao 500 g',
         'Infusion de guayusa 80 g', 'Cafe tostado en grano 500 g', 'Cafe molido 250 g',
-        'Canasta tejida de tamshi')
+        'Canasta tejida de tamshi', 'Cacao fino de aroma 1 kg')
 ON CONFLICT (producto_id) DO NOTHING;
 
--- Existencias iniciales (CCPIP-361, RNF-15): por cada producto sembrado, un lote en el
+-- Existencias iniciales (CCPIP-361, RNF-15): por cada oferta sembrada, un lote en el
 -- centro nacional, su movimiento de ENTRADA ligado a ese lote y la fila de stock. Va en un
 -- solo comando para que los tres queden juntos o ninguno.
 --
--- Solo los diez productos sembrados arriba: un producto creado desde la plataforma nunca
+-- Solo las ofertas sembradas arriba: un producto creado desde la plataforma nunca
 -- recibe existencias de demostracion. Y solo si el producto aun no tiene su carga inicial,
 -- asi que volver a correr no duplica nada (RNF-28) ni pisa lo que el inventario ya movio.
 -- Las artesanias no vencen (la linea lo decide).
@@ -147,7 +160,7 @@ WITH sembrado AS (
         'Aceite de ungurahui 250 ml', 'Aceite de aguaje 250 ml', 'Camu camu en polvo 150 g',
         'Textil bordado shipibo', 'Cacao en grano fermentado 1 kg', 'Pasta de cacao 500 g',
         'Infusion de guayusa 80 g', 'Cafe tostado en grano 500 g', 'Cafe molido 250 g',
-        'Canasta tejida de tamshi')
+        'Canasta tejida de tamshi', 'Cacao fino de aroma 1 kg')
       AND NOT EXISTS (
         SELECT 1 FROM movimiento_inventario mv
         WHERE mv.producto_id = pr.id AND mv.observacion = 'Carga inicial de demostracion')
@@ -203,5 +216,51 @@ WHERE u.correo IN ('productor@ccpip.test', 'productor2@ccpip.test', 'productor3@
         'Aceite de ungurahui 250 ml', 'Aceite de aguaje 250 ml', 'Camu camu en polvo 150 g',
         'Textil bordado shipibo', 'Cacao en grano fermentado 1 kg', 'Pasta de cacao 500 g',
         'Infusion de guayusa 80 g', 'Cafe tostado en grano 500 g', 'Cafe molido 250 g',
-        'Canasta tejida de tamshi')
+        'Canasta tejida de tamshi', 'Cacao fino de aroma 1 kg')
 ON CONFLICT (productor_id, producto_id) DO NOTHING;
+
+-- ---------------------------------------------------------------------------------------
+-- Catalogo maestro (CCPIP-42, RF-18): el producto generico de la Camara y, por cada oferta
+-- sembrada, a que maestro pertenece. El cacao en grano lo ofrecen dos comunidades, cada una
+-- con su precio, historia y existencias. Crear maestros desde la plataforma es CCPIP-312.
+-- ---------------------------------------------------------------------------------------
+
+INSERT INTO producto_maestro (codigo, nombre, descripcion, linea_id)
+SELECT d.codigo, d.nombre, d.descripcion, l.id
+FROM (VALUES
+    ('ACEITE-UNGURAHUI', 'Aceite de ungurahui',       'Aceite del fruto de la palmera de ungurahui, prensado en frio.', 'ACEITES'),
+    ('ACEITE-AGUAJE',    'Aceite de aguaje',          'Aceite del fruto del aguaje, rico en vitamina A.',               'ACEITES'),
+    ('CAMU-CAMU-POLVO',  'Camu camu en polvo',        'Fruto de camu camu deshidratado y molido.',                      'SUPERFRUTOS'),
+    ('TEXTIL-KENE',      'Textil bordado kené',       'Tela bordada a mano con diseños kené.',                          'TEXTIL'),
+    ('CACAO-GRANO',      'Cacao en grano fermentado', 'Grano de cacao fermentado y secado, listo para tostar.',         'CACAO'),
+    ('PASTA-CACAO',      'Pasta de cacao',            'Cacao molido sin azúcar añadida.',                               'CACAO'),
+    ('GUAYUSA',          'Infusión de guayusa',       'Hoja de guayusa secada para infusión.',                          'INFUSIONES'),
+    ('CAFE-GRANO',       'Café tostado en grano',     'Café de altura tostado, en grano entero.',                       'CAFE'),
+    ('CAFE-MOLIDO',      'Café molido',               'Café de altura tostado y molido.',                               'CAFE'),
+    ('CANASTA-TAMSHI',   'Canasta tejida de tamshi',  'Canasta tejida con fibra de tamshi.',                            'ARTESANIA')
+) AS d(codigo, nombre, descripcion, linea)
+JOIN linea_producto l ON l.codigo = d.linea
+ON CONFLICT (codigo) DO NOTHING;
+
+-- Solo las ofertas sembradas y sin maestro: nunca pisa una asociacion hecha desde la plataforma.
+UPDATE producto pr SET producto_maestro_id = m.id
+FROM (VALUES
+    ('Aceite de ungurahui 250 ml',     'ACEITE-UNGURAHUI'),
+    ('Aceite de aguaje 250 ml',        'ACEITE-AGUAJE'),
+    ('Camu camu en polvo 150 g',       'CAMU-CAMU-POLVO'),
+    ('Textil bordado shipibo',         'TEXTIL-KENE'),
+    ('Cacao en grano fermentado 1 kg', 'CACAO-GRANO'),
+    ('Cacao fino de aroma 1 kg',       'CACAO-GRANO'),
+    ('Pasta de cacao 500 g',           'PASTA-CACAO'),
+    ('Infusion de guayusa 80 g',       'GUAYUSA'),
+    ('Cafe tostado en grano 500 g',    'CAFE-GRANO'),
+    ('Cafe molido 250 g',              'CAFE-MOLIDO'),
+    ('Canasta tejida de tamshi',       'CANASTA-TAMSHI')
+) AS d(oferta, maestro)
+JOIN producto_maestro m ON m.codigo = d.maestro,
+     productor p
+JOIN usuario u ON u.id = p.usuario_id
+WHERE pr.nombre = d.oferta
+  AND pr.productor_id = p.id
+  AND u.correo IN ('productor@ccpip.test', 'productor2@ccpip.test', 'productor3@ccpip.test')
+  AND pr.producto_maestro_id IS NULL;

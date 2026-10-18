@@ -1,0 +1,11 @@
+/* CW-03c y CW-11 · Me interesa (CCPIP-105) */
+.me-interesa { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.me-interesa .caption { margin: 0; color: var(--color-text-secondary); }
+.me-interesa__registrado { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border: 1px solid var(--color-border-brand); border-radius: var(--radius-l); background: var(--color-bg-brand-subtle); }
+.me-interesa__registrado p { margin: 0; }
+.me-interesa__acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.me-interesa__dialogo { display: flex; flex-direction: column; gap: 16px; }
+.me-interesa__dialogo p { margin: 0; }
+.me-interesa__cantidad { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.me-interesa__error { display: flex; align-items: center; gap: 6px; color: var(--color-status-error-fg); font-size: 14px; }
+.me-interesa__nota { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: var(--radius-l); background: var(--color-status-info-bg); color: var(--color-status-info-fg); }

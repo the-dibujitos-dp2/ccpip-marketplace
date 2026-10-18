@@ -31,6 +31,10 @@ import autorizacionesAdmin from './fixtures/admin-autorizaciones.json'
 import expedienteAdmin from './fixtures/admin-autorizacion-41.json'
 import analisisSimulado from './fixtures/admin-analisis-simulado.json'
 import evidenciasProductor from './fixtures/productor-evidencias-9.json'
+// CCPIP-95, 124, 125, 301 a 308: armados segun CuentasModelos del backend
+import cuentasAdmin from './fixtures/admin-cuentas.json'
+import cuentaAdmin from './fixtures/admin-cuenta-4.json'
+import puntosCuentas from './fixtures/admin-cuentas-puntos.json'
 // CCPIP-161: armado segun ProductoModelos.LoteDelProductor del backend
 import todosLosLotes from './fixtures/productor-lotes.json'
 // CCPIP-81 a CCPIP-84, CCPIP-116 y CCPIP-323: armados segun ValoracionModelos del backend
@@ -143,6 +147,9 @@ export const DATOS = {
   denunciasProductor,
   denunciasAdmin,
   expedienteDenuncias,
+  cuentasAdmin,
+  cuentaAdmin,
+  puntosCuentas,
 }
 
 /** Copia profunda para que cada prueba pueda modificar los datos sin afectar a otras. */

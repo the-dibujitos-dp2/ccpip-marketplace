@@ -105,7 +105,19 @@
       "sinProductos": "You don't have any products yet",
       "sinProductosTexto": "Publish your first product and tell buyers your community's story.",
       "sinStock": "Published with no stock for sale",
-      "reponer": "Register batch to restock"
+      "reponer": "Register batch to restock",
+      "intereses": {
+        "titulo": "Interest in your sold-out products",
+        "cifra_one": "{{count}} person · {{cantidad}} units",
+        "cifra_other": "{{count}} people · {{cantidad}} units",
+        "estado": {
+          "VENTA_PAUSADA": "Sales paused: reactivate your bank account to sell",
+          "DISPONIBLE": "On sale again: we'll notify them in a few minutes",
+          "NO_PUBLICADO": "Not published"
+        },
+        "reponer": "Restock",
+        "nota": "When it's on sale again, we email each interested buyer. It isn't a reservation or a charge."
+      }
     },
     "lotes": {
       "primeroProducto": "Create a product first",
@@ -889,6 +901,7 @@
       "comisiones": "Commission by order",
       "parametros": "Parameters",
       "autorizaciones": "Authorizations",
+      "cuentas": "Accounts",
       "denuncias": "Reports"
     },
     "tablero": {
@@ -1265,7 +1278,7 @@
     "ENLACE_VENCIDO": "The link expired. Request a new one with your email.",
     "CUENTA_NO_REGISTRADA": "You haven't registered your bank account yet. Register it to sell.",
     "CUENTA_YA_REGISTRADA": "You already registered your bank account. You can update its details.",
-    "CUENTA_DESACTIVADA": "Your account is deactivated. Review its details and reactivate it.",
+    "CUENTA_DESACTIVADA": "A deactivated account can no longer be edited.",
     "CUENTA_ACTIVA": "Your account is already active.",
     "CONTRASENA_INCORRECTA": "The password is incorrect.",
     "BANCO_INVALIDO": "Choose a bank from the list.",
@@ -1309,6 +1322,18 @@
     "TRANSICION_INVALIDA": "The transfer changed status. Refresh the page.",
     "TRANSFERENCIA_NO_ENCONTRADA": "The transfer does not exist.",
     "NO_ES_DESTINO": "Only the destination point records the receipt.",
+    "CORREO_EN_USO": "There is already an account with that email.",
+    "ROL_NO_PERMITIDO": "Only sub administrator or collection point administrator accounts can be created.",
+    "PUNTOS_REQUERIDOS": "Assign at least one collection point.",
+    "PUNTO_INVALIDO": "Only active collection points of the Chamber can be assigned.",
+    "PUNTOS_NO_APLICAN": "Only collection point administrators have assigned points.",
+    "CUENTA_PROPIA": "You cannot manage your own account from administration.",
+    "CUENTA_NO_ENCONTRADA": "We could not find that account.",
+    "ESTADO_NO_PERMITE": "The account's current status does not allow this action. Refresh the page.",
+    "ACCESO_YA_CONFIGURADO": "The person already chose their password.",
+    "ROL_FUERA_DE_ALCANCE": "Your role cannot view accounts of that type.",
+    "OFERTA_DISPONIBLE": "This product is available: you can add it to your cart.",
+    "SIN_INTERES": "You have no interest registered in this product.",
     "PEDIDO_NO_RECIBIDO": "You can rate the products once you receive your order.",
     "LINEA_YA_CALIFICADA": "You already rated this product from your order.",
     "DENUNCIA_DUPLICADA": "You already have an open report about this.",
@@ -1448,7 +1473,18 @@
       "minimo": "Minimum wholesale order",
       "precioUnidad": "Price per unit"
     },
-    "tambienDe": "More {{linea}}"
+    "tambienDe": "More {{linea}}",
+    "otrasOfertas": {
+      "titulo": "Other producers of {{producto}}",
+      "texto": "Each offer comes from a different producer. If one is sold out, your “I'm interested” only reaches that producer.",
+      "disponible": "available",
+      "agotado": "sold out",
+      "pausada": "sales paused",
+      "ver": "View offer",
+      "verAria": "View the offer from {{tienda}}",
+      "meInteresa": "I'm interested",
+      "meInteresaAria": "I'm interested in the offer from {{tienda}}"
+    }
   },
   "carrito": {
     "agregar": {
@@ -2139,6 +2175,154 @@
     "verDetalle": "View details",
     "ocultarDetalle": "Hide details",
     "pendienteAprobador": "Who approves transfers between points is not defined yet: the request is recorded and does not commit any units."
+  },
+  "cuentas": {
+    "titulo": "Accounts",
+    "introSuper": "Review and manage platform accounts. You create, edit and deactivate sub administrator and collection point administrator accounts.",
+    "introSub": "Search consumer, producer and distributor accounts. You can suspend or reactivate them with a reason.",
+    "nueva": "New account",
+    "nuevaTitulo": "New administration account",
+    "crear": "Create account",
+    "todas": "All",
+    "pestanasEtiqueta": "Account type",
+    "rolPlural": {
+      "CONSUMIDOR": "Consumers",
+      "PRODUCTOR": "Producers",
+      "ADMIN_PUNTO": "Point administrators",
+      "SUB_ADMIN": "Sub administrators",
+      "SUPER_ADMIN": "Super administrators",
+      "DISTRIBUIDOR": "Distributors"
+    },
+    "buscar": "Search accounts",
+    "buscarEjemplo": "Search by name or email",
+    "filtroEstado": "Status",
+    "todosLosEstados": "All statuses",
+    "estado": {
+      "ACTIVA": "Active",
+      "SUSPENDIDA": "Suspended",
+      "DESACTIVADA": "Deactivated"
+    },
+    "accesoPendiente": "Access pending",
+    "tabla": "Accounts found",
+    "col": {
+      "cuenta": "Account",
+      "rol": "Role",
+      "puntos": "Collection points",
+      "estado": "Status",
+      "creada": "Created",
+      "accion": "Action"
+    },
+    "total_one": "{{count}} account",
+    "total_other": "{{count}} accounts",
+    "ver": "View",
+    "verDe": "View {{nombre}}'s account",
+    "vacio": "No accounts to show",
+    "vacioFiltros": "Try another name, email or status.",
+    "errorCargar": "We could not load the accounts.",
+    "errorCrear": "We could not create the account.",
+    "errorGuardar": "We could not save the changes.",
+    "errorReenviar": "We could not resend the access link.",
+    "nota": "No account is ever deleted: it is suspended or deactivated and its history is kept.",
+    "detalle": "Account",
+    "datos": "Account details",
+    "editar": "Edit",
+    "editarDatos": "Edit account details",
+    "guardar": "Save changes",
+    "noEditables": "Email and role cannot be changed. For another role, create a new account.",
+    "campo": {
+      "nombre": "Full name",
+      "correo": "Email",
+      "telefono": "Phone",
+      "rol": "Role",
+      "puntos": "Collection points",
+      "creada": "Created",
+      "motivo": "Reason",
+      "estado": "Status"
+    },
+    "opcional": "Optional.",
+    "ayudaCorreo": "The link to choose a password will be sent here.",
+    "ayudaPuntos": "They will only see and operate the points you check.",
+    "ayudaMotivo": "It is kept in the history and emailed to the person.",
+    "avisoAcceso": "Nobody types a password for the person: we will email a single-use link so they choose their own.",
+    "validacion": {
+      "nombre": "Enter the name",
+      "correo": "Enter a valid email",
+      "telefono": "Enter a valid phone number",
+      "rol": "Choose the role",
+      "puntos": "Check at least one collection point",
+      "motivo": "Enter the reason"
+    },
+    "accionesTitulo": "Actions",
+    "accionesNota": "Every action is kept in the history with your name and its reason.",
+    "reenviar": "Resend access link",
+    "suspender": "Suspend",
+    "reactivar": "Reactivate",
+    "desactivar": "Deactivate",
+    "desactivadaNota": "This account is deactivated. It is kept with its history and can no longer sign in.",
+    "dialogo": {
+      "suspender": {
+        "titulo": "Suspend {{nombre}}'s account?",
+        "texto": "They will not be able to sign in and their open sessions will be closed. You can reactivate it later.",
+        "confirmar": "Suspend account"
+      },
+      "reactivar": {
+        "titulo": "Reactivate {{nombre}}'s account?",
+        "texto": "They will be able to sign in again with their password.",
+        "confirmar": "Reactivate account"
+      },
+      "desactivar": {
+        "titulo": "Deactivate {{nombre}}'s account?",
+        "texto": "This is final: they will not be able to sign in and the account cannot be reactivated. It is kept with its history.",
+        "confirmar": "Deactivate account"
+      }
+    },
+    "hecho": {
+      "crear": "Account created. We emailed them the link to choose a password.",
+      "modificar": "Changes saved.",
+      "suspender": "Account suspended.",
+      "reactivar": "Account reactivated.",
+      "desactivar": "Account deactivated.",
+      "reenviar": "Access link resent."
+    },
+    "sinCorreo": "The notice email could not be sent. Let them know another way or try again.",
+    "historial": "History",
+    "sinHistorial": "No changes recorded on the platform.",
+    "porQuien": "{{fecha}} · {{nombre}}",
+    "motivo": "Reason: {{motivo}}",
+    "accion": {
+      "CREAR": "Account created",
+      "MODIFICAR": "Details edited",
+      "SUSPENDER": "Suspended",
+      "REACTIVAR": "Reactivated",
+      "DESACTIVAR": "Deactivated",
+      "REENVIAR_ACCESO": "Access link resent"
+    }
+  },
+  "interes": {
+    "boton": "I'm interested",
+    "explicaAgotado": "We'll ask how many units you'd like and email you when {{tienda}} has stock again. It isn't a reservation or a charge.",
+    "explicaPausada": "We'll ask how many units you'd like and email you when you can buy it. It isn't a reservation or a charge.",
+    "titulo": "I'm interested in this product",
+    "deTienda": "{{producto}} · {{tienda}}",
+    "textoAgotado": "It's sold out at this producer. Your interest reaches {{tienda}} and we'll let you know when it has stock again.",
+    "textoPausada": "{{tienda}} paused its sales for an administrative reason. Your interest reaches them and we'll let you know when you can buy it.",
+    "pregunta": "How many would you like to buy?",
+    "noReserva": "It isn't a reservation or a charge. We'll email you; when it's back, you buy like any other customer.",
+    "enviar": "Send my interest",
+    "guardar": "Save quantity",
+    "enviando": "Sending…",
+    "cantidadInvalida": "Enter a whole number from 1 to {{maximo}}",
+    "registrado_one": "Interest registered · {{count}} unit",
+    "registrado_other": "Interest registered · {{count}} units",
+    "registradoAviso_one": "We registered your interest in {{count}} unit",
+    "registradoAviso_other": "We registered your interest in {{count}} units",
+    "actualizado_one": "We changed your interest to {{count}} unit",
+    "actualizado_other": "We changed your interest to {{count}} units",
+    "teAvisamos": "We'll email you when it's available again.",
+    "cambiar": "Change quantity",
+    "retirar": "Withdraw interest",
+    "retirado": "We withdrew your interest in this product",
+    "errorRetirar": "We couldn't withdraw your interest"
   },
   "calificaciones": {
     "titulo": "Ratings",

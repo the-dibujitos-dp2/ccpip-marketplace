@@ -36,6 +36,8 @@ export const RUTAS = {
   adminParametros: '/admin/parametros',
   adminAutorizaciones: '/admin/autorizaciones',
   adminDenuncias: '/admin/denuncias',
+  adminCuentas: '/admin/cuentas',
+  adminCuentaNueva: '/admin/cuentas/nueva',
 }
 
 export function navigate(path, { replace = false } = {}) {
