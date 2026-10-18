@@ -91,7 +91,8 @@ obligaba a reemitir tokens. ADR-05 se actualiza a token opaco.
 
 ### linea_producto, unidad_medida
 Catalogos cerrados. RNF-32: el productor no crea unidades de medida, las solicita al
-administrador, que es CCPIP-119 y CCPIP-137 en Sprint 1.
+administrador, que es CCPIP-119 y CCPIP-137 en Sprint 1. Las lineas las administra el
+superadministrador desde el catalogo maestro (ver "Catalogo maestro" mas abajo).
 
 ### productor
 | Columna | Tipo | Nulo | Nota |
@@ -377,8 +378,8 @@ pedidos ya pagados siguen su curso (supuesto de PW-20, por validar con el stakeh
 ### autorizacion_producto
 `productor_id`, `producto_id`, `estado` (SOLICITADA, APROBADA, RECHAZADA, REVOCADA), `motivo`,
 `decidido_por`, `decidido_en` y `vigente_hasta` (nula si no vence). Unica por productor y
-producto. El diccionario la liga a `producto_maestro`, que aun no existe: por ahora apunta a
-`producto`. La migracion deja APROBADA lo que ya se vendia.
+producto. El diccionario la liga a `producto_maestro`; la tabla ya existe (V202610171900), pero la
+autorizacion sigue apuntando a `producto` hasta que una historia migre el vinculo. La migracion deja APROBADA lo que ya se vendia.
 
 **Una oferta es comprable** si su productor tiene una cuenta ACTIVA y una autorizacion APROBADA
 para ese producto con `vigente_hasta` nula o de hoy en adelante (hora de Lima). Si no, sigue
@@ -910,3 +911,61 @@ El criterio de aceptacion de CCPIP-19 dice que ninguna migracion se escribe ante
 este modelo este aprobado. Las migraciones ya estan escritas y probadas, asi que lo que
 falta es que el equipo lo revise. Si cambia algo, se corrige antes de que alguien mas
 corra V1 a V5, porque despues ya no se puede editar un archivo aplicado.
+
+## Administracion del catalogo maestro (CCPIP-96, 309, 310, 311, 351, 312, 313 y 314)
+
+Migracion `V202610172300`, sobre `producto_maestro` y `producto.producto_maestro_id` de CCPIP-42
+(`V202610171900`, seccion anterior). El catalogo maestro son las lineas y los productos de
+referencia de la Camara. **No es la oferta comercial**: una oferta es una fila de `producto` de un
+productor, con su propio nombre, precio, lineas y estado (CCPIP-172). Lo administra el
+superadministrador (`/api/admin/catalogo`, Figma: modulo "lineas" del superadministrador); los
+demas roles reciben 403.
+
+```mermaid
+erDiagram
+    linea_producto ||--o{ producto_maestro : agrupa
+    producto_maestro |o--o{ producto : referencia
+    usuario ||--o{ catalogo_maestro_auditoria : registra
+```
+
+Nada se borra (RNF-17, RNF-18): `linea_producto` y `producto_maestro` tienen un trigger que rechaza
+DELETE; se desactivan con `activo = false`, y otro trigger llena o limpia `desactivado_en` cada vez
+que cambia `activo`.
+
+### linea_producto (columnas nuevas)
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| creado_en, actualizado_en | timestamptz | no | |
+| desactivado_en | timestamptz | si | Desde cuando esta inactiva. `activo = (desactivado_en IS NULL)` |
+
+El `codigo` no cambia (trigger): es la clave de las traducciones (`traduccion.entidad = 'LINEA'`) y de
+las validaciones de imagen. El nombre es unico sin importar mayusculas ni tildes. El nombre en ingles
+lo escribe el superadministrador y se guarda como traduccion APROBADA; si cambia el nombre en espanol
+sin dar uno nuevo en ingles, la traduccion queda DESACTUALIZADA (CCPIP-373). R__01 ya no pisa lo que
+la Camara edito (`ON CONFLICT DO NOTHING`).
+
+Una linea inactiva sale de `/api/catalogos` (formularios del productor y del consumidor) y del
+tablero, y no recibe productos maestros nuevos. Las ofertas que ya la tienen la conservan, se siguen
+mostrando con ella y el productor puede guardarlas sin quitarla, pero no elegirla para otra oferta.
+
+### producto_maestro (columnas y reglas nuevas)
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| actualizado_en | timestamptz | no | |
+| desactivado_en | timestamptz | si | `activo = (desactivado_en IS NULL)` |
+
+El `codigo` (CCPIP-42) se valida (`^[A-Z0-9][A-Z0-9_-]{1,39}$`) y no cambia (trigger). El nombre es
+unico dentro de su linea sin importar mayusculas ni tildes. Un producto maestro nace en una linea
+activa; puede quedarse en su linea si esta se desactiva, pero no pasar a otra inactiva.
+
+No tiene precio, unidad, stock ni productor. Modificarlo solo escribe su fila (CCPIP-313): las
+ofertas que lo referencian conservan nombre, precio y lineas, y los pedidos su copia de precio
+(RNF-13). Desactivarlo (CCPIP-314) no desvincula ni pausa ninguna oferta; el publico deja de verlo en
+`GET /api/maestros/{id}` (404, regla de CCPIP-42) mientras sus ofertas siguen en el catalogo.
+Reactivarlo exige que su linea este activa.
+
+### catalogo_maestro_auditoria
+`entidad` (LINEA o PRODUCTO), `entidad_id`, `usuario_id`, `accion` (CREAR, EDITAR, DESACTIVAR,
+REACTIVAR), `cambios` (jsonb: la foto al crear, `{campo: {antes, despues}}` al editar, las ofertas y
+productos conservados al desactivar) y `registrado_en`. Solo insercion (triggers), igual que
+`producto_auditoria`.

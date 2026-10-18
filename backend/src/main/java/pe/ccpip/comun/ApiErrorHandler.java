@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 /** Convierte los errores esperados en respuestas JSON consistentes para la pantalla. */
@@ -35,6 +36,14 @@ public class ApiErrorHandler {
                 "code", "DATOS_INVALIDOS",
                 "error", "Revisa los datos del formulario",
                 "campos", campos));
+    }
+
+    /** Un parametro de la URL con un valor que no corresponde (p. ej. un filtro de estado desconocido). */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> parametro(MethodArgumentTypeMismatchException e) {
+        return ResponseEntity.badRequest().body(Map.of(
+                "code", "PARAMETRO_INVALIDO",
+                "error", "El valor de " + e.getName() + " no es válido."));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
