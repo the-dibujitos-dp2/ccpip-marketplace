@@ -105,7 +105,7 @@ describe('SA-01 Tablero de operación del superadministrador (CCPIP-111)', () =>
     servidor(comoSuper())
     abrirEn('/admin')
     const nav = within(await screen.findByRole('navigation', { name: 'Super administrador' }))
-    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Tablero', 'Comisión', 'Comisión por pedido', 'Parámetros', 'Cuentas'])
+    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Tablero', 'Comisión', 'Comisión por pedido', 'Parámetros', 'Catálogo maestro', 'Cuentas'])
     expect(nav.getByRole('link', { name: 'Tablero' })).toHaveAttribute('aria-current', 'page')
   })
 

@@ -62,7 +62,8 @@ public class CatalogoRepository {
                            AND NOT EXISTS (SELECT 1 FROM producto_linea pl
                                            WHERE pl.producto_id = p.id AND pl.linea_id <> ALL (a.lineas))))""".formatted(HOY);
 
-    static final String VISIBLE = """
+    /** Ofertas que el catalogo publico muestra: publicadas, de un productor activo con tienda publicada. */
+    public static final String VISIBLE = """
             FROM producto p
             JOIN productor pr ON pr.id = p.productor_id AND pr.activo AND pr.tienda_publicada
             LEFT JOIN linea_producto l ON l.id = p.linea_id
