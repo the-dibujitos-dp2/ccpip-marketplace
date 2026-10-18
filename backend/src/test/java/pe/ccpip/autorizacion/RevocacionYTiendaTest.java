@@ -51,7 +51,7 @@ class RevocacionYTiendaTest extends IntegrationTest {
     @Test
     void revocarUnProductoAprobadoLoSacaDeLaVentaYConservaElHistorial() throws Exception {
         long pedido = pedidoConfirmado("T-REV-0001", "Centro Nacional Lima", miel, 1);
-        mockMvc.perform(get("/api/productos/{id}", miel)).andExpect(jsonPath("$.comprable").value(true));
+        comprable(true);
         mockMvc.perform(get("/api/admin/autorizaciones/{id}", autorizacion).cookie(subAdmin))
                 .andExpect(jsonPath("$.puedeRevocar").value(true))
                 .andExpect(jsonPath("$.puedeDecidir").value(false));
@@ -65,7 +65,7 @@ class RevocacionYTiendaTest extends IntegrationTest {
                 .andExpect(jsonPath("$.decisiones[0].decididoPor").value("Sub-Administrador de Prueba"));
 
         // Sigue visible, pero en Venta pausada: no se agrega al carrito
-        mockMvc.perform(get("/api/productos/{id}", miel)).andExpect(jsonPath("$.comprable").value(false));
+        comprable(false);
         mockMvc.perform(post("/api/carrito/items").cookie(loginAs("consumidor@ccpip.test"))
                         .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("productoId", miel, "cantidad", 1))))
                 .andExpect(status().isConflict())
@@ -83,10 +83,7 @@ class RevocacionYTiendaTest extends IntegrationTest {
         Correo aviso = correos.ultimoPara(PRODUCTOR).orElseThrow();
         assertThat(aviso.asunto()).contains("Revocamos").contains("Miel de abeja nativa 250 g");
         assertThat(aviso.texto()).contains("El certificado orgánico fue suspendido por el emisor");
-        assertThat(jdbc.queryForObject("""
-                SELECT v.estado FROM aviso v JOIN autorizacion_decision d ON d.id = v.referencia_id
-                WHERE v.tipo = 'DECISION_AUTORIZACION' AND d.autorizacion_id = ? AND d.decision = 'REVOCADA'""",
-                String.class, autorizacion)).isEqualTo("ENVIADO");
+        assertThat(estadoAviso()).isEqualTo("ENVIADO");
         // El productor lo ve y puede volver a solicitarla: no es un bloqueo irreversible
         mockMvc.perform(get("/api/productor/productos/{id}/evidencias", miel).cookie(loginAs(PRODUCTOR)))
                 .andExpect(jsonPath("$.autorizacion.estado").value("REVOCADA"))
@@ -99,14 +96,10 @@ class RevocacionYTiendaTest extends IntegrationTest {
         decidir("autorizaciones", autorizacion, "revocar", "  ")
                 .andExpect(status().isBadRequest());
         decidir("autorizaciones", autorizacion, "revocar", "Motivo").andExpect(status().isOk());
-        decidir("autorizaciones", autorizacion, "revocar", "Otra vez")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("AUTORIZACION_NO_APROBADA"));
+        conflicto(decidir("autorizaciones", autorizacion, "revocar", "Otra vez"), "AUTORIZACION_NO_APROBADA");
         // Una solicitud pendiente se aprueba o rechaza, no se revoca
         jdbc.update("UPDATE autorizacion_producto SET estado = 'SOLICITADA', solicitada_en = now() WHERE id = ?", autorizacion);
-        decidir("autorizaciones", autorizacion, "revocar", "Motivo")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("AUTORIZACION_NO_APROBADA"));
+        conflicto(decidir("autorizaciones", autorizacion, "revocar", "Motivo"), "AUTORIZACION_NO_APROBADA");
         decidir("autorizaciones", 999_999, "revocar", "Motivo").andExpect(status().isNotFound());
     }
 
@@ -114,9 +107,8 @@ class RevocacionYTiendaTest extends IntegrationTest {
     void unCertificadoVencidoNoEsUnaRevocacion() throws Exception {
         // C5: vencer pausa la venta, pero no cambia el estado ni deja una decision; la revocacion es humana
         jdbc.update("UPDATE autorizacion_producto SET vigente_hasta = current_date - 3 WHERE id = ?", autorizacion);
-        mockMvc.perform(get("/api/productos/{id}", miel)).andExpect(jsonPath("$.comprable").value(false));
-        assertThat(jdbc.queryForObject("SELECT estado FROM autorizacion_producto WHERE id = ?", String.class, autorizacion))
-                .isEqualTo("APROBADA");
+        comprable(false);
+        assertThat(estadoAutorizacion()).isEqualTo("APROBADA");
         assertThat(jdbc.queryForObject("SELECT count(*) FROM autorizacion_decision WHERE autorizacion_id = ?",
                 Integer.class, autorizacion)).isZero();
     }
@@ -149,13 +141,9 @@ class RevocacionYTiendaTest extends IntegrationTest {
     void siElCorreoFallaLaDecisionIgualQuedaGuardada() throws Exception {
         correos.fallar(true);
         decidir("autorizaciones", autorizacion, "revocar", "Motivo").andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT estado FROM autorizacion_producto WHERE id = ?", String.class, autorizacion))
-                .isEqualTo("REVOCADA");
+        assertThat(estadoAutorizacion()).isEqualTo("REVOCADA");
         // El intento queda registrado como fallido; el productor igual lo ve en la plataforma
-        assertThat(jdbc.queryForObject("""
-                SELECT v.estado FROM aviso v JOIN autorizacion_decision d ON d.id = v.referencia_id
-                WHERE v.tipo = 'DECISION_AUTORIZACION' AND d.autorizacion_id = ?""", String.class, autorizacion))
-                .isEqualTo("FALLIDO");
+        assertThat(estadoAviso()).isEqualTo("FALLIDO");
     }
 
     // --- CCPIP-292: asociacion productor-producto y sus lineas ---
@@ -182,7 +170,7 @@ class RevocacionYTiendaTest extends IntegrationTest {
     void cambiarLaLineaDelProductoNoExtiendeLaAutorizacion() throws Exception {
         jdbc.update("INSERT INTO producto_linea (producto_id, linea_id) SELECT ?, id FROM linea_producto WHERE codigo = 'CAFE'", miel);
 
-        mockMvc.perform(get("/api/productos/{id}", miel)).andExpect(jsonPath("$.comprable").value(false));
+        comprable(false);
         mockMvc.perform(get("/api/admin/productores/{id}", productorId(PRODUCTOR)).cookie(subAdmin))
                 .andExpect(jsonPath("$.productos[?(@.productoId == %d)].cubreLineas".formatted(miel), hasItem(false)))
                 .andExpect(jsonPath("$.productos[?(@.productoId == %d)].vendible".formatted(miel), hasItem(false)));
@@ -194,7 +182,7 @@ class RevocacionYTiendaTest extends IntegrationTest {
 
         // Al volver a su linea original, la autorizacion vuelve a cubrirlo
         jdbc.update("DELETE FROM producto_linea WHERE producto_id = ? AND linea_id = (SELECT id FROM linea_producto WHERE codigo = 'CAFE')", miel);
-        mockMvc.perform(get("/api/productos/{id}", miel)).andExpect(jsonPath("$.comprable").value(true));
+        comprable(true);
     }
 
     // --- CCPIP-330: revocar la venta de un productor ---
@@ -213,27 +201,24 @@ class RevocacionYTiendaTest extends IntegrationTest {
                 .andExpect(jsonPath("$.decisiones[0].alcance").value(aprobadas))
                 .andExpect(jsonPath("$.productos[?(@.vendible == true)]").isEmpty());
 
-        mockMvc.perform(get("/api/productos/{id}", miel)).andExpect(jsonPath("$.comprable").value(false));
+        comprable(false);
         // Sus autorizaciones por producto no se tocan y el pedido confirmado tampoco
-        assertThat(jdbc.queryForObject("SELECT estado FROM autorizacion_producto WHERE id = ?", String.class, autorizacion))
-                .isEqualTo("APROBADA");
+        assertThat(estadoAutorizacion()).isEqualTo("APROBADA");
         assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id = ?", String.class, pedido)).isEqualTo("CONFIRMADO");
         assertThat(jdbc.queryForObject("""
                 SELECT count(*) FROM producto_auditoria WHERE producto_id = ? AND cambios->>'decision' = 'REVOCAR_VENTA'""",
                 Integer.class, miel)).isEqualTo(1);
         assertThat(correos.ultimoPara(PRODUCTOR).orElseThrow().texto()).contains("Incumplimiento grave del reglamento de la Cámara");
         // La tienda revocada no se habilita ni se revoca dos veces
-        decidir("productores", productor, "revocar", "Otra vez")
-                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("VENTA_YA_REVOCADA"));
+        conflicto(decidir("productores", productor, "revocar", "Otra vez"), "VENTA_YA_REVOCADA");
 
         decidir("productores", productor, "restituir", "Subsanó las observaciones")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ventaRevocada").value(false))
                 .andExpect(jsonPath("$.decisiones[0].decision").value("RESTITUIR_VENTA"))
                 .andExpect(jsonPath("$.decisiones[1].decision").value("REVOCAR_VENTA"));
-        mockMvc.perform(get("/api/productos/{id}", miel)).andExpect(jsonPath("$.comprable").value(true));
-        decidir("productores", productor, "restituir", "Otra vez")
-                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("VENTA_NO_REVOCADA"));
+        comprable(true);
+        conflicto(decidir("productores", productor, "restituir", "Otra vez"), "VENTA_NO_REVOCADA");
     }
 
     @Test
@@ -258,9 +243,7 @@ class RevocacionYTiendaTest extends IntegrationTest {
                        historia = 'Doce familias kukama', pueblo = 'Kukama-Kukamiria' WHERE id = ?""", nuevo);
 
         // El productor no vuelve operativa su tienda por su cuenta
-        mockMvc.perform(post("/api/productor/tienda/publicar").cookie(productorNuevo))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("TIENDA_NO_HABILITADA"));
+        conflicto(mockMvc.perform(post("/api/productor/tienda/publicar").cookie(productorNuevo)), "TIENDA_NO_HABILITADA");
         mockMvc.perform(get("/api/productor/tienda").cookie(productorNuevo))
                 .andExpect(jsonPath("$.habilitada").value(false));
 
@@ -274,9 +257,7 @@ class RevocacionYTiendaTest extends IntegrationTest {
                 .andExpect(jsonPath("$.puedeHabilitarTienda").value(false))
                 .andExpect(jsonPath("$.decisiones[0].decision").value("HABILITAR_TIENDA"));
         assertThat(correos.ultimoPara(NUEVO).orElseThrow().asunto()).startsWith("Tu tienda en Mercado CCPIP está habilitada");
-        decidir("productores", nuevo, "habilitar-tienda", "Otra vez")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("TIENDA_YA_HABILITADA"));
+        conflicto(decidir("productores", nuevo, "habilitar-tienda", "Otra vez"), "TIENDA_YA_HABILITADA");
 
         mockMvc.perform(post("/api/productor/tienda/publicar").cookie(productorNuevo))
                 .andExpect(status().isOk())
@@ -292,9 +273,7 @@ class RevocacionYTiendaTest extends IntegrationTest {
         long nuevo = productorId(NUEVO);
         decidir("productores", nuevo, "revocar", "Documentación de la comunidad observada").andExpect(status().isOk());
 
-        decidir("productores", nuevo, "habilitar-tienda", "Motivo")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("VENTA_REVOCADA"));
+        conflicto(decidir("productores", nuevo, "habilitar-tienda", "Motivo"), "VENTA_REVOCADA");
         mockMvc.perform(get("/api/productor/tienda").cookie(loginAs(NUEVO)))
                 .andExpect(jsonPath("$.ventaRevocada").value(true))
                 .andExpect(jsonPath("$.motivoRevocacion").value("Documentación de la comunidad observada"));
@@ -314,8 +293,7 @@ class RevocacionYTiendaTest extends IntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON).content(motivo)).andExpect(status().isForbidden());
         mockMvc.perform(post("/api/admin/autorizaciones/{id}/revocar", autorizacion).cookie(cookie)
                 .contentType(MediaType.APPLICATION_JSON).content(motivo)).andExpect(status().isForbidden());
-        assertThat(jdbc.queryForObject("SELECT estado FROM autorizacion_producto WHERE id = ?", String.class, autorizacion))
-                .isEqualTo("APROBADA");
+        assertThat(estadoAutorizacion()).isEqualTo("APROBADA");
     }
 
     @Test
@@ -326,6 +304,26 @@ class RevocacionYTiendaTest extends IntegrationTest {
     }
 
     // --- Apoyo ---
+
+    private void comprable(boolean esperado) throws Exception {
+        mockMvc.perform(get("/api/productos/{id}", miel)).andExpect(jsonPath("$.comprable").value(esperado));
+    }
+
+    private String estadoAutorizacion() {
+        return jdbc.queryForObject("SELECT estado FROM autorizacion_producto WHERE id = ?", String.class, autorizacion);
+    }
+
+    /** Estado del aviso de la ultima decision sobre la autorizacion de la prueba. */
+    private String estadoAviso() {
+        return jdbc.queryForObject("""
+                SELECT v.estado FROM aviso v JOIN autorizacion_decision d ON d.id = v.referencia_id
+                WHERE v.tipo = 'DECISION_AUTORIZACION' AND d.autorizacion_id = ?
+                ORDER BY d.id DESC LIMIT 1""", String.class, autorizacion);
+    }
+
+    private static void conflicto(ResultActions respuesta, String codigo) throws Exception {
+        respuesta.andExpect(status().isConflict()).andExpect(jsonPath("$.code").value(codigo));
+    }
 
     private ResultActions decidir(String recurso, long id, String accion, String motivo) throws Exception {
         return mockMvc.perform(post("/api/admin/{recurso}/{id}/{accion}", recurso, id, accion).cookie(subAdmin)

@@ -471,7 +471,7 @@ resultado de prueba. Solo se usa en pruebas y demo.
 
 ## Revocacion, lineas autorizadas y tienda habilitada (CCPIP-39, CCPIP-330, CCPIP-291, CCPIP-292)
 
-Migracion `V202610172100`. El subadministrador revoca con motivo la venta de un producto (RF-16)
+Migracion `V202610172400`. El subadministrador revoca con motivo la venta de un producto (RF-16)
 o de un productor completo (RF-220), habilita la tienda de un productor autorizado (RF-147) y ve,
 productor por productor, los productos que cada uno puede vender (RF-148). Toda decision se avisa
 al productor por correo, en su idioma (`usuario.idioma`), y queda visible en sus pantallas; tambien

@@ -124,51 +124,48 @@ public class ProductoresService {
                 .stream().findFirst().orElseThrow(ProductoresService::noEncontrado);
     }
 
-    /** CCPIP-291: solo un productor incorporado y con la venta no revocada recibe su tienda. */
+    /**
+     * Una decision sobre el productor, con motivo:
+     * <ul>
+     *   <li>HABILITAR_TIENDA (CCPIP-291): solo a un productor incorporado y con la venta no revocada.</li>
+     *   <li>REVOCAR_VENTA (CCPIP-330): deja de venderse todo lo del productor, sin tocar sus
+     *       autorizaciones ni sus pedidos.</li>
+     *   <li>RESTITUIR_VENTA: revocar no es irreversible; una nueva decision humana la restituye.</li>
+     * </ul>
+     */
     @Transactional
-    public FichaProductor habilitarTienda(long productorId, long usuarioId, String motivo) {
+    public FichaProductor decidir(long productorId, long usuarioId, DecisionProductor decision, String motivo) {
         String texto = RevisionService.motivoRequerido(motivo);
         EstadoProductor estado = bloquear(productorId);
-        if (estado.tiendaHabilitada()) {
-            throw new ErrorNegocio(HttpStatus.CONFLICT, "TIENDA_YA_HABILITADA", "La tienda de este productor ya está habilitada.");
+        String conflicto = switch (decision) {
+            case HABILITAR_TIENDA -> estado.tiendaHabilitada() ? "TIENDA_YA_HABILITADA" : estado.ventaRevocada() ? "VENTA_REVOCADA" : null;
+            case REVOCAR_VENTA -> estado.ventaRevocada() ? "VENTA_YA_REVOCADA" : null;
+            case RESTITUIR_VENTA -> estado.ventaRevocada() ? null : "VENTA_NO_REVOCADA";
+        };
+        if (conflicto != null) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, conflicto, CONFLICTOS.get(conflicto));
         }
-        if (estado.ventaRevocada()) {
-            throw new ErrorNegocio(HttpStatus.CONFLICT, "VENTA_REVOCADA",
-                    "La venta de este productor está revocada: restitúyela antes de habilitar su tienda.");
-        }
-        long decision = registrar(productorId, usuarioId, DecisionProductor.HABILITAR_TIENDA, texto, aprobadas(productorId));
-        jdbc.update("UPDATE productor SET tienda_habilitada = true, tienda_decision_id = ?, actualizado_en = now() WHERE id = ?",
-                decision, productorId);
-        return ficha(productorId);
-    }
-
-    /** CCPIP-330: deja de venderse todo lo del productor, sin tocar sus autorizaciones ni sus pedidos. */
-    @Transactional
-    public FichaProductor revocarVenta(long productorId, long usuarioId, String motivo) {
-        String texto = RevisionService.motivoRequerido(motivo);
-        if (bloquear(productorId).ventaRevocada()) {
-            throw new ErrorNegocio(HttpStatus.CONFLICT, "VENTA_YA_REVOCADA", "La venta de este productor ya está revocada.");
-        }
-        cambiarVenta(productorId, usuarioId, DecisionProductor.REVOCAR_VENTA, texto, true);
-        return ficha(productorId);
-    }
-
-    /** Revocar no es irreversible: una nueva decision humana, con motivo, la restituye. */
-    @Transactional
-    public FichaProductor restituirVenta(long productorId, long usuarioId, String motivo) {
-        String texto = RevisionService.motivoRequerido(motivo);
-        if (!bloquear(productorId).ventaRevocada()) {
-            throw new ErrorNegocio(HttpStatus.CONFLICT, "VENTA_NO_REVOCADA", "La venta de este productor no está revocada.");
-        }
-        cambiarVenta(productorId, usuarioId, DecisionProductor.RESTITUIR_VENTA, texto, false);
-        return ficha(productorId);
-    }
-
-    private void cambiarVenta(long productorId, long usuarioId, DecisionProductor decision, String motivo, boolean revocada) {
         Long[] alcance = aprobadas(productorId);
-        long decisionId = registrar(productorId, usuarioId, decision, motivo, alcance);
+        long decisionId = registrar(productorId, usuarioId, decision, texto, alcance);
+        if (decision == DecisionProductor.HABILITAR_TIENDA) {
+            jdbc.update("UPDATE productor SET tienda_habilitada = true, tienda_decision_id = ?, actualizado_en = now() WHERE id = ?",
+                    decisionId, productorId);
+        } else {
+            cambiarVenta(productorId, usuarioId, decision, texto, decisionId, alcance);
+        }
+        return ficha(productorId);
+    }
+
+    private static final Map<String, String> CONFLICTOS = Map.of(
+            "TIENDA_YA_HABILITADA", "La tienda de este productor ya está habilitada.",
+            "VENTA_REVOCADA", "La venta de este productor está revocada: restitúyela antes de habilitar su tienda.",
+            "VENTA_YA_REVOCADA", "La venta de este productor ya está revocada.",
+            "VENTA_NO_REVOCADA", "La venta de este productor no está revocada.");
+
+    private void cambiarVenta(long productorId, long usuarioId, DecisionProductor decision, String motivo, long decisionId,
+                              Long[] alcance) {
         jdbc.update("UPDATE productor SET venta_revocada = ?, venta_decision_id = ?, actualizado_en = now() WHERE id = ?",
-                revocada, decisionId, productorId);
+                decision == DecisionProductor.REVOCAR_VENTA, decisionId, productorId);
         // El historial de cada producto alcanzado tambien lo registra (CCPIP-47)
         List<Long> productos = jdbc.queryForList("SELECT producto_id FROM autorizacion_producto WHERE id = ANY (?) ORDER BY producto_id",
                 Long.class, (Object) alcance);

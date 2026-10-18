@@ -15,6 +15,7 @@ import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.filter.SessionAuthFilter;
 import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
+import pe.ccpip.autorizacion.AutorizacionModelos.DecisionProductor;
 import pe.ccpip.autorizacion.AutorizacionModelos.FichaProductor;
 import pe.ccpip.autorizacion.AutorizacionModelos.NuevaDecision;
 import pe.ccpip.autorizacion.AutorizacionModelos.ProductorFila;
@@ -47,22 +48,16 @@ public class ProductoresController {
         return service.ficha(id);
     }
 
-    @PostMapping("/{id}/habilitar-tienda")
-    public FichaProductor habilitarTienda(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
-                                          @PathVariable long id, @Valid @RequestBody NuevaDecision decision) {
-        return avisar(service.habilitarTienda(id, s.userId(), decision.motivo()), AvisoAutorizacion.Tipo.HABILITAR_TIENDA, decision);
-    }
-
-    @PostMapping("/{id}/revocar")
-    public FichaProductor revocar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
-                                  @PathVariable long id, @Valid @RequestBody NuevaDecision decision) {
-        return avisar(service.revocarVenta(id, s.userId(), decision.motivo()), AvisoAutorizacion.Tipo.REVOCAR_VENTA, decision);
-    }
-
-    @PostMapping("/{id}/restituir")
-    public FichaProductor restituir(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
-                                    @PathVariable long id, @Valid @RequestBody NuevaDecision decision) {
-        return avisar(service.restituirVenta(id, s.userId(), decision.motivo()), AvisoAutorizacion.Tipo.RESTITUIR_VENTA, decision);
+    /** Habilitar la tienda (CCPIP-291), revocar o restituir la venta (CCPIP-330), siempre con motivo. */
+    @PostMapping("/{id}/{accion:habilitar-tienda|revocar|restituir}")
+    public FichaProductor decidir(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                  @PathVariable long id, @PathVariable String accion, @Valid @RequestBody NuevaDecision decision) {
+        DecisionProductor tipo = switch (accion) {
+            case "habilitar-tienda" -> DecisionProductor.HABILITAR_TIENDA;
+            case "revocar" -> DecisionProductor.REVOCAR_VENTA;
+            default -> DecisionProductor.RESTITUIR_VENTA;
+        };
+        return avisar(service.decidir(id, s.userId(), tipo, decision.motivo()), AvisoAutorizacion.Tipo.valueOf(tipo.name()), decision);
     }
 
     /** El servicio ya confirmo la transaccion: el aviso sale solo si la decision quedo guardada. */

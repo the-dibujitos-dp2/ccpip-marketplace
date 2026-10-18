@@ -1,10 +1,13 @@
 package pe.ccpip.autorizacion;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import pe.ccpip.aviso.Correo;
 import pe.ccpip.aviso.Avisos;
+import pe.ccpip.aviso.Correo;
 
 /**
  * Notifica al productor cada decision humana sobre su venta (CCPIP-37, CCPIP-297, CCPIP-39,
@@ -17,14 +20,42 @@ import pe.ccpip.aviso.Avisos;
 @Component
 public class AvisoAutorizacion {
 
-    private static final String FIRMA_ES = "\nCámara de Comercio de los Pueblos Indígenas del Perú\n";
-    private static final String FIRMA_EN = "\nChamber of Commerce of the Indigenous Peoples of Peru\n";
-
     /** Que se decidio. {@code producto} es nulo en las decisiones sobre el productor. */
     public enum Tipo { APROBADA, RECHAZADA, REVOCADA, HABILITAR_TIENDA, REVOCAR_VENTA, RESTITUIR_VENTA }
 
     private record Destinatario(long usuarioId, String correo, String nombre, boolean ingles) {
     }
+
+    /** Asunto (con %s para el producto, si lo hay) y detalle de un aviso en un idioma. */
+    private record Texto(String asunto, String detalle) {
+    }
+
+    /** Lo comun de un idioma: saludo, etiqueta del motivo, firma y los textos de cada decision. */
+    private record Idioma(String saludo, String motivo, String firma, Map<Tipo, Texto> textos) {
+    }
+
+    private static final Idioma ES = new Idioma("Hola", "Motivo",
+            "Cámara de Comercio de los Pueblos Indígenas del Perú", textos(
+                    "Autorizamos la venta de %s", "Ya puedes vender este producto en Mercado CCPIP.",
+                    "No autorizamos la venta de %s", "Puedes adjuntar nuevas evidencias desde Mis productos para una nueva revisión.",
+                    "Revocamos la autorización de venta de %s", "Desde ahora no se puede comprar. Los pedidos ya confirmados "
+                            + "se atienden con normalidad. Puedes adjuntar nuevas evidencias para una nueva revisión.",
+                    "Tu tienda en Mercado CCPIP está habilitada", "Ya puedes publicar tu tienda desde Mi tienda.",
+                    "Revocamos la autorización de venta de tu organización", "Desde ahora no se pueden comprar tus productos. "
+                            + "Los pedidos ya confirmados se atienden con normalidad.",
+                    "Restituimos la autorización de venta de tu organización", "Tus productos autorizados vuelven a estar a la venta."));
+
+    // El motivo lo escribe el subadministrador en espanol: se envia tal cual
+    private static final Idioma EN = new Idioma("Hello", "Reason",
+            "Chamber of Commerce of the Indigenous Peoples of Peru", textos(
+                    "We authorized the sale of %s", "You can now sell this product on Mercado CCPIP.",
+                    "We did not authorize the sale of %s", "You can attach new evidence from My products for a new review.",
+                    "We revoked the sale authorization of %s", "It can no longer be purchased. Confirmed orders are fulfilled "
+                            + "as usual. You can attach new evidence for a new review.",
+                    "Your Mercado CCPIP store is enabled", "You can now publish your store from My store.",
+                    "We revoked your organization's sale authorization", "Your products can no longer be purchased. "
+                            + "Confirmed orders are fulfilled as usual.",
+                    "We restored your organization's sale authorization", "Your authorized products are on sale again."));
 
     private final JdbcTemplate jdbc;
     private final Avisos avisos;
@@ -49,69 +80,31 @@ public class AvisoAutorizacion {
             return false;
         }
         Avisos.Tipo registro = producto == null ? Avisos.Tipo.DECISION_PRODUCTOR : Avisos.Tipo.DECISION_AUTORIZACION;
-        Correo correo = d.ingles() ? enIngles(d, tipo, producto, motivo) : enEspanol(d, tipo, producto, motivo);
+        Correo correo = correo(d, d.ingles() ? EN : ES, tipo, producto, motivo);
         return avisos.registrar(d.usuarioId(), registro, decisionId)
                 .map(avisoId -> avisos.enviar(avisoId, correo))
                 .orElse(false);
     }
 
-    private static Correo enEspanol(Destinatario d, Tipo tipo, String producto, String motivo) {
-        String asunto = switch (tipo) {
-            case APROBADA -> "Autorizamos la venta de " + producto;
-            case RECHAZADA -> "No autorizamos la venta de " + producto;
-            case REVOCADA -> "Revocamos la autorización de venta de " + producto;
-            case HABILITAR_TIENDA -> "Tu tienda en Mercado CCPIP está habilitada";
-            case REVOCAR_VENTA -> "Revocamos la autorización de venta de tu organización";
-            case RESTITUIR_VENTA -> "Restituimos la autorización de venta de tu organización";
-        };
-        String detalle = switch (tipo) {
-            case APROBADA -> "Ya puedes vender este producto en Mercado CCPIP.";
-            case RECHAZADA -> "Puedes adjuntar nuevas evidencias desde Mis productos para una nueva revisión.";
-            case REVOCADA -> "Desde ahora no se puede comprar. Los pedidos ya confirmados se atienden con normalidad. "
-                    + "Puedes adjuntar nuevas evidencias para una nueva revisión.";
-            case HABILITAR_TIENDA -> "Ya puedes publicar tu tienda desde Mi tienda.";
-            case REVOCAR_VENTA -> "Desde ahora no se pueden comprar tus productos. Los pedidos ya confirmados se "
-                    + "atienden con normalidad.";
-            case RESTITUIR_VENTA -> "Tus productos autorizados vuelven a estar a la venta.";
-        };
-        return new Correo(d.correo(), asunto + " · Mercado CCPIP", """
-                Hola, %s:
+    private static Correo correo(Destinatario d, Idioma idioma, Tipo tipo, String producto, String motivo) {
+        Texto texto = idioma.textos().get(tipo);
+        return new Correo(d.correo(), texto.asunto().formatted(producto) + " · Mercado CCPIP", """
+                %s, %s:
 
                 %s
 
-                Motivo: %s
+                %s: %s
 
                 %s
-                """.formatted(d.nombre(), detalle, motivo, FIRMA_ES));
+                """.formatted(idioma.saludo(), d.nombre(), texto.detalle(), idioma.motivo(), motivo, idioma.firma()));
     }
 
-    private static Correo enIngles(Destinatario d, Tipo tipo, String producto, String motivo) {
-        String asunto = switch (tipo) {
-            case APROBADA -> "We authorized the sale of " + producto;
-            case RECHAZADA -> "We did not authorize the sale of " + producto;
-            case REVOCADA -> "We revoked the sale authorization of " + producto;
-            case HABILITAR_TIENDA -> "Your Mercado CCPIP store is enabled";
-            case REVOCAR_VENTA -> "We revoked your organization's sale authorization";
-            case RESTITUIR_VENTA -> "We restored your organization's sale authorization";
-        };
-        String detalle = switch (tipo) {
-            case APROBADA -> "You can now sell this product on Mercado CCPIP.";
-            case RECHAZADA -> "You can attach new evidence from My products for a new review.";
-            case REVOCADA -> "It can no longer be purchased. Confirmed orders are fulfilled as usual. "
-                    + "You can attach new evidence for a new review.";
-            case HABILITAR_TIENDA -> "You can now publish your store from My store.";
-            case REVOCAR_VENTA -> "Your products can no longer be purchased. Confirmed orders are fulfilled as usual.";
-            case RESTITUIR_VENTA -> "Your authorized products are on sale again.";
-        };
-        // El motivo lo escribe el subadministrador en espanol: se envia tal cual
-        return new Correo(d.correo(), asunto + " · Mercado CCPIP", """
-                Hello, %s:
-
-                %s
-
-                Reason: %s
-
-                %s
-                """.formatted(d.nombre(), detalle, motivo, FIRMA_EN));
+    /** Asunto y detalle de cada decision, en el orden de {@link Tipo}. */
+    private static Map<Tipo, Texto> textos(String... pares) {
+        Map<Tipo, Texto> textos = new EnumMap<>(Tipo.class);
+        for (Tipo tipo : Tipo.values()) {
+            textos.put(tipo, new Texto(pares[2 * tipo.ordinal()], pares[2 * tipo.ordinal() + 1]));
+        }
+        return Map.copyOf(textos);
     }
 }

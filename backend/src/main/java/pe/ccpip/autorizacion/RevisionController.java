@@ -58,22 +58,16 @@ public class RevisionController {
         return service.analizar(id, s.userId());
     }
 
-    @PostMapping("/{id}/aprobar")
-    public Expediente aprobar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
-                              @PathVariable long id, @Valid @RequestBody NuevaDecision decision) {
-        return avisar(service.aprobar(id, s.userId(), decision.motivo()), AvisoAutorizacion.Tipo.APROBADA, decision);
-    }
-
-    @PostMapping("/{id}/rechazar")
-    public Expediente rechazar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
-                               @PathVariable long id, @Valid @RequestBody NuevaDecision decision) {
-        return avisar(service.rechazar(id, s.userId(), decision.motivo()), AvisoAutorizacion.Tipo.RECHAZADA, decision);
-    }
-
-    @PostMapping("/{id}/revocar")
-    public Expediente revocar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
-                              @PathVariable long id, @Valid @RequestBody NuevaDecision decision) {
-        return avisar(service.revocar(id, s.userId(), decision.motivo()), AvisoAutorizacion.Tipo.REVOCADA, decision);
+    /** Aprobar (CCPIP-174, CCPIP-37), rechazar (CCPIP-284, CCPIP-297) o revocar (CCPIP-39), siempre con motivo. */
+    @PostMapping("/{id}/{accion:aprobar|rechazar|revocar}")
+    public Expediente decidir(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                              @PathVariable long id, @PathVariable String accion, @Valid @RequestBody NuevaDecision decision) {
+        Expediente exp = switch (accion) {
+            case "aprobar" -> service.aprobar(id, s.userId(), decision.motivo());
+            case "rechazar" -> service.rechazar(id, s.userId(), decision.motivo());
+            default -> service.revocar(id, s.userId(), decision.motivo());
+        };
+        return avisar(exp, AvisoAutorizacion.Tipo.valueOf(exp.estado().name()), decision);
     }
 
     /** El servicio ya confirmo la transaccion: el aviso sale solo si la decision quedo guardada. */
