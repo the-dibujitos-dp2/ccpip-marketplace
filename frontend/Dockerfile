@@ -9,7 +9,7 @@ RUN npm run build
 # Caddy compilado con Go y x/net parchados. La imagen oficial caddy:2.11.7 trae Go 1.26.8 y
 # x/net 0.59 (CVE-2026-78667, 78669 y 97031, HIGH). Mismo Caddy y mismos modulos estandar;
 # volver a FROM caddy:2-alpine solo cuando la imagen oficial ya traiga Go >= 1.26.9.
-FROM golang:1.26-alpine AS caddy
+FROM golang:1.27-alpine AS caddy
 ARG CADDY_VERSION=v2.11.7
 WORKDIR /src
 RUN go mod init ccpip-caddy \
