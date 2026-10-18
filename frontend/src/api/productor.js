@@ -43,6 +43,11 @@ export const listarUbicaciones = () => apiFetch(`${base}/ubicaciones`)
 
 // CCPIP-136 y CCPIP-162 (PW-16): su almacen virtual unico, por producto, ubicacion, lote y estado
 export const consultarInventario = () => apiFetch(`${base}/inventario`)
+/**
+ * CCPIP-283 (RF-203): entrada o salida en un lote de su almacen virtual unico.
+ * `{ tipo, loteId, cantidad, motivo, observacion, clave }`; devuelve `{ movimiento, saldoLote, repetido }`.
+ */
+export const registrarMovimientoAlmacen = (datos) => apiFetch(`${base}/almacen/movimientos`, { method: 'POST', body: datos })
 
 // CCPIP-66 (PW-07): solo las lineas propias de cada pedido pagado, con conteos por estado
 export const listarPedidos = (estado) => apiFetch(`${base}/pedidos?${new URLSearchParams({ estado })}`)
@@ -106,3 +111,16 @@ export const desactivarCuentaBancaria = (motivo) =>
   apiFetch(`${base}/cuenta-bancaria/desactivar`, { method: 'POST', body: { motivo, confirmo: true } })
 export const reactivarCuentaBancaria = (datos, contrasena) =>
   apiFetch(`${base}/cuenta-bancaria/reactivar`, { method: 'POST', body: { datos, contrasena } })
+
+// CCPIP-73, 277, 164, 362 y 146 (PW-17, PW-18): sus transferencias de existencias entre ubicaciones
+/** `vista`: EN_CURSO | HISTORIAL. Devuelve la pestana pedida y los contadores de ambas. */
+export const listarTransferencias = (vista) => apiFetch(`${base}/transferencias?${new URLSearchParams({ vista })}`)
+export const obtenerTransferencia = async (id) => apiFetch(`${base}/transferencias/${idRuta(id)}`)
+/** CCPIP-146: su almacen y los puntos de acopio, con su division politica, para elegir origen y destino. */
+export const ubicacionesTransferencia = () => apiFetch(`${base}/transferencias/ubicaciones`)
+/** `{ tipo, origenId?, destinoId, items: [{ loteId, cantidad }], observacion? }` */
+export const crearTransferencia = (datos) => apiFetch(`${base}/transferencias`, { method: 'POST', body: datos })
+/** CCPIP-164: separa las unidades del lote de origen (movimiento ligado a la transferencia). */
+export const prepararTransferencia = async (id) => apiFetch(`${base}/transferencias/${idRuta(id)}/preparar`, { method: 'POST' })
+/** CCPIP-362: despacha lo preparado; no vuelve a descontar. */
+export const despacharTransferencia = async (id) => apiFetch(`${base}/transferencias/${idRuta(id)}/despachar`, { method: 'POST' })

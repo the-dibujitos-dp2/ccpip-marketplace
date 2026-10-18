@@ -51,8 +51,11 @@ public class CompraService {
         this.carrito = carrito;
     }
 
-    /** Puntos de acopio donde hay existencias vigentes para todo el carrito, cada linea completa. */
-    @Transactional(readOnly = true)
+    /**
+     * Puntos de acopio donde hay existencias vigentes para todo el carrito, cada linea completa. No es
+     * de solo lectura: consultar el carrito lo vacia si vencio (CCPIP-142).
+     */
+    @Transactional
     public List<PuntoRecojo> puntosElegibles(long usuarioId) {
         return puntos(comprables(usuarioId), null);
     }

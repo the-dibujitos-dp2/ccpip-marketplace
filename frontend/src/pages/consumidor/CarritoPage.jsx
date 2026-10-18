@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import iconoAlerta from '../../assets/icons/alerta-campo.svg'
 import iconoBasurero from '../../assets/icons/basurero.svg'
 import iconoReloj from '../../assets/icons/reloj.svg'
+import iconoTienda from '../../assets/icons/tienda.svg'
 import { consultarCarrito, fijarUnidadesCarrito, modificarCantidad, quitarDelCarrito } from '../../api/carrito.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -14,8 +15,9 @@ import ImagenProducto from '../../components/ImagenProducto.jsx'
 import MinimoMayorista from '../../components/MinimoMayorista.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import SelectorCantidad from '../../components/SelectorCantidad.jsx'
+import SelloOrigen from '../../components/SelloOrigen.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
-import { mesAnio, precio } from '../../formato.js'
+import { fechaHoraLarga, mesAnio, precio } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import './CarritoPage.css'
@@ -46,7 +48,9 @@ const PROBLEMAS = {
 /**
  * CW-05 · CCPIP-155: articulos, cantidades, subtotales y total del carrito persistido. Precio y
  * stock vienen revalidados del servidor; lo que ya no se puede comprar se muestra sin sumar al
- * total. Cambiar la cantidad es CCPIP-268 y quitar, CCPIP-156; agrupar por comunidad, CCPIP-63.
+ * total. Cambiar la cantidad es CCPIP-268 y quitar, CCPIP-156. CCPIP-63 (RF-44): agrupado por
+ * comunidad (productor) con el subtotal de cada grupo, tal como lo arma el servidor. CCPIP-142 (RF-109):
+ * hasta cuando se guarda el carrito y, si vencio, que se vacio.
  */
 export default function CarritoPage() {
   const { t } = useTranslation()
@@ -117,6 +121,15 @@ export default function CarritoPage() {
           </EstadoVacio>
         )}
         {!error && !carrito && <p className="visually-hidden">{t('carrito.cargando')}</p>}
+        {carrito?.items.length === 0 && carrito.vencidoEn && (
+          <div className="carrito__aviso">
+            <Alerta
+              tono="info"
+              titulo={t('carrito.vigencia.vencido')}
+              descripcion={t('carrito.vigencia.vencidoTexto', { count: carrito.vigenciaHoras, fecha: fechaHoraLarga(carrito.vencidoEn) })}
+            />
+          </div>
+        )}
         {carrito?.items.length === 0 && (
           <EstadoVacio titulo={t('carrito.vacio')} descripcion={t('carrito.vacioTexto')}>
             <Boton tamano="M" to={RUTAS.buscar}>
@@ -147,11 +160,9 @@ function Contenido({ carrito, onCambiarCantidad, onQuitar }) {
             descripcion={t('carrito.conProblemasTexto')}
           />
         )}
-        <ul className="carrito__items">
-          {carrito.items.map((item) => (
-            <ItemCarrito key={item.productoId} item={item} onCambiarCantidad={onCambiarCantidad} onQuitar={onQuitar} />
-          ))}
-        </ul>
+        {carrito.grupos.map((grupo) => (
+          <GrupoProductor key={grupo.tienda.id} grupo={grupo} onCambiarCantidad={onCambiarCantidad} onQuitar={onQuitar} />
+        ))}
       </section>
 
       <aside className="carrito__resumen" aria-labelledby="titulo-resumen">
@@ -193,9 +204,46 @@ function Contenido({ carrito, onCambiarCantidad, onQuitar }) {
             {t('carrito.noReserva')}
           </p>
           <p className="caption">{t('carrito.noReservaTexto')}</p>
+          {/* CCPIP-142: el plazo lo fija la Camara y se cuenta desde el ultimo cambio, no desde la sesion */}
+          {carrito.vigenteHasta && (
+            <p className="caption carrito__vigencia">
+              {t('carrito.vigencia.hasta', { fecha: fechaHoraLarga(carrito.vigenteHasta) })}
+            </p>
+          )}
         </div>
       </aside>
     </div>
+  )
+}
+
+/**
+ * CCPIP-63 (Figma CW-05): cabecera con la tienda, su pueblo y su region y el sello si su origen esta
+ * verificado; las ofertas de ese productor; y el subtotal de lo que se puede comprar, que llega del
+ * servidor (el total del resumen es la suma de estos subtotales).
+ */
+function GrupoProductor({ grupo, onCambiarCantidad, onQuitar }) {
+  const { t } = useTranslation()
+  const idTitulo = useId()
+  const { tienda } = grupo
+  return (
+    <section className="carrito__grupo" aria-labelledby={idTitulo}>
+      <header className="carrito__grupo-cabecera">
+        <h2 id={idTitulo} className="carrito__grupo-titulo">
+          <Icono src={iconoTienda} tamano={16} />
+          {[tienda.nombre, tienda.pueblo, tienda.region].filter(Boolean).join(' · ')}
+        </h2>
+        {tienda.origenVerificado && <SelloOrigen variante="compacto" />}
+      </header>
+      <ul className="carrito__items">
+        {grupo.items.map((item) => (
+          <ItemCarrito key={item.productoId} item={item} onCambiarCantidad={onCambiarCantidad} onQuitar={onQuitar} />
+        ))}
+      </ul>
+      <p className="carrito__grupo-subtotal">
+        <span>{t('carrito.subtotalComunidad')}</span>
+        <strong>{precio(grupo.subtotal)}</strong>
+      </p>
+    </section>
   )
 }
 
@@ -212,7 +260,8 @@ function ItemCarrito({ item, onCambiarCantidad, onQuitar }) {
           {item.nombre}
         </Enlace>
         <p className="caption">
-          {[presentacion, item.cosecha && t('carrito.cosechaDe', { mes: cosecha(item.cosecha) }), t('carrito.deTienda', { nombre: item.tienda.nombre })]
+          {/* La tienda ya esta en la cabecera del grupo (CCPIP-63) */}
+          {[presentacion, item.cosecha && t('carrito.cosechaDe', { mes: cosecha(item.cosecha) })]
             .filter(Boolean)
             .join(' · ')}
         </p>

@@ -33,9 +33,11 @@ public class PedidosPuntoController {
     }
 
     private final PedidosPuntoService pedidos;
+    private final AvisoPedidoListo aviso;
 
-    public PedidosPuntoController(PedidosPuntoService pedidos) {
+    public PedidosPuntoController(PedidosPuntoService pedidos, AvisoPedidoListo aviso) {
         this.pedidos = pedidos;
+        this.aviso = aviso;
     }
 
     @GetMapping
@@ -43,11 +45,16 @@ public class PedidosPuntoController {
         return pedidos.listar(s.userId());
     }
 
-    /** CCPIP-159: marca un pedido confirmado de su punto como listo para recojo. */
+    /**
+     * CCPIP-159: marca un pedido confirmado de su punto como listo para recojo. CCPIP-69: con el cambio ya
+     * guardado, avisa al comprador por correo.
+     */
     @PostMapping("/{numero}/listo")
     public PedidoPunto marcarListo(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                    @PathVariable String numero) {
-        return pedidos.marcarListo(s.userId(), numeroValido(numero));
+        PedidoPunto listo = pedidos.marcarListo(s.userId(), numeroValido(numero));
+        aviso.avisar(listo.numero());
+        return listo;
     }
 
     /** CCPIP-71: entrega un pedido listo al comprador o la persona autorizada, validando persona y celular. */

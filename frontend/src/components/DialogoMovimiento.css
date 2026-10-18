@@ -1,0 +1,2 @@
+/* "Nuevo movimiento" (A-03): Entrada o Salida arriba y los campos en columna */
+.movimiento__formulario { display: flex; flex-direction: column; gap: 16px; min-width: min(420px, 100%); }
