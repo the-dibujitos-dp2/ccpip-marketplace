@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoGrafico from '../../assets/icons/grafico.svg'
-import { consultarInventario } from '../../api/productor.js'
+import { consultarInventario, registrarMovimientoAlmacen } from '../../api/productor.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import DialogoMovimiento, { AvisoRegistrado } from '../../components/DialogoMovimiento.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import { fechaCorta, mesAnio, unidades } from '../../formato.js'
+import { MOTIVOS_ALMACEN } from '../../movimientos.js'
 import { RUTAS } from '../../router.js'
 import PaginaProductor from './PaginaProductor.jsx'
 import './productor.css'
@@ -25,20 +27,34 @@ const corto = (nombre) => nombre.replace(/^Centro (Nacional|Regional) /, '')
 /**
  * PW-16 · CCPIP-136 (RF-110) y CCPIP-162 (RF-131): el almacen virtual unico del productor, por
  * ubicacion, lote y estado, y el total de cada producto. Solo consulta: el servidor envia unicamente
- * sus productos (RNF-05) y cada cantidad sale de sus lotes. Las transferencias (PW-17, PW-18) y el
- * mapa llegan con sus historias, por eso no hay botones para transferir.
+ * sus productos (RNF-05) y cada cantidad sale de sus lotes. CCPIP-283 (RF-203): registra entradas y
+ * salidas en los lotes de su almacen, el unico que tiene en el MVP. Las transferencias (PW-17, PW-18)
+ * y el mapa llegan con sus historias, por eso no hay botones para transferir.
  */
 export default function AlmacenPage({ path }) {
   const { t } = useTranslation()
-  const { datos, error } = useConsulta(consultarInventario)
+  const { datos, error, recargar } = useConsulta(consultarInventario)
   const [elegida, setElegida] = useState(null)
   const [avisoVisible, setAvisoVisible] = useState(true)
+  const [dialogo, setDialogo] = useState(null)
+  const [registrado, setRegistrado] = useState(null)
 
   const ubicaciones = datos?.ubicaciones ?? []
   const productos = datos?.productos ?? []
   // Por defecto su almacen, como en el Figma
   const pestana = elegida ?? (ubicaciones[0] ? String(ubicaciones[0].id) : POR_PRODUCTO)
   const lotesDe = (u) => productos.flatMap((p) => p.lotes.filter((l) => l.ubicacionId === u.id).map((l) => ({ ...l, producto: p.nombre })))
+  // Lo que el formulario ofrece: los lotes de su almacen, no los que ya estan en un punto
+  const lotesAlmacen = productos.flatMap((p) => p.lotes.filter((l) => l.tipoUbicacion === 'ALMACEN_PRODUCTOR').map((l) => ({
+    id: l.id, codigo: l.codigo, productoId: p.id, producto: p.nombre, stock: l.cantidad,
+    fechaVencimiento: l.fechaVencimiento, vencido: l.estado === 'VENCIDO',
+  })))
+
+  function alRegistrar(r) {
+    setDialogo(null)
+    setRegistrado(r)
+    recargar()
+  }
 
   return (
     <PaginaProductor path={path} seccion={t('productor.nav.almacen')} titulo={t('productor.almacen.titulo')}>
@@ -69,8 +85,17 @@ export default function AlmacenPage({ path }) {
           {pestana === POR_PRODUCTO ? (
             <PorProducto productos={productos} />
           ) : (
-            ubicaciones.filter((u) => String(u.id) === pestana).map((u) => <PorUbicacion key={u.id} ubicacion={u} lotes={lotesDe(u)} />)
+            ubicaciones.filter((u) => String(u.id) === pestana).map((u) => (
+              <PorUbicacion
+                key={u.id}
+                ubicacion={u}
+                lotes={lotesDe(u)}
+                onMovimiento={lotesAlmacen.length > 0 ? () => setDialogo({ clave: Date.now() }) : undefined}
+              />
+            ))
           )}
+
+          {registrado && <AvisoRegistrado registrado={registrado} onCerrar={() => setRegistrado(null)} />}
 
           {avisoVisible && (
             <Alerta
@@ -81,6 +106,17 @@ export default function AlmacenPage({ path }) {
             />
           )}
         </>
+      )}
+
+      {dialogo && (
+        <DialogoMovimiento
+          key={dialogo.clave}
+          lotes={lotesAlmacen}
+          motivos={MOTIVOS_ALMACEN}
+          registrar={registrarMovimientoAlmacen}
+          onRegistrado={alRegistrar}
+          onCancelar={() => setDialogo(null)}
+        />
       )}
     </PaginaProductor>
   )
@@ -125,8 +161,8 @@ function cosechaYVencimiento(l, t) {
   return l.fechaProduccion ? `${t('productor.almacen.cosecha', { mes: mesAnio(l.fechaProduccion) })} · ${vence}` : vence
 }
 
-/** Los lotes con saldo en una ubicacion (CCPIP-162). */
-function PorUbicacion({ ubicacion, lotes }) {
+/** Los lotes con saldo en una ubicacion (CCPIP-162). En su almacen, la accion de CCPIP-283. */
+function PorUbicacion({ ubicacion, lotes, onMovimiento }) {
   const { t } = useTranslation()
   const almacen = ubicacion.tipo === 'ALMACEN_PRODUCTOR'
   const titulo = almacen
@@ -134,7 +170,10 @@ function PorUbicacion({ ubicacion, lotes }) {
     : t('productor.almacen.inventarioPunto', { nombre: ubicacion.nombre })
   return (
     <section className="productor__seccion" aria-labelledby="titulo-inventario">
-      <h2 id="titulo-inventario" className="heading-h3">{titulo}</h2>
+      <div className="productor__encabezado">
+        <h2 id="titulo-inventario" className="heading-h3">{titulo}</h2>
+        {almacen && onMovimiento && <Boton tamano="M" onClick={onMovimiento}>{t('movimiento.titulo')}</Boton>}
+      </div>
       {lotes.length === 0 ? (
         <EstadoVacio titulo={t(almacen ? 'productor.almacen.vacioAlmacen' : 'productor.almacen.vacioPunto')} descripcion={t('productor.almacen.vacioTexto')}>
           <Boton tipo="secundario" tamano="M" to={RUTAS.productorLotes}>{t('productor.panel.registrarLote')}</Boton>

@@ -1,5 +1,7 @@
 package pe.ccpip.inventario;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +36,12 @@ public class MovimientosService {
             WHERE m.ubicacion_id IN (SELECT ubicacion_id FROM usuario_ubicacion WHERE usuario_id = :usuario)
             """;
 
+    private static final String COLUMNAS = """
+            SELECT m.id, m.registrado_en, m.tipo, p.id AS producto_id, p.nombre AS producto, l.codigo AS lote,
+                   m.cantidad, pe.numero AS pedido, m.observacion, m.motivo,
+                   CASE WHEN m.tipo = 'SALIDA_VENTA' THEN NULL ELSE u.nombre END AS registrado_por
+            """;
+
     private final NamedParameterJdbcTemplate jdbc;
     private final PuntosDeAcopio puntos;
 
@@ -62,16 +70,27 @@ public class MovimientosService {
         Long total = jdbc.queryForObject("SELECT count(*) " + donde, p, Long.class);
         long cuantos = total == null ? 0 : total;
         p.addValue("limite", TAMANO).addValue("desde", (long) pagina * TAMANO);
-        List<Movimiento> items = jdbc.query("""
-                SELECT m.id, m.registrado_en, m.tipo, p.id AS producto_id, p.nombre AS producto, l.codigo AS lote,
-                       m.cantidad, pe.numero AS pedido, m.observacion,
-                       CASE WHEN m.tipo = 'SALIDA_VENTA' THEN NULL ELSE u.nombre END AS registrado_por
-                """ + donde + " ORDER BY m.registrado_en DESC, m.id DESC LIMIT :limite OFFSET :desde", p,
-                (rs, row) -> new Movimiento(rs.getLong("id"), rs.getObject("registrado_en", Timestamp.class).toInstant(),
-                        rs.getString("tipo"), rs.getLong("producto_id"), rs.getString("producto"), rs.getString("lote"),
-                        rs.getBigDecimal("cantidad"), rs.getString("pedido"), rs.getString("registrado_por"),
-                        rs.getString("observacion")));
+        List<Movimiento> items = jdbc.query(COLUMNAS + donde + " ORDER BY m.registrado_en DESC, m.id DESC LIMIT :limite OFFSET :desde",
+                p, MovimientosService::movimiento);
         return new Movimientos(ubicacion, items, pagina, TAMANO, cuantos,
                 (int) ((cuantos + TAMANO - 1) / TAMANO));
+    }
+
+    /** Un movimiento por su id, como lo muestra A-03. Sin filtro: lo usa quien ya valido el lote (CCPIP-121, 287, 283). */
+    Movimiento obtener(long id) {
+        return jdbc.query(COLUMNAS + """
+                FROM movimiento_inventario m
+                JOIN producto p ON p.id = m.producto_id
+                LEFT JOIN lote l ON l.id = m.lote_id
+                LEFT JOIN pedido pe ON pe.id = m.pedido_id
+                LEFT JOIN usuario u ON u.id = m.usuario_id
+                WHERE m.id = :id""", new MapSqlParameterSource("id", id), MovimientosService::movimiento).get(0);
+    }
+
+    private static Movimiento movimiento(ResultSet rs, int row) throws SQLException {
+        return new Movimiento(rs.getLong("id"), rs.getObject("registrado_en", Timestamp.class).toInstant(),
+                rs.getString("tipo"), rs.getLong("producto_id"), rs.getString("producto"), rs.getString("lote"),
+                rs.getBigDecimal("cantidad"), rs.getString("pedido"), rs.getString("registrado_por"),
+                rs.getString("observacion"), rs.getString("motivo"));
     }
 }

@@ -1,6 +1,7 @@
 package pe.ccpip.carrito;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -55,9 +56,23 @@ public final class CarritoModelos {
     }
 
     /**
-     * {@code unidades} cuenta todo lo que hay en el carrito (para la cabecera); {@code total} y
-     * {@code comunidades} solo lo que se puede comprar.
+     * CCPIP-63 (RF-44): las ofertas de un mismo productor (su tienda o comunidad, Figma CW-05), en el
+     * orden en que se agregaron. {@code subtotal} suma solo lo que se puede comprar, igual que el total.
+     * Cada item es una oferta concreta de ese productor: no se juntan ofertas ni inventarios de otros.
      */
-    public record Carrito(List<Item> items, BigDecimal unidades, long comunidades, BigDecimal total) {
+    public record Grupo(TiendaResumen tienda, List<Item> items, BigDecimal subtotal) {
+    }
+
+    /**
+     * {@code unidades} cuenta todo lo que hay en el carrito (para la cabecera); {@code total} y
+     * {@code comunidades} solo lo que se puede comprar. {@code total} es exactamente la suma de los
+     * subtotales de {@code grupos} (CCPIP-63).
+     * <p>
+     * CCPIP-142 (RF-109): {@code vigenteHasta} es hasta cuando se guarda el carrito si no se vuelve a
+     * cambiar (nulo si esta vacio); {@code vigenciaHoras}, el plazo que rige. {@code vencidoEn} dice
+     * cuando se vacio por vencer, para avisarlo; nulo si no vencio o si ya se volvio a agregar algo.
+     */
+    public record Carrito(List<Item> items, List<Grupo> grupos, BigDecimal unidades, long comunidades,
+                          BigDecimal total, Instant vigenteHasta, long vigenciaHoras, Instant vencidoEn) {
     }
 }

@@ -41,7 +41,7 @@ public class ProductosService {
     /** Stock en venta por debajo del cual PW-03 marca "Stock bajo". */
     static final BigDecimal STOCK_BAJO = BigDecimal.TEN;
     /** Dias de anticipacion para avisar que un lote vence (PW-01: "segun tu alerta de 15 dias"). */
-    static final int DIAS_ALERTA_VENCIMIENTO = 15;
+    public static final int DIAS_ALERTA_VENCIMIENTO = 15;
 
     /** Stock vendible: lotes vigentes con saldo en puntos de acopio (lo que esta en el almacen aun no se vende). */
     static final String EN_VENTA = """
