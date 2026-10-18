@@ -887,7 +887,8 @@
       "comision": "Comisión",
       "comisiones": "Comisión por pedido",
       "parametros": "Parámetros",
-      "autorizaciones": "Autorizaciones"
+      "autorizaciones": "Autorizaciones",
+      "catalogo": "Catálogo maestro"
     },
     "tablero": {
       "titulo": "Tablero de operación",
@@ -1306,7 +1307,17 @@
     "APROBACION_PENDIENTE": "La solicitud entre puntos aún no tiene quien la apruebe.",
     "TRANSICION_INVALIDA": "La transferencia cambió de estado. Actualiza la página.",
     "TRANSFERENCIA_NO_ENCONTRADA": "La transferencia no existe.",
-    "NO_ES_DESTINO": "Solo el punto de destino registra la recepción."
+    "NO_ES_DESTINO": "Solo el punto de destino registra la recepción.",
+    "CODIGO_DUPLICADO": "Ya existe un registro con ese código.",
+    "NOMBRE_DUPLICADO": "Ya existe una línea con ese nombre.",
+    "PRODUCTO_DUPLICADO": "Ya existe un producto con ese nombre en la línea.",
+    "LINEA_INACTIVA": "La línea está desactivada. Elige una línea activa.",
+    "LINEA_NO_ENCONTRADA": "La línea no existe.",
+    "LINEA_YA_INACTIVA": "La línea ya está desactivada.",
+    "LINEA_YA_ACTIVA": "La línea ya está activa.",
+    "PRODUCTO_YA_INACTIVO": "El producto ya está desactivado.",
+    "PRODUCTO_YA_ACTIVO": "El producto ya está activo.",
+    "PARAMETRO_INVALIDO": "Uno de los filtros no es válido."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -2132,5 +2143,117 @@
     "verDetalle": "Ver detalle",
     "ocultarDetalle": "Ocultar detalle",
     "pendienteAprobador": "Aún no está definido quién aprueba las transferencias entre puntos: la solicitud queda registrada y no compromete unidades."
+  },
+  "catalogoMaestro": {
+    "titulo": "Catálogo maestro",
+    "intro": "Líneas y productos de referencia de la Cámara. No son la oferta comercial: cada productor publica sus ofertas con su propio nombre, precio y stock.",
+    "nota": "Nada se borra: desactivar conserva las ofertas, los pedidos y el historial que lo referencian. Cada cambio queda auditado.",
+    "pestanas": "Secciones del catálogo maestro",
+    "vista": {
+      "lineas": "Líneas",
+      "productos": "Productos"
+    },
+    "estado": {
+      "TODOS": "Todos",
+      "ACTIVOS": "Activos",
+      "INACTIVOS": "Inactivos"
+    },
+    "activo": "Activo",
+    "inactivo": "Inactivo",
+    "inactiva": "inactiva",
+    "filtro": {
+      "buscar": "Buscar por nombre",
+      "estado": "Estado",
+      "linea": "Línea",
+      "todas": "Todas las líneas",
+      "aplicar": "Buscar"
+    },
+    "contadores": "{{activos}} activos · {{inactivos}} inactivos",
+    "col": {
+      "estado": "Estado",
+      "acciones": "Acciones"
+    },
+    "editar": "Editar",
+    "desactivar": "Desactivar",
+    "reactivar": "Reactivar",
+    "editarDe": "Editar {{nombre}}",
+    "desactivarDe": "Desactivar {{nombre}}",
+    "reactivarDe": "Reactivar {{nombre}}",
+    "guardar": "Guardar cambios",
+    "crear": "Crear",
+    "errorCargar": "No pudimos cargar el catálogo maestro",
+    "errorEstado": "No pudimos cambiar el estado",
+    "lineas": {
+      "nueva": "Nueva línea",
+      "vacio": "No hay líneas con estos filtros",
+      "col": {
+        "linea": "Línea",
+        "vencimiento": "Vencimiento",
+        "unidad": "Unidad sugerida",
+        "productos": "Productos",
+        "ofertas": "Ofertas"
+      },
+      "vence": "Vence",
+      "noVence": "No vence",
+      "form": {
+        "tituloNueva": "Nueva línea",
+        "tituloEditar": "Editar línea",
+        "codigo": "Código",
+        "codigoAyuda": "Letras, números o guion bajo. No se puede cambiar después.",
+        "nombre": "Nombre",
+        "nombreEn": "Nombre en inglés (opcional)",
+        "nombreEnAyuda": "Si cambias el nombre y no lo traduces, en inglés se mostrará el nombre en español.",
+        "unidad": "Unidad sugerida",
+        "sinUnidad": "Sin unidad sugerida",
+        "orden": "Orden en el catálogo",
+        "ordenAyuda": "Vacío: va al final.",
+        "vencimiento": "Sus lotes tienen fecha de vencimiento"
+      },
+      "creada": "Línea {{nombre}} creada.",
+      "guardada": "Cambios guardados en {{nombre}}.",
+      "desactivarTitulo": "¿Desactivar la línea {{nombre}}?",
+      "desactivarTexto": "Dejará de ofrecerse para nuevas ofertas y productos. Se conservan sus {{productos}} productos maestros y {{ofertas}} ofertas, con sus pedidos e historial.",
+      "reactivarTitulo": "¿Reactivar la línea {{nombre}}?",
+      "reactivarTexto": "Volverá a ofrecerse a los productores y en el catálogo.",
+      "desactivada": "Línea {{nombre}} desactivada. Se conservan sus {{ofertas}} ofertas.",
+      "reactivada": "Línea {{nombre}} reactivada."
+    },
+    "productos": {
+      "nuevo": "Nuevo producto",
+      "vacio": "No hay productos con estos filtros",
+      "col": {
+        "producto": "Producto",
+        "linea": "Línea",
+        "ofertas": "Ofertas"
+      },
+      "ofertas": "{{total}} · {{publicadas}} publicadas",
+      "lineaInactiva": "Línea inactiva",
+      "form": {
+        "tituloNuevo": "Nuevo producto",
+        "tituloEditar": "Editar producto",
+        "codigo": "Código",
+        "codigoAyuda": "Letras, números, guion o guion bajo. No se puede cambiar después.",
+        "nombre": "Nombre genérico",
+        "descripcion": "Descripción (opcional)",
+        "linea": "Línea",
+        "historico": "Los cambios no modifican sus {{total}} ofertas ni los pedidos que ya existen."
+      },
+      "creado": "Producto {{nombre}} creado.",
+      "guardado": "Cambios guardados en {{nombre}}.",
+      "desactivarTitulo": "¿Desactivar el producto {{nombre}}?",
+      "desactivarTexto": "Dejará de ofrecerse como referencia. Sus {{ofertas}} ofertas ({{publicadas}} publicadas) siguen igual, con sus pedidos e historial.",
+      "reactivarTitulo": "¿Reactivar el producto {{nombre}}?",
+      "reactivarTexto": "Volverá a ofrecerse como referencia.",
+      "desactivado": "Producto {{nombre}} desactivado. Se conservan sus {{ofertas}} ofertas.",
+      "reactivado": "Producto {{nombre}} reactivado."
+    },
+    "validacion": {
+      "codigo": "Usa de 2 a 40 letras, números o guion bajo, sin espacios.",
+      "codigoProducto": "Usa de 2 a 40 letras, números, guion o guion bajo, sin espacios.",
+      "nombre": "Escribe el nombre.",
+      "orden": "Usa un número entre 0 y 999.",
+      "linea": "Elige la línea.",
+      "revisar": "Revisa este dato."
+    }
   }
 }

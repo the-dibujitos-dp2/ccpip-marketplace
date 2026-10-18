@@ -120,3 +120,24 @@
 @media (max-width: 1100px) {
   .expediente { grid-template-columns: 1fr; }
 }
+
+/* Catalogo maestro (CCPIP-96, 309-314, 351) */
+.catalogo-maestro__intro { max-width: 760px; margin: 0; color: var(--color-text-secondary); }
+.catalogo-maestro__barra { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.catalogo-maestro__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.catalogo-maestro__filtros .campo { width: 200px; }
+.catalogo-maestro__resumen { display: flex; align-items: center; gap: 16px; }
+.catalogo-maestro__resumen .caption { color: var(--color-text-secondary); }
+.catalogo-maestro__detalle { display: block; color: var(--color-text-secondary); }
+.catalogo-maestro__col { flex: 0 0 130px; }
+.catalogo-maestro__linea { flex: 0 0 170px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.catalogo-maestro__num { flex: 0 0 90px; text-align: right; font-variant-numeric: tabular-nums; }
+.catalogo-maestro__estado { flex: 0 0 100px; }
+.catalogo-maestro__acciones { flex: 0 0 210px; }
+.catalogo-maestro__formulario { display: flex; flex-direction: column; gap: 16px; min-width: min(480px, 80vw); }
+.catalogo-maestro__casilla { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--color-text-primary); }
+.catalogo-maestro__aviso { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 10px 12px; border-radius: var(--radius-m); background: var(--color-status-info-bg); color: var(--color-text-secondary); }
+
+@media (max-width: 600px) {
+  .catalogo-maestro__filtros .campo { width: 100%; }
+}
