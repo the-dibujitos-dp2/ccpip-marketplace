@@ -1753,6 +1753,27 @@
       "CANCELADO": "Pedido cancelado"
     }
   },
+  "misDatos": {
+    "titulo": "Datos personales",
+    "nombres": "Nombres",
+    "apellidos": "Apellidos",
+    "correo": "Correo electrónico",
+    "celular": "Celular",
+    "correoAyuda": "Es tu usuario para ingresar; no se cambia aquí.",
+    "correoSinConfirmar": "Es tu usuario para ingresar. Aún no lo confirmas: revisa el enlace que te enviamos.",
+    "celularAyuda": "Opcional. Para coordinar tus pedidos.",
+    "guardar": "Guardar cambios",
+    "guardando": "Guardando…",
+    "guardado": "Tus datos se guardaron",
+    "errorGuardar": "No pudimos guardar tus datos",
+    "errorCargar": "No pudimos cargar tus datos",
+    "errores": {
+      "nombres": "Escribe tus nombres",
+      "apellidos": "Escribe tus apellidos",
+      "celular": "Escribe un celular válido",
+      "largo": "Máximo {{maximo}} caracteres"
+    }
+  },
   "idioma": {
     "etiqueta": "Idioma: {{idioma}}. Cambiar idioma",
     "menu": "Idioma"

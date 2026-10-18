@@ -14,6 +14,7 @@ export const RUTAS = {
   restablecerContrasena: '/restablecer-contrasena',
   inicio: '/inicio',
   misPedidos: '/cuenta/pedidos',
+  misDatos: '/cuenta/datos',
   productor: '/productor',
   productorTienda: '/productor/tienda',
   productorProductos: '/productor/productos',

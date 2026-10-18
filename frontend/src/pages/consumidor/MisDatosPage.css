@@ -1,0 +1,11 @@
+/* CW-13 · Mi cuenta › Datos personales (CCPIP-400, CCPIP-113) */
+.mis-datos { display: flex; flex-direction: column; gap: 20px; padding: 28px; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
+.mis-datos__titulo { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 24px; line-height: 32px; }
+.mis-datos__campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; }
+.mis-datos__campos .campo__control[readonly] { background: var(--color-bg-surface-alt); color: var(--color-text-secondary); }
+.mis-datos__acciones { display: flex; justify-content: flex-end; }
+
+@media (max-width: 720px) {
+  .mis-datos { padding: 20px; }
+  .mis-datos__campos { grid-template-columns: minmax(0, 1fr); }
+}
