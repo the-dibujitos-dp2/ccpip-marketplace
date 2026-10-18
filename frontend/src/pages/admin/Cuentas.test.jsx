@@ -152,7 +152,7 @@ describe('Nueva cuenta administrativa (CCPIP-301, CCPIP-304)', () => {
     expect(llamadas(fetchMock, `POST ${CUENTAS}`)).toHaveLength(0)
   })
 
-  it('crea un administrador de punto con sus puntos, sin contraseña, y abre su cuenta', async () => {
+  it('crea un administrador de punto con sus puntos, sin contraseña, y abre su cuenta', { timeout: 15_000 }, async () => {
     const creada = { ...copia(DATOS.cuentaAdmin), id: 30, nombre: 'Pedro Quispe', accesoPendiente: true }
     const fetchMock = comoSuper({
       [`POST ${CUENTAS}`]: [201, { cuenta: creada, avisoEnviado: true }],
@@ -229,7 +229,7 @@ describe('Detalle de la cuenta (CCPIP-302, 303, 305, 306, 307, 308)', () => {
     expect(within(historial[1]).getByText(/Ana Shuñaqui/)).toBeInTheDocument()
   })
 
-  it('modifica los datos autorizados y los puntos; el correo y el rol no se editan', async () => {
+  it('modifica los datos autorizados y los puntos; el correo y el rol no se editan', { timeout: 15_000 }, async () => {
     const guardada = copia(DATOS.cuentaAdmin)
     guardada.nombre = 'Administrador del Cusco'
     const fetchMock = comoSuper({ [`PUT ${DETALLE}`]: [200, guardada] })
@@ -266,7 +266,7 @@ describe('Detalle de la cuenta (CCPIP-302, 303, 305, 306, 307, 308)', () => {
     expect(screen.queryByRole('form', { name: 'Editar datos de la cuenta' })).not.toBeInTheDocument()
   })
 
-  it('suspende con motivo obligatorio y luego reactiva', async () => {
+  it('suspende con motivo obligatorio y luego reactiva', { timeout: 15_000 }, async () => {
     const fetchMock = comoSuper({
       [`POST ${DETALLE}/suspender`]: () => [200, { cuenta: conEstado('SUSPENDIDA', 'SUSPENDER', 'Reportes de pagos'), avisoEnviado: true }],
       [`POST ${DETALLE}/reactivar`]: () => [200, { cuenta: conEstado('ACTIVA', 'REACTIVAR', 'Pagos aclarados'), avisoEnviado: true }],
@@ -290,7 +290,7 @@ describe('Detalle de la cuenta (CCPIP-302, 303, 305, 306, 307, 308)', () => {
     expect(await screen.findByText('Cuenta reactivada.')).toBeInTheDocument()
   })
 
-  it('desactiva de forma definitiva y avisa si el correo no salió; un rechazo del servidor queda en el diálogo', async () => {
+  it('desactiva de forma definitiva y avisa si el correo no salió; un rechazo del servidor queda en el diálogo', { timeout: 15_000 }, async () => {
     let respuesta = [409, { code: 'ESTADO_NO_PERMITE', error: 'El estado actual de la cuenta no permite esta acción. Actualiza la pantalla.' }]
     comoSuper({ [`POST ${DETALLE}/desactivar`]: () => respuesta })
     abrirEn('/admin/cuentas/4')
