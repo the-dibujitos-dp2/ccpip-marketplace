@@ -24,6 +24,9 @@ import comisionAdmin from './fixtures/admin-comision.json'
 import comisionesAdmin from './fixtures/admin-comisiones.json'
 // CCPIP-142: armado segun VigenciaCarritoService.Vigencia del backend, sin configurar (provisional)
 import vigenciaCarritoAdmin from './fixtures/admin-vigencia-carrito.json'
+// CCPIP-96 y CCPIP-351: armados segun CatalogoMaestroModelos (Lineas, ProductosMaestros) con el seed de CCPIP-42 (R__02)
+import lineasMaestras from './fixtures/admin-catalogo-lineas.json'
+import productosMaestros from './fixtures/admin-catalogo-productos.json'
 // CCPIP-112: armado segun ResumenPedido del backend
 import misPedidos from './fixtures/mis-pedidos.json'
 // CCPIP-36, 50, 174 y 284: armados segun AutorizacionModelos del backend
@@ -134,6 +137,8 @@ export const DATOS = {
   comisionAdmin,
   comisionesAdmin,
   vigenciaCarritoAdmin,
+  lineasMaestras,
+  productosMaestros,
   misPedidos,
   autorizacionesAdmin,
   expedienteAdmin,
