@@ -468,6 +468,42 @@ como NO_DISPONIBLE y la solicitud se decide a mano; `simulado` aplica reglas fij
 declarado (sin leer el archivo) y se marca `simulado = true` en la base y en la pantalla como
 resultado de prueba. Solo se usa en pruebas y demo.
 
+## Catalogo maestro y ofertas por productor (CCPIP-42)
+
+Migracion `V202610171900`. RF-18: el visitante consulta las ofertas de distintos productores
+para un mismo producto del catalogo maestro. La fila de `producto` pasa a ser **la oferta** de
+un productor; el maestro es el producto generico que define la Camara.
+
+```mermaid
+erDiagram
+    linea_producto ||--o{ producto_maestro : clasifica
+    producto_maestro ||--o{ producto : ofertado_como
+```
+
+### producto_maestro
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | PK |
+| codigo | varchar(40) | no | Unico, por ejemplo `CACAO-GRANO` |
+| nombre | varchar(150) | no | Nombre generico, sin presentacion: "Cacao en grano fermentado" |
+| descripcion | text | si | |
+| linea_id | smallint | no | FK a `linea_producto` |
+| activo | boolean | no | Se desactiva, nunca se borra (CCPIP-314) |
+
+`producto.producto_maestro_id` (nula) liga cada oferta a su maestro. Una oferta creada por el
+productor nace sin maestro hasta que la Camara la asocie; crear, modificar y desactivar maestros
+desde la plataforma es CCPIP-312, 313 y 314. Por ahora los maestros entran sembrados en `R__02`,
+que agrega una segunda oferta de cacao en grano (Coop. Río Ene) junto a la de C.N. Yarina.
+
+**Cada oferta conserva lo suyo.** Nombre, presentacion, precio, historia, existencias y estado
+de venta siguen en la oferta, no en el maestro. `GET /api/maestros/{id}` devuelve el maestro con
+sus ofertas visibles (misma regla que el catalogo), primero las que tienen saldo en venta y luego
+por precio; las agotadas o en "Venta pausada" se listan marcadas. La ficha de una oferta trae su
+`maestro` con las mismas ofertas. Un maestro desactivado responde 404.
+
+`autorizacion_producto` sigue apuntando a `producto` (la oferta): moverla a `producto_maestro_id`
+cambia la regla de CCPIP-269 y queda para cuando la Camara decida si autoriza por maestro.
+
 ## Descuento de existencias por venta (CCPIP-158)
 
 Migracion `V202610121700`. Al confirmar una compra, cada linea de pedido sale de los lotes

@@ -28,7 +28,7 @@ class SemillasTest extends IntegrationTest {
 
     private static final List<String> TABLAS = List.of(
             "usuario", "productor", "producto", "cuenta_bancaria", "autorizacion_producto",
-            "lote", "movimiento_inventario", "stock", "ubicacion", "usuario_ubicacion");
+            "lote", "movimiento_inventario", "stock", "ubicacion", "usuario_ubicacion", "producto_maestro");
 
     @Autowired
     private DataSource dataSource;
@@ -77,7 +77,7 @@ class SemillasTest extends IntegrationTest {
                 WHERE pr.estado = 'PUBLICADO' AND pr.precio > 0""", Long.class);
 
         assertThat(sinCuenta).isZero();
-        assertThat(publicadosSembrados).isGreaterThanOrEqualTo(10);
+        assertThat(publicadosSembrados).isGreaterThanOrEqualTo(11);
     }
 
     @Test
@@ -88,7 +88,7 @@ class SemillasTest extends IntegrationTest {
                 LEFT JOIN lote l ON l.id = mv.lote_id
                 WHERE mv.observacion = 'Carga inicial de demostracion'""");
 
-        assertThat(cargas).hasSize(10).allSatisfy(c -> {
+        assertThat(cargas).hasSize(11).allSatisfy(c -> {
             assertThat(c.get("lote_id")).isNotNull();
             assertThat(c.get("cantidad")).isEqualTo(c.get("cantidad_inicial"));
             assertThat(c.get("misma_ubicacion")).isEqualTo(true);
