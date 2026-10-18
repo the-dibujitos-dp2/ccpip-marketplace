@@ -104,7 +104,19 @@
       "sinProductos": "Aún no tienes productos",
       "sinProductosTexto": "Publica tu primer producto y cuéntale al comprador la historia de tu comunidad.",
       "sinStock": "Publicados sin stock en venta",
-      "reponer": "Registrar lote para reponer"
+      "reponer": "Registrar lote para reponer",
+      "intereses": {
+        "titulo": "Interés en tus productos agotados",
+        "cifra_one": "{{count}} persona · {{cantidad}} und",
+        "cifra_other": "{{count}} personas · {{cantidad}} und",
+        "estado": {
+          "VENTA_PAUSADA": "Venta pausada: reactiva tu cuenta bancaria para vender",
+          "DISPONIBLE": "Ya está a la venta: les avisaremos en unos minutos",
+          "NO_PUBLICADO": "No está publicado"
+        },
+        "reponer": "Reponer stock",
+        "nota": "Cuando vuelva a venderse, avisamos por correo a cada interesado. No es una reserva ni un cobro."
+      }
     },
     "lotes": {
       "primeroProducto": "Primero crea un producto",
@@ -1317,7 +1329,9 @@
     "CUENTA_NO_ENCONTRADA": "No encontramos esa cuenta.",
     "ESTADO_NO_PERMITE": "El estado actual de la cuenta no permite esta acción. Actualiza la pantalla.",
     "ACCESO_YA_CONFIGURADO": "La persona ya eligió su contraseña.",
-    "ROL_FUERA_DE_ALCANCE": "Tu rol no permite consultar cuentas de ese tipo."
+    "ROL_FUERA_DE_ALCANCE": "Tu rol no permite consultar cuentas de ese tipo.",
+    "OFERTA_DISPONIBLE": "Este producto está disponible: puedes agregarlo a tu carrito.",
+    "SIN_INTERES": "No tienes un interés registrado en este producto."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -2265,5 +2279,31 @@
       "DESACTIVAR": "Desactivada",
       "REENVIAR_ACCESO": "Enlace de acceso reenviado"
     }
+  },
+  "interes": {
+    "boton": "Me interesa",
+    "explicaAgotado": "Te preguntamos cuántas unidades te interesan y te avisamos por correo cuando {{tienda}} vuelva a tener stock. No es una reserva ni un cobro.",
+    "explicaPausada": "Te preguntamos cuántas unidades te interesan y te avisamos por correo cuando puedas comprarlo. No es una reserva ni un cobro.",
+    "titulo": "Me interesa este producto",
+    "deTienda": "{{producto}} · {{tienda}}",
+    "textoAgotado": "Está agotado en este productor. Tu interés le llega a {{tienda}} y te avisamos cuando vuelva a tener stock.",
+    "textoPausada": "{{tienda}} pausó sus ventas por un tema administrativo. Tu interés le llega y te avisamos cuando puedas comprarlo.",
+    "pregunta": "¿Qué cantidad te interesaría comprar?",
+    "noReserva": "No es una reserva ni un cobro. Te avisaremos por correo; cuando vuelva, compras como cualquier cliente.",
+    "enviar": "Enviar mi interés",
+    "guardar": "Guardar cantidad",
+    "enviando": "Enviando…",
+    "cantidadInvalida": "Indica una cantidad entera de 1 a {{maximo}}",
+    "registrado_one": "Registraste tu interés · {{count}} und",
+    "registrado_other": "Registraste tu interés · {{count}} und",
+    "registradoAviso_one": "Registramos tu interés por {{count}} unidad",
+    "registradoAviso_other": "Registramos tu interés por {{count}} unidades",
+    "actualizado_one": "Cambiamos tu interés a {{count}} unidad",
+    "actualizado_other": "Cambiamos tu interés a {{count}} unidades",
+    "teAvisamos": "Te avisaremos por correo cuando vuelva a estar disponible.",
+    "cambiar": "Cambiar cantidad",
+    "retirar": "Retirar interés",
+    "retirado": "Retiramos tu interés en este producto",
+    "errorRetirar": "No pudimos retirar tu interés"
   }
 }

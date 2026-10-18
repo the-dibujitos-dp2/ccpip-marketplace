@@ -104,7 +104,19 @@
       "sinProductos": "You don't have any products yet",
       "sinProductosTexto": "Publish your first product and tell buyers your community's story.",
       "sinStock": "Published with no stock for sale",
-      "reponer": "Register batch to restock"
+      "reponer": "Register batch to restock",
+      "intereses": {
+        "titulo": "Interest in your sold-out products",
+        "cifra_one": "{{count}} person · {{cantidad}} units",
+        "cifra_other": "{{count}} people · {{cantidad}} units",
+        "estado": {
+          "VENTA_PAUSADA": "Sales paused: reactivate your bank account to sell",
+          "DISPONIBLE": "On sale again: we'll notify them in a few minutes",
+          "NO_PUBLICADO": "Not published"
+        },
+        "reponer": "Restock",
+        "nota": "When it's on sale again, we email each interested buyer. It isn't a reservation or a charge."
+      }
     },
     "lotes": {
       "primeroProducto": "Create a product first",
@@ -1317,7 +1329,9 @@
     "CUENTA_NO_ENCONTRADA": "We could not find that account.",
     "ESTADO_NO_PERMITE": "The account's current status does not allow this action. Refresh the page.",
     "ACCESO_YA_CONFIGURADO": "The person already chose their password.",
-    "ROL_FUERA_DE_ALCANCE": "Your role cannot view accounts of that type."
+    "ROL_FUERA_DE_ALCANCE": "Your role cannot view accounts of that type.",
+    "OFERTA_DISPONIBLE": "This product is available: you can add it to your cart.",
+    "SIN_INTERES": "You have no interest registered in this product."
   },
   "buscar": {
     "comunidad": "Community",
@@ -2265,5 +2279,31 @@
       "DESACTIVAR": "Deactivated",
       "REENVIAR_ACCESO": "Access link resent"
     }
+  },
+  "interes": {
+    "boton": "I'm interested",
+    "explicaAgotado": "We'll ask how many units you'd like and email you when {{tienda}} has stock again. It isn't a reservation or a charge.",
+    "explicaPausada": "We'll ask how many units you'd like and email you when you can buy it. It isn't a reservation or a charge.",
+    "titulo": "I'm interested in this product",
+    "deTienda": "{{producto}} · {{tienda}}",
+    "textoAgotado": "It's sold out at this producer. Your interest reaches {{tienda}} and we'll let you know when it has stock again.",
+    "textoPausada": "{{tienda}} paused its sales for an administrative reason. Your interest reaches them and we'll let you know when you can buy it.",
+    "pregunta": "How many would you like to buy?",
+    "noReserva": "It isn't a reservation or a charge. We'll email you; when it's back, you buy like any other customer.",
+    "enviar": "Send my interest",
+    "guardar": "Save quantity",
+    "enviando": "Sending…",
+    "cantidadInvalida": "Enter a whole number from 1 to {{maximo}}",
+    "registrado_one": "Interest registered · {{count}} unit",
+    "registrado_other": "Interest registered · {{count}} units",
+    "registradoAviso_one": "We registered your interest in {{count}} unit",
+    "registradoAviso_other": "We registered your interest in {{count}} units",
+    "actualizado_one": "We changed your interest to {{count}} unit",
+    "actualizado_other": "We changed your interest to {{count}} units",
+    "teAvisamos": "We'll email you when it's available again.",
+    "cambiar": "Change quantity",
+    "retirar": "Withdraw interest",
+    "retirado": "We withdrew your interest in this product",
+    "errorRetirar": "We couldn't withdraw your interest"
   }
 }
