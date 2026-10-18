@@ -49,6 +49,9 @@ import pe.ccpip.productor.Auditoria.Accion;
  *   <li>CCPIP-174 (RF-166) y CCPIP-284 (RF-204): aprueba o rechaza con motivo. Esa decision humana es
  *       la unica que autoriza. Aprobar deja autorizacion_producto APROBADA, con vigente_hasta igual al
  *       certificado que vence primero, y habilita la compra por la regla de CCPIP-269/270.</li>
+ *   <li>CCPIP-39 (RF-16): revoca con motivo una autorizacion APROBADA, aunque su certificado haya
+ *       vencido: vencer no es revocar (C5). Desde ese momento la oferta queda en Venta pausada; los
+ *       pedidos confirmados no cambian y el productor puede volver a solicitarla con evidencias nuevas.</li>
  * </ul>
  * Cada decision queda en autorizacion_decision (solo insercion) y en el historial del producto.
  */
@@ -78,8 +81,8 @@ public class RevisionService {
     public Bandeja bandeja(Estado estado) {
         String filtro = switch (estado) {
             case SOLICITADA -> "a.estado = 'SOLICITADA' ORDER BY a.solicitada_en NULLS LAST, a.id";
-            case APROBADA, RECHAZADA -> "a.estado = '" + estado.name() + "' AND a.decision_id IS NOT NULL ORDER BY a.decidido_en DESC, a.id";
-            default -> throw ErrorNegocio.invalido("ESTADO_INVALIDO", "Elige pendientes, aprobadas o rechazadas.");
+            case APROBADA, RECHAZADA, REVOCADA -> "a.estado = '" + estado.name() + "' AND a.decision_id IS NOT NULL ORDER BY a.decidido_en DESC, a.id";
+            default -> throw ErrorNegocio.invalido("ESTADO_INVALIDO", "Elige pendientes, aprobadas, rechazadas o revocadas.");
         };
         List<Fila> filas = jdbc.query("""
                 SELECT a.id, a.estado, a.solicitada_en, a.decidido_en, p.id AS producto_id, p.nombre AS producto,
@@ -118,7 +121,8 @@ public class RevisionService {
                         rs.getObject(7, LocalDate.class)), id);
         return new Expediente(id, c.estado(), c.motivo(), c.solicitadaEn(), c.decididaEn(), c.vigenteHasta(),
                 c.productoId(), c.producto(), c.linea(), c.productor(), vigentes,
-                (int) certificadosVigentes(vigentes).count(), analisis, decisiones, c.estado() == Estado.SOLICITADA);
+                (int) certificadosVigentes(vigentes).count(), analisis, decisiones, c.estado() == Estado.SOLICITADA,
+                c.estado() == Estado.APROBADA);
     }
 
     /**
@@ -175,7 +179,7 @@ public class RevisionService {
                 .min(Comparator.naturalOrder())
                 .orElseThrow(() -> new ErrorNegocio(HttpStatus.CONFLICT, "SIN_CERTIFICADO_VIGENTE",
                         "Para aprobar, el producto necesita al menos un certificado vigente propio."));
-        decidir(c, usuarioId, "APROBADA", motivo, vigentes, vigenteHasta);
+        decidir(c, usuarioId, "APROBADA", motivo, vigentes, vigenteHasta, true);
         return expediente(id);
     }
 
@@ -184,7 +188,22 @@ public class RevisionService {
     public Expediente rechazar(long id, long usuarioId, String motivo) {
         Cabecera c = cabecera(id, true);
         exigirPendiente(c);
-        decidir(c, usuarioId, "RECHAZADA", motivo, evidencias.vigentes(id, ev -> null), null);
+        decidir(c, usuarioId, "RECHAZADA", motivo, evidencias.vigentes(id, ev -> null), null, true);
+        return expediente(id);
+    }
+
+    /**
+     * CCPIP-39 (RF-16): solo se revoca lo que esta APROBADO. La decision cita las evidencias que
+     * sustentaban la aprobacion; no se borra nada.
+     */
+    @Transactional
+    public Expediente revocar(long id, long usuarioId, String motivo) {
+        Cabecera c = cabecera(id, true);
+        if (c.estado() != Estado.APROBADA) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "AUTORIZACION_NO_APROBADA",
+                    "Solo se puede revocar una autorización aprobada.");
+        }
+        decidir(c, usuarioId, "REVOCADA", motivo, evidencias.vigentes(id, ev -> null), null, false);
         return expediente(id);
     }
 
@@ -194,12 +213,9 @@ public class RevisionService {
     }
 
     private void decidir(Cabecera c, long usuarioId, String decision, String motivo, List<Evidencia> vigentes,
-                         LocalDate vigenteHasta) {
-        String texto = motivo == null ? "" : motivo.strip();
-        if (texto.isEmpty()) {
-            throw ErrorNegocio.invalido("MOTIVO_REQUERIDO", "Escribe el motivo de la decisión.");
-        }
-        Long analisisId = jdbc.query("""
+                         LocalDate vigenteHasta, boolean citaAnalisis) {
+        String texto = motivoRequerido(motivo);
+        Long analisisId = !citaAnalisis ? null : jdbc.query("""
                         SELECT id FROM analisis_evidencias WHERE autorizacion_id = ? AND estado = 'COMPLETADO'
                         ORDER BY solicitado_en DESC, id DESC LIMIT 1""", (rs, row) -> rs.getLong(1), c.id())
                 .stream().findFirst().orElse(null);
@@ -221,14 +237,24 @@ public class RevisionService {
         auditoria.registrar(c.productoId(), usuarioId, Accion.AUTORIZACION, cambios);
     }
 
+    /** Toda decision humana lleva motivo (CCPIP-174, CCPIP-284, CCPIP-39, CCPIP-291, CCPIP-330). */
+    static String motivoRequerido(String motivo) {
+        String texto = motivo == null ? "" : motivo.strip();
+        if (texto.isEmpty()) {
+            throw ErrorNegocio.invalido("MOTIVO_REQUERIDO", "Escribe el motivo de la decisión.");
+        }
+        return texto;
+    }
+
     private Contadores contadores() {
         return jdbc.queryForObject("""
                 SELECT (SELECT count(*) FROM autorizacion_producto WHERE estado = 'SOLICITADA') AS pendientes,
                        count(*) FILTER (WHERE decision = 'APROBADA') AS aprobadas,
-                       count(*) FILTER (WHERE decision = 'RECHAZADA') AS rechazadas
+                       count(*) FILTER (WHERE decision = 'RECHAZADA') AS rechazadas,
+                       count(*) FILTER (WHERE decision = 'REVOCADA') AS revocadas
                 FROM autorizacion_decision
                 WHERE to_char(decidido_en AT TIME ZONE 'America/Lima', 'YYYY-MM') = to_char(now() AT TIME ZONE 'America/Lima', 'YYYY-MM')""",
-                (rs, row) -> new Contadores(rs.getInt(1), rs.getInt(2), rs.getInt(3)));
+                (rs, row) -> new Contadores(rs.getInt(1), rs.getInt(2), rs.getInt(3), rs.getInt(4)));
     }
 
     private Analisis ultimoAnalisis(long id, List<Evidencia> vigentes) {

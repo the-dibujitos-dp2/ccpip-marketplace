@@ -25,8 +25,9 @@ import pe.ccpip.autorizacion.AutorizacionModelos.NuevaDecision;
 
 /**
  * S-01 y S-02: el subadministrador revisa las solicitudes de autorizacion, pide el analisis preliminar
- * (CCPIP-50) y aprueba (CCPIP-174) o rechaza (CCPIP-284) con motivo. Es una accion de gobierno del
- * sub administrador: el superadministrador supervisa en modo lectura y aqui recibe 403 (RNF-04).
+ * (CCPIP-50), aprueba (CCPIP-174, CCPIP-37) o rechaza (CCPIP-284, CCPIP-297) con motivo y revoca lo
+ * aprobado (CCPIP-39). Es una accion de gobierno del sub administrador: el superadministrador supervisa
+ * en modo lectura y aqui recibe 403 (RNF-04). Cada decision se avisa al productor una vez guardada.
  */
 @RolesPermitidos(Rol.SUB_ADMIN)
 @RestController
@@ -34,9 +35,11 @@ import pe.ccpip.autorizacion.AutorizacionModelos.NuevaDecision;
 public class RevisionController {
 
     private final RevisionService service;
+    private final AvisoAutorizacion aviso;
 
-    public RevisionController(RevisionService service) {
+    public RevisionController(RevisionService service, AvisoAutorizacion aviso) {
         this.service = service;
+        this.aviso = aviso;
     }
 
     @GetMapping
@@ -58,13 +61,25 @@ public class RevisionController {
     @PostMapping("/{id}/aprobar")
     public Expediente aprobar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                               @PathVariable long id, @Valid @RequestBody NuevaDecision decision) {
-        return service.aprobar(id, s.userId(), decision.motivo());
+        return avisar(service.aprobar(id, s.userId(), decision.motivo()), AvisoAutorizacion.Tipo.APROBADA, decision);
     }
 
     @PostMapping("/{id}/rechazar")
     public Expediente rechazar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                @PathVariable long id, @Valid @RequestBody NuevaDecision decision) {
-        return service.rechazar(id, s.userId(), decision.motivo());
+        return avisar(service.rechazar(id, s.userId(), decision.motivo()), AvisoAutorizacion.Tipo.RECHAZADA, decision);
+    }
+
+    @PostMapping("/{id}/revocar")
+    public Expediente revocar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                              @PathVariable long id, @Valid @RequestBody NuevaDecision decision) {
+        return avisar(service.revocar(id, s.userId(), decision.motivo()), AvisoAutorizacion.Tipo.REVOCADA, decision);
+    }
+
+    /** El servicio ya confirmo la transaccion: el aviso sale solo si la decision quedo guardada. */
+    private Expediente avisar(Expediente exp, AvisoAutorizacion.Tipo tipo, NuevaDecision decision) {
+        aviso.notificar(exp.productor().id(), tipo, exp.producto(), decision.motivo().strip());
+        return exp;
     }
 
     @GetMapping("/{id}/evidencias/{evidenciaId}/archivo")

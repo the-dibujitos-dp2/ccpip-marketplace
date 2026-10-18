@@ -5,7 +5,7 @@ import { api, enDias, fotoPng, ingresar, sinViolaciones, unico, vigilarConsola }
  * El flujo completo del prototipo, en orden y sobre el stack real (imagenes de produccion):
  * una comunidad arma su tienda desde cero, publica un producto con fotos, historia y su primer
  * lote, y un comprador lo encuentra, lo filtra y lee su historia. Requiere el stack recien creado
- * (productor_nuevo@ccpip.test con la tienda vacia).
+ * (productor_nuevo@ccpip.test con la tienda vacia y sin habilitar).
  */
 // Sin reintentos: el flujo cambia datos (publica la tienda de productor_nuevo), asi que un reintento
 // sobre la misma base nunca podria pasar y solo ocultaria la causa del primer fallo.
@@ -16,6 +16,19 @@ const PRODUCTO = unico('Aceite de sacha inchi Nauta')
 let productoId
 
 test.describe('Productor: arma su tienda y publica su producto', () => {
+  test('la Camara habilita la tienda de la comunidad (CCPIP-291)', async ({ page }) => {
+    // El productor no vuelve operativa su tienda por su cuenta: primero la habilita el subadministrador
+    await ingresar(page, 'sub_admin@ccpip.test')
+    const productores = (await api(page, 'GET', '/api/admin/productores')).cuerpo
+    const kukama = productores.find((p) => p.comunidad === 'Comunidad Kukama de Nauta')
+    expect(kukama.tiendaHabilitada).toBe(false)
+    const habilitada = await api(page, 'POST', `/api/admin/productores/${kukama.id}/habilitar-tienda`, {
+      motivo: 'Comunidad incorporada por la Cámara',
+    })
+    expect(habilitada.status).toBe(200)
+    expect(habilitada.cuerpo.tiendaHabilitada).toBe(true)
+  })
+
   test('arma su tienda desde cero y la publica (CCPIP-30, 153, 154)', async ({ page }) => {
     const errores = vigilarConsola(page)
     await ingresar(page, 'productor_nuevo@ccpip.test')

@@ -435,6 +435,69 @@ como NO_DISPONIBLE y la solicitud se decide a mano; `simulado` aplica reglas fij
 declarado (sin leer el archivo) y se marca `simulado = true` en la base y en la pantalla como
 resultado de prueba. Solo se usa en pruebas y demo.
 
+## Revocacion, lineas autorizadas y tienda habilitada (CCPIP-39, CCPIP-330, CCPIP-291, CCPIP-292)
+
+Migracion `V202610172100`. El subadministrador revoca con motivo la venta de un producto (RF-16)
+o de un productor completo (RF-220), habilita la tienda de un productor autorizado (RF-147) y ve,
+productor por productor, los productos que cada uno puede vender (RF-148). Toda decision se avisa
+al productor por correo, en su idioma (`usuario.idioma`), y queda visible en sus pantallas; tambien
+la aprobacion y el rechazo (CCPIP-37, CCPIP-297). Si el correo falla, la decision no se deshace.
+
+```mermaid
+erDiagram
+    productor ||--o{ productor_decision : recibe
+    productor |o--o| productor_decision : tienda_decision
+    productor |o--o| productor_decision : venta_decision
+```
+
+**Una oferta es comprable** ahora, ademas de lo de CCPIP-269, solo si la venta de su productor no
+esta revocada y si todas las lineas actuales del producto estan en `autorizacion_producto.lineas`.
+La regla vive en un solo lugar (`CatalogoRepository.HABILITADA`), asi que el catalogo, el carrito,
+la confirmacion y el pago la aplican al instante. Los pedidos confirmados no se tocan.
+
+| Decision | Quien | Exige | Efecto |
+|---|---|---|---|
+| Revocar producto (`POST /api/admin/autorizaciones/{id}/revocar`) | SUB_ADMIN | APROBADA (vigente o vencida), si no `409 AUTORIZACION_NO_APROBADA` | `autorizacion_producto` pasa a REVOCADA; fila REVOCADA en `autorizacion_decision`. El productor puede volver a solicitarla con evidencias nuevas |
+| Revocar productor (`POST /api/admin/productores/{id}/revocar`) | SUB_ADMIN | no revocado, si no `409 VENTA_YA_REVOCADA` | `productor.venta_revocada`; sus autorizaciones por producto no cambian y quedan citadas como alcance |
+| Restituir productor (`.../restituir`) | SUB_ADMIN | revocado, si no `409 VENTA_NO_REVOCADA` | Vuelve a vender lo que tenia autorizado |
+| Habilitar tienda (`.../habilitar-tienda`) | SUB_ADMIN | no habilitada y venta no revocada (`409 TIENDA_YA_HABILITADA`, `VENTA_REVOCADA`). Productor autorizado = incorporado por la Camara (no hay postulacion), activo y sin revocar | `productor.tienda_habilitada`; recien entonces el productor puede publicarla (`409 TIENDA_NO_HABILITADA`). Cada producto sigue necesitando su propia autorizacion |
+
+Un certificado vencido pausa la venta pero no es una revocacion (C5): el estado sigue APROBADA y
+no se registra decision.
+
+### autorizacion_producto (columna nueva)
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| lineas | smallint[] | si | Lineas del producto al aprobarse. Obligatoria si el estado es APROBADA; la fija el trigger `autorizacion_fija_lineas()` al pasar a APROBADA. Si el producto suma otra linea, la oferta queda en Venta pausada y el productor puede pedir otra revision |
+
+### autorizacion_decision
+`decision` admite ahora tambien REVOCADA.
+
+### productor_decision
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| id | bigserial | no | |
+| productor_id | bigint | no | |
+| decision | varchar(16) | no | `HABILITAR_TIENDA`, `REVOCAR_VENTA` o `RESTITUIR_VENTA` |
+| motivo | varchar(500) | no | Obligatorio |
+| autorizaciones | bigint[] | no | Autorizaciones APROBADAS y vigentes al decidir: el alcance |
+| decidido_por, decidido_en | | no | Quien y cuando |
+
+Solo insercion por trigger. Revocar o restituir tambien deja una fila `AUTORIZACION` en
+`producto_auditoria` de cada producto alcanzado.
+
+### productor (columnas nuevas)
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| tienda_habilitada | boolean | no | La Camara habilito la tienda. `CHECK (NOT tienda_publicada OR tienda_habilitada)` |
+| tienda_decision_id | bigint | si | Decision que la habilito. Nula en los datos iniciales |
+| venta_revocada | boolean | no | La venta del productor esta revocada |
+| venta_decision_id | bigint | si | Ultima revocacion o restitucion |
+
+**Datos iniciales (habilitacion manual documentada de RF-147).** La migracion habilita las tiendas
+que ya estaban publicadas, y la semilla `R__02` habilita las de los tres productores de
+demostracion. `productor_nuevo@ccpip.test` queda sin habilitar para probar el flujo completo.
+
 ## Descuento de existencias por venta (CCPIP-158)
 
 Migracion `V202610121700`. Al confirmar una compra, cada linea de pedido sale de los lotes
