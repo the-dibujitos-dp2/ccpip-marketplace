@@ -169,12 +169,19 @@ export default function TiendaEditorPage({ path }) {
           ) : (
             <>
               <Boton tipo="secundario" tamano="M" onClick={guardar} disabled={ocupado}>{t('productor.datos.guardarBorrador')}</Boton>
-              <Boton tamano="M" onClick={publicar} disabled={ocupado}>{t('productor.tienda.publicar')}</Boton>
+              <Boton tamano="M" onClick={publicar} disabled={ocupado || tienda.habilitada === false}>{t('productor.tienda.publicar')}</Boton>
             </>
           )}
         </div>
       </div>
 
+      {/* CCPIP-291 y CCPIP-330: la Camara habilita la tienda y puede revocar la venta, con motivo */}
+      {tienda.ventaRevocada && (
+        <Alerta tono="error" titulo={t('productor.tienda.ventaRevocada')} descripcion={t('productor.tienda.ventaRevocadaTexto', { motivo: tienda.motivoRevocacion })} />
+      )}
+      {!tienda.publicada && tienda.habilitada === false && (
+        <Alerta tono="info" titulo={t('productor.tienda.sinHabilitar')} descripcion={t('productor.tienda.sinHabilitarTexto')} />
+      )}
       {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
 
       <div className="tienda-editor">

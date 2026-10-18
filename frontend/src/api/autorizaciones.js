@@ -53,3 +53,22 @@ export const aprobarAutorizacion = async (id, motivo) =>
 /** CCPIP-284: rechazar con motivo. Devuelve el expediente actualizado. */
 export const rechazarAutorizacion = async (id, motivo) =>
   apiFetch(`/api/admin/autorizaciones/${idRuta(id)}/rechazar`, { method: 'POST', body: { motivo } })
+
+/** CCPIP-39: revocar con motivo una autorizacion APROBADA. Devuelve el expediente actualizado. */
+export const revocarAutorizacion = async (id, motivo) =>
+  apiFetch(`/api/admin/autorizaciones/${idRuta(id)}/revocar`, { method: 'POST', body: { motivo } })
+
+// --- Productores y los productos que pueden vender (CCPIP-292, CCPIP-291, CCPIP-330) ---
+
+/** Productores con su tienda, su venta y el resumen de sus autorizaciones. */
+export const listarProductores = async () => apiFetch('/api/admin/productores')
+
+/** Ficha: cada producto con su autorizacion y lineas autorizadas, y el historial de decisiones. */
+export const fichaProductor = async (id) => apiFetch(`/api/admin/productores/${idRuta(id)}`)
+
+/**
+ * Decision sobre el productor completo, siempre con motivo: 'habilitar-tienda' (CCPIP-291),
+ * 'revocar' o 'restituir' (CCPIP-330). Devuelve la ficha actualizada.
+ */
+export const decidirProductor = async (id, accion, motivo) =>
+  apiFetch(`/api/admin/productores/${idRuta(id)}/${accion}`, { method: 'POST', body: { motivo } })

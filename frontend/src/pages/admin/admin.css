@@ -120,3 +120,7 @@
 @media (max-width: 1100px) {
   .expediente { grid-template-columns: 1fr; }
 }
+
+/* CCPIP-292, CCPIP-291, CCPIP-330: productores y su venta */
+.productores__productos { flex: 0 0 200px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.productores__estado { flex: 0 0 220px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }

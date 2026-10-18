@@ -13,6 +13,8 @@ import ComisionesPage from './pages/admin/ComisionesPage.jsx'
 import ComisionPage from './pages/admin/ComisionPage.jsx'
 import ParametrosPage from './pages/admin/ParametrosPage.jsx'
 import ExpedienteAutorizacionPage from './pages/admin/ExpedienteAutorizacionPage.jsx'
+import FichaProductorPage from './pages/admin/FichaProductorPage.jsx'
+import ProductoresPage from './pages/admin/ProductoresPage.jsx'
 import TableroPage from './pages/admin/TableroPage.jsx'
 import InventarioPage from './pages/acopio/InventarioPage.jsx'
 import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
@@ -51,9 +53,14 @@ const RUTA_EDITOR = /^\/productor\/productos\/(\d+|nuevo)$/
 const RUTA_PEDIDO = /^\/pedidos\/(\d+)$/
 const RUTA_EVIDENCIAS = /^\/productor\/productos\/(\d+)\/evidencias$/
 const RUTA_EXPEDIENTE = /^\/admin\/autorizaciones\/(\d+)$/
+const RUTA_FICHA_PRODUCTOR = /^\/admin\/productores\/(\d+)$/
 
-/** Rutas del modulo del sub administrador: autorizaciones de productos (S-01, S-02) y su expediente. */
-const delModuloSub = (path) => path === RUTAS.adminAutorizaciones || RUTA_EXPEDIENTE.test(path)
+/**
+ * Rutas del modulo del sub administrador: autorizaciones de productos (S-01, S-02) y su expediente, y
+ * los productores con los productos que pueden vender (CCPIP-292, CCPIP-291, CCPIP-330).
+ */
+const delModuloSub = (path) =>
+  path === RUTAS.adminAutorizaciones || RUTA_EXPEDIENTE.test(path) || path === RUTAS.adminProductores || RUTA_FICHA_PRODUCTOR.test(path)
 
 /**
  * Administracion de la Camara: el superadministrador supervisa todo menos la revision de
@@ -238,6 +245,8 @@ export default function App() {
     else if (path === RUTAS.adminParametros) pagina = <ParametrosPage path={path} />
     else if (path === RUTAS.adminAutorizaciones) pagina = <AutorizacionesPage path={path} />
     else if (RUTA_EXPEDIENTE.test(path)) pagina = <ExpedienteAutorizacionPage path={RUTAS.adminAutorizaciones} id={path.match(RUTA_EXPEDIENTE)[1]} />
+    else if (path === RUTAS.adminProductores) pagina = <ProductoresPage path={path} />
+    else if (RUTA_FICHA_PRODUCTOR.test(path)) pagina = <FichaProductorPage path={RUTAS.adminProductores} id={path.match(RUTA_FICHA_PRODUCTOR)[1]} />
     else {
       navigate(RUTAS.admin, { replace: true })
       pagina = null

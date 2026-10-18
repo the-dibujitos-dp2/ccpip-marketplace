@@ -576,7 +576,11 @@
       "fotoGaleria": "Gallery photo",
       "agregarFoto": "Add photo",
       "categoriaNuevas": "Category for new photos",
-      "senal": "If the signal drops, only the missing photo is retried: the others are kept."
+      "senal": "If the signal drops, only the missing photo is retried: the others are kept.",
+      "ventaRevocada": "The Chamber revoked your organization's sale authorization",
+      "ventaRevocadaTexto": "Reason: «{{motivo}}». Your products are still visible but cannot be purchased. Confirmed orders are fulfilled as usual.",
+      "sinHabilitar": "Your store is not enabled yet",
+      "sinHabilitarTexto": "You can build and save it. The Chamber enables it and we will email you so you can publish it."
     },
     "cuenta": {
       "titulo": "Bank account",
@@ -887,7 +891,8 @@
       "comision": "Commission",
       "comisiones": "Commission by order",
       "parametros": "Parameters",
-      "autorizaciones": "Authorizations"
+      "autorizaciones": "Authorizations",
+      "productores": "Producers"
     },
     "tablero": {
       "titulo": "Operations dashboard",
@@ -1306,7 +1311,14 @@
     "APROBACION_PENDIENTE": "The request between points has no approver yet.",
     "TRANSICION_INVALIDA": "The transfer changed status. Refresh the page.",
     "TRANSFERENCIA_NO_ENCONTRADA": "The transfer does not exist.",
-    "NO_ES_DESTINO": "Only the destination point records the receipt."
+    "NO_ES_DESTINO": "Only the destination point records the receipt.",
+    "AUTORIZACION_NO_APROBADA": "Only an approved authorization can be revoked.",
+    "TIENDA_NO_HABILITADA": "The Chamber has not enabled your store yet. You can publish it as soon as it does.",
+    "TIENDA_YA_HABILITADA": "This producer's store is already enabled.",
+    "VENTA_REVOCADA": "This producer's sale is revoked: restore it before enabling their store.",
+    "VENTA_YA_REVOCADA": "This producer's sale is already revoked.",
+    "VENTA_NO_REVOCADA": "This producer's sale is not revoked.",
+    "PRODUCTOR_NO_ENCONTRADO": "The producer does not exist."
   },
   "buscar": {
     "comunidad": "Community",
@@ -1925,7 +1937,9 @@
       "aprobadaHasta": "The authorization is valid until {{fecha}}, when your first certificate expires.",
       "RECHAZADA": "The Chamber rejected the request",
       "REVOCADA": "The authorization was revoked",
-      "conMotivo": "Reason: “{{motivo}}”. Attach new evidence to request it again."
+      "conMotivo": "Reason: “{{motivo}}”. Attach new evidence to request it again.",
+      "lineaNueva": "The authorization does not cover a new line",
+      "lineaNuevaTexto": "You added a line the Chamber did not review: the sale is paused. Attach evidence to request a new review."
     },
     "tipo": {
       "CERTIFICADO": "Certificates",
@@ -1988,19 +2002,22 @@
     "pestana": {
       "SOLICITADA": "Pending",
       "APROBADA": "Approved",
-      "RECHAZADA": "Rejected"
+      "RECHAZADA": "Rejected",
+      "REVOCADA": "Revoked"
     },
     "vacio": {
       "SOLICITADA": "There are no pending requests.",
       "APROBADA": "You haven't approved any requests yet.",
-      "RECHAZADA": "You haven't rejected any requests yet."
+      "RECHAZADA": "You haven't rejected any requests yet.",
+      "REVOCADA": "You have not revoked any authorization yet."
     },
     "kpi": {
       "pendientes": "Pending",
       "pendientesDetalle": "Awaiting your review",
       "aprobadas": "Approved this month",
       "rechazadas": "Rejected this month",
-      "conMotivo": "With a recorded reason"
+      "conMotivo": "With a recorded reason",
+      "revocadas": "Revoked this month"
     },
     "col": {
       "producto": "Product",
@@ -2083,9 +2100,13 @@
       "resuelta": "This request has already been resolved.",
       "hecho": {
         "aprobar": "You approved the request. The product can now be bought.",
-        "rechazar": "You rejected the request. The producer will see your reason."
+        "rechazar": "You rejected the request. The producer will see your reason.",
+        "revocar": "You revoked the authorization. The product's sale is now paused."
       },
-      "errorDecision": "We couldn't record the decision"
+      "errorDecision": "We couldn't record the decision",
+      "motivoRevocacion": "Reason for revocation",
+      "revocarAyuda": "Required. The product stops selling immediately; confirmed orders do not change.",
+      "revocar": "Revoke authorization"
     },
     "dialogo": {
       "motivo": "Reason: “{{motivo}}”",
@@ -2098,6 +2119,11 @@
         "titulo": "Reject {{producto}}",
         "confirmar": "Reject request",
         "texto": "{{organizacion}} will see this reason and can attach new evidence. The decision is recorded and cannot be edited."
+      },
+      "revocar": {
+        "titulo": "Revoke {{producto}}",
+        "confirmar": "Revoke authorization",
+        "texto": "{{organizacion}} will not be able to sell it from now on. Confirmed orders are still fulfilled and they can request it again. The decision is recorded and cannot be edited."
       }
     }
   },
@@ -2132,5 +2158,83 @@
     "verDetalle": "View details",
     "ocultarDetalle": "Hide details",
     "pendienteAprobador": "Who approves transfers between points is not defined yet: the request is recorded and does not commit any units."
+  },
+  "productores": {
+    "titulo": "Producers and authorized products",
+    "intro": "Each producer sells only the products the Chamber authorized, one by one, with evidence. Here you enable their store or revoke their sale, always with a reason.",
+    "error": "We could not load the producers",
+    "errorFicha": "We could not load the producer",
+    "vacio": "There are no onboarded producers yet.",
+    "ficha": "Producer",
+    "volver": "Back to producers",
+    "col": {
+      "productos": "Products",
+      "estado": "Store and sale"
+    },
+    "autorizados_one": "{{count}} of {{total}} authorized",
+    "autorizados_other": "{{count}} of {{total}} authorized",
+    "pendientes_one": "{{count}} under review",
+    "pendientes_other": "{{count}} under review",
+    "verDe": "View {{organizacion}}",
+    "tienda": {
+      "habilitada": "Store enabled",
+      "sinHabilitar": "Store not enabled"
+    },
+    "venta": {
+      "vigente": "Sale active",
+      "revocada": "Sale revoked"
+    },
+    "sinCuenta": "No active bank account: their products cannot be purchased.",
+    "productos_one": "Products they can sell ({{count}})",
+    "productos_other": "Products they can sell ({{count}})",
+    "productosAyuda": "Authorization is individual per product and covers only the reviewed lines: changing lines does not extend it.",
+    "sinProductos": "No products registered yet.",
+    "lineas": "Lines: {{lineas}}",
+    "lineasAutorizadas": "authorized: {{lineas}}",
+    "lineaSinAutorizar": "Unauthorized line",
+    "estado": {
+      "SIN_SOLICITUD": "No request",
+      "SOLICITADA": "Under review",
+      "APROBADA": "Authorized",
+      "RECHAZADA": "Rejected",
+      "REVOCADA": "Revoked"
+    },
+    "vencida": "Authorization expired",
+    "hasta": "until {{fecha}}",
+    "vendible": "On sale",
+    "pausada": "Sale paused",
+    "verExpediente": "View file of {{producto}}",
+    "decision": {
+      "HABILITAR_TIENDA": "Store enabled",
+      "REVOCAR_VENTA": "Sale revoked",
+      "RESTITUIR_VENTA": "Sale restored"
+    },
+    "alcance_one": "{{count}} authorized product affected",
+    "alcance_other": "{{count}} authorized products affected",
+    "decisionTexto": "Enable their store so they can publish it, or revoke the sale of all their products.",
+    "revocadaTexto": "Their sale is revoked: their products show as sale paused. You can restore it with a reason.",
+    "accion": {
+      "habilitar-tienda": {
+        "boton": "Enable store",
+        "titulo": "Enable the store of {{organizacion}}",
+        "confirmar": "Enable store",
+        "texto": "The producer will be able to publish their store. Each product still needs its own authorization to be sold.",
+        "hecho": "You enabled the store. We notified the producer."
+      },
+      "revocar": {
+        "boton": "Revoke producer's sale",
+        "titulo": "Revoke the sale of {{organizacion}}",
+        "confirmar": "Revoke sale",
+        "texto": "None of their products can be purchased from now on. Confirmed orders are still fulfilled and their product authorizations are kept. The decision is recorded and cannot be edited.",
+        "hecho": "You revoked the producer's sale. Their products are now sale paused."
+      },
+      "restituir": {
+        "boton": "Restore sale",
+        "titulo": "Restore the sale of {{organizacion}}",
+        "confirmar": "Restore sale",
+        "texto": "Their authorized, valid products are on sale again. The decision is recorded.",
+        "hecho": "You restored the producer's sale."
+      }
+    }
   }
 }

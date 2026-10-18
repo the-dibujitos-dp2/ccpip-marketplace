@@ -576,7 +576,11 @@
       "fotoGaleria": "Foto de la galería",
       "agregarFoto": "Agregar foto",
       "categoriaNuevas": "Categoría de las fotos nuevas",
-      "senal": "Si la señal se corta, solo se reintenta la foto que faltó: las demás se conservan."
+      "senal": "Si la señal se corta, solo se reintenta la foto que faltó: las demás se conservan.",
+      "ventaRevocada": "La Cámara revocó la venta de tu organización",
+      "ventaRevocadaTexto": "Motivo: «{{motivo}}». Tus productos siguen visibles, pero no se pueden comprar. Los pedidos confirmados se atienden con normalidad.",
+      "sinHabilitar": "Tu tienda aún no está habilitada",
+      "sinHabilitarTexto": "Puedes armarla y guardarla. La Cámara la habilita y te avisaremos por correo para que la publiques."
     },
     "cuenta": {
       "titulo": "Cuenta bancaria",
@@ -887,7 +891,8 @@
       "comision": "Comisión",
       "comisiones": "Comisión por pedido",
       "parametros": "Parámetros",
-      "autorizaciones": "Autorizaciones"
+      "autorizaciones": "Autorizaciones",
+      "productores": "Productores"
     },
     "tablero": {
       "titulo": "Tablero de operación",
@@ -1306,7 +1311,14 @@
     "APROBACION_PENDIENTE": "La solicitud entre puntos aún no tiene quien la apruebe.",
     "TRANSICION_INVALIDA": "La transferencia cambió de estado. Actualiza la página.",
     "TRANSFERENCIA_NO_ENCONTRADA": "La transferencia no existe.",
-    "NO_ES_DESTINO": "Solo el punto de destino registra la recepción."
+    "NO_ES_DESTINO": "Solo el punto de destino registra la recepción.",
+    "AUTORIZACION_NO_APROBADA": "Solo se puede revocar una autorización aprobada.",
+    "TIENDA_NO_HABILITADA": "La Cámara aún no habilita tu tienda. Podrás publicarla en cuanto la habilite.",
+    "TIENDA_YA_HABILITADA": "La tienda de este productor ya está habilitada.",
+    "VENTA_REVOCADA": "La venta de este productor está revocada: restitúyela antes de habilitar su tienda.",
+    "VENTA_YA_REVOCADA": "La venta de este productor ya está revocada.",
+    "VENTA_NO_REVOCADA": "La venta de este productor no está revocada.",
+    "PRODUCTOR_NO_ENCONTRADO": "El productor no existe."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -1925,7 +1937,9 @@
       "aprobadaHasta": "La autorización vale hasta el {{fecha}}, cuando vence tu primer certificado.",
       "RECHAZADA": "La Cámara rechazó la solicitud",
       "REVOCADA": "La autorización fue revocada",
-      "conMotivo": "Motivo: «{{motivo}}». Adjunta nuevas evidencias para volver a solicitarla."
+      "conMotivo": "Motivo: «{{motivo}}». Adjunta nuevas evidencias para volver a solicitarla.",
+      "lineaNueva": "La autorización no cubre una línea nueva",
+      "lineaNuevaTexto": "Agregaste una línea que la Cámara no revisó: la venta está pausada. Adjunta evidencias para pedir una nueva revisión."
     },
     "tipo": {
       "CERTIFICADO": "Certificados",
@@ -1988,19 +2002,22 @@
     "pestana": {
       "SOLICITADA": "Pendientes",
       "APROBADA": "Aprobadas",
-      "RECHAZADA": "Rechazadas"
+      "RECHAZADA": "Rechazadas",
+      "REVOCADA": "Revocadas"
     },
     "vacio": {
       "SOLICITADA": "No hay solicitudes pendientes.",
       "APROBADA": "Aún no apruebas solicitudes.",
-      "RECHAZADA": "Aún no rechazas solicitudes."
+      "RECHAZADA": "Aún no rechazas solicitudes.",
+      "REVOCADA": "Aún no revocas autorizaciones."
     },
     "kpi": {
       "pendientes": "Pendientes",
       "pendientesDetalle": "Esperan tu revisión",
       "aprobadas": "Aprobadas este mes",
       "rechazadas": "Rechazadas este mes",
-      "conMotivo": "Con motivo registrado"
+      "conMotivo": "Con motivo registrado",
+      "revocadas": "Revocadas este mes"
     },
     "col": {
       "producto": "Producto",
@@ -2083,9 +2100,13 @@
       "resuelta": "Esta solicitud ya fue resuelta.",
       "hecho": {
         "aprobar": "Aprobaste la solicitud. El producto ya se puede comprar.",
-        "rechazar": "Rechazaste la solicitud. El productor verá tu motivo."
+        "rechazar": "Rechazaste la solicitud. El productor verá tu motivo.",
+        "revocar": "Revocaste la autorización. El producto quedó en venta pausada."
       },
-      "errorDecision": "No pudimos registrar la decisión"
+      "errorDecision": "No pudimos registrar la decisión",
+      "motivoRevocacion": "Motivo de la revocación",
+      "revocarAyuda": "Obligatorio. El producto deja de venderse al instante; los pedidos confirmados no cambian.",
+      "revocar": "Revocar autorización"
     },
     "dialogo": {
       "motivo": "Motivo: «{{motivo}}»",
@@ -2098,6 +2119,11 @@
         "titulo": "Rechazar {{producto}}",
         "confirmar": "Rechazar solicitud",
         "texto": "{{organizacion}} verá este motivo y podrá adjuntar nuevas evidencias. La decisión queda registrada y no se edita."
+      },
+      "revocar": {
+        "titulo": "Revocar {{producto}}",
+        "confirmar": "Revocar autorización",
+        "texto": "{{organizacion}} no podrá venderlo desde ahora. Los pedidos confirmados se atienden igual y podrá volver a solicitarla. La decisión queda registrada y no se edita."
       }
     }
   },
@@ -2132,5 +2158,83 @@
     "verDetalle": "Ver detalle",
     "ocultarDetalle": "Ocultar detalle",
     "pendienteAprobador": "Aún no está definido quién aprueba las transferencias entre puntos: la solicitud queda registrada y no compromete unidades."
+  },
+  "productores": {
+    "titulo": "Productores y productos autorizados",
+    "intro": "Cada productor vende solo los productos que la Cámara le autorizó, uno por uno, con evidencias. Aquí habilitas su tienda o revocas su venta, siempre con motivo.",
+    "error": "No pudimos cargar los productores",
+    "errorFicha": "No pudimos cargar el productor",
+    "vacio": "Aún no hay productores incorporados.",
+    "ficha": "Productor",
+    "volver": "Volver a productores",
+    "col": {
+      "productos": "Productos",
+      "estado": "Tienda y venta"
+    },
+    "autorizados_one": "{{count}} de {{total}} autorizado",
+    "autorizados_other": "{{count}} de {{total}} autorizados",
+    "pendientes_one": "{{count}} en revisión",
+    "pendientes_other": "{{count}} en revisión",
+    "verDe": "Ver {{organizacion}}",
+    "tienda": {
+      "habilitada": "Tienda habilitada",
+      "sinHabilitar": "Tienda sin habilitar"
+    },
+    "venta": {
+      "vigente": "Venta vigente",
+      "revocada": "Venta revocada"
+    },
+    "sinCuenta": "Sin cuenta bancaria activa: sus productos no se pueden comprar.",
+    "productos_one": "Productos que puede vender ({{count}})",
+    "productos_other": "Productos que puede vender ({{count}})",
+    "productosAyuda": "La autorización es individual por producto y cubre solo las líneas revisadas: cambiar de línea no extiende el permiso.",
+    "sinProductos": "Aún no registra productos.",
+    "lineas": "Líneas: {{lineas}}",
+    "lineasAutorizadas": "autorizadas: {{lineas}}",
+    "lineaSinAutorizar": "Línea sin autorizar",
+    "estado": {
+      "SIN_SOLICITUD": "Sin solicitud",
+      "SOLICITADA": "En revisión",
+      "APROBADA": "Autorizado",
+      "RECHAZADA": "Rechazado",
+      "REVOCADA": "Revocado"
+    },
+    "vencida": "Autorización vencida",
+    "hasta": "hasta {{fecha}}",
+    "vendible": "Se vende",
+    "pausada": "Venta pausada",
+    "verExpediente": "Ver expediente de {{producto}}",
+    "decision": {
+      "HABILITAR_TIENDA": "Tienda habilitada",
+      "REVOCAR_VENTA": "Venta revocada",
+      "RESTITUIR_VENTA": "Venta restituida"
+    },
+    "alcance_one": "{{count}} producto autorizado alcanzado",
+    "alcance_other": "{{count}} productos autorizados alcanzados",
+    "decisionTexto": "Habilita su tienda para que pueda publicarla, o revoca la venta de todos sus productos.",
+    "revocadaTexto": "Su venta está revocada: sus productos se ven en venta pausada. Puedes restituirla con un motivo.",
+    "accion": {
+      "habilitar-tienda": {
+        "boton": "Habilitar tienda",
+        "titulo": "Habilitar la tienda de {{organizacion}}",
+        "confirmar": "Habilitar tienda",
+        "texto": "El productor podrá publicar su tienda. Cada producto sigue necesitando su propia autorización para venderse.",
+        "hecho": "Habilitaste la tienda. Avisamos al productor."
+      },
+      "revocar": {
+        "boton": "Revocar venta del productor",
+        "titulo": "Revocar la venta de {{organizacion}}",
+        "confirmar": "Revocar venta",
+        "texto": "Ninguno de sus productos se podrá comprar desde ahora. Los pedidos confirmados se atienden igual y sus autorizaciones por producto se conservan. La decisión queda registrada y no se edita.",
+        "hecho": "Revocaste la venta del productor. Sus productos quedaron en venta pausada."
+      },
+      "restituir": {
+        "boton": "Restituir venta",
+        "titulo": "Restituir la venta de {{organizacion}}",
+        "confirmar": "Restituir venta",
+        "texto": "Sus productos autorizados y vigentes vuelven a venderse. La decisión queda registrada.",
+        "hecho": "Restituiste la venta del productor."
+      }
+    }
   }
 }
