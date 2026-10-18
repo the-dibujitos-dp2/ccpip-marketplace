@@ -6,10 +6,12 @@ import iconoEtiquetaGlifo from '../../assets/icons/etiqueta-glifo.svg'
 import iconoGrafico from '../../assets/icons/grafico.svg'
 import iconoMas from '../../assets/icons/mas.svg'
 import iconoReloj from '../../assets/icons/reloj.svg'
-import { obtenerPanel } from '../../api/productor.js'
+import iconoUsuario from '../../assets/icons/usuario.svg'
+import { listarIntereses, obtenerPanel } from '../../api/productor.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
+import Icono from '../../components/Icono.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import { fecha, unidades } from '../../formato.js'
 import { RUTAS } from '../../router.js'
@@ -24,9 +26,12 @@ export default function PanelPage({ path }) {
   const [panel, setPanel] = useState(null)
   const [error, setError] = useState(false)
   const [alertaVisible, setAlertaVisible] = useState(true)
+  const [intereses, setIntereses] = useState([])
 
   useEffect(() => {
     obtenerPanel().then(setPanel).catch(() => setError(true))
+    // CCPIP-106: si no carga, el panel sigue sin la tarjeta de intereses
+    listarIntereses().then(setIntereses).catch(() => setIntereses([]))
   }, [])
 
   const nombre = user.fullName.split(' ')[0]
@@ -94,30 +99,68 @@ export default function PanelPage({ path }) {
               </Boton>
             </EstadoVacio>
           ) : (
-            panel.publicadosSinStock.length > 0 && (
-              <section className="productor__seccion" aria-labelledby="titulo-sin-stock">
-                <h2 id="titulo-sin-stock" className="heading-h4">{t('productor.panel.sinStock')}</h2>
-                <div className="tabla">
-                  <div className="tabla__fila tabla__fila--encabezado">
-                    <span className="tabla__celda tabla__celda--flex">{t('productor.tabla.producto')}</span>
-                    <span className="tabla__celda tabla__celda--accion">{t('productor.tabla.accion')}</span>
-                  </div>
-                  {panel.publicadosSinStock.map((p) => (
-                    <div key={p.id} className="tabla__fila">
-                      <span className="tabla__celda tabla__celda--flex label-m">{p.nombre}</span>
-                      <span className="tabla__celda tabla__celda--accion">
-                        <Boton tipo="secundario" tamano="S" to={`${RUTAS.productorLotes}?producto=${p.id}`}>
-                          {t('productor.panel.reponer')}
-                        </Boton>
-                      </span>
+            (panel.publicadosSinStock.length > 0 || intereses.length > 0) && (
+              <div className="panel__fila">
+                {panel.publicadosSinStock.length > 0 && (
+                  <section className="productor__seccion panel__sin-stock" aria-labelledby="titulo-sin-stock">
+                    <h2 id="titulo-sin-stock" className="heading-h4">{t('productor.panel.sinStock')}</h2>
+                    <div className="tabla">
+                      <div className="tabla__fila tabla__fila--encabezado">
+                        <span className="tabla__celda tabla__celda--flex">{t('productor.tabla.producto')}</span>
+                        <span className="tabla__celda tabla__celda--accion">{t('productor.tabla.accion')}</span>
+                      </div>
+                      {panel.publicadosSinStock.map((p) => (
+                        <div key={p.id} className="tabla__fila">
+                          <span className="tabla__celda tabla__celda--flex label-m">{p.nombre}</span>
+                          <span className="tabla__celda tabla__celda--accion">
+                            <Boton tipo="secundario" tamano="S" to={`${RUTAS.productorLotes}?producto=${p.id}`}>
+                              {t('productor.panel.reponer')}
+                            </Boton>
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </section>
+                  </section>
+                )}
+                {intereses.length > 0 && <Intereses intereses={intereses} />}
+              </div>
             )
           )}
         </>
       )}
     </PaginaProductor>
+  )
+}
+
+/**
+ * PW-01 (CCPIP-106): cuantas personas registraron interes en cada oferta agotada o pausada y cuanto
+ * piden. Sin datos de los compradores. Al volver a venderse se les avisa y salen de la lista (CCPIP-273).
+ */
+function Intereses({ intereses }) {
+  const { t } = useTranslation()
+  return (
+    <section className="panel__intereses" aria-labelledby="titulo-intereses">
+      <h2 id="titulo-intereses" className="heading-h4 panel__intereses-titulo">
+        <Icono src={iconoUsuario} tamano={20} />
+        {t('productor.panel.intereses.titulo')}
+      </h2>
+      <ul className="panel__intereses-lista">
+        {intereses.map((i) => (
+          <li key={i.productoId}>
+            <span className="panel__interes-producto">
+              <span className="label-m">{i.nombre}</span>
+              {i.estado !== 'AGOTADO' && <span className="caption">{t(`productor.panel.intereses.estado.${i.estado}`)}</span>}
+            </span>
+            <span className="panel__interes-cifra">
+              {t('productor.panel.intereses.cifra', { count: i.interesados, cantidad: i.cantidad })}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <Boton tipo="secundario" tamano="M" anchoCompleto icono={iconoMas} to={RUTAS.productorLotes}>
+        {t('productor.panel.intereses.reponer')}
+      </Boton>
+      <p className="caption">{t('productor.panel.intereses.nota')}</p>
+    </section>
   )
 }
