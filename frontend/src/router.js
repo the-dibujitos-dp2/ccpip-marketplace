@@ -34,6 +34,7 @@ export const RUTAS = {
   adminComisiones: '/admin/comisiones',
   adminParametros: '/admin/parametros',
   adminAutorizaciones: '/admin/autorizaciones',
+  adminCatalogo: '/admin/catalogo',
   adminCuentas: '/admin/cuentas',
   adminCuentaNueva: '/admin/cuentas/nueva',
 }
