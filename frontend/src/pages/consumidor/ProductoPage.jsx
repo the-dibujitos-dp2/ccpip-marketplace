@@ -12,12 +12,13 @@ import ImagenProducto from '../../components/ImagenProducto.jsx'
 import SelloOrigen from '../../components/SelloOrigen.jsx'
 import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
-import { capital, fecha, mesAnio, precio } from '../../formato.js'
+import { capital, fecha, mesAnio, precio, primeraOracion } from '../../formato.js'
 import { RUTAS } from '../../router.js'
 import { idiomaSegun, textoSegun } from '../../traduccion.js'
 import { resolverTarifa } from '../../tarifa.js'
 import AgregarAlCarrito from './AgregarAlCarrito.jsx'
 import MeInteresa from './MeInteresa.jsx'
+import OfertasMaestro from './OfertasMaestro.jsx'
 import './ProductoPage.css'
 
 // CCPIP-171: campos traducibles de cada seccion, con los nombres que usa el catalogo
@@ -112,6 +113,8 @@ export default function ProductoPage({ id }) {
     if (activa === 'MAYORISTA') setCantidad('1')
   }
   const partes = historia?.partes
+  // CCPIP-42: las demas comunidades que ofrecen el mismo producto del catalogo maestro
+  const otrasOfertas = producto.maestro?.ofertas?.filter((o) => o.id !== producto.id) ?? []
   const pasos = partes
     ? [
         { titulo: t('producto.historia.comunidad'), texto: partes.comunidad },
@@ -190,7 +193,7 @@ export default function ProductoPage({ id }) {
 
             {historia && (
               <blockquote className="ficha__cita" lang={idiomaHistoria}>
-                <p>“{historia.titulo ?? resumen(historia.texto)}”</p>
+                <p>“{historia.titulo ?? primeraOracion(historia.texto)}”</p>
                 <a href="#historia" className="enlace-marca">{t('producto.leerHistoria')} <span aria-hidden="true">↓</span></a>
               </blockquote>
             )}
@@ -303,22 +306,28 @@ export default function ProductoPage({ id }) {
           </div>
         </section>
 
-        {conMayorista && (
-          <section className="ficha__volumen" aria-labelledby="titulo-volumen">
-            <span className="etiqueta-producto etiqueta-producto--info">{t('modalidad.MAYORISTA')}</span>
-            <h2 id="titulo-volumen" className="heading-h2">{t('producto.volumen.titulo')}</h2>
-            <p className="body-s">{t('producto.volumen.texto')}</p>
-            <dl>
-              <div>
-                <dt>{t('producto.volumen.minimo')}</dt>
-                <dd>{t('producto.unidades', { count: producto.cantidadMinimaMayorista })}</dd>
-              </div>
-              <div>
-                <dt>{t('producto.volumen.precioUnidad')}</dt>
-                <dd>{precio(producto.precioMayorista)}</dd>
-              </div>
-            </dl>
-          </section>
+        {/* Figma CW-03 "Volumen y otras ofertas": la compra por volumen y, al lado, los demas productores (CCPIP-42) */}
+        {(conMayorista || otrasOfertas.length > 0) && (
+          <div className="ficha__volumen-ofertas">
+            {conMayorista && (
+              <section className="ficha__volumen" aria-labelledby="titulo-volumen">
+                <span className="etiqueta-producto etiqueta-producto--info">{t('modalidad.MAYORISTA')}</span>
+                <h2 id="titulo-volumen" className="heading-h2">{t('producto.volumen.titulo')}</h2>
+                <p className="body-s">{t('producto.volumen.texto')}</p>
+                <dl>
+                  <div>
+                    <dt>{t('producto.volumen.minimo')}</dt>
+                    <dd>{t('producto.unidades', { count: producto.cantidadMinimaMayorista })}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('producto.volumen.precioUnidad')}</dt>
+                    <dd>{precio(producto.precioMayorista)}</dd>
+                  </div>
+                </dl>
+              </section>
+            )}
+            {otrasOfertas.length > 0 && <OfertasMaestro maestro={producto.maestro} ofertas={otrasOfertas} />}
+          </div>
         )}
 
         {producto.relacionados?.length > 0 && (
@@ -352,10 +361,4 @@ function PrecioOpcion({ activo, interactivo, onElegir, titulo, monto, detalle })
       {contenido}
     </button>
   )
-}
-
-/** Primera oracion de la historia para la cita destacada. */
-function resumen(texto) {
-  const corte = texto.search(/[.!?](\s|$)/)
-  return corte > 0 && corte < 160 ? texto.slice(0, corte + 1) : `${texto.slice(0, 140).trim()}…`
 }

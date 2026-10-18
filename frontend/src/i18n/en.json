@@ -1466,7 +1466,18 @@
       "minimo": "Minimum wholesale order",
       "precioUnidad": "Price per unit"
     },
-    "tambienDe": "More {{linea}}"
+    "tambienDe": "More {{linea}}",
+    "otrasOfertas": {
+      "titulo": "Other producers of {{producto}}",
+      "texto": "Each offer comes from a different producer. If one is sold out, your “I'm interested” only reaches that producer.",
+      "disponible": "available",
+      "agotado": "sold out",
+      "pausada": "sales paused",
+      "ver": "View offer",
+      "verAria": "View the offer from {{tienda}}",
+      "meInteresa": "I'm interested",
+      "meInteresaAria": "I'm interested in the offer from {{tienda}}"
+    }
   },
   "carrito": {
     "agregar": {
