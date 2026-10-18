@@ -179,7 +179,7 @@ public class ProductosService {
     // ---------- Internos ----------
 
     private void escribir(long id, long productorId, long usuarioId, DatosProducto d) {
-        List<Short> lineas = idsLineas(d.lineas());
+        List<Short> lineas = idsLineas(d.lineas(), id);
         Short unidad = d.unidad() == null || d.unidad().isBlank() ? null : idUnidad(d.unidad());
         boolean mayorista = d.modalidad() != Modalidad.MINORISTA;
         boolean minorista = d.modalidad() != Modalidad.MAYORISTA;
@@ -311,13 +311,21 @@ public class ProductosService {
                 productoId);
     }
 
-    private List<Short> idsLineas(List<String> codigos) {
+    /**
+     * CCPIP-311: solo se eligen lineas activas, pero una oferta conserva la linea que ya tenia aunque la
+     * Camara la haya desactivado despues (referencia historica).
+     */
+    private List<Short> idsLineas(List<String> codigos, long productoId) {
         if (codigos == null) {
             return List.of();
         }
         List<Short> ids = new ArrayList<>();
         for (String codigo : codigos.stream().distinct().toList()) {
-            ids.add(jdbc.query("SELECT id FROM linea_producto WHERE codigo = ? AND activo", (rs, row) -> rs.getShort(1), codigo)
+            ids.add(jdbc.query("""
+                    SELECT l.id FROM linea_producto l
+                    WHERE l.codigo = ? AND (l.activo OR EXISTS (
+                        SELECT 1 FROM producto_linea pl WHERE pl.producto_id = ? AND pl.linea_id = l.id))""",
+                            (rs, row) -> rs.getShort(1), codigo, productoId)
                     .stream().findFirst()
                     .orElseThrow(() -> ErrorNegocio.invalido("LINEA_INVALIDA", "La línea " + codigo + " no existe.")));
         }

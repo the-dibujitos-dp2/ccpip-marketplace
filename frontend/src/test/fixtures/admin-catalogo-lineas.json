@@ -1,0 +1,127 @@
+{
+  "contadores": {
+    "activos": 7,
+    "inactivos": 0
+  },
+  "lineas": [
+    {
+      "id": 1,
+      "codigo": "CACAO",
+      "nombre": "Cacao y chocolates",
+      "nombreEn": "Cacao & chocolate",
+      "requiereVencimiento": true,
+      "unidadSugerida": {
+        "codigo": "BOLSA",
+        "nombre": "Bolsa"
+      },
+      "orden": 1,
+      "activa": true,
+      "productos": 2,
+      "ofertas": 3,
+      "actualizadaEn": "2026-10-17T05:00:00Z",
+      "desactivadaEn": null
+    },
+    {
+      "id": 2,
+      "codigo": "CAFE",
+      "nombre": "Café",
+      "nombreEn": "Coffee",
+      "requiereVencimiento": true,
+      "unidadSugerida": {
+        "codigo": "BOLSA",
+        "nombre": "Bolsa"
+      },
+      "orden": 2,
+      "activa": true,
+      "productos": 2,
+      "ofertas": 2,
+      "actualizadaEn": "2026-10-17T05:00:00Z",
+      "desactivadaEn": null
+    },
+    {
+      "id": 3,
+      "codigo": "SUPERFRUTOS",
+      "nombre": "Superfrutos",
+      "nombreEn": "Superfruits",
+      "requiereVencimiento": true,
+      "unidadSugerida": {
+        "codigo": "BOLSA",
+        "nombre": "Bolsa"
+      },
+      "orden": 3,
+      "activa": true,
+      "productos": 1,
+      "ofertas": 1,
+      "actualizadaEn": "2026-10-17T05:00:00Z",
+      "desactivadaEn": null
+    },
+    {
+      "id": 4,
+      "codigo": "ACEITES",
+      "nombre": "Aceites",
+      "nombreEn": "Oils",
+      "requiereVencimiento": true,
+      "unidadSugerida": {
+        "codigo": "BOTELLA",
+        "nombre": "Botella"
+      },
+      "orden": 4,
+      "activa": true,
+      "productos": 2,
+      "ofertas": 2,
+      "actualizadaEn": "2026-10-17T05:00:00Z",
+      "desactivadaEn": null
+    },
+    {
+      "id": 5,
+      "codigo": "INFUSIONES",
+      "nombre": "Infusiones",
+      "nombreEn": "Herbal teas",
+      "requiereVencimiento": true,
+      "unidadSugerida": {
+        "codigo": "SOBRE",
+        "nombre": "Sobre"
+      },
+      "orden": 5,
+      "activa": true,
+      "productos": 1,
+      "ofertas": 1,
+      "actualizadaEn": "2026-10-17T05:00:00Z",
+      "desactivadaEn": null
+    },
+    {
+      "id": 6,
+      "codigo": "ARTESANIA",
+      "nombre": "Artesanías",
+      "nombreEn": "Crafts",
+      "requiereVencimiento": false,
+      "unidadSugerida": {
+        "codigo": "UNIDAD",
+        "nombre": "Unidad"
+      },
+      "orden": 6,
+      "activa": true,
+      "productos": 1,
+      "ofertas": 1,
+      "actualizadaEn": "2026-10-17T05:00:00Z",
+      "desactivadaEn": null
+    },
+    {
+      "id": 7,
+      "codigo": "TEXTIL",
+      "nombre": "Textiles",
+      "nombreEn": "Textiles",
+      "requiereVencimiento": false,
+      "unidadSugerida": {
+        "codigo": "UNIDAD",
+        "nombre": "Unidad"
+      },
+      "orden": 7,
+      "activa": true,
+      "productos": 1,
+      "ofertas": 1,
+      "actualizadaEn": "2026-10-17T05:00:00Z",
+      "desactivadaEn": null
+    }
+  ]
+}

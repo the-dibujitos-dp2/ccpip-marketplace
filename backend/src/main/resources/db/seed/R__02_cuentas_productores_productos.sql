@@ -100,6 +100,8 @@ UPDATE productor p SET
     localidad = d.localidad,
     socios = d.socios,
     verificado_en = coalesce(p.verificado_en, current_date - 120),
+    -- CCPIP-291: habilitacion manual de datos iniciales; la Camara habilita las demas desde la plataforma
+    tienda_habilitada = true,
     tienda_publicada = true,
     tienda_publicada_en = coalesce(p.tienda_publicada_en, now())
 FROM usuario u
