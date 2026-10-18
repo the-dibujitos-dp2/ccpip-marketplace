@@ -1,13 +1,10 @@
 package pe.ccpip.autorizacion;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.mail.MailException;
 import org.springframework.stereotype.Component;
 
 import pe.ccpip.aviso.Correo;
-import pe.ccpip.aviso.EnvioCorreo;
+import pe.ccpip.aviso.Avisos;
 
 /**
  * Notifica al productor cada decision humana sobre su venta (CCPIP-37, CCPIP-297, CCPIP-39,
@@ -20,42 +17,42 @@ import pe.ccpip.aviso.EnvioCorreo;
 @Component
 public class AvisoAutorizacion {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AvisoAutorizacion.class);
     private static final String FIRMA_ES = "\nCámara de Comercio de los Pueblos Indígenas del Perú\n";
     private static final String FIRMA_EN = "\nChamber of Commerce of the Indigenous Peoples of Peru\n";
 
     /** Que se decidio. {@code producto} es nulo en las decisiones sobre el productor. */
     public enum Tipo { APROBADA, RECHAZADA, REVOCADA, HABILITAR_TIENDA, REVOCAR_VENTA, RESTITUIR_VENTA }
 
-    private record Destinatario(String correo, String nombre, boolean ingles) {
+    private record Destinatario(long usuarioId, String correo, String nombre, boolean ingles) {
     }
 
     private final JdbcTemplate jdbc;
-    private final EnvioCorreo envio;
+    private final Avisos avisos;
 
-    public AvisoAutorizacion(JdbcTemplate jdbc, EnvioCorreo envio) {
+    public AvisoAutorizacion(JdbcTemplate jdbc, Avisos avisos) {
         this.jdbc = jdbc;
-        this.envio = envio;
+        this.avisos = avisos;
     }
 
-    /** Envia el aviso al usuario del productor, en su idioma. Devuelve false si no salio. */
-    public boolean notificar(long productorId, Tipo tipo, String producto, String motivo) {
+    /**
+     * Envia el aviso al usuario del productor, en su idioma, y lo deja en el registro de avisos.
+     * {@code decisionId} es la fila de autorizacion_decision (decisiones por producto) o de
+     * productor_decision (decisiones sobre el productor). Devuelve false si no salio.
+     */
+    public boolean notificar(long productorId, Tipo tipo, String producto, String motivo, long decisionId) {
         Destinatario d = jdbc.query("""
-                        SELECT u.correo, coalesce(p.nombre_tienda, p.comunidad), u.idioma
+                        SELECT u.id, u.correo, coalesce(p.nombre_tienda, p.comunidad), u.idioma
                         FROM productor p JOIN usuario u ON u.id = p.usuario_id WHERE p.id = ?""",
-                (rs, row) -> new Destinatario(rs.getString(1), rs.getString(2), "en".equals(rs.getString(3))),
+                (rs, row) -> new Destinatario(rs.getLong(1), rs.getString(2), rs.getString(3), Avisos.ingles(rs.getString(4))),
                 productorId).stream().findFirst().orElse(null);
         if (d == null) {
             return false;
         }
+        Avisos.Tipo registro = producto == null ? Avisos.Tipo.DECISION_PRODUCTOR : Avisos.Tipo.DECISION_AUTORIZACION;
         Correo correo = d.ingles() ? enIngles(d, tipo, producto, motivo) : enEspanol(d, tipo, producto, motivo);
-        try {
-            envio.enviar(correo);
-            return true;
-        } catch (MailException e) {
-            LOG.error("No se pudo avisar la decision {} al productor {}: {}", tipo, productorId, e.getMessage());
-            return false;
-        }
+        return avisos.registrar(d.usuarioId(), registro, decisionId)
+                .map(avisoId -> avisos.enviar(avisoId, correo))
+                .orElse(false);
     }
 
     private static Correo enEspanol(Destinatario d, Tipo tipo, String producto, String motivo) {

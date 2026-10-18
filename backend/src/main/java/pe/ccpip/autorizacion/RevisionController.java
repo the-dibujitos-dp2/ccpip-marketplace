@@ -78,7 +78,7 @@ public class RevisionController {
 
     /** El servicio ya confirmo la transaccion: el aviso sale solo si la decision quedo guardada. */
     private Expediente avisar(Expediente exp, AvisoAutorizacion.Tipo tipo, NuevaDecision decision) {
-        aviso.notificar(exp.productor().id(), tipo, exp.producto(), decision.motivo().strip());
+        aviso.notificar(exp.productor().id(), tipo, exp.producto(), decision.motivo().strip(), exp.decisiones().get(0).id());
         return exp;
     }
 

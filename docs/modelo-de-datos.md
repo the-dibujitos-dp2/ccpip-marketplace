@@ -474,7 +474,9 @@ Migracion `V202610172100`. El subadministrador revoca con motivo la venta de un 
 o de un productor completo (RF-220), habilita la tienda de un productor autorizado (RF-147) y ve,
 productor por productor, los productos que cada uno puede vender (RF-148). Toda decision se avisa
 al productor por correo, en su idioma (`usuario.idioma`), y queda visible en sus pantallas; tambien
-la aprobacion y el rechazo (CCPIP-37, CCPIP-297). Si el correo falla, la decision no se deshace.
+la aprobacion y el rechazo (CCPIP-37, CCPIP-297). Cada envio queda en `aviso` (tipos nuevos
+`DECISION_AUTORIZACION`, con referencia a `autorizacion_decision`, y `DECISION_PRODUCTOR`, a
+`productor_decision`). Si el correo falla, el aviso queda FALLIDO y la decision no se deshace.
 
 ```mermaid
 erDiagram

@@ -83,6 +83,10 @@ class RevocacionYTiendaTest extends IntegrationTest {
         Correo aviso = correos.ultimoPara(PRODUCTOR).orElseThrow();
         assertThat(aviso.asunto()).contains("Revocamos").contains("Miel de abeja nativa 250 g");
         assertThat(aviso.texto()).contains("El certificado orgánico fue suspendido por el emisor");
+        assertThat(jdbc.queryForObject("""
+                SELECT v.estado FROM aviso v JOIN autorizacion_decision d ON d.id = v.referencia_id
+                WHERE v.tipo = 'DECISION_AUTORIZACION' AND d.autorizacion_id = ? AND d.decision = 'REVOCADA'""",
+                String.class, autorizacion)).isEqualTo("ENVIADO");
         // El productor lo ve y puede volver a solicitarla: no es un bloqueo irreversible
         mockMvc.perform(get("/api/productor/productos/{id}/evidencias", miel).cookie(loginAs(PRODUCTOR)))
                 .andExpect(jsonPath("$.autorizacion.estado").value("REVOCADA"))
@@ -147,6 +151,11 @@ class RevocacionYTiendaTest extends IntegrationTest {
         decidir("autorizaciones", autorizacion, "revocar", "Motivo").andExpect(status().isOk());
         assertThat(jdbc.queryForObject("SELECT estado FROM autorizacion_producto WHERE id = ?", String.class, autorizacion))
                 .isEqualTo("REVOCADA");
+        // El intento queda registrado como fallido; el productor igual lo ve en la plataforma
+        assertThat(jdbc.queryForObject("""
+                SELECT v.estado FROM aviso v JOIN autorizacion_decision d ON d.id = v.referencia_id
+                WHERE v.tipo = 'DECISION_AUTORIZACION' AND d.autorizacion_id = ?""", String.class, autorizacion))
+                .isEqualTo("FALLIDO");
     }
 
     // --- CCPIP-292: asociacion productor-producto y sus lineas ---

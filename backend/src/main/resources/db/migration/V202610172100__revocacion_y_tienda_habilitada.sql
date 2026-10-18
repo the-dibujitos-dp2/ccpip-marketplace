@@ -94,3 +94,15 @@ UPDATE productor SET tienda_habilitada = true WHERE tienda_publicada;
 
 ALTER TABLE productor
     ADD CONSTRAINT productor_tienda_publicada_habilitada CHECK (NOT tienda_publicada OR tienda_habilitada);
+
+-- ---------------------------------------------------------------------------------------------
+-- Aviso al productor (CCPIP-37, CCPIP-297, CCPIP-39, CCPIP-291, CCPIP-330): cada decision se
+-- avisa una vez y queda registrada. La referencia es la fila de autorizacion_decision o de
+-- productor_decision que la origina.
+-- ---------------------------------------------------------------------------------------------
+
+ALTER TABLE aviso DROP CONSTRAINT aviso_tipo_valido;
+ALTER TABLE aviso ADD CONSTRAINT aviso_tipo_valido CHECK (tipo IN (
+    'PEDIDO_LISTO', 'INTERES_VENDIBLE', 'DECISION_AUTORIZACION', 'DECISION_PRODUCTOR'));
+
+COMMENT ON TABLE aviso IS 'CCPIP-69, CCPIP-273 y avisos de autorizacion al productor: uno por hecho y canal (sin duplicacion).';

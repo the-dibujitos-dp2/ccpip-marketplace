@@ -67,7 +67,7 @@ public class ProductoresController {
 
     /** El servicio ya confirmo la transaccion: el aviso sale solo si la decision quedo guardada. */
     private FichaProductor avisar(FichaProductor ficha, AvisoAutorizacion.Tipo tipo, NuevaDecision decision) {
-        aviso.notificar(ficha.id(), tipo, null, decision.motivo().strip());
+        aviso.notificar(ficha.id(), tipo, null, decision.motivo().strip(), ficha.decisiones().get(0).id());
         return ficha;
     }
 }
