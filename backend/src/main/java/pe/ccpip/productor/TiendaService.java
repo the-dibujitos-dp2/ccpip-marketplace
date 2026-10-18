@@ -41,7 +41,8 @@ public class TiendaService {
     public record TiendaEdicion(long id, String comunidad, String region, boolean origenVerificado, LocalDate verificadoEn,
                                 String nombreTienda, String descripcionCorta, String historia, String cita, String pueblo,
                                 String localidad, Integer socios, boolean publicada, Imagen portada, List<Imagen> galeria,
-                                List<Long> destacados, List<ProductoOpcion> productosPublicados) {
+                                List<Long> destacados, List<ProductoOpcion> productosPublicados, boolean habilitada,
+                                boolean ventaRevocada, String motivoRevocacion) {
     }
 
     private final JdbcTemplate jdbc;
@@ -64,15 +65,19 @@ public class TiendaService {
                 "SELECT id, nombre FROM producto WHERE productor_id = ? AND estado = 'PUBLICADO' ORDER BY nombre",
                 (rs, row) -> new ProductoOpcion(rs.getLong("id"), rs.getString("nombre")), productorId);
         return jdbc.queryForObject("""
-                SELECT id, comunidad, region, origen_verificado, verificado_en, nombre_tienda, descripcion_corta,
-                       historia, cita, pueblo, localidad, socios, tienda_publicada
-                FROM productor WHERE id = ?""",
+                SELECT pr.id, pr.comunidad, pr.region, pr.origen_verificado, pr.verificado_en, pr.nombre_tienda,
+                       pr.descripcion_corta, pr.historia, pr.cita, pr.pueblo, pr.localidad, pr.socios, pr.tienda_publicada,
+                       pr.tienda_habilitada, pr.venta_revocada, d.motivo AS motivo_revocacion
+                FROM productor pr
+                LEFT JOIN productor_decision d ON d.id = pr.venta_decision_id AND pr.venta_revocada
+                WHERE pr.id = ?""",
                 (rs, row) -> new TiendaEdicion(rs.getLong("id"), rs.getString("comunidad"), rs.getString("region"),
                         rs.getBoolean("origen_verificado"), rs.getObject("verificado_en", LocalDate.class),
                         rs.getString("nombre_tienda"), rs.getString("descripcion_corta"), rs.getString("historia"),
                         rs.getString("cita"), rs.getString("pueblo"), rs.getString("localidad"),
                         (Integer) rs.getObject("socios"), rs.getBoolean("tienda_publicada"), portada, galeria,
-                        destacados, publicados),
+                        destacados, publicados, rs.getBoolean("tienda_habilitada"), rs.getBoolean("venta_revocada"),
+                        rs.getString("motivo_revocacion")),
                 productorId);
     }
 
@@ -97,10 +102,17 @@ public class TiendaService {
         return despues;
     }
 
-    /** Publica la tienda si tiene lo minimo que el comprador necesita para conocer a la comunidad. */
+    /**
+     * Publica la tienda si tiene lo minimo que el comprador necesita para conocer a la comunidad. La tienda
+     * la habilita la Camara (CCPIP-291): el productor la arma, pero no la vuelve operativa por su cuenta.
+     */
     @Transactional
     public TiendaEdicion publicar(long productorId) {
         TiendaEdicion t = obtener(productorId);
+        if (!t.habilitada()) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "TIENDA_NO_HABILITADA",
+                    "La Cámara aún no habilita tu tienda. Podrás publicarla en cuanto la habilite.");
+        }
         List<String> faltan = new ArrayList<>();
         if (vacio(t.nombreTienda())) {
             faltan.add("El nombre de la tienda");

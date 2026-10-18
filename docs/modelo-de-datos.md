@@ -91,7 +91,8 @@ obligaba a reemitir tokens. ADR-05 se actualiza a token opaco.
 
 ### linea_producto, unidad_medida
 Catalogos cerrados. RNF-32: el productor no crea unidades de medida, las solicita al
-administrador, que es CCPIP-119 y CCPIP-137 en Sprint 1.
+administrador, que es CCPIP-119 y CCPIP-137 en Sprint 1. Las lineas las administra el
+superadministrador desde el catalogo maestro (ver "Catalogo maestro" mas abajo).
 
 ### productor
 | Columna | Tipo | Nulo | Nota |
@@ -377,8 +378,8 @@ pedidos ya pagados siguen su curso (supuesto de PW-20, por validar con el stakeh
 ### autorizacion_producto
 `productor_id`, `producto_id`, `estado` (SOLICITADA, APROBADA, RECHAZADA, REVOCADA), `motivo`,
 `decidido_por`, `decidido_en` y `vigente_hasta` (nula si no vence). Unica por productor y
-producto. El diccionario la liga a `producto_maestro`, que aun no existe: por ahora apunta a
-`producto`. La migracion deja APROBADA lo que ya se vendia.
+producto. El diccionario la liga a `producto_maestro`; la tabla ya existe (V202610171900), pero la
+autorizacion sigue apuntando a `producto` hasta que una historia migre el vinculo. La migracion deja APROBADA lo que ya se vendia.
 
 **Una oferta es comprable** si su productor tiene una cuenta ACTIVA y una autorizacion APROBADA
 para ese producto con `vigente_hasta` nula o de hoy en adelante (hora de Lima). Si no, sigue
@@ -468,6 +469,71 @@ aun no esta elegido: `ninguno` (por defecto) responde `503 IA_NO_DISPONIBLE`, qu
 como NO_DISPONIBLE y la solicitud se decide a mano; `simulado` aplica reglas fijas sobre lo
 declarado (sin leer el archivo) y se marca `simulado = true` en la base y en la pantalla como
 resultado de prueba. Solo se usa en pruebas y demo.
+
+## Revocacion, lineas autorizadas y tienda habilitada (CCPIP-39, CCPIP-330, CCPIP-291, CCPIP-292)
+
+Migracion `V202610172600`. El subadministrador revoca con motivo la venta de un producto (RF-16)
+o de un productor completo (RF-220), habilita la tienda de un productor autorizado (RF-147) y ve,
+productor por productor, los productos que cada uno puede vender (RF-148). Toda decision se avisa
+al productor por correo, en su idioma (`usuario.idioma`), y queda visible en sus pantallas; tambien
+la aprobacion y el rechazo (CCPIP-37, CCPIP-297). Cada envio queda en `aviso` (tipos nuevos
+`DECISION_AUTORIZACION`, con referencia a `autorizacion_decision`, y `DECISION_PRODUCTOR`, a
+`productor_decision`). Si el correo falla, el aviso queda FALLIDO y la decision no se deshace.
+
+```mermaid
+erDiagram
+    productor ||--o{ productor_decision : recibe
+    productor |o--o| productor_decision : tienda_decision
+    productor |o--o| productor_decision : venta_decision
+```
+
+**Una oferta es comprable** ahora, ademas de lo de CCPIP-269, solo si la venta de su productor no
+esta revocada y si todas las lineas actuales del producto estan en `autorizacion_producto.lineas`.
+La regla vive en un solo lugar (`CatalogoRepository.HABILITADA`), asi que el catalogo, el carrito,
+la confirmacion y el pago la aplican al instante. Los pedidos confirmados no se tocan.
+
+| Decision | Quien | Exige | Efecto |
+|---|---|---|---|
+| Revocar producto (`POST /api/admin/autorizaciones/{id}/revocar`) | SUB_ADMIN | APROBADA (vigente o vencida), si no `409 AUTORIZACION_NO_APROBADA` | `autorizacion_producto` pasa a REVOCADA; fila REVOCADA en `autorizacion_decision`. El productor puede volver a solicitarla con evidencias nuevas |
+| Revocar productor (`POST /api/admin/productores/{id}/revocar`) | SUB_ADMIN | no revocado, si no `409 VENTA_YA_REVOCADA` | `productor.venta_revocada`; sus autorizaciones por producto no cambian y quedan citadas como alcance |
+| Restituir productor (`.../restituir`) | SUB_ADMIN | revocado, si no `409 VENTA_NO_REVOCADA` | Vuelve a vender lo que tenia autorizado |
+| Habilitar tienda (`.../habilitar-tienda`) | SUB_ADMIN | no habilitada y venta no revocada (`409 TIENDA_YA_HABILITADA`, `VENTA_REVOCADA`). Productor autorizado = incorporado por la Camara (no hay postulacion), activo y sin revocar | `productor.tienda_habilitada`; recien entonces el productor puede publicarla (`409 TIENDA_NO_HABILITADA`). Cada producto sigue necesitando su propia autorizacion |
+
+Un certificado vencido pausa la venta pero no es una revocacion (C5): el estado sigue APROBADA y
+no se registra decision.
+
+### autorizacion_producto (columna nueva)
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| lineas | smallint[] | si | Lineas del producto al aprobarse. Obligatoria si el estado es APROBADA; la fija el trigger `autorizacion_fija_lineas()` al pasar a APROBADA. Si el producto suma otra linea, la oferta queda en Venta pausada y el productor puede pedir otra revision |
+
+### autorizacion_decision
+`decision` admite ahora tambien REVOCADA.
+
+### productor_decision
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| id | bigserial | no | |
+| productor_id | bigint | no | |
+| decision | varchar(16) | no | `HABILITAR_TIENDA`, `REVOCAR_VENTA` o `RESTITUIR_VENTA` |
+| motivo | varchar(500) | no | Obligatorio |
+| autorizaciones | bigint[] | no | Autorizaciones APROBADAS y vigentes al decidir: el alcance |
+| decidido_por, decidido_en | | no | Quien y cuando |
+
+Solo insercion por trigger. Revocar o restituir tambien deja una fila `AUTORIZACION` en
+`producto_auditoria` de cada producto alcanzado.
+
+### productor (columnas nuevas)
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| tienda_habilitada | boolean | no | La Camara habilito la tienda. `CHECK (NOT tienda_publicada OR tienda_habilitada)` |
+| tienda_decision_id | bigint | si | Decision que la habilito. Nula en los datos iniciales |
+| venta_revocada | boolean | no | La venta del productor esta revocada |
+| venta_decision_id | bigint | si | Ultima revocacion o restitucion |
+
+**Datos iniciales (habilitacion manual documentada de RF-147).** La migracion habilita las tiendas
+que ya estaban publicadas, y la semilla `R__02` habilita las de los tres productores de
+demostracion. `productor_nuevo@ccpip.test` queda sin habilitar para probar el flujo completo.
 
 ## Catalogo maestro y ofertas por productor (CCPIP-42)
 
@@ -848,6 +914,85 @@ quien y cuando.
 El administrador del punto ve lo que entra o sale de los puntos de `usuario_ubicacion`, salvo lo
 que el productor aun no compromete (INICIADA). Solo el destino registra la recepcion.
 
+## Calificaciones y denuncias (CCPIP-81, CCPIP-82, CCPIP-83, CCPIP-84, CCPIP-116, CCPIP-323)
+
+Migraciones `V202610172500__calificacion.sql`, `V202610172501__denuncia.sql` y
+`V202610172502__parametro_minimo_calificaciones.sql`.
+
+### calificacion
+CCPIP-81 (RF-88): el comprador califica con 1 a 5 estrellas cada linea de un pedido que recibio. Una
+calificacion por linea (`item_pedido`): tres unidades en la misma linea cuentan como una. Solo
+insercion: no se edita ni se borra.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| item_pedido_id | bigint | no | Unico. La linea calificada |
+| pedido_id | bigint | no | |
+| producto_id, productor_id | bigint | no | Copiados de la linea; llave foranea a la oferta (CCPIP-172) |
+| usuario_id | bigint | no | Comprador. Nunca sale en la ficha ni al productor |
+| estrellas | smallint | no | De 1 a 5 |
+| comentario | varchar(500) | si | Opcional. Se publica sin nombre |
+| calificado_en | timestamptz | no | |
+
+- Compra verificada en la base: un trigger exige que la linea sea del mismo comprador, que el pedido
+  este `ENTREGADO` y que producto y productor coincidan con la linea. El servicio valida lo mismo
+  antes y responde `PEDIDO_NO_RECIBIDO` o `LINEA_YA_CALIFICADA`.
+- CCPIP-82 (RF-89): el promedio de una oferta se calcula al consultar (`avg(estrellas)`, a un decimal)
+  y solo se publica con un minimo de calificaciones. El minimo es el parametro de SA-02
+  `CALIFICACIONES_MINIMO_PROMEDIO` en `parametro_plataforma` (migracion
+  `V202610172502__parametro_minimo_calificaciones.sql`, que amplia el CHECK de claves; lo fija el
+  superadministrador en `/api/admin/parametros/minimo-calificaciones`). Mientras no lo fije rige el
+  provisional `ccpip.calificaciones.minimo-para-promedio` (3). Con menos, la respuesta trae el conteo y
+  el umbral, sin promedio, distribucion ni resenas: nunca un promedio cero.
+
+### denuncia
+CCPIP-83 (RF-90): denuncia de un comprador sobre una oferta (`producto_id`) o sobre la comunidad
+(`producto_id` nulo), con motivo y descripcion, sin aprobacion previa. Nunca se borra.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| denunciante_id | bigint | no | RNF-41: identidad protegida, no sale en ninguna respuesta |
+| productor_id | bigint | no | Denunciado. Con producto, el de esa oferta (llave foranea compuesta) |
+| producto_id | bigint | si | Nulo si se denuncia a la comunidad |
+| motivo | varchar(30) | no | `NO_CORRESPONDE`, `CALIDAD`, `ORIGEN_DUDOSO`, `PRACTICA_INDEBIDA`, `CONTENIDO_INAPROPIADO`, `OTRO` |
+| descripcion | varchar(1000) | no | Al productor y al subadministrador llega con correos y telefonos ocultos |
+| estado | varchar(20) | no | `RECIBIDA`, `EN_REVISION`, `RESUELTA`, `DESESTIMADA` |
+| respuesta_productor | varchar(1000) | si | CCPIP-323: una sola vez, mientras la denuncia este abierta |
+| respondida_en | timestamptz | si | Nula si y solo si no hay respuesta |
+| creada_en, actualizada_en | timestamptz | no | |
+
+- Lo denunciado (denunciante, productor, oferta, motivo, descripcion, fecha) no cambia despues de
+  registrar, y la respuesta no se reemplaza: lo impide un trigger. DELETE esta bloqueado.
+- Un comprador no tiene dos denuncias abiertas sobre lo mismo (`DENUNCIA_DUPLICADA`).
+- Transiciones del subadministrador: `RECIBIDA` a `EN_REVISION`, `RESUELTA` o `DESESTIMADA`;
+  `EN_REVISION` a `RESUELTA` o `DESESTIMADA`. Cerrada, ya no cambia.
+
+### denuncia_evento
+Historial y auditoria de cada denuncia. Solo insercion.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| id | bigserial | no | |
+| denuncia_id | bigint | no | |
+| tipo | varchar(20) | no | `REGISTRADA`, `RESPUESTA`, `CAMBIO_ESTADO` |
+| estado | varchar(20) | no | Estado de la denuncia despues del evento |
+| nota | varchar(1000) | si | Respuesta del productor o nota obligatoria del subadministrador |
+| usuario_id | bigint | no | Quien dio el paso. En `REGISTRADA` es el denunciante y no se expone |
+| rol | varchar(20) | no | `CONSUMIDOR`, `PRODUCTOR` o `SUB_ADMIN` |
+| registrado_en | timestamptz | no | |
+
+Que ve cada rol (filtrado en el servidor, RNF-05 y RNF-41):
+
+- **Comprador:** sus propias denuncias, con estado y respuesta del productor.
+- **Productor (CCPIP-116):** solo las de su productor de sesion; sin denunciante, sin hora (solo el
+  dia) y con correos y telefonos de la descripcion ocultos.
+- **Subadministrador (CCPIP-84):** bandeja por productor ordenada por cantidad de denuncias, separada
+  del tablero analitico, y el historial con el nombre del subadministrador en cada cambio de estado.
+  Del denunciante solo sabe si recibio algun pedido de ese productor (`compraVerificada`). El
+  superadministrador consulta en modo lectura.
+
 ## Fuera de este modelo
 
 Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehacer nada:
@@ -855,7 +1000,6 @@ Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehac
 - Cobertura del punto de acopio y division politica del Peru, Sprint 1, CCPIP-149
 - Liquidacion y transferencia a cada productor (PW-11)
 - Merma y sus causas, Sprint 2
-- Valoraciones y denuncias, Sprint 2
 - Fidelizacion, Sprint 3, CCPIP-86
 
 ## Convencion de nombres de las migraciones
@@ -910,3 +1054,61 @@ El criterio de aceptacion de CCPIP-19 dice que ninguna migracion se escribe ante
 este modelo este aprobado. Las migraciones ya estan escritas y probadas, asi que lo que
 falta es que el equipo lo revise. Si cambia algo, se corrige antes de que alguien mas
 corra V1 a V5, porque despues ya no se puede editar un archivo aplicado.
+
+## Administracion del catalogo maestro (CCPIP-96, 309, 310, 311, 351, 312, 313 y 314)
+
+Migracion `V202610172300`, sobre `producto_maestro` y `producto.producto_maestro_id` de CCPIP-42
+(`V202610171900`, seccion anterior). El catalogo maestro son las lineas y los productos de
+referencia de la Camara. **No es la oferta comercial**: una oferta es una fila de `producto` de un
+productor, con su propio nombre, precio, lineas y estado (CCPIP-172). Lo administra el
+superadministrador (`/api/admin/catalogo`, Figma: modulo "lineas" del superadministrador); los
+demas roles reciben 403.
+
+```mermaid
+erDiagram
+    linea_producto ||--o{ producto_maestro : agrupa
+    producto_maestro |o--o{ producto : referencia
+    usuario ||--o{ catalogo_maestro_auditoria : registra
+```
+
+Nada se borra (RNF-17, RNF-18): `linea_producto` y `producto_maestro` tienen un trigger que rechaza
+DELETE; se desactivan con `activo = false`, y otro trigger llena o limpia `desactivado_en` cada vez
+que cambia `activo`.
+
+### linea_producto (columnas nuevas)
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| creado_en, actualizado_en | timestamptz | no | |
+| desactivado_en | timestamptz | si | Desde cuando esta inactiva. `activo = (desactivado_en IS NULL)` |
+
+El `codigo` no cambia (trigger): es la clave de las traducciones (`traduccion.entidad = 'LINEA'`) y de
+las validaciones de imagen. El nombre es unico sin importar mayusculas ni tildes. El nombre en ingles
+lo escribe el superadministrador y se guarda como traduccion APROBADA; si cambia el nombre en espanol
+sin dar uno nuevo en ingles, la traduccion queda DESACTUALIZADA (CCPIP-373). R__01 ya no pisa lo que
+la Camara edito (`ON CONFLICT DO NOTHING`).
+
+Una linea inactiva sale de `/api/catalogos` (formularios del productor y del consumidor) y del
+tablero, y no recibe productos maestros nuevos. Las ofertas que ya la tienen la conservan, se siguen
+mostrando con ella y el productor puede guardarlas sin quitarla, pero no elegirla para otra oferta.
+
+### producto_maestro (columnas y reglas nuevas)
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| actualizado_en | timestamptz | no | |
+| desactivado_en | timestamptz | si | `activo = (desactivado_en IS NULL)` |
+
+El `codigo` (CCPIP-42) se valida (`^[A-Z0-9][A-Z0-9_-]{1,39}$`) y no cambia (trigger). El nombre es
+unico dentro de su linea sin importar mayusculas ni tildes. Un producto maestro nace en una linea
+activa; puede quedarse en su linea si esta se desactiva, pero no pasar a otra inactiva.
+
+No tiene precio, unidad, stock ni productor. Modificarlo solo escribe su fila (CCPIP-313): las
+ofertas que lo referencian conservan nombre, precio y lineas, y los pedidos su copia de precio
+(RNF-13). Desactivarlo (CCPIP-314) no desvincula ni pausa ninguna oferta; el publico deja de verlo en
+`GET /api/maestros/{id}` (404, regla de CCPIP-42) mientras sus ofertas siguen en el catalogo.
+Reactivarlo exige que su linea este activa.
+
+### catalogo_maestro_auditoria
+`entidad` (LINEA o PRODUCTO), `entidad_id`, `usuario_id`, `accion` (CREAR, EDITAR, DESACTIVAR,
+REACTIVAR), `cambios` (jsonb: la foto al crear, `{campo: {antes, despues}}` al editar, las ofertas y
+productos conservados al desactivar) y `registrado_en`. Solo insercion (triggers), igual que
+`producto_auditoria`.

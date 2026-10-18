@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.servlet.http.Cookie;
+import pe.ccpip.alerta.PreferenciasAlerta;
 import pe.ccpip.inventario.DescuentoExistenciasService;
 import pe.ccpip.support.IntegrationTest;
 
@@ -36,6 +37,9 @@ class InventarioProductorTest extends IntegrationTest {
 
     @Autowired
     private DescuentoExistenciasService descuento;
+
+    @Autowired
+    private PreferenciasAlerta preferencias;
 
     private long almacenNuevo;
 
@@ -56,7 +60,7 @@ class InventarioProductorTest extends IntegrationTest {
 
         inventario(loginAs("productor_nuevo@ccpip.test"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.diasAviso").value(ProductosService.DIAS_ALERTA_VENCIMIENTO))
+                .andExpect(jsonPath("$.diasAviso").value(preferencias.diasVencimientoProvisional()))
                 .andExpect(jsonPath("$.productos.length()").value(1))
                 .andExpect(jsonPath("$.productos[0].nombre").value("Aceite de prueba 136"))
                 // El vencido no suma a lo disponible
@@ -97,8 +101,8 @@ class InventarioProductorTest extends IntegrationTest {
     void elAvisoDeVencimientoCuentaDesdeHoyHastaElUltimoDia() throws Exception {
         long producto = producto("Camu camu de prueba 162", "productor_nuevo@ccpip.test");
         lote(producto, "HOY", almacenNuevo, "1", HOY);
-        lote(producto, "LIMITE", almacenNuevo, "1", HOY.plusDays(ProductosService.DIAS_ALERTA_VENCIMIENTO));
-        lote(producto, "DESPUES", almacenNuevo, "1", HOY.plusDays(ProductosService.DIAS_ALERTA_VENCIMIENTO + 1L));
+        lote(producto, "LIMITE", almacenNuevo, "1", HOY.plusDays(preferencias.diasVencimientoProvisional()));
+        lote(producto, "DESPUES", almacenNuevo, "1", HOY.plusDays(preferencias.diasVencimientoProvisional() + 1L));
         lote(producto, "AYER", almacenNuevo, "1", HOY.minusDays(1));
 
         inventario(loginAs("productor_nuevo@ccpip.test"))

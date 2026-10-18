@@ -43,6 +43,10 @@ class ProductorFlujoTest extends IntegrationTest {
     @BeforeEach
     void ingresar() throws Exception {
         nuevo = loginAs("productor_nuevo@ccpip.test");
+        // CCPIP-291: la Camara ya le habilito la tienda; aqui se prueba lo que arma el productor
+        jdbc.update("""
+                UPDATE productor SET tienda_habilitada = true
+                WHERE usuario_id = (SELECT id FROM usuario WHERE correo = 'productor_nuevo@ccpip.test')""");
         acopioLima = jdbc.queryForObject("SELECT id FROM ubicacion WHERE nombre = 'Centro Nacional Lima'", Long.class);
         almacenPropio = jdbc.queryForObject("""
                 SELECT u.id FROM ubicacion u JOIN productor p ON p.id = u.productor_id JOIN usuario x ON x.id = p.usuario_id

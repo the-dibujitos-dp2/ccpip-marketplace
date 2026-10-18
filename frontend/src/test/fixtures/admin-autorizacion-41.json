@@ -59,5 +59,6 @@
   "certificadosVigentes": 2,
   "analisis": null,
   "decisiones": [],
-  "puedeDecidir": true
+  "puedeDecidir": true,
+  "puedeRevocar": false
 }

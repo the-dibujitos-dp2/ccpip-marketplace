@@ -1,0 +1,9 @@
+.estrellas { display: inline-flex; gap: 2px; color: var(--color-text-accent); font-size: 18px; line-height: 1; }
+.estrellas__vacia { color: var(--color-border-strong); }
+.selector-estrellas { display: inline-flex; gap: 4px; margin: 0; padding: 0; border: 0; }
+.selector-estrellas legend { margin-bottom: 4px; font-size: 14px; font-weight: 600; }
+.selector-estrellas__opcion { position: relative; }
+.selector-estrellas__opcion input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.selector-estrellas__opcion span { display: inline-block; padding: 2px; font-size: 28px; line-height: 1; color: var(--color-border-strong); cursor: pointer; }
+.selector-estrellas__opcion--activa span { color: var(--color-text-accent); }
+.selector-estrellas__opcion input:focus-visible + span { outline: 2px solid var(--color-border-focus); border-radius: 4px; }

@@ -17,7 +17,7 @@ import { RUTAS } from '../../router.js'
 import '../productor/productor.css'
 import './admin.css'
 
-const ESTADOS = ['SOLICITADA', 'APROBADA', 'RECHAZADA']
+const ESTADOS = ['SOLICITADA', 'APROBADA', 'RECHAZADA', 'REVOCADA']
 
 /** Recomendacion del ultimo analisis preliminar; es una sugerencia, nunca una decision (CCPIP-50). */
 export function BadgeAnalisis({ recomendacion }) {
@@ -28,8 +28,9 @@ export function BadgeAnalisis({ recomendacion }) {
 }
 
 /**
- * S-01 adaptada (CCPIP-174, CCPIP-284): solicitudes de autorizacion de productos para el sub
- * administrador. Pendientes primero las mas antiguas; las resueltas son las decididas en la plataforma.
+ * S-01 adaptada (CCPIP-174, CCPIP-284, CCPIP-39): solicitudes de autorizacion de productos para el sub
+ * administrador. Pendientes primero las mas antiguas; las resueltas y revocadas son las decididas en la
+ * plataforma.
  */
 export default function AutorizacionesPage({ path }) {
   const { t } = useTranslation()
@@ -58,6 +59,7 @@ export default function AutorizacionesPage({ path }) {
           <TarjetaKpi titulo={t('autorizaciones.kpi.pendientes')} valor={c.pendientes} detalle={t('autorizaciones.kpi.pendientesDetalle')} tono="neutro" icono={iconoReloj} />
           <TarjetaKpi titulo={t('autorizaciones.kpi.aprobadas')} valor={c.aprobadasMes} detalle={t('autorizaciones.kpi.conMotivo')} icono={iconoCheck} />
           <TarjetaKpi titulo={t('autorizaciones.kpi.rechazadas')} valor={c.rechazadasMes} detalle={t('autorizaciones.kpi.conMotivo')} tono="neutro" icono={iconoProhibido} />
+          <TarjetaKpi titulo={t('autorizaciones.kpi.revocadas')} valor={c.revocadasMes ?? 0} detalle={t('autorizaciones.kpi.conMotivo')} tono="neutro" icono={iconoProhibido} />
         </div>
       )}
       <Pestanas

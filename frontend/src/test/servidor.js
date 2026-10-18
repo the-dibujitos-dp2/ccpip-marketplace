@@ -24,6 +24,9 @@ import comisionAdmin from './fixtures/admin-comision.json'
 import comisionesAdmin from './fixtures/admin-comisiones.json'
 // CCPIP-142: armado segun VigenciaCarritoService.Vigencia del backend, sin configurar (provisional)
 import vigenciaCarritoAdmin from './fixtures/admin-vigencia-carrito.json'
+// CCPIP-96 y CCPIP-351: armados segun CatalogoMaestroModelos (Lineas, ProductosMaestros) con el seed de CCPIP-42 (R__02)
+import lineasMaestras from './fixtures/admin-catalogo-lineas.json'
+import productosMaestros from './fixtures/admin-catalogo-productos.json'
 // CCPIP-112: armado segun ResumenPedido del backend
 import misPedidos from './fixtures/mis-pedidos.json'
 // CCPIP-36, 50, 174 y 284: armados segun AutorizacionModelos del backend
@@ -31,8 +34,21 @@ import autorizacionesAdmin from './fixtures/admin-autorizaciones.json'
 import expedienteAdmin from './fixtures/admin-autorizacion-41.json'
 import analisisSimulado from './fixtures/admin-analisis-simulado.json'
 import evidenciasProductor from './fixtures/productor-evidencias-9.json'
+// CCPIP-292, 291 y 330: armados segun AutorizacionModelos.ProductorFila y FichaProductor del backend
+import productoresAdmin from './fixtures/admin-productores.json'
+import fichaProductorAdmin from './fixtures/admin-productor-1.json'
+// CCPIP-95, 124, 125, 301 a 308: armados segun CuentasModelos del backend
+import cuentasAdmin from './fixtures/admin-cuentas.json'
+import cuentaAdmin from './fixtures/admin-cuenta-4.json'
+import puntosCuentas from './fixtures/admin-cuentas-puntos.json'
 // CCPIP-161: armado segun ProductoModelos.LoteDelProductor del backend
 import todosLosLotes from './fixtures/productor-lotes.json'
+// CCPIP-81 a CCPIP-84, CCPIP-116 y CCPIP-323: armados segun ValoracionModelos del backend
+import calificacionesProducto from './fixtures/productos-1-calificaciones.json'
+import calificacionesPedido from './fixtures/pedido-60-calificaciones.json'
+import denunciasProductor from './fixtures/productor-denuncias.json'
+import denunciasAdmin from './fixtures/admin-denuncias.json'
+import expedienteDenuncias from './fixtures/admin-denuncias-productor-2.json'
 
 export const USUARIO = {
   id: 1,
@@ -127,11 +143,23 @@ export const DATOS = {
   comisionAdmin,
   comisionesAdmin,
   vigenciaCarritoAdmin,
+  lineasMaestras,
+  productosMaestros,
   misPedidos,
   autorizacionesAdmin,
   expedienteAdmin,
   analisisSimulado,
   evidenciasProductor,
+  productoresAdmin,
+  fichaProductorAdmin,
+  calificacionesProducto,
+  calificacionesPedido,
+  denunciasProductor,
+  denunciasAdmin,
+  expedienteDenuncias,
+  cuentasAdmin,
+  cuentaAdmin,
+  puntosCuentas,
 }
 
 /** Copia profunda para que cada prueba pueda modificar los datos sin afectar a otras. */

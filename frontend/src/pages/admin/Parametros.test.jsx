@@ -11,6 +11,7 @@ function abrirEn(ruta) {
 }
 
 const VIGENCIA = '/api/admin/parametros/vigencia-carrito'
+const MINIMO = '/api/admin/parametros/minimo-calificaciones'
 const CONFIGURADA = { horas: 48, provisional: false, registradoPor: 'Ana Shuñaqui', registradoEn: '2026-10-17T19:30:00Z' }
 
 const comoSuper = (rutas = {}) => ({
@@ -19,6 +20,7 @@ const comoSuper = (rutas = {}) => ({
   'GET /api/admin/tablero': () => [200, copia(DATOS.tableroAdmin)],
   'GET /api/admin/comision/pedidos': () => [200, copia(DATOS.comisionesAdmin)],
   [`GET ${VIGENCIA}`]: () => [200, copia(DATOS.vigenciaCarritoAdmin)],
+  [`GET ${MINIMO}`]: () => [200, { calificaciones: 3, provisional: true }],
   ...rutas,
 })
 
@@ -142,5 +144,32 @@ describe('SA-02 Parámetros de la plataforma: vida del carrito (CCPIP-142)', () 
     servidor(comoSuper({ 'GET /api/auth/me': [200, SESION], 'GET /api/carrito': [200, copia(DATOS.carrito)] }))
     abrirEn('/admin/parametros')
     await waitFor(() => expect(window.location.pathname).not.toBe('/admin/parametros'))
+  })
+})
+
+describe('SA-02 Parámetros de la plataforma: calificaciones mínimas (CCPIP-82)', () => {
+  it('muestra el provisional y guarda el nuevo mínimo con PUT', async () => {
+    const fetchMock = servidor(comoSuper({
+      [`PUT ${MINIMO}`]: (o) => [200, { calificaciones: JSON.parse(o.body).calificaciones, provisional: false, registradoPor: 'Ana Shuñaqui', registradoEn: '2026-10-17T19:30:00Z' }],
+    }))
+    const user = userEvent.setup()
+    abrirEn('/admin/parametros')
+    const seccion = within(await screen.findByRole('region', { name: 'Calificaciones mínimas para mostrar el promedio' }))
+    const campoMinimo = await seccion.findByLabelText('Calificaciones mínimas')
+    expect(campoMinimo).toHaveValue('3')
+    expect(seccion.getByText('Rige el valor provisional: 3 calificaciones.')).toBeInTheDocument()
+
+    await user.clear(campoMinimo)
+    await user.type(campoMinimo, '0')
+    await user.click(seccion.getByRole('button', { name: 'Guardar mínimo' }))
+    expect(seccion.getByText('Escribe un número entero de 1 a 100.')).toBeInTheDocument()
+    expect(llamadas(fetchMock, `PUT ${MINIMO}`)).toHaveLength(0)
+
+    await user.clear(campoMinimo)
+    await user.type(campoMinimo, '5')
+    await user.click(seccion.getByRole('button', { name: 'Guardar mínimo' }))
+    expect(await seccion.findByText('Listo: el promedio se muestra desde 5 calificaciones.')).toBeInTheDocument()
+    expect(seccion.getByText(/Rigen 5 calificaciones, fijadas por Ana Shuñaqui/)).toBeInTheDocument()
+    expect(JSON.parse(llamadas(fetchMock, `PUT ${MINIMO}`)[0][1].body)).toEqual({ calificaciones: 5 })
   })
 })

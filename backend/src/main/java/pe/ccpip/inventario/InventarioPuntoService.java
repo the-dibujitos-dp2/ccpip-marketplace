@@ -17,7 +17,7 @@ import pe.ccpip.inventario.InventarioModelos.LoteOpcion;
 import pe.ccpip.inventario.InventarioModelos.LotePunto;
 import pe.ccpip.inventario.InventarioModelos.Productor;
 import pe.ccpip.inventario.InventarioModelos.ResumenPunto;
-import pe.ccpip.productor.ProductosService;
+import pe.ccpip.alerta.PreferenciasAlerta;
 
 /**
  * CCPIP-162 (RF-131), Figma A-02 "Inventario por producto, productor y lote": el administrador
@@ -53,12 +53,19 @@ public class InventarioPuntoService {
 
     private static final String PRODUCTOR = "coalesce(pr.nombre_tienda, pr.comunidad)";
 
+    /** Por vencer segun la anticipacion que cada punto configuro en sus alertas (A-08, CCPIP-145). */
+    private static final String POR_VENCER = "(l.fecha_vencimiento IS NOT NULL AND l.fecha_vencimiento <= " + HOY
+            + " + " + PreferenciasAlerta.diasVencimientoDelPunto("l.ubicacion_id") + ")";
+
     private final NamedParameterJdbcTemplate jdbc;
     private final PuntosDeAcopio puntos;
+    private final PreferenciasAlerta preferencias;
 
-    public InventarioPuntoService(NamedParameterJdbcTemplate jdbc, PuntosDeAcopio puntos) {
+    public InventarioPuntoService(NamedParameterJdbcTemplate jdbc, PuntosDeAcopio puntos,
+                                  PreferenciasAlerta preferencias) {
         this.jdbc = jdbc;
         this.puntos = puntos;
+        this.preferencias = preferencias;
     }
 
     /**
@@ -69,7 +76,7 @@ public class InventarioPuntoService {
     public InventarioPunto listar(long usuarioId, String q, Long productorId, FiltroEstado estado, int pagina) {
         String ubicacion = puntos.nombres(usuarioId);
 
-        MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId);
+        MapSqlParameterSource p = preferencias.provisionales(new MapSqlParameterSource("usuario", usuarioId));
         StringBuilder donde = new StringBuilder(DESDE);
         if (q != null && !q.isBlank()) {
             p.addValue("patron", "%" + q.trim().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%");
@@ -85,6 +92,7 @@ public class InventarioPuntoService {
         switch (estado) {
             case ACTIVOS -> donde.append("  AND l.cantidad_actual > 0\n");
             case AGOTADOS -> donde.append("  AND l.cantidad_actual = 0\n");
+            case POR_VENCER -> donde.append("  AND l.cantidad_actual > 0 AND NOT " + VENCIDO + " AND " + POR_VENCER + "\n");
             case TODOS -> { }
         }
 
@@ -100,10 +108,10 @@ public class InventarioPuntoService {
                 });
         long total = resumen.lotes();
 
-        p.addValue("limite", TAMANO).addValue("desde", (long) pagina * TAMANO).addValue("dias", ProductosService.DIAS_ALERTA_VENCIMIENTO);
+        p.addValue("limite", TAMANO).addValue("desde", (long) pagina * TAMANO);
         List<LotePunto> items = jdbc.query("""
                 SELECT l.id, l.codigo, l.cantidad_actual, l.fecha_vencimiento, %s AS vencido,
-                       (l.fecha_vencimiento IS NOT NULL AND l.fecha_vencimiento <= %s + :dias) AS por_vencer,
+                       %s AS por_vencer,
                        p.id AS producto_id, p.nombre AS producto, pr.id AS productor_id, %s AS productor,
                        u.id AS ubicacion_id, u.nombre AS ubicacion,
                        (SELECT coalesce(sum(m.cantidad), 0) FROM movimiento_inventario m
@@ -112,7 +120,7 @@ public class InventarioPuntoService {
                        (SELECT coalesce(sum(m.cantidad), 0) FROM movimiento_inventario m
                         WHERE m.lote_id = l.id AND m.ubicacion_id = l.ubicacion_id
                           AND m.tipo IN ('SALIDA', 'SALIDA_VENTA', 'TRANSFERENCIA_SALIDA', 'MERMA')) AS salidas
-                """.formatted(VENCIDO, HOY, PRODUCTOR) + donde + """
+                """.formatted(VENCIDO, POR_VENCER, PRODUCTOR) + donde + """
                 ORDER BY p.nombre, p.id, l.fecha_vencimiento NULLS LAST, l.codigo
                 LIMIT :limite OFFSET :desde""", p,
                 (rs, row) -> {
@@ -126,8 +134,19 @@ public class InventarioPuntoService {
                             e == EstadoLote.DISPONIBLE || e == EstadoLote.POR_VENCER);
                 });
 
-        return new InventarioPunto(ubicacion, ProductosService.DIAS_ALERTA_VENCIMIENTO, resumen, productores(usuarioId),
+        return new InventarioPunto(ubicacion, diasAviso(usuarioId), resumen, productores(usuarioId),
                 items, pagina, TAMANO, total, (int) ((total + TAMANO - 1) / TAMANO));
+    }
+
+    /**
+     * La anticipacion que se muestra en el encabezado. Cada lote usa la de su punto; si el
+     * administrador tiene varios con valores distintos se muestra la mayor.
+     */
+    private int diasAviso(long usuarioId) {
+        Integer dias = jdbc.queryForObject("SELECT max(" + PreferenciasAlerta.diasVencimientoDelPunto("uu.ubicacion_id")
+                        + ") FROM usuario_ubicacion uu WHERE uu.usuario_id = :usuario",
+                preferencias.provisionales(new MapSqlParameterSource("usuario", usuarioId)), Integer.class);
+        return dias == null ? preferencias.diasVencimientoProvisional() : dias;
     }
 
     /**

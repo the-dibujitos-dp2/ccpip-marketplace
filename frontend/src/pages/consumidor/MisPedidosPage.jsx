@@ -33,7 +33,7 @@ const TONO_ESTADO = {
 /**
  * CW-09 · Mi cuenta › Mis pedidos. CCPIP-112: las compras propias con el total pagado y su estado;
  * CCPIP-70 y CCPIP-340: en que etapa esta cada pedido en curso y cuando paso por cada una.
- * Solo lo que ya existe: sin codigo de recojo, calificaciones ni denuncias.
+ * Solo lo que ya existe: sin codigo de recojo. Calificar y denunciar se hace en el detalle del pedido recibido (CCPIP-81, CCPIP-83).
  */
 export default function MisPedidosPage() {
   const { t } = useTranslation()

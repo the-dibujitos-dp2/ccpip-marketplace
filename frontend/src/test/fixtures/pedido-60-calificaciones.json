@@ -1,0 +1,8 @@
+{
+  "pedidoId": 60, "numero": "CCP-000060", "estado": "ENTREGADO", "calificable": true, "pendientes": 1,
+  "lineas": [
+    { "itemId": 601, "productoId": 1, "nombre": "Aceite de ungurahui 250 ml", "tienda": "Asoc. Nii Joi", "cantidad": 1 },
+    { "itemId": 602, "productoId": 3, "nombre": "Camu camu en polvo 150 g", "tienda": "Asoc. Nii Joi", "cantidad": 2,
+      "calificacion": { "estrellas": 4, "comentario": "Muy bueno", "calificadoEn": "2026-10-04T15:00:00Z" } }
+  ]
+}

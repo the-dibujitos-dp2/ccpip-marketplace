@@ -34,7 +34,11 @@ export function BadgeVigencia({ evidencia }) {
 }
 
 function alertaEstado(autorizacion, t) {
-  const { estado, motivo, vigenteHasta } = autorizacion
+  const { estado, motivo, vigenteHasta, cubreLineas } = autorizacion
+  // CCPIP-292: una linea nueva no la cubre la autorizacion anterior; se pide otra revision
+  if (estado === 'APROBADA' && cubreLineas === false) {
+    return { tono: 'aviso', titulo: t('evidencias.estado.lineaNueva'), descripcion: t('evidencias.estado.lineaNuevaTexto') }
+  }
   if (estado === 'APROBADA') {
     return {
       tono: 'exito',

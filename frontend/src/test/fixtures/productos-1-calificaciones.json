@@ -1,0 +1,8 @@
+{
+  "productoId": 1, "total": 4, "minimo": 3, "suficiente": true, "promedio": 4.3,
+  "distribucion": { "cinco": 2, "cuatro": 1, "tres": 1, "dos": 0, "uno": 0 },
+  "resenas": [
+    { "estrellas": 5, "comentario": "Llegó fresco y bien envasado.", "fecha": "2026-10-12" },
+    { "estrellas": 3, "comentario": "Rico, pero tardó en estar listo.", "fecha": "2026-10-05" }
+  ]
+}
