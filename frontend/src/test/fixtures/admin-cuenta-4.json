@@ -1,0 +1,34 @@
+{
+  "id": 4,
+  "nombre": "Administrador de Acopio de Prueba",
+  "correo": "admin_acopio@ccpip.test",
+  "telefono": "+51 984 111 222",
+  "rol": "ADMIN_PUNTO",
+  "rolNombre": "Administrador de punto de acopio",
+  "estado": "ACTIVA",
+  "accesoPendiente": false,
+  "puntos": [{ "id": 1, "nombre": "Centro Nacional Lima", "departamento": "Lima" }],
+  "creadaEn": "2026-10-02T15:00:00Z",
+  "acciones": { "editar": true, "suspender": true, "reactivar": false, "desactivar": true, "reenviarAcceso": false },
+  "historial": [
+    {
+      "id": 12,
+      "accion": "MODIFICAR",
+      "motivo": null,
+      "cambios": {
+        "nombre": { "antes": "Admin Acopio", "despues": "Administrador de Acopio de Prueba" },
+        "puntos": { "antes": ["Centro Regional Cusco"], "despues": ["Centro Nacional Lima"] }
+      },
+      "realizadoPor": "Ana Shuñaqui",
+      "realizadoEn": "2026-10-16T15:20:00Z"
+    },
+    {
+      "id": 11,
+      "accion": "SUSPENDER",
+      "motivo": "Auditoría de inventario",
+      "cambios": { "estado": { "antes": "ACTIVA", "despues": "SUSPENDIDA" } },
+      "realizadoPor": "Ana Shuñaqui",
+      "realizadoEn": "2026-10-10T13:00:00Z"
+    }
+  ]
+}

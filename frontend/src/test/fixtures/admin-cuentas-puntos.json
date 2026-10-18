@@ -1,0 +1,5 @@
+[
+  { "id": 1, "nombre": "Centro Nacional Lima", "departamento": "Lima" },
+  { "id": 3, "nombre": "Centro Regional Cusco", "departamento": "Cusco" },
+  { "id": 2, "nombre": "Centro Regional Loreto", "departamento": "Loreto" }
+]
