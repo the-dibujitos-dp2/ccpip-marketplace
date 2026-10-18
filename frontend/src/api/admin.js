@@ -27,3 +27,36 @@ export const obtenerVigenciaCarrito = () => apiFetch('/api/admin/parametros/vige
 
 /** Rige de inmediato, tambien para los carritos ya guardados. Horas enteras de 1 a 720. */
 export const configurarVigenciaCarrito = (horas) => apiFetch('/api/admin/parametros/vigencia-carrito', { method: 'PUT', body: { horas } })
+
+/**
+ * CCPIP-95, 124, 125: cuentas segun el alcance del rol. { q, rol, estado, pagina } opcionales.
+ * Devuelve { items, pagina, tamano, total, totalPaginas, roles } (roles: los que se pueden consultar).
+ */
+export function buscarCuentas({ q, rol, estado, pagina } = {}) {
+  const p = new URLSearchParams()
+  if (q) p.set('q', q)
+  if (rol) p.set('rol', rol)
+  if (estado) p.set('estado', estado)
+  if (pagina) p.set('pagina', String(pagina))
+  const consulta = p.toString()
+  return apiFetch(`/api/admin/cuentas${consulta ? `?${consulta}` : ''}`)
+}
+
+/** Detalle, puntos, acciones permitidas e historial de una cuenta. */
+export const obtenerCuenta = (id) => apiFetch(`/api/admin/cuentas/${idRuta(id)}`)
+
+/** CCPIP-304, 305: puntos de acopio activos que se pueden asignar. Solo superadministrador. */
+export const puntosAsignables = () => apiFetch('/api/admin/cuentas/puntos')
+
+/** CCPIP-301, 304: { nombre, correo, telefono, rol, puntos }. Devuelve { cuenta, avisoEnviado }. */
+export const crearCuenta = (cuenta) => apiFetch('/api/admin/cuentas', { method: 'POST', body: cuenta })
+
+/** CCPIP-302, 305: { nombre, telefono, puntos }. El correo y el rol no cambian. */
+export const modificarCuenta = (id, datos) => apiFetch(`/api/admin/cuentas/${idRuta(id)}`, { method: 'PUT', body: datos })
+
+/** CCPIP-303, 306, 307, 308: accion = suspender | reactivar | desactivar, siempre con motivo. */
+export const cambiarEstadoCuenta = (id, accion, motivo) =>
+  apiFetch(`/api/admin/cuentas/${idRuta(id)}/${accion}`, { method: 'POST', body: { motivo } })
+
+/** Nuevo enlace de bienvenida si la persona aun no eligio su contrasena. */
+export const reenviarAcceso = (id) => apiFetch(`/api/admin/cuentas/${idRuta(id)}/reenviar-acceso`, { method: 'POST' })
