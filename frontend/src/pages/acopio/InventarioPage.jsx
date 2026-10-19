@@ -17,7 +17,7 @@ import './InventarioPage.css'
 import { useMovimientoPunto } from './useMovimientoPunto.jsx'
 
 const TONO = { DISPONIBLE: 'exito', POR_VENCER: 'aviso', VENCIDO: 'error', AGOTADO: 'neutro' }
-const ESTADOS = ['ACTIVOS', 'AGOTADOS', 'TODOS']
+const ESTADOS = ['ACTIVOS', 'POR_VENCER', 'AGOTADOS', 'TODOS']
 
 
 /**

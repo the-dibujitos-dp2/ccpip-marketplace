@@ -72,7 +72,8 @@
       "pedidos": "Pedidos",
       "cuenta": "Cuenta bancaria",
       "transferencias": "Transferencias",
-      "denuncias": "Denuncias"
+      "denuncias": "Denuncias",
+      "alertas": "Alertas"
     },
     "tabla": {
       "producto": "Producto",
@@ -759,7 +760,8 @@
       "pedidos": "Pedidos",
       "movimientos": "Movimientos",
       "inventario": "Inventario",
-      "transferencias": "Transferencias"
+      "transferencias": "Transferencias",
+      "alertas": "Alertas"
     },
     "pedidos": {
       "vence": "vence {{fecha}}",
@@ -846,7 +848,8 @@
       "estado": {
         "ACTIVOS": "Activos",
         "AGOTADOS": "Agotados",
-        "TODOS": "Todos"
+        "TODOS": "Todos",
+        "POR_VENCER": "Por vencer"
       },
       "unSoloInventario": "Un solo inventario, calculado a partir de los movimientos",
       "unSoloInventarioTexto": "El stock disponible para venta se descuenta al confirmarse cada compra, no cuando el comprador recoge. Lo vencido no se vende; lo que está en tránsito o es merma no suma aquí.",
@@ -2694,5 +2697,104 @@
     "errorCargar": "No pudimos cargar las calificaciones mínimas.",
     "errorGuardar": "No pudimos guardar el cambio.",
     "guardar": "Guardar mínimo"
+  },
+  "alertas": {
+    "titulo": "Alertas",
+    "bandeja": "Bandeja de alertas",
+    "filtrar": "Filtrar alertas",
+    "todas": "Todas ({{total}})",
+    "filtro": {
+      "POR_VENCER": "Vencimientos",
+      "ESTANCADO": "Estancados",
+      "REPOSICION": "Reposición",
+      "INTERES": "Interés",
+      "TRANSFERENCIA_RECIBIDA": "Transferencias",
+      "PEDIDO_NUEVO": "Pedidos"
+    },
+    "marcarTodas": "Marcar todas como leídas",
+    "sinLeer": "Sin leer",
+    "resuelta": "Resuelta",
+    "tambienCorreo": "También por correo",
+    "errorCargar": "No pudimos cargar tus alertas",
+    "vacio": "No tienes alertas",
+    "vacioTexto": {
+      "productor": "Aquí verás tus lotes por vencer o estancados, las ofertas sin stock, el interés de compradores, las transferencias recibidas y los pedidos nuevos.",
+      "acopio": "Aquí verás los lotes de tu punto que están por vencer o estancados."
+    },
+    "tipo": {
+      "POR_VENCER": {
+        "titulo": "Lote por vencer: {{producto}}",
+        "detalle": "El lote {{lote}} en {{ubicacion}} vence el {{fecha}} y le quedan {{cantidad}} und. Transfiérelo o prográmalo para venta.",
+        "detallePunto": "El lote {{lote}} vence el {{fecha}} y le quedan {{cantidad}} und. Coordina su salida con el productor.",
+        "accion": "Ver almacén",
+        "accionPunto": "Ver inventario"
+      },
+      "ESTANCADO": {
+        "titulo": "Lote estancado: {{producto}}",
+        "detalle": "El lote {{lote}} en {{ubicacion}} no tiene salidas desde el {{fecha}} y le quedan {{cantidad}} und.",
+        "detallePunto": "El lote {{lote}} no tiene salidas desde el {{fecha}} y le quedan {{cantidad}} und.",
+        "accion": "Ver almacén",
+        "accionPunto": "Ver inventario"
+      },
+      "REPOSICION": {
+        "titulo": "Sin stock en venta: {{producto}}",
+        "detalle": "Se agotó el {{fecha}}. Registra un lote o transfiere stock a un punto de acopio.",
+        "detallePunto": "Se agotó el {{fecha}}.",
+        "accion": "Registrar lote",
+        "accionPunto": "Ver inventario"
+      },
+      "INTERES": {
+        "titulo": "Interés de compradores en {{producto}}",
+        "detalle": "Personas interesadas: {{personas}} · Unidades pedidas: {{cantidad}}. Repón stock para que puedan comprarlo.",
+        "detallePunto": "Personas interesadas: {{personas}} · Unidades pedidas: {{cantidad}}.",
+        "accion": "Ver producto",
+        "accionPunto": "Ver inventario"
+      },
+      "TRANSFERENCIA_RECIBIDA": {
+        "titulo": "{{ubicacion}} recibió {{referencia}}",
+        "detalle": "{{productos}} ya están a la venta en ese punto.",
+        "detallePunto": "{{productos}} ya están a la venta en ese punto.",
+        "accion": "Ver transferencias",
+        "accionPunto": "Ver inventario"
+      },
+      "PEDIDO_NUEVO": {
+        "titulo": "Pedido nuevo {{referencia}}",
+        "detalle": "Incluye {{productos}}. Se recoge en {{ubicacion}}.",
+        "detallePunto": "Incluye {{productos}}. Se recoge en {{ubicacion}}.",
+        "accion": "Ver pedidos",
+        "accionPunto": "Ver inventario"
+      }
+    },
+    "recibir": {
+      "POR_VENCER": "Lotes próximos a vencer",
+      "ESTANCADO": "Lotes estancados",
+      "REPOSICION": "Ofertas sin stock en venta",
+      "INTERES": "Interés de compradores",
+      "TRANSFERENCIA_RECIBIDA": "Transferencias recibidas",
+      "PEDIDO_NUEVO": "Pedidos nuevos"
+    },
+    "config": {
+      "titulo": "Configurar alertas",
+      "errorCargar": "No pudimos cargar tu configuración",
+      "punto": "Punto de acopio",
+      "elegirPunto": "Elige un punto",
+      "diasVencimiento": "Avisarme de vencimientos con anticipación de",
+      "diasEstancado": "Lote estancado si no tiene salidas en",
+      "elegirDias": "Elige los días",
+      "nDias": "{{dias}} días",
+      "personalizado": "Personalizado",
+      "diasPersonalizados": "Días",
+      "rango": "Entre 1 y 365 días.",
+      "diasInvalidos": "Ingresa un número de días entre 1 y 365.",
+      "ayuda": "Elige 7, 15 o 30 días, o un número personalizado.",
+      "ayudaPunto": "Configurable por el punto.",
+      "provisional": "Valores provisionales de la Cámara hasta que guardes los tuyos.",
+      "queRecibir": "Qué quiero recibir",
+      "canales": "Canales",
+      "plataforma": "En la plataforma (siempre activo)",
+      "correo": "Correo electrónico para alertas importantes",
+      "guardar": "Guardar preferencias",
+      "guardado": "Preferencias guardadas"
+    }
   }
 }

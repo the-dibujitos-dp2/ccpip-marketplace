@@ -72,7 +72,8 @@
       "pedidos": "Orders",
       "cuenta": "Bank account",
       "transferencias": "Transfers",
-      "denuncias": "Reports"
+      "denuncias": "Reports",
+      "alertas": "Alerts"
     },
     "tabla": {
       "producto": "Product",
@@ -759,7 +760,8 @@
       "pedidos": "Orders",
       "movimientos": "Stock movements",
       "inventario": "Inventory",
-      "transferencias": "Transfers"
+      "transferencias": "Transfers",
+      "alertas": "Alerts"
     },
     "pedidos": {
       "vence": "expires {{fecha}}",
@@ -846,7 +848,8 @@
       "estado": {
         "ACTIVOS": "Active",
         "AGOTADOS": "Sold out",
-        "TODOS": "All"
+        "TODOS": "All",
+        "POR_VENCER": "Expiring"
       },
       "unSoloInventario": "A single inventory, calculated from movements",
       "unSoloInventarioTexto": "Stock available for sale is deducted when each purchase is confirmed, not when the buyer picks it up. Expired stock is not sold; stock in transit or written off does not count here.",
@@ -2694,5 +2697,104 @@
     "errorCargar": "We could not load the minimum ratings.",
     "errorGuardar": "We could not save the change.",
     "guardar": "Save minimum"
+  },
+  "alertas": {
+    "titulo": "Alerts",
+    "bandeja": "Alerts inbox",
+    "filtrar": "Filter alerts",
+    "todas": "All ({{total}})",
+    "filtro": {
+      "POR_VENCER": "Expiry",
+      "ESTANCADO": "Stagnant",
+      "REPOSICION": "Restock",
+      "INTERES": "Interest",
+      "TRANSFERENCIA_RECIBIDA": "Transfers",
+      "PEDIDO_NUEVO": "Orders"
+    },
+    "marcarTodas": "Mark all as read",
+    "sinLeer": "Unread",
+    "resuelta": "Resolved",
+    "tambienCorreo": "Also by email",
+    "errorCargar": "We could not load your alerts",
+    "vacio": "You have no alerts",
+    "vacioTexto": {
+      "productor": "Here you will see batches expiring soon or stagnant, offers out of stock, buyer interest, received transfers and new orders.",
+      "acopio": "Here you will see the batches at your point that are expiring soon or stagnant."
+    },
+    "tipo": {
+      "POR_VENCER": {
+        "titulo": "Batch expiring soon: {{producto}}",
+        "detalle": "Batch {{lote}} at {{ubicacion}} expires on {{fecha}} with {{cantidad}} units left. Transfer it or schedule it for sale.",
+        "detallePunto": "Batch {{lote}} expires on {{fecha}} with {{cantidad}} units left. Coordinate its outflow with the producer.",
+        "accion": "View warehouse",
+        "accionPunto": "View inventory"
+      },
+      "ESTANCADO": {
+        "titulo": "Stagnant batch: {{producto}}",
+        "detalle": "Batch {{lote}} at {{ubicacion}} has had no outflows since {{fecha}} and has {{cantidad}} units left.",
+        "detallePunto": "Batch {{lote}} has had no outflows since {{fecha}} and has {{cantidad}} units left.",
+        "accion": "View warehouse",
+        "accionPunto": "View inventory"
+      },
+      "REPOSICION": {
+        "titulo": "Out of stock: {{producto}}",
+        "detalle": "Sold out on {{fecha}}. Register a batch or transfer stock to a collection point.",
+        "detallePunto": "Sold out on {{fecha}}.",
+        "accion": "Register batch",
+        "accionPunto": "View inventory"
+      },
+      "INTERES": {
+        "titulo": "Buyer interest in {{producto}}",
+        "detalle": "Interested people: {{personas}} · Units requested: {{cantidad}}. Restock so they can buy it.",
+        "detallePunto": "Interested people: {{personas}} · Units requested: {{cantidad}}.",
+        "accion": "View product",
+        "accionPunto": "View inventory"
+      },
+      "TRANSFERENCIA_RECIBIDA": {
+        "titulo": "{{ubicacion}} received {{referencia}}",
+        "detalle": "{{productos}} are now on sale at that point.",
+        "detallePunto": "{{productos}} are now on sale at that point.",
+        "accion": "View transfers",
+        "accionPunto": "View inventory"
+      },
+      "PEDIDO_NUEVO": {
+        "titulo": "New order {{referencia}}",
+        "detalle": "Includes {{productos}}. Pickup at {{ubicacion}}.",
+        "detallePunto": "Includes {{productos}}. Pickup at {{ubicacion}}.",
+        "accion": "View orders",
+        "accionPunto": "View inventory"
+      }
+    },
+    "recibir": {
+      "POR_VENCER": "Batches expiring soon",
+      "ESTANCADO": "Stagnant batches",
+      "REPOSICION": "Offers out of stock",
+      "INTERES": "Buyer interest",
+      "TRANSFERENCIA_RECIBIDA": "Received transfers",
+      "PEDIDO_NUEVO": "New orders"
+    },
+    "config": {
+      "titulo": "Alert settings",
+      "errorCargar": "We could not load your settings",
+      "punto": "Collection point",
+      "elegirPunto": "Choose a point",
+      "diasVencimiento": "Warn me about expiry this many days ahead",
+      "diasEstancado": "A batch is stagnant with no outflows in",
+      "elegirDias": "Choose the days",
+      "nDias": "{{dias}} days",
+      "personalizado": "Custom",
+      "diasPersonalizados": "Days",
+      "rango": "Between 1 and 365 days.",
+      "diasInvalidos": "Enter a number of days between 1 and 365.",
+      "ayuda": "Choose 7, 15 or 30 days, or a custom number.",
+      "ayudaPunto": "Set by the point.",
+      "provisional": "Provisional values from the Chamber until you save your own.",
+      "queRecibir": "What I want to receive",
+      "canales": "Channels",
+      "plataforma": "On the platform (always on)",
+      "correo": "Email for important alerts",
+      "guardar": "Save preferences",
+      "guardado": "Preferences saved"
+    }
   }
 }
