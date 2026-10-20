@@ -28,6 +28,8 @@ const TIPOS = {
   SALIDA: { tono: 'info', signo: '−' },
   TRANSFERENCIA_SALIDA: { tono: 'info', signo: '−' },
   AJUSTE: { tono: 'neutro', signo: '' },
+  // CCPIP-76 y CCPIP-75: merma marcada o automatica por vencimiento
+  MERMA: { tono: 'error', signo: '−' },
 }
 
 /**

@@ -17,6 +17,7 @@ import ParametrosPage from './pages/admin/ParametrosPage.jsx'
 import DetalleCuentaPage from './pages/admin/DetalleCuentaPage.jsx'
 import CuentasPage from './pages/admin/CuentasPage.jsx'
 import NuevaCuentaPage from './pages/admin/NuevaCuentaPage.jsx'
+import MotivosMermaPage from './pages/admin/MotivosMermaPage.jsx'
 import ExpedienteAutorizacionPage from './pages/admin/ExpedienteAutorizacionPage.jsx'
 import FichaProductorPage from './pages/admin/FichaProductorPage.jsx'
 import ProductoresPage from './pages/admin/ProductoresPage.jsx'
@@ -27,6 +28,7 @@ import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
 import PedidosPage from './pages/acopio/PedidosPage.jsx'
 import TransferenciasPuntoPage from './pages/acopio/TransferenciasPage.jsx'
 import AlertasPuntoPage from './pages/acopio/AlertasPage.jsx'
+import MermaPuntoPage from './pages/acopio/MermaPage.jsx'
 import BuscarPage from './pages/consumidor/BuscarPage.jsx'
 import CarritoPage from './pages/consumidor/CarritoPage.jsx'
 import CompraPage from './pages/consumidor/CompraPage.jsx'
@@ -54,6 +56,7 @@ import ProductosPage from './pages/productor/ProductosPage.jsx'
 import TiendaEditorPage from './pages/productor/TiendaEditorPage.jsx'
 import TransferenciasPage from './pages/productor/TransferenciasPage.jsx'
 import AlertasProductorPage from './pages/productor/AlertasPage.jsx'
+import MermaProductorPage from './pages/productor/MermaPage.jsx'
 import { navigate, RUTAS, rutaInterna, useLocation } from './router.js'
 import { SesionContexto } from './sesion.js'
 
@@ -262,6 +265,7 @@ export default function App() {
     else if (path === RUTAS.adminComision) pagina = <ComisionPage path={path} />
     else if (path === RUTAS.adminComisiones) pagina = <ComisionesPage path={path} />
     else if (path === RUTAS.adminParametros) pagina = <ParametrosPage path={path} />
+    else if (path === RUTAS.adminMotivosMerma) pagina = <MotivosMermaPage path={path} />
     else if (path === RUTAS.adminAutorizaciones) pagina = <AutorizacionesPage path={path} />
     else if (path === RUTAS.adminCatalogo) pagina = <CatalogoMaestroPage path={path} search={search} />
     else if (RUTA_EXPEDIENTE.test(path)) pagina = <ExpedienteAutorizacionPage path={RUTAS.adminAutorizaciones} id={path.match(RUTA_EXPEDIENTE)[1]} />
@@ -289,6 +293,7 @@ export default function App() {
     else if (path === RUTAS.productorDenuncias) pagina = <DenunciasProductorPage path={path} />
     else if (path === RUTAS.productorTransferencias) pagina = <TransferenciasPage key={search} path={path} search={search} />
     else if (path === RUTAS.productorAlertas) pagina = <AlertasProductorPage path={path} />
+    else if (path === RUTAS.productorMerma) pagina = <MermaProductorPage path={path} />
     else if (path === RUTAS.productorTransferenciaNueva) pagina = <NuevaTransferenciaPage />
     else if (RUTA_EVIDENCIAS.test(path)) pagina = <EvidenciasPage path={RUTAS.productorProductos} productoId={path.match(RUTA_EVIDENCIAS)[1]} />
     else if (editor) {
@@ -313,6 +318,7 @@ export default function App() {
     else if (path === RUTAS.acopioInventario) pagina = <InventarioPage path={path} />
     else if (path === RUTAS.acopioTransferencias) pagina = <TransferenciasPuntoPage path={path} />
     else if (path === RUTAS.acopioAlertas) pagina = <AlertasPuntoPage path={path} />
+    else if (path === RUTAS.acopioMerma) pagina = <MermaPuntoPage path={path} />
     else {
       navigate(RUTAS.acopioPedidos, { replace: true })
       pagina = null

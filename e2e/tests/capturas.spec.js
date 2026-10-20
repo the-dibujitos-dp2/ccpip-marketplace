@@ -47,6 +47,13 @@ test.describe('capturas para comparar con el Figma', () => {
     await capturar(page, 'A-08-alertas')
   })
 
+  test('merma del punto de acopio', async ({ page }) => {
+    await ingresar(page, 'admin_acopio@ccpip.test')
+    await page.goto('/acopio/merma')
+    await page.getByRole('heading', { name: 'Merma' }).waitFor()
+    await capturar(page, 'A-04-merma')
+  })
+
   test('cuenta del consumidor', async ({ page }) => {
     await ingresar(page, 'consumidor@ccpip.test')
     await page.goto('/cuenta/pedidos')
@@ -71,5 +78,8 @@ test.describe('capturas para comparar con el Figma', () => {
     await page.goto('/admin/comisiones')
     await page.getByRole('heading', { name: 'Pedidos confirmados' }).waitFor()
     await capturar(page, 'SA-comision-por-pedido')
+    await page.goto('/admin/motivos-merma')
+    await page.getByRole('table', { name: 'Causas de merma' }).waitFor()
+    await capturar(page, 'SA-causas-merma')
   })
 })

@@ -1,12 +1,14 @@
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consultarInventario } from '../../api/acopio.js'
+import { marcarMermaPunto } from '../../api/merma.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Buscador from '../../components/Buscador.jsx'
 import Campo from '../../components/Campo.jsx'
+import DialogoMerma from '../../components/DialogoMerma.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
@@ -24,7 +26,7 @@ const ESTADOS = ['ACTIVOS', 'POR_VENCER', 'AGOTADOS', 'TODOS']
  * A-02 · CCPIP-162 (RF-131): inventario de los puntos del administrador por producto, productor,
  * lote y estado. El servidor filtra por sus puntos (RNF-05) y calcula los totales una vez por lote;
  * lo vencido no es vendible. Desde aqui se registran entradas (CCPIP-121) y salidas (CCPIP-287).
- * "Marcar como merma" y las transferencias del lote llegan con sus historias.
+ * "Marcar como merma" (CCPIP-76, A-04 y A-07) tambien parte del lote; las transferencias llegan con su historia.
  */
 export default function InventarioPage({ path }) {
   const { t } = useTranslation()
@@ -37,6 +39,15 @@ export default function InventarioPage({ path }) {
   const consultar = useCallback(() => consultarInventario({ q, productor, estado, pagina }), [q, productor, estado, pagina])
   const { datos, error, recargar } = useConsulta(consultar)
   const movimiento = useMovimientoPunto(recargar)
+  // CCPIP-76 (A-04, A-07): marcar como merma desde el lote
+  const [merma, setMerma] = useState(null)
+  const [marcada, setMarcada] = useState(null)
+
+  function alMarcar(r) {
+    setMerma(null)
+    setMarcada(r)
+    recargar()
+  }
 
   function buscar(e) {
     e.preventDefault()
@@ -85,6 +96,14 @@ export default function InventarioPage({ path }) {
       )}
 
       {movimiento.avisos}
+      {marcada && (
+        <Alerta
+          tono="exito"
+          titulo={t('merma.marcada', { cantidad: unidades(marcada.merma.cantidad), lote: marcada.merma.lote })}
+          descripcion={t('merma.marcadaSaldo', { saldo: unidades(marcada.saldo) })}
+          onCerrar={() => setMarcada(null)}
+        />
+      )}
 
       {error && (
         <EstadoVacio titulo={t('acopio.inventario.errorCargar')} descripcion={mensajeError(error, 'comun.errorConexion')}>
@@ -108,7 +127,7 @@ export default function InventarioPage({ path }) {
 
       {!error && datos?.items.length > 0 && (
         <>
-          <TablaInventario items={datos.items} onMovimiento={movimiento.abrir} />
+          <TablaInventario items={datos.items} onMovimiento={movimiento.abrir} onMerma={(l) => { setMarcada(null); setMerma(l) }} />
           <div className="inventario__pie">
             <span className="caption">
               {t('acopio.inventario.mostrando', {
@@ -123,11 +142,19 @@ export default function InventarioPage({ path }) {
       )}
 
       {movimiento.formulario}
+      {merma && (
+        <DialogoMerma
+          lote={{ id: merma.id, codigo: merma.codigo, producto: merma.producto, detalle: merma.productor, stock: merma.stock }}
+          marcar={marcarMermaPunto}
+          onMarcada={alMarcar}
+          onCancelar={() => setMerma(null)}
+        />
+      )}
     </LayoutAcopio>
   )
 }
 
-function TablaInventario({ items, onMovimiento }) {
+function TablaInventario({ items, onMovimiento, onMerma }) {
   const { t } = useTranslation()
   const titulo = t('acopio.inventario.lista')
   return (
@@ -159,6 +186,11 @@ function TablaInventario({ items, onMovimiento }) {
             <Boton tipo="terciario" tamano="S" onClick={() => onMovimiento(l.id)} aria-label={t('acopio.inventario.movimientoDe', { lote: l.codigo })}>
               {t('acopio.inventario.movimiento')}
             </Boton>
+            {Number(l.stock) > 0 && (
+              <Boton tipo="terciario" tamano="S" onClick={() => onMerma(l)} aria-label={t('merma.marcarDe', { lote: l.codigo })}>
+                {t('merma.accion')}
+              </Boton>
+            )}
           </span>
         </div>
       ))}

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoCaja from '../../assets/icons/caja.svg'
 import iconoCampana from '../../assets/icons/campana.svg'
+import iconoMerma from '../../assets/icons/merma.svg'
 import iconoMovimientos from '../../assets/icons/movimientos.svg'
 import { RUTAS } from '../../router.js'
 import { useSesion } from '../../sesion.js'
@@ -17,6 +18,8 @@ const NAV = [
   // A-02 (CCPIP-162): inventario por producto, productor y lote
   { to: RUTAS.acopioInventario, clave: 'inventario', icono: iconoAlmacen, activo: (p) => p.startsWith(RUTAS.acopioInventario) },
   { to: RUTAS.acopioTransferencias, clave: 'transferencias', icono: iconoMovimientos, activo: (p) => p.startsWith(RUTAS.acopioTransferencias) },
+  // A-04 (CCPIP-76, CCPIP-75): la merma del punto
+  { to: RUTAS.acopioMerma, clave: 'merma', icono: iconoMerma, activo: (p) => p.startsWith(RUTAS.acopioMerma) },
   // A-08: alertas del punto y su configuracion
   { to: RUTAS.acopioAlertas, clave: 'alertas', icono: iconoCampana, activo: (p) => p.startsWith(RUTAS.acopioAlertas) },
 ]
