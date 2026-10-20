@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoGrafico from '../../assets/icons/grafico.svg'
+import { marcarMermaAlmacen } from '../../api/merma.js'
 import { consultarInventario, registrarMovimientoAlmacen } from '../../api/productor.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import DialogoMerma from '../../components/DialogoMerma.jsx'
 import DialogoMovimiento, { AvisoRegistrado } from '../../components/DialogoMovimiento.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
@@ -38,6 +40,9 @@ export default function AlmacenPage({ path }) {
   const [avisoVisible, setAvisoVisible] = useState(true)
   const [dialogo, setDialogo] = useState(null)
   const [registrado, setRegistrado] = useState(null)
+  // CCPIP-76: marcar como merma un lote de su almacen
+  const [merma, setMerma] = useState(null)
+  const [marcada, setMarcada] = useState(null)
 
   const ubicaciones = datos?.ubicaciones ?? []
   const productos = datos?.productos ?? []
@@ -53,6 +58,12 @@ export default function AlmacenPage({ path }) {
   function alRegistrar(r) {
     setDialogo(null)
     setRegistrado(r)
+    recargar()
+  }
+
+  function alMarcar(r) {
+    setMerma(null)
+    setMarcada(r)
     recargar()
   }
 
@@ -91,11 +102,20 @@ export default function AlmacenPage({ path }) {
                 ubicacion={u}
                 lotes={lotesDe(u)}
                 onMovimiento={lotesAlmacen.length > 0 ? () => setDialogo({ clave: Date.now() }) : undefined}
+                onMerma={(l) => { setMarcada(null); setMerma(l) }}
               />
             ))
           )}
 
           {registrado && <AvisoRegistrado registrado={registrado} onCerrar={() => setRegistrado(null)} />}
+          {marcada && (
+            <Alerta
+              tono="exito"
+              titulo={t('merma.marcada', { cantidad: unidades(marcada.merma.cantidad), lote: marcada.merma.lote })}
+              descripcion={t('merma.marcadaSaldo', { saldo: unidades(marcada.saldo) })}
+              onCerrar={() => setMarcada(null)}
+            />
+          )}
 
           {avisoVisible && (
             <Alerta
@@ -106,6 +126,15 @@ export default function AlmacenPage({ path }) {
             />
           )}
         </>
+      )}
+
+      {merma && (
+        <DialogoMerma
+          lote={{ id: merma.id, codigo: merma.codigo, producto: merma.producto, detalle: t('productor.lote.miAlmacen'), stock: merma.cantidad }}
+          marcar={marcarMermaAlmacen}
+          onMarcada={alMarcar}
+          onCancelar={() => setMerma(null)}
+        />
       )}
 
       {dialogo && (
@@ -162,7 +191,7 @@ function cosechaYVencimiento(l, t) {
 }
 
 /** Los lotes con saldo en una ubicacion (CCPIP-162). En su almacen, la accion de CCPIP-283. */
-function PorUbicacion({ ubicacion, lotes, onMovimiento }) {
+function PorUbicacion({ ubicacion, lotes, onMovimiento, onMerma }) {
   const { t } = useTranslation()
   const almacen = ubicacion.tipo === 'ALMACEN_PRODUCTOR'
   const titulo = almacen
@@ -187,6 +216,7 @@ function PorUbicacion({ ubicacion, lotes, onMovimiento }) {
               {t(almacen ? 'productor.almacen.col.enAlmacen' : 'productor.almacen.col.enPunto')}
             </span>
             <span className="tabla__celda almacen__col-estado" role="columnheader">{t('productor.lote.tabla.estado')}</span>
+            {almacen && <span className="tabla__celda almacen__col-accion" role="columnheader">{t('productor.tabla.accion')}</span>}
           </div>
           {lotes.map((l) => (
             <div key={l.id} className="tabla__fila" role="row">
@@ -199,6 +229,15 @@ function PorUbicacion({ ubicacion, lotes, onMovimiento }) {
               <span className="tabla__celda almacen__col-estado" role="cell">
                 <Badge tono={TONO[l.estado]}>{t(`productor.almacen.estado.${l.estado}`)}</Badge>
               </span>
+              {almacen && (
+                <span className="tabla__celda almacen__col-accion" role="cell">
+                  {Number(l.cantidad) > 0 && (
+                    <Boton tipo="terciario" tamano="S" onClick={() => onMerma(l)} aria-label={t('merma.marcarDe', { lote: l.codigo })}>
+                      {t('merma.accion')}
+                    </Boton>
+                  )}
+                </span>
+              )}
             </div>
           ))}
         </div>

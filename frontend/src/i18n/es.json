@@ -73,7 +73,8 @@
       "cuenta": "Cuenta bancaria",
       "transferencias": "Transferencias",
       "denuncias": "Denuncias",
-      "alertas": "Alertas"
+      "alertas": "Alertas",
+      "merma": "Merma"
     },
     "tabla": {
       "producto": "Producto",
@@ -761,7 +762,8 @@
       "movimientos": "Movimientos",
       "inventario": "Inventario",
       "transferencias": "Transferencias",
-      "alertas": "Alertas"
+      "alertas": "Alertas",
+      "merma": "Merma"
     },
     "pedidos": {
       "vence": "vence {{fecha}}",
@@ -836,7 +838,8 @@
         "SALIDA_VENTA": "Salida",
         "TRANSFERENCIA_SALIDA": "Transferencia",
         "AJUSTE": "Ajuste",
-        "SALIDA": "Salida"
+        "SALIDA": "Salida",
+        "MERMA": "Merma"
       },
       "compraEnLinea": "Compra en línea"
     },
@@ -911,7 +914,8 @@
       "productores": "Productores",
       "cuentas": "Cuentas",
       "catalogo": "Catálogo maestro",
-      "denuncias": "Denuncias"
+      "denuncias": "Denuncias",
+      "motivosMerma": "Causas de merma"
     },
     "tablero": {
       "titulo": "Tablero de operación",
@@ -1065,6 +1069,50 @@
         "rango": "Escribe un número entero de horas entre {{minimo}} y {{maximo}}.",
         "mismo": "Ya rige ese valor."
       }
+    },
+    "motivosMerma": {
+      "titulo": "Causas de merma",
+      "resumen": "{{activos}} causas activas de {{total}}",
+      "nuevo": "Nueva causa",
+      "intro": "Son las causas que el punto y el productor eligen al marcar merma. Cambiar o desactivar una causa no altera la merma ya registrada: guarda el nombre con el que se marcó.",
+      "errorCargar": "No pudimos cargar las causas",
+      "errorGuardar": "No pudimos guardar la causa",
+      "errorEstado": "No pudimos cambiar el estado de la causa",
+      "col": {
+        "nombre": "Nombre",
+        "ingles": "En inglés",
+        "detalle": "Pide detalle",
+        "usos": "Usos",
+        "estado": "Estado",
+        "acciones": "Acciones"
+      },
+      "sistema": "La usa la merma automática por vencimiento",
+      "si": "Sí",
+      "no": "No",
+      "activa": "Activa",
+      "inactiva": "Inactiva",
+      "editar": "Editar",
+      "editarDe": "Editar {{nombre}}",
+      "desactivar": "Desactivar",
+      "desactivarDe": "Desactivar {{nombre}}",
+      "activar": "Activar",
+      "activarDe": "Activar {{nombre}}",
+      "confirmarTitulo": "¿Desactivar «{{nombre}}»?",
+      "confirmarTexto_one": "Dejará de ofrecerse al marcar merma. La merma ya registrada con esta causa ({{count}}) la conserva.",
+      "confirmarTexto_other": "Dejará de ofrecerse al marcar merma. La merma ya registrada con esta causa ({{count}}) la conserva.",
+      "editarTitulo": "Editar causa",
+      "guardar": "Guardar",
+      "campoNombre": "Nombre en español",
+      "campoNombreEn": "Nombre en inglés",
+      "campoDetalle": "Pide describir la causa (como «Otra»)",
+      "faltaNombre": "Escribe el nombre en español.",
+      "faltaNombreEn": "Escribe el nombre en inglés.",
+      "conservaHistorial_one": "{{count}} merma ya registrada conserva el nombre actual.",
+      "conservaHistorial_other": "{{count}} mermas ya registradas conservan el nombre actual.",
+      "creado": "Causa «{{nombre}}» creada",
+      "modificado": "Causa «{{nombre}}» actualizada",
+      "desactivado": "Causa «{{nombre}}» desactivada",
+      "activado": "Causa «{{nombre}}» activada"
     }
   },
   "sello": {
@@ -1364,7 +1412,12 @@
     "LINEA_YA_CALIFICADA": "Ya calificaste este producto de tu pedido.",
     "DENUNCIA_DUPLICADA": "Ya tienes una denuncia abierta sobre esto.",
     "DENUNCIA_YA_RESPONDIDA": "Ya respondiste esta denuncia.",
-    "DENUNCIA_CERRADA": "La denuncia ya fue cerrada por la Cámara."
+    "DENUNCIA_CERRADA": "La denuncia ya fue cerrada por la Cámara.",
+    "CONFIRMACION_REQUERIDA": "Confirma la merma: no podrá revertirse.",
+    "DETALLE_REQUERIDO": "Describe la causa de la merma.",
+    "MOTIVO_REPETIDO": "Ya existe una causa con ese nombre.",
+    "MOTIVO_DEL_SISTEMA": "Esta causa la usa la merma automática por vencimiento: no se puede desactivar.",
+    "MOTIVO_NO_ENCONTRADO": "La causa de merma no existe."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -2795,6 +2848,63 @@
       "correo": "Correo electrónico para alertas importantes",
       "guardar": "Guardar preferencias",
       "guardado": "Preferencias guardadas"
+    }
+  },
+  "merma": {
+    "accion": "Merma",
+    "marcarDe": "Marcar como merma el lote {{lote}}",
+    "titulo": "Marcar como merma",
+    "loteTitulo": "{{producto}} · {{lote}}",
+    "loteDetalle": "{{detalle}} · stock actual {{stock}} und",
+    "cantidad": "Cantidad",
+    "resultante": "Stock resultante: {{stock}} und",
+    "causa": "Causa (obligatoria)",
+    "especificar": "{{causa}} (especificar)",
+    "detalle": "Describe la causa",
+    "aviso": "Antes de guardar verás un resumen",
+    "avisoTexto": "Marcar como merma cambia el estado de esas unidades y no podrá revertirse desde la interfaz.",
+    "continuar": "Continuar",
+    "error": "No pudimos marcar la merma",
+    "errorCausas": "No pudimos cargar las causas",
+    "errores": {
+      "cantidad": "Escribe una cantidad mayor a cero, con hasta 3 decimales.",
+      "excede": "No puede ser mayor que el stock del lote ({{stock}} und).",
+      "causa": "Elige la causa.",
+      "detalle": "Describe la causa de la merma."
+    },
+    "confirmar": {
+      "titulo": "Confirmar merma",
+      "boton": "Confirmar merma",
+      "marcando": "Marcando…",
+      "resumen": "Vas a marcar {{cantidad}} und de {{producto}} ({{lote}} · {{detalle}}) como merma por {{causa}}. El stock del lote pasará de {{antes}} a {{despues}} und y quedará registrado con tu usuario.",
+      "irreversible": "Esta acción no podrá revertirse."
+    },
+    "marcada": "Merma registrada: {{cantidad}} und del lote {{lote}}",
+    "marcadaSaldo": "Al lote le quedan {{saldo}} und.",
+    "lista": {
+      "titulo": "Merma registrada",
+      "tituloProductor": "Merma de mis lotes",
+      "comoMarcarPunto": "La merma se marca desde el lote, en el inventario del punto. Los lotes vencidos pasan a merma automáticamente al día siguiente.",
+      "comoMarcarProductor": "La merma de tu almacén se marca desde el lote, en Mi almacén; la de un punto la marca el punto. Los lotes vencidos pasan a merma automáticamente al día siguiente.",
+      "irInventario": "Ir al inventario",
+      "irAlmacen": "Ir a Mi almacén",
+      "errorCargar": "No pudimos cargar la merma",
+      "vacio": "Aún no hay merma",
+      "vacioTexto": "Aquí verás la merma marcada y la automática por vencimiento.",
+      "col": {
+        "fecha": "Fecha",
+        "producto": "Producto y lote",
+        "ubicacion": "Ubicación",
+        "causa": "Causa",
+        "cantidad": "Cantidad",
+        "registro": "Registró",
+        "estado": "Estado"
+      },
+      "automaticaCausa": "{{causa}} · automático",
+      "sistema": "Sistema",
+      "elPunto": "El punto de acopio",
+      "automatica": "Automática",
+      "confirmada": "Merma confirmada"
     }
   }
 }

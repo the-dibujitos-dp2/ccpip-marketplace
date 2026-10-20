@@ -5,6 +5,7 @@ import iconoBillete from '../../assets/icons/billete.svg'
 import iconoCaja from '../../assets/icons/caja.svg'
 import iconoCampana from '../../assets/icons/campana.svg'
 import iconoEtiqueta from '../../assets/icons/etiqueta.svg'
+import iconoMerma from '../../assets/icons/merma.svg'
 import iconoMovimientos from '../../assets/icons/movimientos.svg'
 import iconoPaquete from '../../assets/icons/paquete.svg'
 import iconoTablero from '../../assets/icons/tablero.svg'
@@ -21,6 +22,8 @@ const NAV = [
   { to: RUTAS.productorAlmacen, clave: 'almacen', icono: iconoAlmacen, activo: (p) => p.startsWith(RUTAS.productorAlmacen) },
   { to: RUTAS.productorLotes, clave: 'lotes', icono: iconoCaja, activo: (p) => p.startsWith(RUTAS.productorLotes) },
   { to: RUTAS.productorTransferencias, clave: 'transferencias', icono: iconoMovimientos, activo: (p) => p.startsWith(RUTAS.productorTransferencias) },
+  // CCPIP-75 y CCPIP-76: la merma de sus lotes
+  { to: RUTAS.productorMerma, clave: 'merma', icono: iconoMerma, activo: (p) => p.startsWith(RUTAS.productorMerma) },
   { to: RUTAS.productorPedidos, clave: 'pedidos', icono: iconoPaquete, activo: (p) => p.startsWith(RUTAS.productorPedidos) },
   { to: RUTAS.productorDenuncias, clave: 'denuncias', icono: iconoAviso, activo: (p) => p.startsWith(RUTAS.productorDenuncias) },
   { to: RUTAS.productorCuenta, clave: 'cuenta', icono: iconoBillete, activo: (p) => p.startsWith(RUTAS.productorCuenta) },

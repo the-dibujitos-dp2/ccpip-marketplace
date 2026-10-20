@@ -10,4 +10,4 @@
 .inventario__col-vence { width: 100px; }
 .inventario__col-numero { width: 72px; font-variant-numeric: tabular-nums; }
 .inventario__col-estado { width: 120px; }
-.inventario__col-accion { width: 120px; }
+.inventario__col-accion { display: flex; gap: 4px; width: 180px; }
