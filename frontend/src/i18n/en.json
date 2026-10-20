@@ -1806,6 +1806,27 @@
       "CANCELADO": "Order cancelled"
     }
   },
+  "misDatos": {
+    "titulo": "Personal details",
+    "nombres": "First names",
+    "apellidos": "Last names",
+    "correo": "Email",
+    "celular": "Mobile phone",
+    "correoAyuda": "It is your username to sign in; it is not changed here.",
+    "correoSinConfirmar": "It is your username to sign in. You have not confirmed it yet: check the link we sent you.",
+    "celularAyuda": "Optional. To coordinate your orders.",
+    "guardar": "Save changes",
+    "guardando": "Saving…",
+    "guardado": "Your details were saved",
+    "errorGuardar": "We could not save your details",
+    "errorCargar": "We could not load your details",
+    "errores": {
+      "nombres": "Enter your first names",
+      "apellidos": "Enter your last names",
+      "celular": "Enter a valid mobile phone",
+      "largo": "Maximum {{maximo}} characters"
+    }
+  },
   "idioma": {
     "etiqueta": "Language: {{idioma}}. Change language",
     "menu": "Language"

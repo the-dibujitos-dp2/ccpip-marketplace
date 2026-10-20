@@ -36,6 +36,7 @@ import ComunidadesPage from './pages/consumidor/ComunidadesPage.jsx'
 import IngresarPage from './pages/consumidor/IngresarPage.jsx'
 import InicioPage from './pages/consumidor/InicioPage.jsx'
 import MisPedidosPage from './pages/consumidor/MisPedidosPage.jsx'
+import MisDatosPage from './pages/consumidor/MisDatosPage.jsx'
 import PedidoPage from './pages/consumidor/PedidoPage.jsx'
 import RecuperarContrasenaPage from './pages/consumidor/RecuperarContrasenaPage.jsx'
 import RestablecerContrasenaPage from './pages/consumidor/RestablecerContrasenaPage.jsx'
@@ -155,7 +156,7 @@ export default function App() {
 
   // "/productores/1" (enlace antiguo) no es del panel: se compara por segmento
   const delProductor = path === RUTAS.productor || path.startsWith(`${RUTAS.productor}/`)
-  const delComprador = path === RUTAS.carrito || path === RUTAS.compra || path === RUTAS.misPedidos || RUTA_PEDIDO.test(path)
+  const delComprador = path === RUTAS.carrito || path === RUTAS.compra || path === RUTAS.misPedidos || path === RUTAS.misDatos || RUTA_PEDIDO.test(path)
   const delAcopio = path === RUTAS.acopio || path.startsWith(`${RUTAS.acopio}/`)
   const delAdmin = path === RUTAS.admin || path.startsWith(`${RUTAS.admin}/`)
   const protegida = path === RUTAS.inicio || delProductor || delComprador || delAcopio || delAdmin
@@ -218,7 +219,9 @@ export default function App() {
     terminarSesion({ tono: 'exito', titulo: t('app.sesionCerrada.titulo'), descripcion: t('app.sesionCerrada.descripcion') })
   }, [terminarSesion, t])
 
-  const contexto = useMemo(() => ({ user, cerrarSesion: handleCerrarSesion, cerrando }), [user, handleCerrarSesion, cerrando])
+  // CCPIP-113: Mis datos cambia el nombre de la sesion sin volver a pedirla
+  const actualizarUsuario = useCallback((cambios) => setSesion((s) => (s ? { ...s, user: { ...s.user, ...cambios } } : s)), [])
+  const contexto = useMemo(() => ({ user, cerrarSesion: handleCerrarSesion, cerrando, actualizarUsuario }), [user, handleCerrarSesion, cerrando, actualizarUsuario])
 
   if (cargando) return <p className="visually-hidden">{t('comun.cargando')}</p>
 
@@ -303,6 +306,7 @@ export default function App() {
     if (user.role !== 'CONSUMIDOR') pagina = null
     else if (path === RUTAS.compra) pagina = <CompraPage />
     else if (path === RUTAS.misPedidos) pagina = <MisPedidosPage />
+    else if (path === RUTAS.misDatos) pagina = <MisDatosPage />
     else if (RUTA_PEDIDO.test(path)) pagina = <PedidoPage id={path.match(RUTA_PEDIDO)[1]} />
     else pagina = <CarritoPage />
   } else if (delAcopio) {

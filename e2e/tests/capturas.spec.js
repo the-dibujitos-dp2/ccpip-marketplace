@@ -59,6 +59,9 @@ test.describe('capturas para comparar con el Figma', () => {
     await page.goto('/cuenta/pedidos')
     await page.getByRole('heading', { name: 'Mi cuenta' }).waitFor()
     await capturar(page, 'CW-09-mis-pedidos')
+    await page.getByRole('link', { name: 'Datos personales' }).click()
+    await page.getByRole('form', { name: 'Datos personales' }).waitFor()
+    await capturar(page, 'CW-13-mis-datos')
   })
 
   test('superadministrador', async ({ page }) => {

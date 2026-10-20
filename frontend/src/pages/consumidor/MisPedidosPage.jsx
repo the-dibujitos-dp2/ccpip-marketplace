@@ -1,21 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import iconoCaja from '../../assets/icons/caja.svg'
-import iconoSalir from '../../assets/icons/salir.svg'
 import { listarMisPedidos } from '../../api/compra.js'
 import Alerta from '../../components/Alerta.jsx'
-import Avatar from '../../components/Avatar.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
-import Enlace from '../../components/Enlace.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
-import Icono from '../../components/Icono.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import SeguimientoPedido, { conSeguimiento, fechaDe } from '../../components/SeguimientoPedido.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { diaMes, precio } from '../../formato.js'
 import { RUTAS } from '../../router.js'
-import { useSesion } from '../../sesion.js'
+import LateralCuenta from './LateralCuenta.jsx'
 import './MisPedidosPage.css'
 
 const EN_CURSO = ['PENDIENTE_PAGO', 'CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO']
@@ -37,7 +32,6 @@ const TONO_ESTADO = {
  */
 export default function MisPedidosPage() {
   const { t } = useTranslation()
-  const { user, cerrarSesion, cerrando } = useSesion()
   const [pedidos, setPedidos] = useState(null)
   const [error, setError] = useState(false)
   const [pestana, setPestana] = useState(null)
@@ -60,22 +54,7 @@ export default function MisPedidosPage() {
       <main className="contenedor mis-pedidos">
         <h1 className="mis-pedidos__titulo">{t('misPedidos.miCuenta')}</h1>
         <div className="mis-pedidos__cuerpo">
-          <aside className="mis-pedidos__lateral">
-            <div className="mis-pedidos__usuario">
-              <Avatar nombre={user.fullName} />
-              <span className="label-m">{user.fullName}</span>
-            </div>
-            <nav aria-label={t('misPedidos.miCuenta')}>
-              <Enlace to={RUTAS.misPedidos} className="mis-pedidos__nav mis-pedidos__nav--activo" aria-current="page">
-                <Icono src={iconoCaja} tamano={20} />
-                {t('misPedidos.titulo')}
-              </Enlace>
-              <button type="button" className="mis-pedidos__nav" onClick={cerrarSesion} disabled={cerrando}>
-                <Icono src={iconoSalir} tamano={20} />
-                {cerrando ? t('cabecera.cerrando') : t('cabecera.cerrarSesion')}
-              </button>
-            </nav>
-          </aside>
+          <LateralCuenta activo="pedidos" />
 
           <section className="mis-pedidos__contenido" aria-label={t('misPedidos.titulo')} aria-busy={!pedidos && !error}>
             {error && (
