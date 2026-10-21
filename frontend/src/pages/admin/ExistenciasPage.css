@@ -1,0 +1,5 @@
+/* CCPIP-354: existencias agregadas de los puntos de acopio */
+.existencias__lugar { display: block; color: var(--color-text-secondary); }
+.existencias__conteo { flex: 0 0 90px; text-align: right; font-variant-numeric: tabular-nums; }
+.existencias__cantidades { flex: 0 0 160px; text-align: right; font-variant-numeric: tabular-nums; }
+.existencias__lista { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }

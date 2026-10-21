@@ -4,6 +4,9 @@ import { apiFetch, idRuta } from './http.js'
 /** CCPIP-111 (SA-01): ventas, comision, productores, lineas y puntos de acopio del mes en curso. */
 export const obtenerTablero = () => apiFetch('/api/admin/tablero')
 
+/** CCPIP-354 (RF-244): existencias agregadas de los puntos de acopio. Solo superadministrador, solo lectura. */
+export const existenciasAgregadas = () => apiFetch('/api/admin/reportes/existencias')
+
 /** CCPIP-90 (SA-02): comision vigente, cambio programado e historial. Solo superadministrador. */
 export const obtenerComision = () => apiFetch('/api/admin/comision')
 

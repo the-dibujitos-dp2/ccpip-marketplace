@@ -914,6 +914,7 @@
       "productores": "Producers",
       "cuentas": "Accounts",
       "catalogo": "Master catalog",
+      "existencias": "Stock",
       "denuncias": "Reports",
       "motivosMerma": "Shrinkage causes"
     },
@@ -1113,6 +1114,35 @@
       "modificado": "Cause “{{nombre}}” updated",
       "desactivado": "Cause “{{nombre}}” deactivated",
       "activado": "Cause “{{nombre}}” activated"
+    },
+    "existencias": {
+      "titulo": "Stock at collection points",
+      "error": "We couldn't load the stock",
+      "corte": "Balance as of {{fecha}}, Lima time.",
+      "kpi": {
+        "puntos": "Points with stock",
+        "puntosDetalle": "Of the active collection points",
+        "productos": "Products in stock",
+        "lotes_one": "In {{count}} batch",
+        "lotes_other": "In {{count}} batches",
+        "vencidos": "Expired batches",
+        "vencidosDetalle": "With balance, no longer sold"
+      },
+      "porPunto": "By collection point",
+      "porLinea": "By product line",
+      "vacio": "No collection point has stock.",
+      "sinLinea": "No line",
+      "col": {
+        "punto": "Collection point",
+        "linea": "Line",
+        "productos": "Products",
+        "productores": "Producers",
+        "lotes": "Batches",
+        "puntos": "Points",
+        "vigente": "Valid",
+        "vencido": "Expired"
+      },
+      "nota": "View only: stock is recorded and corrected at each point. Quantities are shown per unit of measure, never adding different units. Each point's administrator sees the detail by producer and batch."
     }
   },
   "sello": {

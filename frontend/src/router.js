@@ -44,6 +44,7 @@ export const RUTAS = {
   adminProductores: '/admin/productores',
   adminDenuncias: '/admin/denuncias',
   adminCatalogo: '/admin/catalogo',
+  adminExistencias: '/admin/existencias',
   adminCuentas: '/admin/cuentas',
   adminCuentaNueva: '/admin/cuentas/nueva',
 }

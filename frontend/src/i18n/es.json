@@ -914,6 +914,7 @@
       "productores": "Productores",
       "cuentas": "Cuentas",
       "catalogo": "Catálogo maestro",
+      "existencias": "Existencias",
       "denuncias": "Denuncias",
       "motivosMerma": "Causas de merma"
     },
@@ -1113,6 +1114,35 @@
       "modificado": "Causa «{{nombre}}» actualizada",
       "desactivado": "Causa «{{nombre}}» desactivada",
       "activado": "Causa «{{nombre}}» activada"
+    },
+    "existencias": {
+      "titulo": "Existencias en puntos de acopio",
+      "error": "No pudimos cargar las existencias",
+      "corte": "Saldo al {{fecha}}, hora de Lima.",
+      "kpi": {
+        "puntos": "Puntos con existencias",
+        "puntosDetalle": "De los puntos de acopio activos",
+        "productos": "Productos en acopio",
+        "lotes_one": "En {{count}} lote",
+        "lotes_other": "En {{count}} lotes",
+        "vencidos": "Lotes vencidos",
+        "vencidosDetalle": "Con saldo, ya no se venden"
+      },
+      "porPunto": "Por punto de acopio",
+      "porLinea": "Por línea de producto",
+      "vacio": "Ningún punto de acopio tiene existencias.",
+      "sinLinea": "Sin línea",
+      "col": {
+        "punto": "Punto de acopio",
+        "linea": "Línea",
+        "productos": "Productos",
+        "productores": "Productores",
+        "lotes": "Lotes",
+        "puntos": "Puntos",
+        "vigente": "Vigente",
+        "vencido": "Vencido"
+      },
+      "nota": "Solo consulta: el stock se registra y corrige en cada punto. Las cantidades se muestran por unidad de medida, sin sumar unidades distintas. El detalle por productor y lote lo ve el administrador de cada punto."
     }
   },
   "sello": {

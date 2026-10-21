@@ -15,6 +15,7 @@ import ComisionPage from './pages/admin/ComisionPage.jsx'
 import DenunciasAdminPage from './pages/admin/DenunciasPage.jsx'
 import ParametrosPage from './pages/admin/ParametrosPage.jsx'
 import DetalleCuentaPage from './pages/admin/DetalleCuentaPage.jsx'
+import ExistenciasPage from './pages/admin/ExistenciasPage.jsx'
 import CuentasPage from './pages/admin/CuentasPage.jsx'
 import NuevaCuentaPage from './pages/admin/NuevaCuentaPage.jsx'
 import MotivosMermaPage from './pages/admin/MotivosMermaPage.jsx'
@@ -268,6 +269,7 @@ export default function App() {
     else if (path === RUTAS.adminMotivosMerma) pagina = <MotivosMermaPage path={path} />
     else if (path === RUTAS.adminAutorizaciones) pagina = <AutorizacionesPage path={path} />
     else if (path === RUTAS.adminCatalogo) pagina = <CatalogoMaestroPage path={path} search={search} />
+    else if (path === RUTAS.adminExistencias) pagina = <ExistenciasPage path={path} />
     else if (RUTA_EXPEDIENTE.test(path)) pagina = <ExpedienteAutorizacionPage path={RUTAS.adminAutorizaciones} id={path.match(RUTA_EXPEDIENTE)[1]} />
     else if (path === RUTAS.adminProductores) pagina = <ProductoresPage path={path} />
     else if (RUTA_FICHA_PRODUCTOR.test(path)) pagina = <FichaProductorPage path={RUTAS.adminProductores} id={path.match(RUTA_FICHA_PRODUCTOR)[1]} />
