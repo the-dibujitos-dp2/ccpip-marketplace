@@ -7,7 +7,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
+import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,7 +25,8 @@ import pe.ccpip.support.IntegrationTest;
 
 /**
  * CCPIP-92 (RF-70): el productor consulta su liquidacion por periodo. Bruto, comision y neto salen de sus
- * lineas, tal como se copiaron al confirmar, y coinciden con los pedidos. CCPIP-326 (RF-214): la exporta en PDF.
+ * lineas, tal como se copiaron al confirmar, y coinciden con los pedidos. CCPIP-326 (RF-214) y CCPIP-384 (RF-276):
+ * la exporta en PDF y en Excel.
  *
  * <p>Los pedidos de la prueba se confirman en marzo de 2025, un mes que ninguna otra prueba usa, y la
  * transaccion se deshace al terminar.
@@ -179,6 +186,63 @@ class LiquidacionTest extends IntegrationTest {
         assertThat(LiquidacionPdf.escapar("Café (250 ml) \\ ñ")).isEqualTo("Café \\(250 ml\\) \\\\ ñ");
         assertThat(LiquidacionPdf.escapar("Aceite – 🌿")).isEqualTo("Aceite – ?");
         assertThat(LiquidacionPdf.soles(new BigDecimal("1234.5"))).isEqualTo("S/ 1,234.50");
+    }
+
+    // --- CCPIP-384: Excel ---
+
+    @Test
+    void elExcelTieneUnaFilaPorLineaConImportesNumericos() throws Exception {
+        long mixto = pedido("LQ-9", "CONFIRMADO", "2025-03-10 10:00-05", "12.5");
+        linea(mixto, PRODUCTOR, "1", "25.00", "3.13");
+        linea(mixto, OTRO, "3", "19.90", "7.46");
+        long sinComision = pedido("LQ-10", "ENTREGADO", "2025-03-11 10:00-05", null);
+        linea(sinComision, PRODUCTOR, "2", "20.00", null);
+
+        byte[] xlsx = mockMvc.perform(get("/api/productor/liquidaciones/xlsx" + MARZO).cookie(loginAs(PRODUCTOR)))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .andExpect(header().string("Content-Disposition",
+                        org.hamcrest.Matchers.containsString("liquidacion-2025-03-01-al-2025-03-31.xlsx")))
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andReturn().getResponse().getContentAsByteArray();
+
+        Map<String, String> partes = descomprimir(xlsx);
+        assertThat(partes).containsKeys("[Content_Types].xml", "xl/workbook.xml", "xl/styles.xml",
+                "xl/worksheets/sheet1.xml", "xl/worksheets/sheet2.xml");
+        String lineas = partes.get("xl/worksheets/sheet1.xml");
+        // Importes como numeros (<v>), no como texto
+        assertThat(lineas).contains("<t>LQ-9</t>", "<v>25.00</v>", "<v>3.13</v>", "<v>21.87</v>",
+                "<t>LQ-10</t>", "<v>40.00</v>", "<t>Entregado</t>");
+        // Total del periodo: 65.00 bruto, 3.13 comision, 61.87 neto
+        assertThat(lineas).contains("<v>65.00</v>", "<v>61.87</v>");
+        // Solo sus lineas
+        assertThat(lineas).doesNotContain("59.70", "52.24");
+        assertThat(partes.get("xl/worksheets/sheet2.xml")).contains("<t>Sin comisión</t>", "<v>12.50</v>");
+    }
+
+    @Test
+    void elExcelValidaElPeriodoYEsSoloDelProductor() throws Exception {
+        mockMvc.perform(get("/api/productor/liquidaciones/xlsx?desde=2023-01-01&hasta=2025-03-01").cookie(loginAs(PRODUCTOR)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("RANGO_MUY_LARGO"));
+        mockMvc.perform(get("/api/productor/liquidaciones/xlsx").cookie(loginAs("sudo@ccpip.test")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/productor/liquidaciones/xlsx")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void elExcelEscapaElTextoParaXml() {
+        assertThat(LiquidacionExcel.xml("Café <b> & \"té\"\u0001")).isEqualTo("Café &lt;b&gt; &amp; &quot;té&quot;");
+    }
+
+    private static Map<String, String> descomprimir(byte[] zip) throws Exception {
+        Map<String, String> partes = new HashMap<>();
+        try (ZipInputStream entrada = new ZipInputStream(new ByteArrayInputStream(zip))) {
+            for (ZipEntry e = entrada.getNextEntry(); e != null; e = entrada.getNextEntry()) {
+                partes.put(e.getName(), new String(entrada.readAllBytes(), StandardCharsets.UTF_8));
+            }
+        }
+        return partes;
     }
 
     // --- Ayudas ---

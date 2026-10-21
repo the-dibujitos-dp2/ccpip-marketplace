@@ -284,7 +284,8 @@
       "desde": "From",
       "hasta": "To",
       "exportar": {
-        "pdf": "Download PDF"
+        "pdf": "Download PDF",
+        "xlsx": "Download Excel"
       },
       "error": "We couldn't load your settlement",
       "kpi": {

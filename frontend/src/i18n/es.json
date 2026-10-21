@@ -284,7 +284,8 @@
       "desde": "Desde",
       "hasta": "Hasta",
       "exportar": {
-        "pdf": "Descargar PDF"
+        "pdf": "Descargar PDF",
+        "xlsx": "Descargar Excel"
       },
       "error": "No pudimos cargar tu liquidación",
       "kpi": {

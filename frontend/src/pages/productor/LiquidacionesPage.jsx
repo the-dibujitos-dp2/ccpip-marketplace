@@ -17,7 +17,7 @@ import './LiquidacionesPage.css'
 /**
  * CCPIP-92 (RF-70): el productor consulta su liquidacion por periodo. Bruto, comision y neto los calcula
  * el servidor con lo que se copio al confirmar cada pedido; la pantalla solo los muestra.
- * CCPIP-326 (RF-214): la exporta en PDF con los mismos importes.
+ * CCPIP-326 (RF-214) y CCPIP-384 (RF-276): la exporta en PDF y en Excel con los mismos importes.
  */
 export default function LiquidacionesPage({ path }) {
   const { t } = useTranslation()
@@ -37,9 +37,9 @@ export default function LiquidacionesPage({ path }) {
 }
 
 /** Formatos de exportacion del periodo consultado. */
-const FORMATOS = ['pdf']
+const FORMATOS = ['pdf', 'xlsx']
 
-/** CCPIP-326: descarga el periodo que se esta viendo, no el que se esta escribiendo en las fechas. */
+/** CCPIP-326 y CCPIP-384: descarga el periodo que se esta viendo, no el que se esta escribiendo en las fechas. */
 function Exportar({ rango }) {
   const { t } = useTranslation()
   return (

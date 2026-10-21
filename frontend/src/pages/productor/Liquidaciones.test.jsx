@@ -98,4 +98,12 @@ describe('CCPIP-92 Liquidaciones del productor por periodo', () => {
     expect(pdf).toHaveAttribute('href', '/api/productor/liquidaciones/pdf?desde=2026-11-01&hasta=2026-11-18')
     expect(pdf).toHaveAttribute('download')
   })
+
+  it('CCPIP-384: descarga en Excel el periodo consultado', async () => {
+    productor()
+    abrirEn('/productor/liquidaciones')
+    const excel = await screen.findByRole('link', { name: 'Descargar Excel' })
+    expect(excel).toHaveAttribute('href', '/api/productor/liquidaciones/xlsx?desde=2026-11-01&hasta=2026-11-18')
+    expect(excel).toHaveAttribute('download')
+  })
 })

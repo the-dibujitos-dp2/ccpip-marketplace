@@ -23,12 +23,14 @@ import pe.ccpip.productor.ProductorActual;
 
 /**
  * CCPIP-92 (RF-70): la liquidacion del productor de la sesion (RNF-05); nunca recibe un id de productor.
- * CCPIP-326 (RF-214): la misma liquidacion exportada en PDF.
+ * CCPIP-326 (RF-214) y CCPIP-384 (RF-276): la misma liquidacion exportada en PDF y en Excel.
  */
 @RolesPermitidos(Rol.PRODUCTOR)
 @RestController
 @RequestMapping("/api/productor/liquidaciones")
 public class LiquidacionController {
+
+    static final MediaType XLSX = MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
     private final LiquidacionService service;
     private final ProductorActual actual;
@@ -52,6 +54,15 @@ public class LiquidacionController {
                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
         Liquidacion liquidacion = service.consultar(actual.id(s), desde, hasta);
         return descarga(LiquidacionPdf.generar(liquidacion), MediaType.APPLICATION_PDF, nombre(liquidacion, "pdf"));
+    }
+
+    /** CCPIP-384: el libro de Excel del mismo periodo, con los mismos importes que la consulta. */
+    @GetMapping("/xlsx")
+    public ResponseEntity<byte[]> excel(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
+        Liquidacion liquidacion = service.consultar(actual.id(s), desde, hasta);
+        return descarga(LiquidacionExcel.generar(liquidacion), XLSX, nombre(liquidacion, "xlsx"));
     }
 
     /** "liquidacion-2026-11-01-al-2026-11-30.pdf" */
