@@ -2,7 +2,6 @@ package pe.ccpip.reportes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +10,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.comun.RangoFechas;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.ReportesModelos.Desglose;
 import pe.ccpip.reportes.ReportesModelos.Periodo;
@@ -25,9 +24,6 @@ import pe.ccpip.reportes.ReportesModelos.Reporte;
  */
 @Service
 public class ReportesService {
-
-    /** Un rango mas largo se pide por partes. */
-    static final int MAX_DIAS = 366;
 
     /**
      * CCPIP-345 (RF-235): ventas de la plataforma, el subtotal de cada linea de los pedidos confirmados
@@ -58,15 +54,10 @@ public class ReportesService {
     Reporte serie(String metrica, String origen, LocalDate desde, LocalDate hasta, Agrupacion agrupacion) {
         LocalDate hoy = jdbc.getJdbcTemplate()
                 .queryForObject("SELECT (now() AT TIME ZONE 'America/Lima')::date", LocalDate.class);
-        LocalDate fin = hasta == null ? hoy : hasta;
-        LocalDate inicio = desde == null ? fin.withDayOfYear(1) : desde;
+        RangoFechas rango = RangoFechas.resolver(desde, hasta, hoy, fin -> fin.withDayOfYear(1));
+        LocalDate inicio = rango.desde();
+        LocalDate fin = rango.hasta();
         Agrupacion por = agrupacion == null ? Agrupacion.MES : agrupacion;
-        if (inicio.isAfter(fin)) {
-            throw ErrorNegocio.invalido("RANGO_INVALIDO", "La fecha inicial debe ser anterior o igual a la final.");
-        }
-        if (ChronoUnit.DAYS.between(inicio, fin) >= MAX_DIAS) {
-            throw ErrorNegocio.invalido("RANGO_MUY_LARGO", "Consulta como máximo un año a la vez.");
-        }
 
         String unidad = switch (por) {
             case DIA -> "day";
