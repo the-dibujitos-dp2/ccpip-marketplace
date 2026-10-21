@@ -909,6 +909,7 @@
       "tablero": "Dashboard",
       "comision": "Commission",
       "comisiones": "Commission by order",
+      "reportes": "Reports",
       "parametros": "Parameters",
       "autorizaciones": "Authorizations",
       "productores": "Producers",
@@ -1046,6 +1047,40 @@
       "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
       "sinComisionCelda": "No commission",
       "nota": "Commission and net are fixed when each order is confirmed; a later commission change doesn't alter them."
+    },
+    "reportes": {
+      "titulo": "Platform reports",
+      "desde": "From",
+      "hasta": "To",
+      "agrupacion": "Group by",
+      "por": {
+        "DIA": "Day",
+        "SEMANA": "Week",
+        "MES": "Month"
+      },
+      "error": "We couldn't load the report",
+      "rango": "From {{desde}} to {{hasta}}",
+      "b2c": "B2C (retail)",
+      "b2cDetalle": "Sold at retail price",
+      "b2b": "B2B (wholesale)",
+      "b2bDetalle": "Sold at wholesale price",
+      "semana": "{{inicio}} to {{fin}}",
+      "col": {
+        "periodo": "Period",
+        "barra": "B2C and B2B",
+        "b2c": "B2C",
+        "b2b": "B2B",
+        "total": "Total",
+        "acumulado": "Cumulative"
+      },
+      "metrica": {
+        "ventas": {
+          "pestana": "Sales",
+          "total": "Cumulative sales",
+          "tabla": "Sales by period",
+          "nota": "Product subtotal of each paid, non-cancelled order, by the date it was confirmed (Lima time). A line is B2B when it was sold at wholesale price."
+        }
+      }
     },
     "parametros": {
       "titulo": "Platform parameters",

@@ -736,6 +736,25 @@ un porcentaje que no regia.
 Triggers: una vez copiada la comision, no cambian el total ni la comision del pedido, ni la
 cantidad, precio, subtotal, comision y neto de sus lineas, y las lineas no se borran (RNF-13).
 
+## Tarifa de cada linea y reportes B2C/B2B (CCPIP-345)
+
+Migracion `V202610211700__item_pedido_tarifa.sql`. Los reportes del superadministrador (SA-05) separan
+las ventas B2C de las B2B. Una linea es B2B cuando se vendio a tarifa mayorista, que el carrito decide
+segun la modalidad de la oferta y la cantidad (`Tarifas.resolver`, CCPIP-134). El pedido ya copiaba el
+precio; ahora tambien copia cual de las dos tarifas era.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| item_pedido.tarifa | varchar(10) | no | `MINORISTA` (B2C) o `MAYORISTA` (B2B). Por defecto `MINORISTA`. La copia la compra (RNF-13) |
+
+Las lineas anteriores a la migracion se reconstruyen: son `MAYORISTA` si el precio copiado es el
+mayorista de la oferta y distinto del minorista. La columna no esta entre los importes que protege el
+disparador `item_pedido_comision_congelada`, asi que la migracion puede completarla.
+
+Los reportes (`/api/admin/reportes/...`) agrupan por dia, semana (desde el lunes) o mes, en fechas de
+Lima, con los periodos sin movimiento en cero y el acumulado del rango. Ventas: el subtotal de las
+lineas de pedidos confirmados y no cancelados, por fecha de confirmacion.
+
 ## Interes de compra y avisos (CCPIP-105, CCPIP-106, CCPIP-273, CCPIP-69)
 
 ### interes_compra

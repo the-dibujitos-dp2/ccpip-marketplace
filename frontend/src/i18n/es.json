@@ -909,6 +909,7 @@
       "tablero": "Tablero",
       "comision": "Comisión",
       "comisiones": "Comisión por pedido",
+      "reportes": "Reportes",
       "parametros": "Parámetros",
       "autorizaciones": "Autorizaciones",
       "productores": "Productores",
@@ -1046,6 +1047,40 @@
       "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
       "sinComisionCelda": "Sin comisión",
       "nota": "La comisión y el neto quedan fijados al confirmar cada pedido; un cambio posterior de la comisión no los altera."
+    },
+    "reportes": {
+      "titulo": "Reportes de la plataforma",
+      "desde": "Desde",
+      "hasta": "Hasta",
+      "agrupacion": "Agrupar por",
+      "por": {
+        "DIA": "Día",
+        "SEMANA": "Semana",
+        "MES": "Mes"
+      },
+      "error": "No pudimos cargar el reporte",
+      "rango": "Del {{desde}} al {{hasta}}",
+      "b2c": "B2C (minorista)",
+      "b2cDetalle": "Vendido a precio minorista",
+      "b2b": "B2B (mayorista)",
+      "b2bDetalle": "Vendido a precio mayorista",
+      "semana": "{{inicio}} al {{fin}}",
+      "col": {
+        "periodo": "Periodo",
+        "barra": "B2C y B2B",
+        "b2c": "B2C",
+        "b2b": "B2B",
+        "total": "Total",
+        "acumulado": "Acumulado"
+      },
+      "metrica": {
+        "ventas": {
+          "pestana": "Ventas",
+          "total": "Ventas acumuladas",
+          "tabla": "Ventas por periodo",
+          "nota": "Subtotal de los productos de cada pedido pagado y no cancelado, por la fecha en que se confirmó (hora de Lima). Una línea es B2B si se vendió a precio mayorista."
+        }
+      }
     },
     "parametros": {
       "titulo": "Parámetros de la plataforma",
