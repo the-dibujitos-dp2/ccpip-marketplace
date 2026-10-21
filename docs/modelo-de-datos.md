@@ -502,6 +502,25 @@ la confirmacion y el pago la aplican al instante. Los pedidos confirmados no se 
 Un certificado vencido pausa la venta pero no es una revocacion (C5): el estado sigue APROBADA y
 no se registra decision.
 
+### renovacion_certificado (CCPIP-321)
+Migracion `V202610211800`. El subadministrador pide renovar un certificado de una autorizacion
+APROBADA (`POST /api/admin/autorizaciones/{id}/renovaciones`, `409 AUTORIZACION_NO_APROBADA`). Llega al
+productor por correo (aviso `RENOVACION_CERTIFICADO`) y en las evidencias de su producto (PW-14).
+**No cambia la autorizacion ni la venta:** no hay decision ni cambio de estado. Si el certificado vence
+sin renovarse rige C5 (Venta pausada, sin revocar), y nunca hay un bloqueo permanente automatico.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| autorizacion_id, productor_id, producto_id | bigint | no | Llave compuesta a `autorizacion_producto` |
+| evidencia_id | uuid | no | El certificado (`CERTIFICADO` sin retirar de esa autorizacion, si no `422 CERTIFICADO_INVALIDO`) |
+| motivo | varchar(500) | no | Obligatorio |
+| plazo | date | no | Por defecto el vencimiento del certificado, u hoy si ya vencio. No pasado (`422 PLAZO_PASADO`) |
+| estado | varchar(10) | no | `PENDIENTE`; `ATENDIDA` y `CANCELADA` llegan con sus historias. Una pendiente por certificado (`409 RENOVACION_PENDIENTE`) |
+| solicitada_por, solicitada_en | | no | Quien y cuando. Tambien queda en `producto_auditoria` (`AUTORIZACION`) |
+| atendida_en | timestamptz | si | Obligatoria fuera de `PENDIENTE` |
+
+Un trigger impide borrarla y editarla, salvo pasar una vez de `PENDIENTE` a otro estado.
+
 ### autorizacion_producto (columna nueva)
 | Columna | Tipo | Nula | Descripcion |
 |---|---|---|---|

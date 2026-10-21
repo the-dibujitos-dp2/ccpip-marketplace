@@ -1380,6 +1380,9 @@
     "TRANSFERENCIA_NO_ENCONTRADA": "La transferencia no existe.",
     "NO_ES_DESTINO": "Solo el punto de destino registra la recepción.",
     "AUTORIZACION_NO_APROBADA": "Solo se puede revocar una autorización aprobada.",
+    "RENOVACION_PENDIENTE": "Ya hay una solicitud de renovación pendiente para este certificado.",
+    "CERTIFICADO_INVALIDO": "Elige un certificado vigente de esta solicitud.",
+    "PLAZO_PASADO": "El plazo no puede ser una fecha pasada.",
     "TIENDA_NO_HABILITADA": "La Cámara aún no habilita tu tienda. Podrás publicarla en cuanto la habilite.",
     "TIENDA_YA_HABILITADA": "La tienda de este productor ya está habilitada.",
     "VENTA_REVOCADA": "La venta de este productor está revocada: restitúyela antes de habilitar su tienda.",
@@ -2122,6 +2125,12 @@
       "errorArchivo": "Elige un archivo",
       "errorFormato": "Solo se aceptan archivos PDF, JPG o PNG",
       "errorPeso": "El archivo pesa más de 10 MB"
+    },
+    "renovacion": {
+      "titulo_one": "La Cámara te pide renovar un certificado",
+      "titulo_other": "La Cámara te pide renovar {{count}} certificados",
+      "detalle": "«{{certificado}}» antes del {{plazo}}. Motivo: {{motivo}}",
+      "venta": "Tu producto sigue a la venta. Si el certificado vence sin renovarse, su venta queda pausada hasta que se apruebe uno nuevo."
     }
   },
   "autorizaciones": {
@@ -2256,6 +2265,32 @@
         "confirmar": "Revocar autorización",
         "texto": "{{organizacion}} no podrá venderlo desde ahora. Los pedidos confirmados se atienden igual y podrá volver a solicitarla. La decisión queda registrada y no se edita."
       }
+    },
+    "renovacion": {
+      "titulo": "Renovación de certificados",
+      "texto": "Pide al productor que renueve un certificado. Le llega por correo y lo ve en las evidencias de su producto. La venta no cambia: si el certificado vence sin renovarse, la oferta queda en Venta pausada hasta que se apruebe uno nuevo; no se revoca.",
+      "certificados": "Certificados de esta autorización",
+      "solicitudes": "Solicitudes de renovación",
+      "vence": "Vence el {{fecha}}",
+      "solicitar": "Pedir renovación",
+      "estado": {
+        "PENDIENTE": "Renovación pedida",
+        "ATENDIDA": "Atendida",
+        "CANCELADA": "Cancelada"
+      },
+      "de": "{{certificado}} · plazo {{plazo}}",
+      "pedidaPor": "Pedida por {{nombre}} el {{fecha}}",
+      "efecto": "si no se renueva, Venta pausada desde el {{fecha}}",
+      "dialogo": "Pedir la renovación de «{{certificado}}»",
+      "dialogoTexto": "El productor recibirá el motivo y el plazo por correo, en su idioma. La autorización sigue aprobada.",
+      "motivo": "Motivo",
+      "plazo": "Plazo (opcional)",
+      "plazoAyuda": "Si lo dejas vacío, es el vencimiento del certificado.",
+      "confirmar": "Pedir renovación",
+      "errorMotivo": "Escribe el motivo de la solicitud",
+      "error": "No pudimos registrar la solicitud",
+      "registrada": "Solicitud de renovación registrada",
+      "registradaTexto": "Avisamos al productor por correo."
     }
   },
   "transferencias": {

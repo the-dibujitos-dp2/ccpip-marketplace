@@ -16,6 +16,7 @@ import Icono from '../../components/Icono.jsx'
 import { fechaCorta } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
+import AvisoRenovaciones from './AvisoRenovaciones.jsx'
 import PaginaProductor from './PaginaProductor.jsx'
 import './productor.css'
 import './EvidenciasPage.css'
@@ -109,6 +110,7 @@ export default function EvidenciasPage({ path, productoId }) {
     <PaginaProductor path={path ?? RUTAS.productorProductos} seccion={seccion} titulo={titulo}>
       <p className="body-m evidencias__intro">{t('evidencias.intro', { producto: datos.producto })}</p>
       <Alerta {...alertaEstado(datos.autorizacion, t)} />
+      <AvisoRenovaciones productoId={productoId} />
       {aviso && <Alerta {...aviso} onCerrar={() => setAviso(null)} />}
       <div className="evidencias">
         <div className="evidencias__principal">

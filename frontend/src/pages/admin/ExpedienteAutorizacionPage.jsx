@@ -25,6 +25,7 @@ import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import { BadgeVigencia } from '../productor/EvidenciasPage.jsx'
 import { BadgeAnalisis } from './AutorizacionesPage.jsx'
+import RenovacionesCertificado from './RenovacionesCertificado.jsx'
 import '../productor/productor.css'
 import './admin.css'
 
@@ -177,6 +178,12 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
               ))}
             </ul>
           </section>
+
+          <RenovacionesCertificado
+            autorizacionId={exp.id}
+            aprobada={exp.estado === 'APROBADA'}
+            certificados={exp.evidencias.filter((e) => e.tipo === 'CERTIFICADO')}
+          />
 
           {exp.decisiones.length > 0 && (
             <section className="tarjeta-panel" aria-labelledby="expediente-historial">
