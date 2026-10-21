@@ -1543,6 +1543,35 @@
       "propia": "Story written by the community."
     },
     "confianza": "Why you can trust this product",
+    "certificacion": {
+      "titulo": "Product certification",
+      "estado": {
+        "VERIFICADA": "Verified by the Chamber",
+        "VENCIDA": "Certification expired",
+        "SIN_EVIDENCIA": "No public certificates"
+      },
+      "resumen": {
+        "VERIFICADA": "The Chamber reviewed this evidence and approved the sale of this product on {{fecha}}. The approval is valid until {{hasta}}.",
+        "VENCIDA": "The Chamber approved this product with the evidence below, but its certificate has expired. Sales are paused until the producer renews it.",
+        "SIN_EVIDENCIA": "This product has no public certificates to show yet. That does not mean it is approved or rejected."
+      },
+      "lista": "Public evidence",
+      "emisor": "Issuer:",
+      "desde": "From:",
+      "vigencia": "Validity:",
+      "vigenteHasta": "valid until {{fecha}}",
+      "vencioEl": "expired on {{fecha}}",
+      "sinVencimiento": "no expiry date",
+      "tipo": {
+        "CERTIFICADO": "Certificate",
+        "EVIDENCIA": "Evidence"
+      },
+      "significado": {
+        "CERTIFICADO": "A document from an external issuer that attests to a condition of the product, such as its origin or chemical-free production. It has an expiry date.",
+        "EVIDENCIA": "Supporting material from the producer, such as photos or process records, that the Chamber reviewed along with the certificates."
+      },
+      "nota": "Only the issuer, dates and validity of the evidence that supported the approval are published. The producer's files and private documents are not shown."
+    },
     "verificando": "The Chamber is still verifying this community's origin.",
     "sobreCosecha": "About this harvest",
     "consumirAntes": "Best before",

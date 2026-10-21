@@ -1543,6 +1543,35 @@
       "propia": "Relato escrito por la comunidad."
     },
     "confianza": "Por qué puedes confiar en este producto",
+    "certificacion": {
+      "titulo": "Certificación del producto",
+      "estado": {
+        "VERIFICADA": "Verificado por la Cámara",
+        "VENCIDA": "Certificación vencida",
+        "SIN_EVIDENCIA": "Sin certificados públicos"
+      },
+      "resumen": {
+        "VERIFICADA": "La Cámara revisó estas evidencias y aprobó la venta del producto el {{fecha}}. La aprobación rige hasta el {{hasta}}.",
+        "VENCIDA": "La Cámara aprobó este producto con las evidencias de abajo, pero su certificado venció. Su venta queda pausada hasta que el productor lo renueve.",
+        "SIN_EVIDENCIA": "Este producto todavía no tiene certificados públicos que mostrar. Eso no significa que esté aprobado ni rechazado."
+      },
+      "lista": "Evidencias públicas",
+      "emisor": "Emisor:",
+      "desde": "Desde:",
+      "vigencia": "Vigencia:",
+      "vigenteHasta": "vigente hasta el {{fecha}}",
+      "vencioEl": "venció el {{fecha}}",
+      "sinVencimiento": "sin fecha de vencimiento",
+      "tipo": {
+        "CERTIFICADO": "Certificado",
+        "EVIDENCIA": "Evidencia"
+      },
+      "significado": {
+        "CERTIFICADO": "Documento de un emisor externo que acredita una condición del producto, como su origen o su producción sin químicos. Tiene una fecha de vencimiento.",
+        "EVIDENCIA": "Material de apoyo del productor, como fotos o registros del proceso, que la Cámara revisó junto con los certificados."
+      },
+      "nota": "Se publican solo el emisor, las fechas y la vigencia de las evidencias que sustentaron la aprobación. Los archivos y los documentos privados del productor no se muestran."
+    },
     "verificando": "La Cámara aún está verificando el origen de esta comunidad.",
     "sobreCosecha": "Sobre esta cosecha",
     "consumirAntes": "Consumir antes de",

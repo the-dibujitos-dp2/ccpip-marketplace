@@ -1,0 +1,11 @@
+/* CCPIP-365: evidencias publicas de certificacion en la ficha del producto (CW-03) */
+.certificacion__encabezado { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.certificacion__lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.certificacion__item { display: flex; gap: 12px; padding: 16px; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
+.certificacion__item p { margin: 0; }
+.certificacion__icono { flex-shrink: 0; color: var(--color-text-brand); }
+.certificacion__tipo { color: var(--color-text-secondary); }
+.certificacion__datos { display: grid; gap: 4px; margin: 8px 0; }
+.certificacion__datos div { display: flex; gap: 6px; font-size: 14px; }
+.certificacion__datos dt { color: var(--color-text-secondary); }
+.certificacion__datos dd { margin: 0; }

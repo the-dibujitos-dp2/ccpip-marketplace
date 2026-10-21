@@ -21,6 +21,8 @@ export function buscarProductos({ q, lineas = [], regiones = [], modalidad, tien
 }
 
 export const obtenerProducto = async (id) => apiFetch(`/api/productos/${idRuta(id)}`, publico)
+/** CCPIP-365: evidencias publicas de certificacion del producto (sin archivos). */
+export const obtenerCertificacion = async (id) => apiFetch(`/api/productos/${idRuta(id)}/certificacion`, publico)
 export const obtenerInicio = () => apiFetch('/api/inicio', publico)
 export const listarTiendas = () => apiFetch('/api/tiendas', publico)
 export const obtenerTienda = async (id) => apiFetch(`/api/tiendas/${idRuta(id)}`, publico)

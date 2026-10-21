@@ -18,6 +18,7 @@ import { idiomaSegun, textoSegun } from '../../traduccion.js'
 import { resolverTarifa } from '../../tarifa.js'
 import AgregarAlCarrito from './AgregarAlCarrito.jsx'
 import CalificacionesProducto from './CalificacionesProducto.jsx'
+import CertificacionProducto from './CertificacionProducto.jsx'
 import MeInteresa from './MeInteresa.jsx'
 import OfertasMaestro from './OfertasMaestro.jsx'
 import './ProductoPage.css'
@@ -309,6 +310,8 @@ export default function ProductoPage({ id }) {
             )}
           </div>
         </section>
+
+        <CertificacionProducto productoId={id} />
 
         {/* Figma CW-03 "Volumen y otras ofertas": la compra por volumen y, al lado, los demas productores (CCPIP-42) */}
         {(conMayorista || otrasOfertas.length > 0) && (
