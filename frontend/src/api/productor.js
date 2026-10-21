@@ -55,12 +55,19 @@ export const registrarMovimientoAlmacen = (datos) => apiFetch(`${base}/almacen/m
 export const listarPedidos = (estado) => apiFetch(`${base}/pedidos?${new URLSearchParams({ estado })}`)
 
 /** CCPIP-92 (RF-70): la liquidacion del periodo; sin fechas, el mes en curso. */
-export function consultarLiquidacion({ desde, hasta } = {}) {
+export function consultarLiquidacion(rango = {}) {
+  return apiFetch(rutaLiquidacion('', rango))
+}
+
+/** CCPIP-326: enlace de descarga de la liquidacion del periodo; la cookie de sesion viaja sola. */
+export const urlLiquidacion = (formato, rango) => rutaLiquidacion(`/${formato}`, rango)
+
+function rutaLiquidacion(sufijo, { desde, hasta } = {}) {
   const q = new URLSearchParams()
   if (desde) q.set('desde', desde)
   if (hasta) q.set('hasta', hasta)
   const consulta = q.toString()
-  return apiFetch(`${base}/liquidaciones${consulta ? `?${consulta}` : ''}`)
+  return `${base}/liquidaciones${sufijo}${consulta ? `?${consulta}` : ''}`
 }
 // CCPIP-161: todos sus lotes, de todos sus productos, primero el que vence antes
 export const listarTodosLosLotes = () => apiFetch(`${base}/lotes`)

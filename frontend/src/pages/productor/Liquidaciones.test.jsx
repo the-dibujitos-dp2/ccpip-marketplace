@@ -90,4 +90,12 @@ describe('CCPIP-92 Liquidaciones del productor por periodo', () => {
     abrirEn('/productor/liquidaciones')
     expect(await screen.findByText('No pudimos cargar tu liquidación')).toBeInTheDocument()
   })
+
+  it('CCPIP-326: descarga en PDF el periodo consultado', async () => {
+    productor()
+    abrirEn('/productor/liquidaciones')
+    const pdf = await screen.findByRole('link', { name: 'Descargar PDF' })
+    expect(pdf).toHaveAttribute('href', '/api/productor/liquidaciones/pdf?desde=2026-11-01&hasta=2026-11-18')
+    expect(pdf).toHaveAttribute('download')
+  })
 })

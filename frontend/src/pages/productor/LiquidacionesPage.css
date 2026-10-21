@@ -1,6 +1,7 @@
 /* CCPIP-92: liquidacion del productor por periodo */
 .liquidaciones__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
 .liquidaciones__filtros .campo { width: 200px; }
+.liquidaciones__exportar { display: flex; gap: 8px; margin-left: auto; }
 .liquidaciones__pedido { flex: 0 0 120px; }
 .liquidaciones__fecha { flex: 0 0 110px; }
 .liquidaciones__importe { flex: 0 0 130px; text-align: right; font-variant-numeric: tabular-nums; }
@@ -8,4 +9,5 @@
 
 @media (max-width: 720px) {
   .liquidaciones__filtros .campo { width: 100%; }
+  .liquidaciones__exportar { margin-left: 0; }
 }

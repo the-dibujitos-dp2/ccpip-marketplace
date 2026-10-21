@@ -283,6 +283,9 @@
       "titulo": "My settlements",
       "desde": "From",
       "hasta": "To",
+      "exportar": {
+        "pdf": "Download PDF"
+      },
       "error": "We couldn't load your settlement",
       "kpi": {
         "bruto": "Gross sales",

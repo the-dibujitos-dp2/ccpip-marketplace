@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import iconoBillete from '../../assets/icons/billete.svg'
 import iconoGrafico from '../../assets/icons/grafico.svg'
 import iconoPorcentaje from '../../assets/icons/porcentaje.svg'
-import { consultarLiquidacion } from '../../api/productor.js'
+import { consultarLiquidacion, urlLiquidacion } from '../../api/productor.js'
 import { useConsultaPorFechas } from '../../api/useConsultaPorFechas.js'
 import Alerta from '../../components/Alerta.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
@@ -17,6 +17,7 @@ import './LiquidacionesPage.css'
 /**
  * CCPIP-92 (RF-70): el productor consulta su liquidacion por periodo. Bruto, comision y neto los calcula
  * el servidor con lo que se copio al confirmar cada pedido; la pantalla solo los muestra.
+ * CCPIP-326 (RF-214): la exporta en PDF con los mismos importes.
  */
 export default function LiquidacionesPage({ path }) {
   const { t } = useTranslation()
@@ -25,11 +26,30 @@ export default function LiquidacionesPage({ path }) {
   return (
     <PaginaProductor path={path} seccion={t('productor.nav.liquidaciones')} titulo={t('productor.liquidaciones.titulo')}>
       <FiltroFechas className="liquidaciones__filtros" rango={rango} cambiar={cambiar}
-        etiquetaDesde={t('productor.liquidaciones.desde')} etiquetaHasta={t('productor.liquidaciones.hasta')} />
+        etiquetaDesde={t('productor.liquidaciones.desde')} etiquetaHasta={t('productor.liquidaciones.hasta')}>
+        {datos && <Exportar rango={{ desde: datos.desde, hasta: datos.hasta }} />}
+      </FiltroFechas>
       {error && <Alerta tono="error" titulo={t('productor.liquidaciones.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
       {cargando && !datos && <p className="caption">{t('comun.cargando')}</p>}
       {datos && <Resultado datos={datos} />}
     </PaginaProductor>
+  )
+}
+
+/** Formatos de exportacion del periodo consultado. */
+const FORMATOS = ['pdf']
+
+/** CCPIP-326: descarga el periodo que se esta viendo, no el que se esta escribiendo en las fechas. */
+function Exportar({ rango }) {
+  const { t } = useTranslation()
+  return (
+    <div className="liquidaciones__exportar">
+      {FORMATOS.map((f) => (
+        <a key={f} className="boton boton--secundario boton--M" href={urlLiquidacion(f, rango)} download>
+          {t(`productor.liquidaciones.exportar.${f}`)}
+        </a>
+      ))}
+    </div>
   )
 }
 

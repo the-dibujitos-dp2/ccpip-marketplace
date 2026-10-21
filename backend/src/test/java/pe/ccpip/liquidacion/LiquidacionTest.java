@@ -1,10 +1,13 @@
 package pe.ccpip.liquidacion;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,7 +19,7 @@ import pe.ccpip.support.IntegrationTest;
 
 /**
  * CCPIP-92 (RF-70): el productor consulta su liquidacion por periodo. Bruto, comision y neto salen de sus
- * lineas, tal como se copiaron al confirmar, y coinciden con los pedidos.
+ * lineas, tal como se copiaron al confirmar, y coinciden con los pedidos. CCPIP-326 (RF-214): la exporta en PDF.
  *
  * <p>Los pedidos de la prueba se confirman en marzo de 2025, un mes que ninguna otra prueba usa, y la
  * transaccion se deshace al terminar.
@@ -134,6 +137,48 @@ class LiquidacionTest extends IntegrationTest {
     @Test
     void sinSesionNoHayLiquidacion() throws Exception {
         mockMvc.perform(get("/api/productor/liquidaciones")).andExpect(status().isUnauthorized());
+    }
+
+    // --- CCPIP-326: PDF ---
+
+    @Test
+    void elPdfTieneLosMismosImportesQueLaConsulta() throws Exception {
+        long mixto = pedido("LQ-8", "CONFIRMADO", "2025-03-10 10:00-05", "12.5");
+        linea(mixto, PRODUCTOR, "1", "25.00", "3.13");
+        linea(mixto, OTRO, "3", "19.90", "7.46");
+
+        byte[] pdf = mockMvc.perform(get("/api/productor/liquidaciones/pdf" + MARZO).cookie(loginAs(PRODUCTOR)))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/pdf"))
+                .andExpect(header().string("Content-Disposition",
+                        org.hamcrest.Matchers.containsString("attachment; filename=\"liquidacion-2025-03-01-al-2025-03-31.pdf\"")))
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andReturn().getResponse().getContentAsByteArray();
+
+        // El texto va sin comprimir, en WinAnsi: se puede buscar tal cual
+        String contenido = new String(pdf, Charset.forName("windows-1252"));
+        assertThat(contenido).startsWith("%PDF-1.4").endsWith("%%EOF\n");
+        assertThat(contenido).contains("(Liquidación del productor)", "(Periodo: del 01/03/2025 al 31/03/2025",
+                "(LQ-8)", "(S/ 25.00)", "(S/ 3.13)", "(S/ 21.87)");
+        // Solo su linea: el importe del otro productor no aparece
+        assertThat(contenido).doesNotContain("S/ 59.70", "S/ 52.24");
+    }
+
+    @Test
+    void elPdfValidaElPeriodoYEsSoloDelProductor() throws Exception {
+        mockMvc.perform(get("/api/productor/liquidaciones/pdf?desde=2025-03-10&hasta=2025-03-01").cookie(loginAs(PRODUCTOR)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("RANGO_INVALIDO"));
+        mockMvc.perform(get("/api/productor/liquidaciones/pdf").cookie(loginAs("consumidor@ccpip.test")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/productor/liquidaciones/pdf")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void elPdfEscapaLoQueElFormatoReserva() {
+        assertThat(LiquidacionPdf.escapar("Café (250 ml) \\ ñ")).isEqualTo("Café \\(250 ml\\) \\\\ ñ");
+        assertThat(LiquidacionPdf.escapar("Aceite – 🌿")).isEqualTo("Aceite – ?");
+        assertThat(LiquidacionPdf.soles(new BigDecimal("1234.5"))).isEqualTo("S/ 1,234.50");
     }
 
     // --- Ayudas ---

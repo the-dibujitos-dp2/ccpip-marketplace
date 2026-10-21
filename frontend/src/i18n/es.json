@@ -283,6 +283,9 @@
       "titulo": "Mis liquidaciones",
       "desde": "Desde",
       "hasta": "Hasta",
+      "exportar": {
+        "pdf": "Descargar PDF"
+      },
       "error": "No pudimos cargar tu liquidación",
       "kpi": {
         "bruto": "Ventas brutas",
