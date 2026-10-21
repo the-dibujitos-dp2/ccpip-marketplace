@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoBillete from '../../assets/icons/billete.svg'
 import iconoGrafico from '../../assets/icons/grafico.svg'
 import iconoPorcentaje from '../../assets/icons/porcentaje.svg'
 import { comisionesPorPedido } from '../../api/admin.js'
+import { useConsultaPorFechas } from '../../api/useConsultaPorFechas.js'
 import Alerta from '../../components/Alerta.jsx'
-import Campo from '../../components/Campo.jsx'
+import FiltroFechas from '../../components/FiltroFechas.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { fechaHora, precio, unidades } from '../../formato.js'
@@ -19,41 +19,12 @@ import './admin.css'
  */
 export default function ComisionesPage({ path }) {
   const { t } = useTranslation()
-  const [rango, setRango] = useState({ desde: '', hasta: '' })
-  const [datos, setDatos] = useState(null)
-  const [error, setError] = useState(null)
-  const [cargando, setCargando] = useState(true)
-
-  const consultar = useCallback(async (filtro) => {
-    setCargando(true)
-    setError(null)
-    try {
-      const respuesta = await comisionesPorPedido(filtro)
-      setDatos(respuesta)
-      setRango({ desde: respuesta.desde, hasta: respuesta.hasta })
-    } catch (e) {
-      setError(e)
-    } finally {
-      setCargando(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    consultar()
-  }, [consultar])
-
-  const cambiar = (campo) => (e) => {
-    const nuevo = { ...rango, [campo]: e.target.value }
-    setRango(nuevo)
-    if (nuevo.desde && nuevo.hasta) consultar(nuevo)
-  }
+  const { rango, cambiar, datos, error, cargando } = useConsultaPorFechas(comisionesPorPedido)
 
   return (
     <LayoutAdmin path={path} migas={t('admin.nav.comisiones')} titulo={t('admin.comisiones.titulo')}>
-      <div className="comisiones__filtros">
-        <Campo etiqueta={t('admin.comisiones.desde')} type="date" value={rango.desde} max={rango.hasta || undefined} onChange={cambiar('desde')} />
-        <Campo etiqueta={t('admin.comisiones.hasta')} type="date" value={rango.hasta} min={rango.desde || undefined} onChange={cambiar('hasta')} />
-      </div>
+      <FiltroFechas className="comisiones__filtros" rango={rango} cambiar={cambiar}
+        etiquetaDesde={t('admin.comisiones.desde')} etiquetaHasta={t('admin.comisiones.hasta')} />
       {error && <Alerta tono="error" titulo={t('admin.comisiones.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
       {cargando && !datos && <p className="caption">{t('comun.cargando')}</p>}
       {datos && <Resultado datos={datos} />}

@@ -2,7 +2,6 @@ package pe.ccpip.liquidacion;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +13,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.comun.RangoFechas;
 import pe.ccpip.liquidacion.LiquidacionModelos.Linea;
 import pe.ccpip.liquidacion.LiquidacionModelos.Liquidacion;
 import pe.ccpip.liquidacion.LiquidacionModelos.PedidoLiquidado;
@@ -27,9 +26,6 @@ import pe.ccpip.liquidacion.LiquidacionModelos.Resumen;
  */
 @Service
 public class LiquidacionService {
-
-    /** Un periodo mas largo se pide por partes: la pantalla no pagina. */
-    static final int MAX_DIAS = 366;
 
     /** Lineas propias de pedidos confirmados en el periodo; {@code i} es la linea y {@code pe} su pedido. */
     private static final String SUS_LINEAS = """
@@ -52,14 +48,9 @@ public class LiquidacionService {
     public Liquidacion consultar(long productorId, LocalDate desde, LocalDate hasta) {
         LocalDate hoy = jdbc.getJdbcTemplate()
                 .queryForObject("SELECT (now() AT TIME ZONE 'America/Lima')::date", LocalDate.class);
-        LocalDate fin = hasta == null ? hoy : hasta;
-        LocalDate inicio = desde == null ? fin.withDayOfMonth(1) : desde;
-        if (inicio.isAfter(fin)) {
-            throw ErrorNegocio.invalido("RANGO_INVALIDO", "La fecha inicial debe ser anterior o igual a la final.");
-        }
-        if (ChronoUnit.DAYS.between(inicio, fin) >= MAX_DIAS) {
-            throw ErrorNegocio.invalido("RANGO_MUY_LARGO", "Consulta como máximo un año a la vez.");
-        }
+        RangoFechas rango = RangoFechas.resolver(desde, hasta, hoy, RangoFechas.MES_EN_CURSO);
+        LocalDate inicio = rango.desde();
+        LocalDate fin = rango.hasta();
 
         MapSqlParameterSource p = new MapSqlParameterSource("productor", productorId)
                 .addValue("desde", inicio).addValue("hasta", fin);
