@@ -16,13 +16,13 @@ import './admin.css'
 import './ReportesPage.css'
 
 /** Metricas de SA-05, en el orden de las pestanas. Cada una es un endpoint /api/admin/reportes/{clave}. */
-const METRICAS = ['ventas']
+const METRICAS = ['ventas', 'comisiones']
 
 const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
 
 /**
- * SA-05 Reportes de la plataforma (superadministrador). CCPIP-345 (RF-235): ventas acumuladas por
- * periodo con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista). Solo cifras agregadas: el
+ * SA-05 Reportes de la plataforma (superadministrador). CCPIP-345 (RF-235) y CCPIP-346 (RF-236): ventas y
+ * comisiones acumuladas por periodo con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista). Solo cifras agregadas: el
  * servidor no envia compradores ni el detalle de cada productor (SA-08).
  */
 export default function ReportesPage({ path }) {
@@ -85,7 +85,7 @@ export default function ReportesPage({ path }) {
       </div>
       {error && <Alerta tono="error" titulo={t('admin.reportes.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
       {cargando && !datos && <p className="caption">{t('comun.cargando')}</p>}
-      {datos && <Resultado datos={datos} metrica={metrica} />}
+      {datos && <Resultado datos={datos} />}
     </LayoutAdmin>
   )
 }
@@ -97,10 +97,11 @@ function nombrePeriodo(p, agrupacion, t) {
   return fecha(p.inicio)
 }
 
-function Resultado({ datos, metrica }) {
+function Resultado({ datos }) {
   const { t } = useTranslation()
   const { totales, periodos, agrupacion } = datos
-  const clave = `admin.reportes.metrica.${metrica}`
+  // Los textos siguen a la metrica que respondio el servidor, no a la pestana que se acaba de pulsar
+  const clave = `admin.reportes.metrica.${datos.metrica.toLowerCase()}`
   const mayor = Math.max(...periodos.map((p) => Number(p.total)), 0)
   return (
     <>

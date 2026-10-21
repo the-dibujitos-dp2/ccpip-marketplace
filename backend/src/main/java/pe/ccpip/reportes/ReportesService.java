@@ -36,6 +36,17 @@ public class ReportesService {
             WHERE pe.confirmado_en IS NOT NULL AND pe.estado <> 'CANCELADO'
               AND (pe.confirmado_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta""";
 
+    /**
+     * CCPIP-346 (RF-236): comisiones de la Camara, la comision copiada en cada linea de los mismos pedidos
+     * que {@link #VENTAS}. Un pedido confirmado sin comision configurada no suma comision.
+     */
+    static final String COMISIONES = """
+            SELECT (pe.confirmado_en AT TIME ZONE 'America/Lima')::date AS fecha, i.tarifa, i.comision_monto AS monto
+            FROM item_pedido i
+            JOIN pedido pe ON pe.id = i.pedido_id
+            WHERE pe.confirmado_en IS NOT NULL AND pe.estado <> 'CANCELADO' AND i.comision_monto IS NOT NULL
+              AND (pe.confirmado_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta""";
+
     private final NamedParameterJdbcTemplate jdbc;
 
     public ReportesService(NamedParameterJdbcTemplate jdbc) {
@@ -45,6 +56,11 @@ public class ReportesService {
     @Transactional(readOnly = true)
     public Reporte ventas(LocalDate desde, LocalDate hasta, Agrupacion agrupacion) {
         return serie("VENTAS", VENTAS, desde, hasta, agrupacion);
+    }
+
+    @Transactional(readOnly = true)
+    public Reporte comisiones(LocalDate desde, LocalDate hasta, Agrupacion agrupacion) {
+        return serie("COMISIONES", COMISIONES, desde, hasta, agrupacion);
     }
 
     /**

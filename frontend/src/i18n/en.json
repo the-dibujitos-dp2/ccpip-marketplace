@@ -1079,6 +1079,12 @@
           "total": "Cumulative sales",
           "tabla": "Sales by period",
           "nota": "Product subtotal of each paid, non-cancelled order, by the date it was confirmed (Lima time). A line is B2B when it was sold at wholesale price."
+        },
+        "comisiones": {
+          "pestana": "Commissions",
+          "total": "Cumulative commissions",
+          "tabla": "Commissions by period",
+          "nota": "Chamber commission copied into each paid, non-cancelled order, by the date it was confirmed (Lima time). An order confirmed with no commission set adds no commission."
         }
       }
     },

@@ -35,4 +35,12 @@ public class ReportesController {
                           @RequestParam(required = false) Agrupacion agrupacion) {
         return service.ventas(desde, hasta, agrupacion);
     }
+
+    /** CCPIP-346 (RF-236): comisiones de la Camara acumuladas por periodo, con su desglose B2C y B2B. */
+    @GetMapping("/comisiones")
+    public Reporte comisiones(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+                              @RequestParam(required = false) Agrupacion agrupacion) {
+        return service.comisiones(desde, hasta, agrupacion);
+    }
 }

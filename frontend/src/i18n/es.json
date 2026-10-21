@@ -1079,6 +1079,12 @@
           "total": "Ventas acumuladas",
           "tabla": "Ventas por periodo",
           "nota": "Subtotal de los productos de cada pedido pagado y no cancelado, por la fecha en que se confirmó (hora de Lima). Una línea es B2B si se vendió a precio mayorista."
+        },
+        "comisiones": {
+          "pestana": "Comisiones",
+          "total": "Comisiones acumuladas",
+          "tabla": "Comisiones por periodo",
+          "nota": "Comisión de la Cámara copiada en cada pedido pagado y no cancelado, por la fecha en que se confirmó (hora de Lima). Un pedido confirmado sin comisión configurada no suma comisión."
         }
       }
     },

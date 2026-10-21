@@ -90,4 +90,20 @@ describe('CCPIP-345 Ventas acumuladas de la plataforma (SA-05)', () => {
     expect(window.location.pathname).toBe('/admin/autorizaciones')
     expect(screen.queryByRole('link', { name: 'Reportes' })).not.toBeInTheDocument()
   })
+
+  it('CCPIP-346: la pestana Comisiones consulta las comisiones del mismo rango', async () => {
+    const fetchMock = comoSuper({
+      'GET /api/admin/reportes/comisiones?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES': () => [200, {
+        ...copia(VENTAS), metrica: 'COMISIONES', totales: { b2c: 130, b2b: 90, total: 220 },
+      }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/admin/reportes')
+    await screen.findByRole('table', { name: 'Ventas por periodo' })
+    await user.click(screen.getByRole('tab', { name: 'Comisiones' }))
+    expect(await screen.findByRole('region', { name: 'Comisiones acumuladas' })).toHaveTextContent('S/ 220.00')
+    expect(screen.getByRole('tab', { name: 'Comisiones', selected: true })).toBeInTheDocument()
+    expect(screen.getByRole('table', { name: 'Comisiones por periodo' })).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'GET /api/admin/reportes/comisiones?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES')).toHaveLength(1)
+  })
 })

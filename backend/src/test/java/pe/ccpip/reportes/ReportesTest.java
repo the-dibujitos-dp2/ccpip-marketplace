@@ -21,8 +21,8 @@ import jakarta.servlet.http.Cookie;
 import pe.ccpip.support.IntegrationTest;
 
 /**
- * CCPIP-345 (RF-235): el superadministrador consulta las ventas acumuladas de la plataforma por periodo,
- * con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista).
+ * CCPIP-345 (RF-235) y CCPIP-346 (RF-236): el superadministrador consulta las ventas y las comisiones
+ * acumuladas de la plataforma por periodo, con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista).
  *
  * <p>Los pedidos de la prueba se confirman en mayo y junio de 2025, meses que ninguna otra prueba usa, y
  * la transaccion se deshace al terminar.
@@ -130,6 +130,42 @@ class ReportesTest extends IntegrationTest {
         mockMvc.perform(get("/api/admin/reportes/ventas")).andExpect(status().isUnauthorized());
     }
 
+    // --- CCPIP-346: comisiones ---
+
+    @Test
+    void lasComisionesSeSeparanEnB2cYB2bYSeAcumulanPorMes() throws Exception {
+        long mayo = pedido("RC-1", "CONFIRMADO", "2025-05-03 10:00-05");
+        lineaConComision(mayo, "30.00", "3.00", "MINORISTA");
+        lineaConComision(mayo, "100.00", "10.00", "MAYORISTA");
+        // Confirmado sin comision configurada: vende, pero no suma comision
+        linea(pedido("RC-2", "CONFIRMADO", "2025-05-04 10:00-05"), "70.00", "MINORISTA");
+        // Cancelado despues del pago: su comision no cuenta
+        lineaConComision(pedido("RC-3", "CANCELADO", "2025-05-05 10:00-05"), "50.00", "5.00", "MINORISTA");
+        lineaConComision(pedido("RC-4", "ENTREGADO", "2025-06-15 10:00-05"), "40.00", "4.00", "MAYORISTA");
+
+        mockMvc.perform(get("/api/admin/reportes/comisiones?desde=2025-05-01&hasta=2025-06-30&agrupacion=MES").cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.metrica").value("COMISIONES"))
+                .andExpect(jsonPath("$.periodos[0].b2c").value(3.00))
+                .andExpect(jsonPath("$.periodos[0].b2b").value(10.00))
+                .andExpect(jsonPath("$.periodos[0].acumulado").value(13.00))
+                .andExpect(jsonPath("$.periodos[1].b2b").value(4.00))
+                .andExpect(jsonPath("$.periodos[1].acumulado").value(17.00))
+                .andExpect(jsonPath("$.totales.b2c").value(3.00))
+                .andExpect(jsonPath("$.totales.b2b").value(14.00))
+                .andExpect(jsonPath("$.totales.total").value(17.00));
+    }
+
+    @Test
+    void lasComisionesValidanYSonDelSuperadministrador() throws Exception {
+        mockMvc.perform(get("/api/admin/reportes/comisiones?desde=2025-05-10&hasta=2025-05-01").cookie(loginAs(SUPER)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("RANGO_INVALIDO"));
+        mockMvc.perform(get("/api/admin/reportes/comisiones").cookie(loginAs("sub_admin@ccpip.test")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/admin/reportes/comisiones")).andExpect(status().isUnauthorized());
+    }
+
     @Test
     void laCompraCopiaEnCadaLineaLaTarifaConLaQueSeVendio() throws Exception {
         Cookie comprador = comprador();
@@ -191,6 +227,19 @@ class ReportesTest extends IntegrationTest {
                 FROM producto pr JOIN productor p ON p.id = pr.productor_id JOIN usuario u ON u.id = p.usuario_id
                 WHERE u.correo = 'productor@ccpip.test' ORDER BY pr.id LIMIT 1""",
                 pedidoId, new BigDecimal(subtotal), new BigDecimal(subtotal), tarifa);
+    }
+
+    /** Una linea de productor@ con su comision copiada: neto = subtotal - comision. */
+    private void lineaConComision(long pedidoId, String subtotal, String comision, String tarifa) {
+        BigDecimal monto = new BigDecimal(subtotal);
+        BigDecimal deCamara = new BigDecimal(comision);
+        jdbc.update("""
+                INSERT INTO item_pedido (pedido_id, producto_id, productor_id, cantidad, precio_unitario, subtotal, tarifa,
+                                         comision_monto, neto)
+                SELECT ?, pr.id, pr.productor_id, 1, ?, ?, ?, ?, ?
+                FROM producto pr JOIN productor p ON p.id = pr.productor_id JOIN usuario u ON u.id = p.usuario_id
+                WHERE u.correo = 'productor@ccpip.test' ORDER BY pr.id LIMIT 1""",
+                pedidoId, monto, monto, tarifa, deCamara, monto.subtract(deCamara));
     }
 
     private Cookie comprador() throws Exception {
