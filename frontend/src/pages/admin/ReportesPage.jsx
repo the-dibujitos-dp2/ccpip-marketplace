@@ -16,13 +16,13 @@ import './admin.css'
 import './ReportesPage.css'
 
 /** Metricas de SA-05, en el orden de las pestanas. Cada una es un endpoint /api/admin/reportes/{clave}. */
-const METRICAS = ['ventas', 'comisiones']
+const METRICAS = ['ventas', 'comisiones', 'ingresos']
 
 const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
 
 /**
- * SA-05 Reportes de la plataforma (superadministrador). CCPIP-345 (RF-235) y CCPIP-346 (RF-236): ventas y
- * comisiones acumuladas por periodo con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista). Solo cifras agregadas: el
+ * SA-05 Reportes de la plataforma (superadministrador). CCPIP-345 (RF-235), CCPIP-346 (RF-236) y CCPIP-93
+ * (RF-71): ventas, comisiones e ingresos acumulados por periodo con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista). Solo cifras agregadas: el
  * servidor no envia compradores ni el detalle de cada productor (SA-08).
  */
 export default function ReportesPage({ path }) {

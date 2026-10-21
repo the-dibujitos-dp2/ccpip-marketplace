@@ -1085,6 +1085,12 @@
           "total": "Cumulative commissions",
           "tabla": "Commissions by period",
           "nota": "Chamber commission copied into each paid, non-cancelled order, by the date it was confirmed (Lima time). An order confirmed with no commission set adds no commission."
+        },
+        "ingresos": {
+          "pestana": "Revenue",
+          "total": "Cumulative revenue",
+          "tabla": "Revenue by period",
+          "nota": "What buyers paid: approved payments, by the date they were approved (Lima time). A voided, refunded payment is not revenue."
         }
       }
     },

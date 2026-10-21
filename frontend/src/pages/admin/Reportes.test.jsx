@@ -106,4 +106,19 @@ describe('CCPIP-345 Ventas acumuladas de la plataforma (SA-05)', () => {
     expect(screen.getByRole('table', { name: 'Comisiones por periodo' })).toBeInTheDocument()
     expect(llamadas(fetchMock, 'GET /api/admin/reportes/comisiones?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES')).toHaveLength(1)
   })
+
+  it('CCPIP-93: la pestana Ingresos muestra lo cobrado del mismo rango', async () => {
+    comoSuper({
+      'GET /api/admin/reportes/ingresos?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES': () => [200, {
+        ...copia(VENTAS), metrica: 'INGRESOS', totales: { b2c: 1250, b2b: 900, total: 2150 },
+      }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/admin/reportes')
+    await screen.findByRole('table', { name: 'Ventas por periodo' })
+    await user.click(screen.getByRole('tab', { name: 'Ingresos' }))
+    expect(await screen.findByRole('region', { name: 'Ingresos acumulados' })).toHaveTextContent('S/ 2,150.00')
+    expect(screen.getByRole('table', { name: 'Ingresos por periodo' })).toBeInTheDocument()
+    expect(screen.getByText(/pagos aprobados/)).toBeInTheDocument()
+  })
 })

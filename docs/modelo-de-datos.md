@@ -753,7 +753,9 @@ disparador `item_pedido_comision_congelada`, asi que la migracion puede completa
 
 Los reportes (`/api/admin/reportes/...`) agrupan por dia, semana (desde el lunes) o mes, en fechas de
 Lima, con los periodos sin movimiento en cero y el acumulado del rango. Ventas: el subtotal de las
-lineas de pedidos confirmados y no cancelados, por fecha de confirmacion.
+lineas de pedidos confirmados y no cancelados, por fecha de confirmacion. Comisiones (CCPIP-346): la
+`comision_monto` de esas mismas lineas. Ingresos (CCPIP-93): lo cobrado, es decir los pagos `APROBADO`
+por su `resuelto_en`, repartidos en B2C y B2B segun las lineas del pedido; un pago `ANULADO` no cuenta.
 
 ## Interes de compra y avisos (CCPIP-105, CCPIP-106, CCPIP-273, CCPIP-69)
 

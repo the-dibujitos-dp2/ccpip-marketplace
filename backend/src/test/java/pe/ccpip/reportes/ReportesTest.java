@@ -21,8 +21,8 @@ import jakarta.servlet.http.Cookie;
 import pe.ccpip.support.IntegrationTest;
 
 /**
- * CCPIP-345 (RF-235) y CCPIP-346 (RF-236): el superadministrador consulta las ventas y las comisiones
- * acumuladas de la plataforma por periodo, con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista).
+ * CCPIP-345 (RF-235), CCPIP-346 (RF-236) y CCPIP-93 (RF-71): el superadministrador consulta las ventas, las
+ * comisiones y los ingresos acumulados de la plataforma por periodo, con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista).
  *
  * <p>Los pedidos de la prueba se confirman en mayo y junio de 2025, meses que ninguna otra prueba usa, y
  * la transaccion se deshace al terminar.
@@ -166,6 +166,48 @@ class ReportesTest extends IntegrationTest {
         mockMvc.perform(get("/api/admin/reportes/comisiones")).andExpect(status().isUnauthorized());
     }
 
+    // --- CCPIP-93: ingresos ---
+
+    @Test
+    void losIngresosSonLosPagosAprobadosPorFechaDeCobro() throws Exception {
+        // Cobrado el 3 de mayo: 30.00 B2C y 100.00 B2B
+        long mixto = pedido("RI-1", "PENDIENTE_PAGO", null);
+        linea(mixto, "30.00", "MINORISTA");
+        linea(mixto, "100.00", "MAYORISTA");
+        cobrar(mixto, "2025-05-03 10:00-05", false);
+        // Cobrado y despues anulado (devuelto): no es un ingreso
+        long devuelto = pedido("RI-2", "PENDIENTE_PAGO", null);
+        linea(devuelto, "80.00", "MINORISTA");
+        cobrar(devuelto, "2025-05-10 10:00-05", true);
+        // Sin pago aprobado: no es un ingreso
+        linea(pedido("RI-3", "PENDIENTE_PAGO", null), "60.00", "MINORISTA");
+        // Cobrado el 31 de mayo a las 23:30 de Lima (1 de junio en UTC): cuenta para mayo
+        long fin = pedido("RI-4", "PENDIENTE_PAGO", null);
+        linea(fin, "20.00", "MAYORISTA");
+        cobrar(fin, "2025-05-31 23:30-05", false);
+
+        mockMvc.perform(get("/api/admin/reportes/ingresos?desde=2025-05-01&hasta=2025-06-30&agrupacion=MES").cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.metrica").value("INGRESOS"))
+                .andExpect(jsonPath("$.periodos[0].b2c").value(30.00))
+                .andExpect(jsonPath("$.periodos[0].b2b").value(120.00))
+                .andExpect(jsonPath("$.periodos[0].total").value(150.00))
+                .andExpect(jsonPath("$.periodos[1].total").value(0))
+                .andExpect(jsonPath("$.periodos[1].acumulado").value(150.00))
+                .andExpect(jsonPath("$.totales.total").value(150.00))
+                .andExpect(jsonPath("$..referenciaPasarela").doesNotExist())
+                .andExpect(jsonPath("$..marcaTarjeta").doesNotExist());
+    }
+
+    @Test
+    void losIngresosValidanYSonDelSuperadministrador() throws Exception {
+        mockMvc.perform(get("/api/admin/reportes/ingresos?agrupacion=hora").cookie(loginAs(SUPER)))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/admin/reportes/ingresos").cookie(loginAs("productor@ccpip.test")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/admin/reportes/ingresos")).andExpect(status().isUnauthorized());
+    }
+
     @Test
     void laCompraCopiaEnCadaLineaLaTarifaConLaQueSeVendio() throws Exception {
         Cookie comprador = comprador();
@@ -240,6 +282,27 @@ class ReportesTest extends IntegrationTest {
                 FROM producto pr JOIN productor p ON p.id = pr.productor_id JOIN usuario u ON u.id = p.usuario_id
                 WHERE u.correo = 'productor@ccpip.test' ORDER BY pr.id LIMIT 1""",
                 pedidoId, monto, monto, tarifa, deCamara, monto.subtract(deCamara));
+    }
+
+    /**
+     * Paga el pedido (en PENDIENTE_PAGO) por su total como lo haria la pasarela, aprobado en {@code cuando};
+     * con {@code anular}, el cobro se devuelve despues. El pedido queda confirmado.
+     */
+    private void cobrar(long pedidoId, String cuando, boolean anular) {
+        jdbc.update("UPDATE pedido SET total = (SELECT sum(subtotal) FROM item_pedido WHERE pedido_id = ?) WHERE id = ?",
+                pedidoId, pedidoId);
+        jdbc.update("""
+                INSERT INTO pago (pedido_id, clave_idempotencia, metodo, monto, estado, pasarela, marca_tarjeta)
+                SELECT id, ?, 'TARJETA', total, 'PENDIENTE', 'SIMULADA', 'VISA' FROM pedido WHERE id = ?""",
+                UUID.randomUUID(), pedidoId);
+        jdbc.update("""
+                UPDATE pago SET estado = 'APROBADO', referencia_pasarela = ?, resuelto_en = ?::timestamptz
+                WHERE pedido_id = ?""", "SIM-" + pedidoId, cuando, pedidoId);
+        jdbc.update("UPDATE pedido SET estado = 'CONFIRMADO', confirmado_en = ?::timestamptz WHERE id = ?", cuando, pedidoId);
+        if (anular) {
+            jdbc.update("UPDATE pago SET estado = 'ANULADO', anulado_en = now() WHERE pedido_id = ?", pedidoId);
+            jdbc.update("UPDATE pedido SET estado = 'CANCELADO' WHERE id = ?", pedidoId);
+        }
     }
 
     private Cookie comprador() throws Exception {

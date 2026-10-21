@@ -1085,6 +1085,12 @@
           "total": "Comisiones acumuladas",
           "tabla": "Comisiones por periodo",
           "nota": "Comisión de la Cámara copiada en cada pedido pagado y no cancelado, por la fecha en que se confirmó (hora de Lima). Un pedido confirmado sin comisión configurada no suma comisión."
+        },
+        "ingresos": {
+          "pestana": "Ingresos",
+          "total": "Ingresos acumulados",
+          "tabla": "Ingresos por periodo",
+          "nota": "Lo cobrado a los compradores: los pagos aprobados, por la fecha en que se aprobaron (hora de Lima). Un pago anulado y devuelto no es un ingreso."
         }
       }
     },

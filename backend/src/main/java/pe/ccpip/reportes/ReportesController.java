@@ -43,4 +43,12 @@ public class ReportesController {
                               @RequestParam(required = false) Agrupacion agrupacion) {
         return service.comisiones(desde, hasta, agrupacion);
     }
+
+    /** CCPIP-93 (RF-71): ingresos (lo cobrado) acumulados por periodo, con su desglose B2C y B2B. */
+    @GetMapping("/ingresos")
+    public Reporte ingresos(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+                            @RequestParam(required = false) Agrupacion agrupacion) {
+        return service.ingresos(desde, hasta, agrupacion);
+    }
 }

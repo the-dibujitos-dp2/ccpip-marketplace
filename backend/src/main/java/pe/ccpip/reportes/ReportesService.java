@@ -47,6 +47,18 @@ public class ReportesService {
             WHERE pe.confirmado_en IS NOT NULL AND pe.estado <> 'CANCELADO' AND i.comision_monto IS NOT NULL
               AND (pe.confirmado_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta""";
 
+    /**
+     * CCPIP-93 (RF-71): ingresos de la plataforma, lo cobrado a los compradores: los pagos aprobados por la
+     * fecha en que la pasarela los aprobo. Un pago anulado (devuelto al comprador) no es un ingreso. El
+     * monto de cada pago es el total de su pedido, asi que se reparte en B2C y B2B por sus lineas.
+     */
+    static final String INGRESOS = """
+            SELECT (pa.resuelto_en AT TIME ZONE 'America/Lima')::date AS fecha, i.tarifa, i.subtotal AS monto
+            FROM pago pa
+            JOIN item_pedido i ON i.pedido_id = pa.pedido_id
+            WHERE pa.estado = 'APROBADO'
+              AND (pa.resuelto_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta""";
+
     private final NamedParameterJdbcTemplate jdbc;
 
     public ReportesService(NamedParameterJdbcTemplate jdbc) {
@@ -61,6 +73,11 @@ public class ReportesService {
     @Transactional(readOnly = true)
     public Reporte comisiones(LocalDate desde, LocalDate hasta, Agrupacion agrupacion) {
         return serie("COMISIONES", COMISIONES, desde, hasta, agrupacion);
+    }
+
+    @Transactional(readOnly = true)
+    public Reporte ingresos(LocalDate desde, LocalDate hasta, Agrupacion agrupacion) {
+        return serie("INGRESOS", INGRESOS, desde, hasta, agrupacion);
     }
 
     /**
