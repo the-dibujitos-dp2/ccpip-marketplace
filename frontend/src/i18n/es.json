@@ -70,6 +70,7 @@
       "almacen": "Almacén",
       "lotes": "Lotes",
       "pedidos": "Pedidos",
+      "liquidaciones": "Liquidaciones",
       "cuenta": "Cuenta bancaria",
       "transferencias": "Transferencias",
       "denuncias": "Denuncias",
@@ -277,6 +278,37 @@
       "sinComision": "Pedido confirmado antes de configurar la comisión: no tiene comisión calculada.",
       "historial": "Cambios de estado",
       "nota": "Solo ves tus productos de cada pedido. Los datos del comprador y lo que compró a otras comunidades no se muestran."
+    },
+    "liquidaciones": {
+      "titulo": "Mis liquidaciones",
+      "desde": "Desde",
+      "hasta": "Hasta",
+      "error": "No pudimos cargar tu liquidación",
+      "kpi": {
+        "bruto": "Ventas brutas",
+        "pedidos_one": "{{count}} pedido",
+        "pedidos_other": "{{count}} pedidos",
+        "comision": "Comisión de la Cámara",
+        "neto": "Neto a recibir"
+      },
+      "sinComision_one": "{{count}} pedido se confirmó sin comisión configurada",
+      "sinComision_other": "{{count}} pedidos se confirmaron sin comisión configurada",
+      "sinComisionTexto": "No se les descuenta comisión: recibes el total de esas ventas.",
+      "tabla": "Pedidos del periodo",
+      "vacio": "No tienes ventas confirmadas en estas fechas",
+      "vacioTexto": "Aquí aparecen los pedidos pagados que incluyen tus productos.",
+      "col": {
+        "pedido": "Pedido",
+        "fecha": "Confirmado",
+        "productos": "Tus productos",
+        "bruto": "Bruto",
+        "comision": "Comisión",
+        "neto": "Neto"
+      },
+      "linea": "{{producto}} × {{cantidad}} a {{precio}}",
+      "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
+      "sinComisionCelda": "Sin comisión",
+      "nota": "Solo se incluyen tus productos. La comisión y el neto quedan fijados al confirmar cada pedido; un pedido cancelado después del pago no se liquida."
     },
     "productos": {
       "badge": {

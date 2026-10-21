@@ -23,6 +23,7 @@ export const RUTAS = {
   productorAlmacen: '/productor/almacen',
   productorCuenta: '/productor/cuenta-bancaria',
   productorPedidos: '/productor/pedidos',
+  productorLiquidaciones: '/productor/liquidaciones',
   productorDenuncias: '/productor/denuncias',
   productorTransferencias: '/productor/transferencias',
   productorTransferenciaNueva: '/productor/transferencias/nueva',
