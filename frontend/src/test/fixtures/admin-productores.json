@@ -8,6 +8,7 @@
     "tiendaHabilitada": true,
     "tiendaPublicada": true,
     "ventaRevocada": false,
+    "ventaBloqueada": false,
     "productos": 4,
     "autorizados": 3,
     "pendientes": 1
@@ -21,6 +22,7 @@
     "tiendaHabilitada": false,
     "tiendaPublicada": false,
     "ventaRevocada": false,
+    "ventaBloqueada": false,
     "productos": 0,
     "autorizados": 0,
     "pendientes": 0
