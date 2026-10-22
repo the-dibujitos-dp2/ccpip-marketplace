@@ -22,7 +22,8 @@ import pe.ccpip.autorizacion.AutorizacionModelos.ProductorFila;
 
 /**
  * Productores y los productos que cada uno puede vender (CCPIP-292), habilitacion de su tienda
- * (CCPIP-291) y revocacion o restitucion de su venta (CCPIP-330). Como la revision de solicitudes, es
+ * (CCPIP-291), revocacion o restitucion de su venta (CCPIP-330) y bloqueo o desbloqueo de sus ventas
+ * (CCPIP-85, CCPIP-322). Como la revision de solicitudes, es
  * gobierno del sub administrador: el superadministrador recibe 403 (RNF-04).
  */
 @RolesPermitidos(Rol.SUB_ADMIN)
@@ -48,13 +49,18 @@ public class ProductoresController {
         return service.ficha(id);
     }
 
-    /** Habilitar la tienda (CCPIP-291), revocar o restituir la venta (CCPIP-330), siempre con motivo. */
-    @PostMapping("/{id}/{accion:habilitar-tienda|revocar|restituir}")
+    /**
+     * Habilitar la tienda (CCPIP-291), revocar o restituir la venta (CCPIP-330) y bloquearla o
+     * desbloquearla (CCPIP-85, CCPIP-322), siempre con motivo.
+     */
+    @PostMapping("/{id}/{accion:habilitar-tienda|revocar|restituir|bloquear|desbloquear}")
     public FichaProductor decidir(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                   @PathVariable long id, @PathVariable String accion, @Valid @RequestBody NuevaDecision decision) {
         DecisionProductor tipo = switch (accion) {
             case "habilitar-tienda" -> DecisionProductor.HABILITAR_TIENDA;
             case "revocar" -> DecisionProductor.REVOCAR_VENTA;
+            case "bloquear" -> DecisionProductor.BLOQUEAR_VENTA;
+            case "desbloquear" -> DecisionProductor.DESBLOQUEAR_VENTA;
             default -> DecisionProductor.RESTITUIR_VENTA;
         };
         return avisar(service.decidir(id, s.userId(), tipo, decision.motivo()), AvisoAutorizacion.Tipo.valueOf(tipo.name()), decision);

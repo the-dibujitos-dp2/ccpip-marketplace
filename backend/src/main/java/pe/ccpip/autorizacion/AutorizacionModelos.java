@@ -85,15 +85,15 @@ public final class AutorizacionModelos {
                              boolean puedeRevocar) {
     }
 
-    // --- Productores y sus productos autorizados (CCPIP-292, CCPIP-291, CCPIP-330) ---
+    // --- Productores y sus productos autorizados (CCPIP-292, CCPIP-291, CCPIP-330, CCPIP-85, CCPIP-322) ---
 
     /** Decisiones sobre el productor completo. */
-    public enum DecisionProductor { HABILITAR_TIENDA, REVOCAR_VENTA, RESTITUIR_VENTA }
+    public enum DecisionProductor { HABILITAR_TIENDA, REVOCAR_VENTA, RESTITUIR_VENTA, BLOQUEAR_VENTA, DESBLOQUEAR_VENTA }
 
     /** Un productor en la lista del subadministrador, con el resumen de su asociacion de productos. */
     public record ProductorFila(long id, String organizacion, String comunidad, String pueblo, String region,
                                 boolean tiendaHabilitada, boolean tiendaPublicada, boolean ventaRevocada,
-                                int productos, int autorizados, int pendientes) {
+                                boolean ventaBloqueada, int productos, int autorizados, int pendientes) {
     }
 
     /**
@@ -114,11 +114,11 @@ public final class AutorizacionModelos {
     /** Ficha del productor: estado de su tienda y de su venta, sus productos y el historial de decisiones. */
     public record FichaProductor(long id, String organizacion, String comunidad, String pueblo, String region,
                                  boolean tiendaHabilitada, boolean tiendaPublicada, boolean ventaRevocada,
-                                 boolean cuentaActiva, List<Asociacion> productos,
+                                 boolean ventaBloqueada, boolean cuentaActiva, List<Asociacion> productos,
                                  List<DecisionSobreProductor> decisiones, boolean puedeHabilitarTienda) {
     }
 
-    /** CCPIP-174, CCPIP-284, CCPIP-39, CCPIP-291 y CCPIP-330: la decision humana siempre lleva motivo. */
+    /** CCPIP-174, CCPIP-284, CCPIP-39, CCPIP-291, CCPIP-330, CCPIP-85 y CCPIP-322: la decision humana siempre lleva motivo. */
     public record NuevaDecision(
             @NotBlank(message = "Escribe el motivo de la decisión") @Size(max = 500, message = "El motivo admite hasta 500 caracteres") String motivo) {
     }

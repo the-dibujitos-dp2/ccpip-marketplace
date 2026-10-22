@@ -50,11 +50,11 @@ public class CatalogoRepository {
      * CCPIP-269 (RF-142): la oferta p del productor pr se puede comprar solo si el productor tiene una
      * cuenta bancaria ACTIVA y una autorizacion APROBADA y vigente para ese producto. Sin eso sigue
      * visible, pero en "Venta pausada" (Figma CW-03c). Tampoco se compra si la venta del productor esta
-     * revocada (CCPIP-330) ni si el producto tiene una linea que su autorizacion no cubre (CCPIP-292).
-     * Una revocacion del producto (CCPIP-39) lo deja en REVOCADA, que ya no es APROBADA.
+     * revocada (CCPIP-330) o bloqueada (CCPIP-85), ni si el producto tiene una linea que su autorizacion
+     * no cubre (CCPIP-292). Una revocacion del producto (CCPIP-39) lo deja en REVOCADA, que ya no es APROBADA.
      */
     public static final String HABILITADA = """
-            (NOT pr.venta_revocada
+            (NOT pr.venta_revocada AND NOT pr.venta_bloqueada
              AND EXISTS (SELECT 1 FROM cuenta_bancaria cb WHERE cb.productor_id = pr.id AND cb.estado = 'ACTIVA')
              AND EXISTS (SELECT 1 FROM autorizacion_producto a
                          WHERE a.producto_id = p.id AND a.productor_id = pr.id AND a.estado = 'APROBADA'
