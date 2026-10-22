@@ -112,6 +112,58 @@ class BloqueoVentaTest extends IntegrationTest {
     }
 
     @Test
+    void desbloquearAUnRevocadoNoPrometeQueVuelveAVender() throws Exception {
+        decidir(productor, "revocar", "Certificado de origen observado").andExpect(status().isOk());
+        decidir(productor, "bloquear", MOTIVO).andExpect(status().isOk());
+
+        decidir(productor, "desbloquear", "Respondió las denuncias").andExpect(status().isOk());
+        Correo desbloqueo = correos.ultimoPara(PRODUCTOR).orElseThrow();
+        assertThat(desbloqueo.asunto()).startsWith("Levantamos el bloqueo de tu organización");
+        assertThat(desbloqueo.texto()).contains("sigue revocada").contains("Motivo: Respondió las denuncias")
+                .doesNotContain("vuelven a estar a la venta");
+        comprable(false);
+
+        // Sin otra restriccion vigente, restituir si anuncia que vuelve a vender
+        decidir(productor, "restituir", "Certificado renovado").andExpect(status().isOk());
+        assertThat(correos.ultimoPara(PRODUCTOR).orElseThrow().texto()).contains("vuelven a estar a la venta");
+        comprable(true);
+    }
+
+    @Test
+    void restituirAUnBloqueadoNoPrometeQueVuelveAVender() throws Exception {
+        decidir(productor, "bloquear", MOTIVO).andExpect(status().isOk());
+        decidir(productor, "revocar", "Certificado de origen observado").andExpect(status().isOk());
+
+        decidir(productor, "restituir", "Certificado renovado").andExpect(status().isOk());
+        Correo restitucion = correos.ultimoPara(PRODUCTOR).orElseThrow();
+        assertThat(restitucion.asunto()).startsWith("Restituimos la autorización de venta de tu organización");
+        assertThat(restitucion.texto()).contains("siguen bloqueadas").doesNotContain("vuelven a estar a la venta");
+        comprable(false);
+
+        decidir(productor, "desbloquear", "Respondió las denuncias").andExpect(status().isOk());
+        Correo desbloqueo = correos.ultimoPara(PRODUCTOR).orElseThrow();
+        assertThat(desbloqueo.asunto()).startsWith("Desbloqueamos las ventas de tu organización");
+        assertThat(desbloqueo.texto()).contains("vuelven a estar a la venta");
+        comprable(true);
+    }
+
+    @Test
+    void unProductorBloqueadoNoRecibeSuTienda() throws Exception {
+        long nuevo = jdbc.queryForObject("SELECT p.id FROM productor p JOIN usuario u ON u.id = p.usuario_id WHERE u.correo = ?",
+                Long.class, "productor_nuevo@ccpip.test");
+        decidir(nuevo, "bloquear", MOTIVO).andExpect(status().isOk())
+                .andExpect(jsonPath("$.puedeHabilitarTienda").value(false));
+
+        conflicto(decidir(nuevo, "habilitar-tienda", "Comunidad incorporada por la Cámara"), "VENTA_BLOQUEADA");
+        assertThat(jdbc.queryForObject("SELECT tienda_habilitada FROM productor WHERE id = ?", Boolean.class, nuevo)).isFalse();
+
+        decidir(nuevo, "desbloquear", "Descargo aceptado").andExpect(status().isOk())
+                .andExpect(jsonPath("$.puedeHabilitarTienda").value(true));
+        decidir(nuevo, "habilitar-tienda", "Comunidad incorporada por la Cámara").andExpect(status().isOk())
+                .andExpect(jsonPath("$.tiendaHabilitada").value(true));
+    }
+
+    @Test
     void siempreConMotivoYSobreUnProductorExistente() throws Exception {
         decidir(productor, "bloquear", "  ").andExpect(status().isBadRequest());
         decidir(productor, "desbloquear", "").andExpect(status().isBadRequest());

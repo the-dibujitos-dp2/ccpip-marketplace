@@ -1501,6 +1501,7 @@
     "TIENDA_NO_HABILITADA": "La Cámara aún no habilita tu tienda. Podrás publicarla en cuanto la habilite.",
     "TIENDA_YA_HABILITADA": "La tienda de este productor ya está habilitada.",
     "VENTA_REVOCADA": "La venta de este productor está revocada: restitúyela antes de habilitar su tienda.",
+    "VENTA_BLOQUEADA": "Las ventas de este productor están bloqueadas: levanta el bloqueo antes de habilitar su tienda.",
     "VENTA_YA_REVOCADA": "La venta de este productor ya está revocada.",
     "VENTA_NO_REVOCADA": "La venta de este productor no está revocada.",
     "VENTA_YA_BLOQUEADA": "La venta de este productor ya está bloqueada.",

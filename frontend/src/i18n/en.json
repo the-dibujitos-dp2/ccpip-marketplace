@@ -1501,6 +1501,7 @@
     "TIENDA_NO_HABILITADA": "The Chamber has not enabled your store yet. You can publish it as soon as it does.",
     "TIENDA_YA_HABILITADA": "This producer's store is already enabled.",
     "VENTA_REVOCADA": "This producer's sale is revoked: restore it before enabling their store.",
+    "VENTA_BLOQUEADA": "This producer's sales are blocked: lift the block before enabling their store.",
     "VENTA_YA_REVOCADA": "This producer's sale is already revoked.",
     "VENTA_NO_REVOCADA": "This producer's sale is not revoked.",
     "VENTA_YA_BLOQUEADA": "This producer's sales are already blocked.",

@@ -20,8 +20,13 @@ import pe.ccpip.aviso.Correo;
 @Component
 public class AvisoAutorizacion {
 
-    /** Que se decidio. {@code producto} es nulo en las decisiones sobre el productor. */
-    public enum Tipo { APROBADA, RECHAZADA, REVOCADA, HABILITAR_TIENDA, REVOCAR_VENTA, RESTITUIR_VENTA, BLOQUEAR_VENTA, DESBLOQUEAR_VENTA }
+    /**
+     * Que se decidio. {@code producto} es nulo en las decisiones sobre el productor. Las dos ultimas son
+     * las variantes de restituir y desbloquear cuando la otra restriccion sigue vigente: el aviso no
+     * promete que los productos vuelven a la venta.
+     */
+    public enum Tipo { APROBADA, RECHAZADA, REVOCADA, HABILITAR_TIENDA, REVOCAR_VENTA, RESTITUIR_VENTA, BLOQUEAR_VENTA, DESBLOQUEAR_VENTA,
+        RESTITUIR_VENTA_SIGUE_BLOQUEADA, DESBLOQUEAR_VENTA_SIGUE_REVOCADA }
 
     private record Destinatario(long usuarioId, String correo, String nombre, boolean ingles) {
     }
@@ -46,7 +51,13 @@ public class AvisoAutorizacion {
                     "Restituimos la autorización de venta de tu organización", "Tus productos autorizados vuelven a estar a la venta.",
                     "Bloqueamos las ventas de tu organización", "Mientras dure el bloqueo no se pueden comprar tus productos; "
                             + "siguen visibles en venta pausada. Los pedidos ya confirmados se atienden con normalidad.",
-                    "Desbloqueamos las ventas de tu organización", "Tus productos autorizados vuelven a estar a la venta."));
+                    "Desbloqueamos las ventas de tu organización", "Tus productos autorizados vuelven a estar a la venta.",
+                    "Restituimos la autorización de venta de tu organización", "Tu autorización de venta está vigente de nuevo. "
+                            + "Sin embargo, tus productos todavía no se pueden comprar, porque tus ventas siguen bloqueadas. "
+                            + "Te avisaremos cuando la Cámara levante el bloqueo.",
+                    "Levantamos el bloqueo de tu organización", "Ya no tienes un bloqueo de ventas. Sin embargo, tus productos "
+                            + "todavía no se pueden comprar, porque la autorización de venta de tu organización sigue revocada. "
+                            + "Te avisaremos cuando la Cámara la restituya."));
 
     // El motivo lo escribe el subadministrador en espanol: se envia tal cual
     private static final Idioma EN = new Idioma("Hello", "Reason",
@@ -61,7 +72,13 @@ public class AvisoAutorizacion {
                     "We restored your organization's sale authorization", "Your authorized products are on sale again.",
                     "We blocked your organization's sales", "While the block lasts your products cannot be purchased; "
                             + "they remain visible as paused. Confirmed orders are fulfilled as usual.",
-                    "We unblocked your organization's sales", "Your authorized products are on sale again."));
+                    "We unblocked your organization's sales", "Your authorized products are on sale again.",
+                    "We restored your organization's sale authorization", "Your sale authorization is valid again. "
+                            + "However, your products cannot be purchased yet, because your sales are still blocked. "
+                            + "We will let you know when the Chamber lifts the block.",
+                    "We lifted your organization's block", "Your sales are no longer blocked. However, your products cannot "
+                            + "be purchased yet, because your organization's sale authorization is still revoked. "
+                            + "We will let you know when the Chamber restores it."));
 
     private final JdbcTemplate jdbc;
     private final Avisos avisos;

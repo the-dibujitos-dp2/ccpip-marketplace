@@ -1182,6 +1182,11 @@ visible en Venta pausada y los pedidos confirmados no se tocan. El productor rec
 |---|---|---|---|
 | Bloquear (`POST /api/admin/productores/{id}/bloquear`) | SUB_ADMIN | no bloqueado, si no `409 VENTA_YA_BLOQUEADA` | `productor.venta_bloqueada`; fila BLOQUEAR_VENTA en `productor_decision` con las autorizaciones vigentes como alcance |
 | Desbloquear (`.../desbloquear`) | SUB_ADMIN | bloqueado, si no `409 VENTA_NO_BLOQUEADA` | Vuelve a vender lo que tenia autorizado, salvo que ademas este revocado |
+| Habilitar tienda (`.../habilitar-tienda`) | SUB_ADMIN | ademas de lo de CCPIP-291, no bloqueado (`409 VENTA_BLOQUEADA`) | Igual que con la revocacion: la ficha no ofrece habilitarla mientras dure el bloqueo |
+
+Revocacion y bloqueo son independientes, asi que el aviso de restituir o desbloquear solo dice que los
+productos vuelven a la venta si la otra restriccion no sigue vigente. Si sigue, el correo lo explica
+(`AvisoAutorizacion.Tipo` `RESTITUIR_VENTA_SIGUE_BLOQUEADA` y `DESBLOQUEAR_VENTA_SIGUE_REVOCADA`).
 
 ### productor_decision (cambios)
 `decision` pasa a `varchar(20)` y admite tambien `BLOQUEAR_VENTA` y `DESBLOQUEAR_VENTA`. Bloquear y
