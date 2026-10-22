@@ -63,7 +63,22 @@ public class ProductoresController {
             case "desbloquear" -> DecisionProductor.DESBLOQUEAR_VENTA;
             default -> DecisionProductor.RESTITUIR_VENTA;
         };
-        return avisar(service.decidir(id, s.userId(), tipo, decision.motivo()), AvisoAutorizacion.Tipo.valueOf(tipo.name()), decision);
+        FichaProductor ficha = service.decidir(id, s.userId(), tipo, decision.motivo());
+        return avisar(ficha, tipoDeAviso(tipo, ficha), decision);
+    }
+
+    /**
+     * Restituir y desbloquear solo anuncian que se vuelve a vender si la otra restriccion no sigue
+     * vigente: revocacion y bloqueo son independientes (CCPIP-330, CCPIP-85).
+     */
+    static AvisoAutorizacion.Tipo tipoDeAviso(DecisionProductor tipo, FichaProductor ficha) {
+        if (tipo == DecisionProductor.RESTITUIR_VENTA && ficha.ventaBloqueada()) {
+            return AvisoAutorizacion.Tipo.RESTITUIR_VENTA_SIGUE_BLOQUEADA;
+        }
+        if (tipo == DecisionProductor.DESBLOQUEAR_VENTA && ficha.ventaRevocada()) {
+            return AvisoAutorizacion.Tipo.DESBLOQUEAR_VENTA_SIGUE_REVOCADA;
+        }
+        return AvisoAutorizacion.Tipo.valueOf(tipo.name());
     }
 
     /** El servicio ya confirmo la transaccion: el aviso sale solo si la decision quedo guardada. */
