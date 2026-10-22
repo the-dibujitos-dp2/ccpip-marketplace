@@ -70,6 +70,7 @@
       "almacen": "Almacén",
       "lotes": "Lotes",
       "pedidos": "Pedidos",
+      "liquidaciones": "Liquidaciones",
       "cuenta": "Cuenta bancaria",
       "transferencias": "Transferencias",
       "denuncias": "Denuncias",
@@ -277,6 +278,41 @@
       "sinComision": "Pedido confirmado antes de configurar la comisión: no tiene comisión calculada.",
       "historial": "Cambios de estado",
       "nota": "Solo ves tus productos de cada pedido. Los datos del comprador y lo que compró a otras comunidades no se muestran."
+    },
+    "liquidaciones": {
+      "titulo": "Mis liquidaciones",
+      "desde": "Desde",
+      "hasta": "Hasta",
+      "exportar": {
+        "pdf": "Descargar PDF",
+        "xlsx": "Descargar Excel"
+      },
+      "error": "No pudimos cargar tu liquidación",
+      "kpi": {
+        "bruto": "Ventas brutas",
+        "pedidos_one": "{{count}} pedido",
+        "pedidos_other": "{{count}} pedidos",
+        "comision": "Comisión de la Cámara",
+        "neto": "Neto a recibir"
+      },
+      "sinComision_one": "{{count}} pedido se confirmó sin comisión configurada",
+      "sinComision_other": "{{count}} pedidos se confirmaron sin comisión configurada",
+      "sinComisionTexto": "No se les descuenta comisión: recibes el total de esas ventas.",
+      "tabla": "Pedidos del periodo",
+      "vacio": "No tienes ventas confirmadas en estas fechas",
+      "vacioTexto": "Aquí aparecen los pedidos pagados que incluyen tus productos.",
+      "col": {
+        "pedido": "Pedido",
+        "fecha": "Confirmado",
+        "productos": "Tus productos",
+        "bruto": "Bruto",
+        "comision": "Comisión",
+        "neto": "Neto"
+      },
+      "linea": "{{producto}} × {{cantidad}} a {{precio}}",
+      "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
+      "sinComisionCelda": "Sin comisión",
+      "nota": "Solo se incluyen tus productos. La comisión y el neto quedan fijados al confirmar cada pedido; un pedido cancelado después del pago no se liquida."
     },
     "productos": {
       "badge": {
@@ -594,6 +630,8 @@
       "senal": "Si la señal se corta, solo se reintenta la foto que faltó: las demás se conservan.",
       "ventaRevocada": "La Cámara revocó la venta de tu organización",
       "ventaRevocadaTexto": "Motivo: «{{motivo}}». Tus productos siguen visibles, pero no se pueden comprar. Los pedidos confirmados se atienden con normalidad.",
+      "ventaBloqueada": "La Cámara bloqueó las ventas de tu organización",
+      "ventaBloqueadaTexto": "Motivo: «{{motivo}}». Tus productos siguen visibles, pero no se pueden comprar mientras dure el bloqueo. Los pedidos confirmados se atienden con normalidad.",
       "sinHabilitar": "Tu tienda aún no está habilitada",
       "sinHabilitarTexto": "Puedes armarla y guardarla. La Cámara la habilita y te avisaremos por correo para que la publiques."
     },
@@ -909,11 +947,13 @@
       "tablero": "Tablero",
       "comision": "Comisión",
       "comisiones": "Comisión por pedido",
+      "reportes": "Reportes",
       "parametros": "Parámetros",
       "autorizaciones": "Autorizaciones",
       "productores": "Productores",
       "cuentas": "Cuentas",
       "catalogo": "Catálogo maestro",
+      "existencias": "Existencias",
       "denuncias": "Denuncias",
       "motivosMerma": "Causas de merma"
     },
@@ -1047,6 +1087,52 @@
       "sinComisionCelda": "Sin comisión",
       "nota": "La comisión y el neto quedan fijados al confirmar cada pedido; un cambio posterior de la comisión no los altera."
     },
+    "reportes": {
+      "titulo": "Reportes de la plataforma",
+      "desde": "Desde",
+      "hasta": "Hasta",
+      "agrupacion": "Agrupar por",
+      "por": {
+        "DIA": "Día",
+        "SEMANA": "Semana",
+        "MES": "Mes"
+      },
+      "error": "No pudimos cargar el reporte",
+      "rango": "Del {{desde}} al {{hasta}}",
+      "b2c": "B2C (minorista)",
+      "b2cDetalle": "Vendido a precio minorista",
+      "b2b": "B2B (mayorista)",
+      "b2bDetalle": "Vendido a precio mayorista",
+      "semana": "{{inicio}} al {{fin}}",
+      "col": {
+        "periodo": "Periodo",
+        "barra": "B2C y B2B",
+        "b2c": "B2C",
+        "b2b": "B2B",
+        "total": "Total",
+        "acumulado": "Acumulado"
+      },
+      "metrica": {
+        "ventas": {
+          "pestana": "Ventas",
+          "total": "Ventas acumuladas",
+          "tabla": "Ventas por periodo",
+          "nota": "Subtotal de los productos de cada pedido pagado y no cancelado, por la fecha en que se confirmó (hora de Lima). Una línea es B2B si se vendió a precio mayorista."
+        },
+        "comisiones": {
+          "pestana": "Comisiones",
+          "total": "Comisiones acumuladas",
+          "tabla": "Comisiones por periodo",
+          "nota": "Comisión de la Cámara copiada en cada pedido pagado y no cancelado, por la fecha en que se confirmó (hora de Lima). Un pedido confirmado sin comisión configurada no suma comisión."
+        },
+        "ingresos": {
+          "pestana": "Ingresos",
+          "total": "Ingresos acumulados",
+          "tabla": "Ingresos por periodo",
+          "nota": "Lo cobrado a los compradores: los pagos aprobados, por la fecha en que se aprobaron (hora de Lima). Un pago anulado y devuelto no es un ingreso."
+        }
+      }
+    },
     "parametros": {
       "titulo": "Parámetros de la plataforma",
       "seccion": "Carrito",
@@ -1113,6 +1199,35 @@
       "modificado": "Causa «{{nombre}}» actualizada",
       "desactivado": "Causa «{{nombre}}» desactivada",
       "activado": "Causa «{{nombre}}» activada"
+    },
+    "existencias": {
+      "titulo": "Existencias en puntos de acopio",
+      "error": "No pudimos cargar las existencias",
+      "corte": "Saldo al {{fecha}}, hora de Lima.",
+      "kpi": {
+        "puntos": "Puntos con existencias",
+        "puntosDetalle": "De los puntos de acopio activos",
+        "productos": "Productos en acopio",
+        "lotes_one": "En {{count}} lote",
+        "lotes_other": "En {{count}} lotes",
+        "vencidos": "Lotes vencidos",
+        "vencidosDetalle": "Con saldo, ya no se venden"
+      },
+      "porPunto": "Por punto de acopio",
+      "porLinea": "Por línea de producto",
+      "vacio": "Ningún punto de acopio tiene existencias.",
+      "sinLinea": "Sin línea",
+      "col": {
+        "punto": "Punto de acopio",
+        "linea": "Línea",
+        "productos": "Productos",
+        "productores": "Productores",
+        "lotes": "Lotes",
+        "puntos": "Puntos",
+        "vigente": "Vigente",
+        "vencido": "Vencido"
+      },
+      "nota": "Solo consulta: el stock se registra y corrige en cada punto. Las cantidades se muestran por unidad de medida, sin sumar unidades distintas. El detalle por productor y lote lo ve el administrador de cada punto."
     }
   },
   "sello": {
@@ -1380,11 +1495,16 @@
     "TRANSFERENCIA_NO_ENCONTRADA": "La transferencia no existe.",
     "NO_ES_DESTINO": "Solo el punto de destino registra la recepción.",
     "AUTORIZACION_NO_APROBADA": "Solo se puede revocar una autorización aprobada.",
+    "RENOVACION_PENDIENTE": "Ya hay una solicitud de renovación pendiente para este certificado.",
+    "CERTIFICADO_INVALIDO": "Elige un certificado vigente de esta solicitud.",
+    "PLAZO_PASADO": "El plazo no puede ser una fecha pasada.",
     "TIENDA_NO_HABILITADA": "La Cámara aún no habilita tu tienda. Podrás publicarla en cuanto la habilite.",
     "TIENDA_YA_HABILITADA": "La tienda de este productor ya está habilitada.",
     "VENTA_REVOCADA": "La venta de este productor está revocada: restitúyela antes de habilitar su tienda.",
     "VENTA_YA_REVOCADA": "La venta de este productor ya está revocada.",
     "VENTA_NO_REVOCADA": "La venta de este productor no está revocada.",
+    "VENTA_YA_BLOQUEADA": "La venta de este productor ya está bloqueada.",
+    "VENTA_NO_BLOQUEADA": "La venta de este productor no está bloqueada.",
     "PRODUCTOR_NO_ENCONTRADO": "El productor no existe.",
     "CORREO_EN_USO": "Ya hay una cuenta con ese correo.",
     "ROL_NO_PERMITIDO": "Solo se crean cuentas de sub administrador o de administrador de punto de acopio.",
@@ -1543,6 +1663,35 @@
       "propia": "Relato escrito por la comunidad."
     },
     "confianza": "Por qué puedes confiar en este producto",
+    "certificacion": {
+      "titulo": "Certificación del producto",
+      "estado": {
+        "VERIFICADA": "Verificado por la Cámara",
+        "VENCIDA": "Certificación vencida",
+        "SIN_EVIDENCIA": "Sin certificados públicos"
+      },
+      "resumen": {
+        "VERIFICADA": "La Cámara revisó estas evidencias y aprobó la venta del producto el {{fecha}}. La aprobación rige hasta el {{hasta}}.",
+        "VENCIDA": "La Cámara aprobó este producto con las evidencias de abajo, pero su certificado venció. Su venta queda pausada hasta que el productor lo renueve.",
+        "SIN_EVIDENCIA": "Este producto todavía no tiene certificados públicos que mostrar. Eso no significa que esté aprobado ni rechazado."
+      },
+      "lista": "Evidencias públicas",
+      "emisor": "Emisor:",
+      "desde": "Desde:",
+      "vigencia": "Vigencia:",
+      "vigenteHasta": "vigente hasta el {{fecha}}",
+      "vencioEl": "venció el {{fecha}}",
+      "sinVencimiento": "sin fecha de vencimiento",
+      "tipo": {
+        "CERTIFICADO": "Certificado",
+        "EVIDENCIA": "Evidencia"
+      },
+      "significado": {
+        "CERTIFICADO": "Documento de un emisor externo que acredita una condición del producto, como su origen o su producción sin químicos. Tiene una fecha de vencimiento.",
+        "EVIDENCIA": "Material de apoyo del productor, como fotos o registros del proceso, que la Cámara revisó junto con los certificados."
+      },
+      "nota": "Se publican solo el emisor, las fechas y la vigencia de las evidencias que sustentaron la aprobación. Los archivos y los documentos privados del productor no se muestran."
+    },
     "verificando": "La Cámara aún está verificando el origen de esta comunidad.",
     "sobreCosecha": "Sobre esta cosecha",
     "consumirAntes": "Consumir antes de",
@@ -2122,6 +2271,12 @@
       "errorArchivo": "Elige un archivo",
       "errorFormato": "Solo se aceptan archivos PDF, JPG o PNG",
       "errorPeso": "El archivo pesa más de 10 MB"
+    },
+    "renovacion": {
+      "titulo_one": "La Cámara te pide renovar un certificado",
+      "titulo_other": "La Cámara te pide renovar {{count}} certificados",
+      "detalle": "«{{certificado}}» antes del {{plazo}}. Motivo: {{motivo}}",
+      "venta": "Tu producto sigue a la venta. Si el certificado vence sin renovarse, su venta queda pausada hasta que se apruebe uno nuevo."
     }
   },
   "autorizaciones": {
@@ -2256,6 +2411,32 @@
         "confirmar": "Revocar autorización",
         "texto": "{{organizacion}} no podrá venderlo desde ahora. Los pedidos confirmados se atienden igual y podrá volver a solicitarla. La decisión queda registrada y no se edita."
       }
+    },
+    "renovacion": {
+      "titulo": "Renovación de certificados",
+      "texto": "Pide al productor que renueve un certificado. Le llega por correo y lo ve en las evidencias de su producto. La venta no cambia: si el certificado vence sin renovarse, la oferta queda en Venta pausada hasta que se apruebe uno nuevo; no se revoca.",
+      "certificados": "Certificados de esta autorización",
+      "solicitudes": "Solicitudes de renovación",
+      "vence": "Vence el {{fecha}}",
+      "solicitar": "Pedir renovación",
+      "estado": {
+        "PENDIENTE": "Renovación pedida",
+        "ATENDIDA": "Atendida",
+        "CANCELADA": "Cancelada"
+      },
+      "de": "{{certificado}} · plazo {{plazo}}",
+      "pedidaPor": "Pedida por {{nombre}} el {{fecha}}",
+      "efecto": "si no se renueva, Venta pausada desde el {{fecha}}",
+      "dialogo": "Pedir la renovación de «{{certificado}}»",
+      "dialogoTexto": "El productor recibirá el motivo y el plazo por correo, en su idioma. La autorización sigue aprobada.",
+      "motivo": "Motivo",
+      "plazo": "Plazo (opcional)",
+      "plazoAyuda": "Si lo dejas vacío, es el vencimiento del certificado.",
+      "confirmar": "Pedir renovación",
+      "errorMotivo": "Escribe el motivo de la solicitud",
+      "error": "No pudimos registrar la solicitud",
+      "registrada": "Solicitud de renovación registrada",
+      "registradaTexto": "Avisamos al productor por correo."
     }
   },
   "transferencias": {
@@ -2313,7 +2494,8 @@
     },
     "venta": {
       "vigente": "Venta vigente",
-      "revocada": "Venta revocada"
+      "revocada": "Venta revocada",
+      "bloqueada": "Venta bloqueada"
     },
     "sinCuenta": "Sin cuenta bancaria activa: sus productos no se pueden comprar.",
     "productos_one": "Productos que puede vender ({{count}})",
@@ -2338,12 +2520,15 @@
     "decision": {
       "HABILITAR_TIENDA": "Tienda habilitada",
       "REVOCAR_VENTA": "Venta revocada",
-      "RESTITUIR_VENTA": "Venta restituida"
+      "RESTITUIR_VENTA": "Venta restituida",
+      "BLOQUEAR_VENTA": "Venta bloqueada",
+      "DESBLOQUEAR_VENTA": "Venta desbloqueada"
     },
     "alcance_one": "{{count}} producto autorizado alcanzado",
     "alcance_other": "{{count}} productos autorizados alcanzados",
     "decisionTexto": "Habilita su tienda para que pueda publicarla, o revoca la venta de todos sus productos.",
     "revocadaTexto": "Su venta está revocada: sus productos se ven en venta pausada. Puedes restituirla con un motivo.",
+    "bloqueadaTexto": "Sus ventas están bloqueadas: sus productos se ven en venta pausada. Puedes desbloquearlas con un motivo.",
     "accion": {
       "habilitar-tienda": {
         "boton": "Habilitar tienda",
@@ -2365,6 +2550,20 @@
         "confirmar": "Restituir venta",
         "texto": "Sus productos autorizados y vigentes vuelven a venderse. La decisión queda registrada.",
         "hecho": "Restituiste la venta del productor."
+      },
+      "bloquear": {
+        "boton": "Bloquear productor",
+        "titulo": "Bloquear a {{organizacion}}",
+        "confirmar": "Bloquear productor",
+        "texto": "Mientras esté bloqueado no podrá vender: sus productos se ven en venta pausada y los pedidos en curso se mantienen. Avisamos al productor y la decisión queda registrada en su historial.",
+        "hecho": "Bloqueaste al productor. Sus productos quedaron en venta pausada."
+      },
+      "desbloquear": {
+        "boton": "Desbloquear productor",
+        "titulo": "Desbloquear a {{organizacion}}",
+        "confirmar": "Desbloquear productor",
+        "texto": "Sus productos autorizados vuelven a venderse, salvo que su venta también esté revocada. Avisamos al productor y la decisión queda registrada.",
+        "hecho": "Desbloqueaste al productor."
       }
     }
   },
@@ -2754,7 +2953,10 @@
     "nuevoEstado": "Nuevo estado",
     "nota": "Nota",
     "notaAyuda": "Queda en el historial con tu nombre.",
-    "guardar": "Guardar cambio"
+    "guardar": "Guardar cambio",
+    "bloqueo": "Bloqueo de ventas",
+    "bloqueoTexto": "Si las denuncias lo justifican, bloquea sus ventas con un motivo. Sus productos quedan en venta pausada y los pedidos en curso se mantienen.",
+    "bloqueadoTexto": "Sus ventas están bloqueadas. Puedes desbloquearlas con un motivo."
   },
   "minimoCalificaciones": {
     "seccion": "Calificaciones mínimas para mostrar el promedio",

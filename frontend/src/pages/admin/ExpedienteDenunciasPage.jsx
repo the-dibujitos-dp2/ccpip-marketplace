@@ -13,6 +13,7 @@ import { fechaHora } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import { useSesion } from '../../sesion.js'
+import BloqueoVenta from './BloqueoVenta.jsx'
 import '../productor/productor.css'
 import '../consumidor/Valoraciones.css'
 import './admin.css'
@@ -20,7 +21,8 @@ import './admin.css'
 /**
  * CCPIP-84: historial de denuncias de un productor. El sub administrador las pasa a revision o las cierra
  * con una nota, que queda en el historial con su nombre; el superadministrador solo consulta. Del
- * denunciante solo se sabe si recibio algun pedido de este productor.
+ * denunciante solo se sabe si recibio algun pedido de este productor. CCPIP-85 y CCPIP-322 (Figma S-03):
+ * desde aqui el sub administrador bloquea o desbloquea sus ventas.
  */
 export default function ExpedienteDenunciasPage({ path, productorId }) {
   const { t } = useTranslation()
@@ -44,7 +46,14 @@ export default function ExpedienteDenunciasPage({ path, productorId }) {
       {error?.status === 404 && <EstadoVacio titulo={t('denunciasAdmin.sinDenuncias')} />}
       {error && error.status !== 404 && <Alerta tono="error" titulo={mensajeError(error, 'denunciasAdmin.error')} />}
       {p && (
-        <p className="body-m">{t('denunciasAdmin.resumenProductor', { total: p.total, abiertas: p.abiertas })}</p>
+        <p className="body-m">
+          {t('denunciasAdmin.resumenProductor', { total: p.total, abiertas: p.abiertas })}
+          {p.ventaBloqueada && <> <Badge tono="error">{t('productores.venta.bloqueada')}</Badge></>}
+        </p>
+      )}
+      {p && gestiona && (
+        <BloqueoVenta productorId={p.productorId} organizacion={p.organizacion} bloqueada={p.ventaBloqueada}
+          onDecidido={(ficha) => setDatos((d) => ({ ...d, productor: { ...d.productor, ventaBloqueada: ficha.ventaBloqueada } }))} />
       )}
       {datos?.denuncias.length > 0 && (
         <ul className="valoraciones__resenas" aria-label={t('denunciasAdmin.historial')}>

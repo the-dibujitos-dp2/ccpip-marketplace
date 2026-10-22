@@ -11,7 +11,7 @@ import pe.ccpip.aviso.Correo;
 
 /**
  * Notifica al productor cada decision humana sobre su venta (CCPIP-37, CCPIP-297, CCPIP-39,
- * CCPIP-291, CCPIP-330). El canal es el acordado el 30/09 (Figma, CCPIP-103): correo, y el aviso en
+ * CCPIP-291, CCPIP-330, CCPIP-85, CCPIP-322). El canal es el acordado el 30/09 (Figma, CCPIP-103): correo, y el aviso en
  * la plataforma, que son el estado y el motivo que el productor ve en sus pantallas.
  *
  * <p>Se llama despues de que la decision quedo guardada: si el correo falla, la decision no se deshace
@@ -21,7 +21,7 @@ import pe.ccpip.aviso.Correo;
 public class AvisoAutorizacion {
 
     /** Que se decidio. {@code producto} es nulo en las decisiones sobre el productor. */
-    public enum Tipo { APROBADA, RECHAZADA, REVOCADA, HABILITAR_TIENDA, REVOCAR_VENTA, RESTITUIR_VENTA }
+    public enum Tipo { APROBADA, RECHAZADA, REVOCADA, HABILITAR_TIENDA, REVOCAR_VENTA, RESTITUIR_VENTA, BLOQUEAR_VENTA, DESBLOQUEAR_VENTA }
 
     private record Destinatario(long usuarioId, String correo, String nombre, boolean ingles) {
     }
@@ -43,7 +43,10 @@ public class AvisoAutorizacion {
                     "Tu tienda en Mercado CCPIP está habilitada", "Ya puedes publicar tu tienda desde Mi tienda.",
                     "Revocamos la autorización de venta de tu organización", "Desde ahora no se pueden comprar tus productos. "
                             + "Los pedidos ya confirmados se atienden con normalidad.",
-                    "Restituimos la autorización de venta de tu organización", "Tus productos autorizados vuelven a estar a la venta."));
+                    "Restituimos la autorización de venta de tu organización", "Tus productos autorizados vuelven a estar a la venta.",
+                    "Bloqueamos las ventas de tu organización", "Mientras dure el bloqueo no se pueden comprar tus productos; "
+                            + "siguen visibles en venta pausada. Los pedidos ya confirmados se atienden con normalidad.",
+                    "Desbloqueamos las ventas de tu organización", "Tus productos autorizados vuelven a estar a la venta."));
 
     // El motivo lo escribe el subadministrador en espanol: se envia tal cual
     private static final Idioma EN = new Idioma("Hello", "Reason",
@@ -55,7 +58,10 @@ public class AvisoAutorizacion {
                     "Your Mercado CCPIP store is enabled", "You can now publish your store from My store.",
                     "We revoked your organization's sale authorization", "Your products can no longer be purchased. "
                             + "Confirmed orders are fulfilled as usual.",
-                    "We restored your organization's sale authorization", "Your authorized products are on sale again."));
+                    "We restored your organization's sale authorization", "Your authorized products are on sale again.",
+                    "We blocked your organization's sales", "While the block lasts your products cannot be purchased; "
+                            + "they remain visible as paused. Confirmed orders are fulfilled as usual.",
+                    "We unblocked your organization's sales", "Your authorized products are on sale again."));
 
     private final JdbcTemplate jdbc;
     private final Avisos avisos;

@@ -14,7 +14,9 @@ import ComisionesPage from './pages/admin/ComisionesPage.jsx'
 import ComisionPage from './pages/admin/ComisionPage.jsx'
 import DenunciasAdminPage from './pages/admin/DenunciasPage.jsx'
 import ParametrosPage from './pages/admin/ParametrosPage.jsx'
+import ReportesPage from './pages/admin/ReportesPage.jsx'
 import DetalleCuentaPage from './pages/admin/DetalleCuentaPage.jsx'
+import ExistenciasPage from './pages/admin/ExistenciasPage.jsx'
 import CuentasPage from './pages/admin/CuentasPage.jsx'
 import NuevaCuentaPage from './pages/admin/NuevaCuentaPage.jsx'
 import MotivosMermaPage from './pages/admin/MotivosMermaPage.jsx'
@@ -48,6 +50,7 @@ import DenunciasProductorPage from './pages/productor/DenunciasPage.jsx'
 import AlmacenPage from './pages/productor/AlmacenPage.jsx'
 import EditorProductoPage from './pages/productor/EditorProductoPage.jsx'
 import EvidenciasPage from './pages/productor/EvidenciasPage.jsx'
+import LiquidacionesPage from './pages/productor/LiquidacionesPage.jsx'
 import LotesPage from './pages/productor/LotesPage.jsx'
 import PanelPage from './pages/productor/PanelPage.jsx'
 import PedidosProductorPage from './pages/productor/PedidosPage.jsx'
@@ -264,10 +267,12 @@ export default function App() {
     else if (path === RUTAS.admin) pagina = <TableroPage path={path} />
     else if (path === RUTAS.adminComision) pagina = <ComisionPage path={path} />
     else if (path === RUTAS.adminComisiones) pagina = <ComisionesPage path={path} />
+    else if (path === RUTAS.adminReportes) pagina = <ReportesPage path={path} />
     else if (path === RUTAS.adminParametros) pagina = <ParametrosPage path={path} />
     else if (path === RUTAS.adminMotivosMerma) pagina = <MotivosMermaPage path={path} />
     else if (path === RUTAS.adminAutorizaciones) pagina = <AutorizacionesPage path={path} />
     else if (path === RUTAS.adminCatalogo) pagina = <CatalogoMaestroPage path={path} search={search} />
+    else if (path === RUTAS.adminExistencias) pagina = <ExistenciasPage path={path} />
     else if (RUTA_EXPEDIENTE.test(path)) pagina = <ExpedienteAutorizacionPage path={RUTAS.adminAutorizaciones} id={path.match(RUTA_EXPEDIENTE)[1]} />
     else if (path === RUTAS.adminProductores) pagina = <ProductoresPage path={path} />
     else if (RUTA_FICHA_PRODUCTOR.test(path)) pagina = <FichaProductorPage path={RUTAS.adminProductores} id={path.match(RUTA_FICHA_PRODUCTOR)[1]} />
@@ -290,6 +295,7 @@ export default function App() {
     else if (path === RUTAS.productorLotes) pagina = <LotesPage path={path} search={search} />
     else if (path === RUTAS.productorCuenta) pagina = <CuentaBancariaPage path={path} />
     else if (path === RUTAS.productorPedidos) pagina = <PedidosProductorPage path={path} />
+    else if (path === RUTAS.productorLiquidaciones) pagina = <LiquidacionesPage path={path} />
     else if (path === RUTAS.productorDenuncias) pagina = <DenunciasProductorPage path={path} />
     else if (path === RUTAS.productorTransferencias) pagina = <TransferenciasPage key={search} path={path} search={search} />
     else if (path === RUTAS.productorAlertas) pagina = <AlertasProductorPage path={path} />

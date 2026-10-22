@@ -38,6 +38,8 @@ import pe.ccpip.productor.Auditoria.Accion;
  *   <li>CCPIP-330 (RF-220): revoca con motivo la venta de todo el productor. Sus autorizaciones por
  *       producto no se tocan (quedan citadas como alcance), asi que restituir devuelve exactamente lo
  *       que habia. Los pedidos confirmados no cambian.</li>
+ *   <li>CCPIP-85 (RF-78) y CCPIP-322 (RF-215): bloquea o desbloquea con motivo las ventas del productor
+ *       (Figma S-04, desde las denuncias). Pausa la venta como la revocacion, pero es otro estado.</li>
  * </ul>
  * Cada decision queda en productor_decision (solo insercion).
  */
@@ -63,7 +65,7 @@ public class ProductoresService {
     public List<ProductorFila> listar() {
         return jdbc.query("""
                 SELECT pr.id, coalesce(pr.nombre_tienda, pr.comunidad) AS organizacion, pr.comunidad, pr.pueblo,
-                       pr.region, pr.tienda_habilitada, pr.tienda_publicada, pr.venta_revocada,
+                       pr.region, pr.tienda_habilitada, pr.tienda_publicada, pr.venta_revocada, pr.venta_bloqueada,
                        (SELECT count(*) FROM producto p WHERE p.productor_id = pr.id) AS productos,
                        %s AS autorizados,
                        (SELECT count(*) FROM autorizacion_producto a WHERE a.productor_id = pr.id
@@ -72,7 +74,8 @@ public class ProductoresService {
                 ORDER BY organizacion, pr.id""".formatted(AUTORIZADOS),
                 (rs, row) -> new ProductorFila(rs.getLong("id"), rs.getString("organizacion"), rs.getString("comunidad"),
                         rs.getString("pueblo"), rs.getString("region"), rs.getBoolean("tienda_habilitada"),
-                        rs.getBoolean("tienda_publicada"), rs.getBoolean("venta_revocada"), rs.getInt("productos"),
+                        rs.getBoolean("tienda_publicada"), rs.getBoolean("venta_revocada"),
+                        rs.getBoolean("venta_bloqueada"), rs.getInt("productos"),
                         rs.getInt("autorizados"), rs.getInt("pendientes")));
     }
 
@@ -110,7 +113,7 @@ public class ProductoresService {
                 productorId);
         return jdbc.query("""
                 SELECT pr.id, coalesce(pr.nombre_tienda, pr.comunidad) AS organizacion, pr.comunidad, pr.pueblo,
-                       pr.region, pr.tienda_habilitada, pr.tienda_publicada, pr.venta_revocada,
+                       pr.region, pr.tienda_habilitada, pr.tienda_publicada, pr.venta_revocada, pr.venta_bloqueada,
                        EXISTS (SELECT 1 FROM cuenta_bancaria cb WHERE cb.productor_id = pr.id AND cb.estado = 'ACTIVA') AS cuenta
                 FROM productor pr WHERE pr.id = ? AND pr.activo""",
                 (rs, row) -> {
@@ -118,7 +121,7 @@ public class ProductoresService {
                     boolean revocada = rs.getBoolean("venta_revocada");
                     return new FichaProductor(rs.getLong("id"), rs.getString("organizacion"), rs.getString("comunidad"),
                             rs.getString("pueblo"), rs.getString("region"), habilitada, rs.getBoolean("tienda_publicada"),
-                            revocada, rs.getBoolean("cuenta"), productos, decisiones,
+                            revocada, rs.getBoolean("venta_bloqueada"), rs.getBoolean("cuenta"), productos, decisiones,
                             !habilitada && !revocada);
                 }, productorId)
                 .stream().findFirst().orElseThrow(ProductoresService::noEncontrado);
@@ -131,16 +134,21 @@ public class ProductoresService {
      *   <li>REVOCAR_VENTA (CCPIP-330): deja de venderse todo lo del productor, sin tocar sus
      *       autorizaciones ni sus pedidos.</li>
      *   <li>RESTITUIR_VENTA: revocar no es irreversible; una nueva decision humana la restituye.</li>
+     *   <li>BLOQUEAR_VENTA (CCPIP-85) y DESBLOQUEAR_VENTA (CCPIP-322): la misma pausa, pero como medida
+     *       de gobernanza (por ejemplo, tras denuncias). Tiene su propio estado: desbloquear no restituye
+     *       una venta revocada.</li>
      * </ul>
      */
     @Transactional
     public FichaProductor decidir(long productorId, long usuarioId, DecisionProductor decision, String motivo) {
         String texto = RevisionService.motivoRequerido(motivo);
-        EstadoProductor estado = bloquear(productorId);
+        EstadoProductor estado = fijar(productorId);
         String conflicto = switch (decision) {
             case HABILITAR_TIENDA -> estado.tiendaHabilitada() ? "TIENDA_YA_HABILITADA" : estado.ventaRevocada() ? "VENTA_REVOCADA" : null;
             case REVOCAR_VENTA -> estado.ventaRevocada() ? "VENTA_YA_REVOCADA" : null;
             case RESTITUIR_VENTA -> estado.ventaRevocada() ? null : "VENTA_NO_REVOCADA";
+            case BLOQUEAR_VENTA -> estado.ventaBloqueada() ? "VENTA_YA_BLOQUEADA" : null;
+            case DESBLOQUEAR_VENTA -> estado.ventaBloqueada() ? null : "VENTA_NO_BLOQUEADA";
         };
         if (conflicto != null) {
             throw new ErrorNegocio(HttpStatus.CONFLICT, conflicto, CONFLICTOS.get(conflicto));
@@ -160,12 +168,20 @@ public class ProductoresService {
             "TIENDA_YA_HABILITADA", "La tienda de este productor ya está habilitada.",
             "VENTA_REVOCADA", "La venta de este productor está revocada: restitúyela antes de habilitar su tienda.",
             "VENTA_YA_REVOCADA", "La venta de este productor ya está revocada.",
-            "VENTA_NO_REVOCADA", "La venta de este productor no está revocada.");
+            "VENTA_NO_REVOCADA", "La venta de este productor no está revocada.",
+            "VENTA_YA_BLOQUEADA", "La venta de este productor ya está bloqueada.",
+            "VENTA_NO_BLOQUEADA", "La venta de este productor no está bloqueada.");
 
     private void cambiarVenta(long productorId, long usuarioId, DecisionProductor decision, String motivo, long decisionId,
                               Long[] alcance) {
-        jdbc.update("UPDATE productor SET venta_revocada = ?, venta_decision_id = ?, actualizado_en = now() WHERE id = ?",
-                decision == DecisionProductor.REVOCAR_VENTA, decisionId, productorId);
+        boolean bloqueo = decision == DecisionProductor.BLOQUEAR_VENTA || decision == DecisionProductor.DESBLOQUEAR_VENTA;
+        if (bloqueo) {
+            jdbc.update("UPDATE productor SET venta_bloqueada = ?, bloqueo_decision_id = ?, actualizado_en = now() WHERE id = ?",
+                    decision == DecisionProductor.BLOQUEAR_VENTA, decisionId, productorId);
+        } else {
+            jdbc.update("UPDATE productor SET venta_revocada = ?, venta_decision_id = ?, actualizado_en = now() WHERE id = ?",
+                    decision == DecisionProductor.REVOCAR_VENTA, decisionId, productorId);
+        }
         // El historial de cada producto alcanzado tambien lo registra (CCPIP-47)
         List<Long> productos = jdbc.queryForList("SELECT producto_id FROM autorizacion_producto WHERE id = ANY (?) ORDER BY producto_id",
                 Long.class, (Object) alcance);
@@ -192,13 +208,13 @@ public class ProductoresService {
                 Long.class, productorId).toArray(Long[]::new);
     }
 
-    private record EstadoProductor(boolean tiendaHabilitada, boolean ventaRevocada) {
+    private record EstadoProductor(boolean tiendaHabilitada, boolean ventaRevocada, boolean ventaBloqueada) {
     }
 
     /** Dos subadministradores no deciden sobre el mismo productor a la vez. */
-    private EstadoProductor bloquear(long productorId) {
-        return jdbc.query("SELECT tienda_habilitada, venta_revocada FROM productor WHERE id = ? AND activo FOR UPDATE",
-                        (rs, row) -> new EstadoProductor(rs.getBoolean(1), rs.getBoolean(2)), productorId)
+    private EstadoProductor fijar(long productorId) {
+        return jdbc.query("SELECT tienda_habilitada, venta_revocada, venta_bloqueada FROM productor WHERE id = ? AND activo FOR UPDATE",
+                        (rs, row) -> new EstadoProductor(rs.getBoolean(1), rs.getBoolean(2), rs.getBoolean(3)), productorId)
                 .stream().findFirst().orElseThrow(ProductoresService::noEncontrado);
     }
 

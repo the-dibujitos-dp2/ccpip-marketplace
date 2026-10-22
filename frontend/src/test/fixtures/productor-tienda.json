@@ -35,5 +35,7 @@
     ],
     "habilitada": true,
     "ventaRevocada": false,
-    "motivoRevocacion": null
+    "motivoRevocacion": null,
+    "ventaBloqueada": false,
+    "motivoBloqueo": null
 }

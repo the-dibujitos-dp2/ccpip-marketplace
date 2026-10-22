@@ -450,6 +450,14 @@ Se agrega el unico `(id, productor_id, producto_id)` para la llave compuesta de 
 
 Hasta 10 evidencias vigentes por producto.
 
+**Lo publico (CCPIP-365, RF-255).** `GET /api/productos/{id}/certificacion`, sin sesion y solo de
+ofertas visibles del catalogo, publica de cada evidencia `tipo`, `titulo`, `emisor` y vigencia, nunca el
+archivo. Solo las que cita la decision APROBADA vigente (`autorizacion_decision.evidencias`), sin
+retirar, y solo `CERTIFICADO` y `EVIDENCIA`: un `DOCUMENTO` puede ser privado. El estado es
+`VERIFICADA` solo con la autorizacion aprobada y vigente y un certificado publico vigente; `VENCIDA`
+si sus certificados vencieron; `SIN_EVIDENCIA` en cualquier otro caso (incluido lo aprobado por la
+semilla, que no tiene evidencias), para no afirmar una aprobacion sin evidencia.
+
 ### autorizacion_decision
 `decision` (APROBADA, RECHAZADA), `motivo` obligatorio (hasta 500), `evidencias` (uuid[] de las
 vigentes al decidir; al aprobar no puede ir vacio), `vigente_hasta`, `analisis_id` (nulo si se
@@ -501,6 +509,25 @@ la confirmacion y el pago la aplican al instante. Los pedidos confirmados no se 
 
 Un certificado vencido pausa la venta pero no es una revocacion (C5): el estado sigue APROBADA y
 no se registra decision.
+
+### renovacion_certificado (CCPIP-321)
+Migracion `V202610211800`. El subadministrador pide renovar un certificado de una autorizacion
+APROBADA (`POST /api/admin/autorizaciones/{id}/renovaciones`, `409 AUTORIZACION_NO_APROBADA`). Llega al
+productor por correo (aviso `RENOVACION_CERTIFICADO`) y en las evidencias de su producto (PW-14).
+**No cambia la autorizacion ni la venta:** no hay decision ni cambio de estado. Si el certificado vence
+sin renovarse rige C5 (Venta pausada, sin revocar), y nunca hay un bloqueo permanente automatico.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| autorizacion_id, productor_id, producto_id | bigint | no | Llave compuesta a `autorizacion_producto` |
+| evidencia_id | uuid | no | El certificado (`CERTIFICADO` sin retirar de esa autorizacion, si no `422 CERTIFICADO_INVALIDO`) |
+| motivo | varchar(500) | no | Obligatorio |
+| plazo | date | no | Por defecto el vencimiento del certificado, u hoy si ya vencio. No pasado (`422 PLAZO_PASADO`) |
+| estado | varchar(10) | no | `PENDIENTE`; `ATENDIDA` y `CANCELADA` llegan con sus historias. Una pendiente por certificado (`409 RENOVACION_PENDIENTE`) |
+| solicitada_por, solicitada_en | | no | Quien y cuando. Tambien queda en `producto_auditoria` (`AUTORIZACION`) |
+| atendida_en | timestamptz | si | Obligatoria fuera de `PENDIENTE` |
+
+Un trigger impide borrarla y editarla, salvo pasar una vez de `PENDIENTE` a otro estado.
 
 ### autorizacion_producto (columna nueva)
 | Columna | Tipo | Nula | Descripcion |
@@ -735,6 +762,27 @@ un porcentaje que no regia.
 
 Triggers: una vez copiada la comision, no cambian el total ni la comision del pedido, ni la
 cantidad, precio, subtotal, comision y neto de sus lineas, y las lineas no se borran (RNF-13).
+
+## Tarifa de cada linea y reportes B2C/B2B (CCPIP-345)
+
+Migracion `V202610211700__item_pedido_tarifa.sql`. Los reportes del superadministrador (SA-05) separan
+las ventas B2C de las B2B. Una linea es B2B cuando se vendio a tarifa mayorista, que el carrito decide
+segun la modalidad de la oferta y la cantidad (`Tarifas.resolver`, CCPIP-134). El pedido ya copiaba el
+precio; ahora tambien copia cual de las dos tarifas era.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| item_pedido.tarifa | varchar(10) | no | `MINORISTA` (B2C) o `MAYORISTA` (B2B). Por defecto `MINORISTA`. La copia la compra (RNF-13) |
+
+Las lineas anteriores a la migracion se reconstruyen: son `MAYORISTA` si el precio copiado es el
+mayorista de la oferta y distinto del minorista. La columna no esta entre los importes que protege el
+disparador `item_pedido_comision_congelada`, asi que la migracion puede completarla.
+
+Los reportes (`/api/admin/reportes/...`) agrupan por dia, semana (desde el lunes) o mes, en fechas de
+Lima, con los periodos sin movimiento en cero y el acumulado del rango. Ventas: el subtotal de las
+lineas de pedidos confirmados y no cancelados, por fecha de confirmacion. Comisiones (CCPIP-346): la
+`comision_monto` de esas mismas lineas. Ingresos (CCPIP-93): lo cobrado, es decir los pagos `APROBADO`
+por su `resuelto_en`, repartidos en B2C y B2B segun las lineas del pedido; un pago `ANULADO` no cuenta.
 
 ## Interes de compra y avisos (CCPIP-105, CCPIP-106, CCPIP-273, CCPIP-69)
 
@@ -1112,3 +1160,35 @@ Reactivarlo exige que su linea este activa.
 REACTIVAR), `cambios` (jsonb: la foto al crear, `{campo: {antes, despues}}` al editar, las ofertas y
 productos conservados al desactivar) y `registrado_en`. Solo insercion (triggers), igual que
 `producto_auditoria`.
+
+## Bloqueo de las ventas de un productor (CCPIP-85, CCPIP-322)
+
+Migracion `V202610221200`. El subadministrador bloquea (RF-78) o desbloquea (RF-215) con motivo las
+ventas de un productor. Es una medida de gobernanza, que en el Figma se toma desde las denuncias
+(S-03 y S-04), distinta de la revocacion de CCPIP-330, que es de cumplimiento. Por eso tiene su
+propio estado: desbloquear no restituye una venta revocada ni restituir levanta un bloqueo.
+
+```mermaid
+erDiagram
+    productor |o--o| productor_decision : bloqueo_decision
+```
+
+**Una oferta es comprable** ahora, ademas de lo anterior, solo si la venta de su productor no esta
+bloqueada. Igual que la revocacion: la regla vive en `CatalogoRepository.HABILITADA`, la oferta sigue
+visible en Venta pausada y los pedidos confirmados no se tocan. El productor recibe el aviso
+(`DECISION_PRODUCTOR`) y ve el bloqueo y su motivo en Mi tienda.
+
+| Decision | Quien | Exige | Efecto |
+|---|---|---|---|
+| Bloquear (`POST /api/admin/productores/{id}/bloquear`) | SUB_ADMIN | no bloqueado, si no `409 VENTA_YA_BLOQUEADA` | `productor.venta_bloqueada`; fila BLOQUEAR_VENTA en `productor_decision` con las autorizaciones vigentes como alcance |
+| Desbloquear (`.../desbloquear`) | SUB_ADMIN | bloqueado, si no `409 VENTA_NO_BLOQUEADA` | Vuelve a vender lo que tenia autorizado, salvo que ademas este revocado |
+
+### productor_decision (cambios)
+`decision` pasa a `varchar(20)` y admite tambien `BLOQUEAR_VENTA` y `DESBLOQUEAR_VENTA`. Bloquear y
+desbloquear tambien dejan una fila `AUTORIZACION` en `producto_auditoria` de cada producto alcanzado.
+
+### productor (columnas nuevas)
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| venta_bloqueada | boolean | no | La venta del productor esta bloqueada. Independiente de `venta_revocada` |
+| bloqueo_decision_id | bigint | si | Ultimo bloqueo o desbloqueo |

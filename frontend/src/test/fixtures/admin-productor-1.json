@@ -7,6 +7,7 @@
   "tiendaHabilitada": true,
   "tiendaPublicada": true,
   "ventaRevocada": false,
+  "ventaBloqueada": false,
   "cuentaActiva": true,
   "productos": [
     {

@@ -42,7 +42,8 @@ public class TiendaService {
                                 String nombreTienda, String descripcionCorta, String historia, String cita, String pueblo,
                                 String localidad, Integer socios, boolean publicada, Imagen portada, List<Imagen> galeria,
                                 List<Long> destacados, List<ProductoOpcion> productosPublicados, boolean habilitada,
-                                boolean ventaRevocada, String motivoRevocacion) {
+                                boolean ventaRevocada, String motivoRevocacion, boolean ventaBloqueada,
+                                String motivoBloqueo) {
     }
 
     private final JdbcTemplate jdbc;
@@ -67,9 +68,11 @@ public class TiendaService {
         return jdbc.queryForObject("""
                 SELECT pr.id, pr.comunidad, pr.region, pr.origen_verificado, pr.verificado_en, pr.nombre_tienda,
                        pr.descripcion_corta, pr.historia, pr.cita, pr.pueblo, pr.localidad, pr.socios, pr.tienda_publicada,
-                       pr.tienda_habilitada, pr.venta_revocada, d.motivo AS motivo_revocacion
+                       pr.tienda_habilitada, pr.venta_revocada, d.motivo AS motivo_revocacion,
+                       pr.venta_bloqueada, b.motivo AS motivo_bloqueo
                 FROM productor pr
                 LEFT JOIN productor_decision d ON d.id = pr.venta_decision_id AND pr.venta_revocada
+                LEFT JOIN productor_decision b ON b.id = pr.bloqueo_decision_id AND pr.venta_bloqueada
                 WHERE pr.id = ?""",
                 (rs, row) -> new TiendaEdicion(rs.getLong("id"), rs.getString("comunidad"), rs.getString("region"),
                         rs.getBoolean("origen_verificado"), rs.getObject("verificado_en", LocalDate.class),
@@ -77,7 +80,7 @@ public class TiendaService {
                         rs.getString("cita"), rs.getString("pueblo"), rs.getString("localidad"),
                         (Integer) rs.getObject("socios"), rs.getBoolean("tienda_publicada"), portada, galeria,
                         destacados, publicados, rs.getBoolean("tienda_habilitada"), rs.getBoolean("venta_revocada"),
-                        rs.getString("motivo_revocacion")),
+                        rs.getString("motivo_revocacion"), rs.getBoolean("venta_bloqueada"), rs.getString("motivo_bloqueo")),
                 productorId);
     }
 

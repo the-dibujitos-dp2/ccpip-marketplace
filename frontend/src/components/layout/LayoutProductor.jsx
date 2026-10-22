@@ -5,6 +5,7 @@ import iconoBillete from '../../assets/icons/billete.svg'
 import iconoCaja from '../../assets/icons/caja.svg'
 import iconoCampana from '../../assets/icons/campana.svg'
 import iconoEtiqueta from '../../assets/icons/etiqueta.svg'
+import iconoGrafico from '../../assets/icons/grafico.svg'
 import iconoMerma from '../../assets/icons/merma.svg'
 import iconoMovimientos from '../../assets/icons/movimientos.svg'
 import iconoPaquete from '../../assets/icons/paquete.svg'
@@ -25,6 +26,8 @@ const NAV = [
   // CCPIP-75 y CCPIP-76: la merma de sus lotes
   { to: RUTAS.productorMerma, clave: 'merma', icono: iconoMerma, activo: (p) => p.startsWith(RUTAS.productorMerma) },
   { to: RUTAS.productorPedidos, clave: 'pedidos', icono: iconoPaquete, activo: (p) => p.startsWith(RUTAS.productorPedidos) },
+  // CCPIP-92: lo que le corresponde por sus ventas de cada periodo
+  { to: RUTAS.productorLiquidaciones, clave: 'liquidaciones', icono: iconoGrafico, activo: (p) => p.startsWith(RUTAS.productorLiquidaciones) },
   { to: RUTAS.productorDenuncias, clave: 'denuncias', icono: iconoAviso, activo: (p) => p.startsWith(RUTAS.productorDenuncias) },
   { to: RUTAS.productorCuenta, clave: 'cuenta', icono: iconoBillete, activo: (p) => p.startsWith(RUTAS.productorCuenta) },
   // PW-21: alertas y su configuracion

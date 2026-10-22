@@ -43,6 +43,16 @@ export const bandejaAutorizaciones = (estado = 'SOLICITADA') =>
 /** S-02: producto, productor, evidencias, ultimo analisis y decisiones. */
 export const expedienteAutorizacion = async (id) => apiFetch(`/api/admin/autorizaciones/${idRuta(id)}`)
 
+/** CCPIP-321: solicitudes de renovacion de certificados de la autorizacion (S-02). */
+export const renovacionesAutorizacion = async (id) => apiFetch(`/api/admin/autorizaciones/${idRuta(id)}/renovaciones`)
+
+/** CCPIP-321: pide renovar un certificado; `plazo` es opcional (por defecto, su vencimiento). */
+export const solicitarRenovacion = async (id, { evidenciaId, motivo, plazo }) =>
+  apiFetch(`/api/admin/autorizaciones/${idRuta(id)}/renovaciones`, { method: 'POST', body: { evidenciaId, motivo, plazo: plazo || null } })
+
+/** CCPIP-321: las solicitudes de renovacion de un producto propio (PW-14). */
+export const renovacionesDeProducto = async (productoId) => apiFetch(`/api/productor/productos/${idRuta(productoId)}/renovaciones`)
+
 /** CCPIP-50: analisis preliminar. 503 IA_NO_DISPONIBLE si no hay servicio: se revisa a mano. */
 export const analizarEvidencias = async (id) => apiFetch(`/api/admin/autorizaciones/${idRuta(id)}/analisis`, { method: 'POST' })
 
@@ -68,7 +78,8 @@ export const fichaProductor = async (id) => apiFetch(`/api/admin/productores/${i
 
 /**
  * Decision sobre el productor completo, siempre con motivo: 'habilitar-tienda' (CCPIP-291),
- * 'revocar' o 'restituir' (CCPIP-330). Devuelve la ficha actualizada.
+ * 'revocar' o 'restituir' (CCPIP-330), 'bloquear' o 'desbloquear' (CCPIP-85, CCPIP-322).
+ * Devuelve la ficha actualizada.
  */
 export const decidirProductor = async (id, accion, motivo) =>
   apiFetch(`/api/admin/productores/${idRuta(id)}/${accion}`, { method: 'POST', body: { motivo } })

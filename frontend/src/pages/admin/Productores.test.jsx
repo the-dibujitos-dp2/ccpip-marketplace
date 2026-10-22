@@ -144,6 +144,66 @@ describe('Revocar la venta de un productor (CCPIP-330)', () => {
   })
 })
 
+describe('Bloquear las ventas de un productor (CCPIP-85, CCPIP-322)', () => {
+  it('bloquea con motivo desde la ficha, sin tocar la revocación', async () => {
+    const motivo = 'Denuncias reiteradas sin respuesta'
+    const fetchMock = comoSub({
+      [`POST ${FICHA}/bloquear`]: () => [200, tras('BLOQUEAR_VENTA', motivo, { ventaBloqueada: true })],
+    })
+    abrirEn('/admin/productores/1')
+    await userEvent.type(await (await decisionCargada()).findByLabelText('Motivo de la decisión'), motivo)
+    await userEvent.click(decision().getByRole('button', { name: 'Bloquear productor' }))
+    const dialogo = within(screen.getByRole('dialog'))
+    expect(dialogo.getByRole('heading', { name: 'Bloquear a Asoc. Nii Joi' })).toBeInTheDocument()
+    expect(dialogo.getByText(/los pedidos en curso se mantienen/)).toBeInTheDocument()
+    await userEvent.click(dialogo.getByRole('button', { name: 'Bloquear productor' }))
+
+    expect(await screen.findByText('Bloqueaste al productor. Sus productos quedaron en venta pausada.')).toBeInTheDocument()
+    expect(JSON.parse(llamadas(fetchMock, `POST ${FICHA}/bloquear`)[0][1].body)).toEqual({ motivo })
+    expect(screen.getByText('Venta bloqueada', { selector: '.productores__estado *' })).toBeInTheDocument()
+    expect(screen.queryByText('Venta vigente', { selector: '.productores__estado *' })).not.toBeInTheDocument()
+    const historial = within(screen.getByRole('region', { name: 'Historial de decisiones' }))
+    expect(historial.getByText('Venta bloqueada')).toBeInTheDocument()
+    expect(historial.getByText(`«${motivo}»`)).toBeInTheDocument()
+    expect(decision().getByText(/Sus ventas están bloqueadas/)).toBeInTheDocument()
+    // Ya bloqueado se desbloquea; la revocacion sigue disponible aparte
+    expect(decision().queryByRole('button', { name: 'Bloquear productor' })).not.toBeInTheDocument()
+    expect(decision().getByRole('button', { name: 'Desbloquear productor' })).toBeInTheDocument()
+    expect(decision().getByRole('button', { name: 'Revocar venta del productor' })).toBeInTheDocument()
+  })
+
+  it('desbloquea con motivo y la lista ya no lo marca', async () => {
+    const bloqueada = { ...copia(DATOS.fichaProductorAdmin), ventaBloqueada: true, ventaRevocada: true }
+    const fetchMock = comoSub({
+      [`GET ${FICHA}`]: () => [200, copia(bloqueada)],
+      [`POST ${FICHA}/desbloquear`]: () => [200, tras('DESBLOQUEAR_VENTA', 'Descargo aceptado', { ventaBloqueada: false, ventaRevocada: true })],
+    })
+    abrirEn('/admin/productores/1')
+    const panel = await decisionCargada()
+    // Revocada y bloqueada a la vez: se explican las dos
+    expect(panel.getByText(/Su venta está revocada/)).toBeInTheDocument()
+    expect(panel.getByText(/Sus ventas están bloqueadas/)).toBeInTheDocument()
+    await userEvent.type(panel.getByLabelText('Motivo de la decisión'), 'Descargo aceptado')
+    await userEvent.click(panel.getByRole('button', { name: 'Desbloquear productor' }))
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Desbloquear productor' }))
+    expect(await screen.findByText('Desbloqueaste al productor.')).toBeInTheDocument()
+    expect(llamadas(fetchMock, `POST ${FICHA}/desbloquear`)).toHaveLength(1)
+    expect(within(screen.getByRole('region', { name: 'Historial de decisiones' })).getByText('Venta desbloqueada')).toBeInTheDocument()
+    // Desbloquear no restituye la venta revocada
+    expect(decision().getByRole('button', { name: 'Restituir venta' })).toBeInTheDocument()
+  })
+
+  it('la lista marca a los productores con ventas bloqueadas', async () => {
+    const lista = copia(DATOS.productoresAdmin)
+    lista[0].ventaBloqueada = true
+    comoSub({ [`GET ${LISTA}`]: () => [200, lista] })
+    abrirEn('/admin/productores')
+    const filas = within(await screen.findByRole('table', { name: 'Productores y productos autorizados' })).getAllByRole('row')
+    expect(within(filas[1]).getByText('Venta bloqueada')).toBeInTheDocument()
+    expect(within(filas[2]).queryByText('Venta bloqueada')).not.toBeInTheDocument()
+  })
+})
+
 describe('Habilitar la tienda (CCPIP-291)', () => {
   it('la Cámara habilita la tienda de un productor con motivo', async () => {
     const sinHabilitar = { ...copia(DATOS.fichaProductorAdmin), tiendaHabilitada: false, puedeHabilitarTienda: true }

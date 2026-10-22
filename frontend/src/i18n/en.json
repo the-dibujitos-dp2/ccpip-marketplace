@@ -70,6 +70,7 @@
       "almacen": "Warehouse",
       "lotes": "Batches",
       "pedidos": "Orders",
+      "liquidaciones": "Settlements",
       "cuenta": "Bank account",
       "transferencias": "Transfers",
       "denuncias": "Reports",
@@ -277,6 +278,41 @@
       "sinComision": "Order confirmed before the commission was set up: no commission was calculated.",
       "historial": "Status changes",
       "nota": "You only see your products in each order. The buyer's details and what they bought from other communities are not shown."
+    },
+    "liquidaciones": {
+      "titulo": "My settlements",
+      "desde": "From",
+      "hasta": "To",
+      "exportar": {
+        "pdf": "Download PDF",
+        "xlsx": "Download Excel"
+      },
+      "error": "We couldn't load your settlement",
+      "kpi": {
+        "bruto": "Gross sales",
+        "pedidos_one": "{{count}} order",
+        "pedidos_other": "{{count}} orders",
+        "comision": "Chamber commission",
+        "neto": "Net to receive"
+      },
+      "sinComision_one": "{{count}} order was confirmed with no commission set",
+      "sinComision_other": "{{count}} orders were confirmed with no commission set",
+      "sinComisionTexto": "No commission is deducted from them: you receive the full amount of those sales.",
+      "tabla": "Orders in this period",
+      "vacio": "You have no confirmed sales in these dates",
+      "vacioTexto": "Paid orders that include your products appear here.",
+      "col": {
+        "pedido": "Order",
+        "fecha": "Confirmed",
+        "productos": "Your products",
+        "bruto": "Gross",
+        "comision": "Commission",
+        "neto": "Net"
+      },
+      "linea": "{{producto}} × {{cantidad}} at {{precio}}",
+      "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
+      "sinComisionCelda": "No commission",
+      "nota": "Only your products are included. Commission and net are fixed when each order is confirmed; an order cancelled after payment is not settled."
     },
     "productos": {
       "badge": {
@@ -594,6 +630,8 @@
       "senal": "If the signal drops, only the missing photo is retried: the others are kept.",
       "ventaRevocada": "The Chamber revoked your organization's sale authorization",
       "ventaRevocadaTexto": "Reason: «{{motivo}}». Your products are still visible but cannot be purchased. Confirmed orders are fulfilled as usual.",
+      "ventaBloqueada": "The Chamber blocked your organization's sales",
+      "ventaBloqueadaTexto": "Reason: «{{motivo}}». Your products are still visible but cannot be purchased while the block lasts. Confirmed orders are fulfilled as usual.",
       "sinHabilitar": "Your store is not enabled yet",
       "sinHabilitarTexto": "You can build and save it. The Chamber enables it and we will email you so you can publish it."
     },
@@ -909,11 +947,13 @@
       "tablero": "Dashboard",
       "comision": "Commission",
       "comisiones": "Commission by order",
+      "reportes": "Reports",
       "parametros": "Parameters",
       "autorizaciones": "Authorizations",
       "productores": "Producers",
       "cuentas": "Accounts",
       "catalogo": "Master catalog",
+      "existencias": "Stock",
       "denuncias": "Reports",
       "motivosMerma": "Shrinkage causes"
     },
@@ -1047,6 +1087,52 @@
       "sinComisionCelda": "No commission",
       "nota": "Commission and net are fixed when each order is confirmed; a later commission change doesn't alter them."
     },
+    "reportes": {
+      "titulo": "Platform reports",
+      "desde": "From",
+      "hasta": "To",
+      "agrupacion": "Group by",
+      "por": {
+        "DIA": "Day",
+        "SEMANA": "Week",
+        "MES": "Month"
+      },
+      "error": "We couldn't load the report",
+      "rango": "From {{desde}} to {{hasta}}",
+      "b2c": "B2C (retail)",
+      "b2cDetalle": "Sold at retail price",
+      "b2b": "B2B (wholesale)",
+      "b2bDetalle": "Sold at wholesale price",
+      "semana": "{{inicio}} to {{fin}}",
+      "col": {
+        "periodo": "Period",
+        "barra": "B2C and B2B",
+        "b2c": "B2C",
+        "b2b": "B2B",
+        "total": "Total",
+        "acumulado": "Cumulative"
+      },
+      "metrica": {
+        "ventas": {
+          "pestana": "Sales",
+          "total": "Cumulative sales",
+          "tabla": "Sales by period",
+          "nota": "Product subtotal of each paid, non-cancelled order, by the date it was confirmed (Lima time). A line is B2B when it was sold at wholesale price."
+        },
+        "comisiones": {
+          "pestana": "Commissions",
+          "total": "Cumulative commissions",
+          "tabla": "Commissions by period",
+          "nota": "Chamber commission copied into each paid, non-cancelled order, by the date it was confirmed (Lima time). An order confirmed with no commission set adds no commission."
+        },
+        "ingresos": {
+          "pestana": "Revenue",
+          "total": "Cumulative revenue",
+          "tabla": "Revenue by period",
+          "nota": "What buyers paid: approved payments, by the date they were approved (Lima time). A voided, refunded payment is not revenue."
+        }
+      }
+    },
     "parametros": {
       "titulo": "Platform parameters",
       "seccion": "Cart",
@@ -1113,6 +1199,35 @@
       "modificado": "Cause “{{nombre}}” updated",
       "desactivado": "Cause “{{nombre}}” deactivated",
       "activado": "Cause “{{nombre}}” activated"
+    },
+    "existencias": {
+      "titulo": "Stock at collection points",
+      "error": "We couldn't load the stock",
+      "corte": "Balance as of {{fecha}}, Lima time.",
+      "kpi": {
+        "puntos": "Points with stock",
+        "puntosDetalle": "Of the active collection points",
+        "productos": "Products in stock",
+        "lotes_one": "In {{count}} batch",
+        "lotes_other": "In {{count}} batches",
+        "vencidos": "Expired batches",
+        "vencidosDetalle": "With balance, no longer sold"
+      },
+      "porPunto": "By collection point",
+      "porLinea": "By product line",
+      "vacio": "No collection point has stock.",
+      "sinLinea": "No line",
+      "col": {
+        "punto": "Collection point",
+        "linea": "Line",
+        "productos": "Products",
+        "productores": "Producers",
+        "lotes": "Batches",
+        "puntos": "Points",
+        "vigente": "Valid",
+        "vencido": "Expired"
+      },
+      "nota": "View only: stock is recorded and corrected at each point. Quantities are shown per unit of measure, never adding different units. Each point's administrator sees the detail by producer and batch."
     }
   },
   "sello": {
@@ -1380,11 +1495,16 @@
     "TRANSFERENCIA_NO_ENCONTRADA": "The transfer does not exist.",
     "NO_ES_DESTINO": "Only the destination point records the receipt.",
     "AUTORIZACION_NO_APROBADA": "Only an approved authorization can be revoked.",
+    "RENOVACION_PENDIENTE": "There is already a pending renewal request for this certificate.",
+    "CERTIFICADO_INVALIDO": "Choose a certificate from this request.",
+    "PLAZO_PASADO": "The deadline cannot be a past date.",
     "TIENDA_NO_HABILITADA": "The Chamber has not enabled your store yet. You can publish it as soon as it does.",
     "TIENDA_YA_HABILITADA": "This producer's store is already enabled.",
     "VENTA_REVOCADA": "This producer's sale is revoked: restore it before enabling their store.",
     "VENTA_YA_REVOCADA": "This producer's sale is already revoked.",
     "VENTA_NO_REVOCADA": "This producer's sale is not revoked.",
+    "VENTA_YA_BLOQUEADA": "This producer's sales are already blocked.",
+    "VENTA_NO_BLOQUEADA": "This producer's sales are not blocked.",
     "PRODUCTOR_NO_ENCONTRADO": "The producer does not exist.",
     "CORREO_EN_USO": "There is already an account with that email.",
     "ROL_NO_PERMITIDO": "Only sub administrator or collection point administrator accounts can be created.",
@@ -1543,6 +1663,35 @@
       "propia": "Story written by the community."
     },
     "confianza": "Why you can trust this product",
+    "certificacion": {
+      "titulo": "Product certification",
+      "estado": {
+        "VERIFICADA": "Verified by the Chamber",
+        "VENCIDA": "Certification expired",
+        "SIN_EVIDENCIA": "No public certificates"
+      },
+      "resumen": {
+        "VERIFICADA": "The Chamber reviewed this evidence and approved the sale of this product on {{fecha}}. The approval is valid until {{hasta}}.",
+        "VENCIDA": "The Chamber approved this product with the evidence below, but its certificate has expired. Sales are paused until the producer renews it.",
+        "SIN_EVIDENCIA": "This product has no public certificates to show yet. That does not mean it is approved or rejected."
+      },
+      "lista": "Public evidence",
+      "emisor": "Issuer:",
+      "desde": "From:",
+      "vigencia": "Validity:",
+      "vigenteHasta": "valid until {{fecha}}",
+      "vencioEl": "expired on {{fecha}}",
+      "sinVencimiento": "no expiry date",
+      "tipo": {
+        "CERTIFICADO": "Certificate",
+        "EVIDENCIA": "Evidence"
+      },
+      "significado": {
+        "CERTIFICADO": "A document from an external issuer that attests to a condition of the product, such as its origin or chemical-free production. It has an expiry date.",
+        "EVIDENCIA": "Supporting material from the producer, such as photos or process records, that the Chamber reviewed along with the certificates."
+      },
+      "nota": "Only the issuer, dates and validity of the evidence that supported the approval are published. The producer's files and private documents are not shown."
+    },
     "verificando": "The Chamber is still verifying this community's origin.",
     "sobreCosecha": "About this harvest",
     "consumirAntes": "Best before",
@@ -2122,6 +2271,12 @@
       "errorArchivo": "Choose a file",
       "errorFormato": "Only PDF, JPG or PNG files are accepted",
       "errorPeso": "The file is larger than 10 MB"
+    },
+    "renovacion": {
+      "titulo_one": "The Chamber asks you to renew a certificate",
+      "titulo_other": "The Chamber asks you to renew {{count}} certificates",
+      "detalle": "“{{certificado}}” by {{plazo}}. Reason: {{motivo}}",
+      "venta": "Your product remains on sale. If the certificate expires without renewal, its sale is paused until a new one is approved."
     }
   },
   "autorizaciones": {
@@ -2256,6 +2411,32 @@
         "confirmar": "Revoke authorization",
         "texto": "{{organizacion}} will not be able to sell it from now on. Confirmed orders are still fulfilled and they can request it again. The decision is recorded and cannot be edited."
       }
+    },
+    "renovacion": {
+      "titulo": "Certificate renewal",
+      "texto": "Ask the producer to renew a certificate. They receive it by email and see it in their product's evidence. Sales do not change: if the certificate expires without renewal, the offer goes to Sale paused until a new one is approved; it is not revoked.",
+      "certificados": "Certificates of this authorization",
+      "solicitudes": "Renewal requests",
+      "vence": "Expires on {{fecha}}",
+      "solicitar": "Request renewal",
+      "estado": {
+        "PENDIENTE": "Renewal requested",
+        "ATENDIDA": "Handled",
+        "CANCELADA": "Cancelled"
+      },
+      "de": "{{certificado}} · deadline {{plazo}}",
+      "pedidaPor": "Requested by {{nombre}} on {{fecha}}",
+      "efecto": "if not renewed, Sale paused from {{fecha}}",
+      "dialogo": "Request renewal of “{{certificado}}”",
+      "dialogoTexto": "The producer will receive the reason and deadline by email, in their language. The authorization stays approved.",
+      "motivo": "Reason",
+      "plazo": "Deadline (optional)",
+      "plazoAyuda": "If left empty, it is the certificate's expiry date.",
+      "confirmar": "Request renewal",
+      "errorMotivo": "Write the reason for the request",
+      "error": "We couldn't register the request",
+      "registrada": "Renewal request registered",
+      "registradaTexto": "We notified the producer by email."
     }
   },
   "transferencias": {
@@ -2313,7 +2494,8 @@
     },
     "venta": {
       "vigente": "Sale active",
-      "revocada": "Sale revoked"
+      "revocada": "Sale revoked",
+      "bloqueada": "Sales blocked"
     },
     "sinCuenta": "No active bank account: their products cannot be purchased.",
     "productos_one": "Products they can sell ({{count}})",
@@ -2338,12 +2520,15 @@
     "decision": {
       "HABILITAR_TIENDA": "Store enabled",
       "REVOCAR_VENTA": "Sale revoked",
-      "RESTITUIR_VENTA": "Sale restored"
+      "RESTITUIR_VENTA": "Sale restored",
+      "BLOQUEAR_VENTA": "Sales blocked",
+      "DESBLOQUEAR_VENTA": "Sales unblocked"
     },
     "alcance_one": "{{count}} authorized product affected",
     "alcance_other": "{{count}} authorized products affected",
     "decisionTexto": "Enable their store so they can publish it, or revoke the sale of all their products.",
     "revocadaTexto": "Their sale is revoked: their products show as sale paused. You can restore it with a reason.",
+    "bloqueadaTexto": "Their sales are blocked: their products show as sale paused. You can unblock them with a reason.",
     "accion": {
       "habilitar-tienda": {
         "boton": "Enable store",
@@ -2365,6 +2550,20 @@
         "confirmar": "Restore sale",
         "texto": "Their authorized, valid products are on sale again. The decision is recorded.",
         "hecho": "You restored the producer's sale."
+      },
+      "bloquear": {
+        "boton": "Block producer",
+        "titulo": "Block {{organizacion}}",
+        "confirmar": "Block producer",
+        "texto": "While blocked they cannot sell: their products show as sale paused and orders in progress are kept. We notify the producer and the decision is recorded in their history.",
+        "hecho": "You blocked the producer. Their products are now sale paused."
+      },
+      "desbloquear": {
+        "boton": "Unblock producer",
+        "titulo": "Unblock {{organizacion}}",
+        "confirmar": "Unblock producer",
+        "texto": "Their authorized products are on sale again, unless their sale is also revoked. We notify the producer and the decision is recorded.",
+        "hecho": "You unblocked the producer."
       }
     }
   },
@@ -2754,7 +2953,10 @@
     "nuevoEstado": "New status",
     "nota": "Note",
     "notaAyuda": "It stays in the history with your name.",
-    "guardar": "Save change"
+    "guardar": "Save change",
+    "bloqueo": "Sales block",
+    "bloqueoTexto": "If the reports justify it, block their sales with a reason. Their products become sale paused and orders in progress are kept.",
+    "bloqueadoTexto": "Their sales are blocked. You can unblock them with a reason."
   },
   "minimoCalificaciones": {
     "seccion": "Minimum ratings to show the average",

@@ -19,7 +19,8 @@ import '../productor/productor.css'
 import './admin.css'
 
 const TONO_ESTADO = { SIN_SOLICITUD: 'neutro', SOLICITADA: 'info', APROBADA: 'exito', RECHAZADA: 'error', REVOCADA: 'error' }
-const TONO_DECISION = { HABILITAR_TIENDA: 'exito', REVOCAR_VENTA: 'error', RESTITUIR_VENTA: 'info' }
+const TONO_DECISION = { HABILITAR_TIENDA: 'exito', REVOCAR_VENTA: 'error', RESTITUIR_VENTA: 'info', BLOQUEAR_VENTA: 'error', DESBLOQUEAR_VENTA: 'info' }
+const DESTRUCTIVAS = new Set(['revocar', 'bloquear'])
 
 /** Autorizacion de un producto: estado y, si esta aprobada, hasta cuando vale. */
 function EstadoAutorizacion({ asociacion: a }) {
@@ -39,7 +40,8 @@ function EstadoAutorizacion({ asociacion: a }) {
 /**
  * Ficha del productor para el sub administrador. CCPIP-292: cada producto que puede vender, con su
  * autorizacion individual y las lineas que cubrio (cambiar de linea no extiende el permiso).
- * CCPIP-291: habilitar su tienda. CCPIP-330: revocar o restituir su venta. Todo con motivo.
+ * CCPIP-291: habilitar su tienda. CCPIP-330: revocar o restituir su venta. CCPIP-85 y CCPIP-322:
+ * bloquear o desbloquear sus ventas, independiente de la revocacion. Todo con motivo.
  */
 export default function FichaProductorPage({ path, id }) {
   const { t } = useTranslation()
@@ -48,7 +50,7 @@ export default function FichaProductorPage({ path, id }) {
   const [aviso, setAviso] = useState(null)
   const [motivo, setMotivo] = useState('')
   const [errorMotivo, setErrorMotivo] = useState(null)
-  const [confirmar, setConfirmar] = useState(null) // 'habilitar-tienda' | 'revocar' | 'restituir'
+  const [confirmar, setConfirmar] = useState(null) // 'habilitar-tienda' | 'revocar' | 'restituir' | 'bloquear' | 'desbloquear'
   const [ocupado, setOcupado] = useState(false)
 
   const cargar = useCallback(async () => {
@@ -102,6 +104,12 @@ export default function FichaProductorPage({ path, id }) {
     ficha.puedeHabilitarTienda && { clave: 'habilitar-tienda', tipo: 'primario', icono: iconoTienda },
     !ficha.ventaRevocada && { clave: 'revocar', tipo: 'destructivo', icono: iconoProhibido },
     ficha.ventaRevocada && { clave: 'restituir', tipo: 'secundario', icono: iconoCheck },
+    !ficha.ventaBloqueada && { clave: 'bloquear', tipo: 'destructivo', icono: iconoProhibido },
+    ficha.ventaBloqueada && { clave: 'desbloquear', tipo: 'secundario', icono: iconoCheck },
+  ].filter(Boolean)
+  const estadoVenta = [
+    ficha.ventaRevocada && t('productores.revocadaTexto'),
+    ficha.ventaBloqueada && t('productores.bloqueadaTexto'),
   ].filter(Boolean)
 
   return (
@@ -171,7 +179,9 @@ export default function FichaProductorPage({ path, id }) {
 
         <aside className="tarjeta-panel expediente__decision" aria-labelledby="ficha-decision">
           <h2 id="ficha-decision" className="heading-h3">{t('autorizaciones.expediente.decision')}</h2>
-          <p className="body-s">{ficha.ventaRevocada ? t('productores.revocadaTexto') : t('productores.decisionTexto')}</p>
+          {estadoVenta.length > 0
+            ? estadoVenta.map((texto) => <p key={texto} className="body-s">{texto}</p>)
+            : <p className="body-s">{t('productores.decisionTexto')}</p>}
           <Campo
             tipo="area"
             etiqueta={t('autorizaciones.expediente.motivo')}
@@ -193,7 +203,7 @@ export default function FichaProductorPage({ path, id }) {
         abierto={confirmar !== null}
         titulo={confirmar ? t(`productores.accion.${confirmar}.titulo`, { organizacion: ficha.organizacion }) : ''}
         confirmar={confirmar ? t(`productores.accion.${confirmar}.confirmar`) : undefined}
-        tipoConfirmar={confirmar === 'revocar' ? 'destructivo' : 'primario'}
+        tipoConfirmar={DESTRUCTIVAS.has(confirmar) ? 'destructivo' : 'primario'}
         ocupado={ocupado}
         onCancelar={() => setConfirmar(null)}
         onConfirmar={decidir}

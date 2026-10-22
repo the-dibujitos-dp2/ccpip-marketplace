@@ -125,9 +125,12 @@ public final class ValoracionModelos {
     public record Contadores(int recibidas, int enRevision, int resueltas, int desestimadas) {
     }
 
-    /** CCPIP-84: un productor con denuncias. La bandeja los ordena por cantidad de denuncias. */
+    /**
+     * CCPIP-84: un productor con denuncias. La bandeja los ordena por cantidad de denuncias.
+     * {@code ventaBloqueada}: el subadministrador bloqueo sus ventas (CCPIP-85, Figma S-03).
+     */
     public record ProductorDenunciado(long productorId, String organizacion, String comunidad, String region, int total,
-                                      int abiertas, Instant ultimaEn) {
+                                      int abiertas, Instant ultimaEn, boolean ventaBloqueada) {
     }
 
     /** Bandeja de denuncias, separada de los reportes analiticos del tablero. */

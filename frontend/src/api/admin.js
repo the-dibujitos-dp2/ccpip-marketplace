@@ -4,6 +4,19 @@ import { apiFetch, idRuta } from './http.js'
 /** CCPIP-111 (SA-01): ventas, comision, productores, lineas y puntos de acopio del mes en curso. */
 export const obtenerTablero = () => apiFetch('/api/admin/tablero')
 
+/** SA-05 (CCPIP-345): una metrica acumulada por periodo; sin filtro, el año en curso por mes. */
+export function consultarReporte(metrica, { desde, hasta, agrupacion } = {}) {
+  const q = new URLSearchParams()
+  if (desde) q.set('desde', desde)
+  if (hasta) q.set('hasta', hasta)
+  if (agrupacion) q.set('agrupacion', agrupacion)
+  const consulta = q.toString()
+  return apiFetch(`/api/admin/reportes/${encodeURIComponent(metrica)}${consulta ? `?${consulta}` : ''}`)
+}
+
+/** CCPIP-354 (RF-244): existencias agregadas de los puntos de acopio. Solo superadministrador, solo lectura. */
+export const existenciasAgregadas = () => apiFetch('/api/admin/reportes/existencias')
+
 /** CCPIP-90 (SA-02): comision vigente, cambio programado e historial. Solo superadministrador. */
 export const obtenerComision = () => apiFetch('/api/admin/comision')
 
