@@ -594,6 +594,8 @@
       "senal": "Si la señal se corta, solo se reintenta la foto que faltó: las demás se conservan.",
       "ventaRevocada": "La Cámara revocó la venta de tu organización",
       "ventaRevocadaTexto": "Motivo: «{{motivo}}». Tus productos siguen visibles, pero no se pueden comprar. Los pedidos confirmados se atienden con normalidad.",
+      "ventaBloqueada": "La Cámara bloqueó las ventas de tu organización",
+      "ventaBloqueadaTexto": "Motivo: «{{motivo}}». Tus productos siguen visibles, pero no se pueden comprar mientras dure el bloqueo. Los pedidos confirmados se atienden con normalidad.",
       "sinHabilitar": "Tu tienda aún no está habilitada",
       "sinHabilitarTexto": "Puedes armarla y guardarla. La Cámara la habilita y te avisaremos por correo para que la publiques."
     },
@@ -1385,6 +1387,8 @@
     "VENTA_REVOCADA": "La venta de este productor está revocada: restitúyela antes de habilitar su tienda.",
     "VENTA_YA_REVOCADA": "La venta de este productor ya está revocada.",
     "VENTA_NO_REVOCADA": "La venta de este productor no está revocada.",
+    "VENTA_YA_BLOQUEADA": "La venta de este productor ya está bloqueada.",
+    "VENTA_NO_BLOQUEADA": "La venta de este productor no está bloqueada.",
     "PRODUCTOR_NO_ENCONTRADO": "El productor no existe.",
     "CORREO_EN_USO": "Ya hay una cuenta con ese correo.",
     "ROL_NO_PERMITIDO": "Solo se crean cuentas de sub administrador o de administrador de punto de acopio.",
@@ -2313,7 +2317,8 @@
     },
     "venta": {
       "vigente": "Venta vigente",
-      "revocada": "Venta revocada"
+      "revocada": "Venta revocada",
+      "bloqueada": "Venta bloqueada"
     },
     "sinCuenta": "Sin cuenta bancaria activa: sus productos no se pueden comprar.",
     "productos_one": "Productos que puede vender ({{count}})",
@@ -2338,12 +2343,15 @@
     "decision": {
       "HABILITAR_TIENDA": "Tienda habilitada",
       "REVOCAR_VENTA": "Venta revocada",
-      "RESTITUIR_VENTA": "Venta restituida"
+      "RESTITUIR_VENTA": "Venta restituida",
+      "BLOQUEAR_VENTA": "Venta bloqueada",
+      "DESBLOQUEAR_VENTA": "Venta desbloqueada"
     },
     "alcance_one": "{{count}} producto autorizado alcanzado",
     "alcance_other": "{{count}} productos autorizados alcanzados",
     "decisionTexto": "Habilita su tienda para que pueda publicarla, o revoca la venta de todos sus productos.",
     "revocadaTexto": "Su venta está revocada: sus productos se ven en venta pausada. Puedes restituirla con un motivo.",
+    "bloqueadaTexto": "Sus ventas están bloqueadas: sus productos se ven en venta pausada. Puedes desbloquearlas con un motivo.",
     "accion": {
       "habilitar-tienda": {
         "boton": "Habilitar tienda",
@@ -2365,6 +2373,20 @@
         "confirmar": "Restituir venta",
         "texto": "Sus productos autorizados y vigentes vuelven a venderse. La decisión queda registrada.",
         "hecho": "Restituiste la venta del productor."
+      },
+      "bloquear": {
+        "boton": "Bloquear productor",
+        "titulo": "Bloquear a {{organizacion}}",
+        "confirmar": "Bloquear productor",
+        "texto": "Mientras esté bloqueado no podrá vender: sus productos se ven en venta pausada y los pedidos en curso se mantienen. Avisamos al productor y la decisión queda registrada en su historial.",
+        "hecho": "Bloqueaste al productor. Sus productos quedaron en venta pausada."
+      },
+      "desbloquear": {
+        "boton": "Desbloquear productor",
+        "titulo": "Desbloquear a {{organizacion}}",
+        "confirmar": "Desbloquear productor",
+        "texto": "Sus productos autorizados vuelven a venderse, salvo que su venta también esté revocada. Avisamos al productor y la decisión queda registrada.",
+        "hecho": "Desbloqueaste al productor."
       }
     }
   },
@@ -2754,7 +2776,10 @@
     "nuevoEstado": "Nuevo estado",
     "nota": "Nota",
     "notaAyuda": "Queda en el historial con tu nombre.",
-    "guardar": "Guardar cambio"
+    "guardar": "Guardar cambio",
+    "bloqueo": "Bloqueo de ventas",
+    "bloqueoTexto": "Si las denuncias lo justifican, bloquea sus ventas con un motivo. Sus productos quedan en venta pausada y los pedidos en curso se mantienen.",
+    "bloqueadoTexto": "Sus ventas están bloqueadas. Puedes desbloquearlas con un motivo."
   },
   "minimoCalificaciones": {
     "seccion": "Calificaciones mínimas para mostrar el promedio",

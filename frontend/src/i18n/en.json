@@ -594,6 +594,8 @@
       "senal": "If the signal drops, only the missing photo is retried: the others are kept.",
       "ventaRevocada": "The Chamber revoked your organization's sale authorization",
       "ventaRevocadaTexto": "Reason: «{{motivo}}». Your products are still visible but cannot be purchased. Confirmed orders are fulfilled as usual.",
+      "ventaBloqueada": "The Chamber blocked your organization's sales",
+      "ventaBloqueadaTexto": "Reason: «{{motivo}}». Your products are still visible but cannot be purchased while the block lasts. Confirmed orders are fulfilled as usual.",
       "sinHabilitar": "Your store is not enabled yet",
       "sinHabilitarTexto": "You can build and save it. The Chamber enables it and we will email you so you can publish it."
     },
@@ -1385,6 +1387,8 @@
     "VENTA_REVOCADA": "This producer's sale is revoked: restore it before enabling their store.",
     "VENTA_YA_REVOCADA": "This producer's sale is already revoked.",
     "VENTA_NO_REVOCADA": "This producer's sale is not revoked.",
+    "VENTA_YA_BLOQUEADA": "This producer's sales are already blocked.",
+    "VENTA_NO_BLOQUEADA": "This producer's sales are not blocked.",
     "PRODUCTOR_NO_ENCONTRADO": "The producer does not exist.",
     "CORREO_EN_USO": "There is already an account with that email.",
     "ROL_NO_PERMITIDO": "Only sub administrator or collection point administrator accounts can be created.",
@@ -2313,7 +2317,8 @@
     },
     "venta": {
       "vigente": "Sale active",
-      "revocada": "Sale revoked"
+      "revocada": "Sale revoked",
+      "bloqueada": "Sales blocked"
     },
     "sinCuenta": "No active bank account: their products cannot be purchased.",
     "productos_one": "Products they can sell ({{count}})",
@@ -2338,12 +2343,15 @@
     "decision": {
       "HABILITAR_TIENDA": "Store enabled",
       "REVOCAR_VENTA": "Sale revoked",
-      "RESTITUIR_VENTA": "Sale restored"
+      "RESTITUIR_VENTA": "Sale restored",
+      "BLOQUEAR_VENTA": "Sales blocked",
+      "DESBLOQUEAR_VENTA": "Sales unblocked"
     },
     "alcance_one": "{{count}} authorized product affected",
     "alcance_other": "{{count}} authorized products affected",
     "decisionTexto": "Enable their store so they can publish it, or revoke the sale of all their products.",
     "revocadaTexto": "Their sale is revoked: their products show as sale paused. You can restore it with a reason.",
+    "bloqueadaTexto": "Their sales are blocked: their products show as sale paused. You can unblock them with a reason.",
     "accion": {
       "habilitar-tienda": {
         "boton": "Enable store",
@@ -2365,6 +2373,20 @@
         "confirmar": "Restore sale",
         "texto": "Their authorized, valid products are on sale again. The decision is recorded.",
         "hecho": "You restored the producer's sale."
+      },
+      "bloquear": {
+        "boton": "Block producer",
+        "titulo": "Block {{organizacion}}",
+        "confirmar": "Block producer",
+        "texto": "While blocked they cannot sell: their products show as sale paused and orders in progress are kept. We notify the producer and the decision is recorded in their history.",
+        "hecho": "You blocked the producer. Their products are now sale paused."
+      },
+      "desbloquear": {
+        "boton": "Unblock producer",
+        "titulo": "Unblock {{organizacion}}",
+        "confirmar": "Unblock producer",
+        "texto": "Their authorized products are on sale again, unless their sale is also revoked. We notify the producer and the decision is recorded.",
+        "hecho": "You unblocked the producer."
       }
     }
   },
@@ -2754,7 +2776,10 @@
     "nuevoEstado": "New status",
     "nota": "Note",
     "notaAyuda": "It stays in the history with your name.",
-    "guardar": "Save change"
+    "guardar": "Save change",
+    "bloqueo": "Sales block",
+    "bloqueoTexto": "If the reports justify it, block their sales with a reason. Their products become sale paused and orders in progress are kept.",
+    "bloqueadoTexto": "Their sales are blocked. You can unblock them with a reason."
   },
   "minimoCalificaciones": {
     "seccion": "Minimum ratings to show the average",

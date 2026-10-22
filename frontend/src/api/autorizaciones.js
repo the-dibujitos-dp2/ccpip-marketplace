@@ -68,7 +68,8 @@ export const fichaProductor = async (id) => apiFetch(`/api/admin/productores/${i
 
 /**
  * Decision sobre el productor completo, siempre con motivo: 'habilitar-tienda' (CCPIP-291),
- * 'revocar' o 'restituir' (CCPIP-330). Devuelve la ficha actualizada.
+ * 'revocar' o 'restituir' (CCPIP-330), 'bloquear' o 'desbloquear' (CCPIP-85, CCPIP-322).
+ * Devuelve la ficha actualizada.
  */
 export const decidirProductor = async (id, accion, motivo) =>
   apiFetch(`/api/admin/productores/${idRuta(id)}/${accion}`, { method: 'POST', body: { motivo } })
