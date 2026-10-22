@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoAviso from '../../assets/icons/alerta-aviso.svg'
 import iconoBillete from '../../assets/icons/billete.svg'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
@@ -29,6 +30,8 @@ const NAV = [
   { to: RUTAS.adminReportes, clave: 'reportes', icono: iconoGrafico, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminParametros, clave: 'parametros', icono: iconoReloj, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminCatalogo, clave: 'catalogo', icono: iconoEtiqueta, roles: ['SUPER_ADMIN'] },
+  // CCPIP-354: existencias agregadas de los puntos de acopio (sin el detalle de A-02, SA-08)
+  { to: RUTAS.adminExistencias, clave: 'existencias', icono: iconoAlmacen, roles: ['SUPER_ADMIN'] },
   // SA-03, SA-04 (CCPIP-95, 124, 125, 301 a 308): lo que cada rol ve lo decide el servidor
   { to: RUTAS.adminCuentas, clave: 'cuentas', icono: iconoUsuario, roles: ['SUPER_ADMIN', 'SUB_ADMIN'], prefijo: true },
   // CCPIP-77, 298, 299 y 300: catalogo de causas de merma

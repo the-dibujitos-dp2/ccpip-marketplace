@@ -14,6 +14,9 @@ export function consultarReporte(metrica, { desde, hasta, agrupacion } = {}) {
   return apiFetch(`/api/admin/reportes/${encodeURIComponent(metrica)}${consulta ? `?${consulta}` : ''}`)
 }
 
+/** CCPIP-354 (RF-244): existencias agregadas de los puntos de acopio. Solo superadministrador, solo lectura. */
+export const existenciasAgregadas = () => apiFetch('/api/admin/reportes/existencias')
+
 /** CCPIP-90 (SA-02): comision vigente, cambio programado e historial. Solo superadministrador. */
 export const obtenerComision = () => apiFetch('/api/admin/comision')
 
