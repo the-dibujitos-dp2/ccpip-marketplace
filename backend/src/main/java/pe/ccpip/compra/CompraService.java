@@ -22,6 +22,7 @@ import pe.ccpip.carrito.CarritoModelos.Carrito;
 import pe.ccpip.carrito.CarritoModelos.EstadoItem;
 import pe.ccpip.carrito.CarritoModelos.Item;
 import pe.ccpip.carrito.CarritoService;
+import pe.ccpip.carrito.Tarifas.Tarifa;
 import pe.ccpip.comision.ComisionModelos.ComisionPedido;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.compra.CompraModelos.EventoPedido;
@@ -97,11 +98,13 @@ public class CompraService {
                 VALUES (:id, :numero, :usuario, 'RECOJO', :punto, 'PENDIENTE_PAGO', :total, NULL, :autorizada, :celular)""", p);
         for (Item item : items) {
             jdbc.update("""
-                    INSERT INTO item_pedido (pedido_id, producto_id, productor_id, cantidad, precio_unitario, subtotal)
-                    VALUES (:id, :producto, :productor, :cantidad, :precio, :subtotal)""",
+                    INSERT INTO item_pedido (pedido_id, producto_id, productor_id, cantidad, precio_unitario, subtotal, tarifa)
+                    VALUES (:id, :producto, :productor, :cantidad, :precio, :subtotal, :tarifa)""",
                     new MapSqlParameterSource("id", id).addValue("producto", item.productoId())
                             .addValue("productor", item.tienda().id()).addValue("cantidad", item.cantidad())
-                            .addValue("precio", item.precio()).addValue("subtotal", item.subtotal()));
+                            .addValue("precio", item.precio()).addValue("subtotal", item.subtotal())
+                            // CCPIP-345: B2B o B2C, segun la tarifa que resolvio el carrito para esta cantidad
+                            .addValue("tarifa", item.tarifa() == null ? Tarifa.MINORISTA.name() : item.tarifa().name()));
         }
         jdbc.update("INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (:id, 'PENDIENTE_PAGO', :usuario)", p);
         return pedido(usuarioId, id);

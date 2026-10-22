@@ -4,6 +4,7 @@ import iconoBillete from '../../assets/icons/billete.svg'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoEtiqueta from '../../assets/icons/etiqueta.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
+import iconoGrafico from '../../assets/icons/grafico.svg'
 import iconoMerma from '../../assets/icons/merma.svg'
 import iconoPorcentaje from '../../assets/icons/porcentaje.svg'
 import iconoReloj from '../../assets/icons/reloj.svg'
@@ -14,7 +15,7 @@ import { useSesion } from '../../sesion.js'
 import LayoutPanel from './LayoutPanel.jsx'
 
 /**
- * Solo los modulos que ya existen. Reportes y auditoria (SA-05 a SA-10) llegan con sus historias.
+ * Solo los modulos que ya existen. Auditoria y los demas reportes (SA-06 a SA-10) llegan con sus historias.
  * El catalogo maestro (lineas y productos) es del superadministrador. `roles`: quienes ven cada modulo.
  */
 const NAV = [
@@ -24,6 +25,8 @@ const NAV = [
   { to: RUTAS.adminDenuncias, clave: 'denuncias', icono: iconoAviso, roles: ['SUB_ADMIN', 'SUPER_ADMIN'], prefijo: true },
   { to: RUTAS.adminComision, clave: 'comision', icono: iconoPorcentaje, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminComisiones, clave: 'comisiones', icono: iconoBillete, roles: ['SUPER_ADMIN', 'SUB_ADMIN'] },
+  // SA-05 (CCPIP-345): reportes agregados de la plataforma
+  { to: RUTAS.adminReportes, clave: 'reportes', icono: iconoGrafico, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminParametros, clave: 'parametros', icono: iconoReloj, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminCatalogo, clave: 'catalogo', icono: iconoEtiqueta, roles: ['SUPER_ADMIN'] },
   // SA-03, SA-04 (CCPIP-95, 124, 125, 301 a 308): lo que cada rol ve lo decide el servidor
