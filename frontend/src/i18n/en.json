@@ -1493,6 +1493,9 @@
     "TRANSFERENCIA_NO_ENCONTRADA": "The transfer does not exist.",
     "NO_ES_DESTINO": "Only the destination point records the receipt.",
     "AUTORIZACION_NO_APROBADA": "Only an approved authorization can be revoked.",
+    "RENOVACION_PENDIENTE": "There is already a pending renewal request for this certificate.",
+    "CERTIFICADO_INVALIDO": "Choose a certificate from this request.",
+    "PLAZO_PASADO": "The deadline cannot be a past date.",
     "TIENDA_NO_HABILITADA": "The Chamber has not enabled your store yet. You can publish it as soon as it does.",
     "TIENDA_YA_HABILITADA": "This producer's store is already enabled.",
     "VENTA_REVOCADA": "This producer's sale is revoked: restore it before enabling their store.",
@@ -2264,6 +2267,12 @@
       "errorArchivo": "Choose a file",
       "errorFormato": "Only PDF, JPG or PNG files are accepted",
       "errorPeso": "The file is larger than 10 MB"
+    },
+    "renovacion": {
+      "titulo_one": "The Chamber asks you to renew a certificate",
+      "titulo_other": "The Chamber asks you to renew {{count}} certificates",
+      "detalle": "“{{certificado}}” by {{plazo}}. Reason: {{motivo}}",
+      "venta": "Your product remains on sale. If the certificate expires without renewal, its sale is paused until a new one is approved."
     }
   },
   "autorizaciones": {
@@ -2398,6 +2407,32 @@
         "confirmar": "Revoke authorization",
         "texto": "{{organizacion}} will not be able to sell it from now on. Confirmed orders are still fulfilled and they can request it again. The decision is recorded and cannot be edited."
       }
+    },
+    "renovacion": {
+      "titulo": "Certificate renewal",
+      "texto": "Ask the producer to renew a certificate. They receive it by email and see it in their product's evidence. Sales do not change: if the certificate expires without renewal, the offer goes to Sale paused until a new one is approved; it is not revoked.",
+      "certificados": "Certificates of this authorization",
+      "solicitudes": "Renewal requests",
+      "vence": "Expires on {{fecha}}",
+      "solicitar": "Request renewal",
+      "estado": {
+        "PENDIENTE": "Renewal requested",
+        "ATENDIDA": "Handled",
+        "CANCELADA": "Cancelled"
+      },
+      "de": "{{certificado}} · deadline {{plazo}}",
+      "pedidaPor": "Requested by {{nombre}} on {{fecha}}",
+      "efecto": "if not renewed, Sale paused from {{fecha}}",
+      "dialogo": "Request renewal of “{{certificado}}”",
+      "dialogoTexto": "The producer will receive the reason and deadline by email, in their language. The authorization stays approved.",
+      "motivo": "Reason",
+      "plazo": "Deadline (optional)",
+      "plazoAyuda": "If left empty, it is the certificate's expiry date.",
+      "confirmar": "Request renewal",
+      "errorMotivo": "Write the reason for the request",
+      "error": "We couldn't register the request",
+      "registrada": "Renewal request registered",
+      "registradaTexto": "We notified the producer by email."
     }
   },
   "transferencias": {
