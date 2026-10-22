@@ -450,6 +450,14 @@ Se agrega el unico `(id, productor_id, producto_id)` para la llave compuesta de 
 
 Hasta 10 evidencias vigentes por producto.
 
+**Lo publico (CCPIP-365, RF-255).** `GET /api/productos/{id}/certificacion`, sin sesion y solo de
+ofertas visibles del catalogo, publica de cada evidencia `tipo`, `titulo`, `emisor` y vigencia, nunca el
+archivo. Solo las que cita la decision APROBADA vigente (`autorizacion_decision.evidencias`), sin
+retirar, y solo `CERTIFICADO` y `EVIDENCIA`: un `DOCUMENTO` puede ser privado. El estado es
+`VERIFICADA` solo con la autorizacion aprobada y vigente y un certificado publico vigente; `VENCIDA`
+si sus certificados vencieron; `SIN_EVIDENCIA` en cualquier otro caso (incluido lo aprobado por la
+semilla, que no tiene evidencias), para no afirmar una aprobacion sin evidencia.
+
 ### autorizacion_decision
 `decision` (APROBADA, RECHAZADA), `motivo` obligatorio (hasta 500), `evidencias` (uuid[] de las
 vigentes al decidir; al aprobar no puede ir vacio), `vigente_hasta`, `analisis_id` (nulo si se
