@@ -119,10 +119,11 @@ public class ProductoresService {
                 (rs, row) -> {
                     boolean habilitada = rs.getBoolean("tienda_habilitada");
                     boolean revocada = rs.getBoolean("venta_revocada");
+                    boolean bloqueada = rs.getBoolean("venta_bloqueada");
                     return new FichaProductor(rs.getLong("id"), rs.getString("organizacion"), rs.getString("comunidad"),
                             rs.getString("pueblo"), rs.getString("region"), habilitada, rs.getBoolean("tienda_publicada"),
-                            revocada, rs.getBoolean("venta_bloqueada"), rs.getBoolean("cuenta"), productos, decisiones,
-                            !habilitada && !revocada);
+                            revocada, bloqueada, rs.getBoolean("cuenta"), productos, decisiones,
+                            !habilitada && !revocada && !bloqueada);
                 }, productorId)
                 .stream().findFirst().orElseThrow(ProductoresService::noEncontrado);
     }
@@ -130,7 +131,7 @@ public class ProductoresService {
     /**
      * Una decision sobre el productor, con motivo:
      * <ul>
-     *   <li>HABILITAR_TIENDA (CCPIP-291): solo a un productor incorporado y con la venta no revocada.</li>
+     *   <li>HABILITAR_TIENDA (CCPIP-291): solo a un productor incorporado y con la venta no revocada ni bloqueada.</li>
      *   <li>REVOCAR_VENTA (CCPIP-330): deja de venderse todo lo del productor, sin tocar sus
      *       autorizaciones ni sus pedidos.</li>
      *   <li>RESTITUIR_VENTA: revocar no es irreversible; una nueva decision humana la restituye.</li>
@@ -144,7 +145,9 @@ public class ProductoresService {
         String texto = RevisionService.motivoRequerido(motivo);
         EstadoProductor estado = fijar(productorId);
         String conflicto = switch (decision) {
-            case HABILITAR_TIENDA -> estado.tiendaHabilitada() ? "TIENDA_YA_HABILITADA" : estado.ventaRevocada() ? "VENTA_REVOCADA" : null;
+            case HABILITAR_TIENDA -> estado.tiendaHabilitada() ? "TIENDA_YA_HABILITADA"
+                    : estado.ventaRevocada() ? "VENTA_REVOCADA"
+                    : estado.ventaBloqueada() ? "VENTA_BLOQUEADA" : null;
             case REVOCAR_VENTA -> estado.ventaRevocada() ? "VENTA_YA_REVOCADA" : null;
             case RESTITUIR_VENTA -> estado.ventaRevocada() ? null : "VENTA_NO_REVOCADA";
             case BLOQUEAR_VENTA -> estado.ventaBloqueada() ? "VENTA_YA_BLOQUEADA" : null;
@@ -167,6 +170,7 @@ public class ProductoresService {
     private static final Map<String, String> CONFLICTOS = Map.of(
             "TIENDA_YA_HABILITADA", "La tienda de este productor ya está habilitada.",
             "VENTA_REVOCADA", "La venta de este productor está revocada: restitúyela antes de habilitar su tienda.",
+            "VENTA_BLOQUEADA", "Las ventas de este productor están bloqueadas: levanta el bloqueo antes de habilitar su tienda.",
             "VENTA_YA_REVOCADA", "La venta de este productor ya está revocada.",
             "VENTA_NO_REVOCADA", "La venta de este productor no está revocada.",
             "VENTA_YA_BLOQUEADA", "La venta de este productor ya está bloqueada.",
