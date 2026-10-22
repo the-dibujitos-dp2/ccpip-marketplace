@@ -48,6 +48,7 @@ import DenunciasProductorPage from './pages/productor/DenunciasPage.jsx'
 import AlmacenPage from './pages/productor/AlmacenPage.jsx'
 import EditorProductoPage from './pages/productor/EditorProductoPage.jsx'
 import EvidenciasPage from './pages/productor/EvidenciasPage.jsx'
+import LiquidacionesPage from './pages/productor/LiquidacionesPage.jsx'
 import LotesPage from './pages/productor/LotesPage.jsx'
 import PanelPage from './pages/productor/PanelPage.jsx'
 import PedidosProductorPage from './pages/productor/PedidosPage.jsx'
@@ -290,6 +291,7 @@ export default function App() {
     else if (path === RUTAS.productorLotes) pagina = <LotesPage path={path} search={search} />
     else if (path === RUTAS.productorCuenta) pagina = <CuentaBancariaPage path={path} />
     else if (path === RUTAS.productorPedidos) pagina = <PedidosProductorPage path={path} />
+    else if (path === RUTAS.productorLiquidaciones) pagina = <LiquidacionesPage path={path} />
     else if (path === RUTAS.productorDenuncias) pagina = <DenunciasProductorPage path={path} />
     else if (path === RUTAS.productorTransferencias) pagina = <TransferenciasPage key={search} path={path} search={search} />
     else if (path === RUTAS.productorAlertas) pagina = <AlertasProductorPage path={path} />

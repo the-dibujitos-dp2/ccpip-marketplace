@@ -70,6 +70,7 @@
       "almacen": "Warehouse",
       "lotes": "Batches",
       "pedidos": "Orders",
+      "liquidaciones": "Settlements",
       "cuenta": "Bank account",
       "transferencias": "Transfers",
       "denuncias": "Reports",
@@ -277,6 +278,41 @@
       "sinComision": "Order confirmed before the commission was set up: no commission was calculated.",
       "historial": "Status changes",
       "nota": "You only see your products in each order. The buyer's details and what they bought from other communities are not shown."
+    },
+    "liquidaciones": {
+      "titulo": "My settlements",
+      "desde": "From",
+      "hasta": "To",
+      "exportar": {
+        "pdf": "Download PDF",
+        "xlsx": "Download Excel"
+      },
+      "error": "We couldn't load your settlement",
+      "kpi": {
+        "bruto": "Gross sales",
+        "pedidos_one": "{{count}} order",
+        "pedidos_other": "{{count}} orders",
+        "comision": "Chamber commission",
+        "neto": "Net to receive"
+      },
+      "sinComision_one": "{{count}} order was confirmed with no commission set",
+      "sinComision_other": "{{count}} orders were confirmed with no commission set",
+      "sinComisionTexto": "No commission is deducted from them: you receive the full amount of those sales.",
+      "tabla": "Orders in this period",
+      "vacio": "You have no confirmed sales in these dates",
+      "vacioTexto": "Paid orders that include your products appear here.",
+      "col": {
+        "pedido": "Order",
+        "fecha": "Confirmed",
+        "productos": "Your products",
+        "bruto": "Gross",
+        "comision": "Commission",
+        "neto": "Net"
+      },
+      "linea": "{{producto}} × {{cantidad}} at {{precio}}",
+      "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
+      "sinComisionCelda": "No commission",
+      "nota": "Only your products are included. Commission and net are fixed when each order is confirmed; an order cancelled after payment is not settled."
     },
     "productos": {
       "badge": {

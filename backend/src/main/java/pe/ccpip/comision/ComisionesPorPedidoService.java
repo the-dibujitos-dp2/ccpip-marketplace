@@ -3,7 +3,6 @@ package pe.ccpip.comision;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +18,7 @@ import pe.ccpip.comision.ComisionModelos.ComisionesPorPedido;
 import pe.ccpip.comision.ComisionModelos.ParteProductor;
 import pe.ccpip.comision.ComisionModelos.PedidoComision;
 import pe.ccpip.comision.ComisionModelos.Resumen;
-import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.comun.RangoFechas;
 
 /**
  * CCPIP-91 (RF-69): la Camara consulta la comision y el neto de cada pedido confirmado. Lee solo lo que
@@ -27,9 +26,6 @@ import pe.ccpip.comun.ErrorNegocio;
  */
 @Service
 public class ComisionesPorPedidoService {
-
-    /** Un rango mas largo se pide por partes: la pantalla no pagina. */
-    static final int MAX_DIAS = 366;
 
     private final NamedParameterJdbcTemplate jdbc;
     private final ComisionService comision;
@@ -42,15 +38,9 @@ public class ComisionesPorPedidoService {
     /** Pedidos confirmados (y no cancelados) en el rango; sin fechas, el mes en curso hasta hoy. */
     @Transactional(readOnly = true)
     public ComisionesPorPedido consultar(LocalDate desde, LocalDate hasta) {
-        LocalDate hoy = comision.hoy();
-        LocalDate fin = hasta == null ? hoy : hasta;
-        LocalDate inicio = desde == null ? fin.withDayOfMonth(1) : desde;
-        if (inicio.isAfter(fin)) {
-            throw ErrorNegocio.invalido("RANGO_INVALIDO", "La fecha inicial debe ser anterior o igual a la final.");
-        }
-        if (ChronoUnit.DAYS.between(inicio, fin) >= MAX_DIAS) {
-            throw ErrorNegocio.invalido("RANGO_MUY_LARGO", "Consulta como máximo un año a la vez.");
-        }
+        RangoFechas rango = RangoFechas.resolver(desde, hasta, comision.hoy(), RangoFechas.MES_EN_CURSO);
+        LocalDate inicio = rango.desde();
+        LocalDate fin = rango.hasta();
 
         MapSqlParameterSource p = new MapSqlParameterSource("desde", inicio).addValue("hasta", fin);
         String confirmados = """
