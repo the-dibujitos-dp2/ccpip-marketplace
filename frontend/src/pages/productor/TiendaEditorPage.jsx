@@ -179,6 +179,10 @@ export default function TiendaEditorPage({ path }) {
       {tienda.ventaRevocada && (
         <Alerta tono="error" titulo={t('productor.tienda.ventaRevocada')} descripcion={t('productor.tienda.ventaRevocadaTexto', { motivo: tienda.motivoRevocacion })} />
       )}
+      {/* CCPIP-85: la Camara bloqueo sus ventas, con motivo */}
+      {tienda.ventaBloqueada && (
+        <Alerta tono="error" titulo={t('productor.tienda.ventaBloqueada')} descripcion={t('productor.tienda.ventaBloqueadaTexto', { motivo: tienda.motivoBloqueo })} />
+      )}
       {!tienda.publicada && tienda.habilitada === false && (
         <Alerta tono="info" titulo={t('productor.tienda.sinHabilitar')} descripcion={t('productor.tienda.sinHabilitarTexto')} />
       )}

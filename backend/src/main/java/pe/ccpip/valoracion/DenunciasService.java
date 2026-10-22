@@ -70,7 +70,7 @@ public class DenunciasService {
     private static final String RESUMEN_PRODUCTOR = """
             SELECT pr.id, %s AS organizacion, pr.comunidad, pr.region, count(*) AS total,
                    count(*) FILTER (WHERE d.estado IN ('RECIBIDA', 'EN_REVISION')) AS abiertas,
-                   max(d.creada_en) AS ultima_en
+                   max(d.creada_en) AS ultima_en, pr.venta_bloqueada
             FROM denuncia d JOIN productor pr ON pr.id = d.productor_id""".formatted(ORGANIZACION);
 
     /** {@code compra_verificada} se calcula aqui; el denunciante no se selecciona. */
@@ -253,7 +253,8 @@ public class DenunciasService {
 
     private static ProductorDenunciado productorDenunciado(ResultSet rs) throws SQLException {
         return new ProductorDenunciado(rs.getLong("id"), rs.getString("organizacion"), rs.getString("comunidad"),
-                rs.getString("region"), rs.getInt("total"), rs.getInt("abiertas"), instante(rs, "ultima_en"));
+                rs.getString("region"), rs.getInt("total"), rs.getInt("abiertas"), instante(rs, "ultima_en"),
+                rs.getBoolean("venta_bloqueada"));
     }
 
     private static DenunciaAdmin denunciaAdmin(ResultSet rs) throws SQLException {

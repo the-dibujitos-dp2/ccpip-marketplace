@@ -1,6 +1,6 @@
 {
   "productor": { "productorId": 2, "organizacion": "C.N. Yarina", "comunidad": "Comunidad Awajun del Alto Maranon",
-    "region": "Amazonas", "total": 2, "abiertas": 1, "ultimaEn": "2026-10-15T14:00:00Z" },
+    "region": "Amazonas", "total": 2, "abiertas": 1, "ultimaEn": "2026-10-15T14:00:00Z", "ventaBloqueada": false },
   "denuncias": [
     { "id": 21, "producto": { "id": 5, "nombre": "Cacao en grano fermentado 1 kg" }, "motivo": "ORIGEN_DUDOSO",
       "descripcion": "No parece cacao de la comunidad. Llámame al [teléfono oculto].", "estado": "RECIBIDA",

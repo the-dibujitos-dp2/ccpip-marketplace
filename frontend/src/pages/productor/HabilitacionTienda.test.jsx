@@ -39,6 +39,14 @@ describe('Lo que el productor ve de las decisiones de la Cámara (CCPIP-291, CCP
     expect(screen.queryByText('Tu tienda aún no está habilitada')).not.toBeInTheDocument()
   })
 
+  it('con las ventas bloqueadas ve el motivo (CCPIP-85)', async () => {
+    productor({ ventaBloqueada: true, motivoBloqueo: 'Denuncias sin respuesta' })
+    abrirEn('/productor/tienda')
+    expect(await screen.findByText('La Cámara bloqueó las ventas de tu organización')).toBeInTheDocument()
+    expect(screen.getByText(/Motivo: «Denuncias sin respuesta»/)).toBeInTheDocument()
+    expect(screen.queryByText('La Cámara revocó la venta de tu organización')).not.toBeInTheDocument()
+  })
+
   it('una línea nueva que la autorización no cubre pausa la venta y permite pedir otra revisión', async () => {
     const evidencias = copia(DATOS.evidenciasProductor)
     evidencias.autorizacion = { ...evidencias.autorizacion, estado: 'APROBADA', vigenteHasta: '2027-03-31', cubreLineas: false }

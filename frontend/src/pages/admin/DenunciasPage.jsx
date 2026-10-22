@@ -6,6 +6,7 @@ import iconoReloj from '../../assets/icons/reloj.svg'
 import { bandejaDenuncias } from '../../api/valoracion.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
+import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
@@ -51,6 +52,7 @@ export default function DenunciasPage({ path }) {
               <span className="tabla__celda tabla__celda--flex" role="cell">
                 <span className="label-m">{p.organizacion}</span>
                 <span className="caption">{[p.comunidad, p.region].filter(Boolean).join(' · ')}</span>
+                {p.ventaBloqueada && <Badge tono="error">{t('productores.venta.bloqueada')}</Badge>}
               </span>
               <span className="tabla__celda" role="cell">{p.total}</span>
               <span className="tabla__celda" role="cell">{p.abiertas}</span>

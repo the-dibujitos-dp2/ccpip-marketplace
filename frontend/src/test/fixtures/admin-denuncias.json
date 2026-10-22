@@ -2,8 +2,8 @@
   "contadores": { "recibidas": 2, "enRevision": 1, "resueltas": 1, "desestimadas": 0 },
   "productores": [
     { "productorId": 2, "organizacion": "C.N. Yarina", "comunidad": "Comunidad Awajun del Alto Maranon", "region": "Amazonas",
-      "total": 3, "abiertas": 2, "ultimaEn": "2026-10-15T14:00:00Z" },
+      "total": 3, "abiertas": 2, "ultimaEn": "2026-10-15T14:00:00Z", "ventaBloqueada": false },
     { "productorId": 1, "organizacion": "Asoc. Nii Joi", "comunidad": "Comunidad Shipibo Konibo de Yarinacocha", "region": "Ucayali",
-      "total": 1, "abiertas": 1, "ultimaEn": "2026-10-14T14:00:00Z" }
+      "total": 1, "abiertas": 1, "ultimaEn": "2026-10-14T14:00:00Z", "ventaBloqueada": false }
   ]
 }

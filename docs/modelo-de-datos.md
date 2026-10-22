@@ -1160,3 +1160,35 @@ Reactivarlo exige que su linea este activa.
 REACTIVAR), `cambios` (jsonb: la foto al crear, `{campo: {antes, despues}}` al editar, las ofertas y
 productos conservados al desactivar) y `registrado_en`. Solo insercion (triggers), igual que
 `producto_auditoria`.
+
+## Bloqueo de las ventas de un productor (CCPIP-85, CCPIP-322)
+
+Migracion `V202610221200`. El subadministrador bloquea (RF-78) o desbloquea (RF-215) con motivo las
+ventas de un productor. Es una medida de gobernanza, que en el Figma se toma desde las denuncias
+(S-03 y S-04), distinta de la revocacion de CCPIP-330, que es de cumplimiento. Por eso tiene su
+propio estado: desbloquear no restituye una venta revocada ni restituir levanta un bloqueo.
+
+```mermaid
+erDiagram
+    productor |o--o| productor_decision : bloqueo_decision
+```
+
+**Una oferta es comprable** ahora, ademas de lo anterior, solo si la venta de su productor no esta
+bloqueada. Igual que la revocacion: la regla vive en `CatalogoRepository.HABILITADA`, la oferta sigue
+visible en Venta pausada y los pedidos confirmados no se tocan. El productor recibe el aviso
+(`DECISION_PRODUCTOR`) y ve el bloqueo y su motivo en Mi tienda.
+
+| Decision | Quien | Exige | Efecto |
+|---|---|---|---|
+| Bloquear (`POST /api/admin/productores/{id}/bloquear`) | SUB_ADMIN | no bloqueado, si no `409 VENTA_YA_BLOQUEADA` | `productor.venta_bloqueada`; fila BLOQUEAR_VENTA en `productor_decision` con las autorizaciones vigentes como alcance |
+| Desbloquear (`.../desbloquear`) | SUB_ADMIN | bloqueado, si no `409 VENTA_NO_BLOQUEADA` | Vuelve a vender lo que tenia autorizado, salvo que ademas este revocado |
+
+### productor_decision (cambios)
+`decision` pasa a `varchar(20)` y admite tambien `BLOQUEAR_VENTA` y `DESBLOQUEAR_VENTA`. Bloquear y
+desbloquear tambien dejan una fila `AUTORIZACION` en `producto_auditoria` de cada producto alcanzado.
+
+### productor (columnas nuevas)
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| venta_bloqueada | boolean | no | La venta del productor esta bloqueada. Independiente de `venta_revocada` |
+| bloqueo_decision_id | bigint | si | Ultimo bloqueo o desbloqueo |

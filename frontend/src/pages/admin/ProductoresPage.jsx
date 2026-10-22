@@ -11,7 +11,7 @@ import { RUTAS } from '../../router.js'
 import '../productor/productor.css'
 import './admin.css'
 
-/** Estado de la tienda y de la venta de un productor (CCPIP-291, CCPIP-330). */
+/** Estado de la tienda y de la venta de un productor (CCPIP-291, CCPIP-330, CCPIP-85). */
 export function BadgesProductor({ productor }) {
   const { t } = useTranslation()
   return (
@@ -19,9 +19,9 @@ export function BadgesProductor({ productor }) {
       {productor.tiendaHabilitada
         ? <Badge tono="exito">{t('productores.tienda.habilitada')}</Badge>
         : <Badge tono="aviso">{t('productores.tienda.sinHabilitar')}</Badge>}
-      {productor.ventaRevocada
-        ? <Badge tono="error">{t('productores.venta.revocada')}</Badge>
-        : <Badge tono="neutro">{t('productores.venta.vigente')}</Badge>}
+      {productor.ventaRevocada && <Badge tono="error">{t('productores.venta.revocada')}</Badge>}
+      {productor.ventaBloqueada && <Badge tono="error">{t('productores.venta.bloqueada')}</Badge>}
+      {!productor.ventaRevocada && !productor.ventaBloqueada && <Badge tono="neutro">{t('productores.venta.vigente')}</Badge>}
     </>
   )
 }
