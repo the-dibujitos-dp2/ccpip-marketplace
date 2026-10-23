@@ -76,7 +76,8 @@ function validar(f) {
     if (!f.nombreRecibe.trim()) errores.nombreRecibe = t('quienRecibe')
     else if (!NOMBRE.test(f.nombreRecibe.trim())) errores.nombreRecibe = t('soloLetras')
   }
-  if (!f.puntoId) errores.puntoId = t('punto')
+  // A domicilio, mientras no haya distrito no hay puntos entre los que elegir: el aviso del distrito basta
+  if (!f.puntoId && !(f.modalidad === 'ENVIO' && !f.ubigeo)) errores.puntoId = t('punto')
   if (f.modalidad === 'RECOJO' && f.recogeOtro && !f.personaAutorizada.trim()) errores.personaAutorizada = t('persona')
   else if (f.modalidad === 'RECOJO' && f.recogeOtro && !NOMBRE.test(f.personaAutorizada.trim())) errores.personaAutorizada = t('soloLetras')
   if (!celularValido(f.celular)) errores.celular = t('celular')
@@ -159,7 +160,8 @@ export default function CompraPage() {
       if (campo === 'numero') nuevo.cvv = LIMPIAR.cvv(f.cvv, nuevo)
       return nuevo
     })
-    setErrores((e) => ({ ...e, [campo]: undefined }))
+    // Elegir distrito tambien elige el punto si es uno solo: su aviso ya no corresponde
+    setErrores((e) => ({ ...e, [campo]: undefined, ...(campo === 'ubigeo' && { puntoId: undefined }) }))
   }
   // Cambiar entre recojo y domicilio cambia los puntos entre los que se elige
   const elegirModalidad = (modalidad) => {
