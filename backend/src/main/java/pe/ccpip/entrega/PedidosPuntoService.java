@@ -61,7 +61,8 @@ public class PedidosPuntoService {
     }
 
     /** Un pedido del punto, ya bloqueado, con lo que hace falta para decidir si cambia de estado. */
-    private record Bloqueado(long id, String estado, String comprador, String personaAutorizada, String celularContacto) {
+    private record Bloqueado(long id, String estado, String modalidad, String comprador, String personaAutorizada,
+                             String celularContacto) {
     }
 
     /**
@@ -72,11 +73,11 @@ public class PedidosPuntoService {
     private Bloqueado bloquear(long usuarioId, String numero) {
         MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId).addValue("numero", numero);
         return jdbc.query("""
-                SELECT pe.id, pe.estado, u.nombre AS comprador, pe.persona_autorizada, pe.celular_contacto
+                SELECT pe.id, pe.estado, pe.modalidad, u.nombre AS comprador, pe.persona_autorizada, pe.celular_contacto
                 FROM pedido pe JOIN usuario u ON u.id = pe.usuario_id
                 WHERE %s AND upper(pe.numero) = :numero
                 FOR UPDATE OF pe""".formatted(EN_SU_PUNTO), p,
-                (rs, row) -> new Bloqueado(rs.getLong("id"), rs.getString("estado"), rs.getString("comprador"),
+                (rs, row) -> new Bloqueado(rs.getLong("id"), rs.getString("estado"), rs.getString("modalidad"), rs.getString("comprador"),
                         rs.getString("persona_autorizada"), rs.getString("celular_contacto")))
                 .stream().findFirst()
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "El pedido no existe en tu punto de acopio."));
@@ -95,6 +96,17 @@ public class PedidosPuntoService {
             case "CANCELADO" -> "Este pedido fue cancelado.";
             default -> "Este pedido no se puede cambiar ahora.";
         });
+    }
+
+    /**
+     * CCPIP-59: un pedido a domicilio no se marca listo para recojo ni se entrega en el mostrador; su despacho
+     * llega con las historias de distribucion. Hasta entonces el punto solo lo ve y lo prepara.
+     */
+    private static void exigirRecojo(Bloqueado pedido) {
+        if ("ENVIO".equals(pedido.modalidad())) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "PEDIDO_A_DOMICILIO",
+                    "Este pedido se entrega a domicilio, no se recoge en el punto.");
+        }
     }
 
     /** Pasa el pedido a su nuevo estado y deja en el historial quien lo hizo y cuando. No toca el inventario. */
@@ -120,6 +132,7 @@ public class PedidosPuntoService {
     @Transactional
     public PedidoPunto marcarListo(long usuarioId, String numero) {
         Bloqueado pedido = bloquear(usuarioId, numero);
+        exigirRecojo(pedido);
         exigirEstado(pedido, "EN_PREPARACION");
         cambiarEstado(usuarioId, pedido, "LISTO_PARA_RECOJO");
         return pedidos(List.of(pedido.id())).get(0);
@@ -138,6 +151,7 @@ public class PedidosPuntoService {
         String celularDado = PersonaDeRecojo.celular(celular).orElseThrow(() -> ErrorNegocio.invalido("CELULAR_INVALIDO",
                 "Ingresa un celular de 9 dígitos que empiece con 9."));
         Bloqueado pedido = bloquear(usuarioId, numero);
+        exigirRecojo(pedido);
         exigirEstado(pedido, "LISTO_PARA_RECOJO");
 
         String recoge;
