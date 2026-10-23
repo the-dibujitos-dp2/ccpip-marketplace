@@ -38,3 +38,6 @@
 .pedidos__pie { margin: 0; }
 
 .pedidos__recogio { margin: 0; font-weight: 600; color: var(--color-text-primary); }
+
+/* CCPIP-59: la marca de pedido a domicilio ocupa lo que su texto, no todo el ancho de la tarjeta */
+.pedidos__tarjeta .badge-estado { align-self: flex-start; }

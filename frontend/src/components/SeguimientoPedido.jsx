@@ -6,9 +6,10 @@ import './SeguimientoPedido.css'
 
 /**
  * Etapas visibles de un pedido para recojo (CW-09). EN_PREPARACION no aparece hasta que un flujo la
- * marque (CCPIP-68); domicilio e internacional tendran sus propias etapas cuando existan.
+ * marque (CCPIP-68). El pedido a domicilio (CCPIP-59) todavia no tiene seguimiento, porque su reparto
+ * llega con las historias de distribucion; mientras, se ve su historial. Internacional tendra las suyas.
  */
-const ETAPAS = { RECOJO: ['CONFIRMADO', 'LISTO_PARA_RECOJO', 'ENTREGADO'] }
+const ETAPAS = { RECOJO: ['CONFIRMADO', 'LISTO_PARA_RECOJO', 'ENTREGADO'], ENVIO: [] }
 
 /** Fecha en que el pedido llego por primera vez a `estado`, segun su historial. */
 export function fechaDe(historial, estado) {

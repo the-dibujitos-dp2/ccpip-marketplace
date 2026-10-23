@@ -111,6 +111,7 @@ function Detalle({ pedido }) {
   const confirmado = pedido.estado === 'CONFIRMADO'
   const pagoAprobado = pedido.pagos.find((p) => p.estado === 'APROBADO')
   const punto = pedido.punto
+  const aDomicilio = pedido.modalidad === 'ENVIO' && pedido.entrega
   return (
     <>
       {confirmado ? (
@@ -118,7 +119,7 @@ function Detalle({ pedido }) {
           <Icono src={iconoCheck} tamano={48} className="pedido__exito-icono" />
           <h1 className="pedido__titulo">{t('pedido.gracias')}</h1>
           <p className="pedido__subtitulo">
-            <Trans i18nKey="pedido.confirmado" values={{ numero: pedido.numero }} components={{ strong: <strong /> }} />
+            <Trans i18nKey={aDomicilio ? 'pedido.confirmadoDomicilio' : 'pedido.confirmado'} values={{ numero: pedido.numero }} components={{ strong: <strong /> }} />
           </p>
         </header>
       ) : (
@@ -190,23 +191,48 @@ function Detalle({ pedido }) {
 
         <aside className="pedido__lateral">
           <section className="pedido__tarjeta" aria-labelledby="pedido-recojo">
-            <h2 id="pedido-recojo" className="pedido__tarjeta-titulo">{t('pedido.recojo')}</h2>
+            <h2 id="pedido-recojo" className="pedido__tarjeta-titulo">{t(aDomicilio ? 'pedido.domicilio.titulo' : 'pedido.recojo')}</h2>
             <dl className="pedido__datos">
               <div>
-                <dt>{t('pedido.punto')}</dt>
+                <dt>{t(aDomicilio ? 'pedido.domicilio.sale' : 'pedido.punto')}</dt>
                 <dd>
                   {punto.nombre}
                   <span className="caption">{[punto.direccion, punto.distrito, punto.departamento].filter(Boolean).join(' · ')}</span>
                 </dd>
               </div>
-              <div>
-                <dt>{t('pedido.recoge')}</dt>
-                <dd>{pedido.personaAutorizada ?? t('pedido.tu')}</dd>
-              </div>
-              <div>
-                <dt>{t('compra.celular')}</dt>
-                <dd>{pedido.celularContacto}</dd>
-              </div>
+              {aDomicilio ? (
+                <>
+                  <div>
+                    <dt>{t('pedido.domicilio.entregaEn')}</dt>
+                    <dd>
+                      {pedido.entrega.direccion}
+                      <span className="caption">
+                        {[pedido.entrega.distrito, pedido.entrega.provincia, pedido.entrega.departamento].join(' · ')}
+                      </span>
+                      {pedido.entrega.referencia && <span className="caption">{pedido.entrega.referencia}</span>}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('pedido.domicilio.recibe')}</dt>
+                    <dd>{pedido.entrega.contactoNombre}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('compra.domicilio.celular')}</dt>
+                    <dd>{pedido.entrega.contactoCelular}</dd>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <dt>{t('pedido.recoge')}</dt>
+                    <dd>{pedido.personaAutorizada ?? t('pedido.tu')}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('compra.celular')}</dt>
+                    <dd>{pedido.celularContacto}</dd>
+                  </div>
+                </>
+              )}
             </dl>
           </section>
 

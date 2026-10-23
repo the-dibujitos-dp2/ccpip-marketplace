@@ -4,9 +4,24 @@ import { apiFetch, idRuta } from './http.js'
 /** Puntos de acopio con existencias para todo el carrito: [{ id, nombre, departamento, provincia, distrito, direccion }]. */
 export const consultarPuntosRecojo = () => apiFetch('/api/compra/puntos')
 
-/** Crea el pedido en espera de pago. No descuenta stock hasta que el pago se aprueba. */
-export const confirmarCompra = ({ puntoId, personaAutorizada, celularContacto }) =>
-  apiFetch('/api/pedidos', { method: 'POST', body: { puntoId: Number(puntoId), personaAutorizada, celularContacto } })
+/**
+ * CCPIP-59: distritos a los que se entrega a domicilio todo el carrito, cada uno con los puntos que lo
+ * cubren: [{ distrito: { ubigeo, departamento, provincia, distrito }, puntos: [punto] }].
+ */
+export const consultarDistritosEntrega = () => apiFetch('/api/compra/distritos')
+
+/**
+ * Crea el pedido en espera de pago. No descuenta stock hasta que el pago se aprueba. Con `entrega`
+ * (CCPIP-59) es a domicilio: { ubigeo, direccion, referencia, contactoNombre, contactoCelular }; sin
+ * ella es recojo, con persona autorizada y celular de contacto.
+ */
+export const confirmarCompra = ({ puntoId, personaAutorizada, celularContacto, entrega }) =>
+  apiFetch('/api/pedidos', {
+    method: 'POST',
+    body: entrega
+      ? { puntoId: Number(puntoId), modalidad: 'ENVIO', entrega }
+      : { puntoId: Number(puntoId), personaAutorizada, celularContacto },
+  })
 
 /**
  * Paga el pedido. `claveIdempotencia` identifica el intento: reenviarla (corte de red, doble clic)
