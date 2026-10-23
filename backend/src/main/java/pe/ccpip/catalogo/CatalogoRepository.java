@@ -46,6 +46,14 @@ public class CatalogoRepository {
              WHERE l.producto_id = p.id AND u.tipo = 'PUNTO_ACOPIO'
                AND (l.fecha_vencimiento IS NULL OR l.fecha_vencimiento >= %s))""".formatted(HOY);
 
+    /** Autorizacion vigente para la oferta y cobertura de todas sus lineas (CCPIP-270, CCPIP-292). */
+    public static final String AUTORIZADA = """
+            EXISTS (SELECT 1 FROM autorizacion_producto a
+                    WHERE a.producto_id = p.id AND a.productor_id = pr.id AND a.estado = 'APROBADA'
+                      AND (a.vigente_hasta IS NULL OR a.vigente_hasta >= %s)
+                      AND NOT EXISTS (SELECT 1 FROM producto_linea pl
+                                      WHERE pl.producto_id = p.id AND pl.linea_id <> ALL (a.lineas)))""".formatted(HOY);
+
     /**
      * CCPIP-269 (RF-142): la oferta p del productor pr se puede comprar solo si el productor tiene una
      * cuenta bancaria ACTIVA y una autorizacion APROBADA y vigente para ese producto. Sin eso sigue
@@ -56,11 +64,7 @@ public class CatalogoRepository {
     public static final String HABILITADA = """
             (NOT pr.venta_revocada AND NOT pr.venta_bloqueada
              AND EXISTS (SELECT 1 FROM cuenta_bancaria cb WHERE cb.productor_id = pr.id AND cb.estado = 'ACTIVA')
-             AND EXISTS (SELECT 1 FROM autorizacion_producto a
-                         WHERE a.producto_id = p.id AND a.productor_id = pr.id AND a.estado = 'APROBADA'
-                           AND (a.vigente_hasta IS NULL OR a.vigente_hasta >= %s)
-                           AND NOT EXISTS (SELECT 1 FROM producto_linea pl
-                                           WHERE pl.producto_id = p.id AND pl.linea_id <> ALL (a.lineas))))""".formatted(HOY);
+             AND %s)""".formatted(AUTORIZADA);
 
     /** Ofertas que el catalogo publico muestra: publicadas, de un productor activo con tienda publicada. */
     public static final String VISIBLE = """

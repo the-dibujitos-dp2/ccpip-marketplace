@@ -194,6 +194,9 @@ class ProductorFlujoTest extends IntegrationTest {
     @Test
     void retirarLoSacaDelCatalogoYSePuedeVolverAPublicar() throws Exception {
         long id = productoPublicado();
+        jdbc.update("""
+                INSERT INTO autorizacion_producto (productor_id, producto_id, estado, decidido_en)
+                SELECT productor_id, id, 'APROBADA', now() FROM producto WHERE id = ?""", id);
         mockMvc.perform(post("/api/productor/productos/{id}/retirar", id).cookie(nuevo))
                 .andExpect(jsonPath("$.estado").value("RETIRADO"));
         mockMvc.perform(get("/api/productos/{id}", id)).andExpect(status().isNotFound());
@@ -208,6 +211,56 @@ class ProductorFlujoTest extends IntegrationTest {
         mockMvc.perform(get("/api/productos/{id}", id)).andExpect(status().isOk());
         assertThat(jdbc.queryForList("SELECT accion FROM producto_auditoria WHERE producto_id = ? ORDER BY id",
                 String.class, id)).containsSubsequence("CREAR", "PUBLICAR", "RETIRAR", "REPUBLICAR");
+    }
+
+    @Test
+    void retirarConservaLaOfertaYElHistoricoDelPedido() throws Exception {
+        long id = productoPublicado();
+        long productorId = jdbc.queryForObject("SELECT productor_id FROM producto WHERE id = ?", Long.class, id);
+        long consumidorId = jdbc.queryForObject("SELECT id FROM usuario WHERE correo = 'consumidor@ccpip.test'", Long.class);
+        long pedidoId = jdbc.queryForObject("""
+                INSERT INTO pedido (numero, usuario_id, modalidad, ubicacion_origen_id, total)
+                VALUES ('MC-CCPIP315', ?, 'RECOJO', ?, 42.50) RETURNING id""", Long.class,
+                consumidorId, acopioLima);
+        jdbc.update("""
+                INSERT INTO item_pedido (pedido_id, producto_id, productor_id, cantidad, precio_unitario, subtotal)
+                VALUES (?, ?, ?, 1, 42.50, 42.50)""", pedidoId, id, productorId);
+
+        mockMvc.perform(post("/api/productor/productos/{id}/retirar", id).cookie(nuevo))
+                .andExpect(jsonPath("$.estado").value("RETIRADO"));
+
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM producto WHERE id = ?", Integer.class, id)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM item_pedido WHERE pedido_id = ? AND producto_id = ?",
+                Integer.class, pedidoId, id)).isEqualTo(1);
+    }
+
+    @Test
+    void republicarVuelveAValidarLasCondicionesActuales() throws Exception {
+        long id = productoPublicado();
+        mockMvc.perform(post("/api/productor/productos/{id}/retirar", id).cookie(nuevo))
+                .andExpect(jsonPath("$.estado").value("RETIRADO"));
+        jdbc.update("UPDATE lote SET cantidad_actual = 0 WHERE producto_id = ?", id);
+
+        mockMvc.perform(post("/api/productor/productos/{id}/publicar", id).cookie(nuevo))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("PRODUCTO_NO_PUBLICABLE"));
+        assertThat(jdbc.queryForObject("SELECT estado FROM producto WHERE id = ?", String.class, id)).isEqualTo("RETIRADO");
+    }
+
+    @Test
+    void republicarRechazaUnaAutorizacionRevocada() throws Exception {
+        long id = productoPublicado();
+        jdbc.update("""
+                INSERT INTO autorizacion_producto (productor_id, producto_id, estado, decidido_en)
+                SELECT productor_id, id, 'APROBADA', now() FROM producto WHERE id = ?""", id);
+        mockMvc.perform(post("/api/productor/productos/{id}/retirar", id).cookie(nuevo))
+                .andExpect(jsonPath("$.estado").value("RETIRADO"));
+        jdbc.update("UPDATE autorizacion_producto SET estado = 'REVOCADA' WHERE producto_id = ?", id);
+
+        mockMvc.perform(post("/api/productor/productos/{id}/publicar", id).cookie(nuevo))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("PRODUCTO_NO_PUBLICABLE"));
+        assertThat(jdbc.queryForObject("SELECT estado FROM producto WHERE id = ?", String.class, id)).isEqualTo("RETIRADO");
     }
 
     @Test

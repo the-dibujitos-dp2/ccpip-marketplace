@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import pe.ccpip.alerta.PreferenciasAlerta;
+import pe.ccpip.catalogo.CatalogoRepository;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.imagenes.ImagenService;
 import pe.ccpip.productor.Auditoria.Accion;
@@ -155,12 +156,23 @@ public class ProductosService {
             throw new ErrorNegocio(HttpStatus.UNPROCESSABLE_ENTITY, "PRODUCTO_NO_PUBLICABLE",
                     "Aún falta completar algunos datos para publicar.", p.publicable().faltan());
         }
+        if (p.estado() == Estado.RETIRADO && !autorizacionVigente(productorId, id)) {
+            throw new ErrorNegocio(HttpStatus.UNPROCESSABLE_ENTITY, "PRODUCTO_NO_PUBLICABLE",
+                    "La oferta no tiene una autorización de venta vigente.", List.of("Una autorización de venta vigente"));
+        }
         jdbc.update("""
                 UPDATE producto SET estado = 'PUBLICADO', publicado_en = coalesce(publicado_en, now()),
                        actualizado_por = ?, actualizado_en = now()
                 WHERE id = ?""", usuarioId, id);
         auditoria.registrar(id, usuarioId, p.estado() == Estado.RETIRADO ? Accion.REPUBLICAR : Accion.PUBLICAR, null);
         return obtener(productorId, id);
+    }
+
+    private boolean autorizacionVigente(long productorId, long productoId) {
+        return Boolean.TRUE.equals(jdbc.queryForObject("""
+                SELECT %s FROM producto p JOIN productor pr ON pr.id = p.productor_id
+                WHERE p.id = ? AND pr.id = ?""".formatted(CatalogoRepository.AUTORIZADA),
+                Boolean.class, productoId, productorId));
     }
 
     /** Retirar no borra: el producto deja el catalogo pero sigue en pedidos e historico. Es reversible. */
