@@ -15,6 +15,7 @@ import ComisionPage from './pages/admin/ComisionPage.jsx'
 import DenunciasAdminPage from './pages/admin/DenunciasPage.jsx'
 import ParametrosPage from './pages/admin/ParametrosPage.jsx'
 import ReportesPage from './pages/admin/ReportesPage.jsx'
+import MiHistorialPage from './pages/admin/MiHistorialPage.jsx'
 import DetalleCuentaPage from './pages/admin/DetalleCuentaPage.jsx'
 import ExistenciasPage from './pages/admin/ExistenciasPage.jsx'
 import CuentasPage from './pages/admin/CuentasPage.jsx'
@@ -76,10 +77,12 @@ const RUTA_CUENTA = /^\/admin\/cuentas\/(\d+)$/
 
 /**
  * Rutas del modulo del sub administrador: autorizaciones de productos (S-01, S-02) y su expediente, y
- * los productores con los productos que pueden vender (CCPIP-292, CCPIP-291, CCPIP-330).
+ * los productores con los productos que pueden vender (CCPIP-292, CCPIP-291, CCPIP-330) y el
+ * historial de sus propias acciones (CCPIP-126).
  */
 const delModuloSub = (path) =>
   path === RUTAS.adminAutorizaciones || RUTA_EXPEDIENTE.test(path) || path === RUTAS.adminProductores || RUTA_FICHA_PRODUCTOR.test(path)
+  || path === RUTAS.adminMiHistorial
 
 /** CCPIP-84: denuncias contra productores; el sub administrador las gestiona y el super las consulta. */
 const deDenuncias = (path) => path === RUTAS.adminDenuncias || RUTA_DENUNCIAS_PRODUCTOR.test(path)
@@ -279,6 +282,7 @@ export default function App() {
     else if (path === RUTAS.adminProductores) pagina = <ProductoresPage path={path} />
     else if (RUTA_FICHA_PRODUCTOR.test(path)) pagina = <FichaProductorPage path={RUTAS.adminProductores} id={path.match(RUTA_FICHA_PRODUCTOR)[1]} />
     else if (path === RUTAS.adminDenuncias) pagina = <DenunciasAdminPage path={path} />
+    else if (path === RUTAS.adminMiHistorial) pagina = <MiHistorialPage path={path} />
     else if (RUTA_DENUNCIAS_PRODUCTOR.test(path)) pagina = <ExpedienteDenunciasPage path={RUTAS.adminDenuncias} productorId={path.match(RUTA_DENUNCIAS_PRODUCTOR)[1]} />
     else if (path === RUTAS.adminCuentas) pagina = <CuentasPage path={path} />
     else if (path === RUTAS.adminCuentaNueva) pagina = <NuevaCuentaPage path={RUTAS.adminCuentas} />

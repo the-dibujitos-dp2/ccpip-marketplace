@@ -963,7 +963,8 @@
       "catalogo": "Master catalog",
       "existencias": "Stock",
       "denuncias": "Reports",
-      "motivosMerma": "Shrinkage causes"
+      "motivosMerma": "Shrinkage causes",
+      "miHistorial": "My history"
     },
     "permisos": {
       "titulo": "Permissions by role",
@@ -3163,5 +3164,45 @@
     "productosCitados": "Products suggested by the assistant",
     "aviso": "AI-generated answer based on the real catalog. Check each product page before buying.",
     "verEnBusqueda": "See all results in search"
+  },
+  "miHistorial": {
+    "titulo": "My history",
+    "intro": "Your governance decisions, with the date, the reason and who they were about. Nobody can edit them.",
+    "desde": "From",
+    "hasta": "To",
+    "tipo": "Action type",
+    "todas": "All",
+    "tipos": {
+      "AUTORIZACIONES": "Authorizations",
+      "PRODUCTORES": "Producers",
+      "DENUNCIAS": "Reports",
+      "CUENTAS": "Accounts"
+    },
+    "col": {
+      "fecha": "Date and time",
+      "accion": "Action",
+      "sobre": "About",
+      "motivo": "Reason"
+    },
+    "accion": {
+      "AUTORIZACION_APROBADA": "Approved authorization",
+      "AUTORIZACION_RECHAZADA": "Rejected authorization",
+      "AUTORIZACION_REVOCADA": "Revoked authorization",
+      "RENOVACION_SOLICITADA": "Requested renewal",
+      "HABILITAR_TIENDA": "Enabled store",
+      "REVOCAR_VENTA": "Revoked sale",
+      "RESTITUIR_VENTA": "Restored sale",
+      "BLOQUEAR_VENTA": "Blocked producer",
+      "DESBLOQUEAR_VENTA": "Unblocked producer",
+      "DENUNCIA_EN_REVISION": "Reviewing report",
+      "DENUNCIA_RESUELTA": "Resolved report",
+      "DENUNCIA_DESESTIMADA": "Dismissed report",
+      "CUENTA_SUSPENDER": "Suspended account",
+      "CUENTA_REACTIVAR": "Reactivated account"
+    },
+    "denuncia": "Report {{numero}}",
+    "vacio": "You recorded no actions in this period.",
+    "error": "We could not load your history",
+    "inalterable": "Unalterable record. Corrections are recorded as new actions."
   }
 }

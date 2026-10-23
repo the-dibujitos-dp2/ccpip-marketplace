@@ -37,6 +37,8 @@ const NAV = [
   { to: RUTAS.adminCuentas, clave: 'cuentas', icono: iconoUsuario, roles: ['SUPER_ADMIN', 'SUB_ADMIN'], prefijo: true },
   // CCPIP-77, 298, 299 y 300: catalogo de causas de merma
   { to: RUTAS.adminMotivosMerma, clave: 'motivosMerma', icono: iconoMerma, roles: ['SUPER_ADMIN'] },
+  // S-05 (CCPIP-126): las acciones de gobernanza propias del sub administrador
+  { to: RUTAS.adminMiHistorial, clave: 'miHistorial', icono: iconoReloj, roles: ['SUB_ADMIN'] },
 ]
 
 /** Estructura web de la administracion de la Camara (Figma SA-01 a SA-10). */

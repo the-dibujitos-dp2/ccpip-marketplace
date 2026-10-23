@@ -101,3 +101,16 @@ export const cambiarEstadoCuenta = (id, accion, motivo) =>
 
 /** Nuevo enlace de bienvenida si la persona aun no eligio su contrasena. */
 export const reenviarAcceso = (id) => apiFetch(`/api/admin/cuentas/${idRuta(id)}/reenviar-acceso`, { method: 'POST' })
+
+/**
+ * CCPIP-126 (S-05): las acciones de gobernanza del sub administrador de la sesion. Sin filtro, los
+ * ultimos 30 dias; `tipo`: AUTORIZACIONES, PRODUCTORES, DENUNCIAS o CUENTAS.
+ */
+export function miHistorial({ desde, hasta, tipo } = {}) {
+  const q = new URLSearchParams()
+  if (desde) q.set('desde', desde)
+  if (hasta) q.set('hasta', hasta)
+  if (tipo) q.set('tipo', tipo)
+  const consulta = q.toString()
+  return apiFetch(`/api/admin/mi-historial${consulta ? `?${consulta}` : ''}`)
+}

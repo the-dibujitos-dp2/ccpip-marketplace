@@ -963,7 +963,8 @@
       "catalogo": "Catálogo maestro",
       "existencias": "Existencias",
       "denuncias": "Denuncias",
-      "motivosMerma": "Causas de merma"
+      "motivosMerma": "Causas de merma",
+      "miHistorial": "Mi historial"
     },
     "permisos": {
       "titulo": "Permisos por rol",
@@ -3163,5 +3164,45 @@
     "productosCitados": "Productos que sugiere el asistente",
     "aviso": "Respuesta generada con IA a partir del catálogo real. Revisa la ficha de cada producto antes de comprar.",
     "verEnBusqueda": "Ver todos los resultados en la búsqueda"
+  },
+  "miHistorial": {
+    "titulo": "Mi historial",
+    "intro": "Tus decisiones de gobernanza, con la fecha, el motivo y sobre quién las tomaste. Nadie puede editarlas.",
+    "desde": "Desde",
+    "hasta": "Hasta",
+    "tipo": "Tipo de acción",
+    "todas": "Todas",
+    "tipos": {
+      "AUTORIZACIONES": "Autorizaciones",
+      "PRODUCTORES": "Productores",
+      "DENUNCIAS": "Denuncias",
+      "CUENTAS": "Cuentas"
+    },
+    "col": {
+      "fecha": "Fecha y hora",
+      "accion": "Acción",
+      "sobre": "Sobre",
+      "motivo": "Motivo"
+    },
+    "accion": {
+      "AUTORIZACION_APROBADA": "Aprobó autorización",
+      "AUTORIZACION_RECHAZADA": "Rechazó autorización",
+      "AUTORIZACION_REVOCADA": "Revocó autorización",
+      "RENOVACION_SOLICITADA": "Pidió renovación",
+      "HABILITAR_TIENDA": "Habilitó tienda",
+      "REVOCAR_VENTA": "Revocó venta",
+      "RESTITUIR_VENTA": "Restituyó venta",
+      "BLOQUEAR_VENTA": "Bloqueó productor",
+      "DESBLOQUEAR_VENTA": "Desbloqueó productor",
+      "DENUNCIA_EN_REVISION": "Revisa denuncia",
+      "DENUNCIA_RESUELTA": "Resolvió denuncia",
+      "DENUNCIA_DESESTIMADA": "Desestimó denuncia",
+      "CUENTA_SUSPENDER": "Suspendió cuenta",
+      "CUENTA_REACTIVAR": "Reactivó cuenta"
+    },
+    "denuncia": "Denuncia {{numero}}",
+    "vacio": "No registraste acciones en este periodo.",
+    "error": "No pudimos cargar tu historial",
+    "inalterable": "Registro inalterable. Las correcciones se registran como nuevas acciones."
   }
 }

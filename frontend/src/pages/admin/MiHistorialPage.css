@@ -1,0 +1,15 @@
+/* S-05 Mi historial (CCPIP-126) */
+.mi-historial__filtros { display: flex; flex-wrap: wrap; gap: 16px; }
+.mi-historial__filtros .campo { width: 200px; }
+.mi-historial__fecha { flex: 0 0 120px; color: var(--color-text-primary); }
+.mi-historial__accion { flex: 0 0 190px; }
+.mi-historial__sobre { flex: 0 0 240px; display: flex; flex-direction: column; gap: 2px; }
+.mi-historial__nota { display: flex; align-items: center; gap: 8px; }
+
+/* En celular cada accion es una tarjeta: sin scroll horizontal */
+@media (max-width: 720px) {
+  .mi-historial__filtros .campo { width: 100%; }
+  .mi-historial__tabla .tabla__fila--encabezado { display: none; }
+  .mi-historial__tabla .tabla__fila { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+  .mi-historial__tabla .tabla__celda { flex: none; width: 100%; min-width: 0; }
+}
