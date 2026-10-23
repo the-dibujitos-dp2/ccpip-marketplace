@@ -808,18 +808,22 @@
       "lote": "Lote {{codigo}} · {{vence}} · {{cantidad}} und",
       "marcado": "El pedido {{numero}} está listo para recojo",
       "errorMarcar": "No pudimos marcar el pedido",
+      "preparacionRegistrada": "El pedido {{numero}} está en preparación",
+      "errorPreparacion": "No pudimos registrar la preparación",
       "entregado": "El pedido {{numero}} se entregó a {{persona}}",
       "errorCargar": "No pudimos cargar los pedidos",
       "vacio": "Aún no hay pedidos",
       "vacioTexto": "Aquí verás los pedidos que los compradores recogerán en tu punto.",
       "columna": {
         "CONFIRMADO": "Confirmado",
+        "EN_PREPARACION": "En preparación",
         "LISTO_PARA_RECOJO": "Listo para recojo",
         "ENTREGADO": "Entregado hoy"
       },
       "columnaConteo": "{{titulo}} ({{total}})",
       "columnaVacia": {
         "CONFIRMADO": "No hay pedidos por preparar.",
+        "EN_PREPARACION": "No hay pedidos en preparación.",
         "LISTO_PARA_RECOJO": "Ningún pedido espera a su comprador.",
         "ENTREGADO": "Aún no se entregó ningún pedido hoy."
       },
@@ -829,10 +833,13 @@
       "recogio": "Recogió {{persona}}",
       "pie": {
         "CONFIRMADO": "Confirmado",
+        "EN_PREPARACION": "En preparación",
         "LISTO_PARA_RECOJO": "Listo",
         "ENTREGADO": "Entregado"
       },
       "marcarEtiqueta": "Marcar el pedido {{numero}} como listo para recojo",
+      "preparacionEtiqueta": "Registrar la preparación del pedido {{numero}}",
+      "registrandoPreparacion": "Registrando…",
       "marcando": "Marcando…",
       "recojoEtiqueta": "Registrar el recojo del pedido {{numero}}"
     },

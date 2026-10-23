@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listarPedidos, marcarListo } from '../../api/acopio.js'
+import { listarPedidos, marcarListo, marcarPreparacion } from '../../api/acopio.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
@@ -12,9 +12,9 @@ import i18n from '../../i18n/index.js'
 import DialogoRecojo from './DialogoRecojo.jsx'
 import './PedidosPage.css'
 
-/** Columnas de A-05 en Sprint 0: preparacion, reparto y recogido por el distribuidor llegan con sus historias. */
 const COLUMNAS = [
-  { estado: 'CONFIRMADO', accion: 'LISTO' },
+  { estado: 'CONFIRMADO', accion: 'PREPARACION' },
+  { estado: 'EN_PREPARACION', accion: 'LISTO' },
   { estado: 'LISTO_PARA_RECOJO', accion: 'RECOJO' },
   { estado: 'ENTREGADO' },
 ]
@@ -27,8 +27,8 @@ function textoLote(lote) {
 }
 
 /**
- * A-05 · CCPIP-159 (RF-128): los pedidos del punto por estado. El administrador marca un pedido
- * confirmado como listo para recojo; el servidor guarda quien y cuando, y rechaza lo que ya cambio.
+ * A-05 · CCPIP-68 y CCPIP-159: el administrador registra preparacion y luego disponibilidad para recojo;
+ * el servidor guarda quien y cuando, y rechaza transiciones que ya cambiaron.
  * CCPIP-74: cada linea muestra los lotes asignados, el que vence antes primero, para saber que
  * entregar. CCPIP-71: el pedido listo se entrega con "Registrar recojo", que pide y valida en el
  * servidor quien recoge y su celular.
@@ -45,17 +45,21 @@ export default function PedidosPage({ path }) {
     setDatos((d) => ({ ...d, items: d.items.map((p) => (p.numero === pedido.numero ? pedido : p)) }))
   }
 
-  async function marcar(numero) {
+  async function marcar(numero, accion) {
     setMarcando(numero)
     setAviso(null)
     try {
-      const pedido = await marcarListo(numero)
+      const pedido = accion === 'PREPARACION' ? await marcarPreparacion(numero) : await marcarListo(numero)
       reemplazar(pedido)
-      setAviso({ tono: 'exito', titulo: t('acopio.pedidos.marcado', { numero }) })
+      setAviso({
+        tono: 'exito',
+        titulo: t(accion === 'PREPARACION' ? 'acopio.pedidos.preparacionRegistrada' : 'acopio.pedidos.marcado', { numero }),
+      })
     } catch (e) {
       // Un 401 ya lo maneja la app; aqui se explican las reglas de negocio
       if (e.status === 401) return
-      setAviso({ tono: 'error', titulo: t('acopio.pedidos.errorMarcar'), descripcion: mensajeError(e) })
+      const error = accion === 'PREPARACION' ? 'acopio.pedidos.errorPreparacion' : 'acopio.pedidos.errorMarcar'
+      setAviso({ tono: 'error', titulo: t(error), descripcion: mensajeError(e) })
       // Si otra persona ya lo cambio, la pantalla estaba desactualizada
       if (e.status === 404 || e.status === 409) recargar()
     } finally {
@@ -140,16 +144,18 @@ function TarjetaPedido({ pedido, accion, ocupado, onMarcar, onRecojo }) {
       <p className="caption pedidos__pie">
         {`${t(`acopio.pedidos.pie.${pedido.estado}`, { defaultValue: pedido.estado })} ${cuando}${cambio?.responsable ? ` · ${cambio.responsable}` : ''} · ${precio(pedido.total)}`}
       </p>
-      {accion === 'LISTO' && (
+      {(accion === 'PREPARACION' || accion === 'LISTO') && (
         <Boton
           tipo="secundario"
           tamano="M"
           anchoCompleto
           disabled={ocupado}
-          aria-label={t('acopio.pedidos.marcarEtiqueta', { numero: pedido.numero })}
-          onClick={() => onMarcar(pedido.numero)}
+          aria-label={t(accion === 'PREPARACION' ? 'acopio.pedidos.preparacionEtiqueta' : 'acopio.pedidos.marcarEtiqueta', { numero: pedido.numero })}
+          onClick={() => onMarcar(pedido.numero, accion)}
         >
-          {ocupado ? t('acopio.pedidos.marcando') : t('acopio.pedidos.columna.LISTO_PARA_RECOJO')}
+          {ocupado
+            ? t(accion === 'PREPARACION' ? 'acopio.pedidos.registrandoPreparacion' : 'acopio.pedidos.marcando')
+            : t(accion === 'PREPARACION' ? 'acopio.pedidos.columna.EN_PREPARACION' : 'acopio.pedidos.columna.LISTO_PARA_RECOJO')}
         </Boton>
       )}
       {accion === 'RECOJO' && (

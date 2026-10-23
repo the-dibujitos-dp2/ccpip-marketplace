@@ -24,7 +24,7 @@ import pe.ccpip.support.IntegrationTest;
 
 /**
  * CCPIP-159 (RF-128) y Figma A-05: el administrador del punto de acopio ve los pedidos de su punto y
- * marca un pedido confirmado como listo para recojo, con responsable y fecha en el historial.
+ * registra preparación y luego disponibilidad para recojo, con responsable y fecha en el historial.
  * admin_acopio@ccpip.test administra el Centro Nacional Lima.
  */
 @Transactional
@@ -47,6 +47,7 @@ class PedidosPuntoControllerTest extends IntegrationTest {
 
     @Test
     void marcaElPedidoListoConResponsableYFechaEnSuHistorial() throws Exception {
+        marcarPreparacion(admin, "MC-T0159").andExpect(status().isOk());
         marcarListo(admin, "MC-T0159")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.numero").value("MC-T0159"))
@@ -57,9 +58,12 @@ class PedidosPuntoControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.historial[0].estado").value("CONFIRMADO"))
                 // La confirmacion la hizo el comprador: no se nombra al punto (RNF-05)
                 .andExpect(jsonPath("$.historial[0].responsable").doesNotExist())
-                .andExpect(jsonPath("$.historial[1].estado").value("LISTO_PARA_RECOJO"))
+                .andExpect(jsonPath("$.historial[1].estado").value("EN_PREPARACION"))
                 .andExpect(jsonPath("$.historial[1].responsable").value("Administrador de Acopio de Prueba"))
                 .andExpect(jsonPath("$.historial[1].registradoEn").exists())
+                .andExpect(jsonPath("$.historial[2].estado").value("LISTO_PARA_RECOJO"))
+                .andExpect(jsonPath("$.historial[2].responsable").value("Administrador de Acopio de Prueba"))
+                .andExpect(jsonPath("$.historial[2].registradoEn").exists())
                 .andExpect(content().string(not(containsString("Consumidor de Prueba"))));
 
         assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id = ?", String.class, pedido))
@@ -73,6 +77,7 @@ class PedidosPuntoControllerTest extends IntegrationTest {
     @Test
     void marcarListoNoTocaElInventario() throws Exception {
         Integer antes = jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario", Integer.class);
+        marcarPreparacion(admin, "MC-T0159").andExpect(status().isOk());
         marcarListo(admin, "mc-t0159").andExpect(status().isOk());
 
         assertThat(jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario", Integer.class)).isEqualTo(antes);
@@ -81,7 +86,51 @@ class PedidosPuntoControllerTest extends IntegrationTest {
     }
 
     @Test
-    void soloSeMarcaUnPedidoConfirmado() throws Exception {
+    void registraPreparacionConResponsableYFechaSinTocarInventario() throws Exception {
+        Integer movimientosAntes = jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario", Integer.class);
+
+        marcarPreparacion(admin, "MC-T0159")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("EN_PREPARACION"))
+                .andExpect(jsonPath("$.historial[1].estado").value("EN_PREPARACION"))
+                .andExpect(jsonPath("$.historial[1].responsable").value("Administrador de Acopio de Prueba"))
+                .andExpect(jsonPath("$.historial[1].registradoEn").exists())
+                .andExpect(content().string(not(containsString("Consumidor de Prueba"))));
+
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario", Integer.class)).isEqualTo(movimientosAntes);
+        assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id = ?", String.class, pedido)).isEqualTo("EN_PREPARACION");
+        assertThat(jdbc.queryForObject("""
+                SELECT u.correo FROM pedido_estado_historial h JOIN usuario u ON u.id = h.usuario_id
+                WHERE h.pedido_id = ? AND h.estado = 'EN_PREPARACION'""", String.class, pedido))
+                .isEqualTo("admin_acopio@ccpip.test");
+    }
+
+    @Test
+    void soloTransicionaConfirmadoAPreparacionYDespuesAListoYRecojoNoDescuentaOtraVez() throws Exception {
+        long comprador = jdbc.queryForObject("SELECT usuario_id FROM pedido WHERE id = ?", Long.class, pedido);
+        jdbc.update("""
+                INSERT INTO stock (producto_id, ubicacion_id, cantidad)
+                SELECT ?, id, 5 FROM ubicacion WHERE nombre = ?""", producto, LIMA);
+        descuento.descontarPorPedido(pedido, comprador);
+        marcarListo(admin, "MC-T0159").andExpect(status().isConflict());
+        marcarPreparacion(admin, "MC-T0159").andExpect(status().isOk());
+        marcarPreparacion(admin, "MC-T0159")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("ESTADO_INVALIDO"));
+        Integer movimientosAntesDeRecojo = jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario", Integer.class);
+        marcarListo(admin, "MC-T0159")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("LISTO_PARA_RECOJO"))
+                .andExpect(jsonPath("$.historial[1].estado").value("EN_PREPARACION"))
+                .andExpect(jsonPath("$.historial[2].estado").value("LISTO_PARA_RECOJO"));
+        registrarRecojo(admin, "MC-T0159", "Consumidor de Prueba", "987654321").andExpect(status().isOk());
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario", Integer.class)).isEqualTo(movimientosAntesDeRecojo);
+        assertThat(jdbc.queryForObject("SELECT cantidad_actual FROM lote WHERE producto_id = ?", Integer.class, producto)).isEqualTo(3);
+    }
+
+    @Test
+    void soloSeMarcaUnPedidoEnPreparacionYNoSePuedeRepetir() throws Exception {
+        marcarPreparacion(admin, "MC-T0159").andExpect(status().isOk());
         marcarListo(admin, "MC-T0159").andExpect(status().isOk());
         marcarListo(admin, "MC-T0159")
                 .andExpect(status().isConflict())
@@ -96,7 +145,7 @@ class PedidosPuntoControllerTest extends IntegrationTest {
 
         // El rechazo no deja rastro en el historial
         assertThat(jdbc.queryForObject("SELECT count(*) FROM pedido_estado_historial WHERE pedido_id = ?",
-                Integer.class, pedido)).isEqualTo(2);
+                Integer.class, pedido)).isEqualTo(3);
     }
 
     // --- CCPIP-74: lotes asignados a cada linea ---
@@ -128,6 +177,7 @@ class PedidosPuntoControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.items[?(@.numero == 'MC-T0074')].lineas[0].lotes[2]").isEmpty());
 
         // Los lotes tambien llegan en la respuesta de marcar el pedido como listo
+        marcarPreparacion(admin, "MC-T0074").andExpect(status().isOk());
         marcarListo(admin, "MC-T0074")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.lineas[0].lotes.length()").value(2));
@@ -149,6 +199,7 @@ class PedidosPuntoControllerTest extends IntegrationTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("PEDIDO_NO_ENCONTRADO"));
         assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id = ?", String.class, ajeno)).isEqualTo("CONFIRMADO");
+        marcarPreparacion(admin, "MC-T0161").andExpect(status().isNotFound());
 
         marcarListo(admin, "MC-99999").andExpect(status().isNotFound());
         marcarListo(admin, "MC 1;--").andExpect(status().isNotFound());
@@ -157,9 +208,11 @@ class PedidosPuntoControllerTest extends IntegrationTest {
 
     @Test
     void listaLosPedidosDelPuntoPorColumnaDeA05() throws Exception {
+        long preparando = pedidoConfirmado("MC-T0165", LIMA, producto, 1);
         long listo = pedidoConfirmado("MC-T0162", LIMA, producto, 1);
         long entregadoHoy = pedidoConfirmado("MC-T0163", LIMA, producto, 1);
         long entregadoAntes = pedidoConfirmado("MC-T0164", LIMA, producto, 1);
+        jdbc.update("UPDATE pedido SET estado = 'EN_PREPARACION' WHERE id = ?", preparando);
         jdbc.update("UPDATE pedido SET estado = 'LISTO_PARA_RECOJO' WHERE id = ?", listo);
         jdbc.update("UPDATE pedido SET estado = 'ENTREGADO' WHERE id = ?", entregadoHoy);
         jdbc.update("UPDATE pedido SET estado = 'ENTREGADO', actualizado_en = now() - interval '2 days' WHERE id = ?",
@@ -168,8 +221,8 @@ class PedidosPuntoControllerTest extends IntegrationTest {
         listar(admin)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ubicacion").value(LIMA))
-                // Confirmados, luego listos, luego entregados hoy; lo entregado otro dia ya no se muestra
-                .andExpect(jsonPath("$.items[*].numero").value(org.hamcrest.Matchers.contains("MC-T0159", "MC-T0162", "MC-T0163")))
+                // Confirmados, en preparacion, listos, luego entregados hoy; lo anterior ya no se muestra
+                .andExpect(jsonPath("$.items[*].numero").value(org.hamcrest.Matchers.contains("MC-T0159", "MC-T0165", "MC-T0162", "MC-T0163")))
                 .andExpect(jsonPath("$.items[0].estado").value("CONFIRMADO"))
                 .andExpect(jsonPath("$.items[0].total").value(40))
                 .andExpect(content().string(not(containsString("consumidor@ccpip.test"))));
@@ -188,11 +241,13 @@ class PedidosPuntoControllerTest extends IntegrationTest {
     void soloElAdministradorDePuntoOperaLosPedidos() throws Exception {
         listar(null).andExpect(status().isUnauthorized());
         marcarListo(null, "MC-T0159").andExpect(status().isUnauthorized());
+        marcarPreparacion(null, "MC-T0159").andExpect(status().isUnauthorized());
         for (String correo : new String[] {"consumidor@ccpip.test", "productor@ccpip.test", "sub_admin@ccpip.test",
                 "sudo@ccpip.test", "distribuidor@ccpip.test"}) {
             Cookie otro = loginAs(correo);
             listar(otro).andExpect(status().isForbidden());
             marcarListo(otro, "MC-T0159").andExpect(status().isForbidden());
+            marcarPreparacion(otro, "MC-T0159").andExpect(status().isForbidden());
         }
         assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id = ?", String.class, pedido)).isEqualTo("CONFIRMADO");
     }
@@ -204,6 +259,18 @@ class PedidosPuntoControllerTest extends IntegrationTest {
 
     private ResultActions marcarListo(Cookie sesion, String numero) throws Exception {
         var peticion = post("/api/acopio/pedidos/{numero}/listo", numero);
+        return mockMvc.perform(sesion == null ? peticion : peticion.cookie(sesion));
+    }
+
+    private ResultActions marcarPreparacion(Cookie sesion, String numero) throws Exception {
+        var peticion = post("/api/acopio/pedidos/{numero}/preparacion", numero);
+        return mockMvc.perform(sesion == null ? peticion : peticion.cookie(sesion));
+    }
+
+    private ResultActions registrarRecojo(Cookie sesion, String numero, String persona, String celular) throws Exception {
+        var peticion = post("/api/acopio/pedidos/{numero}/recojo", numero)
+                .contentType("application/json")
+                .content("{\"persona\":\"" + persona + "\",\"celular\":\"" + celular + "\"}");
         return mockMvc.perform(sesion == null ? peticion : peticion.cookie(sesion));
     }
 }

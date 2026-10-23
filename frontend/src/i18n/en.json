@@ -808,19 +808,23 @@
       "lote": "Batch {{codigo}} · {{vence}} · {{cantidad}} units",
       "marcado": "Order {{numero}} is ready for pickup",
       "errorMarcar": "We couldn't mark the order",
+      "preparacionRegistrada": "Order {{numero}} is being prepared",
+      "errorPreparacion": "We couldn't record the preparation",
       "entregado": "Order {{numero}} was handed over to {{persona}}",
       "errorCargar": "We couldn't load the orders",
       "vacio": "No orders yet",
       "vacioTexto": "Here you'll see the orders buyers will pick up at your point.",
       "columna": {
         "CONFIRMADO": "Confirmed",
+        "EN_PREPARACION": "Being prepared",
         "LISTO_PARA_RECOJO": "Ready for pickup",
         "ENTREGADO": "Delivered today"
       },
       "columnaConteo": "{{titulo}} ({{total}})",
       "columnaVacia": {
         "CONFIRMADO": "No orders to prepare.",
-        "LISTO_PARA_RECOJO": "No orders waiting for their buyer.",
+        "EN_PREPARACION": "No orders are being prepared.",
+        "LISTO_PARA_RECOJO": "No orders are waiting for their buyer.",
         "ENTREGADO": "No orders delivered today yet."
       },
       "productosDe": "Products in order {{numero}}",
@@ -829,10 +833,13 @@
       "recogio": "Picked up by {{persona}}",
       "pie": {
         "CONFIRMADO": "Confirmed",
+        "EN_PREPARACION": "Being prepared",
         "LISTO_PARA_RECOJO": "Ready",
         "ENTREGADO": "Delivered"
       },
       "marcarEtiqueta": "Mark order {{numero}} as ready for pickup",
+      "preparacionEtiqueta": "Record the preparation of order {{numero}}",
+      "registrandoPreparacion": "Recording…",
       "marcando": "Marking…",
       "recojoEtiqueta": "Record pickup for order {{numero}}"
     },

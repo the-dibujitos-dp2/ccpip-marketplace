@@ -268,7 +268,10 @@ class InteresesYAvisosTest extends IntegrationTest {
         String numero = "AV-" + System.nanoTime() % 1_000_000_000L;
         long pedido = pedidoConfirmado(numero, LIMA, producto, 1);
 
-        mockMvc.perform(post("/api/acopio/pedidos/" + numero + "/listo").cookie(loginAs("admin_acopio@ccpip.test")))
+        Cookie admin = loginAs("admin_acopio@ccpip.test");
+        mockMvc.perform(post("/api/acopio/pedidos/" + numero + "/preparacion").cookie(admin))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/acopio/pedidos/" + numero + "/listo").cookie(admin))
                 .andExpect(status().isOk());
 
         Correo correo = correos.ultimoPara(CONSUMIDOR).orElseThrow();
@@ -290,7 +293,10 @@ class InteresesYAvisosTest extends IntegrationTest {
         long pedido = pedidoConfirmado(numero, LIMA, producto, 1);
         jdbc.update("UPDATE pedido SET persona_autorizada = 'Rosa Quispe' WHERE id = ?", pedido);
 
-        mockMvc.perform(post("/api/acopio/pedidos/" + numero + "/listo").cookie(loginAs("admin_acopio@ccpip.test")))
+        Cookie admin = loginAs("admin_acopio@ccpip.test");
+        mockMvc.perform(post("/api/acopio/pedidos/" + numero + "/preparacion").cookie(admin))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/acopio/pedidos/" + numero + "/listo").cookie(admin))
                 .andExpect(status().isOk());
         assertThat(correos.ultimoPara(CONSUMIDOR).orElseThrow().texto()).contains("Recoge: Rosa Quispe, con su documento de identidad.");
     }
@@ -302,7 +308,10 @@ class InteresesYAvisosTest extends IntegrationTest {
         long pedido = pedidoConfirmado(numero, LIMA, producto, 1);
         correos.fallar(true);
 
-        mockMvc.perform(post("/api/acopio/pedidos/" + numero + "/listo").cookie(loginAs("admin_acopio@ccpip.test")))
+        Cookie admin = loginAs("admin_acopio@ccpip.test");
+        mockMvc.perform(post("/api/acopio/pedidos/" + numero + "/preparacion").cookie(admin))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/acopio/pedidos/" + numero + "/listo").cookie(admin))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("LISTO_PARA_RECOJO"));
         assertThat(jdbc.queryForObject("SELECT estado FROM aviso WHERE tipo = 'PEDIDO_LISTO' AND referencia_id = ?",

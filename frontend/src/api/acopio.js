@@ -9,11 +9,14 @@ export function consultarMovimientos({ tipo, pedido, pagina = 0 } = {}) {
   return apiFetch(`/api/acopio/movimientos?${p}`)
 }
 
-/** CCPIP-159 (A-05): los pedidos del punto, por columna: confirmados, listos para recojo y entregados hoy. */
+/** CCPIP-159 (A-05): los pedidos del punto, por columna: confirmados, en preparacion, listos y entregados hoy. */
 export const listarPedidos = () => apiFetch('/api/acopio/pedidos')
 
-/** CCPIP-159: marca un pedido confirmado como listo para recojo y devuelve el pedido actualizado. */
+/** CCPIP-159: pasa un pedido en preparación a listo para recojo y devuelve el pedido actualizado. */
 export const marcarListo = (numero) => apiFetch(`/api/acopio/pedidos/${encodeURIComponent(numero)}/listo`, { method: 'POST' })
+
+/** CCPIP-68: registra que un pedido confirmado está en preparación. */
+export const marcarPreparacion = (numero) => apiFetch(`/api/acopio/pedidos/${encodeURIComponent(numero)}/preparacion`, { method: 'POST' })
 
 /**
  * CCPIP-71: entrega un pedido listo a quien lo recoge. `{ persona, celular }` se validan en el

@@ -172,6 +172,7 @@ class RecojoPedidoControllerTest extends IntegrationTest {
         long id = pedidoConfirmado("MC-T0079", LIMA, producto, 2);
         jdbc.update("UPDATE pedido SET celular_contacto = ? WHERE id = ?", CELULAR, id);
         descuento.descontarPorPedido(id, jdbc.queryForObject("SELECT usuario_id FROM pedido WHERE id = ?", Long.class, id));
+        mockMvc.perform(post("/api/acopio/pedidos/MC-T0079/preparacion").cookie(admin)).andExpect(status().isOk());
         mockMvc.perform(post("/api/acopio/pedidos/MC-T0079/listo").cookie(admin)).andExpect(status().isOk());
         var antes = inventario();
         assertThat(antes.get("lote")).isEqualTo(3);

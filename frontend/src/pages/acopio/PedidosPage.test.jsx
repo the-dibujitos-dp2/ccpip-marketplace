@@ -10,6 +10,7 @@ function abrirEn(ruta) {
 }
 
 const LISTAR = 'GET /api/acopio/pedidos'
+const PREPARACION = 'POST /api/acopio/pedidos/MC-00155/preparacion'
 const LISTO = 'POST /api/acopio/pedidos/MC-00155/listo'
 
 const comoAcopio = (rutas = {}) => ({
@@ -22,6 +23,43 @@ const comoAcopio = (rutas = {}) => ({
 const columna = (nombre) => screen.getByRole('region', { name: nombre })
 
 describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
+  it('muestra EN_PREPARACION en su columna y permite continuar a listo para recojo', async () => {
+    const datos = copia(DATOS.pedidos)
+    datos.items[0].estado = 'EN_PREPARACION'
+    datos.items[0].historial.push({
+      estado: 'EN_PREPARACION',
+      registradoEn: '2026-10-13T15:33:58.109980Z',
+      responsable: 'Administrador de Acopio de Prueba',
+    })
+    servidor(comoAcopio({ [LISTAR]: [200, datos] }))
+    abrirEn('/acopio/pedidos')
+
+    const preparacion = within(await screen.findByRole('region', { name: 'En preparación' }))
+    expect(preparacion.getByRole('heading', { name: 'En preparación (1)' })).toBeInTheDocument()
+    expect(preparacion.getByText('MC-00155')).toBeInTheDocument()
+    expect(preparacion.getByText(/En preparación .*Administrador de Acopio de Prueba/)).toBeInTheDocument()
+    expect(preparacion.getByRole('button', { name: 'Marcar el pedido MC-00155 como listo para recojo' })).toBeEnabled()
+  })
+
+  it('registra la preparación por API, conserva historial y maneja conflicto recargando el pedido', async () => {
+    const preparando = copia(DATOS.pedidos.items[0])
+    preparando.estado = 'EN_PREPARACION'
+    preparando.historial.push({
+      estado: 'EN_PREPARACION',
+      registradoEn: '2026-10-13T15:33:58.109980Z',
+      responsable: 'Administrador de Acopio de Prueba',
+    })
+    const fetchMock = servidor(comoAcopio({ [PREPARACION]: [200, preparando] }))
+    const user = userEvent.setup()
+    abrirEn('/acopio/pedidos')
+    await user.click(await screen.findByRole('button', { name: 'Registrar la preparación del pedido MC-00155' }))
+
+    expect(await screen.findByText('El pedido MC-00155 está en preparación')).toBeInTheDocument()
+    expect(llamadas(fetchMock, PREPARACION)).toHaveLength(1)
+    expect(within(columna('En preparación')).getByText('MC-00155')).toBeInTheDocument()
+    expect(within(columna('En preparación')).getByText(/En preparación .*Administrador de Acopio de Prueba/)).toBeInTheDocument()
+  })
+
   it('muestra cada pedido en la columna de su estado, con sus productos, total y quien lo marco', async () => {
     servidor(comoAcopio())
     abrirEn('/acopio/pedidos')
@@ -29,14 +67,15 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Pedidos' })).toBeInTheDocument()
     expect(await screen.findByText('Centro Nacional Lima / Pedidos')).toBeInTheDocument()
 
-    // Confirmado: espera su preparacion; se puede marcar como listo
+    // Confirmado: se puede registrar que ya empezo la preparacion
     const confirmado = within(columna('Confirmado'))
     expect(confirmado.getByRole('heading', { name: 'Confirmado (1)' })).toBeInTheDocument()
     expect(confirmado.getByText('MC-00155')).toBeInTheDocument()
     expect(confirmado.getByText('Asoc. Nii Joi · Aceite de ungurahui 250 ml × 1')).toBeInTheDocument()
     expect(confirmado.getByText('Asoc. Nii Joi · Aceite de aguaje 250 ml × 1')).toBeInTheDocument()
     expect(confirmado.getByText('Confirmado 13/10 06:08 · S/ 96.00')).toBeInTheDocument()
-    expect(confirmado.getByRole('button', { name: 'Marcar el pedido MC-00155 como listo para recojo' })).toBeEnabled()
+    expect(confirmado.getByRole('button', { name: 'Registrar la preparación del pedido MC-00155' })).toBeEnabled()
+    expect(within(columna('En preparación')).getByRole('heading', { name: 'En preparación (0)' })).toBeInTheDocument()
 
     // Listo: con el responsable y la hora del historial (hora de Lima), sin boton
     const listo = within(columna('Listo para recojo'))
@@ -85,13 +124,23 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     expect(await screen.findByText('Lote L-0008 · no vence · 1 und')).toBeInTheDocument()
   })
 
-  it('marcar listo pasa el pedido a su columna, lo avisa y no vuelve a ofrecer el boton', async () => {
-    const fetchMock = servidor(comoAcopio({ [LISTO]: () => [200, copia(DATOS.pedidoListo)] }))
+  it('preparar y luego marcar listo pasan el pedido por las dos columnas y conservan los movimientos', async () => {
+    const preparando = copia(DATOS.pedidos.items[0])
+    preparando.estado = 'EN_PREPARACION'
+    preparando.historial.push({ estado: 'EN_PREPARACION', registradoEn: '2026-10-13T15:33:58.109980Z', responsable: 'Administrador de Acopio de Prueba' })
+    const fetchMock = servidor(comoAcopio({
+      [PREPARACION]: [200, preparando],
+      [LISTO]: () => [200, copia(DATOS.pedidoListo)],
+    }))
     const user = userEvent.setup()
     abrirEn('/acopio/pedidos')
-    await user.click(await screen.findByRole('button', { name: 'Marcar el pedido MC-00155 como listo para recojo' }))
+    await user.click(await screen.findByRole('button', { name: 'Registrar la preparación del pedido MC-00155' }))
 
+    expect(await screen.findByText('El pedido MC-00155 está en preparación')).toBeInTheDocument()
+    expect(within(columna('En preparación')).getByText('MC-00155')).toBeInTheDocument()
+    await user.click(within(columna('En preparación')).getByRole('button', { name: 'Marcar el pedido MC-00155 como listo para recojo' }))
     expect(await screen.findByText('El pedido MC-00155 está listo para recojo')).toBeInTheDocument()
+    expect(llamadas(fetchMock, PREPARACION)).toHaveLength(1)
     expect(llamadas(fetchMock, LISTO)).toHaveLength(1)
     const listo = within(columna('Listo para recojo'))
     expect(listo.getByRole('heading', { name: 'Listo para recojo (2)' })).toBeInTheDocument()
@@ -112,7 +161,32 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
       [LISTAR]: () => {
         const datos = copia(DATOS.pedidos)
         // Desde la segunda lectura, MC-00155 ya esta listo
-        if (++lecturas > 1) Object.assign(datos.items[0], copia(DATOS.pedidoListo))
+        if (++lecturas > 1) Object.assign(datos.items[0], copia(DATOS.pedidoListo), { estado: 'EN_PREPARACION' })
+        return [200, datos]
+      },
+      [PREPARACION]: [409, { code: 'ESTADO_INVALIDO', error: 'Este pedido está en preparación.' }],
+    }))
+    const user = userEvent.setup()
+    abrirEn('/acopio/pedidos')
+    await user.click(await screen.findByRole('button', { name: 'Registrar la preparación del pedido MC-00155' }))
+
+    const alerta = await screen.findByRole('alert')
+    expect(alerta).toHaveTextContent('No pudimos registrar la preparación')
+    expect(alerta).toHaveTextContent('Este pedido está en preparación.')
+    await waitFor(() => expect(within(columna('En preparación')).getByText('MC-00155')).toBeInTheDocument())
+    expect(lecturas).toBe(2)
+  })
+
+  it('si otra persona ya marco listo, explica el conflicto y vuelve a leer la lista', async () => {
+    let lecturas = 0
+    const fetchMock = servidor(comoAcopio({
+      [LISTAR]: () => {
+        const datos = copia(DATOS.pedidos)
+        if (++lecturas === 1) {
+          datos.items[0].estado = 'EN_PREPARACION'
+        } else {
+          datos.items[0] = copia(DATOS.pedidoListo)
+        }
         return [200, datos]
       },
       [LISTO]: [409, { code: 'ESTADO_INVALIDO', error: 'Este pedido ya está listo para recojo.' }],
@@ -124,6 +198,7 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     const alerta = await screen.findByRole('alert')
     expect(alerta).toHaveTextContent('No pudimos marcar el pedido')
     expect(alerta).toHaveTextContent('Este pedido ya está listo para recojo.')
+    expect(llamadas(fetchMock, LISTO)).toHaveLength(1)
     await waitFor(() => expect(within(columna('Listo para recojo')).getByText('MC-00155')).toBeInTheDocument())
     expect(lecturas).toBe(2)
   })
@@ -131,14 +206,14 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
   it('mientras marca, el boton queda deshabilitado', async () => {
     let terminar
     servidor(comoAcopio({
-      [LISTO]: () => new Promise((resolver) => { terminar = () => resolver([200, copia(DATOS.pedidoListo)]) }),
+      [PREPARACION]: () => new Promise((resolver) => { terminar = () => resolver([200, copia(DATOS.pedidoListo)]) }),
     }))
     const user = userEvent.setup()
     abrirEn('/acopio/pedidos')
-    await user.click(await screen.findByRole('button', { name: 'Marcar el pedido MC-00155 como listo para recojo' }))
-    expect(screen.getByRole('button', { name: 'Marcar el pedido MC-00155 como listo para recojo' })).toBeDisabled()
+    await user.click(await screen.findByRole('button', { name: 'Registrar la preparación del pedido MC-00155' }))
+    expect(screen.getByRole('button', { name: 'Registrar la preparación del pedido MC-00155' })).toBeDisabled()
     terminar()
-    expect(await screen.findByText('El pedido MC-00155 está listo para recojo')).toBeInTheDocument()
+    expect(await screen.findByText('El pedido MC-00155 está en preparación')).toBeInTheDocument()
   })
 
   it('sin pedidos invita a esperar; si falla la carga lo dice y permite reintentar', async () => {
