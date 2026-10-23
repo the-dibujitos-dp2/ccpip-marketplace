@@ -1045,7 +1045,7 @@ Que ve cada rol (filtrado en el servidor, RNF-05 y RNF-41):
 
 Se modela cuando llegue su sprint, y el modelo actual admite agregarlo sin rehacer nada:
 
-- Cobertura del punto de acopio y division politica del Peru, Sprint 1, CCPIP-149
+- Catalogo territorial completo y declaracion de la cobertura por cada punto (CCPIP-149, 401, 402, 403). CCPIP-59 trae un ubigeo provisional y lo minimo de la cobertura
 - Liquidacion y transferencia a cada productor (PW-11)
 - Merma y sus causas, Sprint 2
 - Fidelizacion, Sprint 3, CCPIP-86
@@ -1197,3 +1197,65 @@ desbloquear tambien dejan una fila `AUTORIZACION` en `producto_auditoria` de cad
 |---|---|---|---|
 | venta_bloqueada | boolean | no | La venta del productor esta bloqueada. Independiente de `venta_revocada` |
 | bloqueo_decision_id | bigint | si | Ultimo bloqueo o desbloqueo |
+
+## Entrega a domicilio desde un punto de acopio (CCPIP-59)
+
+Migracion `V202610231000`. El comprador puede pedir que el pedido llegue a su direccion en lugar de
+recogerlo (RF-40). Sigue el paquete *Entrega y territorio* del diccionario de datos del proyecto
+(`ubigeo`, `cobertura_entrega`, `entrega`) y entra solo lo que esa eleccion necesita; la declaracion de la
+cobertura por cada punto (CCPIP-149, 401, 402, 403), la validacion previa al pago (CCPIP-60), las
+direcciones guardadas (CCPIP-61, 65, 393 a 395) y el reparto (CCPIP-107 a 110) llegan con sus historias.
+
+```mermaid
+erDiagram
+    ubigeo ||--o{ cobertura_entrega : distrito
+    ubicacion ||--o{ cobertura_entrega : atiende
+    pedido ||--o| entrega : lleva
+    ubigeo ||--o{ entrega : destino
+```
+
+### ubigeo
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| codigo | char(6) | no | PK. Ubigeo del INEI; seis digitos (CHECK) |
+| departamento, provincia, distrito | varchar(80) | no | |
+
+El contenido es **provisional** (`R__05_ubigeo_provisional.sql`): solo los distritos de las zonas donde
+hay puntos de acopio. El catalogo territorial completo y aprobado lo carga CCPIP-149 y lo reemplaza.
+
+### cobertura_entrega
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| id | bigserial | no | |
+| ubicacion_id | bigint | no | El punto de acopio que atiende el distrito |
+| ubigeo | char(6) | no | Distrito atendido |
+| activa | boolean | no | Una zona desactivada no se ofrece ni se acepta, y no se borra |
+| actualizado_en | timestamptz | no | |
+
+Unica por `(ubicacion_id, ubigeo)`. La semilla `R__06_cobertura_demo.sql` da una cobertura de ejemplo para
+la demo.
+
+### entrega
+Una por pedido con modalidad `ENVIO` (`pedido_id` unico).
+
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| pedido_id | bigint | no | Pedido que se entrega |
+| distribuidor_id | bigint | si | Nulo hasta que un distribuidor la asume (CCPIP-107 a 110) |
+| ubigeo | char(6) | no | Distrito de destino; el punto de origen lo cubre al crear el pedido |
+| direccion, referencia | varchar(255) | no, si | Destino y referencia opcional |
+| contacto_nombre, contacto_celular | varchar | no | Quien recibe; el celular, de 9 digitos que empiezan con 9 (CHECK) |
+| estado | varchar(12) | no | `DISPONIBLE`, `ASIGNADA`, `RETIRADA`, `EN_CAMINO`, `ENTREGADA`. Nace `DISPONIBLE` |
+| asignada_en, retirada_en, entregada_en, creado_en | timestamptz | si, si, si, no | |
+
+**Reglas.** El pedido sale siempre de `pedido.ubicacion_origen_id`, el punto de acopio con existencias
+para todo el carrito, y solo llega a distritos que ese punto cubre: el productor no entrega al comprador.
+Un pedido `ENVIO` no tiene persona autorizada. **El total del pedido sigue siendo la suma de sus lineas**:
+el costo del envio depende de una definicion pendiente del cliente (CCPIP-101) y no se modela todavia. El
+punto puede preparar un pedido a domicilio, pero no marcarlo listo para recojo ni registrar su recojo
+(`409 PEDIDO_A_DOMICILIO`): su despacho es de las historias de distribucion.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `GET /api/compra/distritos` | CONSUMIDOR | Distritos a los que se entrega todo el carrito, cada uno con los puntos que lo cubren y tienen existencias para todas sus lineas. **No esta en el contrato de la API; hay que agregarlo** |
+| `POST /api/pedidos` con `modalidad: "ENVIO"` y `entrega` | CONSUMIDOR | Crea el pedido a domicilio. Sin `modalidad` es `RECOJO`, como antes. `409 SIN_COBERTURA` si el punto no cubre el distrito |

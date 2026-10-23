@@ -7,10 +7,49 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-/** Respuestas de los pedidos del punto de acopio (Figma A-05). */
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+/** Respuestas de los pedidos del punto de acopio (Figma A-05) y la entrega a domicilio (CCPIP-59). */
 public final class EntregaModelos {
 
     private EntregaModelos() {
+    }
+
+    /** Nombres de personas: letras (con tildes), espacios, apostrofos, puntos y guiones. */
+    public static final String NOMBRE = "^\\p{L}[\\p{L}\\s'’.-]*$";
+
+    /** CCPIP-59: un distrito del catalogo territorial, con su codigo de ubigeo. */
+    public record Distrito(String ubigeo, String departamento, String provincia, String distrito) {
+    }
+
+    /** CCPIP-59: un punto de acopio que cubre un distrito con cobertura activa. */
+    public record Cobertura(Distrito distrito, long puntoId) {
+    }
+
+    /**
+     * CCPIP-59: a donde y a quien se entrega un pedido a domicilio, tal como lo escribe el comprador.
+     * {@code ubigeo} es el distrito de destino, que el punto de origen debe cubrir.
+     */
+    public record Destino(@NotBlank(message = "Elige el distrito de entrega")
+                          @Pattern(regexp = "[0-9]{6}", message = "El distrito de entrega no es válido") String ubigeo,
+                          @NotBlank(message = "Indica la dirección")
+                          @Size(max = 255, message = "La dirección es demasiado larga") String direccion,
+                          @Size(max = 255, message = "La referencia es demasiado larga") String referencia,
+                          @NotBlank(message = "Indica quién recibe")
+                          @Size(max = 160, message = "El nombre es demasiado largo")
+                          @Pattern(regexp = NOMBRE, message = "Usa solo letras en el nombre de quien recibe") String contactoNombre,
+                          @NotBlank(message = "Indica un celular de contacto")
+                          @Size(max = 20, message = "El celular es demasiado largo") String contactoCelular) {
+    }
+
+    /**
+     * CCPIP-59: la entrega a domicilio de un pedido ENVIO, con el distrito ya resuelto. {@code estado}:
+     * DISPONIBLE hasta que un distribuidor la asuma. No expone al distribuidor.
+     */
+    public record Entrega(String ubigeo, String departamento, String provincia, String distrito, String direccion,
+                          String referencia, String contactoNombre, String contactoCelular, String estado) {
     }
 
     /**
