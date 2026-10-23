@@ -4,7 +4,7 @@ import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoCamion from '../../assets/icons/camion.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import { consultarCarrito, recargarUnidadesCarrito } from '../../api/carrito.js'
-import { obtenerMisDatos } from '../../api/cuenta.js'
+import { guardarDireccionHabitual, obtenerMisDatos } from '../../api/cuenta.js'
 import { confirmarCompra, consultarDistritosEntrega, consultarPuntosRecojo, pagarPedido } from '../../api/compra.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -31,6 +31,7 @@ const ANIOS = Array.from({ length: 12 }, (_, i) => ({ valor: String(ANIO + i), e
 const VACIO = {
   modalidad: 'RECOJO', puntoId: '', recogeOtro: false, personaAutorizada: '', celular: '',
   departamento: '', provincia: '', ubigeo: '', direccion: '', referencia: '', nombreRecibe: '',
+  guardarDireccion: false, aliasDireccion: '',
   numero: '', titular: '', mes: '', anio: '', cvv: '',
 }
 
@@ -236,6 +237,11 @@ export default function CompraPage() {
         const nuevo = await confirmarCompra(recojo)
         pedido.current = { id: nuevo.id, firma }
         clave.current = null
+        // CCPIP-65: guardar la direccion es un extra de la compra, que no debe fallar por no poder guardarla
+        if (form.modalidad === 'ENVIO' && form.guardarDireccion) {
+          const { ubigeo, direccion, referencia } = recojo.entrega
+          await guardarDireccionHabitual({ alias: form.aliasDireccion.trim() || null, ubigeo, direccion, referencia }).catch(() => {})
+        }
       }
       clave.current ??= crypto.randomUUID()
       const tarjeta = { numero: form.numero, titular: form.titular.trim(), mes: Number(form.mes), anio: Number(form.anio), cvv: form.cvv }
