@@ -952,6 +952,7 @@
     "plataforma": "Plataforma",
     "nav": {
       "tablero": "Tablero",
+      "permisos": "Permisos",
       "comision": "Comisión",
       "comisiones": "Comisión por pedido",
       "reportes": "Reportes",
@@ -963,6 +964,16 @@
       "existencias": "Existencias",
       "denuncias": "Denuncias",
       "motivosMerma": "Causas de merma"
+    },
+    "permisos": {
+      "titulo": "Permisos por rol",
+      "descripcion": "Accesos declarados por el servidor para cada rol, según método y ruta.",
+      "error": "No pudimos cargar los permisos",
+      "tabla": "Permisos asignados por rol",
+      "rol": "Rol",
+      "metodo": "Método",
+      "ruta": "Ruta",
+      "vacio": "Este rol no tiene accesos declarados."
     },
     "tablero": {
       "titulo": "Tablero de operación",

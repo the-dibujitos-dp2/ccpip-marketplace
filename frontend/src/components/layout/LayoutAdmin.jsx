@@ -21,6 +21,7 @@ import LayoutPanel from './LayoutPanel.jsx'
  */
 const NAV = [
   { to: RUTAS.admin, clave: 'tablero', icono: iconoTablero, roles: ['SUPER_ADMIN'] },
+  { to: RUTAS.adminPermisos, clave: 'permisos', icono: iconoEscudo, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminAutorizaciones, clave: 'autorizaciones', icono: iconoEscudo, roles: ['SUB_ADMIN'], prefijo: true },
   { to: RUTAS.adminProductores, clave: 'productores', icono: iconoComunidad, roles: ['SUB_ADMIN'], prefijo: true },
   { to: RUTAS.adminDenuncias, clave: 'denuncias', icono: iconoAviso, roles: ['SUB_ADMIN', 'SUPER_ADMIN'], prefijo: true },
