@@ -55,6 +55,18 @@ public class EntregaService {
                         "Este punto de acopio no entrega a domicilio en ese distrito. Elige otro punto o el recojo."));
     }
 
+    /**
+     * CCPIP-61 (RF-42): la direccion es texto que escribe el comprador, sin mapas que la confirmen, asi que
+     * se pide completa: unos cuantos caracteres y al menos una letra (calle, avenida, manzana...).
+     */
+    public static void validarDireccion(String direccion) {
+        String texto = direccion.strip();
+        if (texto.length() < 5 || texto.chars().noneMatch(Character::isLetter)) {
+            throw ErrorNegocio.invalido("DIRECCION_INVALIDA",
+                    "Indica una dirección completa: calle y número, por ejemplo Av. Larco 123.");
+        }
+    }
+
     /** El celular de quien recibe, normalizado a 9 digitos. */
     public static String celularDeContacto(String celular) {
         return PersonaDeRecojo.celular(celular).orElseThrow(() ->

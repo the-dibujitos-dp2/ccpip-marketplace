@@ -100,6 +100,9 @@ public class CompraService {
         boolean aDomicilio = destino != null;
         String celularContacto = aDomicilio ? null : EntregaService.celularDeContacto(celular);
         String celularEntrega = aDomicilio ? EntregaService.celularDeContacto(destino.contactoCelular()) : null;
+        if (aDomicilio) {
+            EntregaService.validarDireccion(destino.direccion());
+        }
         String autorizada = aDomicilio || personaAutorizada == null || personaAutorizada.isBlank()
                 ? null : personaAutorizada.strip();
 
