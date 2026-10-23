@@ -1278,3 +1278,23 @@ al menos 5 caracteres y una letra, si no `422 DIRECCION_INVALIDA`. "Mz. A Lt. 3"
 Estos endpoints **no estan en el contrato de la API** del Drive; hay que agregarlos. El catalogo es el
 provisional de CCPIP-59 hasta que CCPIP-149 cargue el completo. Los destinos internacionales dependen de reglas
 pendientes del cliente (decision C9) y no se incluyen.
+
+## Historial de acciones de gobernanza (CCPIP-126)
+
+Sin migracion. RF-85: el subadministrador consulta sus propias acciones de gobernanza (Figma S-05)
+con `GET /api/admin/mi-historial?desde&hasta&tipo` (solo SUB_ADMIN; el autor sale de la sesion).
+Cada modulo ya registra sus acciones con autor, fecha y motivo en tablas de solo insercion o de un
+unico cambio de estado; `HistorialGobernanzaService` las junta con `UNION ALL` y no copia nada, asi
+que el historial no se puede alterar y una accion nueva de esos modulos aparece sola.
+
+| Tipo | Tabla de origen | Autor | Accion | Sobre |
+|---|---|---|---|---|
+| AUTORIZACIONES | `autorizacion_decision` | `decidido_por` | `AUTORIZACION_` + APROBADA, RECHAZADA o REVOCADA | Productor y producto |
+| AUTORIZACIONES | `renovacion_certificado` | `solicitada_por` | `RENOVACION_SOLICITADA` | Productor y producto |
+| PRODUCTORES | `productor_decision` | `decidido_por` | `HABILITAR_TIENDA`, `REVOCAR_VENTA`, `RESTITUIR_VENTA`, `BLOQUEAR_VENTA`, `DESBLOQUEAR_VENTA` | Productor |
+| DENUNCIAS | `denuncia_evento` (CAMBIO_ESTADO del SUB_ADMIN) | `usuario_id` | `DENUNCIA_` + EN_REVISION, RESUELTA o DESESTIMADA | Productor y numero de denuncia |
+| CUENTAS | `cuenta_historial` | `realizado_por` | `CUENTA_` + SUSPENDER, REACTIVAR, ... | Titular de la cuenta |
+
+El periodo es por fecha de Lima, por defecto los ultimos 30 dias y como maximo un año
+(`RangoFechas`, `422 RANGO_INVALIDO` o `RANGO_MUY_LARGO`). El servicio admite autor nulo para
+consultar las acciones de todos, pensado para la auditoria de CCPIP-97.
