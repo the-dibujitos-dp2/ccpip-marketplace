@@ -46,7 +46,7 @@ public class PedidosPuntoController {
     }
 
     /**
-     * CCPIP-159: marca un pedido confirmado de su punto como listo para recojo. CCPIP-69: con el cambio ya
+     * CCPIP-159: marca un pedido en preparacion de su punto como listo para recojo. CCPIP-69: con el cambio ya
      * guardado, avisa al comprador por correo.
      */
     @PostMapping("/{numero}/listo")
@@ -55,6 +55,13 @@ public class PedidosPuntoController {
         PedidoPunto listo = pedidos.marcarListo(s.userId(), numeroValido(numero));
         aviso.avisar(listo.numero());
         return listo;
+    }
+
+    /** CCPIP-68: registra que un pedido confirmado de sus puntos está en preparación. */
+    @PostMapping("/{numero}/preparacion")
+    public PedidoPunto marcarPreparacion(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                         @PathVariable String numero) {
+        return pedidos.marcarPreparacion(s.userId(), numeroValido(numero));
     }
 
     /** CCPIP-71: entrega un pedido listo al comprador o la persona autorizada, validando persona y celular. */

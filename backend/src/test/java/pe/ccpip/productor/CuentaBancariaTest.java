@@ -208,7 +208,10 @@ class CuentaBancariaTest extends IntegrationTest {
         long pedido = pedidoConfirmado("CB-0001", "Centro Nacional Lima", producto, 1);
         enviar(post(RUTA + "/desactivar"), loginAs("productor@ccpip.test"), Map.of("motivo", "SEGURIDAD", "confirmo", true))
                 .andExpect(status().isOk());
-        mockMvc.perform(post("/api/acopio/pedidos/{numero}/listo", "CB-0001").cookie(loginAs("admin_acopio@ccpip.test")))
+        Cookie admin = loginAs("admin_acopio@ccpip.test");
+        mockMvc.perform(post("/api/acopio/pedidos/{numero}/preparacion", "CB-0001").cookie(admin))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/acopio/pedidos/{numero}/listo", "CB-0001").cookie(admin))
                 .andExpect(status().isOk());
         assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id = ?", String.class, pedido)).isEqualTo("LISTO_PARA_RECOJO");
     }

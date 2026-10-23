@@ -47,14 +47,14 @@ public class PedidosPuntoService {
         this.puntos = puntos;
     }
 
-    /** Columnas de A-05 en Sprint 0: confirmados, listos para recojo y entregados hoy (hora de Lima). */
+    /** Pedidos activos del punto y entregados hoy (hora de Lima). */
     @Transactional(readOnly = true)
     public PedidosPunto listar(long usuarioId) {
         String ubicacion = puntos.nombres(usuarioId);
         List<Long> ids = jdbc.queryForList("SELECT pe.id " + DEL_PUNTO + """
-                  AND (pe.estado IN ('CONFIRMADO', 'LISTO_PARA_RECOJO')
+                  AND (pe.estado IN ('CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO')
                        OR pe.estado = 'ENTREGADO' AND (pe.actualizado_en AT TIME ZONE 'America/Lima')::date = %s)
-                ORDER BY CASE pe.estado WHEN 'CONFIRMADO' THEN 0 WHEN 'LISTO_PARA_RECOJO' THEN 1 ELSE 2 END,
+                ORDER BY CASE pe.estado WHEN 'CONFIRMADO' THEN 0 WHEN 'EN_PREPARACION' THEN 1 WHEN 'LISTO_PARA_RECOJO' THEN 2 ELSE 3 END,
                          pe.confirmado_en, pe.id""".formatted(HOY),
                 new MapSqlParameterSource("usuario", usuarioId), Long.class);
         return new PedidosPunto(ubicacion, pedidos(ids));
@@ -89,6 +89,7 @@ public class PedidosPuntoService {
         }
         throw new ErrorNegocio(HttpStatus.CONFLICT, "ESTADO_INVALIDO", switch (pedido.estado()) {
             case "CONFIRMADO" -> "Este pedido aún no está listo para recojo.";
+            case "EN_PREPARACION" -> "Este pedido está en preparación.";
             case "LISTO_PARA_RECOJO" -> "Este pedido ya está listo para recojo.";
             case "ENTREGADO" -> "Este pedido ya fue entregado.";
             case "CANCELADO" -> "Este pedido fue cancelado.";
@@ -103,14 +104,23 @@ public class PedidosPuntoService {
         jdbc.update("INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (:id, :estado, :usuario)", p);
     }
 
+    /** Registra que el punto comenzó a preparar un pedido confirmado. */
+    @Transactional
+    public PedidoPunto marcarPreparacion(long usuarioId, String numero) {
+        Bloqueado pedido = bloquear(usuarioId, numero);
+        exigirEstado(pedido, "CONFIRMADO");
+        cambiarEstado(usuarioId, pedido, "EN_PREPARACION");
+        return pedidos(List.of(pedido.id())).get(0);
+    }
+
     /**
-     * CCPIP-159 (RF-128): el pedido confirmado queda listo para recojo, con responsable y fecha en su
-     * historial. Solo desde CONFIRMADO: marcarlo dos veces, o un pedido ya entregado, es un 409.
+     * CCPIP-159 (RF-128): el pedido en preparacion queda listo para recojo, con responsable y fecha en su
+     * historial. Solo desde EN_PREPARACION; los otros estados no se pueden saltar ni repetir.
      */
     @Transactional
     public PedidoPunto marcarListo(long usuarioId, String numero) {
         Bloqueado pedido = bloquear(usuarioId, numero);
-        exigirEstado(pedido, "CONFIRMADO");
+        exigirEstado(pedido, "EN_PREPARACION");
         cambiarEstado(usuarioId, pedido, "LISTO_PARA_RECOJO");
         return pedidos(List.of(pedido.id())).get(0);
     }
