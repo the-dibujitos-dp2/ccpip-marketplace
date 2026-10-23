@@ -2018,6 +2018,7 @@
   "revisaCorreo": {
     "titulo": "Check your email",
     "descripcion": "We sent a verification link to {{correo}}. Open it to activate your account. Meanwhile, you can keep browsing products.",
+    "descripcionNoEnviado": "We created your account for {{correo}}, but we couldn't send the verification link yet. Ask us to resend it. Meanwhile, you can keep browsing products.",
     "noEnviado": {
       "titulo": "Your account was created, but the email didn't go out",
       "descripcion": "Request the link again in a few minutes."

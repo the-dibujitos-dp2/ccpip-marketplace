@@ -2018,6 +2018,7 @@
   "revisaCorreo": {
     "titulo": "Revisa tu correo",
     "descripcion": "Enviamos un enlace de verificación a {{correo}}. Ábrelo para activar tu cuenta. Mientras tanto puedes seguir explorando productos.",
+    "descripcionNoEnviado": "Creamos tu cuenta para {{correo}}, pero todavía no pudimos enviarte el enlace de verificación. Pide que lo reenviemos. Mientras tanto puedes seguir explorando productos.",
     "noEnviado": {
       "titulo": "Tu cuenta está creada, pero el correo no salió",
       "descripcion": "Pide el enlace de nuevo en unos minutos."
