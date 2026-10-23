@@ -43,7 +43,8 @@ pruebas. La llave es el secreto `GEMINI_API_KEY`, vive solo en el servidor y via
 `x-goog-api-key`. Sin llave, o si Gemini no responde en `CCPIP_GEMINI_ESPERA` (20 s), la pantalla
 sigue a mano (RNF-48). El modelo se cambia con `CCPIP_GEMINI_MODELO` (por defecto
 `gemini-flash-latest`). Al analisis de evidencias solo se envian los datos declarados, nunca los
-archivos. Gemini es solo de texto: la IA de imagenes usa un modelo propio.
+archivos. Gemini es solo de texto. La validacion y la mejora de fotos usan el modelo propio
+(`CCPIP_IA_IMAGENES_PROVEEDOR=propio`), que corre dentro del backend: ver `ia/modelo-imagenes/README.md`.
 
 - `infra/terraform/`: EC2 (Amazon Linux 2023, IMDSv2, disco cifrado), Security Group, Elastic IP.
 - `deploy/docker-compose.yml`: los tres contenedores.

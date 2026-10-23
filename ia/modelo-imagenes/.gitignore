@@ -1,0 +1,4 @@
+mobilenetv2-12.onnx
+cabeza.npz
+datos/
+__pycache__/

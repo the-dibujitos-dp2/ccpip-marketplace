@@ -40,6 +40,8 @@ services:
       # (secreto del repositorio) la IA responde no disponible y todo se hace a mano.
       CCPIP_IA_PROVEEDOR: gemini
       CCPIP_GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      # CCPIP-144 y CCPIP-176: validacion y mejora de fotos con el modelo propio, sin servicios externos
+      CCPIP_IA_IMAGENES_PROVEEDOR: propio
     depends_on:
       db:
         condition: service_healthy
