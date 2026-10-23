@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -21,15 +22,17 @@ import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.filter.SessionAuthFilter;
 import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
+import pe.ccpip.compra.CompraModelos.DistritoConPuntos;
 import pe.ccpip.compra.CompraModelos.IntentoPago;
 import pe.ccpip.compra.CompraModelos.Pedido;
 import pe.ccpip.compra.CompraModelos.PuntoRecojo;
 import pe.ccpip.compra.CompraModelos.ResultadoPago;
 import pe.ccpip.compra.CompraModelos.ResumenPedido;
+import pe.ccpip.entrega.EntregaModelos.Destino;
 import pe.ccpip.pago.Tarjeta;
 
 /**
- * Compra del comprador: recojo (CCPIP-157), pago con tarjeta (CCPIP-62), intentos de pago
+ * Compra del comprador: recojo (CCPIP-157), entrega a domicilio (CCPIP-59), pago con tarjeta (CCPIP-62), intentos de pago
  * (CCPIP-163) y confirmacion (CCPIP-64). Opera siempre sobre los datos del usuario de la sesion (RNF-05).
  */
 @RolesPermitidos(Rol.CONSUMIDOR)
@@ -39,12 +42,26 @@ public class CompraController {
     /** Nombres de personas: letras (con tildes), espacios, apostrofos, puntos y guiones. */
     static final String NOMBRE = "^\\p{L}[\\p{L}\\s'’.-]*$";
 
-    /** Datos del recojo. Sin persona autorizada, recoge el mismo comprador. */
+    /**
+     * Datos de la entrega. Por defecto es recojo (CCPIP-157): sin persona autorizada, recoge el mismo
+     * comprador, y el celular de contacto es obligatorio. Con {@code modalidad} ENVIO (CCPIP-59) se indica
+     * el {@code entrega} a domicilio, con su propio contacto, y no hay persona autorizada ni celular de recojo.
+     */
     public record Recojo(@NotNull(message = "Elige un punto de acopio") Long puntoId,
+                         @Pattern(regexp = "RECOJO|ENVIO", message = "La modalidad de entrega no es válida") String modalidad,
                          @Size(max = 160, message = "El nombre es demasiado largo")
                          @Pattern(regexp = NOMBRE, message = "Usa solo letras en el nombre de quien recoge") String personaAutorizada,
-                         @NotBlank(message = "Indica un celular de contacto")
-                         @Size(max = 20, message = "El celular es demasiado largo") String celularContacto) {
+                         @Size(max = 20, message = "El celular es demasiado largo") String celularContacto,
+                         @Valid Destino entrega) {
+        @AssertTrue(message = "Indica un celular de contacto")
+        boolean isCelularDeRecojoCompleto() {
+            return "ENVIO".equals(modalidad) || (celularContacto != null && !celularContacto.isBlank());
+        }
+
+        @AssertTrue(message = "Indica a dónde se entrega")
+        boolean isEntregaCompleta() {
+            return !"ENVIO".equals(modalidad) || entrega != null;
+        }
     }
 
     /** Tarjeta tal como la escribe el comprador. No se guarda: solo se usa para cobrar. */
@@ -83,18 +100,25 @@ public class CompraController {
         return compra.puntosElegibles(s.userId());
     }
 
+    /** CCPIP-59: distritos a los que se puede entregar a domicilio todo el carrito, con los puntos que lo cubren. */
+    @GetMapping("/api/compra/distritos")
+    public List<DistritoConPuntos> distritos(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s) {
+        return compra.distritosConEntrega(s.userId());
+    }
+
     /** CCPIP-112 (CW-09): las compras del comprador con su estado e historial. Solo las propias. */
     @GetMapping("/api/pedidos")
     public List<ResumenPedido> misPedidos(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s) {
         return compra.misPedidos(s.userId());
     }
 
-    /** CCPIP-157: crea el pedido para recojo, en espera de su pago. No descuenta stock todavia. */
+    /** CCPIP-157 y CCPIP-59: crea el pedido para recojo o a domicilio, en espera de su pago. No descuenta stock todavia. */
     @PostMapping("/api/pedidos")
     @ResponseStatus(HttpStatus.CREATED)
     public Pedido confirmar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                             @Valid @RequestBody Recojo recojo) {
-        return compra.confirmar(s.userId(), recojo.puntoId(), recojo.personaAutorizada(), recojo.celularContacto());
+        return compra.confirmar(s.userId(), recojo.puntoId(), "ENVIO".equals(recojo.modalidad()) ? recojo.entrega() : null,
+                recojo.personaAutorizada(), recojo.celularContacto());
     }
 
     /** CCPIP-62: paga el pedido con tarjeta. Aprobado: el pedido queda confirmado y el stock descontado. */
