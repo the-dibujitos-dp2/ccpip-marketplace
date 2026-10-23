@@ -33,10 +33,39 @@ public final class ModeloImagenes {
     /** Una capa del extractor, en el orden del grafo. */
     private record Nodo(String op, String entrada, String entrada2, String salida, float[] w, int[] formaW, float[] b,
                         int paso, int relleno, int grupos, float min, float max) {
+        // Las capas se comparan por identidad: comparar millones de pesos no tiene sentido
+        @Override
+        public boolean equals(Object o) {
+            return this == o;
+        }
+
+        @Override
+        public int hashCode() {
+            return System.identityHashCode(this);
+        }
+
+        @Override
+        public String toString() {
+            return op + " " + entrada + " -> " + salida;
+        }
     }
 
     /** Mapa de activacion canales x alto x ancho, guardado por canal. */
     private record Mapa(int c, int h, int w, float[] d) {
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof Mapa m && c == m.c && h == m.h && w == m.w && Arrays.equals(d, m.d);
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * java.util.Objects.hash(c, h, w) + Arrays.hashCode(d);
+        }
+
+        @Override
+        public String toString() {
+            return "Mapa[" + c + "x" + h + "x" + w + "]";
+        }
     }
 
     /** Lo que el modelo ve en una foto: probabilidad por linea y la etiqueta mas probable. */
