@@ -334,6 +334,72 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     expect(llamadas(fetchMock, 'GET /api/compra/distritos').length).toBeGreaterThanOrEqual(2)
   })
 
+  it('al recargar las opciones no conserva un punto que ya no cubre el distrito: queda el que sigue', { timeout: 15_000 }, async () => {
+    let vez = 0
+    servidor(rutas({
+      // Miraflores lo cubrian Lima y Cusco; tras el error, solo Cusco
+      'GET /api/compra/distritos': () => [200, ++vez === 1 ? DISTRITOS : [{ distrito: MIRAFLORES, puntos: [CUSCO] }, { distrito: WANCHAQ, puntos: [CUSCO] }]],
+      'POST /api/pedidos': [409, { code: 'PUNTO_SIN_EXISTENCIAS', error: 'Este punto de acopio ya no tiene existencias para todo tu carrito. Elige otro punto.' }],
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    await elegirDestino(usuario, 'Lima', 'Lima', '150122')
+    await usuario.click(screen.getByRole('radio', { name: /Centro Nacional Lima/ }))
+    await usuario.type(screen.getByLabelText('Dirección de entrega'), 'Av. Larco 123')
+    await datosDeTarjeta(usuario)
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+
+    expect(await screen.findByText('Tu carrito cambió')).toBeInTheDocument()
+    // Lima ya no es una opcion: no queda elegido un punto que no corresponde
+    expect(await screen.findByRole('radio', { name: /Centro Regional Cusco/ })).toBeChecked()
+    expect(screen.queryByRole('radio', { name: /Centro Nacional Lima/ })).not.toBeInTheDocument()
+  })
+
+  it('en el recojo tampoco conserva un punto que dejó de tener todo el carrito', { timeout: 15_000 }, async () => {
+    let vez = 0
+    servidor(rutas({
+      'GET /api/compra/puntos': () => [200, ++vez === 1 ? [LIMA, CUSCO] : [CUSCO]],
+      'POST /api/pedidos': [409, { code: 'PUNTO_SIN_EXISTENCIAS', error: 'Este punto de acopio ya no tiene existencias para todo tu carrito. Elige otro punto.' }],
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await usuario.click(await screen.findByRole('radio', { name: /Centro Nacional Lima/ }))
+    await usuario.type(screen.getByLabelText('Celular de contacto'), '987654321')
+    await datosDeTarjeta(usuario)
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+
+    expect(await screen.findByText('Tu carrito cambió')).toBeInTheDocument()
+    expect(await screen.findByRole('radio', { name: /Centro Regional Cusco/ })).toBeChecked()
+    expect(screen.queryByRole('radio', { name: /Centro Nacional Lima/ })).not.toBeInTheDocument()
+  })
+
+  it('al recargar sin un punto que lo reemplace deja la elección vacía', { timeout: 15_000 }, async () => {
+    let vez = 0
+    const NUEVO = { ...LIMA, id: 9, nombre: 'Centro Nuevo' }
+    const fetchMock = servidor(rutas({
+      'GET /api/compra/distritos': () => [200, ++vez === 1 ? DISTRITOS : [{ distrito: MIRAFLORES, puntos: [CUSCO, NUEVO] }, { distrito: WANCHAQ, puntos: [CUSCO] }]],
+      'POST /api/pedidos': [409, { code: 'PUNTO_SIN_EXISTENCIAS', error: 'Este punto de acopio ya no tiene existencias para todo tu carrito. Elige otro punto.' }],
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    await elegirDestino(usuario, 'Lima', 'Lima', '150122')
+    await usuario.click(screen.getByRole('radio', { name: /Centro Nacional Lima/ }))
+    await usuario.type(screen.getByLabelText('Dirección de entrega'), 'Av. Larco 123')
+    await datosDeTarjeta(usuario)
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+
+    expect(await screen.findByText('Tu carrito cambió')).toBeInTheDocument()
+    // Siguen dos puntos y Lima ya no esta: hay que elegir de nuevo, sin dejar uno elegido por error
+    expect(await screen.findByRole('radio', { name: /Centro Regional Cusco/ })).not.toBeChecked()
+    expect(screen.getByRole('radio', { name: /Centro Nuevo/ })).not.toBeChecked()
+    // Y no se envia el punto viejo: sin elegir otro, pide elegir
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+    expect(screen.getByText('Elige un punto de acopio')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/pedidos')).toHaveLength(1)
+  })
+
   it('una dirección incompleta se avisa en su campo sin enviar nada', { timeout: 15_000 }, async () => {
     const fetchMock = servidor(rutas())
     const usuario = userEvent.setup()

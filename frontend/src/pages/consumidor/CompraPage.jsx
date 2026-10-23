@@ -148,8 +148,9 @@ export default function CompraPage() {
         setDistritos(d)
         // Al recargar, lo elegido puede ya no ofrecerse: el distrito, o el punto aunque el distrito siga disponible por otro
         setForm((f) => {
-          if (f.modalidad === 'ENVIO') return f.ubigeo && !d.some((x) => x.distrito.ubigeo === f.ubigeo) ? { ...f, puntoId: '' } : f
-          return p.length === 1 ? { ...f, puntoId: String(p[0].id) } : f
+          // El distrito puede seguir en el catalogo sin cobertura: se conserva, pero el punto debe seguir ofreciendose
+          if (f.modalidad === 'ENVIO') return { ...f, puntoId: puntoVigente(f.puntoId, puntosDe(d, f.ubigeo)) }
+          return { ...f, puntoId: puntoVigente(f.puntoId, p) }
         })
       })
       .catch((e) => {
