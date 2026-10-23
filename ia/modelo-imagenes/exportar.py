@@ -105,6 +105,8 @@ def main():
             continue  # solo aplanan el vector final; el backend ya lo trata como vector
         else:
             raise SystemExit("Operacion no soportada: " + n.op_type)
+    if gemm is None:
+        raise SystemExit("El modelo no tiene la capa final Gemm")
     caracteristicas = nodos[-1]["salida"]
 
     with open(os.path.join(AQUI, "imagenet_clases.txt"), encoding="utf-8") as f:
