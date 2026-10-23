@@ -137,6 +137,7 @@ function EstadoPedido({ estado }) {
 function TarjetaPedido({ pedido }) {
   const { t } = useTranslation()
   const punto = pedido.punto
+  const aDomicilio = pedido.modalidad === 'ENVIO'
   return (
     <article className="mis-pedidos__tarjeta" aria-labelledby={`pedido-${pedido.id}`}>
       <header className="mis-pedidos__cabecera">
@@ -154,8 +155,17 @@ function TarjetaPedido({ pedido }) {
 
       <div className="mis-pedidos__pie">
         <p className="mis-pedidos__punto">
-          <span className="label-m">{punto.nombre}</span>
-          <span className="caption">{[punto.direccion, punto.distrito].filter(Boolean).join(' · ')}</span>
+          {aDomicilio ? (
+            <>
+              <span className="label-m">{t('misPedidos.aDomicilio')}</span>
+              <span className="caption">{t('misPedidos.saleDe', { punto: punto.nombre })}</span>
+            </>
+          ) : (
+            <>
+              <span className="label-m">{punto.nombre}</span>
+              <span className="caption">{[punto.direccion, punto.distrito].filter(Boolean).join(' · ')}</span>
+            </>
+          )}
         </p>
         <div className="mis-pedidos__acciones">
           {pedido.estado === 'PENDIENTE_PAGO' && (
