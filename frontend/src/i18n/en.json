@@ -808,6 +808,8 @@
       "lote": "Batch {{codigo}} · {{vence}} · {{cantidad}} units",
       "marcado": "Order {{numero}} is ready for pickup",
       "errorMarcar": "We couldn't mark the order",
+      "aDomicilio": "Home delivery",
+      "aDomicilioNota": "Home delivery order: it can't be dispatched from here yet.",
       "preparacionRegistrada": "Order {{numero}} is being prepared",
       "errorPreparacion": "We couldn't record the preparation",
       "entregado": "Order {{numero}} was handed over to {{persona}}",
@@ -1963,6 +1965,8 @@
   },
   "misPedidos": {
     "miCuenta": "My account",
+    "aDomicilio": "Home delivery",
+    "saleDe": "Leaves from {{punto}}",
     "titulo": "My orders",
     "enCurso_one": "In progress ({{count}})",
     "enCurso_other": "In progress ({{count}})",
