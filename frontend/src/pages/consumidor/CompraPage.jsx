@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import { consultarCarrito, recargarUnidadesCarrito } from '../../api/carrito.js'
-import { confirmarCompra, consultarPuntosRecojo, pagarPedido } from '../../api/compra.js'
+import { confirmarCompra, consultarDistritosEntrega, consultarPuntosRecojo, pagarPedido } from '../../api/compra.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
@@ -16,6 +16,7 @@ import { mensajeError } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import { navigate, RUTAS } from '../../router.js'
 import { digitos, formatear, largoCvv, marca, nombreMarca, numeroValido, vencimientoValido } from '../../tarjeta.js'
+import EntregaDomicilio from './EntregaDomicilio.jsx'
 import './CompraPage.css'
 
 const PASOS = ['carrito', 'entrega', 'confirmacion']
@@ -23,7 +24,14 @@ const MESES = Array.from({ length: 12 }, (_, i) => ({ valor: String(i + 1), etiq
 const ANIO = new Date().getFullYear()
 const ANIOS = Array.from({ length: 12 }, (_, i) => ({ valor: String(ANIO + i), etiqueta: String(ANIO + i) }))
 
-const VACIO = { puntoId: '', recogeOtro: false, personaAutorizada: '', celular: '', numero: '', titular: '', mes: '', anio: '', cvv: '' }
+const VACIO = {
+  modalidad: 'RECOJO', puntoId: '', recogeOtro: false, personaAutorizada: '', celular: '',
+  ubigeo: '', direccion: '', referencia: '', nombreRecibe: '',
+  numero: '', titular: '', mes: '', anio: '', cvv: '',
+}
+
+/** Los puntos que cubren el distrito de destino (CCPIP-59), entre los que tienen todo el carrito. */
+const puntosDe = (distritos, ubigeo) => distritos.find((d) => d.distrito.ubigeo === ubigeo)?.puntos ?? []
 
 /** Celular peruano: 9 digitos que empiezan con 9; admite "+51", espacios y guiones (como el servidor). */
 export function celularValido(texto) {
@@ -52,15 +60,22 @@ const LIMPIAR = {
   cvv: (valor, f) => digitos(valor).slice(0, largoCvv(marca(f.numero))),
   titular: (valor) => soloNombre(valor),
   personaAutorizada: (valor) => soloNombre(valor),
+  nombreRecibe: (valor) => soloNombre(valor),
 }
 
 /** Las mismas reglas que el servidor (Tarjeta.java, PersonaDeRecojo.java), para avisar antes de enviar. */
 function validar(f) {
   const t = (clave, opciones) => i18n.t(`compra.validacion.${clave}`, opciones)
   const errores = {}
+  if (f.modalidad === 'ENVIO') {
+    if (!f.ubigeo) errores.ubigeo = t('distrito')
+    if (!f.direccion.trim()) errores.direccion = t('direccion')
+    if (!f.nombreRecibe.trim()) errores.nombreRecibe = t('quienRecibe')
+    else if (!NOMBRE.test(f.nombreRecibe.trim())) errores.nombreRecibe = t('soloLetras')
+  }
   if (!f.puntoId) errores.puntoId = t('punto')
-  if (f.recogeOtro && !f.personaAutorizada.trim()) errores.personaAutorizada = t('persona')
-  else if (f.recogeOtro && !NOMBRE.test(f.personaAutorizada.trim())) errores.personaAutorizada = t('soloLetras')
+  if (f.modalidad === 'RECOJO' && f.recogeOtro && !f.personaAutorizada.trim()) errores.personaAutorizada = t('persona')
+  else if (f.modalidad === 'RECOJO' && f.recogeOtro && !NOMBRE.test(f.personaAutorizada.trim())) errores.personaAutorizada = t('soloLetras')
   if (!celularValido(f.celular)) errores.celular = t('celular')
   if (digitos(f.numero).length < 13) errores.numero = t('numero')
   else if (!numeroValido(f.numero)) errores.numero = t('numeroInvalido')
@@ -88,6 +103,7 @@ export default function CompraPage() {
   const { t } = useTranslation()
   const [carrito, setCarrito] = useState(null)
   const [puntos, setPuntos] = useState(null)
+  const [distritos, setDistritos] = useState([])
   const [bloqueo, setBloqueo] = useState(null)
   const [form, setForm] = useState(VACIO)
   const [errores, setErrores] = useState({})
@@ -106,11 +122,17 @@ export default function CompraPage() {
 
   const cargar = useCallback(() => {
     setBloqueo(null)
-    Promise.all([consultarCarrito(), consultarPuntosRecojo()])
-      .then(([c, p]) => {
+    // Sin entrega a domicilio disponible (o si la consulta falla), la compra sigue siendo para recojo
+    const aDomicilio = consultarDistritosEntrega().catch(() => [])
+    Promise.all([consultarCarrito(), consultarPuntosRecojo(), aDomicilio])
+      .then(([c, p, d]) => {
         setCarrito(c)
         setPuntos(p)
-        if (p.length === 1) setForm((f) => ({ ...f, puntoId: String(p[0].id) }))
+        setDistritos(d)
+        setForm((f) => {
+          if (f.modalidad === 'ENVIO') return d.some((x) => x.distrito.ubigeo === f.ubigeo) ? f : { ...f, ubigeo: '', puntoId: '' }
+          return p.length === 1 ? { ...f, puntoId: String(p[0].id) } : f
+        })
       })
       .catch((e) => {
         if (e.status === 401) return
@@ -125,11 +147,21 @@ export default function CompraPage() {
   const cambiar = (campo, valor) => {
     setForm((f) => {
       const nuevo = { ...f, [campo]: LIMPIAR[campo] ? LIMPIAR[campo](valor, f) : valor }
+      // Al cambiar el distrito, el punto se elige de nuevo entre los que lo cubren (uno solo, ya elegido)
+      if (campo === 'ubigeo') {
+        const cubren = puntosDe(distritos, valor)
+        nuevo.puntoId = cubren.length === 1 ? String(cubren[0].id) : ''
+      }
       // Si cambia la marca (p. ej. de Amex a Visa), el CVV se recorta a su nuevo largo
       if (campo === 'numero') nuevo.cvv = LIMPIAR.cvv(f.cvv, nuevo)
       return nuevo
     })
     setErrores((e) => ({ ...e, [campo]: undefined }))
+  }
+  // Cambiar entre recojo y domicilio cambia los puntos entre los que se elige
+  const elegirModalidad = (modalidad) => {
+    setForm((f) => ({ ...f, modalidad, ubigeo: '', puntoId: modalidad === 'RECOJO' && puntos.length === 1 ? String(puntos[0].id) : '' }))
+    setErrores({})
   }
   const alEscribir = (campo) => (e) => cambiar(campo, e.target.type === 'checkbox' ? e.target.checked : e.target.value)
 
@@ -142,11 +174,22 @@ export default function CompraPage() {
 
     setEnviando(true)
     try {
-      const recojo = {
-        puntoId: form.puntoId,
-        personaAutorizada: form.recogeOtro ? form.personaAutorizada.trim() : null,
-        celularContacto: form.celular,
-      }
+      const recojo = form.modalidad === 'ENVIO'
+        ? {
+            puntoId: form.puntoId,
+            entrega: {
+              ubigeo: form.ubigeo,
+              direccion: form.direccion.trim(),
+              referencia: form.referencia.trim() || null,
+              contactoNombre: form.nombreRecibe.trim(),
+              contactoCelular: form.celular,
+            },
+          }
+        : {
+            puntoId: form.puntoId,
+            personaAutorizada: form.recogeOtro ? form.personaAutorizada.trim() : null,
+            celularContacto: form.celular,
+          }
       const firma = JSON.stringify(recojo)
       if (pedido.current?.firma !== firma) {
         const nuevo = await confirmarCompra(recojo)
@@ -195,6 +238,11 @@ export default function CompraPage() {
         // Los detalles llegan del servidor en espanol: en ingles basta el mensaje del code
         setAviso({ tono: 'error', titulo: mensajeError(err), descripcion: i18n.resolvedLanguage === 'es' ? (err.body?.detalles ?? []).join(' ') : undefined })
         break
+      case 'SIN_COBERTURA':
+        pedido.current = null
+        setAviso({ tono: 'error', titulo: t('compra.domicilio.sinCobertura'), descripcion: mensajeError(err) })
+        cargar()
+        break
       case 'PUNTO_SIN_EXISTENCIAS':
       case 'CARRITO_CON_PROBLEMAS':
       case 'PEDIDO_NO_PAGABLE':
@@ -212,6 +260,9 @@ export default function CompraPage() {
   }
 
   const comprables = carrito?.items.filter((i) => i.estado === 'DISPONIBLE') ?? []
+  const aDomicilio = form.modalidad === 'ENVIO'
+  // A domicilio, los puntos son los que cubren el distrito elegido; para recojo, todos los que tienen el carrito
+  const puntosVisibles = aDomicilio ? puntosDe(distritos, form.ubigeo) : puntos
   const marcaTarjeta = marca(form.numero)
 
   return (
@@ -249,14 +300,28 @@ export default function CompraPage() {
           <form className="compra__cuerpo" onSubmit={pagar} noValidate>
             <div className="compra__secciones">
               <section className="compra__seccion" aria-labelledby="compra-recojo">
-                <h2 id="compra-recojo" className="compra__seccion-titulo">{t('compra.puntoTitulo')}</h2>
-                <p className="caption compra__ayuda">{t('compra.puntoAyuda')}</p>
+                <h2 id="compra-recojo" className="compra__seccion-titulo">{t(aDomicilio ? 'compra.domicilio.titulo' : 'compra.puntoTitulo')}</h2>
+                {distritos.length > 0 && (
+                  <OpcionTarjeta
+                    nombre="modalidad"
+                    etiqueta={t('compra.domicilio.comoRecibir')}
+                    valor={form.modalidad}
+                    onCambiar={elegirModalidad}
+                    opciones={[
+                      { valor: 'RECOJO', etiqueta: t('compra.recojo') },
+                      { valor: 'ENVIO', etiqueta: t('compra.domicilio.opcion') },
+                    ]}
+                  />
+                )}
+                <p className="caption compra__ayuda">{t(aDomicilio ? 'compra.domicilio.ayuda' : 'compra.puntoAyuda')}</p>
+                {aDomicilio && <EntregaDomicilio distritos={distritos} form={form} errores={errores} alEscribir={alEscribir} />}
+                {(!aDomicilio || form.ubigeo) && (
                 <OpcionTarjeta
                   nombre="punto"
-                  etiqueta={t('compra.eligeDonde')}
+                  etiqueta={t(aDomicilio ? 'compra.domicilio.eligePunto' : 'compra.eligeDonde')}
                   valor={form.puntoId}
                   onCambiar={(v) => cambiar('puntoId', v)}
-                  opciones={puntos.map((p) => ({
+                  opciones={puntosVisibles.map((p) => ({
                     valor: String(p.id),
                     etiqueta: (
                       <span className="compra__punto">
@@ -268,16 +333,28 @@ export default function CompraPage() {
                     ),
                   }))}
                 />
+                )}
                 {errores.puntoId && <p className="campo__ayuda campo__ayuda--error">{errores.puntoId}</p>}
               </section>
 
               <section className="compra__seccion" aria-labelledby="compra-quien">
-                <h2 id="compra-quien" className="compra__seccion-titulo">{t('compra.quienTitulo')}</h2>
-                <label className="compra__check">
-                  <input type="checkbox" checked={form.recogeOtro} onChange={alEscribir('recogeOtro')} />
-                  {t('compra.otraPersona')}
-                </label>
-                {form.recogeOtro && (
+                <h2 id="compra-quien" className="compra__seccion-titulo">{t(aDomicilio ? 'compra.domicilio.quienTitulo' : 'compra.quienTitulo')}</h2>
+                {aDomicilio ? (
+                  <Campo
+                    etiqueta={t('compra.domicilio.quienRecibe')}
+                    value={form.nombreRecibe}
+                    onChange={alEscribir('nombreRecibe')}
+                    error={errores.nombreRecibe}
+                    maxLength={160}
+                    autoComplete="name"
+                  />
+                ) : (
+                  <label className="compra__check">
+                    <input type="checkbox" checked={form.recogeOtro} onChange={alEscribir('recogeOtro')} />
+                    {t('compra.otraPersona')}
+                  </label>
+                )}
+                {!aDomicilio && form.recogeOtro && (
                   <Campo
                     etiqueta={t('compra.personaAutorizada')}
                     value={form.personaAutorizada}
@@ -287,8 +364,8 @@ export default function CompraPage() {
                   />
                 )}
                 <Campo
-                  etiqueta={t('compra.celular')}
-                  ayuda={t('compra.celularAyuda')}
+                  etiqueta={t(aDomicilio ? 'compra.domicilio.celular' : 'compra.celular')}
+                  ayuda={t(aDomicilio ? 'compra.domicilio.celularAyuda' : 'compra.celularAyuda')}
                   value={form.celular}
                   onChange={alEscribir('celular')}
                   error={errores.celular}
@@ -358,8 +435,8 @@ export default function CompraPage() {
                   <dd>{carrito.comunidades}</dd>
                 </div>
                 <div>
-                  <dt>{t('compra.recojo')}</dt>
-                  <dd>{t('compra.gratis')}</dd>
+                  <dt>{t(aDomicilio ? 'compra.domicilio.opcion' : 'compra.recojo')}</dt>
+                  <dd>{t(aDomicilio ? 'compra.domicilio.costoPorDefinir' : 'compra.gratis')}</dd>
                 </div>
               </dl>
               <p className="compra__total">
