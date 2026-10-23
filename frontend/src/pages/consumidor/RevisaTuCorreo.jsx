@@ -55,7 +55,9 @@ export default function RevisaTuCorreo({ correo, enviado, esperaInicial = ESPERA
         <img src={iconoSobre} width="24" height="24" alt="" />
       </span>
       <h1 id="titulo-acceso" className="heading-h2">{t('revisaCorreo.titulo')}</h1>
-      <p className="revisa__texto">{t('revisaCorreo.descripcion', { correo })}</p>
+      <p className="revisa__texto">
+        {t(enviado ? 'revisaCorreo.descripcion' : 'revisaCorreo.descripcionNoEnviado', { correo })}
+      </p>
 
       {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
 

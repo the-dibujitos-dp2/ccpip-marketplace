@@ -122,6 +122,8 @@ describe('Crear cuenta (CCPIP-26)', () => {
     await user.click(screen.getByRole('button', { name: 'Crear cuenta' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Tu cuenta está creada, pero el correo no salió')
+    expect(screen.getByText(/todavía no pudimos enviarte el enlace/)).toBeInTheDocument()
+    expect(screen.queryByText(/Enviamos un enlace/)).not.toBeInTheDocument()
   })
 
   it('quien ingresa sin verificar puede pedir otro enlace en el momento', async () => {
