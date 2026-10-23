@@ -50,6 +50,8 @@ public abstract class IntegrationTest {
         registry.add("ccpip.imagenes.crear-bucket", () -> "true");
         registry.add("ccpip.ia.proveedor", () -> "simulado");
         registry.add("ccpip.traduccion.proveedor", () -> "simulado");
+        // CCPIP-51: el limite del asistente se prueba aparte (LimiteAsistenteTest)
+        registry.add("ccpip.asistente.por-persona-por-minuto", () -> "1000");
         // CCPIP-273: la revision periodica de intereses no corre sola; las pruebas llaman a revisar()
         registry.add("ccpip.intereses.revision-inicial", () -> "PT24H");
         // CCPIP-75: la merma automatica tampoco corre sola; las pruebas llaman a revisar()

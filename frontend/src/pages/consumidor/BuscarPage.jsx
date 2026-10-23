@@ -14,6 +14,7 @@ import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { navigate, RUTAS } from '../../router.js'
 import '../../components/Campo.css'
+import AsistenteCatalogo from './AsistenteCatalogo.jsx'
 import './BuscarPage.css'
 
 const ORDENES = ['RELEVANCIA', 'NOVEDADES', 'PRECIO_ASC', 'PRECIO_DESC']
@@ -233,6 +234,18 @@ export default function BuscarPage({ search }) {
           </aside>
 
           <section className="buscar__resultados" aria-label={t('buscar.resultados')}>
+            <AsistenteCatalogo
+              onVerEnBusqueda={(b) =>
+                navigate(escribirFiltros({
+                  ...leerFiltros(''),
+                  q: b.q ?? '',
+                  lineas: b.lineas ?? [],
+                  regiones: b.regiones ?? [],
+                  modalidad: b.modalidad ?? '',
+                  precioMax: b.precioMax == null ? '' : String(b.precioMax),
+                }))
+              }
+            />
             {chips.length > 0 && (
               <ul className="filtros-activos" aria-label={t('buscar.filtrosActivos')}>
                 {chips.map((c) => (

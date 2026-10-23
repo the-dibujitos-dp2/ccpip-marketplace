@@ -97,6 +97,19 @@ public class IaConfig {
         return analista;
     }
 
+    /** CCPIP-51 y CCPIP-175: asistente de catalogo, con el mismo selector que la redaccion. */
+    @Bean
+    AsistenteCatalogo asistenteCatalogo(@Value("${ccpip.ia.proveedor:ninguno}") String proveedor) {
+        AsistenteCatalogo asistente = switch (proveedor) {
+            case "gemini" -> gemini == null ? sinClave(new AsistenteCatalogoNoConfigurado()) : new AsistenteCatalogoGemini(gemini);
+            case "simulado" -> new AsistenteCatalogoSimulado();
+            case "ninguno" -> new AsistenteCatalogoNoConfigurado();
+            default -> throw new IllegalStateException("Proveedor de IA desconocido: " + proveedor);
+        };
+        log.info("Asistente de catálogo: proveedor '{}'", asistente.proveedor());
+        return asistente;
+    }
+
     private static <T> T sinClave(T noConfigurado) {
         log.warn("ccpip.ia.proveedor=gemini pero falta CCPIP_GEMINI_API_KEY: la IA queda no disponible");
         return noConfigurado;

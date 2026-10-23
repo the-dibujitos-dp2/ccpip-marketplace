@@ -20,6 +20,12 @@ public class IaNoDisponible extends ErrorNegocio {
         return new IaNoDisponible("No pudimos analizar la imagen en este momento. Puedes continuar con tu foto original.");
     }
 
+    /** CCPIP-51: sin asistente se busca con el buscador y los filtros, que no dependen de la IA. */
+    public static IaNoDisponible catalogo() {
+        return new IaNoDisponible("El asistente no está disponible en este momento. Usa el buscador y los filtros "
+                + "para encontrar productos.");
+    }
+
     /** CCPIP-50: sin analisis asistido la solicitud se revisa a mano; la decision sigue siendo posible. */
     public static IaNoDisponible paraRevision() {
         return new IaNoDisponible("El análisis asistido no está disponible. La solicitud pasa a revisión manual: "
