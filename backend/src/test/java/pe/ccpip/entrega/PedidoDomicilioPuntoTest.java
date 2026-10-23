@@ -55,6 +55,13 @@ class PedidoDomicilioPuntoTest extends IntegrationTest {
     }
 
     @Test
+    void elTableroDelPuntoDiceQueEsADomicilio() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/acopio/pedidos").cookie(admin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.numero == 'DOM-0001')].modalidad").value("ENVIO"));
+    }
+
+    @Test
     void noSeRegistraSuRecojoEnElMostrador() throws Exception {
         jdbc.update("UPDATE pedido SET estado = 'LISTO_PARA_RECOJO' WHERE id = ?", pedido);
         accion("recojo", Map.of("persona", "Consumidor de Prueba", "celular", "987654321"))
