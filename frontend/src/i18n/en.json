@@ -1414,6 +1414,7 @@
     "ARCHIVO_VACIO": "The file is empty.",
     "CATEGORIA_INVALIDA": "Choose the photo's category.",
     "CELULAR_INVALIDO": "Enter a 9-digit mobile number starting with 9.",
+    "DIRECCION_INVALIDA": "Enter a complete address: street and number, for example Av. Larco 123.",
     "CELULAR_NO_COINCIDE": "The mobile number doesn't match the one on the order.",
     "ACOPIO_SIN_ASIGNAR": "Your account doesn't have a collection point assigned yet.",
     "DATOS_INVALIDOS": "Check the form details.",
@@ -1842,6 +1843,7 @@
       "anio": "Choose the year",
       "vencida": "The card has expired",
       "distrito": "Choose the delivery district",
+      "direccionCompleta": "Enter a complete address: street and number, for example Av. Larco 123.",
       "direccion": "Enter the delivery address",
       "quienRecibe": "Enter who will receive the order",
       "cvv": "{{digitos}} digits"

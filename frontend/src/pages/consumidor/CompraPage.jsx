@@ -36,12 +36,19 @@ const VACIO = {
 /** Los puntos que cubren el distrito de destino (CCPIP-59), entre los que tienen todo el carrito. */
 const puntosDe = (distritos, ubigeo) => distritos.find((d) => d.distrito.ubigeo === ubigeo)?.puntos ?? []
 
+/** El punto elegido sigue valiendo si esta entre los que hoy se ofrecen; si no, queda el unico que hay o ninguno. */
+const puntoVigente = (puntoId, ofrecidos) =>
+  ofrecidos.some((x) => String(x.id) === puntoId) ? puntoId : ofrecidos.length === 1 ? String(ofrecidos[0].id) : ''
+
 /** Celular peruano: 9 digitos que empiezan con 9; admite "+51", espacios y guiones (como el servidor). */
 export function celularValido(texto) {
   const digitos = texto.replace(/\D/g, '')
   const local = digitos.length === 11 && digitos.startsWith('51') ? digitos.slice(2) : digitos
   return /^9\d{8}$/.test(local)
 }
+
+/** La direccion no la confirma ningun mapa: se pide completa (como el servidor), con unos caracteres y una letra. */
+const direccionCompleta = (texto) => texto.trim().length >= 5 && /\p{L}/u.test(texto)
 
 /** Nombres de personas: letras (con tildes), espacios, apostrofos, puntos y guiones. */
 const NOMBRE = /^\p{L}[\p{L}\s'’.-]*$/u
@@ -73,6 +80,7 @@ function validar(f) {
   if (f.modalidad === 'ENVIO') {
     if (!f.ubigeo) errores.ubigeo = t('distrito')
     if (!f.direccion.trim()) errores.direccion = t('direccion')
+    else if (!direccionCompleta(f.direccion)) errores.direccion = t('direccionCompleta')
     if (!f.nombreRecibe.trim()) errores.nombreRecibe = t('quienRecibe')
     else if (!NOMBRE.test(f.nombreRecibe.trim())) errores.nombreRecibe = t('soloLetras')
   }
@@ -133,9 +141,13 @@ export default function CompraPage() {
         setCarrito(c)
         setPuntos(p)
         setDistritos(d)
+        // Al recargar, lo elegido puede ya no ofrecerse: el distrito, o el punto aunque el distrito siga disponible por otro
         setForm((f) => {
-          if (f.modalidad === 'ENVIO') return d.some((x) => x.distrito.ubigeo === f.ubigeo) ? f : { ...f, ubigeo: '', puntoId: '' }
-          return p.length === 1 ? { ...f, puntoId: String(p[0].id) } : f
+          if (f.modalidad === 'ENVIO') {
+            if (!d.some((x) => x.distrito.ubigeo === f.ubigeo)) return { ...f, ubigeo: '', puntoId: '' }
+            return { ...f, puntoId: puntoVigente(f.puntoId, puntosDe(d, f.ubigeo)) }
+          }
+          return { ...f, puntoId: puntoVigente(f.puntoId, p) }
         })
       })
       .catch((e) => {
@@ -238,6 +250,9 @@ export default function CompraPage() {
     switch (err.code) {
       case 'CELULAR_INVALIDO':
         setErrores((e) => ({ ...e, celular: mensajeError(err) }))
+        break
+      case 'DIRECCION_INVALIDA':
+        setErrores((e) => ({ ...e, direccion: mensajeError(err) }))
         break
       case 'TARJETA_INVALIDA':
         // Los detalles llegan del servidor en espanol: en ingles basta el mensaje del code

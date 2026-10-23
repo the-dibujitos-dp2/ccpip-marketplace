@@ -1414,6 +1414,7 @@
     "ARCHIVO_VACIO": "El archivo está vacío.",
     "CATEGORIA_INVALIDA": "Elige la categoría de la foto.",
     "CELULAR_INVALIDO": "Ingresa un celular de 9 dígitos que empiece con 9.",
+    "DIRECCION_INVALIDA": "Indica una dirección completa: calle y número, por ejemplo Av. Larco 123.",
     "CELULAR_NO_COINCIDE": "El celular no coincide con el registrado en el pedido.",
     "ACOPIO_SIN_ASIGNAR": "Tu cuenta aún no tiene un punto de acopio asignado.",
     "DATOS_INVALIDOS": "Revisa los datos del formulario.",
@@ -1842,6 +1843,7 @@
       "anio": "Elige el año",
       "vencida": "La tarjeta está vencida",
       "distrito": "Elige el distrito de entrega",
+      "direccionCompleta": "Indica una dirección completa: calle y número, por ejemplo Av. Larco 123.",
       "direccion": "Indica la dirección de entrega",
       "quienRecibe": "Indica quién recibirá el pedido",
       "cvv": "{{digitos}} dígitos"
