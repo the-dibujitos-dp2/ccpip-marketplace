@@ -112,7 +112,7 @@ public final class ModeloImagenes {
             int[] forma = new int[t.path("forma").size()];
             int n = 1;
             for (int i = 0; i < forma.length; i++) {
-                forma[i] = t.path("forma").get(i).asInt();
+                forma[i] = t.path("forma").path(i).asInt();
                 n *= forma[i];
             }
             byte[] crudo = in.readNBytes(n * 2);
@@ -141,7 +141,7 @@ public final class ModeloImagenes {
         String[] lineas = new String[cabeza.path("lineas").size()];
         String[] etiquetas = new String[lineas.length];
         for (int i = 0; i < lineas.length; i++) {
-            lineas[i] = cabeza.path("lineas").get(i).asText();
+            lineas[i] = cabeza.path("lineas").path(i).asText();
             etiquetas[i] = cabeza.path("etiquetas").path(i).asText(lineas[i]);
         }
         return new ModeloImagenes(List.copyOf(nodos), cab.path("caracteristicas").asText(), entrada.path("tamano").asInt(),
@@ -222,11 +222,11 @@ public final class ModeloImagenes {
         String primera = nodos.get(0).entrada();
         valores.put(primera, new Mapa(3, tamano, tamano, x));
         for (Nodo n : nodos) {
-            Mapa a = valores.get(n.entrada());
+            Mapa a = activacion(valores, n.entrada());
             Mapa r = switch (n.op()) {
                 case "Conv" -> conv(a, n);
                 case "Clip" -> clip(a, n.min(), n.max());
-                case "Add" -> sumar(a, valores.get(n.entrada2()));
+                case "Add" -> sumar(a, activacion(valores, n.entrada2()));
                 case "GlobalAveragePool" -> promedio(a);
                 default -> throw new IllegalStateException("Operación no soportada: " + n.op());
             };
@@ -237,7 +237,16 @@ public final class ModeloImagenes {
                 libres.forEach(valores::remove);
             }
         }
-        return valores.get(caracteristicas).d();
+        return activacion(valores, caracteristicas).d();
+    }
+
+    /** La activacion ya calculada con ese nombre; si falta, el archivo del modelo esta mal armado. */
+    private static Mapa activacion(Map<String, Mapa> valores, String nombre) {
+        Mapa m = valores.get(nombre);
+        if (m == null) {
+            throw new IllegalStateException("El modelo de imágenes usa una activación que no existe: " + nombre);
+        }
+        return m;
     }
 
     private static Mapa conv(Mapa a, Nodo n) {
@@ -332,7 +341,7 @@ public final class ModeloImagenes {
     private static float[] floats(JsonNode arr) {
         float[] r = new float[arr.size()];
         for (int i = 0; i < r.length; i++) {
-            r[i] = (float) arr.get(i).asDouble();
+            r[i] = (float) arr.path(i).asDouble();
         }
         return r;
     }
