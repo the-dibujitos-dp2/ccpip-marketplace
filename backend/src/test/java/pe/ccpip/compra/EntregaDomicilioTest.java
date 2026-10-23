@@ -241,6 +241,21 @@ class EntregaDomicilioTest extends IntegrationTest {
     }
 
     @Test
+    void rechazaUnaDireccionIncompletaSinConfirmarNada() throws Exception {
+        alCarrito(productoEnCusco(5), 1);
+        for (String incompleta : new String[] {"Av.", "12345", "- - -"}) {
+            Map<String, Object> malo = destino(WANCHAQ);
+            malo.put("direccion", incompleta);
+            pedir(aDomicilio(malo)).andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.code").value("DIRECCION_INVALIDA"));
+        }
+        // Una direccion de manzana y lote tambien es completa, aunque no lleve numero de calle
+        Map<String, Object> mzLote = destino(WANCHAQ);
+        mzLote.put("direccion", "Mz. A Lt. 3");
+        pedir(aDomicilio(mzLote)).andExpect(status().isCreated());
+    }
+
+    @Test
     void exigeUnCelularValidoDeQuienRecibe() throws Exception {
         alCarrito(productoEnCusco(5), 1);
         Map<String, Object> malo = destino(WANCHAQ);
