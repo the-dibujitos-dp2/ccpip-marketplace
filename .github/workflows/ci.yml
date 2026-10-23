@@ -28,7 +28,28 @@ jobs:
 
       - name: Compilar, probar y medir cobertura
         working-directory: backend
-        run: ./mvnw -B verify
+        run: |
+          set -o pipefail
+          ./mvnw -B verify 2>&1 | tee maven.log
+
+      # Deja en el PR, como anotaciones, que prueba fallo o que no compilo, sin tener que abrir el log
+      - name: Resumen de fallas del backend
+        if: failure()
+        working-directory: backend
+        run: |
+          grep -E '^\[ERROR\] /.*\.java:\[' maven.log | head -10 | sed -E 's#^\[ERROR\] .*/(src/[^:]+):\[([0-9]+),[0-9]+\] (.*)#::error file=backend/\1,line=\2::\3#' || true
+          python3 - <<'PY'
+          import glob, xml.etree.ElementTree as ET
+          n = 0
+          for f in glob.glob("target/surefire-reports/TEST-*.xml"):
+              for caso in ET.parse(f).getroot().iter("testcase"):
+                  for falla in list(caso.findall("failure")) + list(caso.findall("error")):
+                      if n < 10:
+                          msg = " ".join((falla.get("message") or falla.text or "").split())[:400]
+                          print(f"::error title={caso.get('classname').split('.')[-1]}.{caso.get('name')}::{msg}")
+                      n += 1
+          print(f"{n} pruebas con falla")
+          PY
 
       # El escaneo del pom.xml no ve las versiones que hereda de Spring Boot; el jar si
       - name: CVEs en el jar empaquetado (Trivy)
