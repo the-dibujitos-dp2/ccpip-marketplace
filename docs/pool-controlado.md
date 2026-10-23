@@ -15,7 +15,7 @@ Este documento define cómo se ejecutan las historias de Jira sin convertir el p
 ## Hallazgos que condicionan el trabajo
 
 1. La instalación local del frontend estaba desactualizada respecto de `package-lock.json`. Tras `npm ci`, la suite pasó: **12 archivos y 184 pruebas**; `npm run build` y `npm audit --omit=dev --audit-level=high` también pasaron.
-2. La suite de backend no pudo ejecutarse porque Docker Desktop no estaba disponible. Testcontainers abortó antes de ejecutar la integración: 220 pruebas detectadas, 169 errores por ausencia del socket Docker. No se interpreta esto como defecto funcional del backend.
+2. La primera ejecución de backend quedó bloqueada porque Docker Desktop no estaba disponible: Testcontainers abortó antes de ejecutar la integración. Tras iniciar Docker Desktop se repitió la suite y pasó con **725 pruebas**, sin fallos ni errores. No se interpreta el primer fallo como defecto funcional del backend.
 3. Hay historias `To Do` cuyo flujo ya aparece en código, por ejemplo retiro/publicación lógica de productos y la propuesta/aprobación de historia asistida. Antes de escribir código para esas historias hay que contrastar cada criterio de aceptación con pruebas y actualizar Jira solamente con evidencia verificable.
 4. Las historias de IA de imagen y documentos exigen decisiones de diseño que el backlog no resuelve por sí solo: modelo propio para correspondencia de imágenes, tipos de certificados/documentos, límites de archivos, conservación de originales y forma de explicar recomendaciones. No se deben simular esas decisiones como si fueran requisitos aprobados.
 
@@ -75,7 +75,7 @@ La historia no pasa a PR sin:
 4. revisión independiente del diff contra Jira;
 5. verificación de permisos, trazabilidad y no exposición de datos ajenos.
 
-Cuando Docker no esté disponible, se permite avanzar hasta revisión local estática y pruebas frontend, pero no se declara lista para PR hasta ejecutar las pruebas de integración que usan Testcontainers.
+Cuando Docker no esté disponible, se permite avanzar hasta revisión local estática y pruebas frontend, pero no se declara lista para PR hasta ejecutar las pruebas de integración que usan Testcontainers. En la auditoría inicial se recuperó Docker Desktop y la suite backend pasó con 725 pruebas.
 
 ### Gate 4 — Pull request y decisión humana
 
@@ -126,5 +126,6 @@ frontend: npm ci
 frontend: npm run test:coverage        # 12 archivos, 184 pruebas
 frontend: npm run build                # pasa
 frontend: npm audit --omit=dev --audit-level=high  # 0 vulnerabilidades
-backend: ./mvnw -B test                # bloqueado por Docker/Testcontainers no disponible
+backend: ./mvnw -B test                # 725 pruebas, sin fallos ni errores
+e2e: npm ci && npm run stack && npm test && npm run stack:down  # 22 pruebas Playwright, pasa y limpia contenedores
 ```
