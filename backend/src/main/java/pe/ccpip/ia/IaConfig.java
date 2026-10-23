@@ -53,14 +53,17 @@ public class IaConfig {
     }
 
     /**
-     * CCPIP-144 y CCPIP-176: IA de imagenes. Por defecto sigue a {@code ccpip.ia.proveedor}; el
-     * modelo definitivo se agregara aqui como otro valor.
+     * CCPIP-144 y CCPIP-176: IA de imagenes con {@code ccpip.ia.imagenes.proveedor}: "propio" (modelo
+     * del equipo, ver ia/modelo-imagenes), "simulado" (pruebas) o "ninguno". Por defecto sigue a
+     * {@code ccpip.ia.proveedor}.
      */
     @Bean
     ValidadorImagen validadorImagen(@Value("${ccpip.ia.imagenes.proveedor:${ccpip.ia.proveedor:ninguno}}") String proveedor) {
         ValidadorImagen validador = switch (proveedor) {
+            // CCPIP-144: modelo propio del equipo, ejecutado dentro del backend (RNF-48)
+            case "propio" -> new ValidadorImagenPropio(ModeloImagenes.cargar());
             case "simulado" -> new ValidadorImagenSimulado();
-            // Gemini es solo para texto: la validacion de imagenes usa el modelo propio (RNF-48)
+            // Gemini es solo para texto: la validacion de imagenes usa el modelo propio
             case "ninguno", "gemini" -> new ValidadorImagenNoConfigurado();
             default -> throw new IllegalStateException("Proveedor de IA de imágenes desconocido: " + proveedor);
         };
@@ -71,6 +74,7 @@ public class IaConfig {
     @Bean
     MejoradorImagen mejoradorImagen(@Value("${ccpip.ia.imagenes.proveedor:${ccpip.ia.proveedor:ninguno}}") String proveedor) {
         return switch (proveedor) {
+            case "propio" -> new MejoradorImagenPropio();
             case "simulado" -> new MejoradorImagenSimulado();
             case "ninguno", "gemini" -> new MejoradorImagenNoConfigurado();
             default -> throw new IllegalStateException("Proveedor de IA de imágenes desconocido: " + proveedor);
