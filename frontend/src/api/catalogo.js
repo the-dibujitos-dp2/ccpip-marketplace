@@ -27,3 +27,7 @@ export const obtenerInicio = () => apiFetch('/api/inicio', publico)
 export const listarTiendas = () => apiFetch('/api/tiendas', publico)
 export const obtenerTienda = async (id) => apiFetch(`/api/tiendas/${idRuta(id)}`, publico)
 export const obtenerCatalogos = () => apiFetch('/api/catalogos', publico)
+
+/** CCPIP-51 y CCPIP-175: pregunta al asistente de catalogo; responde solo con productos reales. */
+export const preguntarAsistente = (pregunta) =>
+  apiFetch('/api/asistente/catalogo', { method: 'POST', body: { pregunta }, ...publico })
