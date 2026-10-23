@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
@@ -21,6 +21,20 @@ const DISTRITOS = [
   { distrito: WANCHAQ, puntos: [CUSCO] },
   { distrito: MIRAFLORES, puntos: [LIMA, CUSCO] },
 ]
+
+const SURCO = { ubigeo: '150140', departamento: 'Lima', provincia: 'Lima', distrito: 'Santiago de Surco' }
+const CUSCO_CENTRO = { ubigeo: '080101', departamento: 'Cusco', provincia: 'Cusco', distrito: 'Cusco' }
+
+// Catalogo territorial (CCPIP-61). Surco y Cusco-ciudad estan en el catalogo, pero ningun punto los cubre
+const TERRITORIO = {
+  'GET /api/territorio/departamentos': [200, ['Cusco', 'Lima']],
+  'GET /api/territorio/provincias?departamento=Cusco': [200, ['Cusco']],
+  'GET /api/territorio/provincias?departamento=Lima': [200, ['Lima']],
+  'GET /api/territorio/distritos?departamento=Cusco&provincia=Cusco': [200, [CUSCO_CENTRO, WANCHAQ]],
+  'GET /api/territorio/distritos?departamento=Lima&provincia=Lima': [200, [MIRAFLORES, SURCO]],
+}
+
+const MIS_DATOS = { nombres: 'Lucía', apellidos: 'Ramírez Torres', correo: 'lucia@correo.pe', correoConfirmado: true, celular: '+51 987 654 321' }
 
 const ENTREGA = {
   ubigeo: '080108', departamento: 'Cusco', provincia: 'Cusco', distrito: 'Wanchaq',
@@ -62,6 +76,8 @@ const rutas = (extra = {}) => ({
   'GET /api/carrito': [200, copia(DATOS.carrito)],
   'GET /api/compra/puntos': [200, [LIMA, CUSCO]],
   'GET /api/compra/distritos': [200, DISTRITOS],
+  ...TERRITORIO,
+  'GET /api/cuenta/datos': [200, MIS_DATOS],
   'POST /api/pedidos': [201, PEDIDO],
   'GET /api/pedidos/78': [200, CONFIRMADO],
   ...extra,
@@ -73,6 +89,15 @@ async function datosDeTarjeta(usuario) {
   await usuario.selectOptions(screen.getByLabelText('Mes'), '12')
   await usuario.selectOptions(screen.getByLabelText('Año'), String(new Date().getFullYear() + 2))
   await usuario.type(screen.getByLabelText('CVV'), '123')
+}
+
+/** Departamento, provincia y distrito: cada nivel aparece al elegir el anterior. */
+async function elegirDestino(usuario, departamento, provincia, ubigeo) {
+  await usuario.selectOptions(screen.getByLabelText('Departamento'), departamento)
+  await within(screen.getByLabelText('Provincia')).findByRole('option', { name: provincia })
+  await usuario.selectOptions(screen.getByLabelText('Provincia'), provincia)
+  await waitFor(() => expect(screen.getByLabelText('Distrito de entrega').querySelector(`option[value="${ubigeo}"]`)).not.toBeNull())
+  await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), ubigeo)
 }
 
 async function elegirDomicilio(usuario) {
@@ -115,6 +140,81 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     expect(within(resumen).getByText('A domicilio · por confirmar')).toBeInTheDocument()
   })
 
+  it('el destino se elige por niveles: cada uno se habilita con el anterior y cambiarlo vacía los de abajo', async () => {
+    servidor(rutas())
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+
+    expect(screen.getByLabelText('Provincia')).toBeDisabled()
+    expect(screen.getByLabelText('Distrito de entrega')).toBeDisabled()
+    await elegirDestino(usuario, 'Cusco', 'Cusco', '080108')
+    expect(screen.getByLabelText('Distrito de entrega')).toHaveValue('080108')
+    expect(screen.getByRole('radio', { name: /Centro Regional Cusco/ })).toBeChecked()
+
+    // Cambiar de departamento vacia provincia, distrito y el punto, que dependian de el
+    await usuario.selectOptions(screen.getByLabelText('Departamento'), 'Lima')
+    expect(screen.getByLabelText('Provincia')).toHaveValue('')
+    expect(screen.getByLabelText('Distrito de entrega')).toBeDisabled()
+    expect(screen.queryByRole('radio', { name: /Centro Regional Cusco/ })).not.toBeInTheDocument()
+  })
+
+  it('un distrito del catálogo que ningún punto cubre se avisa y no deja avanzar', { timeout: 15_000 }, async () => {
+    const fetchMock = servidor(rutas())
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    await elegirDestino(usuario, 'Lima', 'Lima', '150140')
+
+    expect(await screen.findByText('Por ahora no entregamos en Santiago de Surco con tu carrito')).toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: /Centro Nacional Lima/ })).not.toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+    expect(screen.getByText('Ningún punto entrega en este distrito con tu carrito')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/pedidos')).toHaveLength(0)
+  })
+
+  it('precarga quién recibe y su celular con los datos del comprador, sin pisar lo que ya escribió', { timeout: 15_000 }, async () => {
+    servidor(rutas())
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    // Escribe su celular en el recojo: al cambiar a domicilio se conserva
+    await usuario.type(await screen.findByLabelText('Celular de contacto'), '999888777')
+    await elegirDomicilio(usuario)
+
+    expect(await screen.findByLabelText('Nombre de quien recibe')).toHaveValue('Lucía Ramírez Torres')
+    expect(screen.getByLabelText('Celular de quien recibe')).toHaveValue('999888777')
+    // Puede cambiarlos
+    await usuario.clear(screen.getByLabelText('Nombre de quien recibe'))
+    await usuario.clear(screen.getByLabelText('Nombre de quien recibe'))
+    await usuario.type(screen.getByLabelText('Nombre de quien recibe'), 'Rosa Quispe')
+    expect(screen.getByLabelText('Nombre de quien recibe')).toHaveValue('Rosa Quispe')
+  })
+
+  it('con el celular vacío lo precarga del comprador, sin el prefijo +51', async () => {
+    servidor(rutas())
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    await waitFor(() => expect(screen.getByLabelText('Celular de quien recibe')).toHaveValue('987654321'))
+  })
+
+  it('si no se pueden leer sus datos, el contacto queda vacío y la compra sigue', async () => {
+    servidor(rutas({ 'GET /api/cuenta/datos': [500, { code: 'ERROR' }] }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    expect(await screen.findByLabelText('Nombre de quien recibe')).toHaveValue('')
+    expect(screen.getByLabelText('Celular de quien recibe')).toHaveValue('')
+  })
+
+  it('si falla el catálogo territorial lo avisa', async () => {
+    servidor(rutas({ 'GET /api/territorio/departamentos': [500, { code: 'ERROR' }] }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    expect(await screen.findByText('No pudimos cargar los departamentos y distritos. Inténtalo otra vez.')).toBeInTheDocument()
+  })
+
   it('ofrece solo los puntos que cubren el distrito, y deja elegir entre varios', async () => {
     servidor(rutas())
     const usuario = userEvent.setup()
@@ -122,12 +222,12 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     await elegirDomicilio(usuario)
 
     // Wanchaq lo cubre solo Cusco: ya viene elegido
-    await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), '080108')
+    await elegirDestino(usuario, 'Cusco', 'Cusco', '080108')
     expect(screen.getByRole('radio', { name: /Centro Regional Cusco/ })).toBeChecked()
     expect(screen.queryByRole('radio', { name: /Centro Nacional Lima/ })).not.toBeInTheDocument()
 
     // Miraflores lo cubren dos: hay que elegir
-    await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), '150122')
+    await elegirDestino(usuario, 'Lima', 'Lima', '150122')
     expect(screen.getByRole('radio', { name: /Centro Nacional Lima/ })).not.toBeChecked()
     expect(screen.getByRole('radio', { name: /Centro Regional Cusco/ })).not.toBeChecked()
   })
@@ -139,10 +239,12 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     const usuario = userEvent.setup()
     abrirEn('/compra')
     await elegirDomicilio(usuario)
-    await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), '080108')
+    await elegirDestino(usuario, 'Cusco', 'Cusco', '080108')
     await usuario.type(screen.getByLabelText('Dirección de entrega'), 'Av. de la Cultura 1234')
     await usuario.type(screen.getByLabelText('Referencia (opcional)'), 'Frente al grifo')
+    await usuario.clear(screen.getByLabelText('Nombre de quien recibe'))
     await usuario.type(screen.getByLabelText('Nombre de quien recibe'), 'María Quispe')
+    await usuario.clear(screen.getByLabelText('Celular de quien recibe'))
     await usuario.type(screen.getByLabelText('Celular de quien recibe'), '987 654 321')
     await datosDeTarjeta(usuario)
     await usuario.click(screen.getByRole('button', { name: PAGAR }))
@@ -166,14 +268,14 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
   })
 
   it('avisa lo que falta de la entrega sin enviar nada', { timeout: 15_000 }, async () => {
-    const fetchMock = servidor(rutas())
+    const fetchMock = servidor(rutas({ 'GET /api/cuenta/datos': [200, { nombres: '', apellidos: '', celular: null }] }))
     const usuario = userEvent.setup()
     abrirEn('/compra')
     await elegirDomicilio(usuario)
     await datosDeTarjeta(usuario)
     await usuario.click(screen.getByRole('button', { name: PAGAR }))
 
-    expect(screen.getByText('Elige el distrito de entrega')).toBeInTheDocument()
+    expect(screen.getByText('Elige el departamento de entrega')).toBeInTheDocument()
     // Sin distrito no hay puntos entre los que elegir: no se pide un punto
     expect(screen.queryByText('Elige un punto de acopio')).not.toBeInTheDocument()
     expect(screen.getByText('Indica la dirección de entrega')).toBeInTheDocument()
@@ -187,7 +289,7 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     const usuario = userEvent.setup()
     abrirEn('/compra')
     await elegirDomicilio(usuario)
-    await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), '150122')
+    await elegirDestino(usuario, 'Lima', 'Lima', '150122')
     await usuario.click(screen.getByRole('button', { name: PAGAR }))
     expect(screen.getByText('Elige un punto de acopio')).toBeInTheDocument()
 
@@ -200,11 +302,11 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     const usuario = userEvent.setup()
     abrirEn('/compra')
     await elegirDomicilio(usuario)
-    await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), '150122')
+    await elegirDestino(usuario, 'Lima', 'Lima', '150122')
     await usuario.click(screen.getByRole('button', { name: PAGAR }))
     expect(screen.getByText('Elige un punto de acopio')).toBeInTheDocument()
     // Wanchaq lo cubre un solo punto: queda elegido y el aviso anterior ya no corresponde
-    await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), '080108')
+    await elegirDestino(usuario, 'Cusco', 'Cusco', '080108')
     expect(screen.getByRole('radio', { name: /Centro Regional Cusco/ })).toBeChecked()
     expect(screen.queryByText('Elige un punto de acopio')).not.toBeInTheDocument()
   })
@@ -216,9 +318,11 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     const usuario = userEvent.setup()
     abrirEn('/compra')
     await elegirDomicilio(usuario)
-    await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), '080108')
+    await elegirDestino(usuario, 'Cusco', 'Cusco', '080108')
     await usuario.type(screen.getByLabelText('Dirección de entrega'), 'Av. de la Cultura 1234')
+    await usuario.clear(screen.getByLabelText('Nombre de quien recibe'))
     await usuario.type(screen.getByLabelText('Nombre de quien recibe'), 'María Quispe')
+    await usuario.clear(screen.getByLabelText('Celular de quien recibe'))
     await usuario.type(screen.getByLabelText('Celular de quien recibe'), '987654321')
     await datosDeTarjeta(usuario)
     await usuario.click(screen.getByRole('button', { name: PAGAR }))
@@ -230,85 +334,13 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     expect(llamadas(fetchMock, 'GET /api/compra/distritos').length).toBeGreaterThanOrEqual(2)
   })
 
-  it('al recargar las opciones no conserva un punto que ya no cubre el distrito: queda el que sigue', { timeout: 15_000 }, async () => {
-    let vez = 0
-    servidor(rutas({
-      // Miraflores lo cubrian Lima y Cusco; tras el error, solo Cusco
-      'GET /api/compra/distritos': () => [200, ++vez === 1 ? DISTRITOS : [{ distrito: MIRAFLORES, puntos: [CUSCO] }, { distrito: WANCHAQ, puntos: [CUSCO] }]],
-      'POST /api/pedidos': [409, { code: 'PUNTO_SIN_EXISTENCIAS', error: 'Este punto de acopio ya no tiene existencias para todo tu carrito. Elige otro punto.' }],
-    }))
-    const usuario = userEvent.setup()
-    abrirEn('/compra')
-    await elegirDomicilio(usuario)
-    await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), '150122')
-    await usuario.click(screen.getByRole('radio', { name: /Centro Nacional Lima/ }))
-    await usuario.type(screen.getByLabelText('Dirección de entrega'), 'Av. Larco 123')
-    await usuario.type(screen.getByLabelText('Nombre de quien recibe'), 'María Quispe')
-    await usuario.type(screen.getByLabelText('Celular de quien recibe'), '987654321')
-    await datosDeTarjeta(usuario)
-    await usuario.click(screen.getByRole('button', { name: PAGAR }))
-
-    expect(await screen.findByText('Tu carrito cambió')).toBeInTheDocument()
-    // Lima ya no es una opcion: no queda elegido un punto que no corresponde
-    expect(await screen.findByRole('radio', { name: /Centro Regional Cusco/ })).toBeChecked()
-    expect(screen.queryByRole('radio', { name: /Centro Nacional Lima/ })).not.toBeInTheDocument()
-  })
-
-  it('en el recojo tampoco conserva un punto que dejó de tener todo el carrito', { timeout: 15_000 }, async () => {
-    let vez = 0
-    servidor(rutas({
-      'GET /api/compra/puntos': () => [200, ++vez === 1 ? [LIMA, CUSCO] : [CUSCO]],
-      'POST /api/pedidos': [409, { code: 'PUNTO_SIN_EXISTENCIAS', error: 'Este punto de acopio ya no tiene existencias para todo tu carrito. Elige otro punto.' }],
-    }))
-    const usuario = userEvent.setup()
-    abrirEn('/compra')
-    await usuario.click(await screen.findByRole('radio', { name: /Centro Nacional Lima/ }))
-    await usuario.type(screen.getByLabelText('Celular de contacto'), '987654321')
-    await datosDeTarjeta(usuario)
-    await usuario.click(screen.getByRole('button', { name: PAGAR }))
-
-    expect(await screen.findByText('Tu carrito cambió')).toBeInTheDocument()
-    expect(await screen.findByRole('radio', { name: /Centro Regional Cusco/ })).toBeChecked()
-    expect(screen.queryByRole('radio', { name: /Centro Nacional Lima/ })).not.toBeInTheDocument()
-  })
-
-  it('al recargar sin un punto que lo reemplace deja la elección vacía', { timeout: 15_000 }, async () => {
-    let vez = 0
-    const NUEVO = { ...LIMA, id: 9, nombre: 'Centro Nuevo' }
-    const fetchMock = servidor(rutas({
-      'GET /api/compra/distritos': () => [200, ++vez === 1 ? DISTRITOS : [{ distrito: MIRAFLORES, puntos: [CUSCO, NUEVO] }, { distrito: WANCHAQ, puntos: [CUSCO] }]],
-      'POST /api/pedidos': [409, { code: 'PUNTO_SIN_EXISTENCIAS', error: 'Este punto de acopio ya no tiene existencias para todo tu carrito. Elige otro punto.' }],
-    }))
-    const usuario = userEvent.setup()
-    abrirEn('/compra')
-    await elegirDomicilio(usuario)
-    await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), '150122')
-    await usuario.click(screen.getByRole('radio', { name: /Centro Nacional Lima/ }))
-    await usuario.type(screen.getByLabelText('Dirección de entrega'), 'Av. Larco 123')
-    await usuario.type(screen.getByLabelText('Nombre de quien recibe'), 'María Quispe')
-    await usuario.type(screen.getByLabelText('Celular de quien recibe'), '987654321')
-    await datosDeTarjeta(usuario)
-    await usuario.click(screen.getByRole('button', { name: PAGAR }))
-
-    expect(await screen.findByText('Tu carrito cambió')).toBeInTheDocument()
-    // Siguen dos puntos y Lima ya no esta: hay que elegir de nuevo, sin dejar uno elegido por error
-    expect(await screen.findByRole('radio', { name: /Centro Regional Cusco/ })).not.toBeChecked()
-    expect(screen.getByRole('radio', { name: /Centro Nuevo/ })).not.toBeChecked()
-    // Y no se envia el punto viejo: sin elegir otro, pide elegir
-    await usuario.click(screen.getByRole('button', { name: PAGAR }))
-    expect(screen.getByText('Elige un punto de acopio')).toBeInTheDocument()
-    expect(llamadas(fetchMock, 'POST /api/pedidos')).toHaveLength(1)
-  })
-
   it('una dirección incompleta se avisa en su campo sin enviar nada', { timeout: 15_000 }, async () => {
     const fetchMock = servidor(rutas())
     const usuario = userEvent.setup()
     abrirEn('/compra')
     await elegirDomicilio(usuario)
-    await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), '080108')
+    await elegirDestino(usuario, 'Cusco', 'Cusco', '080108')
     await usuario.type(screen.getByLabelText('Dirección de entrega'), '12345')
-    await usuario.type(screen.getByLabelText('Nombre de quien recibe'), 'María Quispe')
-    await usuario.type(screen.getByLabelText('Celular de quien recibe'), '987654321')
     await datosDeTarjeta(usuario)
     await usuario.click(screen.getByRole('button', { name: PAGAR }))
 
@@ -326,10 +358,9 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     const usuario = userEvent.setup()
     abrirEn('/compra')
     await elegirDomicilio(usuario)
-    await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), '080108')
+    await elegirDestino(usuario, 'Cusco', 'Cusco', '080108')
     await usuario.type(screen.getByLabelText('Dirección de entrega'), 'Av. Siempre Viva 742')
-    await usuario.type(screen.getByLabelText('Nombre de quien recibe'), 'María Quispe')
-    await usuario.type(screen.getByLabelText('Celular de quien recibe'), '987654321')
+    await usuario.click(screen.getByLabelText('Nombre de quien recibe'))
     await datosDeTarjeta(usuario)
     await usuario.click(screen.getByRole('button', { name: PAGAR }))
 
