@@ -1298,3 +1298,27 @@ que el historial no se puede alterar y una accion nueva de esos modulos aparece 
 El periodo es por fecha de Lima, por defecto los ultimos 30 dias y como maximo un año
 (`RangoFechas`, `422 RANGO_INVALIDO` o `RANGO_MUY_LARGO`). El servicio admite autor nulo para
 consultar las acciones de todos, pensado para la auditoria de CCPIP-97.
+
+## Pedidos disponibles para distribucion (CCPIP-107)
+
+Migracion `V202610231300`. El distribuidor consulta los pedidos preparados que puede asumir, con su origen, su
+destino y cuanto llevan esperando (RF-54). Entra solo el estado que esta consulta necesita: `pedido.estado` admite
+ahora `LISTO_PARA_DESPACHO`, el equivalente a `LISTO_PARA_RECOJO` para un pedido a domicilio. Quien lo marca
+(CCPIP-320), asumirlo (CCPIP-108), retirarlo (CCPIP-109) y entregarlo (CCPIP-319) llegan con sus historias.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `GET /api/distribuidor/pedidos/disponibles` | DISTRIBUIDOR | Pedidos disponibles, el que lleva mas esperando primero. `?punto=<id>` deja solo los de ese punto de acopio |
+| `GET /api/panel/distribuidor` | DISTRIBUIDOR | Ahora presenta al distribuidor como responsable de las entregas, no como comprador mayorista |
+
+**Quien es elegible.** Un pedido con modalidad `ENVIO`, estado `LISTO_PARA_DESPACHO`, cuya `entrega` sigue
+`DISPONIBLE` y sin `distribuidor_id`, y que sale de un punto de acopio activo. En cuanto un distribuidor asume la
+entrega deja de aparecer. Los pedidos para recojo, los que aun no estan preparados y los cancelados no se listan.
+
+**Que se muestra.** `origen` es el punto de acopio (nombre, distrito y direccion); `destino` llega hasta el distrito
+(ubigeo, departamento, provincia y distrito); `disponibleDesde` es cuando quedo `LISTO_PARA_DESPACHO` segun
+`pedido_estado_historial`, y `esperaMinutos`, lo que lleva esperando. La direccion exacta y el contacto de quien
+recibe **no se muestran** hasta asumir la entrega (CCPIP-108 y CCPIP-110), y el comprador no se muestra nunca (RNF-05).
+
+El endpoint nuevo **no estaba detallado en el contrato de la API del Drive** salvo su ruta y descripcion; los campos
+de la respuesta son los de esta seccion.
