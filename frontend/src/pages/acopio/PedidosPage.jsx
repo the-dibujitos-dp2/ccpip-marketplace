@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { listarPedidos, marcarListo, marcarPreparacion } from '../../api/acopio.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
+import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
@@ -124,9 +125,12 @@ function TarjetaPedido({ pedido, accion, ocupado, onMarcar, onRecojo }) {
   const { t } = useTranslation()
   const cambio = [...pedido.historial].reverse().find((c) => c.estado === pedido.estado)
   const cuando = fechaHora(cambio?.registradoEn ?? pedido.confirmadoEn)
+  // CCPIP-59: lo entrega el punto en el domicilio del comprador; su despacho llega con la distribucion
+  const aDomicilio = pedido.modalidad === 'ENVIO'
   return (
     <li className="pedidos__tarjeta">
       <p className="pedidos__numero">{pedido.numero}</p>
+      {aDomicilio && <Badge tono="info" conPunto={false}>{t('acopio.pedidos.aDomicilio')}</Badge>}
       <ul className="pedidos__lineas" aria-label={t('acopio.pedidos.productosDe', { numero: pedido.numero })}>
         {pedido.lineas.map((l) => (
           <li key={`${l.comunidad}-${l.producto}`}>
@@ -144,7 +148,8 @@ function TarjetaPedido({ pedido, accion, ocupado, onMarcar, onRecojo }) {
       <p className="caption pedidos__pie">
         {`${t(`acopio.pedidos.pie.${pedido.estado}`, { defaultValue: pedido.estado })} ${cuando}${cambio?.responsable ? ` · ${cambio.responsable}` : ''} · ${precio(pedido.total)}`}
       </p>
-      {(accion === 'PREPARACION' || accion === 'LISTO') && (
+      {aDomicilio && accion !== 'PREPARACION' && <p className="caption">{t('acopio.pedidos.aDomicilioNota')}</p>}
+      {(accion === 'PREPARACION' || (accion === 'LISTO' && !aDomicilio)) && (
         <Boton
           tipo="secundario"
           tamano="M"
