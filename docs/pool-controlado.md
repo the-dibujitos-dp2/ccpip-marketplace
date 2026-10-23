@@ -79,7 +79,7 @@ Cuando Docker no esté disponible, se permite avanzar hasta revisión local est�
 
 ### Gate 4 — Pull request y decisión humana
 
-El pool puede crear una PR hacia `main` con la plantilla del repositorio y evidencia de pruebas. La persona responsable decide la aprobación, el merge y cualquier despliegue. Jira recibe comentarios o propuestas de estado; no se mueve automáticamente de estado sin evidencia y una decisión explícita.
+El pool puede crear una PR hacia `main` con la plantilla del repositorio y evidencia de pruebas. Cuando todas las validaciones obligatorias de GitHub hayan terminado correctamente, no exista conflicto ni revisión pendiente bloqueante, el orquestador hace `Squash and merge` y elimina la rama. El pool no despliega. Jira recibe comentarios o propuestas de estado; no se mueve automáticamente de estado sin evidencia y una decisión explícita.
 
 ## Orden de ejecución
 
