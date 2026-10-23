@@ -170,6 +170,8 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     expect(screen.queryByRole('radio', { name: /Centro Nacional Lima/ })).not.toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: PAGAR }))
     expect(screen.getByText('Ningún punto entrega en este distrito con tu carrito')).toBeInTheDocument()
+    // No se pide ademas elegir un punto: ninguno se ofrece
+    expect(screen.queryByText('Elige un punto de acopio')).not.toBeInTheDocument()
     expect(llamadas(fetchMock, 'POST /api/pedidos')).toHaveLength(0)
   })
 
