@@ -76,7 +76,7 @@ async function datosDeTarjeta(usuario) {
 }
 
 async function elegirDomicilio(usuario) {
-  await usuario.click(await screen.findByRole('radio', { name: 'Entrega a domicilio' }))
+  await usuario.click(await screen.findByRole('radio', { name: /^Entrega a domicilio/ }))
 }
 
 describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
@@ -84,7 +84,7 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     servidor(rutas({ 'GET /api/compra/distritos': [200, []] }))
     abrirEn('/compra')
     expect(await screen.findByRole('heading', { name: '1. Punto de recojo' })).toBeInTheDocument()
-    expect(screen.queryByRole('radio', { name: 'Entrega a domicilio' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: /^Entrega a domicilio/ })).not.toBeInTheDocument()
   })
 
   it('si falla la consulta de distritos, la compra para recojo sigue funcionando', async () => {
@@ -100,7 +100,7 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     abrirEn('/compra')
     await elegirDomicilio(usuario)
 
-    expect(screen.getByRole('heading', { name: '1. Entrega a domicilio' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '1. ¿Cómo quieres recibirlo?' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '2. ¿Quién recibe?' })).toBeInTheDocument()
     expect(screen.getByLabelText('Distrito de entrega')).toBeInTheDocument()
     expect(screen.getByLabelText('Dirección de entrega')).toBeInTheDocument()
@@ -109,9 +109,10 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     expect(screen.queryByLabelText('Otra persona recogerá el pedido')).not.toBeInTheDocument()
     // Hasta elegir el distrito no hay puntos que ofrecer
     expect(screen.queryByRole('radio', { name: /Centro Regional Cusco/ })).not.toBeInTheDocument()
-    // El costo del envio aun no esta definido
+    // El costo del envio aun no esta definido: se muestra por confirmar, en la tarjeta y en el resumen
+    expect(screen.getByRole('radio', { name: /Costo por confirmar/ })).toBeChecked()
     const resumen = screen.getByRole('complementary', { name: 'Resumen del pedido' })
-    expect(within(resumen).getByText('Por definir')).toBeInTheDocument()
+    expect(within(resumen).getByText('A domicilio · por confirmar')).toBeInTheDocument()
   })
 
   it('ofrece solo los puntos que cubren el distrito, y deja elegir entre varios', async () => {
@@ -205,9 +206,10 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     const usuario = userEvent.setup()
     abrirEn('/compra')
     await elegirDomicilio(usuario)
-    await usuario.click(screen.getByRole('radio', { name: 'Recojo en punto de acopio' }))
-    expect(screen.getByRole('heading', { name: '1. Punto de recojo' })).toBeInTheDocument()
+    await usuario.click(screen.getByRole('radio', { name: /^Recojo en punto de acopio/ }))
+    expect(screen.getByRole('radio', { name: /Sin costo/ })).toBeChecked()
     expect(screen.getByLabelText('Otra persona recogerá el pedido')).toBeInTheDocument()
+    expect(within(screen.getByRole('complementary', { name: 'Resumen del pedido' })).getByText('Recojo · S/ 0.00')).toBeInTheDocument()
     expect(screen.getByLabelText('Celular de contacto')).toBeInTheDocument()
   })
 })
