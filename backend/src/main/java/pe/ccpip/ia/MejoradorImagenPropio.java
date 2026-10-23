@@ -55,7 +55,8 @@ public class MejoradorImagenPropio implements MejoradorImagen {
             b += p & 0xff;
         }
         double gris = (r + g + b) / 3;
-        if (gris == 0) {
+        // Una foto casi negra no tiene un tono que corregir
+        if (gris < px.length) {
             return img;
         }
         double[] factor = {gris / Math.max(r, 1), gris / Math.max(g, 1), gris / Math.max(b, 1)};

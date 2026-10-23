@@ -107,10 +107,11 @@ def main():
             raise SystemExit("Operacion no soportada: " + n.op_type)
     caracteristicas = nodos[-1]["salida"]
 
-    etiquetas = [l.strip() for l in open(os.path.join(AQUI, "imagenet_clases.txt"), encoding="utf-8")]
+    with open(os.path.join(AQUI, "imagenet_clases.txt"), encoding="utf-8") as f:
+        etiquetas = [l.strip() for l in f]
     if a.cabeza:
-        c = np.load(a.cabeza)
-        w, b, lineas = c["w"], c["b"], [str(x) for x in c["lineas"]]
+        with np.load(a.cabeza) as c:
+            w, b, lineas = c["w"], c["b"], [str(x) for x in c["lineas"]]
         cabeza = {"version": "entrenada", "w": tensor(w), "b": tensor(b), "lineas": lineas,
                   "etiquetas": lineas}
     else:

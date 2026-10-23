@@ -94,7 +94,12 @@ public final class ModeloImagenes {
     }
 
     static ModeloImagenes leer(InputStream origen) throws IOException {
-        DataInputStream in = new DataInputStream(new java.io.BufferedInputStream(origen, 1 << 16));
+        try (DataInputStream in = new DataInputStream(new java.io.BufferedInputStream(origen, 1 << 16))) {
+            return leer(in);
+        }
+    }
+
+    private static ModeloImagenes leer(DataInputStream in) throws IOException {
         byte[] magia = in.readNBytes(MAGIA.length);
         if (!Arrays.equals(magia, MAGIA)) {
             throw new IOException("Formato de modelo desconocido");
@@ -255,9 +260,6 @@ public final class ModeloImagenes {
                 Arrays.fill(out, baseOut, baseOut + planoOut, n.b()[o]);
                 for (int c = 0; c < cg; c++) {
                     float peso = w[o * cg + c];
-                    if (peso == 0f) {
-                        continue;
-                    }
                     int baseIn = c * planoIn;
                     for (int i = 0; i < planoOut; i++) {
                         out[baseOut + i] += peso * in[baseIn + i];
