@@ -237,11 +237,6 @@ export default function CompraPage() {
         const nuevo = await confirmarCompra(recojo)
         pedido.current = { id: nuevo.id, firma }
         clave.current = null
-        // CCPIP-65: guardar la direccion es un extra de la compra, que no debe fallar por no poder guardarla
-        if (form.modalidad === 'ENVIO' && form.guardarDireccion) {
-          const { ubigeo, direccion, referencia } = recojo.entrega
-          await guardarDireccionHabitual({ alias: form.aliasDireccion.trim() || null, ubigeo, direccion, referencia }).catch(() => {})
-        }
       }
       clave.current ??= crypto.randomUUID()
       const tarjeta = { numero: form.numero, titular: form.titular.trim(), mes: Number(form.mes), anio: Number(form.anio), cvv: form.cvv }
@@ -249,6 +244,12 @@ export default function CompraPage() {
       clave.current = null
 
       if (resultado.estado === 'APROBADO') {
+        // CCPIP-65: la direccion se guarda al confirmarse la compra, no al crear el pedido: si el pago se rechaza y el
+        // comprador corrige la direccion, no queda guardada tambien la equivocada. Es un extra: no debe fallar la compra.
+        if (recojo.entrega && form.guardarDireccion) {
+          const { ubigeo, direccion, referencia } = recojo.entrega
+          await guardarDireccionHabitual({ alias: form.aliasDireccion.trim() || null, ubigeo, direccion, referencia }).catch(() => {})
+        }
         void recargarUnidadesCarrito()
         navigate(`/pedidos/${resultado.pedido.id}`)
         return

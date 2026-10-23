@@ -498,7 +498,7 @@ describe('CW-06 Guardar la dirección habitual (CCPIP-65)', () => {
     expect(screen.getByLabelText('Nombre de la dirección (opcional)')).toBeInTheDocument()
   })
 
-  it('guarda la dirección con su nombre al crear el pedido y la compra sigue', { timeout: 15_000 }, async () => {
+  it('guarda la dirección con su nombre cuando el pago se aprueba y la compra sigue', { timeout: 15_000 }, async () => {
     const fetchMock = servidor(rutas({ ...aprobado, [GUARDAR]: [201, GUARDADA] }))
     const usuario = userEvent.setup()
     abrirEn('/compra')
@@ -553,7 +553,7 @@ describe('CW-06 Guardar la dirección habitual (CCPIP-65)', () => {
     expect(window.location.pathname).toBe('/pedidos/78')
   })
 
-  it('un reintento de pago del mismo pedido no la guarda otra vez', { timeout: 15_000 }, async () => {
+  it('si el pago se rechaza no guarda la dirección, y al corregirla y pagar guarda solo la corregida', { timeout: 15_000 }, async () => {
     let intentos = 0
     const fetchMock = servidor(rutas({
       [GUARDAR]: [201, GUARDADA],
@@ -567,11 +567,17 @@ describe('CW-06 Guardar la dirección habitual (CCPIP-65)', () => {
     await usuario.click(screen.getByLabelText('Guardar esta dirección para próximas compras'))
     await usuario.click(screen.getByRole('button', { name: PAGAR }))
     expect(await screen.findByText('Tu pago fue rechazado')).toBeInTheDocument()
+    // Rechazado el pago, la compra no se confirmo: nada que guardar todavia
+    expect(llamadas(fetchMock, GUARDAR)).toHaveLength(0)
 
+    await usuario.clear(screen.getByLabelText('Dirección de entrega'))
+    await usuario.type(screen.getByLabelText('Dirección de entrega'), 'Av. de la Cultura 4321')
     await usuario.type(screen.getByLabelText('CVV'), '123')
     await usuario.click(screen.getByRole('button', { name: PAGAR }))
     expect(await screen.findByRole('heading', { name: '¡Gracias por tu compra!' })).toBeInTheDocument()
-    expect(llamadas(fetchMock, GUARDAR)).toHaveLength(1)
+    const guardadas = llamadas(fetchMock, GUARDAR)
+    expect(guardadas).toHaveLength(1)
+    expect(JSON.parse(guardadas[0][1].body).direccion).toBe('Av. de la Cultura 4321')
   })
 })
 
