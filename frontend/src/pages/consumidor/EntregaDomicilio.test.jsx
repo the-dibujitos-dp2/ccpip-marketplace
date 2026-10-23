@@ -468,6 +468,113 @@ describe('CW-06 Pedido a domicilio (CCPIP-59)', () => {
   })
 })
 
+const GUARDADA = { id: 5, alias: 'Casa', ubigeo: '080108', departamento: 'Cusco', provincia: 'Cusco', distrito: 'Wanchaq', direccion: 'Av. de la Cultura 1234', referencia: null }
+const GUARDAR = 'POST /api/cuenta/direcciones'
+
+/** Un pedido a domicilio listo para pagar: destino, direccion y tarjeta (el contacto viene de Mis datos). */
+async function prepararDomicilio(usuario) {
+  await elegirDomicilio(usuario)
+  await elegirDestino(usuario, 'Cusco', 'Cusco', '080108')
+  await usuario.type(screen.getByLabelText('Dirección de entrega'), 'Av. de la Cultura 1234')
+  await datosDeTarjeta(usuario)
+}
+
+describe('CW-06 Guardar la dirección habitual (CCPIP-65)', () => {
+  const aprobado = { 'POST /api/pedidos/78/pagos': [200, { estado: 'APROBADO', mensaje: 'Pago aprobado.', pedido: CONFIRMADO }] }
+
+  it('ofrece guardar la dirección en la entrega a domicilio y pide el nombre solo si se marca', async () => {
+    servidor(rutas())
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    // En el recojo no hay direccion que guardar
+    await screen.findByLabelText('Celular de contacto')
+    expect(screen.queryByLabelText('Guardar esta dirección para próximas compras')).not.toBeInTheDocument()
+
+    await elegirDomicilio(usuario)
+    const guardar = screen.getByLabelText('Guardar esta dirección para próximas compras')
+    expect(guardar).not.toBeChecked()
+    expect(screen.queryByLabelText('Nombre de la dirección (opcional)')).not.toBeInTheDocument()
+    await usuario.click(guardar)
+    expect(screen.getByLabelText('Nombre de la dirección (opcional)')).toBeInTheDocument()
+  })
+
+  it('guarda la dirección con su nombre al crear el pedido y la compra sigue', { timeout: 15_000 }, async () => {
+    const fetchMock = servidor(rutas({ ...aprobado, [GUARDAR]: [201, GUARDADA] }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await prepararDomicilio(usuario)
+    await usuario.type(screen.getByLabelText('Referencia (opcional)'), 'Frente al grifo')
+    await usuario.click(screen.getByLabelText('Guardar esta dirección para próximas compras'))
+    await usuario.type(screen.getByLabelText('Nombre de la dirección (opcional)'), 'Casa')
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+
+    expect(await screen.findByRole('heading', { name: '¡Gracias por tu compra!' })).toBeInTheDocument()
+    const guardadas = llamadas(fetchMock, GUARDAR)
+    expect(guardadas).toHaveLength(1)
+    expect(JSON.parse(guardadas[0][1].body)).toEqual({
+      alias: 'Casa', ubigeo: '080108', direccion: 'Av. de la Cultura 1234', referencia: 'Frente al grifo',
+    })
+  })
+
+  it('sin nombre ni referencia las envía vacías', { timeout: 15_000 }, async () => {
+    const fetchMock = servidor(rutas({ ...aprobado, [GUARDAR]: [201, GUARDADA] }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await prepararDomicilio(usuario)
+    await usuario.click(screen.getByLabelText('Guardar esta dirección para próximas compras'))
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+
+    await screen.findByRole('heading', { name: '¡Gracias por tu compra!' })
+    expect(JSON.parse(llamadas(fetchMock, GUARDAR)[0][1].body)).toEqual({
+      alias: null, ubigeo: '080108', direccion: 'Av. de la Cultura 1234', referencia: null,
+    })
+  })
+
+  it('sin marcarla no guarda nada', { timeout: 15_000 }, async () => {
+    const fetchMock = servidor(rutas({ ...aprobado, [GUARDAR]: [201, GUARDADA] }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await prepararDomicilio(usuario)
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+
+    await screen.findByRole('heading', { name: '¡Gracias por tu compra!' })
+    expect(llamadas(fetchMock, GUARDAR)).toHaveLength(0)
+  })
+
+  it('si no se puede guardar, la compra sigue igual', { timeout: 15_000 }, async () => {
+    servidor(rutas({ ...aprobado, [GUARDAR]: [409, { code: 'DIRECCION_YA_GUARDADA', error: 'Ya guardaste esa dirección.' }] }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await prepararDomicilio(usuario)
+    await usuario.click(screen.getByLabelText('Guardar esta dirección para próximas compras'))
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+
+    expect(await screen.findByRole('heading', { name: '¡Gracias por tu compra!' })).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/pedidos/78')
+  })
+
+  it('un reintento de pago del mismo pedido no la guarda otra vez', { timeout: 15_000 }, async () => {
+    let intentos = 0
+    const fetchMock = servidor(rutas({
+      [GUARDAR]: [201, GUARDADA],
+      'POST /api/pedidos/78/pagos': () => (++intentos === 1
+        ? [200, { estado: 'RECHAZADO', mensaje: 'Tu banco rechazó el pago.', pedido: PEDIDO }]
+        : [200, { estado: 'APROBADO', mensaje: 'Pago aprobado.', pedido: CONFIRMADO }]),
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await prepararDomicilio(usuario)
+    await usuario.click(screen.getByLabelText('Guardar esta dirección para próximas compras'))
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+    expect(await screen.findByText('Tu pago fue rechazado')).toBeInTheDocument()
+
+    await usuario.type(screen.getByLabelText('CVV'), '123')
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+    expect(await screen.findByRole('heading', { name: '¡Gracias por tu compra!' })).toBeInTheDocument()
+    expect(llamadas(fetchMock, GUARDAR)).toHaveLength(1)
+  })
+})
+
 describe('CW-09 Mis pedidos con un pedido a domicilio (CCPIP-59)', () => {
   it('dice que se entrega a domicilio y de qué punto sale, sin el seguimiento de recojo', async () => {
     const resumen = {
