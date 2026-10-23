@@ -22,6 +22,11 @@
 .compra__punto { display: flex; flex-direction: column; gap: 2px; }
 .compra__punto-direccion { font-weight: 400; font-size: 13px; line-height: 18px; color: var(--color-text-secondary); }
 
+/* Modalidad de entrega (CW-06): icono y titulo, descripcion y etiqueta de costo */
+.compra__modalidad { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.compra__modalidad-titulo { display: flex; align-items: center; gap: 8px; }
+.compra__modalidad-texto { font-weight: 400; font-size: 14px; line-height: 20px; color: var(--color-text-secondary); }
+
 .compra__check { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; cursor: pointer; }
 .compra__check input { width: 20px; height: 20px; margin: 0; accent-color: var(--color-bg-brand); }
 

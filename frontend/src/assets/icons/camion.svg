@@ -1,0 +1,9 @@
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Icono/camion">
+<path d="M14 18V6C14 4.89543 13.1046 4 12 4H4C2.89543 4 2 4.89543 2 6V17C2 17.5523 2.44772 18 3 18H5" stroke="#5F4C3B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M15 18H9" stroke="#5F4C3B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M19 18H21C21.5523 18 22 17.5523 22 17V13.35C21.9996 13.1217 21.9214 12.9005 21.78 12.72L18.3 8.28C18.1117 8.04107 17.8244 7.90128 17.52 7.9H14" stroke="#5F4C3B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="7" cy="18" r="2" stroke="#5F4C3B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="17" cy="18" r="2" stroke="#5F4C3B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>

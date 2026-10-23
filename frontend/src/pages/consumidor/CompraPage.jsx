@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import iconoAlmacen from '../../assets/icons/almacen.svg'
+import iconoCamion from '../../assets/icons/camion.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import { consultarCarrito, recargarUnidadesCarrito } from '../../api/carrito.js'
 import { confirmarCompra, consultarDistritosEntrega, consultarPuntosRecojo, pagarPedido } from '../../api/compra.js'
 import Alerta from '../../components/Alerta.jsx'
+import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
@@ -300,16 +303,34 @@ export default function CompraPage() {
           <form className="compra__cuerpo" onSubmit={pagar} noValidate>
             <div className="compra__secciones">
               <section className="compra__seccion" aria-labelledby="compra-recojo">
-                <h2 id="compra-recojo" className="compra__seccion-titulo">{t(aDomicilio ? 'compra.domicilio.titulo' : 'compra.puntoTitulo')}</h2>
+                <h2 id="compra-recojo" className="compra__seccion-titulo">{t(distritos.length > 0 ? 'compra.domicilio.comoRecibir' : 'compra.puntoTitulo')}</h2>
                 {distritos.length > 0 && (
                   <OpcionTarjeta
                     nombre="modalidad"
-                    etiqueta={t('compra.domicilio.comoRecibir')}
+                    etiqueta={<span className="visually-hidden">{t('compra.domicilio.etiquetaModalidad')}</span>}
                     valor={form.modalidad}
                     onCambiar={elegirModalidad}
                     opciones={[
-                      { valor: 'RECOJO', etiqueta: t('compra.recojo') },
-                      { valor: 'ENVIO', etiqueta: t('compra.domicilio.opcion') },
+                      {
+                        valor: 'RECOJO',
+                        etiqueta: (
+                          <span className="compra__modalidad">
+                            <span className="compra__modalidad-titulo"><Icono src={iconoAlmacen} tamano={20} />{t('compra.recojo')}</span>
+                            <span className="compra__modalidad-texto">{t('compra.recojoTexto')}</span>
+                            <Badge tono="exito">{t('compra.sinCosto')}</Badge>
+                          </span>
+                        ),
+                      },
+                      {
+                        valor: 'ENVIO',
+                        etiqueta: (
+                          <span className="compra__modalidad">
+                            <span className="compra__modalidad-titulo"><Icono src={iconoCamion} tamano={20} />{t('compra.domicilio.opcion')}</span>
+                            <span className="compra__modalidad-texto">{t('compra.domicilio.opcionTexto')}</span>
+                            <Badge tono="aviso">{t('compra.domicilio.costoPorConfirmar')}</Badge>
+                          </span>
+                        ),
+                      },
                     ]}
                   />
                 )}
@@ -435,8 +456,8 @@ export default function CompraPage() {
                   <dd>{carrito.comunidades}</dd>
                 </div>
                 <div>
-                  <dt>{t(aDomicilio ? 'compra.domicilio.opcion' : 'compra.recojo')}</dt>
-                  <dd>{t(aDomicilio ? 'compra.domicilio.costoPorDefinir' : 'compra.gratis')}</dd>
+                  <dt>{t('compra.entrega')}</dt>
+                  <dd>{t(aDomicilio ? 'compra.domicilio.resumen' : 'compra.recojoResumen')}</dd>
                 </div>
               </dl>
               <p className="compra__total">
