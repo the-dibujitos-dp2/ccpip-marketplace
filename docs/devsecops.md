@@ -36,10 +36,14 @@ Internet ──443──▶ web (Caddy: HTTPS automatico, archivos de React, cab
 
 ### Redaccion asistida por IA (CCPIP-48, CCPIP-49)
 
-El backend ya tiene el punto de enchufe (`AsistenteRedaccion`) y la pantalla completa. Se elige con
-`CCPIP_IA_PROVEEDOR`: `ninguno` en produccion (responde `503 IA_NO_DISPONIBLE` y el productor
-escribe a mano) y `simulado` solo en pruebas. El modelo real se agrega como otro proveedor; su
-llave ira como secreto del servidor, nunca al navegador.
+La redaccion asistida (`AsistenteRedaccion`, CCPIP-48) y el analisis de evidencias
+(`AnalistaEvidencias`, CCPIP-50) usan Gemini. Se elige con `CCPIP_IA_PROVEEDOR`: `gemini` en
+produccion, `ninguno` (responde `503 IA_NO_DISPONIBLE` y se escribe a mano) y `simulado` solo en
+pruebas. La llave es el secreto `GEMINI_API_KEY`, vive solo en el servidor y viaja en la cabecera
+`x-goog-api-key`. Sin llave, o si Gemini no responde en `CCPIP_GEMINI_ESPERA` (20 s), la pantalla
+sigue a mano (RNF-48). El modelo se cambia con `CCPIP_GEMINI_MODELO` (por defecto
+`gemini-flash-latest`). Al analisis de evidencias solo se envian los datos declarados, nunca los
+archivos. Gemini es solo de texto: la IA de imagenes usa un modelo propio.
 
 - `infra/terraform/`: EC2 (Amazon Linux 2023, IMDSv2, disco cifrado), Security Group, Elastic IP.
 - `deploy/docker-compose.yml`: los tres contenedores.
@@ -95,6 +99,7 @@ Todas las Actions estan fijadas por SHA (evita ataques de cadena de suministro p
 | `DB_PASSWORD` | Secret | Inventala: `openssl rand -base64 24`. Si la cambias despues, hay que borrar el volumen `ccpip_pgdata`. |
 | `USER_MAIL_ADDRESS` | Secret | Cuenta de Gmail del equipo que envia los correos (ADR-14), por ejemplo `mercado.ccpip@gmail.com`. Si falta, el deploy sigue con un aviso, pero las cuentas nuevas no reciben el enlace de verificacion (CCPIP-328). |
 | `MAIL_PASSWORD` | Secret | Contrasena de aplicacion de esa cuenta (con o sin espacios, el deploy los quita): Cuenta de Google → *Seguridad* → activar *Verificacion en dos pasos* → *Contrasenas de aplicaciones*. No es la clave de la cuenta. |
+| `GEMINI_API_KEY` | Secret | aistudio.google.com → *Get API key*. Si falta, el deploy sigue con un aviso y la IA de texto responde no disponible. En la capa gratuita Google puede usar las consultas para mejorar sus modelos: no se envian archivos ni datos de contacto. |
 | `SONAR_TOKEN` | Secret | sonarcloud.io → *My Account → Security → Generate Token*. Si falta, CI salta el analisis sin fallar. |
 | `DEPLOY_HOST` | Variable | Salida `app_domain` de Terraform. |
 | `TF_STATE_BUCKET` | Variable | Nombre del bucket del paso 1.3 (solo para el workflow de Terraform). |

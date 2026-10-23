@@ -36,6 +36,10 @@ services:
       CCPIP_CORREO_HOST: ${CORREO_HOST:-}
       CCPIP_CORREO_USUARIO: ${CORREO_USUARIO:-}
       CCPIP_CORREO_CLAVE: ${CORREO_CLAVE:-}
+      # CCPIP-48 y CCPIP-50: redaccion asistida y analisis de evidencias con Gemini. Sin GEMINI_API_KEY
+      # (secreto del repositorio) la IA responde no disponible y todo se hace a mano.
+      CCPIP_IA_PROVEEDOR: gemini
+      CCPIP_GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     depends_on:
       db:
         condition: service_healthy
