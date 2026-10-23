@@ -25,6 +25,7 @@ import FichaProductorPage from './pages/admin/FichaProductorPage.jsx'
 import ProductoresPage from './pages/admin/ProductoresPage.jsx'
 import ExpedienteDenunciasPage from './pages/admin/ExpedienteDenunciasPage.jsx'
 import TableroPage from './pages/admin/TableroPage.jsx'
+import PermisosPage from './pages/admin/PermisosPage.jsx'
 import InventarioPage from './pages/acopio/InventarioPage.jsx'
 import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
 import PedidosPage from './pages/acopio/PedidosPage.jsx'
@@ -265,6 +266,7 @@ export default function App() {
     // Tablero (SA-01), comision y parametros (SA-02), comision por pedido y autorizaciones (S-01, S-02); los otros modulos llegan con sus historias
     if (!puedeVerAdmin(user, path)) pagina = null
     else if (path === RUTAS.admin) pagina = <TableroPage path={path} />
+    else if (path === RUTAS.adminPermisos) pagina = <PermisosPage path={path} />
     else if (path === RUTAS.adminComision) pagina = <ComisionPage path={path} />
     else if (path === RUTAS.adminComisiones) pagina = <ComisionesPage path={path} />
     else if (path === RUTAS.adminReportes) pagina = <ReportesPage path={path} />

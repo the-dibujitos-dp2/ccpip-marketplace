@@ -952,6 +952,7 @@
     "plataforma": "Platform",
     "nav": {
       "tablero": "Dashboard",
+      "permisos": "Permissions",
       "comision": "Commission",
       "comisiones": "Commission by order",
       "reportes": "Reports",
@@ -963,6 +964,16 @@
       "existencias": "Stock",
       "denuncias": "Reports",
       "motivosMerma": "Shrinkage causes"
+    },
+    "permisos": {
+      "titulo": "Permissions by role",
+      "descripcion": "Server-declared access for each role, by method and route.",
+      "error": "We couldn't load permissions",
+      "tabla": "Permissions assigned by role",
+      "rol": "Role",
+      "metodo": "Method",
+      "ruta": "Route",
+      "vacio": "This role has no declared access."
     },
     "tablero": {
       "titulo": "Operations dashboard",

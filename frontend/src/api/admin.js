@@ -4,6 +4,9 @@ import { apiFetch, idRuta } from './http.js'
 /** CCPIP-111 (SA-01): ventas, comision, productores, lineas y puntos de acopio del mes en curso. */
 export const obtenerTablero = () => apiFetch('/api/admin/tablero')
 
+/** CCPIP-28: permisos declarados por rol, derivados de los accesos del servidor. Solo lectura. */
+export const consultarPermisos = () => apiFetch('/api/admin/permisos')
+
 /** SA-05 (CCPIP-345): una metrica acumulada por periodo; sin filtro, el año en curso por mes. */
 export function consultarReporte(metrica, { desde, hasta, agrupacion } = {}) {
   const q = new URLSearchParams()
