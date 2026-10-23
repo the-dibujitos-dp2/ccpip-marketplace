@@ -36,6 +36,8 @@ export const RUTAS = {
   acopioTransferencias: '/acopio/transferencias',
   acopioAlertas: '/acopio/alertas',
   acopioMerma: '/acopio/merma',
+  distribuidor: '/distribuidor',
+  distribuidorPedidos: '/distribuidor/pedidos',
   admin: '/admin',
   adminPermisos: '/admin/permisos',
   adminComision: '/admin/comision',
