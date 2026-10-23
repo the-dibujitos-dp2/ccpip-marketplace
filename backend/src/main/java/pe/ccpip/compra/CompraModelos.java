@@ -5,6 +5,8 @@ import java.time.Instant;
 import java.util.List;
 
 import pe.ccpip.comision.ComisionModelos.ComisionPedido;
+import pe.ccpip.entrega.EntregaModelos.Distrito;
+import pe.ccpip.entrega.EntregaModelos.Entrega;
 
 /**
  * Respuestas del flujo de compra: recojo (CCPIP-157), pago (CCPIP-62, CCPIP-163), confirmacion (CCPIP-64)
@@ -18,6 +20,13 @@ public final class CompraModelos {
     /** Punto de acopio donde se puede recoger todo el carrito. Sin coordenadas: los mapas son simulados (RNF-31). */
     public record PuntoRecojo(long id, String nombre, String departamento, String provincia, String distrito,
                               String direccion) {
+    }
+
+    /**
+     * CCPIP-59: un distrito al que se entrega a domicilio todo el carrito y los puntos de acopio que lo
+     * cubren con existencias para todas sus lineas.
+     */
+    public record DistritoConPuntos(Distrito distrito, List<PuntoRecojo> puntos) {
     }
 
     /** Linea del pedido con el precio copiado al confirmar (RNF-13), nunca el vigente. */
@@ -45,11 +54,13 @@ public final class CompraModelos {
      * {@code confirmadoEn} es nulo mientras espera su pago. {@code historial}: sus estados en orden
      * cronologico (CCPIP-340). {@code comision}: la vigente al confirmar, ya incluida en el total
      * (CCPIP-167); nula mientras espera su pago o si se confirmo sin comision configurada.
+     * {@code entrega} es el destino de un pedido a domicilio (CCPIP-59), nula si es para recojo; en ese
+     * caso {@code punto} es el punto de acopio de donde sale.
      */
     public record Pedido(long id, String numero, String estado, String modalidad, BigDecimal total, Instant creadoEn,
                          Instant confirmadoEn, PuntoRecojo punto, String personaAutorizada, String celularContacto,
                          List<LineaPedido> lineas, List<IntentoPago> pagos, List<EventoPedido> historial,
-                         ComisionPedido comision) {
+                         ComisionPedido comision, Entrega entrega) {
     }
 
     /**
