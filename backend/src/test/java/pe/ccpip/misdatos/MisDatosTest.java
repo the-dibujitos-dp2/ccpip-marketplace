@@ -84,7 +84,7 @@ class MisDatosTest extends IntegrationTest {
 
     @Test
     void editarSusDatosNoCambiaLosPedidosYaHechos() throws Exception {
-        long producto = productoConLote("Mis datos pedido", "PUBLICADO", "PUNTO_ACOPIO", java.time.LocalDate.now().plusMonths(3));
+        long producto = productoConLote("Mis datos pedido", "PUBLICADO", "PUNTO_ACOPIO", java.time.LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(3));
         long pedido = pedidoConfirmado("CCP-MD01", "Centro Nacional Lima", producto, 1);
         jdbc.update("UPDATE pedido SET celular_contacto = '999 111 222', persona_autorizada = 'Rosa Quispe' WHERE id = ?", pedido);
 

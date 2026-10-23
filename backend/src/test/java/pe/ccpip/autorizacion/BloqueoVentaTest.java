@@ -41,7 +41,7 @@ class BloqueoVentaTest extends IntegrationTest {
     void preparar() throws Exception {
         subAdmin = loginAs("sub_admin@ccpip.test");
         // Publicado, con lote vendible, cuenta bancaria y autorizacion APROBADA: se puede comprar
-        miel = productoConLote("Miel de abeja nativa 250 g", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        miel = productoConLote("Miel de abeja nativa 250 g", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         productor = jdbc.queryForObject("SELECT p.id FROM productor p JOIN usuario u ON u.id = p.usuario_id WHERE u.correo = ?",
                 Long.class, PRODUCTOR);
     }

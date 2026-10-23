@@ -43,8 +43,8 @@ class MisPedidosTest extends IntegrationTest {
 
     @Test
     void listaSusComprasLaMasRecientePrimeroConElPrecioPagadoYSuHistorial() throws Exception {
-        long aguaje = productoConLote("Aguaje de mis pedidos", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
-        long cacao = productoConLote("Cacao de mis pedidos", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        long aguaje = productoConLote("Aguaje de mis pedidos", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
+        long cacao = productoConLote("Cacao de mis pedidos", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         long entregado = pedido("MP-0001", "ENTREGADO", "2026-10-01T10:00:00-05:00", aguaje, 2);
         historial(entregado, "PENDIENTE_PAGO", "2026-10-01T10:00:00-05:00");
         historial(entregado, "CONFIRMADO", "2026-10-01T10:02:00-05:00");
@@ -80,7 +80,7 @@ class MisPedidosTest extends IntegrationTest {
 
     @Test
     void elDetalleMuestraElEstadoActualYSuHistorialEnOrdenCronologico() throws Exception {
-        long aguaje = productoConLote("Aguaje del detalle", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        long aguaje = productoConLote("Aguaje del detalle", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         long id = pedido("MP-0003", "LISTO_PARA_RECOJO", "2026-10-12T08:00:00-05:00", aguaje, 1);
         // Se insertan desordenados: el orden lo da la fecha, no la insercion
         historial(id, "LISTO_PARA_RECOJO", "2026-10-13T09:00:00-05:00");
@@ -97,7 +97,7 @@ class MisPedidosTest extends IntegrationTest {
 
     @Test
     void soloVeSusPropiasCompras() throws Exception {
-        long aguaje = productoConLote("Aguaje ajeno", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        long aguaje = productoConLote("Aguaje ajeno", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         long ajeno = pedidoConfirmado("MP-AJENO", LIMA, aguaje, 1); // de consumidor@ccpip.test
 
         mockMvc.perform(get("/api/pedidos").cookie(sesion))

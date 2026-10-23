@@ -76,7 +76,7 @@ class InteresesYAvisosTest extends IntegrationTest {
 
     @Test
     void unaOfertaEnVentaPausadaTambienAdmiteInteres() throws Exception {
-        long producto = productoConLote("Interes pausado " + UUID.randomUUID(), "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        long producto = productoConLote("Interes pausado " + UUID.randomUUID(), "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         pausarVenta(producto);
         interes(loginAs(CONSUMIDOR), producto, 3)
                 .andExpect(status().isOk())
@@ -85,7 +85,7 @@ class InteresesYAvisosTest extends IntegrationTest {
 
     @Test
     void unaOfertaQueSePuedeComprarNoAdmiteInteres() throws Exception {
-        long producto = productoConLote("Interes disponible " + UUID.randomUUID(), "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        long producto = productoConLote("Interes disponible " + UUID.randomUUID(), "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         interes(loginAs(CONSUMIDOR), producto, 1)
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("OFERTA_DISPONIBLE"));
@@ -220,7 +220,7 @@ class InteresesYAvisosTest extends IntegrationTest {
 
     @Test
     void alReactivarLaCuentaDelProductorAvisaAlInteresado() throws Exception {
-        long producto = productoConLote("Interes reactivado " + UUID.randomUUID(), "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        long producto = productoConLote("Interes reactivado " + UUID.randomUUID(), "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         pausarVenta(producto);
         interes(loginAs(CONSUMIDOR), producto, 1).andExpect(status().isOk());
         tarea.revisar();
@@ -264,7 +264,7 @@ class InteresesYAvisosTest extends IntegrationTest {
 
     @Test
     void alMarcarElPedidoListoElCompradorRecibeUnCorreo() throws Exception {
-        long producto = productoConLote("Pedido listo " + UUID.randomUUID(), "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        long producto = productoConLote("Pedido listo " + UUID.randomUUID(), "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         String numero = "AV-" + System.nanoTime() % 1_000_000_000L;
         long pedido = pedidoConfirmado(numero, LIMA, producto, 1);
 
@@ -285,7 +285,7 @@ class InteresesYAvisosTest extends IntegrationTest {
 
     @Test
     void elAvisoNombraALaPersonaAutorizada() throws Exception {
-        long producto = productoConLote("Pedido autorizado " + UUID.randomUUID(), "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        long producto = productoConLote("Pedido autorizado " + UUID.randomUUID(), "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         String numero = "AV-" + System.nanoTime() % 1_000_000_000L;
         long pedido = pedidoConfirmado(numero, LIMA, producto, 1);
         jdbc.update("UPDATE pedido SET persona_autorizada = 'Rosa Quispe' WHERE id = ?", pedido);
@@ -297,7 +297,7 @@ class InteresesYAvisosTest extends IntegrationTest {
 
     @Test
     void unCorreoCaidoNoImpideMarcarElPedidoListo() throws Exception {
-        long producto = productoConLote("Pedido sin correo " + UUID.randomUUID(), "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        long producto = productoConLote("Pedido sin correo " + UUID.randomUUID(), "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         String numero = "AV-" + System.nanoTime() % 1_000_000_000L;
         long pedido = pedidoConfirmado(numero, LIMA, producto, 1);
         correos.fallar(true);

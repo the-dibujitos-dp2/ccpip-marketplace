@@ -45,7 +45,7 @@ class CalificacionesTest extends IntegrationTest {
                 SELECT ?, contrasena_hash, ?, 1, true FROM usuario WHERE correo = 'consumidor@ccpip.test'
                 ON CONFLICT (correo) DO NOTHING""", COMPRADORA, NOMBRE_COMPRADORA);
         sesion = loginAs(COMPRADORA);
-        aguaje = productoConLote("Aguaje para calificar", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        aguaje = productoConLote("Aguaje para calificar", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
     }
 
     @Test

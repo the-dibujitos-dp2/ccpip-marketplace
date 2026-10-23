@@ -82,7 +82,7 @@ class TraduccionCatalogoTest extends IntegrationTest {
 
     @Test
     void unProductoSinTraduccionSeMuestraEnSuOriginal() throws Exception {
-        long id = productoConLote("Chocolate de prueba sin traducir", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusYears(1));
+        long id = productoConLote("Chocolate de prueba sin traducir", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusYears(1));
         mockMvc.perform(get("/api/productos/{id}", id).header(HttpHeaders.ACCEPT_LANGUAGE, "en"))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_LANGUAGE, "en"))

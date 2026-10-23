@@ -32,12 +32,12 @@ class CertificacionPublicaTest extends IntegrationTest {
 
     @Test
     void unProductoVerificadoMuestraEmisorFechaYVigenciaSinDocumentosPrivados() throws Exception {
-        UUID certificado = evidencia("CERTIFICADO", "Certificado orgánico", "SENASA", "current_date - 30", "current_date + 200");
+        UUID certificado = evidencia("CERTIFICADO", "Certificado orgánico", "SENASA", "(now() AT TIME ZONE 'America/Lima')::date - 30", "(now() AT TIME ZONE 'America/Lima')::date + 200");
         UUID foto = evidencia("EVIDENCIA", "Foto de la parcela", null, null, null);
         UUID acta = evidencia("DOCUMENTO", "Acta de la comunidad", "Comunidad", null, null);
-        aprobar(List.of(certificado, foto, acta), "current_date + 200");
+        aprobar(List.of(certificado, foto, acta), "(now() AT TIME ZONE 'America/Lima')::date + 200");
         // Subida despues de la aprobacion: no la sustento, no se publica
-        evidencia("CERTIFICADO", "Certificado nuevo sin revisar", "Otro", "current_date", "current_date + 400");
+        evidencia("CERTIFICADO", "Certificado nuevo sin revisar", "Otro", "(now() AT TIME ZONE 'America/Lima')::date", "(now() AT TIME ZONE 'America/Lima')::date + 400");
 
         mockMvc.perform(get("/api/productos/" + producto + "/certificacion"))
                 .andExpect(status().isOk())
@@ -61,8 +61,8 @@ class CertificacionPublicaTest extends IntegrationTest {
 
     @Test
     void conElCertificadoVencidoNoSeDiceVerificado() throws Exception {
-        UUID certificado = evidencia("CERTIFICADO", "Certificado orgánico", "SENASA", "current_date - 400", "current_date - 1");
-        aprobar(List.of(certificado), "current_date - 1");
+        UUID certificado = evidencia("CERTIFICADO", "Certificado orgánico", "SENASA", "(now() AT TIME ZONE 'America/Lima')::date - 400", "(now() AT TIME ZONE 'America/Lima')::date - 1");
+        aprobar(List.of(certificado), "(now() AT TIME ZONE 'America/Lima')::date - 1");
 
         mockMvc.perform(get("/api/productos/" + producto + "/certificacion"))
                 .andExpect(status().isOk())
@@ -81,7 +81,7 @@ class CertificacionPublicaTest extends IntegrationTest {
 
         // Aprobada solo con una foto y un documento: tampoco, porque no hay certificado
         aprobar(List.of(evidencia("EVIDENCIA", "Foto", null, null, null), evidencia("DOCUMENTO", "Acta", null, null, null)),
-                "current_date + 30");
+                "(now() AT TIME ZONE 'America/Lima')::date + 30");
         mockMvc.perform(get("/api/productos/" + producto + "/certificacion"))
                 .andExpect(jsonPath("$.estado").value("SIN_EVIDENCIA"))
                 .andExpect(jsonPath("$.evidencias").isEmpty());
@@ -89,8 +89,8 @@ class CertificacionPublicaTest extends IntegrationTest {
 
     @Test
     void unaAutorizacionRevocadaNoMuestraEvidencias() throws Exception {
-        UUID certificado = evidencia("CERTIFICADO", "Certificado orgánico", "SENASA", "current_date - 30", "current_date + 200");
-        aprobar(List.of(certificado), "current_date + 200");
+        UUID certificado = evidencia("CERTIFICADO", "Certificado orgánico", "SENASA", "(now() AT TIME ZONE 'America/Lima')::date - 30", "(now() AT TIME ZONE 'America/Lima')::date + 200");
+        aprobar(List.of(certificado), "(now() AT TIME ZONE 'America/Lima')::date + 200");
         jdbc.update("UPDATE autorizacion_producto SET estado = 'REVOCADA' WHERE id = ?", autorizacion);
 
         mockMvc.perform(get("/api/productos/" + producto + "/certificacion"))

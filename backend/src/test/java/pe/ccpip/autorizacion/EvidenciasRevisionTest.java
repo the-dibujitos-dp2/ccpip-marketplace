@@ -48,7 +48,7 @@ class EvidenciasRevisionTest extends IntegrationTest {
     private static final String OTRO_PRODUCTOR = "productor2@ccpip.test";
     private static final String SUB_ADMIN = "sub_admin@ccpip.test";
     private static final byte[] PDF = "%PDF-1.4\n1 0 obj << >> endobj\n%%EOF\n".getBytes(StandardCharsets.US_ASCII);
-    private static final LocalDate EN_UN_ANIO = LocalDate.now().plusYears(1);
+    private static final LocalDate EN_UN_ANIO = LocalDate.now(java.time.ZoneId.of("America/Lima")).plusYears(1);
 
     @Autowired
     private RevisionService revision;
@@ -62,7 +62,7 @@ class EvidenciasRevisionTest extends IntegrationTest {
         productor = loginAs(PRODUCTOR);
         subAdmin = loginAs(SUB_ADMIN);
         // Publicado, con existencias y cuenta bancaria, pero aun sin autorizacion: en "Venta pausada"
-        miel = productoConLote("Miel de abeja nativa 250 g", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        miel = productoConLote("Miel de abeja nativa 250 g", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         jdbc.update("DELETE FROM autorizacion_producto WHERE producto_id = ?", miel);
     }
 
@@ -166,7 +166,7 @@ class EvidenciasRevisionTest extends IntegrationTest {
 
     @Test
     void aprobarConMotivoAutorizaElProductoYHabilitaLaCompra() throws Exception {
-        LocalDate vence = LocalDate.now().plusMonths(8);
+        LocalDate vence = LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(8);
         subir(productor, miel, PDF, "c.pdf", "CERTIFICADO", "Certificado orgánico de miel", "Control Unión", EN_UN_ANIO);
         subir(productor, miel, PDF, "rs.pdf", "CERTIFICADO", "Registro sanitario miel", "DIGESA", vence);
         mockMvc.perform(get("/api/productos/{id}", miel)).andExpect(jsonPath("$.comprable").value(false));
@@ -211,7 +211,7 @@ class EvidenciasRevisionTest extends IntegrationTest {
 
     @Test
     void unCertificadoDeOtroProductoNoAutorizaElSolicitado() throws Exception {
-        long cafe = productoConLote("Café de altura 250 g", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        long cafe = productoConLote("Café de altura 250 g", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         jdbc.update("DELETE FROM autorizacion_producto WHERE producto_id = ?", cafe);
         subir(productor, cafe, PDF, "c.pdf", "CERTIFICADO", "Certificado orgánico de café", "Control Unión", EN_UN_ANIO);
         subir(productor, miel, Imagenes.jpg(30, 30), "f.jpg", "EVIDENCIA", "Fotos de la cosecha de miel", null, null);
@@ -232,7 +232,7 @@ class EvidenciasRevisionTest extends IntegrationTest {
 
     @Test
     void unCertificadoVencidoNoAutoriza() throws Exception {
-        subir(productor, miel, PDF, "c.pdf", "CERTIFICADO", "Certificado de miel", "E", LocalDate.now().minusDays(3))
+        subir(productor, miel, PDF, "c.pdf", "CERTIFICADO", "Certificado de miel", "E", LocalDate.now(java.time.ZoneId.of("America/Lima")).minusDays(3))
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.vencida").value(true));
         decidir(solicitud(miel), "aprobar", "Todo en orden")
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("SIN_CERTIFICADO_VIGENTE"));

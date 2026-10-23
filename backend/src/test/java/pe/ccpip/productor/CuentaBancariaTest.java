@@ -164,7 +164,7 @@ class CuentaBancariaTest extends IntegrationTest {
     @Test
     void desactivadaLaOfertaSigueVisiblePeroNoSeCompraHastaReactivarla() throws Exception {
         Cookie productor = loginAs("productor@ccpip.test");
-        long producto = productoConLote("Aguaje de la cuenta", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        long producto = productoConLote("Aguaje de la cuenta", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         mockMvc.perform(get("/api/productos/{id}", producto)).andExpect(jsonPath("$.comprable").value(true));
 
         enviar(post(RUTA + "/desactivar"), productor, Map.of("motivo", "BLOQUEO_BANCO", "confirmo", true))
@@ -204,7 +204,7 @@ class CuentaBancariaTest extends IntegrationTest {
 
     @Test
     void losPedidosYaPagadosSiguenSuCursoConLaCuentaDesactivada() throws Exception {
-        long producto = productoConLote("Aguaje ya pagado", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        long producto = productoConLote("Aguaje ya pagado", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         long pedido = pedidoConfirmado("CB-0001", "Centro Nacional Lima", producto, 1);
         enviar(post(RUTA + "/desactivar"), loginAs("productor@ccpip.test"), Map.of("motivo", "SEGURIDAD", "confirmo", true))
                 .andExpect(status().isOk());

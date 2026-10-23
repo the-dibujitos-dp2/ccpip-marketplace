@@ -344,7 +344,7 @@ class ProductorFlujoTest extends IntegrationTest {
     void elPanelResumeSuOperacion() throws Exception {
         long id = productoPublicado();
         // Un lote que vence en 10 dias dispara la alerta de 15 dias
-        registrarLote(id, "L-PRONTO", acopioLima, "4", LocalDate.now().plusDays(10)).andExpect(status().isCreated());
+        registrarLote(id, "L-PRONTO", acopioLima, "4", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusDays(10)).andExpect(status().isCreated());
         mockMvc.perform(get("/api/productor/panel").cookie(nuevo))
                 .andExpect(jsonPath("$.publicados").value(1))
                 .andExpect(jsonPath("$.stockEnVenta").value(64))
@@ -533,7 +533,7 @@ class ProductorFlujoTest extends IntegrationTest {
     }
 
     private ResultActions registrarLote(long productoId, String codigo, long ubicacion, String cantidad) throws Exception {
-        return registrarLote(productoId, codigo, ubicacion, cantidad, LocalDate.now().plusMonths(8));
+        return registrarLote(productoId, codigo, ubicacion, cantidad, LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(8));
     }
 
     private ResultActions registrarLote(long productoId, String codigo, long ubicacion, String cantidad, LocalDate vence)
@@ -541,7 +541,7 @@ class ProductorFlujoTest extends IntegrationTest {
         Map<String, Object> lote = new LinkedHashMap<>();
         lote.put("codigo", codigo);
         lote.put("cantidad", cantidad);
-        lote.put("fechaProduccion", LocalDate.now().minusDays(5).toString());
+        lote.put("fechaProduccion", LocalDate.now(java.time.ZoneId.of("America/Lima")).minusDays(5).toString());
         lote.put("fechaVencimiento", vence == null ? null : vence.toString());
         lote.put("ubicacionId", ubicacion);
         return mockMvc.perform(post("/api/productor/productos/{id}/lotes", productoId).cookie(nuevo)
