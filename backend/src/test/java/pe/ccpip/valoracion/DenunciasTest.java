@@ -46,7 +46,7 @@ class DenunciasTest extends IntegrationTest {
                 SELECT ?, contrasena_hash, ?, 1, true FROM usuario WHERE correo = 'consumidor@ccpip.test'
                 ON CONFLICT (correo) DO NOTHING""", DENUNCIANTE, NOMBRE_DENUNCIANTE);
         comprador = loginAs(DENUNCIANTE);
-        ungurahui = productoConLote("Ungurahui denunciado", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        ungurahui = productoConLote("Ungurahui denunciado", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         productor = productorDe("productor@ccpip.test");
         productor2 = productorDe("productor2@ccpip.test");
     }

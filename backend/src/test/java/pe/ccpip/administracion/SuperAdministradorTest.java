@@ -72,7 +72,7 @@ class SuperAdministradorTest extends IntegrationTest {
         Cookie sesion = loginAs(SUPER);
         JsonNode antes = tablero(sesion);
 
-        long producto = productoConLote("Aguaje del tablero", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        long producto = productoConLote("Aguaje del tablero", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         pedidoConfirmado("T-" + System.nanoTime() % 1_000_000_000L, "Centro Nacional Lima", producto, 3);
         // Un pedido que espera pago todavia no es una venta
         jdbc.update("""

@@ -42,7 +42,7 @@ class RevocacionYTiendaTest extends IntegrationTest {
     void preparar() throws Exception {
         subAdmin = loginAs("sub_admin@ccpip.test");
         // Publicado, con lote vendible, cuenta bancaria y autorizacion APROBADA: se puede comprar
-        miel = productoConLote("Miel de abeja nativa 250 g", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusMonths(6));
+        miel = productoConLote("Miel de abeja nativa 250 g", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusMonths(6));
         autorizacion = jdbc.queryForObject("SELECT id FROM autorizacion_producto WHERE producto_id = ?", Long.class, miel);
     }
 

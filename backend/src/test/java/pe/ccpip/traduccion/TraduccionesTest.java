@@ -89,7 +89,7 @@ class TraduccionesTest extends IntegrationTest {
 
     @Test
     void laTraduccionAutomaticaQuedaPendienteYNoSeDuplicaAlPedirlaOtraVez() throws Exception {
-        long id = productoConLote("Chocolate para traducir", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now().plusYears(1));
+        long id = productoConLote("Chocolate para traducir", "PUBLICADO", "PUNTO_ACOPIO", LocalDate.now(java.time.ZoneId.of("America/Lima")).plusYears(1));
         String clave = String.valueOf(id);
         for (int i = 0; i < 2; i++) {
             mockMvc.perform(post("/api/productor/productos/{id}/traducciones/en", id).cookie(productor))
