@@ -7,6 +7,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,16 +26,21 @@ import pe.ccpip.carrito.CarritoService;
 import pe.ccpip.carrito.Tarifas.Tarifa;
 import pe.ccpip.comision.ComisionModelos.ComisionPedido;
 import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.compra.CompraModelos.DistritoConPuntos;
 import pe.ccpip.compra.CompraModelos.EventoPedido;
 import pe.ccpip.compra.CompraModelos.IntentoPago;
 import pe.ccpip.compra.CompraModelos.LineaPedido;
 import pe.ccpip.compra.CompraModelos.Pedido;
 import pe.ccpip.compra.CompraModelos.PuntoRecojo;
 import pe.ccpip.compra.CompraModelos.ResumenPedido;
-import pe.ccpip.entrega.PersonaDeRecojo;
+import pe.ccpip.entrega.EntregaModelos.Cobertura;
+import pe.ccpip.entrega.EntregaModelos.Destino;
+import pe.ccpip.entrega.EntregaModelos.Distrito;
+import pe.ccpip.entrega.EntregaService;
 
 /**
- * CCPIP-157: confirmar la compra para recojo en un punto de acopio con existencias elegibles, y
+ * CCPIP-157: confirmar la compra para recojo en un punto de acopio con existencias elegibles,
+ * CCPIP-59: o para entrega a domicilio desde un punto que cubra el distrito de destino, y
  * CCPIP-64: consultar el pedido, CCPIP-112: la lista de compras del comprador y CCPIP-70 y CCPIP-340:
  * su estado actual y su historial. El pedido nace en PENDIENTE_PAGO y no toca el stock: se confirma y
  * descuenta recien cuando un pago sale aprobado (ver {@link PagoService}).
@@ -46,10 +52,12 @@ public class CompraService {
 
     private final NamedParameterJdbcTemplate jdbc;
     private final CarritoService carrito;
+    private final EntregaService entregas;
 
-    public CompraService(NamedParameterJdbcTemplate jdbc, CarritoService carrito) {
+    public CompraService(NamedParameterJdbcTemplate jdbc, CarritoService carrito, EntregaService entregas) {
         this.jdbc = jdbc;
         this.carrito = carrito;
+        this.entregas = entregas;
     }
 
     /**
@@ -62,21 +70,48 @@ public class CompraService {
     }
 
     /**
+     * CCPIP-59: los distritos a los que se puede entregar a domicilio todo el carrito, cada uno con los
+     * puntos de acopio que lo cubren y tienen existencias para todas sus lineas. Para elegir el destino y,
+     * con el, el punto. No es de solo lectura por la misma razon que {@link #puntosElegibles}.
+     */
+    @Transactional
+    public List<DistritoConPuntos> distritosConEntrega(long usuarioId) {
+        Map<Long, PuntoRecojo> elegibles = puntos(comprables(usuarioId), null).stream()
+                .collect(Collectors.toMap(PuntoRecojo::id, punto -> punto));
+        Map<String, DistritoConPuntos> porDistrito = new LinkedHashMap<>();
+        for (Cobertura c : entregas.coberturas(elegibles.keySet())) {
+            porDistrito.computeIfAbsent(c.distrito().ubigeo(), k -> new DistritoConPuntos(c.distrito(), new ArrayList<>()))
+                    .puntos().add(elegibles.get(c.puntoId()));
+        }
+        return List.copyOf(porDistrito.values());
+    }
+
+    /**
      * Revalida precio, oferta, stock y cuenta bancaria del carrito (via {@link CarritoService}) y crea el
      * pedido en PENDIENTE_PAGO con los precios copiados. Un pedido anterior que se quedo esperando su
      * pago se cancela: sin pago no desconto nada, asi que no hay stock que devolver.
+     *
+     * <p>Sin {@code destino} es recojo en el punto. Con {@code destino} (CCPIP-59) es entrega a domicilio:
+     * el punto debe cubrir ese distrito, el pedido registra su entrega y no hay persona autorizada porque
+     * lo recibe quien indica el destino. El total no incluye costo de envio (CCPIP-101, pendiente del cliente).
      */
     @Transactional
-    public Pedido confirmar(long usuarioId, long puntoId, String personaAutorizada, String celular) {
-        String celularContacto = PersonaDeRecojo.celular(celular).orElseThrow(() ->
-                ErrorNegocio.invalido("CELULAR_INVALIDO", "Ingresa un celular de 9 dígitos que empiece con 9."));
-        String autorizada = personaAutorizada == null || personaAutorizada.isBlank() ? null : personaAutorizada.strip();
+    public Pedido confirmar(long usuarioId, long puntoId, Destino destino, String personaAutorizada, String celular) {
+        boolean aDomicilio = destino != null;
+        String celularContacto = aDomicilio ? null : EntregaService.celularDeContacto(celular);
+        String celularEntrega = aDomicilio ? EntregaService.celularDeContacto(destino.contactoCelular()) : null;
+        if (aDomicilio) {
+            EntregaService.validarDireccion(destino.direccion());
+        }
+        String autorizada = aDomicilio || personaAutorizada == null || personaAutorizada.isBlank()
+                ? null : personaAutorizada.strip();
 
         List<Item> items = comprables(usuarioId);
         if (puntos(items, puntoId).isEmpty()) {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "PUNTO_SIN_EXISTENCIAS",
                     "Este punto de acopio ya no tiene existencias para todo tu carrito. Elige otro punto.");
         }
+        Distrito distrito = aDomicilio ? entregas.exigirCobertura(puntoId, destino.ubigeo()) : null;
 
         MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId);
         jdbc.update("""
@@ -91,11 +126,12 @@ public class CompraService {
         long id = jdbc.getJdbcTemplate().queryForObject("SELECT nextval(pg_get_serial_sequence('pedido', 'id'))", Long.class);
         BigDecimal total = items.stream().map(Item::subtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
         p.addValue("id", id).addValue("numero", "CCP-%06d".formatted(id)).addValue("punto", puntoId)
-                .addValue("total", total).addValue("autorizada", autorizada).addValue("celular", celularContacto);
+                .addValue("total", total).addValue("autorizada", autorizada).addValue("celular", celularContacto)
+                .addValue("modalidad", aDomicilio ? "ENVIO" : "RECOJO");
         jdbc.update("""
                 INSERT INTO pedido (id, numero, usuario_id, modalidad, ubicacion_origen_id, estado, total, confirmado_en,
                                     persona_autorizada, celular_contacto)
-                VALUES (:id, :numero, :usuario, 'RECOJO', :punto, 'PENDIENTE_PAGO', :total, NULL, :autorizada, :celular)""", p);
+                VALUES (:id, :numero, :usuario, :modalidad, :punto, 'PENDIENTE_PAGO', :total, NULL, :autorizada, :celular)""", p);
         for (Item item : items) {
             jdbc.update("""
                     INSERT INTO item_pedido (pedido_id, producto_id, productor_id, cantidad, precio_unitario, subtotal, tarifa)
@@ -105,6 +141,9 @@ public class CompraService {
                             .addValue("precio", item.precio()).addValue("subtotal", item.subtotal())
                             // CCPIP-345: B2B o B2C, segun la tarifa que resolvio el carrito para esta cantidad
                             .addValue("tarifa", item.tarifa() == null ? Tarifa.MINORISTA.name() : item.tarifa().name()));
+        }
+        if (aDomicilio) {
+            entregas.registrar(id, distrito, destino, celularEntrega);
         }
         jdbc.update("INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (:id, 'PENDIENTE_PAGO', :usuario)", p);
         return pedido(usuarioId, id);
@@ -125,7 +164,8 @@ public class CompraService {
                         rs.getString("modalidad"), rs.getBigDecimal("total"), instante(rs, "creado_en"),
                         instante(rs, "confirmado_en"), punto(rs, "u_"), rs.getString("persona_autorizada"),
                         rs.getString("celular_contacto"), lineas(pedidoId), pagos(pedidoId),
-                        historial(List.of(pedidoId)).getOrDefault(pedidoId, List.of()), comision(rs)));
+                        historial(List.of(pedidoId)).getOrDefault(pedidoId, List.of()), comision(rs),
+                        entregas.delPedido(pedidoId).orElse(null)));
         return encontrados.stream().findFirst()
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "No encontramos ese pedido."));
     }
