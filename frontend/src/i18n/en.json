@@ -1458,6 +1458,8 @@
     "CARRITO_CON_PROBLEMAS": "Some products in your cart can't be bought as they are. Adjust or remove them to continue.",
     "TARJETA_INVALIDA": "Check your card details.",
     "PUNTO_SIN_EXISTENCIAS": "This collection point no longer has stock for your whole cart. Choose another point.",
+    "SIN_COBERTURA": "This collection point does not deliver to that district. Choose another point or pickup.",
+    "PEDIDO_A_DOMICILIO": "This order is delivered to the customer's home; it is not picked up at the point.",
     "PEDIDO_NO_PAGABLE": "This order can no longer be paid.",
     "PAGO_EN_CURSO": "There's already a payment in progress for this order. Wait for its result before trying again.",
     "CLAVE_REUTILIZADA": "This payment attempt belongs to another order.",
@@ -1837,6 +1839,9 @@
       "mes": "Choose the month",
       "anio": "Choose the year",
       "vencida": "The card has expired",
+      "distrito": "Choose the delivery district",
+      "direccion": "Enter the delivery address",
+      "quienRecibe": "Enter who will receive the order",
       "cvv": "{{digitos}} digits"
     },
     "resultado": {
@@ -1877,7 +1882,25 @@
     "gratis": "Free",
     "procesando": "Processing payment…",
     "pagar": "Pay {{monto}}",
-    "notaStock": "Stock is only deducted once your payment is approved."
+    "notaStock": "Stock is only deducted once your payment is approved.",
+    "domicilio": {
+      "titulo": "1. Home delivery",
+      "comoRecibir": "How you want to receive your order",
+      "opcion": "Home delivery",
+      "ayuda": "Choose your district and the collection point that delivers it. The shipping cost is still to be defined and is not added to the total.",
+      "distrito": "Delivery district",
+      "eligeDistrito": "Choose your district",
+      "direccion": "Delivery address",
+      "direccionAyuda": "Street, number and, if needed, apartment or floor.",
+      "referencia": "Landmark (optional)",
+      "eligePunto": "Choose the collection point that delivers it",
+      "quienTitulo": "2. Who receives it?",
+      "quienRecibe": "Name of the person receiving",
+      "celular": "Mobile number of the person receiving",
+      "celularAyuda": "9 digits. We use it to coordinate the delivery.",
+      "costoPorDefinir": "To be defined",
+      "sinCobertura": "That point does not deliver to your district"
+    }
   },
   "pedido": {
     "noEncontrado": "We couldn't find that order",
@@ -1887,6 +1910,7 @@
     "cargando": "Loading your order…",
     "gracias": "Thank you for your purchase!",
     "confirmado": "Your order <strong>{{numero}}</strong> is confirmed. We'll let you know when it's ready for pickup.",
+    "confirmadoDomicilio": "Your order <strong>{{numero}}</strong> is confirmed. We'll deliver it to your home.",
     "titulo": "Order {{numero}}",
     "esperaPago": "This order is awaiting payment",
     "esperaPagoTexto": "Go back to delivery and payment to complete it.",
@@ -1895,6 +1919,12 @@
     "articulos": "Items",
     "subtotal": "Subtotal",
     "recojo": "Pickup",
+    "domicilio": {
+      "titulo": "Home delivery",
+      "sale": "Leaves from",
+      "entregaEn": "Delivered to",
+      "recibe": "Received by"
+    },
     "punto": "Collection point",
     "recoge": "Picked up by",
     "tu": "You, with your ID",

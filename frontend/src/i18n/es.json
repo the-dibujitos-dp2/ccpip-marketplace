@@ -1458,6 +1458,8 @@
     "CARRITO_CON_PROBLEMAS": "Algunos productos de tu carrito no se pueden comprar como están. Ajústalos o quítalos para continuar.",
     "TARJETA_INVALIDA": "Revisa los datos de tu tarjeta.",
     "PUNTO_SIN_EXISTENCIAS": "Este punto de acopio ya no tiene existencias para todo tu carrito. Elige otro punto.",
+    "SIN_COBERTURA": "Este punto de acopio no entrega a domicilio en ese distrito. Elige otro punto o el recojo.",
+    "PEDIDO_A_DOMICILIO": "Este pedido se entrega a domicilio, no se recoge en el punto.",
     "PEDIDO_NO_PAGABLE": "Este pedido ya no se puede pagar.",
     "PAGO_EN_CURSO": "Ya hay un pago en curso para este pedido. Espera su resultado antes de reintentar.",
     "CLAVE_REUTILIZADA": "Este intento de pago pertenece a otro pedido.",
@@ -1837,6 +1839,9 @@
       "mes": "Elige el mes",
       "anio": "Elige el año",
       "vencida": "La tarjeta está vencida",
+      "distrito": "Elige el distrito de entrega",
+      "direccion": "Indica la dirección de entrega",
+      "quienRecibe": "Indica quién recibirá el pedido",
       "cvv": "{{digitos}} dígitos"
     },
     "resultado": {
@@ -1877,7 +1882,25 @@
     "gratis": "Gratis",
     "procesando": "Procesando pago…",
     "pagar": "Pagar {{monto}}",
-    "notaStock": "El stock se descuenta recién cuando tu pago se aprueba."
+    "notaStock": "El stock se descuenta recién cuando tu pago se aprueba.",
+    "domicilio": {
+      "titulo": "1. Entrega a domicilio",
+      "comoRecibir": "Cómo quieres recibir tu pedido",
+      "opcion": "Entrega a domicilio",
+      "ayuda": "Elige tu distrito y el punto de acopio que te lo entrega. El costo del envío está por definir y no se suma al total.",
+      "distrito": "Distrito de entrega",
+      "eligeDistrito": "Elige tu distrito",
+      "direccion": "Dirección de entrega",
+      "direccionAyuda": "Calle, número y, si hace falta, departamento o piso.",
+      "referencia": "Referencia (opcional)",
+      "eligePunto": "Elige el punto de acopio que te lo entrega",
+      "quienTitulo": "2. ¿Quién recibe?",
+      "quienRecibe": "Nombre de quien recibe",
+      "celular": "Celular de quien recibe",
+      "celularAyuda": "9 dígitos. Lo usamos para coordinar la entrega.",
+      "costoPorDefinir": "Por definir",
+      "sinCobertura": "Ese punto no entrega en tu distrito"
+    }
   },
   "pedido": {
     "noEncontrado": "No encontramos ese pedido",
@@ -1887,6 +1910,7 @@
     "cargando": "Cargando tu pedido…",
     "gracias": "¡Gracias por tu compra!",
     "confirmado": "Tu pedido <strong>{{numero}}</strong> está confirmado. Te avisaremos cuando esté listo para recoger.",
+    "confirmadoDomicilio": "Tu pedido <strong>{{numero}}</strong> está confirmado. Te lo entregaremos a domicilio.",
     "titulo": "Pedido {{numero}}",
     "esperaPago": "Este pedido espera su pago",
     "esperaPagoTexto": "Vuelve a entrega y pago para completarlo.",
@@ -1895,6 +1919,12 @@
     "articulos": "Artículos",
     "subtotal": "Subtotal",
     "recojo": "Recojo",
+    "domicilio": {
+      "titulo": "Entrega a domicilio",
+      "sale": "Sale de",
+      "entregaEn": "Se entrega en",
+      "recibe": "Recibe"
+    },
     "punto": "Punto de acopio",
     "recoge": "Recoge",
     "tu": "Tú, con tu documento",
