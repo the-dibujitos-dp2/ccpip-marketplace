@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
-import { copia, DATOS, llamadas, PUBLICAS, servidor, SESION } from '../../test/servidor.js'
+import { copia, DATOS, llamadas, PUBLICAS, servidor, SESION, SESION_ACOPIO } from '../../test/servidor.js'
 
 function abrirEn(ruta) {
   window.history.replaceState(null, '', ruta)
@@ -174,10 +174,39 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     await usuario.click(screen.getByRole('button', { name: PAGAR }))
 
     expect(screen.getByText('Elige el distrito de entrega')).toBeInTheDocument()
+    // Sin distrito no hay puntos entre los que elegir: no se pide un punto
+    expect(screen.queryByText('Elige un punto de acopio')).not.toBeInTheDocument()
     expect(screen.getByText('Indica la dirección de entrega')).toBeInTheDocument()
     expect(screen.getByText('Indica quién recibirá el pedido')).toBeInTheDocument()
     expect(screen.getByText('Ingresa un celular de 9 dígitos que empiece con 9')).toBeInTheDocument()
     expect(llamadas(fetchMock, 'POST /api/pedidos')).toHaveLength(0)
+  })
+
+  it('con varios puntos que cubren el distrito pide elegir uno, y el aviso se va al elegirlo', { timeout: 15_000 }, async () => {
+    servidor(rutas())
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), '150122')
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+    expect(screen.getByText('Elige un punto de acopio')).toBeInTheDocument()
+
+    await usuario.click(screen.getByRole('radio', { name: /Centro Nacional Lima/ }))
+    expect(screen.queryByText('Elige un punto de acopio')).not.toBeInTheDocument()
+  })
+
+  it('al elegir un distrito con un solo punto no queda el aviso de punto de un envio anterior', async () => {
+    servidor(rutas())
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), '150122')
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+    expect(screen.getByText('Elige un punto de acopio')).toBeInTheDocument()
+    // Wanchaq lo cubre un solo punto: queda elegido y el aviso anterior ya no corresponde
+    await usuario.selectOptions(screen.getByLabelText('Distrito de entrega'), '080108')
+    expect(screen.getByRole('radio', { name: /Centro Regional Cusco/ })).toBeChecked()
+    expect(screen.queryByText('Elige un punto de acopio')).not.toBeInTheDocument()
   })
 
   it('si el punto ya no cubre el distrito lo explica y vuelve a cargar las opciones', { timeout: 15_000 }, async () => {
@@ -230,5 +259,65 @@ describe('CW-06 Pedido a domicilio (CCPIP-59)', () => {
     // El reparto llega con las historias de distribucion: nada de "listo para recojo"
     expect(screen.queryByRole('list', { name: /Seguimiento/ })).not.toBeInTheDocument()
     expect(screen.queryByText('Listo para recojo')).not.toBeInTheDocument()
+  })
+})
+
+describe('CW-09 Mis pedidos con un pedido a domicilio (CCPIP-59)', () => {
+  it('dice que se entrega a domicilio y de qué punto sale, sin el seguimiento de recojo', async () => {
+    const resumen = {
+      id: 78, numero: 'CCP-000078', estado: 'CONFIRMADO', modalidad: 'ENVIO', total: 812,
+      creadoEn: '2026-10-23T15:00:00Z', confirmadoEn: '2026-10-23T15:01:02Z', punto: CUSCO,
+      productos: 2, comunidades: 2, historial: [{ estado: 'CONFIRMADO', registradoEn: '2026-10-23T15:01:02Z' }],
+    }
+    servidor(rutas({ 'GET /api/pedidos': [200, [resumen]] }))
+    abrirEn('/cuenta/pedidos')
+
+    const tarjeta = within(await screen.findByRole('article', { name: 'Pedido CCP-000078' }))
+    expect(tarjeta.getByText('Entrega a domicilio')).toBeInTheDocument()
+    expect(tarjeta.getByText('Sale de Centro Regional Cusco')).toBeInTheDocument()
+    expect(tarjeta.queryByText('Sede central CCPIP')).not.toBeInTheDocument()
+    expect(tarjeta.queryByText('Listo para recojo')).not.toBeInTheDocument()
+  })
+})
+
+describe('A-05 Tablero del punto con un pedido a domicilio (CCPIP-59)', () => {
+  const tablero = (estado) => {
+    const datos = copia(DATOS.pedidos)
+    datos.items[0].estado = estado
+    datos.items[0].modalidad = 'ENVIO'
+    return datos
+  }
+  const comoAcopio = (datos) => ({
+    ...PUBLICAS,
+    'GET /api/auth/me': [200, SESION_ACOPIO],
+    'GET /api/acopio/pedidos': [200, datos],
+  })
+
+  it('lo marca como a domicilio y deja registrar su preparación', async () => {
+    servidor(comoAcopio(tablero('CONFIRMADO')))
+    abrirEn('/acopio/pedidos')
+    const confirmado = within(await screen.findByRole('region', { name: 'Confirmado' }))
+    expect(confirmado.getByText('A domicilio')).toBeInTheDocument()
+    expect(confirmado.getByRole('button', { name: 'Registrar la preparación del pedido MC-00155' })).toBeEnabled()
+  })
+
+  it('en preparación no ofrece marcarlo listo para recojo y explica por qué', async () => {
+    servidor(comoAcopio(tablero('EN_PREPARACION')))
+    abrirEn('/acopio/pedidos')
+    const preparacion = within(await screen.findByRole('region', { name: 'En preparación' }))
+    expect(preparacion.getByText('A domicilio')).toBeInTheDocument()
+    expect(preparacion.getByText('Pedido a domicilio: aún no se despacha desde aquí.')).toBeInTheDocument()
+    expect(preparacion.queryByRole('button', { name: /listo para recojo/ })).not.toBeInTheDocument()
+  })
+
+  it('un pedido para recojo sigue sin la marca y con su acción', async () => {
+    const datos = copia(DATOS.pedidos)
+    datos.items[0].estado = 'EN_PREPARACION'
+    datos.items[0].modalidad = 'RECOJO'
+    servidor(comoAcopio(datos))
+    abrirEn('/acopio/pedidos')
+    const preparacion = within(await screen.findByRole('region', { name: 'En preparación' }))
+    expect(preparacion.queryByText('A domicilio')).not.toBeInTheDocument()
+    expect(preparacion.getByRole('button', { name: 'Marcar el pedido MC-00155 como listo para recojo' })).toBeEnabled()
   })
 })
