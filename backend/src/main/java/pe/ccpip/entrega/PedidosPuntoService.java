@@ -216,13 +216,14 @@ public class PedidosPuntoService {
                                     rs.getString("responsable")));
                 });
         Map<Long, PedidoPunto> porId = new HashMap<>();
-        jdbc.query("SELECT id, numero, estado, confirmado_en, actualizado_en, total, recogido_por FROM pedido WHERE id IN (:ids)", p,
+        jdbc.query("SELECT id, numero, estado, confirmado_en, actualizado_en, total, recogido_por, modalidad FROM pedido WHERE id IN (:ids)", p,
                 rs -> {
                     long id = rs.getLong("id");
                     porId.put(id, new PedidoPunto(rs.getString("numero"), rs.getString("estado"),
                             rs.getObject("confirmado_en", Timestamp.class).toInstant(),
                             rs.getObject("actualizado_en", Timestamp.class).toInstant(), rs.getBigDecimal("total"),
-                            lineas.getOrDefault(id, List.of()), historial.getOrDefault(id, List.of()), rs.getString("recogido_por")));
+                            lineas.getOrDefault(id, List.of()), historial.getOrDefault(id, List.of()), rs.getString("recogido_por"),
+                            rs.getString("modalidad")));
                 });
         return ids.stream().map(porId::get).toList();
     }
