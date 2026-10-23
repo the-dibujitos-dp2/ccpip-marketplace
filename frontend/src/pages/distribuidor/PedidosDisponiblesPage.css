@@ -1,0 +1,24 @@
+/* DW-01 · Pedidos disponibles (CCPIP-107) */
+.pedidos-disponibles { display: flex; flex-direction: column; gap: 16px; }
+.pedidos-disponibles__barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+
+.pedidos-disponibles__tabla {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-surface);
+  overflow: hidden;
+}
+.pedidos-disponibles__tabla th,
+.pedidos-disponibles__tabla td { padding: 16px 20px; text-align: left; vertical-align: top; font-weight: 400; font-size: 14px; line-height: 20px; }
+.pedidos-disponibles__tabla thead th { background: var(--color-bg-subtle, #f2ebe3); color: var(--color-text-secondary); font-size: 13px; font-weight: 600; }
+.pedidos-disponibles__tabla tbody tr + tr > * { border-top: 1px solid var(--color-border-default); }
+.pedidos-disponibles__tabla .caption { display: block; color: var(--color-text-secondary); }
+.pedidos-disponibles__numero { font-weight: 600 !important; white-space: nowrap; }
+
+@media (max-width: 720px) {
+  .pedidos-disponibles__tabla th,
+  .pedidos-disponibles__tabla td { padding: 12px; }
+}
