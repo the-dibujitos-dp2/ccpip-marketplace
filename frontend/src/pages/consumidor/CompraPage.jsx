@@ -89,8 +89,8 @@ function validar(f, distritos) {
     if (!f.nombreRecibe.trim()) errores.nombreRecibe = t('quienRecibe')
     else if (!NOMBRE.test(f.nombreRecibe.trim())) errores.nombreRecibe = t('soloLetras')
   }
-  // A domicilio, mientras no haya distrito no hay puntos entre los que elegir: el aviso del distrito basta
-  if (!f.puntoId && !(f.modalidad === 'ENVIO' && !f.ubigeo)) errores.puntoId = t('punto')
+  // A domicilio, si el distrito no tiene puntos entre los que elegir (aun no hay distrito o ninguno lo cubre), el aviso del distrito basta
+  if (!f.puntoId && !(f.modalidad === 'ENVIO' && puntosDe(distritos, f.ubigeo).length === 0)) errores.puntoId = t('punto')
   if (f.modalidad === 'RECOJO' && f.recogeOtro && !f.personaAutorizada.trim()) errores.personaAutorizada = t('persona')
   else if (f.modalidad === 'RECOJO' && f.recogeOtro && !NOMBRE.test(f.personaAutorizada.trim())) errores.personaAutorizada = t('soloLetras')
   if (!celularValido(f.celular)) errores.celular = t('celular')
