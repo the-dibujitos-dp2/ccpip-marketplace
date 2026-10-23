@@ -157,8 +157,8 @@ class ExistenciasAgregadasTest extends IntegrationTest {
         jdbc.update("""
                 INSERT INTO lote (producto_id, ubicacion_id, codigo, cantidad_inicial, cantidad_actual,
                                   fecha_produccion, fecha_vencimiento)
-                SELECT ?, u.id, 'L-E' || ?, greatest(?, 1), ?, current_date - 90,
-                       CASE WHEN ? THEN current_date - 1 ELSE current_date + 365 END
+                SELECT ?, u.id, 'L-E' || ?, greatest(?, 1), ?, (now() AT TIME ZONE 'America/Lima')::date - 90,
+                       CASE WHEN ? THEN (now() AT TIME ZONE 'America/Lima')::date - 1 ELSE (now() AT TIME ZONE 'America/Lima')::date + 365 END
                 FROM ubicacion u WHERE u.nombre = ?""",
                 productoId, productoId, new BigDecimal(cantidad), new BigDecimal(cantidad), vencido, punto);
     }
