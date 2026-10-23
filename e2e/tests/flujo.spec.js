@@ -13,7 +13,45 @@ test.describe.configure({ mode: 'serial', retries: 0 })
 
 const TIENDA = 'Comunidad Kukama de Nauta'
 const PRODUCTO = unico('Aceite de sacha inchi Nauta')
+const CERTIFICADO_PDF = '%PDF-1.4\n1 0 obj << >> endobj\n%%EOF\n'
 let productoId
+
+/** La Cámara aprueba una evidencia vigente del producto antes de probar su republicación. */
+async function autorizarProducto(page, id) {
+  const evidencia = await page.evaluate(async ([productoId, certificado, vigenteHasta]) => {
+    const datos = new FormData()
+    datos.append('archivo', new File([certificado], 'certificado-organico.pdf', { type: 'application/pdf' }))
+    datos.append('tipo', 'CERTIFICADO')
+    datos.append('titulo', 'Certificado orgánico para venta')
+    datos.append('emisor', 'Entidad certificadora de prueba')
+    datos.append('vigenteHasta', vigenteHasta)
+    const respuesta = await fetch(`/api/productor/productos/${productoId}/evidencias`, {
+      method: 'POST', credentials: 'same-origin', body: datos,
+    })
+    return { status: respuesta.status, cuerpo: await respuesta.json() }
+  }, [id, CERTIFICADO_PDF, enDias(365)])
+  expect(evidencia.status).toBe(201)
+  expect(evidencia.cuerpo.vencida).toBe(false)
+
+  expect((await api(page, 'POST', '/api/auth/logout')).status).toBe(204)
+  await ingresar(page, 'sub_admin@ccpip.test')
+  const solicitudes = (await api(page, 'GET', '/api/admin/autorizaciones')).cuerpo.solicitudes
+  const solicitud = solicitudes.find((s) => s.productoId === Number(id))
+  expect(solicitud).toBeDefined()
+  const aprobada = await api(page, 'POST', `/api/admin/autorizaciones/${solicitud.id}/aprobar`, {
+    motivo: 'Certificado vigente y correspondiente al producto',
+  })
+  expect(aprobada.status).toBe(200)
+  expect(aprobada.cuerpo.estado).toBe('APROBADA')
+  expect(aprobada.cuerpo.vigenteHasta).toBe(enDias(365))
+
+  expect((await api(page, 'POST', '/api/auth/logout')).status).toBe(204)
+  await ingresar(page, 'productor_nuevo@ccpip.test')
+  const autorizacion = (await api(page, 'GET', `/api/productor/productos/${id}/evidencias`)).cuerpo.autorizacion
+  expect(autorizacion.estado).toBe('APROBADA')
+  expect(autorizacion.vigenteHasta).toBe(enDias(365))
+  expect(autorizacion.cubreLineas).toBe(true)
+}
 
 test.describe('Productor: arma su tienda y publica su producto', () => {
   test('la Camara habilita la tienda de la comunidad (CCPIP-291)', async ({ page }) => {
@@ -160,6 +198,7 @@ test.describe('Productor: arma su tienda y publica su producto', () => {
     await expect(fila).toContainText('60 und')
     await expect(fila).toContainText('Minorista y mayorista')
     await expect(fila).toContainText('Publicado')
+    await autorizarProducto(page, productoId)
     await sinViolaciones(page)
     expect(errores).toEqual([])
   })
