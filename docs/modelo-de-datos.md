@@ -1259,3 +1259,22 @@ punto puede preparar un pedido a domicilio, pero no marcarlo listo para recojo n
 |---|---|---|
 | `GET /api/compra/distritos` | CONSUMIDOR | Distritos a los que se entrega todo el carrito, cada uno con los puntos que lo cubren y tienen existencias para todas sus lineas. **No esta en el contrato de la API; hay que agregarlo** |
 | `POST /api/pedidos` con `modalidad: "ENVIO"` y `entrega` | CONSUMIDOR | Crea el pedido a domicilio. Sin `modalidad` es `RECOJO`, como antes. `409 SIN_COBERTURA` si el punto no cubre el distrito |
+
+## Datos territoriales del destino (CCPIP-61)
+
+Sin tablas nuevas: el comprador indica el destino de su pedido a domicilio (RF-42) eligiendo departamento,
+provincia y distrito del catalogo `ubigeo` y escribiendo la direccion, sin depender de mapas (RNF-31). El
+contacto y la direccion se guardan en `entrega`, como en CCPIP-59.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `GET /api/territorio/departamentos` | CONSUMIDOR | Departamentos del catalogo, ordenados |
+| `GET /api/territorio/provincias?departamento=` | CONSUMIDOR | Provincias del departamento. `422 TERRITORIO_INCOMPLETO` sin el departamento |
+| `GET /api/territorio/distritos?departamento=&provincia=` | CONSUMIDOR | Distritos de la provincia, con su `ubigeo`. `422 TERRITORIO_INCOMPLETO` si falta alguno |
+
+**Direccion.** Como nadie la confirma en un mapa, se pide completa: al crear el pedido a domicilio debe tener
+al menos 5 caracteres y una letra, si no `422 DIRECCION_INVALIDA`. "Mz. A Lt. 3" vale; "12345" no.
+
+Estos endpoints **no estan en el contrato de la API** del Drive; hay que agregarlos. El catalogo es el
+provisional de CCPIP-59 hasta que CCPIP-149 cargue el completo. Los destinos internacionales dependen de reglas
+pendientes del cliente (decision C9) y no se incluyen.
