@@ -7,10 +7,14 @@
 .merma__col-estado { flex: 0 0 170px; }
 .merma__detalle { color: var(--color-text-secondary); }
 .merma__pie { display: flex; justify-content: flex-end; }
+/* CCPIP-422 */
+.merma__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
+.merma__filtros .campo { width: 200px; }
 
 @media (max-width: 900px) {
   .merma__col-ubicacion, .merma__col-registro { display: none; }
   .merma__col-causa { flex-basis: 140px; }
+  .merma__filtros .campo { width: 100%; }
 }
 .merma__barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .merma__barra p { margin: 0; }

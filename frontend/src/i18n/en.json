@@ -3230,7 +3230,18 @@
       "sistema": "System",
       "elPunto": "The collection point",
       "automatica": "Automatic",
-      "confirmada": "Confirmed shrinkage"
+      "confirmada": "Confirmed shrinkage",
+      "filtro": {
+        "desde": "From",
+        "hasta": "To",
+        "causa": "Cause",
+        "producto": "Product",
+        "productor": "Producer",
+        "todos": "All",
+        "limpiar": "Clear filters",
+        "sinResultados": "No shrinkage matches the filters",
+        "sinResultadosTexto": "Change or clear the filters to see more records."
+      }
     }
   },
   "asistente": {

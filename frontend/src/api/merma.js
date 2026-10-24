@@ -5,10 +5,18 @@ import { apiFetch, idRuta } from './http.js'
 /** Las causas activas que ofrece "Marcar como merma": [{ id, nombre, nombreEn, requiereDetalle }]. */
 export const listarCausas = () => apiFetch('/api/merma/causas')
 
-const pagina = (base, n = 0) => apiFetch(`${base}?${new URLSearchParams({ pagina: String(n) })}`)
+// CCPIP-422: los filtros vacios no se envian
+const pagina = (base, n = 0, filtros = {}) => {
+  const q = new URLSearchParams({ pagina: String(n) })
+  Object.entries(filtros).forEach(([clave, valor]) => valor && q.set(clave, valor))
+  return apiFetch(`${base}?${q}`)
+}
 
-/** La merma de los puntos del administrador, manual y automatica, la mas reciente primero. */
-export const listarMermaPunto = (n) => pagina('/api/acopio/merma', n)
+/**
+ * La merma de los puntos del administrador, manual y automatica, la mas reciente primero. CCPIP-422:
+ * `filtros` { causa, producto, productor, desde, hasta }, todos opcionales y combinables.
+ */
+export const listarMermaPunto = (n, filtros) => pagina('/api/acopio/merma', n, filtros)
 
 /**
  * `datos`: { loteId, cantidad, motivoId, detalle, clave, confirmada }. Sin `confirmada` el servidor
