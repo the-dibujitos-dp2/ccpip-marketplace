@@ -9,7 +9,7 @@ import { MOTIVOS_PUNTO } from '../../movimientos.js'
 /**
  * CCPIP-121 y CCPIP-287: "Nuevo movimiento" en las pantallas del punto (A-02 y A-03). Devuelve
  * `abrir(loteInicial?)`, los avisos (registrado o error al pedir los lotes) y el dialogo para
- * montar; al registrar, la pantalla se actualiza con `recargar`.
+ * montar; al registrar, la pantalla se actualiza con `recargar`. CCPIP-421: el motivo va primero.
  */
 export function useMovimientoPunto(recargar) {
   const { t } = useTranslation()
@@ -47,6 +47,7 @@ export function useMovimientoPunto(recargar) {
     <DialogoMovimiento
       key={dialogo.clave}
       conProductor
+      motivoPrimero
       lotes={dialogo.lotes}
       loteInicial={dialogo.loteInicial}
       motivos={MOTIVOS_PUNTO}
