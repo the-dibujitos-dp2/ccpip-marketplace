@@ -30,10 +30,14 @@ export const programarComision = (cambio) => apiFetch('/api/admin/comision', { m
 export const cancelarComision = (id) => apiFetch(`/api/admin/comision/${idRuta(id)}/cancelar`, { method: 'POST' })
 
 /** CCPIP-91: pedidos confirmados con su comision y neto. Sin fechas, el mes en curso. */
-export function comisionesPorPedido({ desde, hasta } = {}) {
+export function comisionesPorPedido({ desde, hasta, productor, estado, pagina } = {}) {
   const q = new URLSearchParams()
   if (desde) q.set('desde', desde)
   if (hasta) q.set('hasta', hasta)
+  // CCPIP-431: filtros y pagina (desde 0)
+  if (productor) q.set('productor', productor)
+  if (estado) q.set('estado', estado)
+  if (pagina) q.set('pagina', pagina)
   const consulta = q.toString()
   return apiFetch(`/api/admin/comision/pedidos${consulta ? `?${consulta}` : ''}`)
 }

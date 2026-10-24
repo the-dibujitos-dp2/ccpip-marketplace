@@ -1,6 +1,8 @@
 {
   "desde": "2026-10-01",
   "hasta": "2026-10-16",
+  "productor": null,
+  "estado": null,
   "resumen": { "pedidos": 3, "ventas": 216.7, "comision": 13.59, "neto": 101.11, "sinComision": 1 },
   "pedidos": [
     {
@@ -39,5 +41,14 @@
       "neto": null,
       "productores": [{ "productorId": 3, "productor": "Coop. Río Ene", "venta": 102.0, "comision": null, "neto": null }]
     }
+  ],
+  "pagina": 0,
+  "tamano": 20,
+  "total": 3,
+  "totalPaginas": 1,
+  "productores": [
+    { "id": 1, "nombre": "Asoc. Nii Joi" },
+    { "id": 2, "nombre": "C.N. Yarina" },
+    { "id": 3, "nombre": "Coop. Río Ene" }
   ]
 }

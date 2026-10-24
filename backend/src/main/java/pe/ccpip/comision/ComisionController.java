@@ -64,7 +64,10 @@ public class ComisionController {
     @GetMapping("/pedidos")
     public ComisionesPorPedido pedidos(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
-        return porPedido.consultar(desde, hasta);
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @RequestParam(required = false) Long productor,
+            @RequestParam(required = false) String estado,
+            @RequestParam(defaultValue = "0") int pagina) {
+        return porPedido.consultar(desde, hasta, productor, estado, pagina);
     }
 }

@@ -72,11 +72,25 @@ public final class ComisionModelos {
                                  List<ParteProductor> productores) {
     }
 
-    /** Totales del rango. {@code sinComision}: pedidos confirmados sin comision copiada. */
+    /**
+     * Totales de todo lo que cumple los filtros, no solo de la pagina mostrada (CCPIP-431).
+     * {@code sinComision}: pedidos confirmados sin comision copiada.
+     */
     public record Resumen(int pedidos, BigDecimal ventas, BigDecimal comision, BigDecimal neto, int sinComision) {
     }
 
-    /** CCPIP-91: pedidos confirmados entre {@code desde} y {@code hasta} (fechas de Lima, inclusive). */
-    public record ComisionesPorPedido(LocalDate desde, LocalDate hasta, Resumen resumen, List<PedidoComision> pedidos) {
+    /** CCPIP-431: un productor que se puede elegir en el filtro. */
+    public record OpcionProductor(long id, String nombre) {
+    }
+
+    /**
+     * CCPIP-91: pedidos confirmados entre {@code desde} y {@code hasta} (fechas de Lima, inclusive).
+     * CCPIP-431: {@code pedidos} es la pagina {@code pagina} (desde 0) de {@code totalPaginas};
+     * {@code productor} y {@code estado} son los filtros aplicados (nulos si no se filtro), y
+     * {@code productores} son los que vendieron en el rango, para el filtro.
+     */
+    public record ComisionesPorPedido(LocalDate desde, LocalDate hasta, Long productor, String estado, Resumen resumen,
+                                      List<PedidoComision> pedidos, int pagina, int tamano, long total, int totalPaginas,
+                                      List<OpcionProductor> productores) {
     }
 }
