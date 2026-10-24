@@ -300,7 +300,6 @@ export default function ProductoPage({ id }) {
         </section>
 
         <CertificacionProducto productoId={id} />
-        <CalificacionesProducto producto={producto} />
 
         {/* CCPIP-406: las calificaciones van justo despues de las certificaciones, tambien en movil */}
         <CalificacionesProducto producto={producto} />

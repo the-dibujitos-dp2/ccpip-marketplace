@@ -9,6 +9,13 @@ function abrirEn(ruta) {
   return render(<App />)
 }
 
+function calificacionesDirectamenteDespuesDe(certificacion) {
+  const calificaciones = certificacion.nextElementSibling
+  expect(calificaciones).toHaveRole('region')
+  expect(calificaciones).toHaveAccessibleName('Calificaciones')
+  return calificaciones
+}
+
 // Vitest no procesa el CSS: se lee el archivo tal cual
 const css = (archivo) => readFileSync(new URL(archivo, import.meta.url), 'utf8')
 
@@ -57,9 +64,7 @@ describe('CCPIP-365 Evidencias publicas de certificacion (CW-03)', () => {
     abrirEn('/productos/1')
 
     const certificacion = await screen.findByRole('region', { name: 'Certificación del producto' })
-    const calificaciones = await screen.findByRole('region', { name: 'Calificaciones' })
-
-    expect(certificacion.nextElementSibling).toBe(calificaciones)
+    calificacionesDirectamenteDespuesDe(certificacion)
   })
 
   it('con el certificado vencido no dice verificado', async () => {
@@ -113,8 +118,7 @@ describe('CCPIP-406 Calificaciones despues de las certificaciones', () => {
     servidor({ ...sinSesion, 'GET /api/productos/1/certificacion': () => [200, copia(VERIFICADA)] })
     abrirEn('/productos/1')
     const certificacion = await screen.findByRole('region', { name: 'Certificación del producto' })
-    const calificaciones = screen.getByRole('region', { name: 'Calificaciones' })
-    expect(certificacion.nextElementSibling).toBe(calificaciones)
+    calificacionesDirectamenteDespuesDe(certificacion)
     // Y la confianza (con la cosecha) queda antes de ambos
     const confianza = screen.getByRole('region', { name: 'Por qué puedes confiar en este producto' })
     expect(confianza.compareDocumentPosition(certificacion) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
