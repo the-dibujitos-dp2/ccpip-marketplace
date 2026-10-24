@@ -235,6 +235,13 @@ describe('Comisión por pedido (CCPIP-91)', () => {
     expect(within(filas[2]).getByText('Entregado')).toBeInTheDocument()
   })
 
+  it('se puede filtrar por un pedido a domicilio listo para despacho (CCPIP-320)', async () => {
+    servidor(comoSuper())
+    abrirEn('/admin/comisiones')
+    await screen.findByRole('table', { name: 'Pedidos confirmados' })
+    expect(within(screen.getByLabelText('Estado')).getByRole('option', { name: 'Listo para despacho' })).toBeInTheDocument()
+  })
+
   it('filtra por productor y por estado, y al limpiar vuelve a la lista completa (CCPIP-431)', async () => {
     const fetchMock = servidor(comoSuper())
     abrirEn('/admin/comisiones')
