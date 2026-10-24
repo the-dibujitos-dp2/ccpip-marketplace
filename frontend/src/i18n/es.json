@@ -1106,7 +1106,20 @@
       "netoProductor": "Venta {{venta}} · neto {{neto}}",
       "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
       "sinComisionCelda": "Sin comisión",
-      "nota": "La comisión y el neto quedan fijados al confirmar cada pedido; un cambio posterior de la comisión no los altera."
+      "nota": "La comisión y el neto quedan fijados al confirmar cada pedido; un cambio posterior de la comisión no los altera.",
+      "vacioFiltros": "No hay pedidos que coincidan con estos filtros.",
+      "filtro": {
+        "productor": "Productor",
+        "estado": "Estado",
+        "todos": "Todos",
+        "limpiar": "Limpiar filtros"
+      },
+      "estado": {
+        "CONFIRMADO": "Confirmado",
+        "EN_PREPARACION": "En preparación",
+        "LISTO_PARA_RECOJO": "Listo para recojo",
+        "ENTREGADO": "Entregado"
+      }
     },
     "reportes": {
       "titulo": "Reportes de la plataforma",

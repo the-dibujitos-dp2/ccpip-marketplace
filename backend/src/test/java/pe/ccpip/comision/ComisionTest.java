@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.StreamSupport;
@@ -30,6 +31,7 @@ import pe.ccpip.support.IntegrationTest;
 /**
  * CCPIP-90 (RF-68): el superadministrador configura la comision con vigencia, motivo y auditoria.
  * CCPIP-91 (RF-69): la Camara ve la comision y el neto de cada pedido confirmado.
+ * CCPIP-431: esa consulta se pagina y se filtra por productor y estado.
  * CCPIP-167 (RF-136): el comprador ve la comision que regia al comprar, aunque despues cambie.
  *
  * <p>Transaccional: los cambios de comision y los pedidos de la prueba no llegan a las demas pruebas,
@@ -258,12 +260,83 @@ class ComisionTest extends IntegrationTest {
         assertThat(StreamSupport.stream(respuesta.get("pedidos").spliterator(), false)
                 .noneMatch(p -> p.get("numero").asText().equals(numero(pendiente)))).isTrue();
 
+        // CCPIP-431: los totales son de todo el rango, aunque la lista venga paginada
         JsonNode resumen = respuesta.get("resumen");
-        assertThat(resumen.get("pedidos").asInt()).isEqualTo(respuesta.get("pedidos").size());
+        assertThat(resumen.get("pedidos").asLong()).isEqualTo(respuesta.get("total").asLong());
         assertThat(resumen.get("sinComision").asInt()).isPositive();
         assertThat(resumen.get("ventas").decimalValue())
                 .isEqualByComparingTo(resumen.get("comision").decimalValue().add(resumen.get("neto").decimalValue())
-                        .add(sumaSinComision(respuesta)));
+                        .add(ventasSinComisionDelMes()));
+    }
+
+    // --- CCPIP-431: paginado y filtros ---
+
+    @Test
+    void laConsultaPorPedidoSePaginaDeVeinteEnVeinte() throws Exception {
+        Cookie sesion = loginAs(SUPER);
+        long yaHay = leer(mockMvc.perform(get("/api/admin/comision/pedidos").cookie(sesion))).get("total").asLong();
+        for (long i = yaHay; i < 21; i++) {
+            pedidoConfirmadoEnBase(10.00);
+        }
+
+        JsonNode primera = leer(mockMvc.perform(get("/api/admin/comision/pedidos").cookie(sesion))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pagina").value(0))
+                .andExpect(jsonPath("$.tamano").value(20)));
+        long total = primera.get("total").asLong();
+        assertThat(total).isGreaterThan(20);
+        assertThat(primera.get("totalPaginas").asInt()).isEqualTo((int) ((total + 19) / 20));
+        assertThat(primera.get("pedidos").size()).isEqualTo(20);
+        assertThat(primera.get("resumen").get("pedidos").asLong()).isEqualTo(total);
+
+        JsonNode segunda = leer(mockMvc.perform(get("/api/admin/comision/pedidos?pagina=1").cookie(sesion))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pagina").value(1)));
+        assertThat(segunda.get("pedidos").size()).isEqualTo((int) Math.min(20, total - 20));
+        // Ningun pedido se repite entre paginas, y el resumen no cambia al pasar de pagina
+        assertThat(numeros(segunda)).doesNotContainAnyElementsOf(numeros(primera));
+        assertThat(segunda.get("resumen")).isEqualTo(primera.get("resumen"));
+
+        mockMvc.perform(get("/api/admin/comision/pedidos?pagina=-1").cookie(sesion))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("PAGINA_INVALIDA"));
+    }
+
+    @Test
+    void seFiltraPorProductor() throws Exception {
+        long delPrimero = pedidoConfirmadoEnBase(25.00);
+        long delSegundo = pedidoConfirmadoEnBase(35.00, "productor2@ccpip.test");
+        long productor = idProductor("productor@ccpip.test");
+        Cookie sesion = loginAs(SUB);
+
+        JsonNode respuesta = leer(mockMvc.perform(get("/api/admin/comision/pedidos?productor=" + productor).cookie(sesion))
+                .andExpect(status().isOk()));
+        assertThat(respuesta.get("productor").asLong()).isEqualTo(productor);
+        assertThat(numeros(respuesta)).contains(numero(delPrimero)).doesNotContain(numero(delSegundo));
+        // Cada pedido listado incluye algo del productor elegido
+        assertThat(respuesta.get("pedidos")).allSatisfy(p -> assertThat(p.get("productores"))
+                .anySatisfy(pr -> assertThat(pr.get("productorId").asLong()).isEqualTo(productor)));
+        // Las opciones del filtro no dependen del filtro aplicado
+        assertThat(respuesta.get("productores")).anySatisfy(o -> assertThat(o.get("id").asLong()).isEqualTo(productor))
+                .anySatisfy(o -> assertThat(o.get("id").asLong()).isEqualTo(idProductor("productor2@ccpip.test")));
+    }
+
+    @Test
+    void seFiltraPorEstado() throws Exception {
+        long entregado = pedidoConfirmadoEnBase(18.00);
+        long confirmado = pedidoConfirmadoEnBase(19.00);
+        jdbc.update("UPDATE pedido SET estado = 'ENTREGADO' WHERE id = ?", entregado);
+        Cookie sesion = loginAs(SUPER);
+
+        JsonNode respuesta = leer(mockMvc.perform(get("/api/admin/comision/pedidos?estado=entregado").cookie(sesion))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("ENTREGADO")));
+        assertThat(numeros(respuesta)).contains(numero(entregado)).doesNotContain(numero(confirmado));
+        assertThat(respuesta.get("pedidos")).allSatisfy(p -> assertThat(p.get("estado").asText()).isEqualTo("ENTREGADO"));
+
+        mockMvc.perform(get("/api/admin/comision/pedidos?estado=CANCELADO").cookie(sesion))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("ESTADO_INVALIDO"));
     }
 
     @Test
@@ -361,7 +434,12 @@ class ComisionTest extends IntegrationTest {
 
     /** Pedido confirmado hoy armado en la base, con una linea de productor@ al precio indicado. */
     private long pedidoConfirmadoEnBase(double venta) {
-        long producto = productoConLote("Producto comision " + UUID.randomUUID(), "PUBLICADO", null, null);
+        return pedidoConfirmadoEnBase(venta, "productor@ccpip.test");
+    }
+
+    /** Igual, con una linea del productor indicado. */
+    private long pedidoConfirmadoEnBase(double venta, String correoProductor) {
+        long producto = productoConLote("Producto comision " + UUID.randomUUID(), "PUBLICADO", null, null, correoProductor);
         Long id = jdbc.queryForObject("""
                 INSERT INTO pedido (numero, usuario_id, modalidad, ubicacion_origen_id, total, estado, confirmado_en)
                 SELECT ?, u.id, 'RECOJO', l.id, ?, 'CONFIRMADO', now()
@@ -434,10 +512,21 @@ class ComisionTest extends IntegrationTest {
                 .filter(p -> p.get("productorId").asLong() == productor).findFirst().orElseThrow();
     }
 
-    private static BigDecimal sumaSinComision(JsonNode respuesta) {
-        return StreamSupport.stream(respuesta.get("pedidos").spliterator(), false)
-                .filter(p -> p.get("comision").isNull())
-                .map(p -> p.get("venta").decimalValue())
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    /** Ventas del mes en curso confirmadas sin comision, contadas en la base y no en una pagina. */
+    private BigDecimal ventasSinComisionDelMes() {
+        return jdbc.queryForObject("""
+                SELECT coalesce(sum(total), 0) FROM pedido
+                WHERE confirmado_en IS NOT NULL AND estado <> 'CANCELADO' AND comision_monto IS NULL
+                  AND (confirmado_en AT TIME ZONE 'America/Lima')::date BETWEEN date_trunc('month', %1$s)::date AND %1$s"""
+                .formatted(HOY), BigDecimal.class);
+    }
+
+    private static List<String> numeros(JsonNode respuesta) {
+        return StreamSupport.stream(respuesta.get("pedidos").spliterator(), false).map(p -> p.get("numero").asText()).toList();
+    }
+
+    private long idProductor(String correo) {
+        return jdbc.queryForObject(
+                "SELECT p.id FROM productor p JOIN usuario u ON u.id = p.usuario_id WHERE u.correo = ?", Long.class, correo);
     }
 }

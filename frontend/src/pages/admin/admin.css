@@ -50,9 +50,10 @@
 .comision__cancelada strong { color: var(--color-text-tertiary); text-decoration: line-through; }
 
 /* CCPIP-91 Comision por pedido */
-.comisiones__filtros { display: flex; flex-wrap: wrap; gap: 16px; }
+.comisiones__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
 .comisiones__filtros .campo { width: 200px; }
-.comisiones__pedido { flex: 0 0 130px; }
+.comisiones__pedido { flex: 0 0 130px; display: flex; flex-direction: column; gap: 2px; }
+.comisiones__pedido .caption { color: var(--color-text-secondary); }
 .comisiones__fecha { flex: 0 0 110px; }
 .comisiones__comision { flex: 0 0 150px; text-align: right; font-variant-numeric: tabular-nums; }
 .comisiones__productores { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }

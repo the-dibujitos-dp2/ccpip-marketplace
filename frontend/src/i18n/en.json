@@ -1106,7 +1106,20 @@
       "netoProductor": "Sale {{venta}} · net {{neto}}",
       "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
       "sinComisionCelda": "No commission",
-      "nota": "Commission and net are fixed when each order is confirmed; a later commission change doesn't alter them."
+      "nota": "Commission and net are fixed when each order is confirmed; a later commission change doesn't alter them.",
+      "vacioFiltros": "No orders match these filters.",
+      "filtro": {
+        "productor": "Producer",
+        "estado": "Status",
+        "todos": "All",
+        "limpiar": "Clear filters"
+      },
+      "estado": {
+        "CONFIRMADO": "Confirmed",
+        "EN_PREPARACION": "Being prepared",
+        "LISTO_PARA_RECOJO": "Ready for pickup",
+        "ENTREGADO": "Delivered"
+      }
     },
     "reportes": {
       "titulo": "Platform reports",

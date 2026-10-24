@@ -216,7 +216,7 @@ describe('Comisión por pedido (CCPIP-91)', () => {
     const desde = await screen.findByLabelText('Desde')
     await screen.findByRole('table', { name: 'Pedidos confirmados' })
     fireEvent.change(desde, { target: { value: '2026-09-01' } })
-    expect(llamadas(fetchMock, `GET ${PEDIDOS}?desde=2026-09-01&hasta=2026-10-16`)).toHaveLength(1)
+    await waitFor(() => expect(llamadas(fetchMock, `GET ${PEDIDOS}?desde=2026-09-01&hasta=2026-10-16`)).toHaveLength(1))
   })
 
   it('sin pedidos en el rango lo dice', async () => {
@@ -225,6 +225,73 @@ describe('Comisión por pedido (CCPIP-91)', () => {
     abrirEn('/admin/comisiones')
     expect(await screen.findByText('No hay pedidos confirmados en estas fechas.')).toBeInTheDocument()
     expect(screen.queryByText(/sin comisión configurada/)).not.toBeInTheDocument()
+  })
+
+  it('muestra el estado de cada pedido (CCPIP-431)', async () => {
+    servidor(comoSuper())
+    abrirEn('/admin/comisiones')
+    const filas = within(await screen.findByRole('table', { name: 'Pedidos confirmados' })).getAllByRole('row')
+    expect(within(filas[1]).getByText('Confirmado')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('Entregado')).toBeInTheDocument()
+  })
+
+  it('filtra por productor y por estado, y al limpiar vuelve a la lista completa (CCPIP-431)', async () => {
+    const fetchMock = servidor(comoSuper())
+    abrirEn('/admin/comisiones')
+    await screen.findByRole('table', { name: 'Pedidos confirmados' })
+
+    const productor = screen.getByLabelText('Productor')
+    // Las opciones son los productores que vendieron en el rango
+    expect(within(productor).getAllByRole('option').map((o) => o.textContent))
+      .toEqual(['Todos', 'Asoc. Nii Joi', 'C.N. Yarina', 'Coop. Río Ene'])
+    fireEvent.change(productor, { target: { value: '2' } })
+    await waitFor(() => expect(llamadas(fetchMock, `GET ${PEDIDOS}?productor=2`)).toHaveLength(1))
+
+    fireEvent.change(screen.getByLabelText('Estado'), { target: { value: 'ENTREGADO' } })
+    await waitFor(() => expect(llamadas(fetchMock, `GET ${PEDIDOS}?productor=2&estado=ENTREGADO`)).toHaveLength(1))
+
+    await userEvent.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+    await waitFor(() => expect(screen.getByLabelText('Productor')).toHaveValue(''))
+    expect(screen.getByLabelText('Estado')).toHaveValue('')
+    expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).not.toBeInTheDocument()
+  })
+
+  it('pagina la lista sin perder las fechas ni los filtros, y un filtro nuevo vuelve a la primera página (CCPIP-431)', async () => {
+    const varias = { ...copia(DATOS.comisionesAdmin), total: 45, totalPaginas: 3 }
+    const fetchMock = servidor(comoSuper({ [`GET ${PEDIDOS}`]: (_o, url) => {
+      const pagina = Number(new URL(url, 'http://x').searchParams.get('pagina') ?? 0)
+      return [200, { ...varias, pagina }]
+    } }))
+    abrirEn('/admin/comisiones')
+    await screen.findByRole('table', { name: 'Pedidos confirmados' })
+    fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '2026-09-01' } })
+
+    const paginacion = await screen.findByRole('navigation', { name: 'Paginación' })
+    await userEvent.click(within(paginacion).getByRole('button', { name: 'Página 2' }))
+    await waitFor(() => expect(llamadas(fetchMock, `GET ${PEDIDOS}?desde=2026-09-01&hasta=2026-10-16&pagina=1`)).toHaveLength(1))
+    expect(await within(screen.getByRole('navigation', { name: 'Paginación' })).findByRole('button', { name: 'Página 2' }))
+      .toHaveAttribute('aria-current', 'page')
+
+    fireEvent.change(screen.getByLabelText('Estado'), { target: { value: 'CONFIRMADO' } })
+    await waitFor(() => expect(llamadas(fetchMock, `GET ${PEDIDOS}?desde=2026-09-01&hasta=2026-10-16&estado=CONFIRMADO`)).toHaveLength(1))
+  })
+
+  it('con una sola página no muestra la paginación', async () => {
+    servidor(comoSuper())
+    abrirEn('/admin/comisiones')
+    await screen.findByRole('table', { name: 'Pedidos confirmados' })
+    expect(screen.queryByRole('navigation', { name: 'Paginación' })).not.toBeInTheDocument()
+  })
+
+  it('si los filtros no dejan pedidos lo dice distinto que un rango vacío (CCPIP-431)', async () => {
+    const vacio = { ...copia(DATOS.comisionesAdmin), pedidos: [], total: 0, totalPaginas: 0,
+      resumen: { pedidos: 0, ventas: 0, comision: 0, neto: 0, sinComision: 0 } }
+    servidor(comoSuper({ [`GET ${PEDIDOS}?estado=EN_PREPARACION`]: [200, vacio] }))
+    abrirEn('/admin/comisiones')
+    await screen.findByRole('table', { name: 'Pedidos confirmados' })
+    fireEvent.change(screen.getByLabelText('Estado'), { target: { value: 'EN_PREPARACION' } })
+    expect(await screen.findByText('No hay pedidos que coincidan con estos filtros.')).toBeInTheDocument()
+    expect(screen.queryByText('No hay pedidos confirmados en estas fechas.')).not.toBeInTheDocument()
   })
 
   it('el sub administrador ingresa a autorizaciones y solo ve sus módulos (autorizaciones, productores, denuncias, comisión por pedido, cuentas y su historial)', async () => {
