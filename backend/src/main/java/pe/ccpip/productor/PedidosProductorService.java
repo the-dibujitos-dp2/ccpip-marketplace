@@ -43,6 +43,14 @@ public class PedidosProductorService {
               AND EXISTS (SELECT 1 FROM item_pedido i WHERE i.pedido_id = pe.id AND i.productor_id = :productor)
             """;
 
+    /**
+     * Un pedido a domicilio listo para despacho (CCPIP-320) es, para el productor, un pedido listo en el punto de
+     * acopio: sigue en la pestana de los listos, en la lista y en el historial, y no rompe el conteo por estado.
+     */
+    private static String estadoVisible(String columna) {
+        return "CASE %1$s WHEN 'LISTO_PARA_DESPACHO' THEN 'LISTO_PARA_RECOJO' ELSE %1$s END".formatted(columna);
+    }
+
     private final NamedParameterJdbcTemplate jdbc;
 
     public PedidosProductorService(NamedParameterJdbcTemplate jdbc) {
@@ -58,14 +66,14 @@ public class PedidosProductorService {
         for (Estado e : Estado.values()) {
             conteos.put(e, 0);
         }
-        jdbc.query("SELECT pe.estado, count(*) AS n " + SUS_PEDIDOS + "GROUP BY pe.estado", p,
+        jdbc.query("SELECT " + estadoVisible("pe.estado") + " AS estado, count(*) AS n " + SUS_PEDIDOS + "GROUP BY 1", p,
                 rs -> {
                     conteos.put(Estado.valueOf(rs.getString("estado")), rs.getInt("n"));
                 });
         List<Long> ids = jdbc.queryForList("SELECT pe.id " + SUS_PEDIDOS + """
-                  AND (CAST(:estado AS varchar) IS NULL OR pe.estado = :estado)
+                  AND (CAST(:estado AS varchar) IS NULL OR %s = :estado)
                 ORDER BY pe.confirmado_en DESC, pe.id DESC
-                LIMIT :limite""", p, Long.class);
+                LIMIT :limite""".formatted(estadoVisible("pe.estado")), p, Long.class);
         return new Pedidos(conteos, pedidos(productorId, ids));
     }
 
@@ -105,16 +113,16 @@ public class PedidosProductorService {
                 });
         Map<Long, List<Cambio>> historial = new HashMap<>();
         jdbc.query("""
-                SELECT h.pedido_id, h.estado, h.registrado_en FROM pedido_estado_historial h
-                WHERE h.pedido_id IN (:ids) AND h.estado <> 'PENDIENTE_PAGO' ORDER BY h.registrado_en, h.id""", p,
+                SELECT h.pedido_id, %s AS estado, h.registrado_en FROM pedido_estado_historial h
+                WHERE h.pedido_id IN (:ids) AND h.estado <> 'PENDIENTE_PAGO' ORDER BY h.registrado_en, h.id""".formatted(estadoVisible("h.estado")), p,
                 rs -> {
                     historial.computeIfAbsent(rs.getLong("pedido_id"), k -> new ArrayList<>())
                             .add(new Cambio(rs.getString("estado"), rs.getObject("registrado_en", Timestamp.class).toInstant()));
                 });
         Map<Long, Pedido> porId = new HashMap<>();
         jdbc.query("""
-                SELECT pe.id, pe.numero, pe.estado, pe.modalidad, u.nombre AS punto, pe.confirmado_en, pe.actualizado_en
-                FROM pedido pe JOIN ubicacion u ON u.id = pe.ubicacion_origen_id WHERE pe.id IN (:ids)""", p,
+                SELECT pe.id, pe.numero, %s AS estado, pe.modalidad, u.nombre AS punto, pe.confirmado_en, pe.actualizado_en
+                FROM pedido pe JOIN ubicacion u ON u.id = pe.ubicacion_origen_id WHERE pe.id IN (:ids)""".formatted(estadoVisible("pe.estado")), p,
                 rs -> {
                     long id = rs.getLong("id");
                     List<Linea> propias = lineas.getOrDefault(id, List.of());

@@ -22,7 +22,7 @@ import pe.ccpip.entrega.EntregaModelos.PedidoPunto;
 import pe.ccpip.entrega.EntregaModelos.PedidosPunto;
 
 /**
- * Pedidos para recoger en el punto de acopio (Figma A-05, ADR-17). Cada administrador opera solo
+ * Pedidos del punto de acopio, para recoger o para despachar a domicilio (Figma A-05, ADR-17). Cada administrador opera solo
  * los pedidos de los puntos que tiene en usuario_ubicacion; un pedido de otro punto no existe para
  * el (404, RNF-05). Cambiar el estado no toca el inventario: el descuento ya ocurrio al confirmar
  * la compra (CCPIP-158).
@@ -52,9 +52,10 @@ public class PedidosPuntoService {
     public PedidosPunto listar(long usuarioId) {
         String ubicacion = puntos.nombres(usuarioId);
         List<Long> ids = jdbc.queryForList("SELECT pe.id " + DEL_PUNTO + """
-                  AND (pe.estado IN ('CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO')
+                  AND (pe.estado IN ('CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO', 'LISTO_PARA_DESPACHO')
                        OR pe.estado = 'ENTREGADO' AND (pe.actualizado_en AT TIME ZONE 'America/Lima')::date = %s)
-                ORDER BY CASE pe.estado WHEN 'CONFIRMADO' THEN 0 WHEN 'EN_PREPARACION' THEN 1 WHEN 'LISTO_PARA_RECOJO' THEN 2 ELSE 3 END,
+                ORDER BY CASE pe.estado WHEN 'CONFIRMADO' THEN 0 WHEN 'EN_PREPARACION' THEN 1
+                                        WHEN 'LISTO_PARA_RECOJO' THEN 2 WHEN 'LISTO_PARA_DESPACHO' THEN 2 ELSE 3 END,
                          pe.confirmado_en, pe.id""".formatted(HOY),
                 new MapSqlParameterSource("usuario", usuarioId), Long.class);
         return new PedidosPunto(ubicacion, pedidos(ids));
@@ -89,9 +90,11 @@ public class PedidosPuntoService {
             return;
         }
         throw new ErrorNegocio(HttpStatus.CONFLICT, "ESTADO_INVALIDO", switch (pedido.estado()) {
-            case "CONFIRMADO" -> "Este pedido aún no está listo para recojo.";
+            case "CONFIRMADO" -> "ENVIO".equals(pedido.modalidad())
+                    ? "Este pedido aún no está listo para despacho." : "Este pedido aún no está listo para recojo.";
             case "EN_PREPARACION" -> "Este pedido está en preparación.";
             case "LISTO_PARA_RECOJO" -> "Este pedido ya está listo para recojo.";
+            case "LISTO_PARA_DESPACHO" -> "Este pedido ya está listo para despacho.";
             case "ENTREGADO" -> "Este pedido ya fue entregado.";
             case "CANCELADO" -> "Este pedido fue cancelado.";
             default -> "Este pedido no se puede cambiar ahora.";
@@ -99,13 +102,21 @@ public class PedidosPuntoService {
     }
 
     /**
-     * CCPIP-59: un pedido a domicilio no se marca listo para recojo ni se entrega en el mostrador; su despacho
-     * llega con las historias de distribucion. Hasta entonces el punto solo lo ve y lo prepara.
+     * CCPIP-59: un pedido a domicilio no se marca listo para recojo ni se entrega en el mostrador; el punto lo
+     * prepara y registra su salida para despacho (CCPIP-320).
      */
     private static void exigirRecojo(Bloqueado pedido) {
         if ("ENVIO".equals(pedido.modalidad())) {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "PEDIDO_A_DOMICILIO",
                     "Este pedido se entrega a domicilio, no se recoge en el punto.");
+        }
+    }
+
+    /** CCPIP-320: solo un pedido a domicilio sale del punto con un distribuidor; uno para recojo lo espera en el mostrador. */
+    private static void exigirDomicilio(Bloqueado pedido) {
+        if (!"ENVIO".equals(pedido.modalidad())) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "PEDIDO_PARA_RECOJO",
+                    "Este pedido se recoge en el punto, no se despacha a domicilio.");
         }
     }
 
@@ -135,6 +146,21 @@ public class PedidosPuntoService {
         exigirRecojo(pedido);
         exigirEstado(pedido, "EN_PREPARACION");
         cambiarEstado(usuarioId, pedido, "LISTO_PARA_RECOJO");
+        return pedidos(List.of(pedido.id())).get(0);
+    }
+
+    /**
+     * CCPIP-320 (RF-202): el pedido a domicilio en preparacion sale del punto para despacho y queda
+     * LISTO_PARA_DESPACHO, con responsable y fecha en su historial; desde ahi un distribuidor puede asumirlo.
+     * Solo desde EN_PREPARACION. No toca el inventario: el descuento ya ocurrio al confirmar la compra
+     * (CCPIP-158) y no se repite cuando el distribuidor lo retire.
+     */
+    @Transactional
+    public PedidoPunto marcarListoParaDespacho(long usuarioId, String numero) {
+        Bloqueado pedido = bloquear(usuarioId, numero);
+        exigirDomicilio(pedido);
+        exigirEstado(pedido, "EN_PREPARACION");
+        cambiarEstado(usuarioId, pedido, "LISTO_PARA_DESPACHO");
         return pedidos(List.of(pedido.id())).get(0);
     }
 
