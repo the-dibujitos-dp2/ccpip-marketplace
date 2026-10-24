@@ -3217,9 +3217,21 @@
       "comoMarcarPunto": "La merma se marca desde el lote, en el inventario del punto. Los lotes vencidos pasan a merma automáticamente al día siguiente.",
       "comoMarcarProductor": "La merma de tu almacén se marca desde el lote, en Mi almacén; la de un punto la marca el punto. Los lotes vencidos pasan a merma automáticamente al día siguiente.",
       "irInventario": "Ir al inventario",
+      "irAlmacen": "Ir a Mi almacén",
       "errorCargar": "No pudimos cargar la merma",
       "vacio": "Aún no hay merma",
       "vacioTexto": "Aquí verás la merma marcada y la automática por vencimiento.",
+      "filtros": {
+        "titulo": "Filtros del reporte de merma",
+        "desde": "Desde",
+        "hasta": "Hasta",
+        "lote": "Lote",
+        "producto": "Producto",
+        "ubicacion": "Ubicación",
+        "aplicar": "Aplicar filtros",
+        "vacio": "No hay merma para los filtros seleccionados.",
+        "exportar": { "pdf": "Descargar PDF", "xlsx": "Descargar Excel" }
+      },
       "col": {
         "fecha": "Fecha",
         "producto": "Producto y lote",

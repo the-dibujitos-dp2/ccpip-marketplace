@@ -6,38 +6,29 @@ import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import { nombreCausa } from '../../components/DialogoMerma.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
-import FiltroFechas from '../../components/FiltroFechas.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import { diaMes, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
 import './ListaMerma.css'
 
-/** CCPIP-422: sin filtros; las fechas son dias (AAAA-MM-DD) y los demas, ids. */
-const SIN_FILTROS = { causa: '', producto: '', productor: '', desde: '', hasta: '' }
-
 /**
  * La merma registrada (Figma A-04): manual (CCPIP-76) y automatica por vencimiento (CCPIP-75), la
  * mas reciente primero. `consultar(pagina)` llama al API del rol; `conUbicacion` muestra donde
- * estaba el lote (el productor tiene lotes en su almacen y en los puntos); `conProductor`, a que
- * productor pertenece (el punto, CCPIP-423). `ir` ({ ruta, texto }) lleva a
+ * estaba el lote (el productor tiene lotes en su almacen y en los puntos). `ir` ({ ruta, texto }) lleva a
  * donde se marca la merma, con `irTexto` que lo explica. `onDatos` recibe cada pagina.
- * CCPIP-422: si la respuesta trae `opciones` (el punto), se filtra por causa, producto, productor y
- * fechas; `consultar(pagina, filtros)` los envia al servidor. Cambiar un filtro vuelve a la primera pagina.
  */
-export default function ListaMerma({ consultar, conUbicacion = false, conProductor = false, ir, irTexto, onDatos }) {
+export default function ListaMerma({ consultar, exportar, conUbicacion = false, conProductor = false, ir, irTexto, onDatos }) {
   const { t, i18n } = useTranslation()
   const [pagina, setPagina] = useState(0)
-  const [filtros, setFiltros] = useState(SIN_FILTROS)
+  const [escritos, setEscritos] = useState({ desde: '', hasta: '', lote: '', producto: '', ubicacion: '' })
+  const [filtros, setFiltros] = useState(escritos)
+  const [filtrosAplicados, setFiltrosAplicados] = useState(false)
   const cargar = useCallback(() => consultar(pagina, filtros).then((d) => { onDatos?.(d); return d }), [consultar, pagina, filtros, onDatos])
   const { datos, error, recargar } = useConsulta(cargar)
   const titulo = t('merma.lista.titulo')
-  const filtrado = Object.values(filtros).some(Boolean)
-  const filtrar = (nuevos) => {
-    setFiltros(nuevos)
-    setPagina(0)
-  }
-  const limpiar = () => filtrar(SIN_FILTROS)
+  const cambiar = (campo) => (e) => setEscritos((actual) => ({ ...actual, [campo]: e.target.value }))
+  const aplicar = () => { setPagina(0); setFiltros(escritos); setFiltrosAplicados(true) }
 
   return (
     <>
@@ -45,20 +36,26 @@ export default function ListaMerma({ consultar, conUbicacion = false, conProduct
         <p className="body-s">{irTexto}</p>
         {ir && <Boton tipo="secundario" tamano="M" to={ir.ruta}>{ir.texto}</Boton>}
       </div>
-
-      {datos?.opciones && <FiltrosMerma opciones={datos.opciones} filtros={filtros} filtrado={filtrado} onCambiar={filtrar} onLimpiar={limpiar} />}
+      <section className="merma__filtros" aria-label={t('merma.lista.filtros.titulo')}>
+        <Campo etiqueta={t('merma.lista.filtros.desde')} type="date" value={escritos.desde} max={escritos.hasta || undefined} onChange={cambiar('desde')} />
+        <Campo etiqueta={t('merma.lista.filtros.hasta')} type="date" value={escritos.hasta} min={escritos.desde || undefined} onChange={cambiar('hasta')} />
+        <Campo etiqueta={t('merma.lista.filtros.lote')} value={escritos.lote} onChange={cambiar('lote')} />
+        <Campo etiqueta={t('merma.lista.filtros.producto')} value={escritos.producto} onChange={cambiar('producto')} />
+        <Campo etiqueta={t('merma.lista.filtros.ubicacion')} value={escritos.ubicacion} onChange={cambiar('ubicacion')} />
+        <Boton tamano="M" onClick={aplicar}>{t('merma.lista.filtros.aplicar')}</Boton>
+        {exportar && ['pdf', 'xlsx'].map((formato) => (
+          <a key={formato} className="boton boton--secundario boton--M" href={exportar(formato, filtros)} download>
+            {t(`merma.lista.filtros.exportar.${formato}`)}
+          </a>
+        ))}
+      </section>
 
       {error && (
         <EstadoVacio titulo={t('merma.lista.errorCargar')} descripcion={mensajeError(error, 'comun.errorConexion')}>
           <Boton tamano="M" tipo="secundario" onClick={recargar}>{t('carrito.reintentar')}</Boton>
         </EstadoVacio>
       )}
-      {!error && datos?.items.length === 0 && !filtrado && <EstadoVacio titulo={t('merma.lista.vacio')} descripcion={t('merma.lista.vacioTexto')} />}
-      {!error && datos?.items.length === 0 && filtrado && (
-        <EstadoVacio titulo={t('merma.lista.filtro.sinResultados')} descripcion={t('merma.lista.filtro.sinResultadosTexto')}>
-          <Boton tamano="M" tipo="secundario" onClick={limpiar}>{t('merma.lista.filtro.limpiar')}</Boton>
-        </EstadoVacio>
-      )}
+      {!error && datos?.items.length === 0 && <EstadoVacio titulo={t('merma.lista.vacio')} descripcion={t(filtrosAplicados ? 'merma.lista.filtros.vacio' : 'merma.lista.vacioTexto')} />}
 
       {!error && datos?.items.length > 0 && (
         <>
@@ -99,25 +96,5 @@ export default function ListaMerma({ consultar, conUbicacion = false, conProduct
         </>
       )}
     </>
-  )
-}
-
-/** CCPIP-422: causa, producto y productor (lo que tiene merma en sus puntos) y el rango de fechas. */
-function FiltrosMerma({ opciones, filtros, filtrado, onCambiar, onLimpiar }) {
-  const { t, i18n } = useTranslation()
-  const cambiar = (campo) => (e) => onCambiar({ ...filtros, [campo]: e.target.value })
-  const selector = (campo, lista, nombre = (o) => o.nombre) => (
-    <Campo tipo="selector" etiqueta={t(`merma.lista.filtro.${campo}`)} placeholder={t('merma.lista.filtro.todos')}
-      value={filtros[campo]} onChange={cambiar(campo)}
-      opciones={lista.map((o) => ({ valor: String(o.id), etiqueta: nombre(o) }))} />
-  )
-  return (
-    <FiltroFechas className="merma__filtros" rango={filtros} cambiar={cambiar}
-      etiquetaDesde={t('merma.lista.filtro.desde')} etiquetaHasta={t('merma.lista.filtro.hasta')}>
-      {selector('causa', opciones.causas, (o) => nombreCausa(o, i18n))}
-      {selector('producto', opciones.productos)}
-      {selector('productor', opciones.productores)}
-      {filtrado && <Boton tipo="terciario" tamano="M" onClick={onLimpiar}>{t('merma.lista.filtro.limpiar')}</Boton>}
-    </FiltroFechas>
   )
 }
