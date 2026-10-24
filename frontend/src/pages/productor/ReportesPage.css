@@ -5,6 +5,8 @@
 .reportes-productor__filtros .reportes-productor__selector-ancho { width: 240px; }
 .reportes-productor__periodo { flex: 0 0 190px; }
 .reportes-productor__num { flex: 0 0 110px; text-align: right; font-variant-numeric: tabular-nums; }
+/* El inventario tiene siete columnas de cifras: mas angostas para que quepan sin desplazar */
+.reportes-productor__num--estrecha { flex-basis: 96px; }
 .reportes-productor__barra { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--color-bg-surface-alt); }
 .reportes-productor__barra-0 { background: var(--color-bg-brand); }
 .reportes-productor__barra-1 { background: var(--color-bg-accent); }

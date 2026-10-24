@@ -363,7 +363,15 @@
         "acumulado": "Cumulative",
         "barraProduccion": "Units in",
         "ingresadas": "Units in",
-        "lotes": "New batches"
+        "lotes": "New batches",
+        "saldoInicial": "Opening",
+        "entradas": "In",
+        "vendidasB2c": "Sold B2C",
+        "vendidasB2b": "Sold B2B",
+        "vendidas": "Sold",
+        "merma": "Shrinkage",
+        "otrasSalidas": "Other out",
+        "saldoFinal": "Closing"
       },
       "ventas": {
         "pestana": "Sales",
@@ -384,6 +392,21 @@
         "porProducto": "Production by product",
         "vacio": "No production in this period",
         "nota": "Every entry into your batches, by the date it was registered (Lima time): a new batch and production or reception entries into an existing batch. Transfers do not count because they only move what was already produced."
+      },
+      "inventario": {
+        "pestana": "Inventory",
+        "saldoInicial": "Opening stock",
+        "alInicio": "At the start of the period",
+        "entradas": "In",
+        "entradasDetalle": "New batches and entries",
+        "salidas": "Out",
+        "salidasDetalle": "{{vendidas}} sold · {{merma}} shrinkage",
+        "saldoFinal": "Closing stock",
+        "alFinal": "At the end of the period",
+        "porPeriodo": "Inventory by period",
+        "porProducto": "Inventory by product",
+        "vacio": "You had no stock in this period",
+        "nota": "It comes from your batch movements: closing = opening + in − sold − shrinkage − other out (withdrawals and returns). Transfers do not change your inventory total and are not counted; stock in transit or expired but not yet written off is still yours."
       }
     },
     "productos": {

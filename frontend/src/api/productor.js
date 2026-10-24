@@ -82,7 +82,7 @@ function rutaReporte(sufijo, filtros = {}) {
   return `${base}/reportes${sufijo}${consulta ? `?${consulta}` : ''}`
 }
 
-/** `metrica`: ventas o produccion. */
+/** `metrica`: ventas, produccion o inventario. */
 export const consultarReporteProductor = (metrica, filtros) => apiFetch(rutaReporte(`/${metrica}`, filtros))
 // CCPIP-161: todos sus lotes, de todos sus productos, primero el que vence antes
 export const listarTodosLosLotes = () => apiFetch(`${base}/lotes`)

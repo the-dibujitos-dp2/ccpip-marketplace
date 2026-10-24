@@ -363,7 +363,15 @@
         "acumulado": "Acumulado",
         "barraProduccion": "Unidades ingresadas",
         "ingresadas": "Ingresadas",
-        "lotes": "Lotes nuevos"
+        "lotes": "Lotes nuevos",
+        "saldoInicial": "Saldo inicial",
+        "entradas": "Entradas",
+        "vendidasB2c": "Vendidas B2C",
+        "vendidasB2b": "Vendidas B2B",
+        "vendidas": "Vendidas",
+        "merma": "Merma",
+        "otrasSalidas": "Otras salidas",
+        "saldoFinal": "Saldo final"
       },
       "ventas": {
         "pestana": "Ventas",
@@ -384,6 +392,21 @@
         "porProducto": "Producción por producto",
         "vacio": "No hubo producción en este período",
         "nota": "Cada entrada en tus lotes, por la fecha en que se registró (hora de Lima): el registro de un lote nuevo y las entradas de producción o recepción en un lote existente. Las transferencias no cuentan porque solo mueven lo ya producido."
+      },
+      "inventario": {
+        "pestana": "Inventario",
+        "saldoInicial": "Saldo inicial",
+        "alInicio": "Al inicio del período",
+        "entradas": "Entradas",
+        "entradasDetalle": "Lotes nuevos y entradas",
+        "salidas": "Salidas",
+        "salidasDetalle": "{{vendidas}} vendidas · {{merma}} de merma",
+        "saldoFinal": "Saldo final",
+        "alFinal": "Al cierre del período",
+        "porPeriodo": "Inventario por período",
+        "porProducto": "Inventario por producto",
+        "vacio": "No tuviste existencias en este período",
+        "nota": "Sale de los movimientos de tus lotes: saldo final = saldo inicial + entradas − vendidas − merma − otras salidas (retiros y devoluciones). Las transferencias no cambian el total de tu inventario y no se cuentan; lo que está en tránsito o vencido sin dar de baja sigue siendo tuyo."
       }
     },
     "productos": {

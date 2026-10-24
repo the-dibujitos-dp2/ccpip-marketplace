@@ -52,6 +52,24 @@ const PRODUCCION = {
   productos: PRODUCTOS,
 }
 
+const INVENTARIO = {
+  desde: '2026-01-01',
+  hasta: '2026-03-18',
+  agrupacion: 'MES',
+  producto: null,
+  totales: { saldoInicial: 20, entradas: 90, vendidasB2c: 5, vendidasB2b: 4, merma: 3, otrasSalidas: 2, saldoFinal: 96 },
+  periodos: [
+    { inicio: '2026-01-01', fin: '2026-01-31', saldoInicial: 20, entradas: 60, vendidasB2c: 5, vendidasB2b: 0, merma: 0, otrasSalidas: 0, saldoFinal: 75 },
+    { inicio: '2026-02-01', fin: '2026-02-28', saldoInicial: 75, entradas: 0, vendidasB2c: 0, vendidasB2b: 0, merma: 0, otrasSalidas: 0, saldoFinal: 75 },
+    { inicio: '2026-03-01', fin: '2026-03-18', saldoInicial: 75, entradas: 30, vendidasB2c: 0, vendidasB2b: 4, merma: 3, otrasSalidas: 2, saldoFinal: 96 },
+  ],
+  porProducto: [
+    { productoId: 9, producto: 'Aceite de sacha inchi 250 ml', saldoInicial: 20, entradas: 60, vendidas: 5, merma: 3, otrasSalidas: 0, saldoFinal: 72 },
+    { productoId: 10, producto: 'Harina de aguaje 500 g', saldoInicial: 0, entradas: 30, vendidas: 4, merma: 0, otrasSalidas: 2, saldoFinal: 24 },
+  ],
+  productos: PRODUCTOS,
+}
+
 function productor(rutas = {}) {
   return servidor({
     ...PUBLICAS,
@@ -157,6 +175,32 @@ describe('Reportes del productor', () => {
     const productos = within(screen.getByRole('table', { name: 'Producción por producto' })).getAllByRole('row')
     expect(within(productos[1]).getByText('Aceite de sacha inchi 250 ml')).toBeInTheDocument()
     expect(screen.getByText(/Las transferencias no cuentan/)).toBeInTheDocument()
+  })
+
+  it('CCPIP-334: la pestana Inventario explica cada saldo con sus movimientos', async () => {
+    productor({
+      'GET /api/productor/reportes/inventario?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES': () => [200, copia(INVENTARIO)],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/reportes')
+    await screen.findByRole('table', { name: 'Ventas por período' })
+    await user.click(screen.getByRole('tab', { name: 'Inventario' }))
+
+    expect(await screen.findByRole('region', { name: 'Saldo inicial' })).toHaveTextContent('20 und')
+    expect(screen.getByRole('region', { name: 'Entradas' })).toHaveTextContent('90 und')
+    expect(screen.getByRole('region', { name: 'Salidas' })).toHaveTextContent('14 und')
+    expect(screen.getByRole('region', { name: 'Salidas' })).toHaveTextContent('9 vendidas · 3 de merma')
+    expect(screen.getByRole('region', { name: 'Saldo final' })).toHaveTextContent('96 und')
+    expect(screen.queryByLabelText('Modalidad')).not.toBeInTheDocument()
+
+    const periodos = within(screen.getByRole('table', { name: 'Inventario por período' })).getAllByRole('row')
+    expect(within(periodos[0]).getByText('Vendidas B2B')).toBeInTheDocument()
+    const marzo = within(periodos[3]).getAllByRole('cell').map((c) => c.textContent)
+    expect(marzo).toEqual(['Marzo de 2026', '75', '30', '0', '4', '3', '2', '96'])
+    const productos = within(screen.getByRole('table', { name: 'Inventario por producto' })).getAllByRole('row')
+    expect(within(productos[2]).getAllByRole('cell').map((c) => c.textContent))
+      .toEqual(['Harina de aguaje 500 g', '0', '30', '4', '0', '2', '24'])
+    expect(screen.getByText(/Las transferencias no cambian el total/)).toBeInTheDocument()
   })
 
   it('sale en ingles', async () => {

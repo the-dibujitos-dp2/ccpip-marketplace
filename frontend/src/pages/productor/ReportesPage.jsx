@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoCaja from '../../assets/icons/caja.svg'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoGrafico from '../../assets/icons/grafico.svg'
+import iconoMerma from '../../assets/icons/merma.svg'
+import iconoMovimientos from '../../assets/icons/movimientos.svg'
 import iconoTienda from '../../assets/icons/tienda.svg'
 import { consultarReporteProductor } from '../../api/productor.js'
 import Alerta from '../../components/Alerta.jsx'
@@ -17,7 +20,7 @@ import './productor.css'
 import './ReportesPage.css'
 
 /** Pestanas de la pantalla, en orden. Cada una es /api/productor/reportes/{clave}. */
-const METRICAS = ['ventas', 'produccion']
+const METRICAS = ['ventas', 'produccion', 'inventario']
 
 const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
 
@@ -28,7 +31,8 @@ const CON_MODALIDAD = ['ventas']
 
 /**
  * Reportes del productor: estadisticas de sus productos por periodo, con el formato de los reportes de la
- * plataforma (SA-05). CCPIP-114 (RF-25): ventas; CCPIP-333 (RF-223): produccion. El servidor solo envia sus productos (RNF-05) y ningun
+ * plataforma (SA-05). CCPIP-114 (RF-25): ventas; CCPIP-333 (RF-223): produccion;
+ * CCPIP-334 (RF-224): inventario. El servidor solo envia sus productos (RNF-05) y ningun
  * dato de los compradores; la pantalla solo muestra lo calculado.
  */
 export default function ReportesPage({ path }) {
@@ -124,6 +128,7 @@ export default function ReportesPage({ path }) {
       {cargando && !datos && <p className="caption">{t('comun.cargando')}</p>}
       {mostrada === 'ventas' && <Ventas datos={datos} />}
       {mostrada === 'produccion' && <Produccion datos={datos} />}
+      {mostrada === 'inventario' && <Inventario datos={datos} />}
     </PaginaProductor>
   )
 }
@@ -258,6 +263,78 @@ function Produccion({ datos }) {
                 <span className="tabla__celda tabla__celda--flex label-m" role="cell">{p.producto}</span>
                 <span className="tabla__celda reportes-productor__num" role="cell">{unidades(p.unidades)}</span>
                 <span className="tabla__celda reportes-productor__num" role="cell">{unidades(p.lotes)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </>
+  )
+}
+
+/** Columnas de cifras del inventario, en el orden de la tabla. */
+const COLUMNAS_INVENTARIO = ['saldoInicial', 'entradas', 'vendidasB2c', 'vendidasB2b', 'merma', 'otrasSalidas', 'saldoFinal']
+const COLUMNAS_INVENTARIO_PRODUCTO = ['saldoInicial', 'entradas', 'vendidas', 'merma', 'otrasSalidas', 'saldoFinal']
+
+/**
+ * CCPIP-334: cuanto tuvo de sus productos y por que cambio, periodo a periodo: cada saldo final es el
+ * inicial mas las entradas menos lo vendido, la merma y otras salidas.
+ */
+function Inventario({ datos }) {
+  const { t } = useTranslation()
+  const { totales, periodos, porProducto, agrupacion } = datos
+  const salidas = [totales.vendidasB2c, totales.vendidasB2b, totales.merma, totales.otrasSalidas].reduce((a, b) => a + Number(b), 0)
+  const und = (v) => t('comun.und', { cantidad: unidades(v) })
+  return (
+    <>
+      <div className="productor__kpis">
+        <TarjetaKpi titulo={t('productor.reportes.inventario.saldoInicial')} valor={und(totales.saldoInicial)} tono="neutro" icono={iconoAlmacen}
+          detalle={t('productor.reportes.inventario.alInicio')} />
+        <TarjetaKpi titulo={t('productor.reportes.inventario.entradas')} valor={und(totales.entradas)} tono="neutro" icono={iconoMovimientos}
+          detalle={t('productor.reportes.inventario.entradasDetalle')} />
+        <TarjetaKpi titulo={t('productor.reportes.inventario.salidas')} valor={und(salidas)} tono="neutro" icono={iconoMerma}
+          detalle={t('productor.reportes.inventario.salidasDetalle', { vendidas: unidades(Number(totales.vendidasB2c) + Number(totales.vendidasB2b)), merma: unidades(totales.merma) })} />
+        <TarjetaKpi titulo={t('productor.reportes.inventario.saldoFinal')} valor={und(totales.saldoFinal)} tono="neutro" icono={iconoAlmacen}
+          detalle={t('productor.reportes.inventario.alFinal')} />
+      </div>
+      <section className="productor__seccion" aria-labelledby="reportes-inventario-periodo">
+        <h2 id="reportes-inventario-periodo" className="heading-h3">{t('productor.reportes.inventario.porPeriodo')}</h2>
+        <div className="tabla" role="table" aria-labelledby="reportes-inventario-periodo">
+          <div className="tabla__fila tabla__fila--encabezado" role="row">
+            <span className="tabla__celda reportes-productor__periodo" role="columnheader">{t('productor.reportes.col.periodo')}</span>
+            {COLUMNAS_INVENTARIO.map((c) => (
+              <span key={c} className="tabla__celda reportes-productor__num reportes-productor__num--estrecha" role="columnheader">{t(`productor.reportes.col.${c}`)}</span>
+            ))}
+          </div>
+          {periodos.map((p) => (
+            <div key={p.inicio} className="tabla__fila" role="row">
+              <span className="tabla__celda reportes-productor__periodo label-m" role="cell">{nombrePeriodo(p, agrupacion, t)}</span>
+              {COLUMNAS_INVENTARIO.map((c) => (
+                <span key={c} className={`tabla__celda reportes-productor__num reportes-productor__num--estrecha${c === 'saldoFinal' ? ' label-m' : ''}`} role="cell">{unidades(p[c])}</span>
+              ))}
+            </div>
+          ))}
+        </div>
+        <p className="caption">{t('productor.reportes.inventario.nota')}</p>
+      </section>
+      <section className="productor__seccion" aria-labelledby="reportes-inventario-producto">
+        <h2 id="reportes-inventario-producto" className="heading-h3">{t('productor.reportes.inventario.porProducto')}</h2>
+        {porProducto.length === 0 ? (
+          <EstadoVacio titulo={t('productor.reportes.inventario.vacio')} descripcion={t('productor.reportes.vacioTexto')} />
+        ) : (
+          <div className="tabla" role="table" aria-labelledby="reportes-inventario-producto">
+            <div className="tabla__fila tabla__fila--encabezado" role="row">
+              <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.reportes.col.producto')}</span>
+              {COLUMNAS_INVENTARIO_PRODUCTO.map((c) => (
+                <span key={c} className="tabla__celda reportes-productor__num" role="columnheader">{t(`productor.reportes.col.${c}`)}</span>
+              ))}
+            </div>
+            {porProducto.map((p) => (
+              <div key={p.productoId} className="tabla__fila" role="row">
+                <span className="tabla__celda tabla__celda--flex label-m" role="cell">{p.producto}</span>
+                {COLUMNAS_INVENTARIO_PRODUCTO.map((c) => (
+                  <span key={c} className={`tabla__celda reportes-productor__num${c === 'saldoFinal' ? ' label-m' : ''}`} role="cell">{unidades(p[c])}</span>
+                ))}
               </div>
             ))}
           </div>
