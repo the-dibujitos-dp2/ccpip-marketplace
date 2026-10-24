@@ -57,8 +57,25 @@ describe('CW-03 Calificaciones de la oferta (CCPIP-82)', () => {
     servidor(comoVisitante({ 'GET /api/productos/1/calificaciones': [200, { productoId: 1, total: 0, minimo: 3, suficiente: false }] }))
     abrirEn('/productos/1')
     s = await seccion()
-    expect(await s.findByText('Este producto aún no tiene calificaciones.')).toBeInTheDocument()
+    expect(await s.findByText('Aún no tiene reseñas. Si lo compras, puedes ser la primera persona en valorarlo.')).toBeInTheDocument()
     expect(s.queryByText('0')).not.toBeInTheDocument()
+  })
+
+  // CCPIP-409: sin resenas, un mensaje amable en lugar de un bloque vacio
+  it('sin resenas invita a ser la primera persona en valorarlo, sin lista vacia ni promedio', async () => {
+    servidor(comoVisitante({ 'GET /api/productos/1/calificaciones': [200, { productoId: 1, total: 0, minimo: 3, suficiente: false, resenas: [] }] }))
+    const { unmount } = abrirEn('/productos/1')
+    let s = await seccion()
+    expect(await s.findByText('Aún no tiene reseñas. Si lo compras, puedes ser la primera persona en valorarlo.')).toBeInTheDocument()
+    expect(s.queryByRole('list', { name: 'Opiniones de compradores' })).not.toBeInTheDocument()
+    expect(s.queryByRole('img', { name: /de 5 estrellas/ })).not.toBeInTheDocument()
+    unmount()
+
+    await i18n.changeLanguage('en')
+    servidor(comoVisitante({ 'GET /api/productos/1/calificaciones': [200, { productoId: 1, total: 0, minimo: 3, suficiente: false, resenas: [] }] }))
+    abrirEn('/productos/1')
+    s = within(await screen.findByRole('region', { name: 'Ratings' }))
+    expect(await s.findByText('No reviews yet. If you buy it, you can be the first person to rate it.')).toBeInTheDocument()
   })
 
   it('si el resumen falla, la ficha se ve igual', async () => {

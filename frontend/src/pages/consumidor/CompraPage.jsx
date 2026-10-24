@@ -4,7 +4,7 @@ import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoCamion from '../../assets/icons/camion.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import { consultarCarrito, recargarUnidadesCarrito } from '../../api/carrito.js'
-import { obtenerMisDatos } from '../../api/cuenta.js'
+import { guardarDireccionHabitual, obtenerMisDatos } from '../../api/cuenta.js'
 import { confirmarCompra, consultarDistritosEntrega, consultarPuntosRecojo, pagarPedido } from '../../api/compra.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -31,6 +31,7 @@ const ANIOS = Array.from({ length: 12 }, (_, i) => ({ valor: String(ANIO + i), e
 const VACIO = {
   modalidad: 'RECOJO', puntoId: '', recogeOtro: false, personaAutorizada: '', celular: '',
   departamento: '', provincia: '', ubigeo: '', direccion: '', referencia: '', nombreRecibe: '',
+  guardarDireccion: false, aliasDireccion: '',
   numero: '', titular: '', mes: '', anio: '', cvv: '',
 }
 
@@ -243,6 +244,12 @@ export default function CompraPage() {
       clave.current = null
 
       if (resultado.estado === 'APROBADO') {
+        // CCPIP-65: la direccion se guarda al confirmarse la compra, no al crear el pedido: si el pago se rechaza y el
+        // comprador corrige la direccion, no queda guardada tambien la equivocada. Es un extra: no debe fallar la compra.
+        if (recojo.entrega && form.guardarDireccion) {
+          const { ubigeo, direccion, referencia } = recojo.entrega
+          await guardarDireccionHabitual({ alias: form.aliasDireccion.trim() || null, ubigeo, direccion, referencia }).catch(() => {})
+        }
         void recargarUnidadesCarrito()
         navigate(`/pedidos/${resultado.pedido.id}`)
         return

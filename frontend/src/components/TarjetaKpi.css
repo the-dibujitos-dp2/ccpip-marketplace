@@ -16,3 +16,6 @@
 .tarjeta-kpi__detalle { font-weight: 500; font-size: 12px; line-height: 16px; color: var(--color-status-success-fg); }
 .tarjeta-kpi__detalle--error { color: var(--color-status-error-fg); }
 .tarjeta-kpi__detalle--neutro { color: var(--color-text-tertiary); }
+/* CCPIP-426: los lotes por vencer, en el amarillo de advertencia de Badge y Alerta */
+.tarjeta-kpi__detalle--aviso { color: var(--color-status-warning-fg); }
+.tarjeta-kpi--aviso .tarjeta-kpi__icono { background: var(--color-status-warning-bg); color: var(--color-status-warning-fg); }

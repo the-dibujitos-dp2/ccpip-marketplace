@@ -65,8 +65,9 @@ export default function CalificacionesProducto({ producto }) {
       )}
       {resumen && !resumen.suficiente && (
         <p className="body-m">
+          {/* CCPIP-409: sin resenas, un mensaje amable en lugar de un bloque vacio */}
           {resumen.total === 0
-            ? t('calificaciones.sinCalificaciones')
+            ? t('calificaciones.sinResenas')
             : t('calificaciones.insuficiente', { count: resumen.total, minimo: resumen.minimo })}
         </p>
       )}

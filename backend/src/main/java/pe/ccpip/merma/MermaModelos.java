@@ -2,10 +2,13 @@ package pe.ccpip.merma;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+
+import pe.ccpip.comun.Idioma;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
@@ -63,20 +66,49 @@ public final class MermaModelos {
     /**
      * Una merma, como la muestra A-04. {@code motivo} y {@code motivoEn} son los nombres con los que se
      * marco. {@code registradoPor} es nulo en la automatica y, para el productor, cuando la registro el
-     * punto de acopio (RNF-05).
+     * punto de acopio (RNF-05). {@code productor} es el nombre publico del productor del lote (su tienda o,
+     * sin ella, su comunidad; CCPIP-423), nunca sus datos de contacto.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record Merma(long id, Instant registradoEn, long productoId, String producto, String lote, String ubicacion,
                         BigDecimal cantidad, String motivo, String motivoEn, String detalle, boolean automatica,
-                        String registradoPor) {
+                        String registradoPor, long productorId, String productor) {
     }
 
     /** La merma recien marcada y el saldo que le queda al lote. {@code repetida}: el mismo envio otra vez. */
     public record MermaRegistrada(Merma merma, BigDecimal saldo, boolean repetida) {
     }
 
-    /** Una pagina de merma, la mas reciente primero. {@code ubicacion}: los puntos del administrador. */
+    /**
+     * Una pagina de merma, la mas reciente primero. {@code ubicacion}: los puntos del administrador.
+     * {@code opciones}: lo que se puede elegir en los filtros del punto (CCPIP-422); nulo para el productor.
+     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record PaginaMerma(String ubicacion, List<Merma> items, int pagina, int tamano, long total, int totalPaginas) {
+    public record PaginaMerma(String ubicacion, List<Merma> items, int pagina, int tamano, long total, int totalPaginas,
+                              OpcionesMerma opciones) {
+    }
+
+    /**
+     * CCPIP-422: los filtros de la merma del punto, todos opcionales y combinables. {@code causa} es el id
+     * del catalogo; {@code desde} y {@code hasta}, dias de Lima inclusive.
+     */
+    public record FiltroMerma(Long causa, Long producto, Long productor, LocalDate desde, LocalDate hasta) {
+    }
+
+    /** Una opcion de un filtro. {@code nombreEn} solo en las causas. */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record Opcion(long id, String nombre, String nombreEn) {
+    }
+
+    /** CCPIP-422: las causas, productos y productores con merma en sus puntos, sin aplicar los filtros. */
+    public record OpcionesMerma(List<Opcion> causas, List<Opcion> productos, List<Opcion> productores) {
+    }
+
+    /** Filtros textuales del reporte. No transportan ids de producto, lote ni ubicación: el alcance sale de la sesión. */
+    public record FiltroReporteMerma(LocalDate desde, LocalDate hasta, String lote, String producto, String ubicacion) {
+    }
+
+    /** Todas las filas autorizadas para una exportación de merma. */
+    public record ReporteMerma(List<Merma> items, Idioma idioma) {
     }
 }

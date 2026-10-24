@@ -13,14 +13,15 @@ const TONO = { VERIFICADA: 'exito', VENCIDA: 'aviso', SIN_EVIDENCIA: 'neutro' }
 /**
  * CCPIP-365 (RF-255): las evidencias publicas de certificacion del producto y que significa cada una.
  * Solo muestra lo que el servidor publica (emisor, fecha y vigencia; nunca el archivo) y solo habla de
- * "verificado" cuando el servidor lo dice: sin evidencia, explica que no hay certificados que mostrar.
- * Si la consulta falla, la ficha sigue sin esta seccion.
+ * "verificado" cuando el servidor lo dice. CCPIP-408: sin ninguna evidencia publica no hay seccion
+ * (nada de un bloque vacio). Si la consulta falla, la ficha sigue sin esta seccion.
  */
 export default function CertificacionProducto({ productoId }) {
   const { t } = useTranslation()
   const consultar = useCallback(() => obtenerCertificacion(productoId), [productoId])
   const { datos } = useConsulta(consultar)
-  if (!datos) return null
+  // CCPIP-408: sin certificaciones que mostrar, la ficha sigue sin esta seccion
+  if (!datos?.evidencias?.length) return null
 
   const { estado, evidencias } = datos
   return (
@@ -35,42 +36,40 @@ export default function CertificacionProducto({ productoId }) {
           hasta: datos.vigenteHasta ? fechaLarga(datos.vigenteHasta) : '',
         })}
       </p>
-      {evidencias.length > 0 && (
-        <ul className="certificacion__lista" aria-label={t('producto.certificacion.lista')}>
-          {evidencias.map((e) => (
-            <li key={`${e.tipo}-${e.titulo}-${e.vigenteHasta ?? ''}`} className="certificacion__item">
-              <Icono src={iconoEscudo} tamano={20} className="certificacion__icono" />
-              <div>
-                <p className="label-m">{e.titulo}</p>
-                <p className="caption certificacion__tipo">{t(`producto.certificacion.tipo.${e.tipo}`)}</p>
-                <dl className="certificacion__datos">
-                  {e.emisor && (
-                    <div>
-                      <dt>{t('producto.certificacion.emisor')}</dt>
-                      <dd>{e.emisor}</dd>
-                    </div>
-                  )}
-                  {e.vigenteDesde && (
-                    <div>
-                      <dt>{t('producto.certificacion.desde')}</dt>
-                      <dd>{fecha(e.vigenteDesde)}</dd>
-                    </div>
-                  )}
+      <ul className="certificacion__lista" aria-label={t('producto.certificacion.lista')}>
+        {evidencias.map((e) => (
+          <li key={`${e.tipo}-${e.titulo}-${e.vigenteHasta ?? ''}`} className="certificacion__item">
+            <Icono src={iconoEscudo} tamano={20} className="certificacion__icono" />
+            <div>
+              <p className="label-m">{e.titulo}</p>
+              <p className="caption certificacion__tipo">{t(`producto.certificacion.tipo.${e.tipo}`)}</p>
+              <dl className="certificacion__datos">
+                {e.emisor && (
                   <div>
-                    <dt>{t('producto.certificacion.vigencia')}</dt>
-                    <dd>
-                      {e.vigenteHasta
-                        ? t(e.vigente ? 'producto.certificacion.vigenteHasta' : 'producto.certificacion.vencioEl', { fecha: fecha(e.vigenteHasta) })
-                        : t('producto.certificacion.sinVencimiento')}
-                    </dd>
+                    <dt>{t('producto.certificacion.emisor')}</dt>
+                    <dd>{e.emisor}</dd>
                   </div>
-                </dl>
-                <p className="caption">{t(`producto.certificacion.significado.${e.tipo}`)}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+                )}
+                {e.vigenteDesde && (
+                  <div>
+                    <dt>{t('producto.certificacion.desde')}</dt>
+                    <dd>{fecha(e.vigenteDesde)}</dd>
+                  </div>
+                )}
+                <div>
+                  <dt>{t('producto.certificacion.vigencia')}</dt>
+                  <dd>
+                    {e.vigenteHasta
+                      ? t(e.vigente ? 'producto.certificacion.vigenteHasta' : 'producto.certificacion.vencioEl', { fecha: fecha(e.vigenteHasta) })
+                      : t('producto.certificacion.sinVencimiento')}
+                  </dd>
+                </div>
+              </dl>
+              <p className="caption">{t(`producto.certificacion.significado.${e.tipo}`)}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
       <p className="caption">{t('producto.certificacion.nota')}</p>
     </section>
   )

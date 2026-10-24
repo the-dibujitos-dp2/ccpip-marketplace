@@ -93,6 +93,19 @@ export default function EntregaDomicilio({ distritos, form, errores, alEscribir 
         error={errores.referencia}
         maxLength={255}
       />
+      <label className="compra__check">
+        <input type="checkbox" checked={form.guardarDireccion} onChange={alEscribir('guardarDireccion')} />
+        {t('compra.domicilio.guardar')}
+      </label>
+      {form.guardarDireccion && (
+        <Campo
+          etiqueta={t('compra.domicilio.alias')}
+          ayuda={t('compra.domicilio.aliasAyuda')}
+          value={form.aliasDireccion}
+          onChange={alEscribir('aliasDireccion')}
+          maxLength={40}
+        />
+      )}
     </>
   )
 }

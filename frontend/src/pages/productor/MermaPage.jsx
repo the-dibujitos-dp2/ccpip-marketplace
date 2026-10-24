@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { listarMermaProductor } from '../../api/merma.js'
+import { listarMermaProductor, urlReporteMermaProductor } from '../../api/merma.js'
 import { RUTAS } from '../../router.js'
 import ListaMerma from '../merma/ListaMerma.jsx'
 import PaginaProductor from './PaginaProductor.jsx'
@@ -14,6 +14,7 @@ export default function MermaPage({ path }) {
     <PaginaProductor path={path} seccion={t('productor.nav.merma')} titulo={t('merma.lista.tituloProductor')}>
       <ListaMerma
         consultar={listarMermaProductor}
+        exportar={urlReporteMermaProductor}
         conUbicacion
         irTexto={t('merma.lista.comoMarcarProductor')}
         ir={{ ruta: RUTAS.productorAlmacen, texto: t('merma.lista.irAlmacen') }}

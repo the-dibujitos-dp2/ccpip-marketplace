@@ -1,9 +1,10 @@
-import { useEffect, useId, useState } from 'react'
+import { useCallback, useEffect, useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoAlerta from '../../assets/icons/alerta-campo.svg'
 import iconoBolsa from '../../assets/icons/bolsa-marca.svg'
 import { agregarAlCarrito, recargarUnidadesCarrito } from '../../api/carrito.js'
 import Alerta from '../../components/Alerta.jsx'
+import AvisoLateral from '../../components/AvisoLateral.jsx'
 import Boton from '../../components/Boton.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import MinimoMayorista from '../../components/MinimoMayorista.jsx'
@@ -32,6 +33,9 @@ export default function AgregarAlCarrito({ producto, cantidad, onCantidad, modo 
   const [error, setError] = useState(null)
   const [aviso, setAviso] = useState(null)
   const [enviando, setEnviando] = useState(false)
+  // CCPIP-414: aviso lateral con el nombre del producto; `id` reinicia su tiempo en cada agregado
+  const [lateral, setLateral] = useState(null)
+  const cerrarLateral = useCallback(() => setLateral(null), [])
   // Solo el comprador tiene carrito: a otros roles no se les ofrece (el servidor tambien lo niega)
   const ofrecer = producto.disponible && producto.comprable !== false && (!user || user.role === 'CONSUMIDOR')
   const [panel, panelFuera] = usePanelFuera(ofrecer)
@@ -74,6 +78,7 @@ export default function AgregarAlCarrito({ producto, cantidad, onCantidad, modo 
         titulo: t('carrito.agregar.agregaste', { count: unidades }),
         descripcion: t('carrito.agregar.ahoraTienes', { cantidad: Number(r.cantidad) }),
       })
+      setLateral((previo) => ({ id: (previo?.id ?? 0) + 1 }))
     } catch (err) {
       // Un 401 ya lo maneja la app (vuelve al inicio de sesion); aqui se muestran las reglas de negocio
       if (err.status !== 401) {
@@ -129,6 +134,14 @@ export default function AgregarAlCarrito({ producto, cantidad, onCantidad, modo 
       )}
       <AvisoTarifa producto={producto} unidades={valida ? unidades : 0} tarifa={tarifa} modo={modo} faltaParaAgregar={faltaParaAgregar} />
       {aviso && <Alerta {...aviso} onCerrar={() => setAviso(null)} />}
+      {lateral && (
+        <AvisoLateral
+          key={lateral.id}
+          titulo={t('carrito.agregar.avisoLateral', { producto: producto.nombre })}
+          enlace={{ to: RUTAS.carrito, texto: t('carrito.agregar.verCarrito') }}
+          onCerrar={cerrarLateral}
+        />
+      )}
     </form>
   )
 }

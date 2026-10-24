@@ -113,6 +113,12 @@
             <artifactId>metadata-extractor</artifactId>
             <version>2.21.0</version>
         </dependency>
+        <!-- CCPIP-78: genera PDF válido con fuentes Unicode incrustadas. -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.5</version>
+        </dependency>
 
         <!-- Las pruebas corren contra un PostgreSQL real en contenedor: las migraciones
              usan unaccent e indices parciales, que H2 no soporta. -->

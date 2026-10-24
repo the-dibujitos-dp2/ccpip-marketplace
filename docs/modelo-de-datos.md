@@ -1298,3 +1298,66 @@ que el historial no se puede alterar y una accion nueva de esos modulos aparece 
 El periodo es por fecha de Lima, por defecto los ultimos 30 dias y como maximo un año
 (`RangoFechas`, `422 RANGO_INVALIDO` o `RANGO_MUY_LARGO`). El servicio admite autor nulo para
 consultar las acciones de todos, pensado para la auditoria de CCPIP-97.
+## Salida de un pedido a domicilio del punto de acopio (CCPIP-320)
+
+Migracion `V202610231200`. El administrador del punto de acopio registra que un pedido a domicilio preparado
+sale de su punto para despacho (RF-202): el pedido pasa de `EN_PREPARACION` a `LISTO_PARA_DESPACHO`, el estado
+del diccionario de datos para un pedido preparado que retirara un distribuidor. Es el equivalente de
+`LISTO_PARA_RECOJO` (CCPIP-159) para un pedido de modalidad `ENVIO`. Entra solo ese estado en
+`pedido_estado_valido`; consultarlo y asumirlo (CCPIP-107 y 108), retirarlo (CCPIP-109) y los estados de
+camino (CCPIP-318 y 319) llegan con sus historias.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `POST /api/acopio/pedidos/{numero}/despacho` | ADMIN_PUNTO | Marca un pedido a domicilio en preparacion de sus puntos como listo para despacho |
+
+**Transicion autorizada.** Solo desde `EN_PREPARACION` y solo un pedido `ENVIO`: uno para recojo responde
+`409 PEDIDO_PARA_RECOJO`, y cualquier otro estado `409 ESTADO_INVALIDO` sin dejar rastro en el historial. Un pedido
+de otro punto no existe para el administrador (`404`, RNF-05). El pedido se bloquea con `FOR UPDATE`, asi dos
+clics simultaneos no registran la salida dos veces.
+
+**Usuario y fecha.** Cada salida queda en `pedido_estado_historial` con el administrador que la registro y
+la fecha. La entrega (`entrega.estado`) sigue `DISPONIBLE`: la cambia el distribuidor al asumirla.
+
+**Inventario.** Registrar la salida no mueve unidades ni crea movimientos: el descuento ocurrio al confirmar
+la compra (CCPIP-158) y no se repite al despachar ni cuando el distribuidor retire el pedido.
+
+**Otras consultas del pedido.** El tablero del punto (`GET /api/acopio/pedidos`) lista los pedidos
+`LISTO_PARA_DESPACHO` junto a los listos para recojo. La consulta de pedidos del productor lo presenta como
+`LISTO_PARA_RECOJO` (listo en el punto de acopio) en el conteo, el filtro, la lista y el historial, para no fallar al
+contarlo por estado. La comision por pedido admite filtrar por el estado nuevo y la liquidacion en Excel lo
+nombra "Listo para despacho".
+
+## Direcciones de entrega guardadas (CCPIP-65)
+
+Migracion `V202610231400`. El comprador guarda sus direcciones de entrega habituales (RF-46) para no escribirlas
+en cada compra. Sigue la tabla `direccion_guardada` del modelo de datos del proyecto; consultarlas (CCPIP-393),
+modificarlas (CCPIP-394) y retirarlas (CCPIP-395) llegan con sus historias.
+
+```mermaid
+erDiagram
+    usuario ||--o{ direccion_guardada : guarda
+    ubigeo ||--o{ direccion_guardada : en
+```
+
+### direccion_guardada
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| id | bigserial | no | |
+| usuario_id | bigint | no | El comprador, siempre el de la sesion: nunca se recibe de la peticion (RNF-05) |
+| alias | varchar(40) | si | Nombre corto, por ejemplo "Casa" |
+| ubigeo | char(6) | no | Distrito del catalogo territorial: un destino admitido |
+| direccion | varchar(255) | no | Calle y numero |
+| referencia | varchar(255) | si | Para ubicar la direccion |
+| activa | boolean | no | Retirarla la marca inactiva sin borrarla (CCPIP-395) |
+| creado_en | timestamptz | no | |
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `POST /api/cuenta/direcciones` | CONSUMIDOR | Guarda una direccion del comprador. `201` con la direccion y su distrito, provincia y departamento |
+
+**Reglas.** Solo datos propios: el comprador sale de la sesion. Solo destinos admitidos: un distrito que no esta
+en el catalogo responde `422 DESTINO_NO_ADMITIDO`. La direccion se pide completa, como en el pedido a domicilio
+(`422 DIRECCION_INVALIDA`). La misma direccion en el mismo distrito no se guarda dos veces para un comprador
+(`409 DIRECCION_YA_GUARDADA`, sin distinguir mayusculas); otro comprador si puede guardarla. Los pedidos copian su
+destino en `entrega` y no dependen de esta tabla.

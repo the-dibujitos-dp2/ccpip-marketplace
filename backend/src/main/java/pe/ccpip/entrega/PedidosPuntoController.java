@@ -64,6 +64,13 @@ public class PedidosPuntoController {
         return pedidos.marcarPreparacion(s.userId(), numeroValido(numero));
     }
 
+    /** CCPIP-320: registra la salida de un pedido a domicilio preparado de sus puntos: queda listo para despacho. */
+    @PostMapping("/{numero}/despacho")
+    public PedidoPunto marcarListoParaDespacho(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                               @PathVariable String numero) {
+        return pedidos.marcarListoParaDespacho(s.userId(), numeroValido(numero));
+    }
+
     /** CCPIP-71: entrega un pedido listo al comprador o la persona autorizada, validando persona y celular. */
     @PostMapping("/{numero}/recojo")
     public PedidoPunto registrarRecojo(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,

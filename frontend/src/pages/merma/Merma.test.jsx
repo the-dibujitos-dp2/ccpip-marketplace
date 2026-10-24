@@ -226,6 +226,76 @@ describe('A-04 Merma del punto y del productor (CCPIP-75, CCPIP-76)', () => {
   })
 })
 
+describe('CCPIP-78 Reportes de merma', () => {
+  it('distingue el estado vacío inicial del vacío después de aplicar filtros', async () => {
+    acopio({
+      'GET /api/acopio/merma': [200, { ubicacion: 'Centro Nacional Lima', pagina: 0, tamano: 20, total: 0, totalPaginas: 0, items: [] }],
+      'GET /api/acopio/merma?pagina=0&lote=VACIO': [200, { ubicacion: 'Centro Nacional Lima', pagina: 0, tamano: 20, total: 0, totalPaginas: 0, items: [] }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/acopio/merma')
+
+    expect(await screen.findByText('Aquí verás la merma marcada y la automática por vencimiento.')).toBeInTheDocument()
+    expect(screen.queryByText('No hay merma para los filtros seleccionados.')).not.toBeInTheDocument()
+
+    await user.type(screen.getByLabelText('Lote'), 'VACIO')
+    await user.click(screen.getByRole('button', { name: 'Aplicar filtros' }))
+    expect(await screen.findByText('No hay merma para los filtros seleccionados.')).toBeInTheDocument()
+  })
+
+  it('el administrador filtra, vuelve a página uno y descarga en el idioma de la interfaz', async () => {
+    const fetchMock = acopio({
+      'GET /api/acopio/merma': [200, { ubicacion: 'Centro Nacional Lima', pagina: 0, tamano: 20, total: 21, totalPaginas: 2, items: [merma({ lote: 'REP-01' })] }],
+      'GET /api/acopio/merma?pagina=1': [200, { ubicacion: 'Centro Nacional Lima', pagina: 1, tamano: 20, total: 21, totalPaginas: 2, items: [merma({ lote: 'REP-21' })] }],
+      'GET /api/acopio/merma?pagina=0&desde=2026-11-01&hasta=2026-11-30&lote=REP-01&producto=Harina&ubicacion=Centro+Nacional+Lima': [200, { ubicacion: 'Centro Nacional Lima', pagina: 0, tamano: 20, total: 0, totalPaginas: 0, items: [] }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/acopio/merma')
+    await screen.findByRole('table', { name: 'Merma registrada' })
+    await user.click(screen.getByRole('button', { name: 'Siguiente' }))
+    await waitFor(() => expect(llamadas(fetchMock, 'GET /api/acopio/merma?pagina=1')).toHaveLength(1))
+
+    await user.type(screen.getByLabelText('Desde'), '2026-11-01')
+    await user.type(screen.getByLabelText('Hasta'), '2026-11-30')
+    await user.type(screen.getByLabelText('Lote'), 'REP-01')
+    await user.type(screen.getByLabelText('Producto'), 'Harina')
+    await user.type(screen.getByLabelText('Ubicación'), 'Centro Nacional Lima')
+    await user.click(screen.getByRole('button', { name: 'Aplicar filtros' }))
+
+    expect(await screen.findByText('No hay merma para los filtros seleccionados.')).toBeInTheDocument()
+    const ruta = '/api/acopio/merma?pagina=0&desde=2026-11-01&hasta=2026-11-30&lote=REP-01&producto=Harina&ubicacion=Centro+Nacional+Lima'
+    expect(llamadas(fetchMock, `GET ${ruta}`)).toHaveLength(1)
+    expect(screen.getByRole('link', { name: 'Descargar PDF' })).toHaveAttribute('href', '/api/acopio/merma/pdf?desde=2026-11-01&hasta=2026-11-30&lote=REP-01&producto=Harina&ubicacion=Centro+Nacional+Lima&lang=es')
+    expect(screen.getByRole('link', { name: 'Descargar Excel' })).toHaveAttribute('href', '/api/acopio/merma/xlsx?desde=2026-11-01&hasta=2026-11-30&lote=REP-01&producto=Harina&ubicacion=Centro+Nacional+Lima&lang=es')
+  })
+
+  it('el productor realmente envía su filtro de ubicación y recibe el estado filtrado', async () => {
+    const fetchMock = servidor({
+      ...PUBLICAS,
+      'GET /api/auth/me': [200, SESION_PRODUCTOR],
+      'GET /api/productor/merma': [200, { pagina: 0, tamano: 20, total: 1, totalPaginas: 1, items: [merma()] }],
+      'GET /api/productor/merma?pagina=0&ubicacion=Almac%C3%A9n+principal': [200, { pagina: 0, tamano: 20, total: 0, totalPaginas: 0, items: [] }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/merma')
+
+    await screen.findByRole('table', { name: 'Merma registrada' })
+    await user.type(screen.getByLabelText('Ubicación'), 'Almacén principal')
+    await user.click(screen.getByRole('button', { name: 'Aplicar filtros' }))
+    expect(await screen.findByText('No hay merma para los filtros seleccionados.')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'GET /api/productor/merma?pagina=0&ubicacion=Almac%C3%A9n+principal')).toHaveLength(1)
+  })
+
+  it('pasa inglés a las descargas del reporte', async () => {
+    await i18n.changeLanguage('en')
+    acopio({ 'GET /api/acopio/merma': [200, { ubicacion: 'Centro Nacional Lima', pagina: 0, tamano: 20, total: 1, totalPaginas: 1, items: [merma()] }] })
+    abrirEn('/acopio/merma')
+    await screen.findByRole('table', { name: 'Recorded shrinkage' })
+    expect(screen.getByRole('link', { name: 'Download PDF' })).toHaveAttribute('href', '/api/acopio/merma/pdf?lang=en')
+    expect(screen.getByRole('link', { name: 'Download Excel' })).toHaveAttribute('href', '/api/acopio/merma/xlsx?lang=en')
+  })
+})
+
 // MermaModelos.Motivo
 const MOTIVOS = [
   { id: 1, nombre: 'Vencimiento', nombreEn: 'Expiry', requiereDetalle: false, activo: true, sistema: true, usos: 12, actualizadoEn: '2026-10-18T10:00:00Z' },

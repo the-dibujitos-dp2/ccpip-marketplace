@@ -44,6 +44,20 @@ public final class EntregaModelos {
                           @Size(max = 20, message = "El celular es demasiado largo") String contactoCelular) {
     }
 
+    /** CCPIP-65: una direccion habitual que escribe el comprador. El comprador no viaja aqui: sale de la sesion. */
+    public record NuevaDireccion(@Size(max = 40, message = "El nombre de la dirección es demasiado largo") String alias,
+                                 @NotBlank(message = "Elige el distrito")
+                                 @Pattern(regexp = "[0-9]{6}", message = "El distrito no es válido") String ubigeo,
+                                 @NotBlank(message = "Indica la dirección")
+                                 @Size(max = 255, message = "La dirección es demasiado larga") String direccion,
+                                 @Size(max = 255, message = "La referencia es demasiado larga") String referencia) {
+    }
+
+    /** CCPIP-65: una direccion guardada del comprador, con su distrito, provincia y departamento. */
+    public record DireccionGuardada(long id, String alias, String ubigeo, String departamento, String provincia,
+                                    String distrito, String direccion, String referencia) {
+    }
+
     /**
      * CCPIP-59: la entrega a domicilio de un pedido ENVIO, con el distrito ya resuelto. {@code estado}:
      * DISPONIBLE hasta que un distribuidor la asuma. No expone al distribuidor.
