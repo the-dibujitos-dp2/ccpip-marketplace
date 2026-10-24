@@ -7,7 +7,8 @@ import ListaMerma from '../merma/ListaMerma.jsx'
 
 /**
  * A-04 · CCPIP-76 y CCPIP-75: la merma de los lotes de sus puntos, la marcada por el punto y la
- * automatica por vencimiento. Se marca desde el lote, en el inventario (A-02).
+ * automatica por vencimiento, con el productor de cada lote (CCPIP-423). Se marca desde el lote, en
+ * el inventario (A-02).
  */
 export default function MermaPage({ path }) {
   const { t } = useTranslation()
@@ -17,6 +18,7 @@ export default function MermaPage({ path }) {
     <LayoutAcopio path={path} punto={punto} titulo={t('acopio.nav.merma')}>
       <ListaMerma
         consultar={listarMermaPunto}
+        conProductor
         onDatos={alCargar}
         irTexto={t('merma.lista.comoMarcarPunto')}
         ir={{ ruta: RUTAS.acopioInventario, texto: t('merma.lista.irInventario') }}

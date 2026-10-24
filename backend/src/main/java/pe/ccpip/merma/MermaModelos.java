@@ -63,12 +63,13 @@ public final class MermaModelos {
     /**
      * Una merma, como la muestra A-04. {@code motivo} y {@code motivoEn} son los nombres con los que se
      * marco. {@code registradoPor} es nulo en la automatica y, para el productor, cuando la registro el
-     * punto de acopio (RNF-05).
+     * punto de acopio (RNF-05). {@code productor} es el nombre publico del productor del lote (su tienda o,
+     * sin ella, su comunidad; CCPIP-423), nunca sus datos de contacto.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record Merma(long id, Instant registradoEn, long productoId, String producto, String lote, String ubicacion,
                         BigDecimal cantidad, String motivo, String motivoEn, String detalle, boolean automatica,
-                        String registradoPor) {
+                        String registradoPor, long productorId, String productor) {
     }
 
     /** La merma recien marcada y el saldo que le queda al lote. {@code repetida}: el mismo envio otra vez. */

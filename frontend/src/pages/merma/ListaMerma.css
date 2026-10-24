@@ -1,5 +1,6 @@
 .merma__col-fecha { flex: 0 0 72px; }
 .merma__col-ubicacion { flex: 0 0 180px; }
+.merma__col-productor { flex: 0 0 180px; }
 .merma__col-causa { display: flex; flex: 0 0 200px; flex-direction: column; gap: 2px; }
 .merma__col-cantidad { flex: 0 0 90px; justify-content: flex-end; text-align: right; }
 .merma__col-registro { flex: 0 0 160px; color: var(--color-text-secondary); }

@@ -41,7 +41,7 @@ function merma(m) {
   return {
     id: 900, registradoEn: '2026-11-15T15:00:00Z', productoId: 8, producto: 'Harina de aguaje', lote: 'L-0240',
     ubicacion: 'Centro Nacional Lima', cantidad: 5, motivo: 'Daño', motivoEn: 'Damage', automatica: false,
-    registradoPor: 'Admin Acopio', ...m,
+    registradoPor: 'Admin Acopio', productorId: 1, productor: 'C.N. Puerto Alegre', ...m,
   }
 }
 
@@ -174,6 +174,26 @@ describe('A-04 Merma del punto y del productor (CCPIP-75, CCPIP-76)', () => {
     expect(screen.getByRole('link', { name: 'Ir al inventario' })).toHaveAttribute('href', '/acopio/inventario')
   })
 
+  it('el punto ve a qué productor pertenece el lote de cada merma (CCPIP-423)', async () => {
+    acopio({
+      'GET /api/acopio/merma': [200, {
+        ubicacion: 'Centro Nacional Lima', pagina: 0, tamano: 20, total: 2, totalPaginas: 1,
+        items: [
+          merma({ id: 901, lote: 'L-0236', motivo: 'Vencimiento', motivoEn: 'Expiry', automatica: true, registradoPor: undefined }),
+          merma({ id: 900, productorId: 2, productor: 'C.N. Yarina' }),
+        ],
+      }],
+    })
+    abrirEn('/acopio/merma')
+
+    const tabla = await screen.findByRole('table', { name: 'Merma registrada' })
+    const [encabezado, ...filas] = within(tabla).getAllByRole('row')
+    expect(within(encabezado).getByRole('columnheader', { name: 'Productor' })).toBeInTheDocument()
+    const columna = within(encabezado).getAllByRole('columnheader').findIndex((c) => c.textContent === 'Productor')
+    expect(within(filas[0]).getAllByRole('cell')[columna]).toHaveTextContent('C.N. Puerto Alegre')
+    expect(within(filas[1]).getAllByRole('cell')[columna]).toHaveTextContent('C.N. Yarina')
+  })
+
   it('el productor ve la merma de sus lotes con su ubicación y la marca desde su almacén', async () => {
     const lote = { id: 31, codigo: 'L-0231', ubicacionId: 11, ubicacion: 'Almacén', tipoUbicacion: 'ALMACEN_PRODUCTOR', cantidad: 40, fechaVencimiento: '2027-03-15', estado: 'DISPONIBLE' }
     const fetchMock = servidor({
@@ -202,6 +222,8 @@ describe('A-04 Merma del punto y del productor (CCPIP-75, CCPIP-76)', () => {
     expect(fila).toHaveTextContent('Accidente')
     // La marco el punto: no se muestra quien
     expect(fila).toHaveTextContent('El punto de acopio')
+    // Su propia merma: sin columna de productor
+    expect(within(tabla).queryByRole('columnheader', { name: 'Productor' })).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('link', { name: 'Ir a Mi almacén' }))
     await user.click(await screen.findByRole('button', { name: 'Marcar como merma el lote L-0231' }))
@@ -222,6 +244,8 @@ describe('A-04 Merma del punto y del productor (CCPIP-75, CCPIP-76)', () => {
     abrirEn('/acopio/merma')
     const tabla = await screen.findByRole('table', { name: 'Recorded shrinkage' })
     expect(within(tabla).getAllByRole('row')[1]).toHaveTextContent('Damage')
+    expect(within(tabla).getByRole('columnheader', { name: 'Producer' })).toBeInTheDocument()
+    expect(within(tabla).getAllByRole('row')[1]).toHaveTextContent('C.N. Puerto Alegre')
     await i18n.changeLanguage('es')
   })
 })

@@ -3215,6 +3215,7 @@
       "col": {
         "fecha": "Date",
         "producto": "Product and batch",
+        "productor": "Producer",
         "ubicacion": "Location",
         "causa": "Cause",
         "cantidad": "Quantity",
