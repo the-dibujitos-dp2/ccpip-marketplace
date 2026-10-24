@@ -1,10 +1,13 @@
 import Icono from './Icono.jsx'
 import './TarjetaKpi.css'
 
-/** Tarjeta KPI del panel (PW-01, SA-01). `tono` del detalle: exito (por defecto), error o neutro. */
+/**
+ * Tarjeta KPI del panel (PW-01, SA-01). `tono` del detalle: exito (por defecto), error, neutro o aviso
+ * (CCPIP-426: amarillo de advertencia, tambien en el icono).
+ */
 export default function TarjetaKpi({ titulo, valor, detalle, icono, tono = 'exito' }) {
   return (
-    <section className="tarjeta-kpi" aria-label={titulo}>
+    <section className={`tarjeta-kpi tarjeta-kpi--${tono}`} aria-label={titulo}>
       <div className="tarjeta-kpi__encabezado">
         <p className="label-m">{titulo}</p>
         {icono && (

@@ -79,7 +79,7 @@ export default function PanelPage({ path }) {
           <div className="productor__kpis">
             <TarjetaKpi titulo={t('productor.panel.kpi.publicados')} valor={panel.publicados} detalle={t('productor.panel.kpi.borradores', { count: panel.borradores })} icono={iconoEtiquetaGlifo} />
             <TarjetaKpi titulo={t('productor.panel.kpi.enVenta')} valor={t('comun.und', { cantidad: unidades(panel.stockEnVenta) })} detalle={t('productor.panel.kpi.enAcopios')} icono={iconoCajaGlifo} />
-            <TarjetaKpi titulo={t('productor.panel.kpi.porVencer')} valor={panel.lotesPorVencer.length} detalle={t('productor.panel.kpi.proximos15')} icono={iconoReloj} />
+            <TarjetaKpi titulo={t('productor.panel.kpi.porVencer')} valor={panel.lotesPorVencer.length} detalle={t('productor.panel.kpi.proximos15')} tono="aviso" icono={iconoReloj} />
             <TarjetaKpi titulo={t('productor.panel.kpi.despublicados')} valor={panel.retirados} detalle={t('productor.panel.kpi.republicar')} icono={iconoGrafico} />
           </div>
 

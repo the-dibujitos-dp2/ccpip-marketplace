@@ -171,6 +171,8 @@ function Indicadores({ resumen, diasAviso }) {
         titulo={t('productor.almacen.kpi.porVencer')}
         valor={t('productor.almacen.kpi.lotes', { count: resumen.lotesPorVencer })}
         detalle={t('productor.almacen.kpi.proximos', { dias: diasAviso })}
+        // CCPIP-426: amarillo de advertencia
+        tono="aviso"
         icono={iconoGrafico}
       />
       <TarjetaKpi
