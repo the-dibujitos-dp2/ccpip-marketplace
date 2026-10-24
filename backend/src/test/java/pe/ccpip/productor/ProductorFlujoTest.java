@@ -408,23 +408,99 @@ class ProductorFlujoTest extends IntegrationTest {
     }
 
     @Test
-    void lasDescripcionesAsistidasSoloCuentanSiElServidorLasPropuso() throws Exception {
+    void lasDescripcionesAsistidasSoloCuentanSiElProductorAceptoLaSugerencia() throws Exception {
         long id = crearProducto(datosAceite());
         Map<String, Object> datos = datosAceite();
         datos.put("descripcionAsistida", true);
-        mockMvc.perform(put("/api/productor/productos/{id}", id).cookie(nuevo)
-                        .contentType(MediaType.APPLICATION_JSON).content(json(datos)))
-                .andExpect(jsonPath("$.descripcionAsistida").value(false));
+        guardarProducto(id, datos).andExpect(jsonPath("$.descripcionAsistida").value(false));
 
-        mockMvc.perform(post("/api/productor/ia/descripcion").cookie(nuevo).contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("productoId", id, "nombre", "Camu camu en polvo",
-                                "lineas", List.of("SUPERFRUTOS"), "contenido", "150 g"))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.texto").value(containsString("superfrutos")));
-        mockMvc.perform(put("/api/productor/productos/{id}", id).cookie(nuevo)
-                        .contentType(MediaType.APPLICATION_JSON).content(json(datos)))
+        // CCPIP-49: un borrador pendiente, sin aceptar, no basta
+        String sugerida = proponerDescripcion(id, null);
+        assertThat(sugerida).contains("superfrutos");
+        guardarProducto(id, datos)
+                .andExpect(jsonPath("$.descripcionAsistida").value(false))
+                .andExpect(jsonPath("$.descripcionPropuesta").value(sugerida));
+
+        aceptarDescripcion(id).andExpect(status().isOk())
+                .andExpect(jsonPath("$.descripcionSugerida").value(sugerida))
+                .andExpect(jsonPath("$.descripcionPropuesta").doesNotExist());
+        // El productor edita la sugerencia: se guardan la version final y, aparte, la sugerida
+        datos.put("descripcion", sugerida + " Cosechado en canoa.");
+        guardarProducto(id, datos)
                 .andExpect(jsonPath("$.descripcionAsistida").value(true))
-                .andExpect(jsonPath("$.descripcionPropuesta").exists());
+                .andExpect(jsonPath("$.descripcion").value(sugerida + " Cosechado en canoa."))
+                .andExpect(jsonPath("$.descripcionSugerida").value(sugerida));
+    }
+
+    // ---------- Borrador de descripcion de la IA (CCPIP-49) ----------
+
+    @Test
+    void aceptarElBorradorRegistraQuienYCuandoSinPublicarNada() throws Exception {
+        long id = productoPublicado();
+        String sugerida = proponerDescripcion(id, null);
+
+        // Solo sus productos
+        aceptarDescripcion(id, loginAs("productor@ccpip.test")).andExpect(status().isNotFound());
+
+        aceptarDescripcion(id).andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("PUBLICADO"))
+                .andExpect(jsonPath("$.descripcion").value("Fruto deshidratado a baja temperatura."))
+                .andExpect(jsonPath("$.descripcionAsistida").value(false));
+        // Sin publicacion automatica: el comprador sigue viendo la descripcion que el productor guardo
+        assertThat(jdbc.queryForObject("SELECT descripcion FROM producto WHERE id = ?", String.class, id))
+                .isEqualTo("Fruto deshidratado a baja temperatura.");
+        assertThat(jdbc.queryForObject("""
+                SELECT descripcion_aceptada_en IS NOT NULL AND descripcion_aceptada_por = (SELECT id FROM usuario WHERE correo = ?)
+                FROM producto WHERE id = ?""", Boolean.class, "productor_nuevo@ccpip.test", id)).isTrue();
+        assertThat(jdbc.queryForObject("""
+                SELECT cambios ->> 'descripcionIaAceptada' FROM producto_auditoria
+                WHERE producto_id = ? AND accion = 'EDITAR' AND cambios ->> 'descripcionIaAceptada' IS NOT NULL""",
+                String.class, id)).isEqualTo(sugerida);
+
+        // Ya no hay borrador pendiente que aceptar
+        aceptarDescripcion(id).andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("SIN_BORRADOR"));
+    }
+
+    @Test
+    void pedirOtraVersionODescartarlaNoBorraLaSugerenciaAceptada() throws Exception {
+        long id = crearProducto(datosAceite());
+        String aceptada = proponerDescripcion(id, "Primera version.");
+        aceptarDescripcion(id).andExpect(status().isOk());
+        Map<String, Object> datos = datosAceite();
+        datos.put("descripcion", aceptada);
+        datos.put("descripcionAsistida", true);
+        guardarProducto(id, datos).andExpect(jsonPath("$.descripcionAsistida").value(true));
+
+        // Otra version que el productor descarta (CCPIP-280)
+        proponerDescripcion(id, "Segunda version.");
+        mockMvc.perform(post("/api/productor/productos/{id}/ia/rechazar", id).param("borrador", "DESCRIPCION").cookie(nuevo))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/productor/productos/{id}", id).cookie(nuevo))
+                .andExpect(jsonPath("$.descripcionSugerida").value(aceptada))
+                .andExpect(jsonPath("$.descripcionPropuesta").doesNotExist())
+                .andExpect(jsonPath("$.descripcionAsistida").value(true));
+        guardarProducto(id, datos).andExpect(jsonPath("$.descripcionAsistida").value(true));
+
+        // Y otra que queda pendiente: no reemplaza a la aceptada hasta que el productor la acepte
+        String pendiente = proponerDescripcion(id, "Tercera version.");
+        mockMvc.perform(get("/api/productor/productos/{id}", id).cookie(nuevo))
+                .andExpect(jsonPath("$.descripcionSugerida").value(aceptada))
+                .andExpect(jsonPath("$.descripcionPropuesta").value(pendiente));
+        aceptarDescripcion(id).andExpect(jsonPath("$.descripcionSugerida").value(pendiente));
+        // Las dos aceptaciones quedan en la auditoria
+        assertThat(jdbc.queryForList("""
+                SELECT cambios ->> 'descripcionIaAceptada' FROM producto_auditoria
+                WHERE producto_id = ? AND cambios ->> 'descripcionIaAceptada' IS NOT NULL ORDER BY id""", String.class, id))
+                .containsExactly(aceptada, pendiente);
+    }
+
+    @Test
+    void laBaseNoGuardaUnaSugerenciaSinQuienNiCuandoLaAcepto() throws Exception {
+        long id = crearProducto(datosAceite());
+        assertRechazaLaBase(() -> jdbc.update("UPDATE producto SET descripcion_sugerida = 'Texto' WHERE id = ?", id),
+                "producto_descripcion_aceptada_completa");
+        assertRechazaLaBase(() -> jdbc.update("UPDATE producto SET descripcion_aceptada_en = now() WHERE id = ?", id),
+                "producto_descripcion_aceptada_completa");
     }
 
     @Test
@@ -574,6 +650,34 @@ class ProductorFlujoTest extends IntegrationTest {
                 .andExpect(jsonPath("$.estado").value("BORRADOR"))
                 .andReturn().getResponse().getContentAsString();
         return idDe(body);
+    }
+
+    private ResultActions guardarProducto(long id, Map<String, Object> datos) throws Exception {
+        return mockMvc.perform(put("/api/productor/productos/{id}", id).cookie(nuevo)
+                .contentType(MediaType.APPLICATION_JSON).content(json(datos)));
+    }
+
+    /** Pide a la IA (simulada) un borrador de descripcion del producto y devuelve su texto; {@code notas} lo distingue. */
+    private String proponerDescripcion(long id, String notas) throws Exception {
+        Map<String, Object> pedido = new LinkedHashMap<>();
+        pedido.put("productoId", id);
+        pedido.put("nombre", "Camu camu en polvo");
+        pedido.put("lineas", List.of("SUPERFRUTOS"));
+        pedido.put("contenido", "150 g");
+        pedido.put("notas", notas);
+        String body = mockMvc.perform(post("/api/productor/ia/descripcion").cookie(nuevo)
+                        .contentType(MediaType.APPLICATION_JSON).content(json(pedido)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return objectMapper.readTree(body).get("texto").asText();
+    }
+
+    private ResultActions aceptarDescripcion(long id) throws Exception {
+        return aceptarDescripcion(id, nuevo);
+    }
+
+    private ResultActions aceptarDescripcion(long id, Cookie sesion) throws Exception {
+        return mockMvc.perform(post("/api/productor/productos/{id}/ia/descripcion/aceptar", id).cookie(sesion));
     }
 
     private long productoPublicado() throws Exception {
