@@ -78,6 +78,10 @@ describe('PW-01 Panel', () => {
     abrirEn('/productor')
     expect(await screen.findByText('Publica tu tienda para empezar a vender')).toBeInTheDocument()
     expect(screen.getByText('1 lote vence pronto (según tu alerta de 15 días)')).toBeInTheDocument()
+    // CCPIP-426: el indicador de lotes por vencer, en el amarillo de advertencia
+    const porVencer = screen.getByRole('region', { name: 'Lotes por vencer' })
+    expect(porVencer).toHaveClass('tarjeta-kpi--aviso')
+    expect(within(porVencer).getByText('En los próximos 15 días')).toHaveClass('tarjeta-kpi__detalle--aviso')
     expect(screen.getByRole('link', { name: 'Registrar lote para reponer' })).toHaveAttribute('href', '/productor/lotes?producto=8')
     await user.click(screen.getAllByRole('button', { name: 'Cerrar aviso' })[0])
     expect(screen.queryByText(/vence pronto/)).not.toBeInTheDocument()
