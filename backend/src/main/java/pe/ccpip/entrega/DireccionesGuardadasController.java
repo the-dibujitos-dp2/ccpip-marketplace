@@ -1,6 +1,9 @@
 package pe.ccpip.entrega;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,5 +36,12 @@ public class DireccionesGuardadasController {
     public DireccionGuardada guardar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                      @Valid @RequestBody NuevaDireccion nueva) {
         return service.guardar(s.userId(), nueva);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> retirar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                        @PathVariable long id) {
+        service.retirar(s.userId(), id);
+        return ResponseEntity.noContent().build();
     }
 }
