@@ -4,6 +4,7 @@ import iconoEstrella from '../../assets/icons/estrella.svg'
 import { obtenerTienda } from '../../api/catalogo.js'
 import AvisoTraduccion from '../../components/AvisoTraduccion.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
@@ -64,7 +65,9 @@ export default function TiendaPage({ id }) {
   if (!tienda) {
     return (
       <LayoutTienda>
-        <main aria-busy="true" />
+        <main className="contenedor tienda-publica" aria-busy="true">
+          <Cargando />
+        </main>
       </LayoutTienda>
     )
   }

@@ -10,6 +10,7 @@ import iconoUsuario from '../../assets/icons/usuario.svg'
 import { listarIntereses, obtenerPanel } from '../../api/productor.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
@@ -49,6 +50,7 @@ export default function PanelPage({ path }) {
   return (
     <PaginaProductor path={path} seccion={t('productor.nav.inicio')} titulo={t('cuenta.hola', { nombre })}>
       {error && <Alerta tono="error" titulo={t('cuenta.error')} descripcion={t('comun.errorConexion')} />}
+      {!panel && !error && <Cargando />}
       {panel && (
         <>
           <div className="productor__encabezado">

@@ -10,6 +10,7 @@ import { invalidarTiendaActual } from '../../api/tiendaActual.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Icono from '../../components/Icono.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -146,7 +147,7 @@ export default function TiendaEditorPage({ path }) {
   if (!tienda || !f) {
     return (
       <PaginaProductor path={path} seccion={t('productor.nav.tienda')} titulo={t('productor.tienda.titulo')}>
-        {alerta && <Alerta {...alerta} />}
+        {alerta ? <Alerta {...alerta} /> : <Cargando />}
       </PaginaProductor>
     )
   }

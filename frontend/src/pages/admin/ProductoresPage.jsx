@@ -4,6 +4,7 @@ import { listarProductores } from '../../api/autorizaciones.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { mensajeError } from '../../i18n/errores.js'
@@ -43,6 +44,7 @@ export default function ProductoresPage({ path }) {
     <LayoutAdmin path={path} migas={t('admin.nav.productores')} titulo={t('productores.titulo')}>
       <p className="body-m">{t('productores.intro')}</p>
       {error && <Alerta tono="error" titulo={mensajeError(error, 'productores.error')} />}
+      {!productores && !error && <Cargando />}
       {productores && productores.length === 0 && <EstadoVacio titulo={t('productores.vacio')} />}
       {productores && productores.length > 0 && (
         <div className="tabla" role="table" aria-label={t('productores.titulo')}>

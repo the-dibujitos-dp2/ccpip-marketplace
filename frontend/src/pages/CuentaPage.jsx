@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { fetchPanel } from '../api/panel.js'
 import Alerta from '../components/Alerta.jsx'
 import Boton from '../components/Boton.jsx'
+import Cargando from '../components/Cargando.jsx'
 import { mensajeError } from '../i18n/errores.js'
 import { RUTAS } from '../router.js'
 import './CuentaPage.css'
@@ -37,6 +38,7 @@ export default function CuentaPage({ user, minutosInactividad }) {
           </section>
         )}
         {error && <Alerta tono="error" titulo={t('cuenta.error')} descripcion={mensajeError(error)} />}
+        {!panel && !error && <Cargando />}
 
         {user.role === 'ADMIN_PUNTO' && (
           <div className="inicio__acciones">

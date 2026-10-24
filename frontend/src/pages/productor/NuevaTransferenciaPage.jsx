@@ -6,6 +6,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import { nombreLugar } from '../../components/DetalleTransferencia.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import { fechaCorta, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
@@ -107,6 +108,8 @@ export default function NuevaTransferenciaPage() {
           <Boton tamano="M" tipo="secundario" onClick={recargar}>{t('carrito.reintentar')}</Boton>
         </EstadoVacio>
       )}
+
+      {!datos && !error && <Cargando />}
 
       {datos && (
         <form className="nueva-transferencia" onSubmit={enviar} noValidate>

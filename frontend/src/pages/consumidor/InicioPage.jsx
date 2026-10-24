@@ -7,6 +7,7 @@ import iconoSinQuimicos from '../../assets/icons/sin-quimicos.svg'
 import { obtenerInicio } from '../../api/catalogo.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
@@ -75,6 +76,7 @@ export default function InicioPage() {
         </ul>
 
         {error && <Alerta tono="error" titulo={t('inicio.error')} descripcion={t('comun.errorConexion')} />}
+        {!datos && !error && <Cargando />}
 
         {datos?.tiendas.length > 0 && (
           <section className="seccion" aria-labelledby="titulo-comunidades">

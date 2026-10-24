@@ -8,6 +8,7 @@ import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
@@ -37,6 +38,7 @@ export default function DenunciasPage({ path }) {
         </div>
       )}
       {error && <Alerta tono="error" titulo={mensajeError(error, 'denunciasAdmin.error')} />}
+      {!datos && !error && <Cargando />}
       {datos && datos.productores.length === 0 && <EstadoVacio titulo={t('denunciasAdmin.vacio')} />}
       {datos?.productores.length > 0 && (
         <div className="tabla" role="table" aria-label={t('denunciasAdmin.tabla')}>

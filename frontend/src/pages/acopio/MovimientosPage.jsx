@@ -6,6 +6,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Buscador from '../../components/Buscador.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
@@ -87,6 +88,8 @@ export default function MovimientosPage({ path }) {
           <Boton tamano="M" tipo="secundario" onClick={recargar}>{t('carrito.reintentar')}</Boton>
         </EstadoVacio>
       )}
+
+      {!datos && !error && <Cargando />}
 
       {!error && datos && buscado && (
         <Alerta

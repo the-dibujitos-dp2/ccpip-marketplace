@@ -5,6 +5,7 @@ import iconoChevron from '../../assets/icons/chevron-abajo.svg'
 import { buscarProductos } from '../../api/catalogo.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
@@ -269,6 +270,7 @@ export default function BuscarPage({ search }) {
             ) : (
               error && <Alerta tono="error" titulo={t('buscar.error')} descripcion={t('comun.errorConexion')} />
             )}
+            {!resultado && !error && <Cargando />}
 
             {resultado?.total === 0 && (
               <EstadoVacio

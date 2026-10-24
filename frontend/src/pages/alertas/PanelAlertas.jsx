@@ -13,6 +13,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
@@ -113,6 +114,7 @@ export default function PanelAlertas({ rol, onPuntos }) {
         )}
 
         {error && <Alerta tono="error" titulo={t('alertas.errorCargar')} descripcion={t('comun.errorConexion')} />}
+        {!datos && !error && <Cargando />}
         {datos && alertas.length === 0 && <EstadoVacio titulo={t('alertas.vacio')} descripcion={t(`alertas.vacioTexto.${rol}`)} />}
 
         {visibles.length > 0 && (
