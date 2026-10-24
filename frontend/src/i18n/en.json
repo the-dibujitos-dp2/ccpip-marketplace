@@ -1779,7 +1779,9 @@
       "faltaParaAgregar_other": "Add {{count}} more units to be able to add it to your cart",
       "desdeMayorista": "From {{minimo}} units you pay {{precio}} each (wholesale price).",
       "resumenMinorista": "{{precio}} retail",
-      "resumenMayorista": "{{precio}} from {{minimo}} units"
+      "resumenMayorista": "{{precio}} from {{minimo}} units",
+      "avisoLateral": "You added “{{producto}}” to your cart",
+      "verCarrito": "View cart"
     },
     "pasos": {
       "etiqueta": "Checkout steps",
