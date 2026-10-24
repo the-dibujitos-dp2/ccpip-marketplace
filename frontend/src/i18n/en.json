@@ -3212,7 +3212,6 @@
       "comoMarcarPunto": "Shrinkage is marked from the batch, in the point inventory. Expired batches become shrinkage automatically the next day.",
       "comoMarcarProductor": "Shrinkage in your warehouse is marked from the batch, in My warehouse; at a point, the point marks it. Expired batches become shrinkage automatically the next day.",
       "irInventario": "Go to inventory",
-      "irAlmacen": "Go to My warehouse",
       "errorCargar": "We could not load the shrinkage",
       "vacio": "No shrinkage yet",
       "vacioTexto": "Here you will see marked shrinkage and automatic shrinkage from expiry.",

@@ -225,7 +225,10 @@ describe('A-04 Merma del punto y del productor (CCPIP-75, CCPIP-76)', () => {
     // Su propia merma: sin columna de productor
     expect(within(tabla).queryByRole('columnheader', { name: 'Productor' })).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('link', { name: 'Ir a Mi almacén' }))
+    // CCPIP-429: sin el boton "Ir a Mi almacen"; lo explica el texto y se llega por el menu
+    expect(screen.getByText(/La merma de tu almacén se marca desde el lote, en Mi almacén/)).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Ir a Mi almacén' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('link', { name: 'Almacén' }))
     await user.click(await screen.findByRole('button', { name: 'Marcar como merma el lote L-0231' }))
     const dialogo = await screen.findByRole('dialog', { name: 'Marcar como merma' })
     expect(within(dialogo).getByText('Mi almacén · stock actual 40 und')).toBeInTheDocument()
