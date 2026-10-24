@@ -3,6 +3,7 @@ package pe.ccpip.distribucion;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -91,6 +92,7 @@ class DistribucionDisponiblesTest extends IntegrationTest {
         pagina.get("items").forEach(p -> numeros.add(p.get("numero").asText()));
         return numeros;
     }
+
     @Test
     void listaSoloLosPedidosADomicilioPreparadosYSinAsumir() throws Exception {
         pedido("DIS-A", LIMA, "ENVIO", "LISTO_PARA_DESPACHO", "150122", "DISPONIBLE", false, 50);
@@ -292,9 +294,19 @@ class DistribucionDisponiblesTest extends IntegrationTest {
     }
 
     @Test
-    void laBaseAdmiteElEstadoListoParaDespachoPeroNoOtrosInventados() {
-        long id = pedido("DIS-A", LIMA, "ENVIO", "LISTO_PARA_DESPACHO", "150122", "DISPONIBLE", false, 1);
+    void unPedidoEntraALaColaCuandoElPuntoRegistraSuSalida() throws Exception {
+        // El flujo real: confirmado, en preparacion y listo para despacho por el punto (CCPIP-68 y CCPIP-320)
+        long id = pedido("DIS-FLUJO", LIMA, "ENVIO", "CONFIRMADO", "150122", "DISPONIBLE", false, 1);
+        Cookie admin = loginAs("admin_acopio@ccpip.test");
+        mockMvc.perform(post("/api/acopio/pedidos/DIS-FLUJO/preparacion").cookie(admin)).andExpect(status().isOk());
+        assertThat(mios(RUTA)).doesNotContain("DIS-FLUJO");
+
+        mockMvc.perform(post("/api/acopio/pedidos/DIS-FLUJO/despacho").cookie(admin)).andExpect(status().isOk());
+        assertThat(mios(RUTA)).contains("DIS-FLUJO");
+        // Disponible desde que el punto registro la salida, segun el historial
+        mockMvc.perform(get(RUTA).param("limite", "50").cookie(distribuidor))
+                .andExpect(jsonPath("$.items[?(@.numero == 'DIS-FLUJO')].disponibleDesde").exists())
+                .andExpect(jsonPath("$.items[?(@.numero == 'DIS-FLUJO')].esperaMinutos").value(0));
         assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id = ?", String.class, id)).isEqualTo("LISTO_PARA_DESPACHO");
-        assertRechazaLaBase(() -> jdbc.update("UPDATE pedido SET estado = 'DESPACHADO' WHERE id = ?", id), "pedido_estado_valido");
     }
 }
