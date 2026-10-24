@@ -86,7 +86,7 @@ function rutaReporte(sufijo, filtros = {}, idioma = null) {
 
 /** `metrica`: ventas, produccion o inventario. */
 export const consultarReporteProductor = (metrica, filtros) => apiFetch(rutaReporte(`/${metrica}`, filtros))
-/** CCPIP-115: enlace de descarga del reporte (ventas, produccion e inventario); la cookie de sesion viaja sola. */
+/** CCPIP-115 y CCPIP-335: enlace de descarga del reporte en PDF o Excel (ventas, produccion e inventario); la cookie de sesion viaja sola. */
 export const urlReporteProductor = (formato, filtros, idioma) => rutaReporte(`/${formato}`, filtros, idioma)
 // CCPIP-161: todos sus lotes, de todos sus productos, primero el que vence antes
 export const listarTodosLosLotes = () => apiFetch(`${base}/lotes`)

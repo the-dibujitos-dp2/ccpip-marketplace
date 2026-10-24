@@ -353,7 +353,8 @@
       "b2bDetalle": "Sold at the wholesale price",
       "vacioTexto": "Try another period or all products.",
       "exportar": {
-        "pdf": "Download PDF"
+        "pdf": "Download PDF",
+        "xlsx": "Download Excel"
       },
       "col": {
         "periodo": "Period",

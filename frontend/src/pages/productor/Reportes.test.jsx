@@ -214,6 +214,9 @@ describe('Reportes del productor', () => {
     const pdf = await screen.findByRole('link', { name: 'Descargar PDF' })
     expect(pdf).toHaveAttribute('href', '/api/productor/reportes/pdf?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES&lang=es')
     expect(pdf).toHaveAttribute('download')
+    // CCPIP-335: el mismo reporte en Excel, con los mismos filtros
+    expect(screen.getByRole('link', { name: 'Descargar Excel' }))
+      .toHaveAttribute('href', '/api/productor/reportes/xlsx?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES&lang=es')
 
     fireEvent.change(screen.getByLabelText('Producto'), { target: { value: '10' } })
     await screen.findByDisplayValue('Harina de aguaje 500 g')
@@ -230,5 +233,6 @@ describe('Reportes del productor', () => {
     expect(screen.getByRole('table', { name: 'Sales by period' })).toBeInTheDocument()
     expect(screen.getByLabelText('Purchase mode')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Download PDF' }).getAttribute('href')).toContain('lang=en')
+    expect(screen.getByRole('link', { name: 'Download Excel' }).getAttribute('href')).toContain('/xlsx?')
   })
 })

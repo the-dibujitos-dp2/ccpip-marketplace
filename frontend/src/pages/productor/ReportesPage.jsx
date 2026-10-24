@@ -30,12 +30,13 @@ const MODALIDADES = ['MINORISTA', 'MAYORISTA']
 const CON_MODALIDAD = ['ventas']
 
 /** Formatos de exportacion: el reporte completo de lo que se esta viendo. */
-const FORMATOS = ['pdf']
+const FORMATOS = ['pdf', 'xlsx']
 
 /**
  * Reportes del productor: estadisticas de sus productos por periodo, con el formato de los reportes de la
  * plataforma (SA-05). CCPIP-114 (RF-25): ventas; CCPIP-333 (RF-223): produccion;
- * CCPIP-334 (RF-224): inventario; CCPIP-115 (RF-26): exportacion en PDF. El servidor solo envia sus productos (RNF-05) y ningun
+ * CCPIP-334 (RF-224): inventario; CCPIP-115 (RF-26) y CCPIP-335 (RF-225): exportacion en PDF y
+ * Excel. El servidor solo envia sus productos (RNF-05) y ningun
  * dato de los compradores; la pantalla solo muestra lo calculado.
  */
 export default function ReportesPage({ path }) {
