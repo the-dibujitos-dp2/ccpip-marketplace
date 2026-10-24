@@ -22,3 +22,4 @@
   .pedidos-disponibles__tabla th,
   .pedidos-disponibles__tabla td { padding: 12px; }
 }
+.pedidos-disponibles__mas { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }

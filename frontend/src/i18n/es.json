@@ -817,6 +817,10 @@
         "destino": "Destino",
         "espera": "Espera"
       },
+      "cargarMas": "Cargar más pedidos",
+      "cargandoMas": "Cargando…",
+      "errorMas": "No pudimos cargar más pedidos",
+      "mostrando": "Mostrando {{n}} de {{total}}",
       "disponibleDesde": "Disponible desde el {{fecha}}",
       "espera": {
         "minutos": "{{m}} min",

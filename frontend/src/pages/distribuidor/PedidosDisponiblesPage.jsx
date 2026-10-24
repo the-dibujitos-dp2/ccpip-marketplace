@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { listarPedidosDisponibles } from '../../api/distribucion.js'
 import { useConsulta } from '../../api/useConsulta.js'
+import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
@@ -23,27 +24,42 @@ export function textoEspera(minutos, t) {
 
 /**
  * DW-01 · CCPIP-107 (RF-54): los pedidos preparados que el distribuidor puede asumir, con el punto donde
- * recogerlos, el distrito de destino y cuanto llevan esperando; el que lleva mas esperando va primero. Se
- * filtran por punto de acopio. La direccion y el contacto de quien recibe no se muestran: llegan al asumir la
- * entrega (CCPIP-108, CCPIP-110), igual que el mapa, las rutas y la seleccion para tomar pedidos.
+ * recogerlos, el distrito de destino y cuanto llevan esperando; el que lleva mas esperando va primero. La cola
+ * llega por paginas ("Cargar mas") y se filtra por punto de acopio. La direccion y el contacto de quien recibe
+ * no se muestran: llegan al asumir la entrega (CCPIP-108, CCPIP-110), igual que el mapa, las rutas y la
+ * seleccion para tomar pedidos.
  */
 export default function PedidosDisponiblesPage({ path }) {
   const { t } = useTranslation()
-  const { datos, error, recargar } = useConsulta(listarPedidosDisponibles)
   const [punto, setPunto] = useState(null)
-
-  // Los puntos donde hay pedidos, con cuantos: son las opciones del filtro
-  const puntos = useMemo(() => {
-    const porId = new Map()
-    ;(datos ?? []).forEach((p) => {
-      const actual = porId.get(p.origen.id)
-      porId.set(p.origen.id, { id: p.origen.id, nombre: p.origen.nombre, total: (actual?.total ?? 0) + 1 })
-    })
-    return [...porId.values()].sort((a, b) => a.nombre.localeCompare(b.nombre))
+  const consultar = useCallback(() => listarPedidosDisponibles({ punto }), [punto])
+  const { datos, error, recargar } = useConsulta(consultar)
+  // Las paginas que se piden despues de la primera; se descartan al volver a consultar la cola
+  const [mas, setMas] = useState(null)
+  const [cargandoMas, setCargandoMas] = useState(false)
+  const [errorMas, setErrorMas] = useState(null)
+  useEffect(() => {
+    setMas(null)
+    setErrorMas(null)
   }, [datos])
   // Si el punto filtrado ya no tiene pedidos al recargar, se vuelve a ver todos
-  const filtro = puntos.some((p) => p.id === punto) ? punto : null
-  const visibles = filtro === null ? (datos ?? []) : datos.filter((p) => p.origen.id === filtro)
+  useEffect(() => {
+    if (datos && punto !== null && !datos.puntos.some((p) => p.id === punto)) setPunto(null)
+  }, [datos, punto])
+
+  const items = datos ? [...datos.items, ...(mas?.items ?? [])] : []
+  const siguiente = mas ? mas.siguiente : datos?.siguiente
+  const hayPedidos = (datos?.puntos.length ?? 0) > 0
+  const todos = datos?.puntos.reduce((suma, p) => suma + p.total, 0) ?? 0
+
+  const cargarMas = () => {
+    setCargandoMas(true)
+    setErrorMas(null)
+    listarPedidosDisponibles({ punto, cursor: siguiente })
+      .then((pagina) => setMas({ items: [...(mas?.items ?? []), ...pagina.items], siguiente: pagina.siguiente }))
+      .catch((e) => e.status !== 401 && setErrorMas(e))
+      .finally(() => setCargandoMas(false))
+  }
 
   const titulo = t('distribuidor.pedidos.titulo')
   return (
@@ -56,29 +72,28 @@ export default function PedidosDisponiblesPage({ path }) {
         )}
         {!datos && !error && <p className="visually-hidden">{t('distribuidor.pedidos.cargando')}</p>}
 
-        {datos?.length === 0 && (
+        {datos && !hayPedidos && (
           <EstadoVacio titulo={t('distribuidor.pedidos.vacio')} descripcion={t('distribuidor.pedidos.vacioTexto')}>
             <Boton tamano="M" tipo="secundario" onClick={recargar}>{t('distribuidor.pedidos.actualizar')}</Boton>
           </EstadoVacio>
         )}
 
-        {datos?.length > 0 && (
+        {datos && hayPedidos && (
           <>
             <div className="pedidos-disponibles__barra">
               <div className="chips__lista" role="group" aria-label={t('distribuidor.pedidos.filtro')}>
-                <button type="button" className={`chip${filtro === null ? ' chip--activo' : ''}`} aria-pressed={filtro === null} onClick={() => setPunto(null)}>
-                  {t('distribuidor.pedidos.todos', { total: datos.length })}
+                <button type="button" className={`chip${punto === null ? ' chip--activo' : ''}`} aria-pressed={punto === null} onClick={() => setPunto(null)}>
+                  {t('distribuidor.pedidos.todos', { total: todos })}
                 </button>
-                {puntos.map((p) => (
-                  <button key={p.id} type="button" className={`chip${filtro === p.id ? ' chip--activo' : ''}`} aria-pressed={filtro === p.id} onClick={() => setPunto(p.id)}>
+                {datos.puntos.map((p) => (
+                  <button key={p.id} type="button" className={`chip${punto === p.id ? ' chip--activo' : ''}`} aria-pressed={punto === p.id} onClick={() => setPunto(p.id)}>
                     {`${p.nombre} (${p.total})`}
                   </button>
                 ))}
               </div>
               <Boton tamano="S" tipo="secundario" onClick={recargar}>{t('distribuidor.pedidos.actualizar')}</Boton>
             </div>
-
-            <p className="caption" role="status">{t('distribuidor.pedidos.total', { count: visibles.length })}</p>
+            <p className="caption" role="status">{t('distribuidor.pedidos.total', { count: datos.total })}</p>
             <table className="pedidos-disponibles__tabla">
               <caption className="visually-hidden">{titulo}</caption>
               <thead>
@@ -90,7 +105,7 @@ export default function PedidosDisponiblesPage({ path }) {
                 </tr>
               </thead>
               <tbody>
-                {visibles.map((p) => (
+                {items.map((p) => (
                   <tr key={p.numero}>
                     <th scope="row" className="pedidos-disponibles__numero">{p.numero}</th>
                     <td>
@@ -110,6 +125,17 @@ export default function PedidosDisponiblesPage({ path }) {
                 ))}
               </tbody>
             </table>
+            {siguiente && (
+              <div className="pedidos-disponibles__mas">
+                <p className="caption">{t('distribuidor.pedidos.mostrando', { n: items.length, total: datos.total })}</p>
+                <Boton tamano="M" tipo="secundario" onClick={cargarMas} disabled={cargandoMas}>
+                  {t(cargandoMas ? 'distribuidor.pedidos.cargandoMas' : 'distribuidor.pedidos.cargarMas')}
+                </Boton>
+              </div>
+            )}
+            {errorMas && (
+              <Alerta tono="error" titulo={t('distribuidor.pedidos.errorMas')} descripcion={mensajeError(errorMas)} />
+            )}
           </>
         )}
       </section>

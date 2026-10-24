@@ -817,6 +817,10 @@
         "destino": "Destination",
         "espera": "Waiting"
       },
+      "cargarMas": "Load more orders",
+      "cargandoMas": "Loading…",
+      "errorMas": "We couldn't load more orders",
+      "mostrando": "Showing {{n}} of {{total}}",
       "disponibleDesde": "Available since {{fecha}}",
       "espera": {
         "minutos": "{{m}} min",
