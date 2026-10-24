@@ -4,6 +4,7 @@ import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoIa from '../../assets/icons/ia.svg'
 import { obtenerProducto } from '../../api/catalogo.js'
 import AvisoTraduccion from '../../components/AvisoTraduccion.jsx'
+import Avatar from '../../components/Avatar.jsx'
 import Boton from '../../components/Boton.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
@@ -173,10 +174,6 @@ export default function ProductoPage({ id }) {
                   <dd>{capital(unidad)}</dd>
                 </div>
               )}
-              <div>
-                <dt>{t('producto.elaboradoPor')}</dt>
-                <dd>{tienda.pueblo ? t('tienda.pueblo', { pueblo: tienda.pueblo }) : tienda.comunidad}</dd>
-              </div>
             </dl>
           </div>
 
@@ -184,15 +181,8 @@ export default function ProductoPage({ id }) {
             <p className="overline">{[producto.linea?.nombre, tienda.region].filter(Boolean).join(' · ')}</p>
             <h1 className="ficha__titulo" lang={idiomaSegun(traducciones, 'nombre', originalFicha)}>{ficha('nombre', producto.nombre)}</h1>
             <AvisoTraduccion traducciones={traducciones} campos={CAMPOS_FICHA} verOriginal={originalFicha} onAlternar={() => setOriginalFicha((v) => !v)} />
-            <p className="ficha__productor">
-              <Icono src={iconoComunidad} tamano={20} />
-              {t('producto.hechoPor')}{' '}
-              <Enlace to={`/tiendas/${tienda.id}`} className="ficha__tienda">
-                {tienda.nombre}
-              </Enlace>
-              {tienda.pueblo && <span className="caption">{t('producto.puebloCorto', { pueblo: tienda.pueblo })}</span>}
-            </p>
-            {tienda.origenVerificado && <SelloOrigen variante="compacto" />}
+            {/* CCPIP-411: quien lo hace, junto al titulo y antes de la compra, sin bajar hasta el final */}
+            <ProductorDestacado tienda={tienda} relato={partes?.comunidad} lang={idiomaHistoria} />
 
             {historia && (
               <blockquote className="ficha__cita" lang={idiomaHistoria}>
@@ -351,6 +341,44 @@ export default function ProductoPage({ id }) {
         )}
       </main>
     </LayoutTienda>
+  )
+}
+
+/**
+ * CCPIP-411: bloque destacado del productor (Figma CW-03 "Columna de compra" > "Productor", ampliado).
+ * Solo datos publicos de la tienda que ya sirve GET /api/productos/{id}; el relato breve es la parte
+ * "La comunidad" de la historia del producto, si la tiene.
+ */
+function ProductorDestacado({ tienda, relato, lang }) {
+  const { t } = useTranslation()
+  const lugar = [tienda.localidad, tienda.region].filter(Boolean).join(', ')
+  const pertenencia = [tienda.pueblo && t('tienda.pueblo', { pueblo: tienda.pueblo }), tienda.comunidad !== tienda.nombre && tienda.comunidad]
+    .filter(Boolean)
+    .join(' · ')
+  return (
+    <section className="ficha__productor" aria-labelledby="titulo-productor">
+      <div className="ficha__productor-cabecera">
+        <Avatar nombre={tienda.nombre} />
+        <div className="ficha__productor-identidad">
+          <h2 id="titulo-productor" className="overline ficha__productor-overline">
+            <Icono src={iconoComunidad} tamano={14} />
+            {t('producto.productor.titulo')}
+          </h2>
+          <p className="ficha__productor-nombre">{tienda.nombre}</p>
+          {pertenencia && <p className="ficha__productor-dato">{pertenencia}</p>}
+          {lugar && <p className="ficha__productor-dato">{lugar}</p>}
+        </div>
+      </div>
+      {tienda.origenVerificado && <SelloOrigen variante="compacto" />}
+      {relato && (
+        <p className="ficha__productor-relato" lang={lang}>
+          {capital(relato.length > 160 ? primeraOracion(relato) : relato)}
+        </p>
+      )}
+      <Enlace to={`/tiendas/${tienda.id}`} className="enlace-marca ficha__productor-enlace">
+        {t('producto.productor.verTienda', { nombre: tienda.nombre })} <span aria-hidden="true">→</span>
+      </Enlace>
+    </section>
   )
 }
 

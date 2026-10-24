@@ -198,7 +198,7 @@ describe('CW-03 Ficha del producto (CCPIP-53, 152)', () => {
     expect(screen.getByText('desde 12 und')).toBeInTheDocument()
 
     expect(screen.getByRole('heading', { name: 'Del bosque a tu mesa' })).toBeInTheDocument()
-    expect(screen.getByText('Somos 20 familias')).toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: 'Del bosque a tu mesa' })).getByText('Somos 20 familias')).toBeInTheDocument()
     expect(screen.getByText(/redactado con apoyo de inteligencia artificial/)).toBeInTheDocument()
     expect(screen.getByText('Consumir antes de')).toBeInTheDocument()
     expect(screen.queryByText(/L-000/)).not.toBeInTheDocument()
@@ -207,6 +207,41 @@ describe('CW-03 Ficha del producto (CCPIP-53, 152)', () => {
     expect(screen.getByText('2 / 2')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Para compras por volumen' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'También de cacao y chocolates' })).toBeInTheDocument()
+  })
+
+  // CCPIP-411: quien lo hace se ve junto al titulo, antes de la compra, la descripcion y la historia
+  it('destaca al productor junto al titulo, antes de la compra y la descripcion, con enlace a su tienda', async () => {
+    servidor({ ...sinSesion, 'GET /api/productos/1': [200, conTodo] })
+    abrirEn('/productos/1')
+    const titulo = await screen.findByRole('heading', { level: 1, name: conTodo.nombre })
+    const productor = screen.getByRole('region', { name: 'Quién lo hace' })
+    const { tienda } = conTodo
+    expect(within(productor).getByText(tienda.nombre)).toBeInTheDocument()
+    expect(within(productor).getByText(`Pueblo ${tienda.pueblo} · ${tienda.comunidad}`)).toBeInTheDocument()
+    expect(within(productor).getByText(`${tienda.localidad}, ${tienda.region}`)).toBeInTheDocument()
+    expect(within(productor).getByText('Origen verificado')).toBeInTheDocument()
+    expect(within(productor).getByText('Somos 20 familias')).toBeInTheDocument()
+    expect(within(productor).getByRole('link', { name: `Conoce la tienda de ${tienda.nombre}` })).toHaveAttribute('href', `/tiendas/${tienda.id}`)
+
+    const antes = (a, b) => expect(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    antes(titulo, productor)
+    antes(productor, screen.getByRole('radiogroup', { name: 'Precio según modalidad' }))
+    antes(productor, screen.getByText(conTodo.descripcion))
+    antes(productor, screen.getByRole('region', { name: 'Del bosque a tu mesa' }))
+    antes(productor, screen.getByRole('heading', { name: 'Para compras por volumen' }))
+    // Un solo bloque del productor: ya no se repite "Elaborado por" en los datos de la galeria
+    expect(screen.queryByText('Elaborado por')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /Conoce la tienda/ })).toHaveLength(1)
+  })
+
+  it('sin historia ni pueblo el bloque del productor muestra lo que hay y su enlace', async () => {
+    const tienda = { ...copia(DATOS.detalle).tienda, pueblo: null, origenVerificado: false }
+    servidor({ ...sinSesion, 'GET /api/productos/1': [200, { ...copia(DATOS.detalle), historia: null, tienda }] })
+    abrirEn('/productos/1')
+    const productor = await screen.findByRole('region', { name: 'Quién lo hace' })
+    expect(within(productor).getByText(tienda.comunidad)).toBeInTheDocument()
+    expect(within(productor).queryByText('Origen verificado')).not.toBeInTheDocument()
+    expect(within(productor).getByRole('link', { name: `Conoce la tienda de ${tienda.nombre}` })).toHaveAttribute('href', `/tiendas/${tienda.id}`)
   })
 
   it('un producto agotado lo indica y uno retirado responde que no esta disponible', async () => {

@@ -1680,9 +1680,10 @@
     "origen": "Origen",
     "cosecha": "Cosecha",
     "presentacion": "Presentación",
-    "elaboradoPor": "Elaborado por",
-    "hechoPor": "Hecho por",
-    "puebloCorto": "· pueblo {{pueblo}}",
+    "productor": {
+      "titulo": "Quién lo hace",
+      "verTienda": "Conoce la tienda de {{nombre}}"
+    },
     "leerHistoria": "Leer su historia",
     "precioSegunModalidad": "Precio según modalidad",
     "precioMinorista": "Precio minorista",
