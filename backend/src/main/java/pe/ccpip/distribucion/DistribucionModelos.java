@@ -1,6 +1,7 @@
 package pe.ccpip.distribucion;
 
 import java.time.Instant;
+import java.util.List;
 
 import pe.ccpip.entrega.EntregaModelos.Distrito;
 
@@ -23,4 +24,16 @@ public final class DistribucionModelos {
     public record PedidoDisponible(String numero, Origen origen, Distrito destino, Instant disponibleDesde,
                                    long esperaMinutos) {
     }
-}
+
+    /** Cuantos pedidos disponibles salen de un punto de acopio. */
+    public record PuntoConPedidos(long id, String nombre, long total) {
+    }
+
+    /**
+     * Una pagina de la cola de pedidos disponibles. {@code siguiente} es el cursor opaco de la pagina que sigue,
+     * nulo en la ultima; {@code total}, los pedidos disponibles (del punto filtrado, si se filtro); {@code puntos},
+     * los puntos con pedidos y cuantos tiene cada uno, sin importar el filtro, para poder cambiar de punto.
+     */
+    public record Disponibles(List<PedidoDisponible> items, String siguiente, long total, List<PuntoConPedidos> puntos) {
+    }
+}
