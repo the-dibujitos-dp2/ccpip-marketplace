@@ -44,6 +44,24 @@ describe('CCPIP-365 Evidencias publicas de certificacion (CW-03)', () => {
     expect(within(seccion).queryByRole('link')).not.toBeInTheDocument()
   })
 
+  it.each([
+    ['desktop', 1280],
+    ['mobile', 375],
+  ])('muestra las calificaciones inmediatamente después de la certificación en %s', async (_contexto, ancho) => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: ancho })
+    servidor({
+      ...sinSesion,
+      'GET /api/productos/1/certificacion': () => [200, copia(VERIFICADA)],
+      'GET /api/productos/1/calificaciones': () => [200, copia(DATOS.calificacionesProducto)],
+    })
+    abrirEn('/productos/1')
+
+    const certificacion = await screen.findByRole('region', { name: 'Certificación del producto' })
+    const calificaciones = await screen.findByRole('region', { name: 'Calificaciones' })
+
+    expect(certificacion.nextElementSibling).toBe(calificaciones)
+  })
+
   it('con el certificado vencido no dice verificado', async () => {
     servidor({
       ...sinSesion,
