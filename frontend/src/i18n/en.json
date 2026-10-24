@@ -360,7 +360,10 @@
         "b2c": "B2C",
         "b2b": "B2B",
         "total": "Total",
-        "acumulado": "Cumulative"
+        "acumulado": "Cumulative",
+        "barraProduccion": "Units in",
+        "ingresadas": "Units in",
+        "lotes": "New batches"
       },
       "ventas": {
         "pestana": "Sales",
@@ -370,6 +373,17 @@
         "porProducto": "Sales by product",
         "vacio": "No sales in this period",
         "nota": "Subtotal of your products in each paid, non-cancelled order, by the date it was confirmed (Lima time). A sale is B2B if it was made at the wholesale price."
+      },
+      "produccion": {
+        "pestana": "Production",
+        "unidades": "Units produced",
+        "unidadesDetalle": "New batches and production entries",
+        "lotes": "New batches",
+        "lotesDetalle": "Registered in the period",
+        "porPeriodo": "Production by period",
+        "porProducto": "Production by product",
+        "vacio": "No production in this period",
+        "nota": "Every entry into your batches, by the date it was registered (Lima time): a new batch and production or reception entries into an existing batch. Transfers do not count because they only move what was already produced."
       }
     },
     "productos": {

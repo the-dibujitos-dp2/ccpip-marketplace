@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import iconoCaja from '../../assets/icons/caja.svg'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoGrafico from '../../assets/icons/grafico.svg'
 import iconoTienda from '../../assets/icons/tienda.svg'
@@ -16,7 +17,7 @@ import './productor.css'
 import './ReportesPage.css'
 
 /** Pestanas de la pantalla, en orden. Cada una es /api/productor/reportes/{clave}. */
-const METRICAS = ['ventas']
+const METRICAS = ['ventas', 'produccion']
 
 const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
 
@@ -27,7 +28,7 @@ const CON_MODALIDAD = ['ventas']
 
 /**
  * Reportes del productor: estadisticas de sus productos por periodo, con el formato de los reportes de la
- * plataforma (SA-05). CCPIP-114 (RF-25): ventas. El servidor solo envia sus productos (RNF-05) y ningun
+ * plataforma (SA-05). CCPIP-114 (RF-25): ventas; CCPIP-333 (RF-223): produccion. El servidor solo envia sus productos (RNF-05) y ningun
  * dato de los compradores; la pantalla solo muestra lo calculado.
  */
 export default function ReportesPage({ path }) {
@@ -122,6 +123,7 @@ export default function ReportesPage({ path }) {
       {error && <Alerta tono="error" titulo={t('productor.reportes.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
       {cargando && !datos && <p className="caption">{t('comun.cargando')}</p>}
       {mostrada === 'ventas' && <Ventas datos={datos} />}
+      {mostrada === 'produccion' && <Produccion datos={datos} />}
     </PaginaProductor>
   )
 }
@@ -194,6 +196,68 @@ function Ventas({ datos }) {
                 <span className="tabla__celda reportes-productor__num" role="cell">{precio(p.b2c)}</span>
                 <span className="tabla__celda reportes-productor__num" role="cell">{precio(p.b2b)}</span>
                 <span className="tabla__celda reportes-productor__num label-m" role="cell">{precio(p.total)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </>
+  )
+}
+
+/** CCPIP-333: lo que ingreso a su inventario por periodo (lotes nuevos y entradas de produccion), y por producto. */
+function Produccion({ datos }) {
+  const { t } = useTranslation()
+  const { totales, periodos, porProducto, agrupacion } = datos
+  const mayor = Math.max(...periodos.map((p) => Number(p.unidades)), 0)
+  return (
+    <>
+      <div className="productor__kpis">
+        <TarjetaKpi titulo={t('productor.reportes.produccion.unidades')} valor={t('comun.und', { cantidad: unidades(totales.unidades) })}
+          tono="neutro" icono={iconoGrafico} detalle={t('productor.reportes.produccion.unidadesDetalle')} />
+        <TarjetaKpi titulo={t('productor.reportes.produccion.lotes')} valor={unidades(totales.lotes)} tono="neutro" icono={iconoCaja}
+          detalle={t('productor.reportes.produccion.lotesDetalle')} />
+      </div>
+      <section className="productor__seccion" aria-labelledby="reportes-produccion-periodo">
+        <h2 id="reportes-produccion-periodo" className="heading-h3">{t('productor.reportes.produccion.porPeriodo')}</h2>
+        <div className="tabla" role="table" aria-labelledby="reportes-produccion-periodo">
+          <div className="tabla__fila tabla__fila--encabezado" role="row">
+            <span className="tabla__celda reportes-productor__periodo" role="columnheader">{t('productor.reportes.col.periodo')}</span>
+            <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.reportes.col.barraProduccion')}</span>
+            <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.ingresadas')}</span>
+            <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.lotes')}</span>
+            <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.acumulado')}</span>
+          </div>
+          {periodos.map((p) => (
+            <div key={p.inicio} className="tabla__fila" role="row">
+              <span className="tabla__celda reportes-productor__periodo label-m" role="cell">{nombrePeriodo(p, agrupacion, t)}</span>
+              <span className="tabla__celda tabla__celda--flex" role="cell">
+                <Barra partes={[Number(p.unidades)]} mayor={mayor} />
+              </span>
+              <span className="tabla__celda reportes-productor__num" role="cell">{unidades(p.unidades)}</span>
+              <span className="tabla__celda reportes-productor__num" role="cell">{unidades(p.lotes)}</span>
+              <span className="tabla__celda reportes-productor__num label-m" role="cell">{unidades(p.acumulado)}</span>
+            </div>
+          ))}
+        </div>
+        <p className="caption">{t('productor.reportes.produccion.nota')}</p>
+      </section>
+      <section className="productor__seccion" aria-labelledby="reportes-produccion-producto">
+        <h2 id="reportes-produccion-producto" className="heading-h3">{t('productor.reportes.produccion.porProducto')}</h2>
+        {porProducto.length === 0 ? (
+          <EstadoVacio titulo={t('productor.reportes.produccion.vacio')} descripcion={t('productor.reportes.vacioTexto')} />
+        ) : (
+          <div className="tabla" role="table" aria-labelledby="reportes-produccion-producto">
+            <div className="tabla__fila tabla__fila--encabezado" role="row">
+              <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.reportes.col.producto')}</span>
+              <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.ingresadas')}</span>
+              <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.lotes')}</span>
+            </div>
+            {porProducto.map((p) => (
+              <div key={p.productoId} className="tabla__fila" role="row">
+                <span className="tabla__celda tabla__celda--flex label-m" role="cell">{p.producto}</span>
+                <span className="tabla__celda reportes-productor__num" role="cell">{unidades(p.unidades)}</span>
+                <span className="tabla__celda reportes-productor__num" role="cell">{unidades(p.lotes)}</span>
               </div>
             ))}
           </div>

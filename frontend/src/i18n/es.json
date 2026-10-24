@@ -360,7 +360,10 @@
         "b2c": "B2C",
         "b2b": "B2B",
         "total": "Total",
-        "acumulado": "Acumulado"
+        "acumulado": "Acumulado",
+        "barraProduccion": "Unidades ingresadas",
+        "ingresadas": "Ingresadas",
+        "lotes": "Lotes nuevos"
       },
       "ventas": {
         "pestana": "Ventas",
@@ -370,6 +373,17 @@
         "porProducto": "Ventas por producto",
         "vacio": "No hubo ventas en este período",
         "nota": "Subtotal de tus productos en cada pedido pagado y no cancelado, por la fecha en que se confirmó (hora de Lima). Una venta es B2B si se hizo a precio mayorista."
+      },
+      "produccion": {
+        "pestana": "Producción",
+        "unidades": "Unidades producidas",
+        "unidadesDetalle": "Lotes nuevos y entradas de producción",
+        "lotes": "Lotes nuevos",
+        "lotesDetalle": "Registrados en el período",
+        "porPeriodo": "Producción por período",
+        "porProducto": "Producción por producto",
+        "vacio": "No hubo producción en este período",
+        "nota": "Cada entrada en tus lotes, por la fecha en que se registró (hora de Lima): el registro de un lote nuevo y las entradas de producción o recepción en un lote existente. Las transferencias no cuentan porque solo mueven lo ya producido."
       }
     },
     "productos": {

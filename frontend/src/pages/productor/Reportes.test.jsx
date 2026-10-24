@@ -34,6 +34,24 @@ const VENTAS = {
   productos: PRODUCTOS,
 }
 
+const PRODUCCION = {
+  desde: '2026-01-01',
+  hasta: '2026-03-18',
+  agrupacion: 'MES',
+  producto: null,
+  totales: { unidades: 90, lotes: 2 },
+  periodos: [
+    { inicio: '2026-01-01', fin: '2026-01-31', unidades: 60, lotes: 1, acumulado: 60 },
+    { inicio: '2026-02-01', fin: '2026-02-28', unidades: 0, lotes: 0, acumulado: 60 },
+    { inicio: '2026-03-01', fin: '2026-03-18', unidades: 30, lotes: 1, acumulado: 90 },
+  ],
+  porProducto: [
+    { productoId: 9, producto: 'Aceite de sacha inchi 250 ml', unidades: 60, lotes: 1 },
+    { productoId: 10, producto: 'Harina de aguaje 500 g', unidades: 30, lotes: 1 },
+  ],
+  productos: PRODUCTOS,
+}
+
 function productor(rutas = {}) {
   return servidor({
     ...PUBLICAS,
@@ -114,6 +132,31 @@ describe('Reportes del productor', () => {
     fireEvent.change(screen.getByLabelText('Agrupar por'), { target: { value: 'DIA' } })
     expect(await screen.findByText('No pudimos cargar el reporte')).toBeInTheDocument()
     expect(screen.getByText('Consulta como máximo un año a la vez.')).toBeInTheDocument()
+  })
+
+  it('CCPIP-333: la pestana Produccion consulta el mismo rango y no ofrece la modalidad', async () => {
+    const fetchMock = productor({
+      'GET /api/productor/reportes/produccion?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES': () => [200, copia(PRODUCCION)],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/reportes')
+    await screen.findByRole('table', { name: 'Ventas por período' })
+    fireEvent.change(screen.getByLabelText('Modalidad'), { target: { value: 'MAYORISTA' } })
+    await user.click(screen.getByRole('tab', { name: 'Producción' }))
+
+    expect(await screen.findByRole('region', { name: 'Unidades producidas' })).toHaveTextContent('90 und')
+    expect(screen.getByRole('region', { name: 'Lotes nuevos' })).toHaveTextContent('2')
+    expect(screen.getByRole('tab', { name: 'Producción', selected: true })).toBeInTheDocument()
+    expect(screen.queryByLabelText('Modalidad')).not.toBeInTheDocument()
+    // La modalidad elegida en Ventas no viaja a Produccion
+    expect(llamadas(fetchMock, 'GET /api/productor/reportes/produccion?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES')).toHaveLength(1)
+
+    const periodos = within(screen.getByRole('table', { name: 'Producción por período' })).getAllByRole('row')
+    expect(within(periodos[3]).getByText('30')).toBeInTheDocument()
+    expect(within(periodos[3]).getByText('90')).toBeInTheDocument()
+    const productos = within(screen.getByRole('table', { name: 'Producción por producto' })).getAllByRole('row')
+    expect(within(productos[1]).getByText('Aceite de sacha inchi 250 ml')).toBeInTheDocument()
+    expect(screen.getByText(/Las transferencias no cuentan/)).toBeInTheDocument()
   })
 
   it('sale en ingles', async () => {
