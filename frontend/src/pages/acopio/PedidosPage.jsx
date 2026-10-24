@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listarPedidos, marcarListo, marcarPreparacion } from '../../api/acopio.js'
+import { listarPedidos, marcarListo, marcarListoParaDespacho, marcarPreparacion } from '../../api/acopio.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -17,8 +17,26 @@ const COLUMNAS = [
   { estado: 'CONFIRMADO', accion: 'PREPARACION' },
   { estado: 'EN_PREPARACION', accion: 'LISTO' },
   { estado: 'LISTO_PARA_RECOJO', accion: 'RECOJO' },
+  { estado: 'LISTO_PARA_DESPACHO' },
   { estado: 'ENTREGADO' },
 ]
+
+/** Cada cambio de estado que el punto registra con un boton: a que API llama y como lo dice (textos de acopio.pedidos). */
+const ACCIONES = {
+  PREPARACION: {
+    llamar: marcarPreparacion, exito: 'preparacionRegistrada', error: 'errorPreparacion',
+    etiqueta: 'preparacionEtiqueta', texto: 'columna.EN_PREPARACION', ocupado: 'registrandoPreparacion',
+  },
+  LISTO: {
+    llamar: marcarListo, exito: 'marcado', error: 'errorMarcar',
+    etiqueta: 'marcarEtiqueta', texto: 'columna.LISTO_PARA_RECOJO', ocupado: 'marcando',
+  },
+  // CCPIP-320: el pedido a domicilio preparado sale del punto para que lo retire un distribuidor
+  DESPACHO: {
+    llamar: marcarListoParaDespacho, exito: 'despachoRegistrado', error: 'errorDespacho',
+    etiqueta: 'despachoEtiqueta', texto: 'columna.LISTO_PARA_DESPACHO', ocupado: 'registrandoSalida',
+  },
+}
 
 /** "Lote L-0247 · vence 02/11/2027 · 2 und": de donde sale lo que se entrega (CCPIP-74). */
 function textoLote(lote) {
@@ -29,7 +47,8 @@ function textoLote(lote) {
 
 /**
  * A-05 · CCPIP-68 y CCPIP-159: el administrador registra preparacion y luego disponibilidad para recojo;
- * el servidor guarda quien y cuando, y rechaza transiciones que ya cambiaron.
+ * el servidor guarda quien y cuando, y rechaza transiciones que ya cambiaron. CCPIP-320: un pedido a
+ * domicilio preparado no se marca listo para recojo: se registra su salida y queda listo para despacho.
  * CCPIP-74: cada linea muestra los lotes asignados, el que vence antes primero, para saber que
  * entregar. CCPIP-71: el pedido listo se entrega con "Registrar recojo", que pide y valida en el
  * servidor quien recoge y su celular.
@@ -49,18 +68,14 @@ export default function PedidosPage({ path }) {
   async function marcar(numero, accion) {
     setMarcando(numero)
     setAviso(null)
+    const { llamar, exito, error } = ACCIONES[accion]
     try {
-      const pedido = accion === 'PREPARACION' ? await marcarPreparacion(numero) : await marcarListo(numero)
-      reemplazar(pedido)
-      setAviso({
-        tono: 'exito',
-        titulo: t(accion === 'PREPARACION' ? 'acopio.pedidos.preparacionRegistrada' : 'acopio.pedidos.marcado', { numero }),
-      })
+      reemplazar(await llamar(numero))
+      setAviso({ tono: 'exito', titulo: t(`acopio.pedidos.${exito}`, { numero }) })
     } catch (e) {
       // Un 401 ya lo maneja la app; aqui se explican las reglas de negocio
       if (e.status === 401) return
-      const error = accion === 'PREPARACION' ? 'acopio.pedidos.errorPreparacion' : 'acopio.pedidos.errorMarcar'
-      setAviso({ tono: 'error', titulo: t(error), descripcion: mensajeError(e) })
+      setAviso({ tono: 'error', titulo: t(`acopio.pedidos.${error}`), descripcion: mensajeError(e) })
       // Si otra persona ya lo cambio, la pantalla estaba desactualizada
       if (e.status === 404 || e.status === 409) recargar()
     } finally {
@@ -125,8 +140,10 @@ function TarjetaPedido({ pedido, accion, ocupado, onMarcar, onRecojo }) {
   const { t } = useTranslation()
   const cambio = [...pedido.historial].reverse().find((c) => c.estado === pedido.estado)
   const cuando = fechaHora(cambio?.registradoEn ?? pedido.confirmadoEn)
-  // CCPIP-59: lo entrega el punto en el domicilio del comprador; su despacho llega con la distribucion
+  // CCPIP-59: va al domicilio del comprador; en preparacion se registra su salida en vez de marcarlo listo (CCPIP-320)
   const aDomicilio = pedido.modalidad === 'ENVIO'
+  const accionTarjeta = accion === 'LISTO' && aDomicilio ? 'DESPACHO' : accion
+  const boton = ACCIONES[accionTarjeta]
   return (
     <li className="pedidos__tarjeta">
       <p className="pedidos__numero">{pedido.numero}</p>
@@ -148,19 +165,17 @@ function TarjetaPedido({ pedido, accion, ocupado, onMarcar, onRecojo }) {
       <p className="caption pedidos__pie">
         {`${t(`acopio.pedidos.pie.${pedido.estado}`, { defaultValue: pedido.estado })} ${cuando}${cambio?.responsable ? ` · ${cambio.responsable}` : ''} · ${precio(pedido.total)}`}
       </p>
-      {aDomicilio && accion !== 'PREPARACION' && <p className="caption">{t('acopio.pedidos.aDomicilioNota')}</p>}
-      {(accion === 'PREPARACION' || (accion === 'LISTO' && !aDomicilio)) && (
+      {pedido.estado === 'LISTO_PARA_DESPACHO' && <p className="caption">{t('acopio.pedidos.esperaDistribuidor')}</p>}
+      {boton && (
         <Boton
           tipo="secundario"
           tamano="M"
           anchoCompleto
           disabled={ocupado}
-          aria-label={t(accion === 'PREPARACION' ? 'acopio.pedidos.preparacionEtiqueta' : 'acopio.pedidos.marcarEtiqueta', { numero: pedido.numero })}
-          onClick={() => onMarcar(pedido.numero, accion)}
+          aria-label={t(`acopio.pedidos.${boton.etiqueta}`, { numero: pedido.numero })}
+          onClick={() => onMarcar(pedido.numero, accionTarjeta)}
         >
-          {ocupado
-            ? t(accion === 'PREPARACION' ? 'acopio.pedidos.registrandoPreparacion' : 'acopio.pedidos.marcando')
-            : t(accion === 'PREPARACION' ? 'acopio.pedidos.columna.EN_PREPARACION' : 'acopio.pedidos.columna.LISTO_PARA_RECOJO')}
+          {t(`acopio.pedidos.${ocupado ? boton.ocupado : boton.texto}`)}
         </Boton>
       )}
       {accion === 'RECOJO' && (
