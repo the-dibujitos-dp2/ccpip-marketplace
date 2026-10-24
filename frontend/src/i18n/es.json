@@ -2937,7 +2937,7 @@
     "basadoEn_one": "Basado en {{count}} calificación",
     "basadoEn_other": "Basado en {{count}} calificaciones",
     "distribucion": "Calificaciones por estrellas",
-    "sinCalificaciones": "Este producto aún no tiene calificaciones.",
+    "sinResenas": "Aún no tiene reseñas. Si lo compras, puedes ser la primera persona en valorarlo.",
     "insuficiente_one": "Hay {{count}} calificación. Mostraremos el promedio cuando haya al menos {{minimo}}.",
     "insuficiente_other": "Hay {{count}} calificaciones. Mostraremos el promedio cuando haya al menos {{minimo}}.",
     "resenas": "Opiniones de compradores",

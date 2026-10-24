@@ -2937,7 +2937,7 @@
     "basadoEn_one": "Based on {{count}} rating",
     "basadoEn_other": "Based on {{count}} ratings",
     "distribucion": "Ratings by stars",
-    "sinCalificaciones": "This product has no ratings yet.",
+    "sinResenas": "No reviews yet. If you buy it, you can be the first person to rate it.",
     "insuficiente_one": "There is {{count}} rating. We will show the average once there are at least {{minimo}}.",
     "insuficiente_other": "There are {{count}} ratings. We will show the average once there are at least {{minimo}}.",
     "resenas": "Buyer reviews",
