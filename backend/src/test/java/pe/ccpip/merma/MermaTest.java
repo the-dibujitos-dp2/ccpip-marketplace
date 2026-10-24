@@ -6,17 +6,29 @@ import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.ByteArrayInputStream;
+import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.junit.jupiter.api.Test;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
@@ -42,6 +54,8 @@ class MermaTest extends IntegrationTest {
     private static final String SUPER = "sudo@ccpip.test";
     private static final String ACOPIO = "/api/acopio/merma";
     private static final String ALMACEN = "/api/productor/merma";
+    private static final String REPORTE_ACOPIO = "/api/acopio/merma";
+    private static final String REPORTE_PRODUCTOR = "/api/productor/merma";
     private static final String CATALOGO = "/api/admin/motivos-merma";
 
     @Autowired
@@ -284,6 +298,129 @@ class MermaTest extends IntegrationTest {
                 .andExpect(jsonPath(filtro + ".automatica").value(hasItem(true)));
     }
 
+    // --- CCPIP-78: reportes de merma ---
+
+    @Test
+    void elReporteFiltraPorPeriodoLoteProductoYUbicacionSinCambiarLaPaginacion() throws Exception {
+        long producto = producto("Producto reporte merma");
+        long primero = lote(producto, "REP-UNO", ubicacion("Centro Nacional Lima"), "5", HOY.plusDays(60));
+        long segundo = lote(producto, "REP-DOS", ubicacion("Centro Nacional Lima"), "5", HOY.plusDays(60));
+        Cookie admin = loginAs(ADMIN);
+        marcar(admin, ACOPIO, cuerpo(primero, "1", causa("Daño"), null, true)).andExpect(status().isCreated());
+        marcar(admin, ACOPIO, cuerpo(segundo, "1", causa("Daño"), null, true)).andExpect(status().isCreated());
+
+        mockMvc.perform(get(REPORTE_ACOPIO).cookie(admin)
+                        .param("desde", HOY.toString()).param("hasta", HOY.toString())
+                        .param("lote", "REP-UNO").param("producto", "Producto reporte")
+                        .param("ubicacion", "Centro Nacional Lima").param("pagina", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pagina").value(0))
+                .andExpect(jsonPath("$.tamano").value(20))
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.totalPaginas").value(1))
+                .andExpect(jsonPath("$.items[0].lote").value("REP-UNO"));
+
+        mockMvc.perform(get(REPORTE_ACOPIO).cookie(admin).param("lote", "NO-EXISTE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isEmpty())
+                .andExpect(jsonPath("$.total").value(0));
+        mockMvc.perform(get(REPORTE_ACOPIO).cookie(admin).param("desde", HOY.toString()).param("hasta", HOY.minusDays(1).toString()))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("RANGO_INVALIDO"));
+    }
+
+    @Test
+    void elReporteMantieneElAislamientoPorRolYUbicacionAunqueSeFiltreUnaUbicacionAjena() throws Exception {
+        long propio = lote(producto("Producto propio reporte"), "REP-LIMA", ubicacion("Centro Nacional Lima"), "5", HOY.plusDays(60));
+        long ajenoProducto = productoConLote("Producto ajeno reporte " + UUID.randomUUID(), "PUBLICADO", null, null, "productor2@ccpip.test");
+        long ajeno = lote(ajenoProducto, "REP-LORETO", ubicacion("Centro Regional Loreto"), "5", HOY.plusDays(60));
+        long dano = causa("Daño");
+        long adminId = jdbc.queryForObject("SELECT id FROM usuario WHERE correo = ?", Long.class, ADMIN);
+        long loreto = ubicacion("Centro Regional Loreto");
+        jdbc.update("INSERT INTO usuario_ubicacion (usuario_id, ubicacion_id) VALUES (?, ?)", adminId, loreto);
+        marcar(loginAs(ADMIN), ACOPIO, cuerpo(ajeno, "1", dano, null, true)).andExpect(status().isCreated());
+        jdbc.update("DELETE FROM usuario_ubicacion WHERE usuario_id = ? AND ubicacion_id = ?", adminId, loreto);
+        marcar(loginAs(ADMIN), ACOPIO, cuerpo(propio, "1", dano, null, true)).andExpect(status().isCreated());
+
+        mockMvc.perform(get(REPORTE_ACOPIO).cookie(loginAs(ADMIN)).param("ubicacion", "Centro Regional Loreto"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty());
+        mockMvc.perform(get(REPORTE_PRODUCTOR).cookie(loginAs(PRODUCTOR)).param("lote", "REP-LORETO"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty());
+        mockMvc.perform(get(REPORTE_PRODUCTOR).cookie(loginAs("productor2@ccpip.test")).param("ubicacion", "Centro Regional Loreto"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].lote").value("REP-LORETO"))
+                .andExpect(jsonPath("$.items[0].registradoPor").doesNotExist());
+    }
+
+    @Test
+    void losPdfYExcelDelReporteConservanUnDetalleQueContieneElDelimitador() throws Exception {
+        long producto = producto("Producto exportable merma");
+        long incluido = lote(producto, "REP-PDF", ubicacion("Centro Nacional Lima"), "5", HOY.plusDays(60));
+        long excluido = lote(producto, "REP-OMITIR", ubicacion("Centro Nacional Lima"), "5", HOY.plusDays(60));
+        Cookie admin = loginAs(ADMIN);
+        marcar(admin, ACOPIO, cuerpo(incluido, "1", causa("Daño"), "golpe | humedad", true)).andExpect(status().isCreated());
+        marcar(admin, ACOPIO, cuerpo(excluido, "1", causa("Daño"), null, true)).andExpect(status().isCreated());
+
+        byte[] pdf = mockMvc.perform(get(REPORTE_ACOPIO + "/pdf").cookie(admin).param("lote", "REP-PDF").param("lang", "en"))
+                .andExpect(status().isOk()).andExpect(header().string("Content-Type", "application/pdf"))
+                .andExpect(header().string("Content-Language", "en"))
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("Content-Disposition", org.hamcrest.Matchers.containsString("attachment; filename=\"reporte-merma-acopio.pdf\"")))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertPdfContains(pdf, "Shrinkage report", "Date | Product | Batch | Location | Quantity | Cause | Detail", "REP-PDF", "Producto exportable merma", "Damage", "golpe | humedad");
+        assertPdfDoesNotContain(pdf, "REP-OMITIR");
+
+        byte[] xlsx = mockMvc.perform(get(REPORTE_ACOPIO + "/xlsx").cookie(admin).param("lote", "REP-PDF").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .andExpect(header().string("Content-Language", "en"))
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("Content-Disposition", org.hamcrest.Matchers.containsString("reporte-merma-acopio.xlsx")))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertThat(descomprimir(xlsx)).contains("Shrinkage report", "Date", "Product", "Batch", "Location", "Quantity", "Cause", "Detail", "REP-PDF", "Producto exportable merma", "Damage", "golpe | humedad").doesNotContain("REP-OMITIR");
+        assertThat(hoja(xlsx)).contains("r=\"G3\" t=\"inlineStr\"><is><t>golpe | humedad</t>")
+                .doesNotContain("r=\"H3\"");
+    }
+
+    @Test
+    void losPdfYExcelConservanUnDetalleMultilineaConEmojiNoBmp() throws Exception {
+        String productoUnicode = "Cacao 🌱 ñandú";
+        String loteUnicode = "L-🧺-漢字";
+        String detalleUnicode = "uno\ndos 🫚";
+        long producto = producto(productoUnicode);
+        long lote = lote(producto, loteUnicode, ubicacion("Centro Nacional Lima"), "5", HOY.plusDays(60));
+        Cookie admin = loginAs(ADMIN);
+        marcar(admin, ACOPIO, cuerpo(lote, "1", causa("Daño"), detalleUnicode, true)).andExpect(status().isCreated());
+        mockMvc.perform(get(REPORTE_ACOPIO).cookie(admin).param("lote", loteUnicode))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].detalle").value(detalleUnicode));
+
+        byte[] pdf = mockMvc.perform(get(REPORTE_ACOPIO + "/pdf").cookie(admin).param("lote", loteUnicode))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+        assertPdfPreservesAndRenders(pdf, productoUnicode, loteUnicode, detalleUnicode);
+
+        byte[] xlsx = mockMvc.perform(get(REPORTE_ACOPIO + "/xlsx").cookie(admin).param("lote", loteUnicode))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+        assertThat(descomprimir(xlsx)).contains(productoUnicode, loteUnicode, detalleUnicode);
+    }
+
+    @Test
+    void lasExportacionesVaciasRespetanIdiomaSeguroYLosRolesNoPuedenCambiarElAlcance() throws Exception {
+        Cookie admin = loginAs(ADMIN);
+        byte[] pdf = mockMvc.perform(get(REPORTE_ACOPIO + "/pdf").cookie(admin).header("Accept-Language", "en-US,en;q=0.9"))
+                .andExpect(status().isOk()).andExpect(header().string("Content-Language", "en"))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertPdfContains(pdf, "Shrinkage report", "No shrinkage for the selected filters.");
+        byte[] xlsx = mockMvc.perform(get(REPORTE_ACOPIO + "/xlsx").cookie(admin).param("lang", "fr").header("Accept-Language", "en"))
+                .andExpect(status().isOk()).andExpect(header().string("Content-Language", "es"))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertThat(descomprimir(xlsx)).contains("Reporte de merma", "Fecha", "Detalle", "No hay mermas para los filtros seleccionados.");
+        mockMvc.perform(get(REPORTE_ACOPIO + "/pdf").cookie(loginAs("consumidor@ccpip.test"))).andExpect(status().isForbidden());
+        mockMvc.perform(get(REPORTE_PRODUCTOR + "/xlsx").cookie(loginAs(SUPER))).andExpect(status().isForbidden());
+    }
+
     // --- CCPIP-77, 298, 299 y 300: catalogo de causas ---
 
     @Test
@@ -454,5 +591,69 @@ class MermaTest extends IntegrationTest {
     private long contar(String sql, Object... args) {
         Long n = jdbc.queryForObject(sql, Long.class, args);
         return n == null ? 0 : n;
+    }
+
+    private static String descomprimir(byte[] xlsx) throws Exception {
+        StringBuilder contenido = new StringBuilder();
+        try (ZipInputStream entrada = new ZipInputStream(new ByteArrayInputStream(xlsx))) {
+            for (ZipEntry e = entrada.getNextEntry(); e != null; e = entrada.getNextEntry()) {
+                contenido.append(new String(entrada.readAllBytes(), StandardCharsets.UTF_8));
+            }
+        }
+        return contenido.toString();
+    }
+
+    private static String hoja(byte[] xlsx) throws Exception {
+        try (ZipInputStream entrada = new ZipInputStream(new ByteArrayInputStream(xlsx))) {
+            for (ZipEntry e = entrada.getNextEntry(); e != null; e = entrada.getNextEntry()) {
+                if ("xl/worksheets/sheet1.xml".equals(e.getName())) {
+                    return new String(entrada.readAllBytes(), StandardCharsets.UTF_8);
+                }
+            }
+        }
+        throw new IllegalArgumentException("XLSX sin hoja principal");
+    }
+
+    private static void assertPdfContains(byte[] pdf, String... textos) {
+        assertThat(pdfTexto(pdf)).contains(textos);
+    }
+
+    private static void assertPdfDoesNotContain(byte[] pdf, String texto) {
+        assertThat(pdfTexto(pdf)).doesNotContain(texto);
+    }
+
+    /** Actual PDF parsing and rasterization catches the invalid Helvetica/Identity-H pseudo-Unicode renderer. */
+    private static void assertPdfPreservesAndRenders(byte[] pdf, String... textos) throws Exception {
+        try (PDDocument documento = Loader.loadPDF(pdf)) {
+            String extraido = new PDFTextStripper().getText(documento);
+            assertThat(extraido).contains(textos).doesNotContain("?");
+            for (COSName nombre : documento.getPage(0).getResources().getFontNames()) {
+                PDFont fuente = documento.getPage(0).getResources().getFont(nombre);
+                assertThat(fuente.isEmbedded()).isTrue();
+            }
+            BufferedImage imagen = new PDFRenderer(documento).renderImageWithDPI(0, 96);
+            assertThat(imagen.getWidth()).isPositive();
+            assertThat(imagen.getHeight()).isPositive();
+            assertThat(tieneTinta(imagen)).isTrue();
+        }
+    }
+
+    private static boolean tieneTinta(BufferedImage imagen) {
+        for (int y = 0; y < imagen.getHeight(); y++) {
+            for (int x = 0; x < imagen.getWidth(); x++) {
+                if (imagen.getRGB(x, y) != 0xFFFFFFFF) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static String pdfTexto(byte[] pdf) {
+        try (PDDocument documento = Loader.loadPDF(pdf)) {
+            return new PDFTextStripper().getText(documento);
+        } catch (java.io.IOException e) {
+            throw new IllegalArgumentException("PDF no legible", e);
+        }
     }
 }
