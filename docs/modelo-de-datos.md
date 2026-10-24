@@ -1298,13 +1298,76 @@ que el historial no se puede alterar y una accion nueva de esos modulos aparece 
 El periodo es por fecha de Lima, por defecto los ultimos 30 dias y como maximo un año
 (`RangoFechas`, `422 RANGO_INVALIDO` o `RANGO_MUY_LARGO`). El servicio admite autor nulo para
 consultar las acciones de todos, pensado para la auditoria de CCPIP-97.
+## Salida de un pedido a domicilio del punto de acopio (CCPIP-320)
+
+Migracion `V202610231200`. El administrador del punto de acopio registra que un pedido a domicilio preparado
+sale de su punto para despacho (RF-202): el pedido pasa de `EN_PREPARACION` a `LISTO_PARA_DESPACHO`, el estado
+del diccionario de datos para un pedido preparado que retirara un distribuidor. Es el equivalente de
+`LISTO_PARA_RECOJO` (CCPIP-159) para un pedido de modalidad `ENVIO`. Entra solo ese estado en
+`pedido_estado_valido`; consultarlo y asumirlo (CCPIP-107 y 108), retirarlo (CCPIP-109) y los estados de
+camino (CCPIP-318 y 319) llegan con sus historias.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `POST /api/acopio/pedidos/{numero}/despacho` | ADMIN_PUNTO | Marca un pedido a domicilio en preparacion de sus puntos como listo para despacho |
+
+**Transicion autorizada.** Solo desde `EN_PREPARACION` y solo un pedido `ENVIO`: uno para recojo responde
+`409 PEDIDO_PARA_RECOJO`, y cualquier otro estado `409 ESTADO_INVALIDO` sin dejar rastro en el historial. Un pedido
+de otro punto no existe para el administrador (`404`, RNF-05). El pedido se bloquea con `FOR UPDATE`, asi dos
+clics simultaneos no registran la salida dos veces.
+
+**Usuario y fecha.** Cada salida queda en `pedido_estado_historial` con el administrador que la registro y
+la fecha. La entrega (`entrega.estado`) sigue `DISPONIBLE`: la cambia el distribuidor al asumirla.
+
+**Inventario.** Registrar la salida no mueve unidades ni crea movimientos: el descuento ocurrio al confirmar
+la compra (CCPIP-158) y no se repite al despachar ni cuando el distribuidor retire el pedido.
+
+**Otras consultas del pedido.** El tablero del punto (`GET /api/acopio/pedidos`) lista los pedidos
+`LISTO_PARA_DESPACHO` junto a los listos para recojo. La consulta de pedidos del productor lo presenta como
+`LISTO_PARA_RECOJO` (listo en el punto de acopio) en el conteo, el filtro, la lista y el historial, para no fallar al
+contarlo por estado. La comision por pedido admite filtrar por el estado nuevo y la liquidacion en Excel lo
+nombra "Listo para despacho".
+
+## Direcciones de entrega guardadas (CCPIP-65)
+
+Migracion `V202610231400`. El comprador guarda sus direcciones de entrega habituales (RF-46) para no escribirlas
+en cada compra. Sigue la tabla `direccion_guardada` del modelo de datos del proyecto; consultarlas (CCPIP-393),
+modificarlas (CCPIP-394) y retirarlas (CCPIP-395) llegan con sus historias.
+
+```mermaid
+erDiagram
+    usuario ||--o{ direccion_guardada : guarda
+    ubigeo ||--o{ direccion_guardada : en
+```
+
+### direccion_guardada
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| id | bigserial | no | |
+| usuario_id | bigint | no | El comprador, siempre el de la sesion: nunca se recibe de la peticion (RNF-05) |
+| alias | varchar(40) | si | Nombre corto, por ejemplo "Casa" |
+| ubigeo | char(6) | no | Distrito del catalogo territorial: un destino admitido |
+| direccion | varchar(255) | no | Calle y numero |
+| referencia | varchar(255) | si | Para ubicar la direccion |
+| activa | boolean | no | Retirarla la marca inactiva sin borrarla (CCPIP-395) |
+| creado_en | timestamptz | no | |
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `POST /api/cuenta/direcciones` | CONSUMIDOR | Guarda una direccion del comprador. `201` con la direccion y su distrito, provincia y departamento |
+
+**Reglas.** Solo datos propios: el comprador sale de la sesion. Solo destinos admitidos: un distrito que no esta
+en el catalogo responde `422 DESTINO_NO_ADMITIDO`. La direccion se pide completa, como en el pedido a domicilio
+(`422 DIRECCION_INVALIDA`). La misma direccion en el mismo distrito no se guarda dos veces para un comprador
+(`409 DIRECCION_YA_GUARDADA`, sin distinguir mayusculas); otro comprador si puede guardarla. Los pedidos copian su
+destino en `entrega` y no dependen de esta tabla.
 
 ## Pedidos disponibles para distribucion (CCPIP-107)
 
-Migracion `V202610231300`. El distribuidor consulta los pedidos preparados que puede asumir, con su origen, su
-destino y cuanto llevan esperando (RF-54). Entra solo el estado que esta consulta necesita: `pedido.estado` admite
-ahora `LISTO_PARA_DESPACHO`, el equivalente a `LISTO_PARA_RECOJO` para un pedido a domicilio. Quien lo marca
-(CCPIP-320), asumirlo (CCPIP-108), retirarlo (CCPIP-109) y entregarlo (CCPIP-319) llegan con sus historias.
+Sin migracion. El distribuidor consulta los pedidos preparados que puede asumir, con su origen, su destino y
+cuanto llevan esperando (RF-54). Un pedido entra a la cola cuando el punto de acopio registra su salida y queda
+`LISTO_PARA_DESPACHO` (CCPIP-320, migracion `V202610231200`); asumirlo (CCPIP-108), retirarlo (CCPIP-109) y
+entregarlo (CCPIP-319) llegan con sus historias.
 
 | Endpoint | Rol | Descripcion |
 |---|---|---|
@@ -1319,17 +1382,13 @@ entrega deja de aparecer. Los pedidos para recojo, los que aun no estan preparad
 la respuesta es { items, siguiente, total, puntos }. siguiente es un texto opaco que se devuelve tal cual como cursor para pedir la pagina que sigue, y es nulo
 en la ultima; apunta al ultimo pedido visto (desde cuando esta disponible y su id), asi lo que se asume no hace saltar ni repetir a los demas.
 El orden es estable: desde cuando esta disponible y, si empatan, el id. Un cursor que no es de la cola responde 422 CURSOR_INVALIDO y un limite fuera de
-rango, 400. 	otal es el de los pedidos disponibles (del punto filtrado, si se filtro) y puntos lista los puntos con pedidos y cuantos tiene cada uno,
+rango, 400. `total` es el de los pedidos disponibles (del punto filtrado, si se filtro) y puntos lista los puntos con pedidos y cuantos tiene cada uno,
 sin importar el filtro, para poder cambiar de punto.
 
 **Que se muestra.** `origen` es el punto de acopio (nombre, distrito y direccion); `destino` llega hasta el distrito
 (ubigeo, departamento, provincia y distrito); `disponibleDesde` es cuando quedo `LISTO_PARA_DESPACHO` segun
 `pedido_estado_historial`, y `esperaMinutos`, lo que lleva esperando. La direccion exacta y el contacto de quien
 recibe **no se muestran** hasta asumir la entrega (CCPIP-108 y CCPIP-110), y el comprador no se muestra nunca (RNF-05).
-
-**Otras consultas del pedido.** Nada marca todavia un pedido como LISTO_PARA_DESPACHO (CCPIP-320), asi que ninguna pantalla actual lo encuentra
- en la practica. Aun asi, la consulta de pedidos del productor lo presenta como LISTO_PARA_RECOJO (listo en el punto de acopio), para
-no fallar al contarlo por estado; el tablero del punto y el seguimiento del comprador incorporan el estado con CCPIP-320 y CCPIP-318.
 
 El endpoint nuevo **no estaba detallado en el contrato de la API del Drive** salvo su ruta y descripcion; los campos
 de la respuesta son los de esta seccion.

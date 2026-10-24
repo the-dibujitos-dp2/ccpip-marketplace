@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useConsulta } from '../../api/useConsulta.js'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Campo from '../../components/Campo.jsx'
 import { nombreCausa } from '../../components/DialogoMerma.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
@@ -17,12 +18,17 @@ import './ListaMerma.css'
  * estaba el lote (el productor tiene lotes en su almacen y en los puntos). `ir` ({ ruta, texto }) lleva a
  * donde se marca la merma, con `irTexto` que lo explica. `onDatos` recibe cada pagina.
  */
-export default function ListaMerma({ consultar, conUbicacion = false, ir, irTexto, onDatos }) {
+export default function ListaMerma({ consultar, exportar, conUbicacion = false, conProductor = false, ir, irTexto, onDatos }) {
   const { t, i18n } = useTranslation()
   const [pagina, setPagina] = useState(0)
-  const cargar = useCallback(() => consultar(pagina).then((d) => { onDatos?.(d); return d }), [consultar, pagina, onDatos])
+  const [escritos, setEscritos] = useState({ desde: '', hasta: '', lote: '', producto: '', ubicacion: '' })
+  const [filtros, setFiltros] = useState(escritos)
+  const [filtrosAplicados, setFiltrosAplicados] = useState(false)
+  const cargar = useCallback(() => consultar(pagina, filtros).then((d) => { onDatos?.(d); return d }), [consultar, pagina, filtros, onDatos])
   const { datos, error, recargar } = useConsulta(cargar)
   const titulo = t('merma.lista.titulo')
+  const cambiar = (campo) => (e) => setEscritos((actual) => ({ ...actual, [campo]: e.target.value }))
+  const aplicar = () => { setPagina(0); setFiltros(escritos); setFiltrosAplicados(true) }
 
   return (
     <>
@@ -30,13 +36,26 @@ export default function ListaMerma({ consultar, conUbicacion = false, ir, irText
         <p className="body-s">{irTexto}</p>
         {ir && <Boton tipo="secundario" tamano="M" to={ir.ruta}>{ir.texto}</Boton>}
       </div>
+      <section className="merma__filtros" aria-label={t('merma.lista.filtros.titulo')}>
+        <Campo etiqueta={t('merma.lista.filtros.desde')} type="date" value={escritos.desde} max={escritos.hasta || undefined} onChange={cambiar('desde')} />
+        <Campo etiqueta={t('merma.lista.filtros.hasta')} type="date" value={escritos.hasta} min={escritos.desde || undefined} onChange={cambiar('hasta')} />
+        <Campo etiqueta={t('merma.lista.filtros.lote')} value={escritos.lote} onChange={cambiar('lote')} />
+        <Campo etiqueta={t('merma.lista.filtros.producto')} value={escritos.producto} onChange={cambiar('producto')} />
+        <Campo etiqueta={t('merma.lista.filtros.ubicacion')} value={escritos.ubicacion} onChange={cambiar('ubicacion')} />
+        <Boton tamano="M" onClick={aplicar}>{t('merma.lista.filtros.aplicar')}</Boton>
+        {exportar && ['pdf', 'xlsx'].map((formato) => (
+          <a key={formato} className="boton boton--secundario boton--M" href={exportar(formato, filtros)} download>
+            {t(`merma.lista.filtros.exportar.${formato}`)}
+          </a>
+        ))}
+      </section>
 
       {error && (
         <EstadoVacio titulo={t('merma.lista.errorCargar')} descripcion={mensajeError(error, 'comun.errorConexion')}>
           <Boton tamano="M" tipo="secundario" onClick={recargar}>{t('carrito.reintentar')}</Boton>
         </EstadoVacio>
       )}
-      {!error && datos?.items.length === 0 && <EstadoVacio titulo={t('merma.lista.vacio')} descripcion={t('merma.lista.vacioTexto')} />}
+      {!error && datos?.items.length === 0 && <EstadoVacio titulo={t('merma.lista.vacio')} descripcion={t(filtrosAplicados ? 'merma.lista.filtros.vacio' : 'merma.lista.vacioTexto')} />}
 
       {!error && datos?.items.length > 0 && (
         <>
@@ -44,6 +63,7 @@ export default function ListaMerma({ consultar, conUbicacion = false, ir, irText
             <div className="tabla__fila tabla__fila--encabezado" role="row">
               <span className="tabla__celda merma__col-fecha" role="columnheader">{t('merma.lista.col.fecha')}</span>
               <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('merma.lista.col.producto')}</span>
+              {conProductor && <span className="tabla__celda merma__col-productor" role="columnheader">{t('merma.lista.col.productor')}</span>}
               {conUbicacion && <span className="tabla__celda merma__col-ubicacion" role="columnheader">{t('merma.lista.col.ubicacion')}</span>}
               <span className="tabla__celda merma__col-causa" role="columnheader">{t('merma.lista.col.causa')}</span>
               <span className="tabla__celda merma__col-cantidad" role="columnheader">{t('merma.lista.col.cantidad')}</span>
@@ -54,6 +74,7 @@ export default function ListaMerma({ consultar, conUbicacion = false, ir, irText
               <div key={m.id} className="tabla__fila" role="row">
                 <span className="tabla__celda merma__col-fecha label-m" role="cell">{diaMes(m.registradoEn)}</span>
                 <span className="tabla__celda tabla__celda--flex" role="cell">{`${m.producto} · ${m.lote}`}</span>
+                {conProductor && <span className="tabla__celda merma__col-productor" role="cell">{m.productor ?? '—'}</span>}
                 {conUbicacion && <span className="tabla__celda merma__col-ubicacion" role="cell">{m.ubicacion}</span>}
                 <span className="tabla__celda merma__col-causa" role="cell">
                   {m.automatica ? t('merma.lista.automaticaCausa', { causa: nombreCausa(m, i18n) }) : nombreCausa(m, i18n)}

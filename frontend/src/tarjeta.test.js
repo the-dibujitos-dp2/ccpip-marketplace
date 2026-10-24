@@ -24,8 +24,9 @@ describe('Reglas de la tarjeta (CCPIP-62)', () => {
     expect(largoCvv(null)).toBe(3)
   })
 
-  it('valida largo y Luhn', () => {
+  it('valida largo y Luhn después de normalizar espacios y guiones', () => {
     expect(numeroValido('4111 1111 1111 1111')).toBe(true)
+    expect(numeroValido('4111-1111 1111-1111')).toBe(true)
     expect(numeroValido('4111 1111 1111 1112')).toBe(false)
     expect(numeroValido('4111 1111 1111')).toBe(false)
     expect(numeroValido('378282246310005')).toBe(true)

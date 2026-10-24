@@ -809,17 +809,20 @@
       "marcado": "Order {{numero}} is ready for pickup",
       "errorMarcar": "We couldn't mark the order",
       "aDomicilio": "Home delivery",
-      "aDomicilioNota": "Home delivery order: it can't be dispatched from here yet.",
+      "esperaDistribuidor": "Waiting for a distributor to pick it up.",
+      "despachoRegistrado": "Order {{numero}} is ready for dispatch",
+      "errorDespacho": "We couldn't record the order's dispatch",
       "preparacionRegistrada": "Order {{numero}} is being prepared",
       "errorPreparacion": "We couldn't record the preparation",
       "entregado": "Order {{numero}} was handed over to {{persona}}",
       "errorCargar": "We couldn't load the orders",
       "vacio": "No orders yet",
-      "vacioTexto": "Here you'll see the orders buyers will pick up at your point.",
+      "vacioTexto": "Here you'll see your point's orders, for pickup or for home delivery.",
       "columna": {
         "CONFIRMADO": "Confirmed",
         "EN_PREPARACION": "Being prepared",
         "LISTO_PARA_RECOJO": "Ready for pickup",
+        "LISTO_PARA_DESPACHO": "Ready for dispatch",
         "ENTREGADO": "Delivered today"
       },
       "columnaConteo": "{{titulo}} ({{total}})",
@@ -827,6 +830,7 @@
         "CONFIRMADO": "No orders to prepare.",
         "EN_PREPARACION": "No orders are being prepared.",
         "LISTO_PARA_RECOJO": "No orders are waiting for their buyer.",
+        "LISTO_PARA_DESPACHO": "No orders are waiting for a distributor.",
         "ENTREGADO": "No orders delivered today yet."
       },
       "productosDe": "Products in order {{numero}}",
@@ -837,9 +841,12 @@
         "CONFIRMADO": "Confirmed",
         "EN_PREPARACION": "Being prepared",
         "LISTO_PARA_RECOJO": "Ready",
+        "LISTO_PARA_DESPACHO": "Ready for dispatch",
         "ENTREGADO": "Delivered"
       },
       "marcarEtiqueta": "Mark order {{numero}} as ready for pickup",
+      "despachoEtiqueta": "Record the dispatch of order {{numero}}",
+      "registrandoSalida": "Recording dispatch…",
       "preparacionEtiqueta": "Record the preparation of order {{numero}}",
       "registrandoPreparacion": "Recording…",
       "marcando": "Marking…",
@@ -1118,6 +1125,7 @@
         "CONFIRMADO": "Confirmed",
         "EN_PREPARACION": "Being prepared",
         "LISTO_PARA_RECOJO": "Ready for pickup",
+        "LISTO_PARA_DESPACHO": "Ready for dispatch",
         "ENTREGADO": "Delivered"
       }
     },
@@ -1478,6 +1486,7 @@
     "PUNTO_SIN_EXISTENCIAS": "This collection point no longer has stock for your whole cart. Choose another point.",
     "SIN_COBERTURA": "This collection point does not deliver to that district. Choose another point or pickup.",
     "PEDIDO_A_DOMICILIO": "This order is delivered to the customer's home; it is not picked up at the point.",
+    "PEDIDO_PARA_RECOJO": "This order is picked up at the point; it is not dispatched for home delivery.",
     "PEDIDO_NO_PAGABLE": "This order can no longer be paid.",
     "PAGO_EN_CURSO": "There's already a payment in progress for this order. Wait for its result before trying again.",
     "CLAVE_REUTILIZADA": "This payment attempt belongs to another order.",
@@ -1671,9 +1680,10 @@
     "origen": "Origin",
     "cosecha": "Harvest",
     "presentacion": "Packaging",
-    "elaboradoPor": "Made by",
-    "hechoPor": "Made by",
-    "puebloCorto": "· {{pueblo}} people",
+    "productor": {
+      "titulo": "Who makes it",
+      "verTienda": "Visit the {{nombre}} store"
+    },
     "leerHistoria": "Read their story",
     "precioSegunModalidad": "Price by purchase mode",
     "precioMinorista": "Retail price",
@@ -1769,7 +1779,9 @@
       "faltaParaAgregar_other": "Add {{count}} more units to be able to add it to your cart",
       "desdeMayorista": "From {{minimo}} units you pay {{precio}} each (wholesale price).",
       "resumenMinorista": "{{precio}} retail",
-      "resumenMayorista": "{{precio}} from {{minimo}} units"
+      "resumenMayorista": "{{precio}} from {{minimo}} units",
+      "avisoLateral": "You added “{{producto}}” to your cart",
+      "verCarrito": "View cart"
     },
     "pasos": {
       "etiqueta": "Checkout steps",
@@ -1928,6 +1940,9 @@
       "direccion": "Delivery address",
       "direccionAyuda": "Street, number and, if needed, apartment or floor.",
       "referencia": "Landmark (optional)",
+      "guardar": "Save this address for future purchases",
+      "alias": "Address name (optional)",
+      "aliasAyuda": "For example: Home or Office. We save it to your account when the payment is approved.",
       "eligePunto": "Choose the collection point that delivers it",
       "quienTitulo": "2. Who receives it?",
       "quienRecibe": "Name of the person receiving",
@@ -2023,6 +2038,7 @@
       "CONFIRMADO": "Payment confirmed",
       "EN_PREPARACION": "Being prepared",
       "LISTO_PARA_RECOJO": "Ready at collection point",
+      "LISTO_PARA_DESPACHO": "Ready for dispatch",
       "ENTREGADO": "Delivered",
       "CANCELADO": "Cancelled"
     },
@@ -2037,6 +2053,7 @@
       "CONFIRMADO": "Payment approved and order confirmed",
       "EN_PREPARACION": "Being prepared",
       "LISTO_PARA_RECOJO": "Ready for pickup at the collection point",
+      "LISTO_PARA_DESPACHO": "Prepared at the collection point, waiting for a distributor",
       "ENTREGADO": "Delivered",
       "CANCELADO": "Order cancelled"
     }
@@ -2194,6 +2211,9 @@
     "lote": "Batch",
     "cantidad": "Quantity",
     "motivo": "Reason",
+    "motivoPrimero": "Choose the reason first: the rest of the form adapts to it.",
+    "motivoConTipo": "{{motivo}} · {{tipo}}",
+    "registrarSinMotivo": "Record",
     "observacion": "Note (optional)",
     "resultante": "Resulting stock: {{cantidad}} units",
     "vence": "expires {{fecha}}",
@@ -2922,7 +2942,7 @@
     "basadoEn_one": "Based on {{count}} rating",
     "basadoEn_other": "Based on {{count}} ratings",
     "distribucion": "Ratings by stars",
-    "sinCalificaciones": "This product has no ratings yet.",
+    "sinResenas": "No reviews yet. If you buy it, you can be the first person to rate it.",
     "insuficiente_one": "There is {{count}} rating. We will show the average once there are at least {{minimo}}.",
     "insuficiente_other": "There are {{count}} ratings. We will show the average once there are at least {{minimo}}.",
     "resenas": "Buyer reviews",
@@ -3201,9 +3221,21 @@
       "errorCargar": "We could not load the shrinkage",
       "vacio": "No shrinkage yet",
       "vacioTexto": "Here you will see marked shrinkage and automatic shrinkage from expiry.",
+      "filtros": {
+        "titulo": "Shrinkage report filters",
+        "desde": "From",
+        "hasta": "To",
+        "lote": "Batch",
+        "producto": "Product",
+        "ubicacion": "Location",
+        "aplicar": "Apply filters",
+        "vacio": "There is no shrinkage for the selected filters.",
+        "exportar": { "pdf": "Download PDF", "xlsx": "Download Excel" }
+      },
       "col": {
         "fecha": "Date",
         "producto": "Product and batch",
+        "productor": "Producer",
         "ubicacion": "Location",
         "causa": "Cause",
         "cantidad": "Quantity",
@@ -3214,7 +3246,18 @@
       "sistema": "System",
       "elPunto": "The collection point",
       "automatica": "Automatic",
-      "confirmada": "Confirmed shrinkage"
+      "confirmada": "Confirmed shrinkage",
+      "filtro": {
+        "desde": "From",
+        "hasta": "To",
+        "causa": "Cause",
+        "producto": "Product",
+        "productor": "Producer",
+        "todos": "All",
+        "limpiar": "Clear filters",
+        "sinResultados": "No shrinkage matches the filters",
+        "sinResultadosTexto": "Change or clear the filters to see more records."
+      }
     }
   },
   "asistente": {

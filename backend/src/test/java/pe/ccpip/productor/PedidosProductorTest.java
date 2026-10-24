@@ -90,19 +90,22 @@ class PedidosProductorTest extends IntegrationTest {
     }
 
     @Test
-    void unPedidoADomicilioListoParaDespacharSeVeComoListoYNoRompeElConteo() throws Exception {
+    void unPedidoADomicilioListoParaDespachoSeVeComoListoYNoRompeElConteo() throws Exception {
         long envio = pedidoConfirmado("MC-T0070", LIMA, propio, 1);
         jdbc.update("UPDATE pedido SET modalidad = 'ENVIO', estado = 'LISTO_PARA_DESPACHO' WHERE id = ?", envio);
+        jdbc.update("INSERT INTO pedido_estado_historial (pedido_id, estado) VALUES (?, 'LISTO_PARA_DESPACHO')", envio);
 
         pedidos(productor, "LISTO_PARA_RECOJO")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[?(@.numero == 'MC-T0070')].estado").value("LISTO_PARA_RECOJO"))
                 .andExpect(jsonPath("$.items[?(@.numero == 'MC-T0070')].modalidad").value("ENVIO"))
+                .andExpect(jsonPath("$.items[?(@.numero == 'MC-T0070')].historial[1].estado").value("LISTO_PARA_RECOJO"))
                 .andExpect(jsonPath("$.conteos.LISTO_PARA_RECOJO").value(contar("LISTO_PARA_RECOJO") + contar("LISTO_PARA_DESPACHO")))
                 .andExpect(content().string(not(containsString("LISTO_PARA_DESPACHO"))));
         pedidos(productor, null).andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[*].numero", hasItem("MC-T0070")));
     }
+
     @Test
     void unPedidoSinPagarNoEsUnaVenta() throws Exception {
         long pendiente = pedidoConfirmado("MC-T0069", LIMA, propio, 1);

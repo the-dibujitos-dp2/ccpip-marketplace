@@ -809,17 +809,20 @@
       "marcado": "El pedido {{numero}} está listo para recojo",
       "errorMarcar": "No pudimos marcar el pedido",
       "aDomicilio": "A domicilio",
-      "aDomicilioNota": "Pedido a domicilio: aún no se despacha desde aquí.",
+      "esperaDistribuidor": "Espera a que un distribuidor lo retire.",
+      "despachoRegistrado": "El pedido {{numero}} está listo para despacho",
+      "errorDespacho": "No pudimos registrar la salida del pedido",
       "preparacionRegistrada": "El pedido {{numero}} está en preparación",
       "errorPreparacion": "No pudimos registrar la preparación",
       "entregado": "El pedido {{numero}} se entregó a {{persona}}",
       "errorCargar": "No pudimos cargar los pedidos",
       "vacio": "Aún no hay pedidos",
-      "vacioTexto": "Aquí verás los pedidos que los compradores recogerán en tu punto.",
+      "vacioTexto": "Aquí verás los pedidos de tu punto, para recoger o para despachar a domicilio.",
       "columna": {
         "CONFIRMADO": "Confirmado",
         "EN_PREPARACION": "En preparación",
         "LISTO_PARA_RECOJO": "Listo para recojo",
+        "LISTO_PARA_DESPACHO": "Listo para despacho",
         "ENTREGADO": "Entregado hoy"
       },
       "columnaConteo": "{{titulo}} ({{total}})",
@@ -827,6 +830,7 @@
         "CONFIRMADO": "No hay pedidos por preparar.",
         "EN_PREPARACION": "No hay pedidos en preparación.",
         "LISTO_PARA_RECOJO": "Ningún pedido espera a su comprador.",
+        "LISTO_PARA_DESPACHO": "Ningún pedido espera a un distribuidor.",
         "ENTREGADO": "Aún no se entregó ningún pedido hoy."
       },
       "productosDe": "Productos del pedido {{numero}}",
@@ -837,9 +841,12 @@
         "CONFIRMADO": "Confirmado",
         "EN_PREPARACION": "En preparación",
         "LISTO_PARA_RECOJO": "Listo",
+        "LISTO_PARA_DESPACHO": "Listo para despacho",
         "ENTREGADO": "Entregado"
       },
       "marcarEtiqueta": "Marcar el pedido {{numero}} como listo para recojo",
+      "despachoEtiqueta": "Registrar la salida del pedido {{numero}} para despacho",
+      "registrandoSalida": "Registrando salida…",
       "preparacionEtiqueta": "Registrar la preparación del pedido {{numero}}",
       "registrandoPreparacion": "Registrando…",
       "marcando": "Marcando…",
@@ -1118,6 +1125,7 @@
         "CONFIRMADO": "Confirmado",
         "EN_PREPARACION": "En preparación",
         "LISTO_PARA_RECOJO": "Listo para recojo",
+        "LISTO_PARA_DESPACHO": "Listo para despacho",
         "ENTREGADO": "Entregado"
       }
     },
@@ -1478,6 +1486,7 @@
     "PUNTO_SIN_EXISTENCIAS": "Este punto de acopio ya no tiene existencias para todo tu carrito. Elige otro punto.",
     "SIN_COBERTURA": "Este punto de acopio no entrega a domicilio en ese distrito. Elige otro punto o el recojo.",
     "PEDIDO_A_DOMICILIO": "Este pedido se entrega a domicilio, no se recoge en el punto.",
+    "PEDIDO_PARA_RECOJO": "Este pedido se recoge en el punto, no se despacha a domicilio.",
     "PEDIDO_NO_PAGABLE": "Este pedido ya no se puede pagar.",
     "PAGO_EN_CURSO": "Ya hay un pago en curso para este pedido. Espera su resultado antes de reintentar.",
     "CLAVE_REUTILIZADA": "Este intento de pago pertenece a otro pedido.",
@@ -1671,9 +1680,10 @@
     "origen": "Origen",
     "cosecha": "Cosecha",
     "presentacion": "Presentación",
-    "elaboradoPor": "Elaborado por",
-    "hechoPor": "Hecho por",
-    "puebloCorto": "· pueblo {{pueblo}}",
+    "productor": {
+      "titulo": "Quién lo hace",
+      "verTienda": "Conoce la tienda de {{nombre}}"
+    },
     "leerHistoria": "Leer su historia",
     "precioSegunModalidad": "Precio según modalidad",
     "precioMinorista": "Precio minorista",
@@ -1769,7 +1779,9 @@
       "faltaParaAgregar_other": "Agrega {{count}} und más para poder agregarlo al carrito",
       "desdeMayorista": "Desde {{minimo}} und pagas {{precio}} c/u (precio mayorista).",
       "resumenMinorista": "{{precio}} minorista",
-      "resumenMayorista": "{{precio}} desde {{minimo}} und"
+      "resumenMayorista": "{{precio}} desde {{minimo}} und",
+      "avisoLateral": "Agregaste «{{producto}}» al carrito",
+      "verCarrito": "Ver carrito"
     },
     "pasos": {
       "etiqueta": "Pasos de la compra",
@@ -1928,6 +1940,9 @@
       "direccion": "Dirección de entrega",
       "direccionAyuda": "Calle, número y, si hace falta, departamento o piso.",
       "referencia": "Referencia (opcional)",
+      "guardar": "Guardar esta dirección para próximas compras",
+      "alias": "Nombre de la dirección (opcional)",
+      "aliasAyuda": "Por ejemplo: Casa u Oficina. La guardamos en tu cuenta cuando se apruebe el pago.",
       "eligePunto": "Elige el punto de acopio que te lo entrega",
       "quienTitulo": "2. ¿Quién recibe?",
       "quienRecibe": "Nombre de quien recibe",
@@ -2023,6 +2038,7 @@
       "CONFIRMADO": "Pago confirmado",
       "EN_PREPARACION": "En preparación",
       "LISTO_PARA_RECOJO": "Disponible en acopio",
+      "LISTO_PARA_DESPACHO": "Listo para despacho",
       "ENTREGADO": "Entregado",
       "CANCELADO": "Cancelado"
     },
@@ -2037,6 +2053,7 @@
       "CONFIRMADO": "Pago aprobado y pedido confirmado",
       "EN_PREPARACION": "En preparación",
       "LISTO_PARA_RECOJO": "Listo para recoger en el punto de acopio",
+      "LISTO_PARA_DESPACHO": "Preparado en el punto de acopio, espera a un distribuidor",
       "ENTREGADO": "Entregado",
       "CANCELADO": "Pedido cancelado"
     }
@@ -2194,6 +2211,9 @@
     "lote": "Lote",
     "cantidad": "Cantidad",
     "motivo": "Motivo",
+    "motivoPrimero": "Elige primero el motivo: el resto del formulario se adapta a él.",
+    "motivoConTipo": "{{motivo}} · {{tipo}}",
+    "registrarSinMotivo": "Registrar",
     "observacion": "Observación (opcional)",
     "resultante": "Stock resultante: {{cantidad}} und",
     "vence": "vence {{fecha}}",
@@ -2922,7 +2942,7 @@
     "basadoEn_one": "Basado en {{count}} calificación",
     "basadoEn_other": "Basado en {{count}} calificaciones",
     "distribucion": "Calificaciones por estrellas",
-    "sinCalificaciones": "Este producto aún no tiene calificaciones.",
+    "sinResenas": "Aún no tiene reseñas. Si lo compras, puedes ser la primera persona en valorarlo.",
     "insuficiente_one": "Hay {{count}} calificación. Mostraremos el promedio cuando haya al menos {{minimo}}.",
     "insuficiente_other": "Hay {{count}} calificaciones. Mostraremos el promedio cuando haya al menos {{minimo}}.",
     "resenas": "Opiniones de compradores",
@@ -3201,9 +3221,21 @@
       "errorCargar": "No pudimos cargar la merma",
       "vacio": "Aún no hay merma",
       "vacioTexto": "Aquí verás la merma marcada y la automática por vencimiento.",
+      "filtros": {
+        "titulo": "Filtros del reporte de merma",
+        "desde": "Desde",
+        "hasta": "Hasta",
+        "lote": "Lote",
+        "producto": "Producto",
+        "ubicacion": "Ubicación",
+        "aplicar": "Aplicar filtros",
+        "vacio": "No hay merma para los filtros seleccionados.",
+        "exportar": { "pdf": "Descargar PDF", "xlsx": "Descargar Excel" }
+      },
       "col": {
         "fecha": "Fecha",
         "producto": "Producto y lote",
+        "productor": "Productor",
         "ubicacion": "Ubicación",
         "causa": "Causa",
         "cantidad": "Cantidad",
@@ -3214,7 +3246,18 @@
       "sistema": "Sistema",
       "elPunto": "El punto de acopio",
       "automatica": "Automática",
-      "confirmada": "Merma confirmada"
+      "confirmada": "Merma confirmada",
+      "filtro": {
+        "desde": "Desde",
+        "hasta": "Hasta",
+        "causa": "Causa",
+        "producto": "Producto",
+        "productor": "Productor",
+        "todos": "Todos",
+        "limpiar": "Limpiar filtros",
+        "sinResultados": "Ninguna merma coincide con los filtros",
+        "sinResultadosTexto": "Cambia o limpia los filtros para ver más registros."
+      }
     }
   },
   "asistente": {

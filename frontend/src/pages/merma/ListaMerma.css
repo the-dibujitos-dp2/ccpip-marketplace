@@ -1,15 +1,22 @@
 .merma__col-fecha { flex: 0 0 72px; }
 .merma__col-ubicacion { flex: 0 0 180px; }
+.merma__col-productor { flex: 0 0 180px; }
 .merma__col-causa { display: flex; flex: 0 0 200px; flex-direction: column; gap: 2px; }
 .merma__col-cantidad { flex: 0 0 90px; justify-content: flex-end; text-align: right; }
 .merma__col-registro { flex: 0 0 160px; color: var(--color-text-secondary); }
 .merma__col-estado { flex: 0 0 170px; }
 .merma__detalle { color: var(--color-text-secondary); }
 .merma__pie { display: flex; justify-content: flex-end; }
+/* CCPIP-422 */
+.merma__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
+.merma__filtros .campo { width: 200px; }
 
 @media (max-width: 900px) {
   .merma__col-ubicacion, .merma__col-registro { display: none; }
   .merma__col-causa { flex-basis: 140px; }
+  .merma__filtros .campo { width: 100%; }
 }
 .merma__barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .merma__barra p { margin: 0; }
+.merma__filtros { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin: 20px 0; }
+.merma__filtros .campo { min-width: 150px; }

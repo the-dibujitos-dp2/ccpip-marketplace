@@ -103,6 +103,9 @@ describe('CCPIP-136 y CCPIP-162 Mi almacén del productor (PW-16)', () => {
     const porVencer = screen.getByRole('region', { name: 'Por vencer' })
     expect(within(porVencer).getByText('1 lote')).toBeInTheDocument()
     expect(within(porVencer).getByText('En los próximos 15 días')).toBeInTheDocument()
+    // CCPIP-426: en el amarillo de advertencia
+    expect(porVencer).toHaveClass('tarjeta-kpi--aviso')
+    expect(within(porVencer).getByText('En los próximos 15 días')).toHaveClass('tarjeta-kpi__detalle--aviso')
     const acopios = screen.getByRole('region', { name: 'En puntos de acopio' })
     expect(within(acopios).getByText('225 und')).toBeInTheDocument()
     expect(within(acopios).getByText('Lima 9 · Ucayali 216')).toBeInTheDocument()

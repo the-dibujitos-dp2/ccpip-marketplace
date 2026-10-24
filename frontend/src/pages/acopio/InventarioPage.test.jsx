@@ -124,7 +124,10 @@ describe('A-02 Inventario del punto de acopio (CCPIP-162)', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Registrar un movimiento del lote L-0247' }))
     const dialogo = within(await screen.findByRole('dialog'))
-    expect(dialogo.getByRole('tab', { name: 'Entrada' })).toHaveAttribute('aria-selected', 'true')
+    // CCPIP-421: el motivo va primero y define el tipo; un solo motivo por tipo en el punto
+    // (sin ajuste de conteo, CHANGELOG 30/09)
+    expect(within(dialogo.getByLabelText('Motivo')).getAllByRole('option')).toHaveLength(3)
+    await user.selectOptions(dialogo.getByLabelText('Motivo'), 'Recepción del productor · Entrada')
     expect(dialogo.getByLabelText('Productor')).toHaveDisplayValue('Asoc. Nii Joi')
     expect(dialogo.getByLabelText('Lote')).toHaveDisplayValue('L-0247 · vence 02/11/2027 · 60 und')
     // El vencido no recibe entradas; el agotado si
@@ -133,9 +136,6 @@ describe('A-02 Inventario del punto de acopio (CCPIP-162)', () => {
     expect(dialogo.getByRole('option', { name: 'L-0250 · vence 01/12/2027 · 0 und' })).toBeInTheDocument()
     await user.selectOptions(dialogo.getByLabelText('Lote'), 'L-0247 · vence 02/11/2027 · 60 und')
 
-    // Un solo motivo de entrada en el punto: sin ajuste de conteo (CHANGELOG 30/09)
-    expect(dialogo.getByLabelText('Motivo')).toHaveDisplayValue('Recepción del productor')
-    expect(within(dialogo.getByLabelText('Motivo')).getAllByRole('option')).toHaveLength(2)
     await user.type(dialogo.getByLabelText('Cantidad'), '15')
     expect(dialogo.getByText('Stock resultante: 75 und')).toBeInTheDocument()
     await user.type(dialogo.getByLabelText('Observación (opcional)'), 'Guía 0012-4481')
@@ -161,13 +161,12 @@ describe('A-02 Inventario del punto de acopio (CCPIP-162)', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Registrar movimiento' }))
     const dialogo = within(await screen.findByRole('dialog'))
-    await user.click(dialogo.getByRole('tab', { name: 'Salida' }))
+    await user.selectOptions(dialogo.getByLabelText('Motivo'), 'Devolución al productor · Salida')
     // Una salida solo sale de un lote con saldo, vencido o no
     await user.selectOptions(dialogo.getByLabelText('Productor'), 'Asoc. Nii Joi')
     await user.selectOptions(dialogo.getByLabelText('Producto'), 'Aceite de sacha inchi 250 ml')
     expect(dialogo.queryByRole('option', { name: /L-0250/ })).not.toBeInTheDocument()
     await user.selectOptions(dialogo.getByLabelText('Lote'), 'L-0231 · vence 21/10/2026 · 32 und')
-    expect(dialogo.getByLabelText('Motivo')).toHaveDisplayValue('Devolución al productor')
 
     await user.type(dialogo.getByLabelText('Cantidad'), '33')
     await user.click(dialogo.getByRole('button', { name: 'Registrar salida' }))
@@ -183,12 +182,52 @@ describe('A-02 Inventario del punto de acopio (CCPIP-162)', () => {
     expect(cuerpo(llamadas(fetchMock, 'POST /api/acopio/movimientos')[0])).toMatchObject({ tipo: 'SALIDA', loteId: 31, motivo: 'DEVOLUCION_PRODUCTOR' })
   })
 
+  it('el motivo es el primer campo y el resto espera a que se elija (CCPIP-421)', async () => {
+    servidor(comoAcopio())
+    const user = userEvent.setup()
+    abrirEn('/acopio/inventario')
+    await user.click(await screen.findByRole('button', { name: 'Registrar un movimiento del lote L-0247' }))
+    const dialog = await screen.findByRole('dialog')
+    const dialogo = within(dialog)
+    expect(dialog.querySelector('label')).toHaveTextContent('Motivo')
+    expect(dialogo.queryByRole('tab')).not.toBeInTheDocument()
+    expect(dialogo.getByLabelText('Motivo')).toHaveDisplayValue('Elige una opción')
+    expect(dialogo.getByLabelText('Motivo')).toBeEnabled()
+    expect(dialogo.getByText('Elige primero el motivo: el resto del formulario se adapta a él.')).toBeInTheDocument()
+    for (const campo of ['Productor', 'Producto', 'Lote', 'Cantidad', 'Observación (opcional)']) {
+      expect(dialogo.getByLabelText(campo)).toBeDisabled()
+    }
+
+    // La salida se adapta: solo lotes con saldo, y el vencido con saldo si aparece
+    await user.selectOptions(dialogo.getByLabelText('Motivo'), 'Devolución al productor · Salida')
+    expect(dialogo.queryByText('Elige primero el motivo: el resto del formulario se adapta a él.')).not.toBeInTheDocument()
+    for (const campo of ['Productor', 'Producto', 'Lote', 'Cantidad', 'Observación (opcional)']) {
+      expect(dialogo.getByLabelText(campo)).toBeEnabled()
+    }
+    expect(dialogo.getByRole('option', { name: 'C.N. Yarina' })).toBeInTheDocument()
+    expect(dialogo.queryByRole('option', { name: /L-0250/ })).not.toBeInTheDocument()
+    expect(dialogo.getByRole('button', { name: 'Registrar salida' })).toBeInTheDocument()
+
+    // La entrada no recibe en un lote vencido
+    await user.selectOptions(dialogo.getByLabelText('Motivo'), 'Recepción del productor · Entrada')
+    expect(dialogo.queryByRole('option', { name: 'C.N. Yarina' })).not.toBeInTheDocument()
+    expect(dialogo.getByRole('option', { name: /L-0250/ })).toBeInTheDocument()
+    expect(dialogo.getByRole('button', { name: 'Registrar entrada' })).toBeInTheDocument()
+  })
+
   it('valida lote, cantidad y motivo antes de enviar', async () => {
     const fetchMock = servidor(comoAcopio())
     const user = userEvent.setup()
     abrirEn('/acopio/inventario')
     await user.click(await screen.findByRole('button', { name: 'Registrar movimiento' }))
     const dialogo = within(await screen.findByRole('dialog'))
+    // Sin motivo no se envia (CCPIP-421)
+    await user.click(dialogo.getByRole('button', { name: 'Registrar' }))
+    expect(dialogo.getByText('Elige el motivo')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/acopio/movimientos')).toHaveLength(0)
+
+    await user.selectOptions(dialogo.getByLabelText('Motivo'), 'Recepción del productor · Entrada')
+    expect(dialogo.queryByText('Elige el motivo')).not.toBeInTheDocument()
     await user.type(dialogo.getByLabelText('Cantidad'), '1.2345')
     await user.click(dialogo.getByRole('button', { name: 'Registrar entrada' }))
     expect(dialogo.getByText('Elige el lote')).toBeInTheDocument()
@@ -211,7 +250,7 @@ describe('A-02 Inventario del punto de acopio (CCPIP-162)', () => {
     abrirEn('/acopio/inventario')
     await user.click(await screen.findByRole('button', { name: 'Registrar un movimiento del lote L-0247' }))
     const dialogo = within(await screen.findByRole('dialog'))
-    await user.click(dialogo.getByRole('tab', { name: 'Salida' }))
+    await user.selectOptions(dialogo.getByLabelText('Motivo'), 'Devolución al productor · Salida')
     await user.type(dialogo.getByLabelText('Cantidad'), '5')
     await user.click(dialogo.getByRole('button', { name: 'Registrar salida' }))
     expect(await dialogo.findByText('No pudimos registrar el movimiento')).toBeInTheDocument()
@@ -251,8 +290,9 @@ describe('A-02 Inventario del punto de acopio (CCPIP-162)', () => {
     expect(screen.getByText('Expiring soon')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Record a movement for batch L-0247' }))
     const dialogo = within(await screen.findByRole('dialog'))
-    expect(dialogo.getByRole('tab', { name: 'Incoming' })).toBeInTheDocument()
-    expect(dialogo.getByLabelText('Reason')).toHaveDisplayValue('Received from producer')
+    expect(dialogo.getByText('Choose the reason first: the rest of the form adapts to it.')).toBeInTheDocument()
+    await user.selectOptions(dialogo.getByLabelText('Reason'), 'Received from producer · Incoming')
+    expect(dialogo.getByRole('button', { name: 'Record incoming' })).toBeInTheDocument()
     expect(screen.queryByText(/Registrar|Motivo|Vendible/)).not.toBeInTheDocument()
   })
 })
@@ -276,6 +316,7 @@ describe('A-03 Movimientos: salidas manuales y registro (CCPIP-287)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Registrar movimiento' }))
     const dialogo = within(await screen.findByRole('dialog'))
+    await user.selectOptions(dialogo.getByLabelText('Motivo'), 'Recepción del productor · Entrada')
     await user.selectOptions(dialogo.getByLabelText('Productor'), 'Asoc. Nii Joi')
     await user.selectOptions(dialogo.getByLabelText('Producto'), 'Aceite de sacha inchi 250 ml')
     await user.selectOptions(dialogo.getByLabelText('Lote'), 'L-0247 · vence 02/11/2027 · 60 und')

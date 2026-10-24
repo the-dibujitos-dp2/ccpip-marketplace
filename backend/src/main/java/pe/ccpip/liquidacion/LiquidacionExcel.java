@@ -35,7 +35,8 @@ final class LiquidacionExcel {
 
     /** Como los nombra la pantalla (productor.pedidos.estado). */
     private static final Map<String, String> ESTADOS = Map.of("CONFIRMADO", "Confirmado",
-            "EN_PREPARACION", "En preparación", "LISTO_PARA_RECOJO", "Listo para recojo", "ENTREGADO", "Entregado");
+            "EN_PREPARACION", "En preparación", "LISTO_PARA_RECOJO", "Listo para recojo",
+            "LISTO_PARA_DESPACHO", "Listo para despacho", "ENTREGADO", "Entregado");
 
     private LiquidacionExcel() {
     }
