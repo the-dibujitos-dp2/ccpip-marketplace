@@ -793,6 +793,42 @@
       }
     }
   },
+  "distribuidor": {
+    "rol": "Distributor",
+    "migas": "Delivery",
+    "nav": {
+      "pedidos": "Available orders"
+    },
+    "pedidos": {
+      "titulo": "Available orders",
+      "cargando": "Loading the available orders…",
+      "error": "We couldn't load the available orders",
+      "reintentar": "Try again",
+      "actualizar": "Refresh",
+      "vacio": "There are no orders available to deliver",
+      "vacioTexto": "When a collection point leaves a home delivery order ready to dispatch, it will show up here.",
+      "filtro": "Filter by collection point",
+      "todos": "All ({{total}})",
+      "total_one": "{{count}} order available",
+      "total_other": "{{count}} orders available",
+      "col": {
+        "pedido": "Order",
+        "recoger": "Pick up at",
+        "destino": "Destination",
+        "espera": "Waiting"
+      },
+      "cargarMas": "Load more orders",
+      "cargandoMas": "Loading…",
+      "errorMas": "We couldn't load more orders",
+      "mostrando": "Showing {{n}} of {{total}}",
+      "disponibleDesde": "Available since {{fecha}}",
+      "espera": {
+        "minutos": "{{m}} min",
+        "horas": "{{h}} h",
+        "dias": "{{d}}d {{h}}h"
+      }
+    }
+  },
   "acopio": {
     "rol": "Collection point",
     "nav": {
@@ -1399,6 +1435,7 @@
     "hola": "Hello, {{nombre}}",
     "error": "We couldn't load your dashboard",
     "verPedidos": "See the point's orders",
+    "verPedidosDisponibles": "View available orders",
     "verMovimientos": "See the point's stock movements",
     "seguridad": "For security, your session closes after {{minutos}} minutes of inactivity.",
     "panel": {
@@ -1423,8 +1460,8 @@
         "descripcion": "Here you'll oversee producers, collection points and accounts."
       },
       "DISTRIBUIDOR": {
-        "titulo": "Your wholesale purchases",
-        "descripcion": "Here you'll place volume orders with the communities."
+        "titulo": "Your deliveries",
+        "descripcion": "Here you'll see the orders ready to deliver and the ones you take on."
       }
     },
     "verTablero": "See the operations dashboard"

@@ -793,6 +793,42 @@
       }
     }
   },
+  "distribuidor": {
+    "rol": "Distribuidor",
+    "migas": "Reparto",
+    "nav": {
+      "pedidos": "Pedidos disponibles"
+    },
+    "pedidos": {
+      "titulo": "Pedidos disponibles",
+      "cargando": "Cargando los pedidos disponibles…",
+      "error": "No pudimos cargar los pedidos disponibles",
+      "reintentar": "Reintentar",
+      "actualizar": "Actualizar",
+      "vacio": "No hay pedidos disponibles para repartir",
+      "vacioTexto": "Cuando un punto de acopio deje un pedido a domicilio listo para despachar, aparecerá aquí.",
+      "filtro": "Filtrar por punto de acopio",
+      "todos": "Todos ({{total}})",
+      "total_one": "{{count}} pedido disponible",
+      "total_other": "{{count}} pedidos disponibles",
+      "col": {
+        "pedido": "Pedido",
+        "recoger": "Recoger en",
+        "destino": "Destino",
+        "espera": "Espera"
+      },
+      "cargarMas": "Cargar más pedidos",
+      "cargandoMas": "Cargando…",
+      "errorMas": "No pudimos cargar más pedidos",
+      "mostrando": "Mostrando {{n}} de {{total}}",
+      "disponibleDesde": "Disponible desde el {{fecha}}",
+      "espera": {
+        "minutos": "{{m}} min",
+        "horas": "{{h}} h",
+        "dias": "{{d}}d {{h}}h"
+      }
+    }
+  },
   "acopio": {
     "rol": "Punto de acopio",
     "nav": {
@@ -1399,6 +1435,7 @@
     "hola": "Hola, {{nombre}}",
     "error": "No pudimos cargar tu panel",
     "verPedidos": "Ver pedidos del punto",
+    "verPedidosDisponibles": "Ver pedidos disponibles",
     "verMovimientos": "Ver movimientos del punto",
     "seguridad": "Por seguridad, tu sesión se cierra tras {{minutos}} minutos sin actividad.",
     "panel": {
@@ -1423,8 +1460,8 @@
         "descripcion": "Aquí supervisarás productores, puntos de acopio y cuentas."
       },
       "DISTRIBUIDOR": {
-        "titulo": "Tus compras mayoristas",
-        "descripcion": "Aquí harás pedidos por volumen a las comunidades."
+        "titulo": "Tus entregas",
+        "descripcion": "Aquí verás los pedidos listos para repartir y los que asumas."
       }
     },
     "verTablero": "Ver tablero de operación"

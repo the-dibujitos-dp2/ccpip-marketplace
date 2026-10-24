@@ -45,6 +45,12 @@ export default function CuentaPage({ user, minutosInactividad }) {
           </div>
         )}
 
+        {user.role === 'DISTRIBUIDOR' && (
+          <div className="inicio__acciones">
+            <Boton tamano="M" to={RUTAS.distribuidorPedidos}>{t('cuenta.verPedidosDisponibles')}</Boton>
+          </div>
+        )}
+
         {user.role === 'SUPER_ADMIN' && (
           <div className="inicio__acciones">
             <Boton tamano="M" to={RUTAS.admin}>{t('cuenta.verTablero')}</Boton>
