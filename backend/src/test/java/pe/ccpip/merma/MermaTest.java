@@ -194,6 +194,58 @@ class MermaTest extends IntegrationTest {
                 .andExpect(jsonPath("$.items[*].lote", not(hasItem("L-PRL"))));
     }
 
+    // --- CCPIP-422: filtros de la merma del punto ---
+
+    @Test
+    void elPuntoFiltraLaMermaPorCausaProductoProductorYFechas() throws Exception {
+        long lima = ubicacion("Centro Nacional Lima");
+        long aguaje = productoDe("Aguaje filtro", PRODUCTOR);
+        long cacao = productoDe("Cacao filtro", "productor2@ccpip.test");
+        long deAguaje = lote(aguaje, "L-FA1", lima, "5", HOY.plusDays(60));
+        long deCacao = lote(cacao, "L-FC1", lima, "5", HOY.plusDays(60));
+        long dano = causa("Daño");
+        long perdida = causa("Pérdida");
+        Cookie admin = loginAs(ADMIN);
+        marcar(admin, ACOPIO, cuerpo(deAguaje, "1", dano, null, true)).andExpect(status().isCreated());
+        marcar(admin, ACOPIO, cuerpo(deCacao, "1", perdida, null, true)).andExpect(status().isCreated());
+        marcar(admin, ACOPIO, cuerpo(deCacao, "1", dano, null, true)).andExpect(status().isCreated());
+        long dos = productorDe("productor2@ccpip.test");
+
+        // Las opciones salen de toda su merma, sin filtrar
+        mockMvc.perform(get(ACOPIO).param("causa", String.valueOf(dano)).cookie(admin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].motivo", not(hasItem("Pérdida"))))
+                .andExpect(jsonPath("$.opciones.causas[*].id").value(hasItem((int) perdida)))
+                .andExpect(jsonPath("$.opciones.causas[?(@.id == " + dano + ")].nombreEn").value(hasItem("Damage")))
+                .andExpect(jsonPath("$.opciones.productos[*].id").value(hasItem((int) aguaje)))
+                .andExpect(jsonPath("$.opciones.productos[*].id").value(hasItem((int) cacao)))
+                .andExpect(jsonPath("$.opciones.productores[*].id").value(hasItem((int) dos)));
+
+        mockMvc.perform(get(ACOPIO).param("producto", String.valueOf(aguaje)).cookie(admin))
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].lote").value("L-FA1"));
+
+        // Combinados: productor y causa
+        mockMvc.perform(get(ACOPIO).param("productor", String.valueOf(dos)).param("causa", String.valueOf(perdida)).cookie(admin))
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].motivo").value("Pérdida"));
+
+        // Rango de fechas: dias de Lima, inclusive en ambos extremos
+        mockMvc.perform(get(ACOPIO).param("producto", String.valueOf(cacao))
+                        .param("desde", HOY.toString()).param("hasta", HOY.toString()).cookie(admin))
+                .andExpect(jsonPath("$.total").value(2));
+        mockMvc.perform(get(ACOPIO).param("producto", String.valueOf(cacao)).param("desde", HOY.plusDays(1).toString()).cookie(admin))
+                .andExpect(jsonPath("$.total").value(0))
+                .andExpect(jsonPath("$.items").isEmpty());
+        mockMvc.perform(get(ACOPIO).param("producto", String.valueOf(cacao)).param("hasta", HOY.minusDays(1).toString()).cookie(admin))
+                .andExpect(jsonPath("$.total").value(0));
+
+        // Un rango al reves no se acepta
+        mockMvc.perform(get(ACOPIO).param("desde", HOY.toString()).param("hasta", HOY.minusDays(1).toString()).cookie(admin))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("RANGO_INVALIDO"));
+    }
+
     @Test
     void laMermaEsUnaSalidaEnLosMovimientosDelPunto() throws Exception {
         long lote = lote(producto("Infusion merma"), "L-MOV", ubicacion("Centro Nacional Lima"), "4", HOY.plusDays(60));

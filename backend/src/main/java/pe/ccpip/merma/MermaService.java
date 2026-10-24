@@ -18,8 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.comun.PuntosDeAcopio;
 import pe.ccpip.merma.MermaModelos.DatosMerma;
+import pe.ccpip.merma.MermaModelos.FiltroMerma;
 import pe.ccpip.merma.MermaModelos.Merma;
 import pe.ccpip.merma.MermaModelos.MermaRegistrada;
+import pe.ccpip.merma.MermaModelos.Opcion;
+import pe.ccpip.merma.MermaModelos.OpcionesMerma;
 import pe.ccpip.merma.MermaModelos.PaginaMerma;
 
 /**
@@ -45,6 +48,9 @@ public class MermaService {
 
     private static final String PUNTOS_DEL_USUARIO =
             "l.ubicacion_id IN (SELECT ubicacion_id FROM usuario_ubicacion WHERE usuario_id = :usuario)";
+
+    /** El dia de Lima en que se registro la merma (filtro por fechas, CCPIP-422). */
+    private static final String EN_LIMA = "(m.registrado_en AT TIME ZONE 'America/Lima')::date";
 
     private static final String COLUMNAS = """
             SELECT m.movimiento_id, m.registrado_en, p.id AS producto_id, p.nombre AS producto, l.codigo AS lote,
@@ -185,12 +191,50 @@ public class MermaService {
 
     /**
      * La merma de los lotes de sus puntos, manual y automatica, con el productor de cada lote
-     * (CCPIP-423). 409 ACOPIO_SIN_ASIGNAR sin puntos.
+     * (CCPIP-423). 409 ACOPIO_SIN_ASIGNAR sin puntos. CCPIP-422: se filtra por causa, producto,
+     * productor y rango de fechas, combinables; el total y las paginas son de lo filtrado.
      */
     @Transactional(readOnly = true)
-    public PaginaMerma dePuntos(long usuarioId, int pagina) {
+    public PaginaMerma dePuntos(long usuarioId, int pagina, FiltroMerma f) {
         String ubicacion = puntos.nombres(usuarioId);
-        return pagina(ubicacion, PUNTOS_DEL_USUARIO, new MapSqlParameterSource("usuario", usuarioId), pagina, null);
+        if (f.desde() != null && f.hasta() != null && f.desde().isAfter(f.hasta())) {
+            throw ErrorNegocio.invalido("RANGO_INVALIDO", "La fecha inicial debe ser anterior o igual a la final.");
+        }
+        MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId);
+        StringBuilder filtro = new StringBuilder(PUNTOS_DEL_USUARIO);
+        filtrar(filtro, p, "m.motivo_id = :causa", "causa", f.causa());
+        filtrar(filtro, p, "p.id = :producto", "producto", f.producto());
+        filtrar(filtro, p, "p.productor_id = :productor", "productor", f.productor());
+        filtrar(filtro, p, EN_LIMA + " >= :fechaDesde", "fechaDesde", f.desde());
+        filtrar(filtro, p, EN_LIMA + " <= :fechaHasta", "fechaHasta", f.hasta());
+        return pagina(ubicacion, filtro.toString(), p, pagina, null, opciones(usuarioId));
+    }
+
+    /** Agrega la condicion solo si el filtro tiene valor; el valor va siempre como parametro. */
+    private static void filtrar(StringBuilder filtro, MapSqlParameterSource p, String condicion, String nombre, Object valor) {
+        if (valor != null) {
+            filtro.append(" AND ").append(condicion);
+            p.addValue(nombre, valor);
+        }
+    }
+
+    /** CCPIP-422: las causas, productos y productores con merma en sus puntos, para elegir en los filtros. */
+    private OpcionesMerma opciones(long usuarioId) {
+        return new OpcionesMerma(
+                opciones(usuarioId, "mm.id, mm.nombre, mm.nombre_en", " JOIN motivo_merma mm ON mm.id = m.motivo_id"),
+                opciones(usuarioId, "p.id, p.nombre, NULL::varchar AS nombre_en", ""),
+                opciones(usuarioId, "pr.id, coalesce(pr.nombre_tienda, pr.comunidad) AS nombre, NULL::varchar AS nombre_en",
+                        " JOIN productor pr ON pr.id = p.productor_id"));
+    }
+
+    private List<Opcion> opciones(long usuarioId, String columnas, String union) {
+        return jdbc.query("""
+                SELECT DISTINCT %s
+                FROM merma m JOIN lote l ON l.id = m.lote_id JOIN producto p ON p.id = l.producto_id%s
+                WHERE %s
+                ORDER BY nombre, id""".formatted(columnas, union, PUNTOS_DEL_USUARIO),
+                new MapSqlParameterSource("usuario", usuarioId),
+                (rs, row) -> new Opcion(rs.getLong("id"), rs.getString("nombre"), rs.getString("nombre_en")));
     }
 
     /**
@@ -200,10 +244,11 @@ public class MermaService {
     @Transactional(readOnly = true)
     public PaginaMerma deProductor(long productorId, long usuarioId, int pagina) {
         return pagina(null, "p.productor_id = :productor", new MapSqlParameterSource("productor", productorId), pagina,
-                usuarioId);
+                usuarioId, null);
     }
 
-    private PaginaMerma pagina(String ubicacion, String filtro, MapSqlParameterSource p, int pagina, Long soloResponsable) {
+    private PaginaMerma pagina(String ubicacion, String filtro, MapSqlParameterSource p, int pagina, Long soloResponsable,
+                               OpcionesMerma opciones) {
         String donde = " WHERE " + filtro;
         Long total = jdbc.queryForObject("""
                 SELECT count(*) FROM merma m JOIN lote l ON l.id = m.lote_id JOIN producto p ON p.id = l.producto_id""" + donde,
@@ -212,7 +257,7 @@ public class MermaService {
         p.addValue("limite", TAMANO).addValue("desde", (long) pagina * TAMANO);
         List<Merma> items = jdbc.query(COLUMNAS + donde + " ORDER BY m.registrado_en DESC, m.movimiento_id DESC LIMIT :limite OFFSET :desde",
                 p, (rs, row) -> merma(rs, soloResponsable));
-        return new PaginaMerma(ubicacion, items, pagina, TAMANO, cuantos, (int) ((cuantos + TAMANO - 1) / TAMANO));
+        return new PaginaMerma(ubicacion, items, pagina, TAMANO, cuantos, (int) ((cuantos + TAMANO - 1) / TAMANO), opciones);
     }
 
     private Merma obtener(long movimientoId) {

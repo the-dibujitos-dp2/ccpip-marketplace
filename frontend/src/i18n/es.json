@@ -3230,7 +3230,18 @@
       "sistema": "Sistema",
       "elPunto": "El punto de acopio",
       "automatica": "Automática",
-      "confirmada": "Merma confirmada"
+      "confirmada": "Merma confirmada",
+      "filtro": {
+        "desde": "Desde",
+        "hasta": "Hasta",
+        "causa": "Causa",
+        "producto": "Producto",
+        "productor": "Productor",
+        "todos": "Todos",
+        "limpiar": "Limpiar filtros",
+        "sinResultados": "Ninguna merma coincide con los filtros",
+        "sinResultadosTexto": "Cambia o limpia los filtros para ver más registros."
+      }
     }
   },
   "asistente": {

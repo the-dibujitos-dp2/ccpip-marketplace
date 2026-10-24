@@ -1,7 +1,9 @@
 package pe.ccpip.merma;
 
+import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -20,6 +22,7 @@ import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.merma.MermaModelos.Causa;
 import pe.ccpip.merma.MermaModelos.DatosMerma;
+import pe.ccpip.merma.MermaModelos.FiltroMerma;
 import pe.ccpip.merma.MermaModelos.MermaRegistrada;
 import pe.ccpip.merma.MermaModelos.PaginaMerma;
 import pe.ccpip.productor.ProductorActual;
@@ -49,11 +52,17 @@ public class MermaController {
         return motivos.activas();
     }
 
+    /** CCPIP-422: filtros opcionales y combinables por causa, producto, productor y rango de fechas. */
     @RolesPermitidos(Rol.ADMIN_PUNTO)
     @GetMapping("/api/acopio/merma")
     public PaginaMerma dePuntos(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
-                                @RequestParam(defaultValue = "0") @Min(0) int pagina) {
-        return merma.dePuntos(s.userId(), pagina);
+                                @RequestParam(defaultValue = "0") @Min(0) int pagina,
+                                @RequestParam(required = false) Long causa,
+                                @RequestParam(required = false) Long producto,
+                                @RequestParam(required = false) Long productor,
+                                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
+        return merma.dePuntos(s.userId(), pagina, new FiltroMerma(causa, producto, productor, desde, hasta));
     }
 
     /** 201 la primera vez; 200 si es el mismo envio otra vez (no marca de nuevo). */
