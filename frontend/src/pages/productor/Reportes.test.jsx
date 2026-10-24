@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../App.jsx'
 import i18n from '../../i18n/index.js'
 import { copia, DATOS, llamadas, PUBLICAS, servidor, SESION_PRODUCTOR } from '../../test/servidor.js'
@@ -203,6 +203,25 @@ describe('Reportes del productor', () => {
     expect(screen.getByText(/Las transferencias no cambian el total/)).toBeInTheDocument()
   })
 
+  it('CCPIP-115: descarga en PDF lo que se esta viendo, con la modalidad y el idioma', async () => {
+    productor({
+      'GET /api/productor/reportes/ventas?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES&producto=10': () => [200, { ...copia(VENTAS), producto: 10 }],
+      'GET /api/productor/reportes/ventas?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES&producto=10&modalidad=MINORISTA': () => [200, {
+        ...copia(VENTAS), producto: 10, modalidad: 'MINORISTA',
+      }],
+    })
+    abrirEn('/productor/reportes')
+    const pdf = await screen.findByRole('link', { name: 'Descargar PDF' })
+    expect(pdf).toHaveAttribute('href', '/api/productor/reportes/pdf?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES&lang=es')
+    expect(pdf).toHaveAttribute('download')
+
+    fireEvent.change(screen.getByLabelText('Producto'), { target: { value: '10' } })
+    await screen.findByDisplayValue('Harina de aguaje 500 g')
+    fireEvent.change(screen.getByLabelText('Modalidad'), { target: { value: 'MINORISTA' } })
+    await vi.waitFor(() => expect(screen.getByRole('link', { name: 'Descargar PDF' })).toHaveAttribute('href',
+      '/api/productor/reportes/pdf?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES&producto=10&modalidad=MINORISTA&lang=es'))
+  })
+
   it('sale en ingles', async () => {
     await i18n.changeLanguage('en')
     productor()
@@ -210,5 +229,6 @@ describe('Reportes del productor', () => {
     expect(await screen.findByRole('region', { name: 'Total sold' })).toHaveTextContent('S/ 320.00')
     expect(screen.getByRole('table', { name: 'Sales by period' })).toBeInTheDocument()
     expect(screen.getByLabelText('Purchase mode')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Download PDF' }).getAttribute('href')).toContain('lang=en')
   })
 })

@@ -3,6 +3,7 @@
 .reportes-productor__filtros .campo { width: 190px; }
 /* Producto y modalidad necesitan mas ancho para leer su opcion */
 .reportes-productor__filtros .reportes-productor__selector-ancho { width: 240px; }
+.reportes-productor__exportar { display: flex; gap: 8px; margin-left: auto; }
 .reportes-productor__periodo { flex: 0 0 190px; }
 .reportes-productor__num { flex: 0 0 110px; text-align: right; font-variant-numeric: tabular-nums; }
 /* El inventario tiene siete columnas de cifras: mas angostas para que quepan sin desplazar */
@@ -13,4 +14,5 @@
 
 @media (max-width: 720px) {
   .reportes-productor__filtros .campo { width: 100%; }
+  .reportes-productor__exportar { margin-left: 0; }
 }

@@ -7,7 +7,7 @@ import iconoGrafico from '../../assets/icons/grafico.svg'
 import iconoMerma from '../../assets/icons/merma.svg'
 import iconoMovimientos from '../../assets/icons/movimientos.svg'
 import iconoTienda from '../../assets/icons/tienda.svg'
-import { consultarReporteProductor } from '../../api/productor.js'
+import { consultarReporteProductor, urlReporteProductor } from '../../api/productor.js'
 import Alerta from '../../components/Alerta.jsx'
 import Campo from '../../components/Campo.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
@@ -29,14 +29,17 @@ const MODALIDADES = ['MINORISTA', 'MAYORISTA']
 /** Filtros que solo tienen sentido en algunas pestanas: la modalidad de compra es de las ventas. */
 const CON_MODALIDAD = ['ventas']
 
+/** Formatos de exportacion: el reporte completo de lo que se esta viendo. */
+const FORMATOS = ['pdf']
+
 /**
  * Reportes del productor: estadisticas de sus productos por periodo, con el formato de los reportes de la
  * plataforma (SA-05). CCPIP-114 (RF-25): ventas; CCPIP-333 (RF-223): produccion;
- * CCPIP-334 (RF-224): inventario. El servidor solo envia sus productos (RNF-05) y ningun
+ * CCPIP-334 (RF-224): inventario; CCPIP-115 (RF-26): exportacion en PDF. El servidor solo envia sus productos (RNF-05) y ningun
  * dato de los compradores; la pantalla solo muestra lo calculado.
  */
 export default function ReportesPage({ path }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [metrica, setMetrica] = useState(METRICAS[0])
   const [filtro, setFiltro] = useState({ desde: '', hasta: '', agrupacion: '', producto: '', modalidad: '' })
   const [datos, setDatos] = useState(null)
@@ -122,6 +125,18 @@ export default function ReportesPage({ path }) {
             onChange={cambiar('modalidad')}
             opciones={MODALIDADES.map((m) => ({ valor: m, etiqueta: t(`productor.reportes.modalidades.${m}`) }))}
           />
+        )}
+        {datos && (
+          <div className="reportes-productor__exportar">
+            {FORMATOS.map((f) => (
+              <a key={f} className="boton boton--secundario boton--M" download
+                href={urlReporteProductor(f, {
+                  desde: datos.desde, hasta: datos.hasta, agrupacion: datos.agrupacion, producto: datos.producto, modalidad: filtro.modalidad,
+                }, i18n.resolvedLanguage === 'en' ? 'en' : 'es')}>
+                {t(`productor.reportes.exportar.${f}`)}
+              </a>
+            ))}
+          </div>
         )}
       </div>
       {error && <Alerta tono="error" titulo={t('productor.reportes.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}

@@ -73,17 +73,21 @@ function rutaLiquidacion(sufijo, { desde, hasta } = {}) {
 // curso por mes y responde con el rango y la agrupacion que aplico.
 const FILTROS_REPORTE = ['desde', 'hasta', 'agrupacion', 'producto', 'modalidad']
 
-function rutaReporte(sufijo, filtros = {}) {
+function rutaReporte(sufijo, filtros = {}, idioma = null) {
   const q = new URLSearchParams()
   for (const campo of FILTROS_REPORTE) {
     if (filtros[campo] != null && filtros[campo] !== '') q.set(campo, String(filtros[campo]))
   }
+  // Una descarga por enlace no lleva Accept-Language: el idioma viaja como `lang`, como en merma
+  if (idioma) q.set('lang', idioma)
   const consulta = q.toString()
   return `${base}/reportes${sufijo}${consulta ? `?${consulta}` : ''}`
 }
 
 /** `metrica`: ventas, produccion o inventario. */
 export const consultarReporteProductor = (metrica, filtros) => apiFetch(rutaReporte(`/${metrica}`, filtros))
+/** CCPIP-115: enlace de descarga del reporte (ventas, produccion e inventario); la cookie de sesion viaja sola. */
+export const urlReporteProductor = (formato, filtros, idioma) => rutaReporte(`/${formato}`, filtros, idioma)
 // CCPIP-161: todos sus lotes, de todos sus productos, primero el que vence antes
 export const listarTodosLosLotes = () => apiFetch(`${base}/lotes`)
 export const listarLotes = async (id) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`)

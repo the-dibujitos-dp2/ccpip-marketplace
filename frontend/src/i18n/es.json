@@ -352,6 +352,9 @@
       "b2b": "B2B (mayorista)",
       "b2bDetalle": "Vendido a precio mayorista",
       "vacioTexto": "Prueba con otro período o con todos los productos.",
+      "exportar": {
+        "pdf": "Descargar PDF"
+      },
       "col": {
         "periodo": "Período",
         "producto": "Producto",
