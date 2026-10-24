@@ -1361,3 +1361,34 @@ en el catalogo responde `422 DESTINO_NO_ADMITIDO`. La direccion se pide completa
 (`422 DIRECCION_INVALIDA`). La misma direccion en el mismo distrito no se guarda dos veces para un comprador
 (`409 DIRECCION_YA_GUARDADA`, sin distinguir mayusculas); otro comprador si puede guardarla. Los pedidos copian su
 destino en `entrega` y no dependen de esta tabla.
+
+## Pedidos disponibles para distribucion (CCPIP-107)
+
+Sin migracion. El distribuidor consulta los pedidos preparados que puede asumir, con su origen, su destino y
+cuanto llevan esperando (RF-54). Un pedido entra a la cola cuando el punto de acopio registra su salida y queda
+`LISTO_PARA_DESPACHO` (CCPIP-320, migracion `V202610231200`); asumirlo (CCPIP-108), retirarlo (CCPIP-109) y
+entregarlo (CCPIP-319) llegan con sus historias.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `GET /api/distribuidor/pedidos/disponibles` | DISTRIBUIDOR | Una pagina de los pedidos disponibles, el que lleva mas esperando primero. `?punto=<id>` deja solo los de ese punto de acopio; `?limite=` de 1 a 50 (20 por defecto); `?cursor=` el `siguiente` de la pagina anterior |
+| `GET /api/panel/distribuidor` | DISTRIBUIDOR | Ahora presenta al distribuidor como responsable de las entregas, no como comprador mayorista |
+
+**Quien es elegible.** Un pedido con modalidad `ENVIO`, estado `LISTO_PARA_DESPACHO`, cuya `entrega` sigue
+`DISPONIBLE` y sin `distribuidor_id`, y que sale de un punto de acopio activo. En cuanto un distribuidor asume la
+entrega deja de aparecer. Los pedidos para recojo, los que aun no estan preparados, los cancelados, los que ya asumio alguien y los de un punto de acopio inactivo no se listan.
+
+**Paginacion.** La cola se recorre con un cursor y no por numero de pagina, porque cambia mientras se recorre (otro distribuidor asume un pedido):
+la respuesta es { items, siguiente, total, puntos }. siguiente es un texto opaco que se devuelve tal cual como cursor para pedir la pagina que sigue, y es nulo
+en la ultima; apunta al ultimo pedido visto (desde cuando esta disponible y su id), asi lo que se asume no hace saltar ni repetir a los demas.
+El orden es estable: desde cuando esta disponible y, si empatan, el id. Un cursor que no es de la cola responde 422 CURSOR_INVALIDO y un limite fuera de
+rango, 400. `total` es el de los pedidos disponibles (del punto filtrado, si se filtro) y puntos lista los puntos con pedidos y cuantos tiene cada uno,
+sin importar el filtro, para poder cambiar de punto.
+
+**Que se muestra.** `origen` es el punto de acopio (nombre, distrito y direccion); `destino` llega hasta el distrito
+(ubigeo, departamento, provincia y distrito); `disponibleDesde` es cuando quedo `LISTO_PARA_DESPACHO` segun
+`pedido_estado_historial`, y `esperaMinutos`, lo que lleva esperando. La direccion exacta y el contacto de quien
+recibe **no se muestran** hasta asumir la entrega (CCPIP-108 y CCPIP-110), y el comprador no se muestra nunca (RNF-05).
+
+El endpoint nuevo **no estaba detallado en el contrato de la API del Drive** salvo su ruta y descripcion; los campos
+de la respuesta son los de esta seccion.
