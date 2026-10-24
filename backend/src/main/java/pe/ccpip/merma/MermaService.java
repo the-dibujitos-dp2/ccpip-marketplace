@@ -49,11 +49,13 @@ public class MermaService {
     private static final String COLUMNAS = """
             SELECT m.movimiento_id, m.registrado_en, p.id AS producto_id, p.nombre AS producto, l.codigo AS lote,
                    u.nombre AS ubicacion, mi.cantidad, m.motivo_nombre, m.motivo_nombre_en, m.detalle, m.automatica,
-                   m.registrado_por, r.nombre AS responsable
+                   m.registrado_por, r.nombre AS responsable,
+                   pr.id AS productor_id, coalesce(pr.nombre_tienda, pr.comunidad) AS productor
             FROM merma m
             JOIN movimiento_inventario mi ON mi.id = m.movimiento_id
             JOIN lote l ON l.id = m.lote_id
             JOIN producto p ON p.id = l.producto_id
+            JOIN productor pr ON pr.id = p.productor_id
             JOIN ubicacion u ON u.id = l.ubicacion_id
             LEFT JOIN usuario r ON r.id = m.registrado_por
             """;
@@ -181,7 +183,10 @@ public class MermaService {
 
     // ---------- Consultar (A-04 y PW "Merma", CCPIP-75) ----------
 
-    /** La merma de los lotes de sus puntos, manual y automatica. 409 ACOPIO_SIN_ASIGNAR sin puntos. */
+    /**
+     * La merma de los lotes de sus puntos, manual y automatica, con el productor de cada lote
+     * (CCPIP-423). 409 ACOPIO_SIN_ASIGNAR sin puntos.
+     */
     @Transactional(readOnly = true)
     public PaginaMerma dePuntos(long usuarioId, int pagina) {
         String ubicacion = puntos.nombres(usuarioId);
@@ -223,6 +228,7 @@ public class MermaService {
         return new Merma(rs.getLong("movimiento_id"), rs.getObject("registrado_en", Timestamp.class).toInstant(),
                 rs.getLong("producto_id"), rs.getString("producto"), rs.getString("lote"), rs.getString("ubicacion"),
                 rs.getBigDecimal("cantidad"), rs.getString("motivo_nombre"), rs.getString("motivo_nombre_en"),
-                rs.getString("detalle"), rs.getBoolean("automatica"), mostrar ? rs.getString("responsable") : null);
+                rs.getString("detalle"), rs.getBoolean("automatica"), mostrar ? rs.getString("responsable") : null,
+                rs.getLong("productor_id"), rs.getString("productor"));
     }
 }

@@ -158,6 +158,42 @@ class MermaTest extends IntegrationTest {
                 .andExpect(jsonPath("$.items[*].lote", not(hasItem("L-PUN"))));
     }
 
+    // --- CCPIP-423: el productor del lote en la merma del punto ---
+
+    @Test
+    void elPuntoVeElProductorDeCadaLoteYSoloLaMermaDeSusPuntos() throws Exception {
+        long lima = ubicacion("Centro Nacional Lima");
+        long deUno = lote(productoDe("Aguaje productor uno", PRODUCTOR), "L-PR1", lima, "5", HOY.plusDays(60));
+        long deDos = lote(productoDe("Cacao productor dos", "productor2@ccpip.test"), "L-PR2", lima, "5", HOY.plusDays(60));
+        long enLoreto = lote(productoDe("Camu camu Loreto", "productor2@ccpip.test"), "L-PRL",
+                ubicacion("Centro Regional Loreto"), "5", HOY.plusDays(60));
+        Cookie admin = loginAs(ADMIN);
+        marcar(admin, ACOPIO, cuerpo(deUno, "1", causa("Daño"), null, true)).andExpect(status().isCreated());
+        marcar(admin, ACOPIO, cuerpo(deDos, "2", causa("Pérdida"), null, true)).andExpect(status().isCreated());
+        // Merma en un punto que no es suyo: la registra el sistema por vencimiento
+        jdbc.update("UPDATE lote SET fecha_vencimiento = ? WHERE id = ?", HOY.minusDays(1), enLoreto);
+        automatica.revisar();
+        assertThat(contar("SELECT count(*) FROM merma WHERE lote_id = ?", enLoreto)).isOne();
+
+        // El nombre publico: la tienda o, sin ella, la comunidad
+        String uno = nombrePublico(PRODUCTOR);
+        String dos = nombrePublico("productor2@ccpip.test");
+        assertThat(uno).isNotBlank().isNotEqualTo(dos);
+
+        mockMvc.perform(get(ACOPIO).cookie(admin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.lote == 'L-PR1')].productor").value(hasItem(uno)))
+                .andExpect(jsonPath("$.items[?(@.lote == 'L-PR1')].productorId").value(hasItem((int) productorDe(PRODUCTOR))))
+                .andExpect(jsonPath("$.items[?(@.lote == 'L-PR2')].productor").value(hasItem(dos)))
+                .andExpect(jsonPath("$.items[?(@.lote == 'L-PR2')].productorId")
+                        .value(hasItem((int) productorDe("productor2@ccpip.test"))))
+                // Sin datos de contacto del productor
+                .andExpect(jsonPath("$.items[0].correo").doesNotExist())
+                .andExpect(jsonPath("$.items[0].telefono").doesNotExist())
+                // RNF-05: la merma de otro punto no aparece
+                .andExpect(jsonPath("$.items[*].lote", not(hasItem("L-PRL"))));
+    }
+
     @Test
     void laMermaEsUnaSalidaEnLosMovimientosDelPunto() throws Exception {
         long lote = lote(producto("Infusion merma"), "L-MOV", ubicacion("Centro Nacional Lima"), "4", HOY.plusDays(60));
@@ -300,7 +336,23 @@ class MermaTest extends IntegrationTest {
     }
 
     private long producto(String nombre) {
-        return productoConLote(nombre + " " + UUID.randomUUID(), "PUBLICADO", null, null, PRODUCTOR);
+        return productoDe(nombre, PRODUCTOR);
+    }
+
+    private long productoDe(String nombre, String correo) {
+        return productoConLote(nombre + " " + UUID.randomUUID(), "PUBLICADO", null, null, correo);
+    }
+
+    private long productorDe(String correo) {
+        Long id = jdbc.queryForObject("SELECT p.id FROM productor p JOIN usuario u ON u.id = p.usuario_id WHERE u.correo = ?",
+                Long.class, correo);
+        return id == null ? 0 : id;
+    }
+
+    private String nombrePublico(String correo) {
+        return jdbc.queryForObject("""
+                SELECT coalesce(p.nombre_tienda, p.comunidad) FROM productor p JOIN usuario u ON u.id = p.usuario_id
+                WHERE u.correo = ?""", String.class, correo);
     }
 
     /** Un lote con su ENTRADA y su stock, como lo deja el registro del lote (PW-06). */

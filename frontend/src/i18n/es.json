@@ -3204,6 +3204,7 @@
       "col": {
         "fecha": "Fecha",
         "producto": "Producto y lote",
+        "productor": "Productor",
         "ubicacion": "Ubicación",
         "causa": "Causa",
         "cantidad": "Cantidad",

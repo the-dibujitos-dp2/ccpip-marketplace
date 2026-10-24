@@ -14,10 +14,11 @@ import './ListaMerma.css'
 /**
  * La merma registrada (Figma A-04): manual (CCPIP-76) y automatica por vencimiento (CCPIP-75), la
  * mas reciente primero. `consultar(pagina)` llama al API del rol; `conUbicacion` muestra donde
- * estaba el lote (el productor tiene lotes en su almacen y en los puntos). `ir` ({ ruta, texto }) lleva a
+ * estaba el lote (el productor tiene lotes en su almacen y en los puntos); `conProductor`, a que
+ * productor pertenece (el punto, CCPIP-423). `ir` ({ ruta, texto }) lleva a
  * donde se marca la merma, con `irTexto` que lo explica. `onDatos` recibe cada pagina.
  */
-export default function ListaMerma({ consultar, conUbicacion = false, ir, irTexto, onDatos }) {
+export default function ListaMerma({ consultar, conUbicacion = false, conProductor = false, ir, irTexto, onDatos }) {
   const { t, i18n } = useTranslation()
   const [pagina, setPagina] = useState(0)
   const cargar = useCallback(() => consultar(pagina).then((d) => { onDatos?.(d); return d }), [consultar, pagina, onDatos])
@@ -44,6 +45,7 @@ export default function ListaMerma({ consultar, conUbicacion = false, ir, irText
             <div className="tabla__fila tabla__fila--encabezado" role="row">
               <span className="tabla__celda merma__col-fecha" role="columnheader">{t('merma.lista.col.fecha')}</span>
               <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('merma.lista.col.producto')}</span>
+              {conProductor && <span className="tabla__celda merma__col-productor" role="columnheader">{t('merma.lista.col.productor')}</span>}
               {conUbicacion && <span className="tabla__celda merma__col-ubicacion" role="columnheader">{t('merma.lista.col.ubicacion')}</span>}
               <span className="tabla__celda merma__col-causa" role="columnheader">{t('merma.lista.col.causa')}</span>
               <span className="tabla__celda merma__col-cantidad" role="columnheader">{t('merma.lista.col.cantidad')}</span>
@@ -54,6 +56,7 @@ export default function ListaMerma({ consultar, conUbicacion = false, ir, irText
               <div key={m.id} className="tabla__fila" role="row">
                 <span className="tabla__celda merma__col-fecha label-m" role="cell">{diaMes(m.registradoEn)}</span>
                 <span className="tabla__celda tabla__celda--flex" role="cell">{`${m.producto} · ${m.lote}`}</span>
+                {conProductor && <span className="tabla__celda merma__col-productor" role="cell">{m.productor ?? '—'}</span>}
                 {conUbicacion && <span className="tabla__celda merma__col-ubicacion" role="cell">{m.ubicacion}</span>}
                 <span className="tabla__celda merma__col-causa" role="cell">
                   {m.automatica ? t('merma.lista.automaticaCausa', { causa: nombreCausa(m, i18n) }) : nombreCausa(m, i18n)}
