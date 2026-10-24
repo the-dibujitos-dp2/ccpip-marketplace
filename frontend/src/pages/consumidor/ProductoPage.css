@@ -19,8 +19,15 @@
 
 .ficha__info { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
 .ficha__titulo { font-family: var(--font-display); font-weight: 600; font-size: 36px; line-height: 44px; letter-spacing: -0.5px; }
-.ficha__productor { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; color: var(--color-text-secondary); }
-.ficha__tienda { font-weight: 600; color: var(--color-text-brand); }
+/* CCPIP-411: el productor, destacado bajo el titulo y antes del panel de compra */
+.ficha__productor { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; width: 100%; padding: 16px 18px; border: 1px solid var(--color-border-default); border-left: 4px solid var(--color-border-brand); border-radius: var(--radius-l); background: var(--color-bg-brand-subtle); }
+.ficha__productor-cabecera { display: flex; align-items: flex-start; gap: 12px; }
+.ficha__productor .avatar { width: 48px; height: 48px; font-size: 16px; }
+.ficha__productor-identidad { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ficha__productor-overline { display: inline-flex; align-items: center; gap: 4px; margin: 0; }
+.ficha__productor-nombre { font-family: var(--font-display); font-weight: 600; font-size: 20px; line-height: 28px; color: var(--color-text-primary); }
+.ficha__productor-dato { font-size: 14px; line-height: 20px; color: var(--color-text-secondary); }
+.ficha__productor-relato { font-size: 15px; line-height: 22px; color: var(--color-text-secondary); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
 
 .ficha__cita { width: 100%; margin: 4px 0; padding: 16px 18px; border-radius: var(--radius-l); background: var(--color-bg-sand); }
 .ficha__cita p { font-family: var(--font-display); font-style: italic; font-size: 18px; line-height: 26px; margin-bottom: 8px; }
@@ -79,8 +86,13 @@ div.ficha__precio { cursor: default; }
 @media (max-width: 900px) {
   .ficha__volumen-ofertas:has(.ficha__volumen):has(.otras-ofertas) { grid-template-columns: minmax(0, 1fr); }
   .ficha__volumen-ofertas > .otras-ofertas:only-child { max-width: none; }
-  .ficha__principal, .historia, .ficha__confianza { grid-template-columns: minmax(0, 1fr); }
+  .historia, .ficha__confianza { grid-template-columns: minmax(0, 1fr); }
   .historia { padding: 28px; }
+  /* CCPIP-411: en una columna, foto, titulo y productor primero; los datos de un vistazo al final */
+  .ficha__principal { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+  .ficha__galeria, .ficha__info { display: contents; }
+  .ficha__foto, .ficha__miniaturas, .ficha__datos { width: 100%; }
+  .ficha__datos { order: 1; }
 }
 
 @media (max-width: 520px) {

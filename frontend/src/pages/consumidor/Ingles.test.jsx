@@ -59,6 +59,11 @@ describe('Tienda en inglés (CCPIP-98)', () => {
     const user = userEvent.setup()
     abrirEn('/productos/1')
     expect(await screen.findByText('From 12 units you pay S/ 35.00 each (wholesale price).')).toBeInTheDocument()
+    // CCPIP-411: el bloque del productor tambien en ingles
+    const { tienda } = DATOS.detalle
+    const productor = screen.getByRole('region', { name: 'Who makes it' })
+    expect(within(productor).getByText(`${tienda.pueblo} people · ${tienda.comunidad}`)).toBeInTheDocument()
+    expect(within(productor).getByRole('link', { name: `Visit the ${tienda.nombre} store` })).toHaveAttribute('href', `/tiendas/${tienda.id}`)
     await user.click(screen.getByRole('radio', { name: /Wholesale price/ }))
     expect(screen.getByText('Add 11 more units to get the wholesale price')).toBeInTheDocument()
     const cantidad = screen.getByLabelText('Quantity')

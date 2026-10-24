@@ -1671,9 +1671,10 @@
     "origen": "Origin",
     "cosecha": "Harvest",
     "presentacion": "Packaging",
-    "elaboradoPor": "Made by",
-    "hechoPor": "Made by",
-    "puebloCorto": "· {{pueblo}} people",
+    "productor": {
+      "titulo": "Who makes it",
+      "verTienda": "Visit the {{nombre}} store"
+    },
     "leerHistoria": "Read their story",
     "precioSegunModalidad": "Price by purchase mode",
     "precioMinorista": "Retail price",
