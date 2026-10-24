@@ -195,16 +195,17 @@ public class ProductosService {
         Short unidad = d.unidad() == null || d.unidad().isBlank() ? null : idUnidad(d.unidad());
         boolean mayorista = d.modalidad() != Modalidad.MINORISTA;
         boolean minorista = d.modalidad() != Modalidad.MAYORISTA;
-        // RNF-29: solo cuenta como asistida si el servidor propuso una descripcion
-        Boolean hayPropuesta = jdbc.queryForObject(
-                "SELECT descripcion_propuesta IS NOT NULL FROM producto WHERE id = ?", Boolean.class, id);
+        // RNF-29 y CCPIP-49: solo cuenta como asistida si el productor acepto una sugerencia de la IA (o ya lo era);
+        // un borrador pendiente, sin aceptar, no basta
+        Boolean aceptoSugerencia = jdbc.queryForObject(
+                "SELECT descripcion_sugerida IS NOT NULL OR descripcion_asistida FROM producto WHERE id = ?", Boolean.class, id);
         jdbc.update("""
                 UPDATE producto SET nombre = ?, descripcion = ?, descripcion_asistida = ?, linea_id = ?,
                        unidad_medida_id = ?, contenido = ?, modalidad = ?, precio = ?, precio_mayorista = ?,
                        cantidad_minima_mayorista = ?, es_materia_prima = ?, actualizado_por = ?, actualizado_en = now()
                 WHERE id = ? AND productor_id = ?""",
                 d.nombre().trim(), TiendaService.limpio(d.descripcion()),
-                d.descripcionAsistida() && Boolean.TRUE.equals(hayPropuesta),
+                d.descripcionAsistida() && Boolean.TRUE.equals(aceptoSugerencia),
                 lineas.isEmpty() ? null : lineas.get(0), unidad, TiendaService.limpio(d.contenido()),
                 d.modalidad().name(), minorista ? d.precio() : null, mayorista ? d.precioMayorista() : null,
                 mayorista ? d.cantidadMinimaMayorista() : null, d.esMateriaPrima(), usuarioId, id, productorId);
@@ -269,13 +270,15 @@ public class ProductosService {
                 WHERE pl.producto_id = ? ORDER BY (l.id = ?) DESC, l.orden""", String.class, id, rs.getObject("linea_id"));
         ProductoEdicion sinPublicable = new ProductoEdicion(id, Estado.valueOf(rs.getString("estado")),
                 rs.getString("nombre"), rs.getString("descripcion"), rs.getBoolean("descripcion_asistida"),
-                rs.getString("descripcion_propuesta"), lineas, rs.getString("unidad_codigo"), rs.getString("contenido"),
+                rs.getString("descripcion_propuesta"), rs.getString("descripcion_sugerida"), lineas,
+                rs.getString("unidad_codigo"), rs.getString("contenido"),
                 Modalidad.valueOf(rs.getString("modalidad")), rs.getBigDecimal("precio"), rs.getBigDecimal("precio_mayorista"),
                 (Integer) rs.getObject("cantidad_minima_mayorista"), rs.getBoolean("es_materia_prima"),
                 imagenes.deProducto(id), historia(id), rs.getBigDecimal("en_venta"), null);
         return new ProductoEdicion(sinPublicable.id(), sinPublicable.estado(), sinPublicable.nombre(),
                 sinPublicable.descripcion(), sinPublicable.descripcionAsistida(), sinPublicable.descripcionPropuesta(),
-                sinPublicable.lineas(), sinPublicable.unidad(), sinPublicable.contenido(), sinPublicable.modalidad(),
+                sinPublicable.descripcionSugerida(), sinPublicable.lineas(), sinPublicable.unidad(),
+                sinPublicable.contenido(), sinPublicable.modalidad(),
                 sinPublicable.precio(), sinPublicable.precioMayorista(), sinPublicable.cantidadMinimaMayorista(),
                 sinPublicable.esMateriaPrima(), sinPublicable.imagenes(), sinPublicable.historia(),
                 sinPublicable.enVenta(), publicable(productorId, sinPublicable));

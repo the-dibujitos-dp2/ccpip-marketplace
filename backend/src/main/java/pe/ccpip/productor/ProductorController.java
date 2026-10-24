@@ -149,6 +149,13 @@ public class ProductorController {
         return ResponseEntity.noContent().build();
     }
 
+    /** CCPIP-49: aceptar el borrador de descripcion de la IA para editarlo; queda registrado y no se publica nada. */
+    @PostMapping("/productos/{id}/ia/descripcion/aceptar")
+    public ProductoEdicion aceptarDescripcion(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                              @PathVariable long id) {
+        return historias.aceptarDescripcion(actual.id(s), s.userId(), id);
+    }
+
     @PostMapping("/ia/descripcion")
     public Propuesta proponerDescripcion(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                          @Valid @RequestBody PedirDescripcion pedido) {
