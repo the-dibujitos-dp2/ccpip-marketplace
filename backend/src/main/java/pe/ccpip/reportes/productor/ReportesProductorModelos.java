@@ -46,4 +46,25 @@ public final class ReportesProductorModelos {
                                 Modalidad modalidad, TotalesVentas totales, List<PeriodoVentas> periodos,
                                 List<ProductoVentas> porProducto, List<ProductoOpcion> productos) {
     }
+
+    /** CCPIP-333: un periodo de produccion: unidades ingresadas y lotes nuevos. */
+    public record PeriodoProduccion(LocalDate inicio, LocalDate fin, BigDecimal unidades, long lotes,
+                                    BigDecimal acumulado) {
+    }
+
+    /** CCPIP-333: lo producido de un producto en todo el rango. */
+    public record ProductoProduccion(long productoId, String producto, BigDecimal unidades, long lotes) {
+    }
+
+    public record TotalesProduccion(BigDecimal unidades, long lotes) {
+    }
+
+    /**
+     * CCPIP-333 (RF-223): produccion de sus productos por periodo. La modalidad de compra no aplica: la
+     * produccion existe antes de venderse a una u otra tarifa.
+     */
+    public record ReporteProduccion(LocalDate desde, LocalDate hasta, Agrupacion agrupacion, Long producto,
+                                    TotalesProduccion totales, List<PeriodoProduccion> periodos,
+                                    List<ProductoProduccion> porProducto, List<ProductoOpcion> productos) {
+    }
 }

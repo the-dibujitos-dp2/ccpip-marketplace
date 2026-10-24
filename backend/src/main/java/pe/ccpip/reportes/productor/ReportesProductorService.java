@@ -17,10 +17,14 @@ import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.comun.RangoFechas;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.Modalidad;
+import pe.ccpip.reportes.productor.ReportesProductorModelos.PeriodoProduccion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.PeriodoVentas;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.ProductoOpcion;
+import pe.ccpip.reportes.productor.ReportesProductorModelos.ProductoProduccion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.ProductoVentas;
+import pe.ccpip.reportes.productor.ReportesProductorModelos.ReporteProduccion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.ReporteVentas;
+import pe.ccpip.reportes.productor.ReportesProductorModelos.TotalesProduccion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.TotalesVentas;
 
 /**
@@ -130,6 +134,60 @@ public class ReportesProductorService {
                 .toList();
         return new ReporteVentas(c.desde(), c.hasta(), c.agrupacion(), c.producto(), modalidad, totales, periodos,
                 productos, productos(productorId));
+    }
+
+    /**
+     * CCPIP-333 (RF-223): lo producido de sus productos, por la fecha en que ingreso al inventario. Es cada
+     * ENTRADA en sus lotes: el registro de un lote nuevo (que cuenta tambien como lote) y las entradas de
+     * produccion o recepcion en un lote existente (CCPIP-283, CCPIP-121). Las transferencias no son
+     * produccion: solo mueven lo ya producido entre ubicaciones.
+     */
+    @Transactional(readOnly = true)
+    public ReporteProduccion produccion(long productorId, LocalDate desde, LocalDate hasta, Agrupacion agrupacion,
+                                        Long producto) {
+        Consulta c = consulta(productorId, desde, hasta, agrupacion, producto);
+        Tramos tramos = new Tramos(c.desde(), c.hasta(), c.agrupacion());
+        int n = tramos.cantidad();
+        BigDecimal[] unidades = ceros(n);
+        long[] lotes = new long[n];
+        Map<Long, ProductoProduccion> porProducto = new LinkedHashMap<>();
+
+        jdbc.query("""
+                SELECT (m.registrado_en AT TIME ZONE 'America/Lima')::date AS fecha, m.producto_id, pr.nombre,
+                       sum(m.cantidad) AS unidades,
+                       count(DISTINCT m.lote_id) FILTER (WHERE m.motivo IS NULL) AS lotes
+                FROM movimiento_inventario m
+                JOIN producto pr ON pr.id = m.producto_id
+                WHERE pr.productor_id = :productor AND m.tipo = 'ENTRADA'
+                  AND (m.registrado_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta
+                """ + c.filtroProducto("m.producto_id") + """
+
+                GROUP BY 1, m.producto_id, pr.nombre""", c.parametros(), rs -> {
+            int i = tramos.posicion(rs.getObject("fecha", LocalDate.class));
+            BigDecimal u = rs.getBigDecimal("unidades");
+            long l = rs.getLong("lotes");
+            unidades[i] = unidades[i].add(u);
+            lotes[i] += l;
+            long id = rs.getLong("producto_id");
+            ProductoProduccion previo = porProducto.getOrDefault(id,
+                    new ProductoProduccion(id, rs.getString("nombre"), BigDecimal.ZERO, 0));
+            porProducto.put(id, new ProductoProduccion(id, previo.producto(), previo.unidades().add(u), previo.lotes() + l));
+        });
+
+        List<PeriodoProduccion> periodos = new ArrayList<>();
+        BigDecimal acumulado = BigDecimal.ZERO;
+        long totalLotes = 0;
+        for (int i = 0; i < n; i++) {
+            Tramos.Tramo t = tramos.lista().get(i);
+            acumulado = acumulado.add(unidades[i]);
+            totalLotes += lotes[i];
+            periodos.add(new PeriodoProduccion(t.inicio(), t.fin(), unidades[i], lotes[i], acumulado));
+        }
+        List<ProductoProduccion> productos = porProducto.values().stream()
+                .sorted(Comparator.comparing(ProductoProduccion::unidades).reversed().thenComparing(ProductoProduccion::producto))
+                .toList();
+        return new ReporteProduccion(c.desde(), c.hasta(), c.agrupacion(), c.producto(),
+                new TotalesProduccion(acumulado, totalLotes), periodos, productos, productos(productorId));
     }
 
     /** Sus productos, para el filtro de la pantalla. */

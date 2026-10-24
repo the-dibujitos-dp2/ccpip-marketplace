@@ -14,7 +14,8 @@ import jakarta.servlet.http.Cookie;
 import pe.ccpip.support.IntegrationTest;
 
 /**
- * Pantalla «Reportes» del productor: estadisticas de sus productos por periodo. CCPIP-114 (RF-25): ventas.
+ * Pantalla «Reportes» del productor: estadisticas de sus productos por periodo. CCPIP-114 (RF-25): ventas;
+ * CCPIP-333 (RF-223): produccion.
  *
  * <p>Los datos de la prueba son de mayo y junio de 2024, meses que ninguna otra prueba usa, y la transaccion
  * se deshace al terminar.
@@ -25,6 +26,7 @@ class ReportesProductorTest extends IntegrationTest {
     private static final String PRODUCTOR = "productor@ccpip.test";
     private static final String OTRO = "productor2@ccpip.test";
     private static final String VENTAS = "/api/productor/reportes/ventas";
+    private static final String PRODUCCION = "/api/productor/reportes/produccion";
 
     private long aceite;
     private long harina;
@@ -136,6 +138,45 @@ class ReportesProductorTest extends IntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void laProduccionSonLasEntradasEnSusLotesYCuentaLosLotesNuevos() throws Exception {
+        produccionDePrueba();
+
+        mockMvc.perform(get(PRODUCCION + "?desde=2024-05-01&hasta=2024-06-30").cookie(loginAs(PRODUCTOR)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.agrupacion").value("MES"))
+                .andExpect(jsonPath("$.periodos.length()").value(2))
+                // Mayo: lote de 50 y una entrada de produccion de 10 en el mismo lote
+                .andExpect(jsonPath("$.periodos[0].unidades").value(60))
+                .andExpect(jsonPath("$.periodos[0].lotes").value(1))
+                .andExpect(jsonPath("$.periodos[0].acumulado").value(60))
+                .andExpect(jsonPath("$.periodos[1].unidades").value(30))
+                .andExpect(jsonPath("$.periodos[1].lotes").value(1))
+                .andExpect(jsonPath("$.periodos[1].acumulado").value(90))
+                .andExpect(jsonPath("$.totales.unidades").value(90))
+                .andExpect(jsonPath("$.totales.lotes").value(2))
+                // Lo de otro productor no cuenta
+                .andExpect(jsonPath("$.porProducto.length()").value(2))
+                .andExpect(jsonPath("$.porProducto[0].producto").value("RP Aceite"))
+                .andExpect(jsonPath("$.porProducto[0].unidades").value(60))
+                .andExpect(jsonPath("$.porProducto[1].producto").value("RP Harina"))
+                .andExpect(jsonPath("$.porProducto[1].lotes").value(1));
+    }
+
+    @Test
+    void laProduccionSeFiltraPorProductoYRechazaUnoAjeno() throws Exception {
+        produccionDePrueba();
+        Cookie sesion = loginAs(PRODUCTOR);
+
+        mockMvc.perform(get(PRODUCCION + "?desde=2024-05-01&hasta=2024-06-30&producto=" + harina).cookie(sesion))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totales.unidades").value(30))
+                .andExpect(jsonPath("$.periodos[0].unidades").value(0))
+                .andExpect(jsonPath("$.porProducto.length()").value(1));
+        mockMvc.perform(get(PRODUCCION + "?producto=" + ajeno).cookie(sesion))
+                .andExpect(status().isNotFound());
+    }
+
     /**
      * Mayo: aceite 2 und minorista (S/ 40) el 3; harina 10 und mayorista (S/ 100) el 20, ya entregada; aceite
      * 1 und minorista (S/ 20) el 31 a las 23:30 de Lima. Junio: aceite 1 und minorista (S/ 20) el 15. No
@@ -149,6 +190,46 @@ class ReportesProductorTest extends IntegrationTest {
         linea(pedido("RPP-5", "CANCELADO", "2024-05-10 10:00-05"), aceite, "9", "999.00", "MINORISTA");
         linea(pedido("RPP-6", "PENDIENTE_PAGO", null), harina, "9", "888.00", "MAYORISTA");
         linea(pedido("RPP-7", "CONFIRMADO", "2024-05-12 10:00-05"), ajeno, "5", "500.00", "MINORISTA");
+    }
+
+    /**
+     * Mayo: lote de aceite de 50 el 2 y, en el mismo lote, una entrada de produccion de 10 el 20. Junio: lote
+     * de harina de 30 el 3. Un lote de otro productor el 5 de mayo no cuenta.
+     */
+    private long[] produccionDePrueba() {
+        long lAceite = lote(aceite, "RP-A1", "50", "2024-05-02 09:00-05");
+        entrada(lAceite, "10", "2024-05-20 09:00-05");
+        long lHarina = lote(harina, "RP-H1", "30", "2024-06-03 09:00-05");
+        lote(ajeno, "RP-X1", "99", "2024-05-05 09:00-05");
+        return new long[] {lAceite, lHarina};
+    }
+
+    /** Un lote en Lima registrado en {@code cuando}, con la ENTRADA de su registro (sin motivo). */
+    private long lote(long productoId, String codigo, String cantidad, String cuando) {
+        BigDecimal unidades = new BigDecimal(cantidad);
+        long id = jdbc.queryForObject("""
+                INSERT INTO lote (producto_id, ubicacion_id, codigo, cantidad_inicial, cantidad_actual, registrado_en)
+                SELECT ?, id, ?, ?, ?, ?::timestamptz FROM ubicacion WHERE nombre = 'Centro Nacional Lima'
+                RETURNING id""", Long.class, productoId, codigo, unidades, unidades, cuando);
+        movimiento(id, "ENTRADA", null, cantidad, cuando);
+        return id;
+    }
+
+    /** Una entrada de produccion en un lote existente: sube su cantidad inicial y su saldo (CCPIP-283). */
+    private void entrada(long loteId, String cantidad, String cuando) {
+        jdbc.update("UPDATE lote SET cantidad_inicial = cantidad_inicial + ?, cantidad_actual = cantidad_actual + ? WHERE id = ?",
+                new BigDecimal(cantidad), new BigDecimal(cantidad), loteId);
+        movimiento(loteId, "ENTRADA", "PRODUCCION", cantidad, cuando);
+    }
+
+    /** Un movimiento del lote, registrado en {@code cuando}. */
+    private void movimiento(long loteId, String tipo, String motivo, String cantidad, String cuando) {
+        jdbc.update("""
+                INSERT INTO movimiento_inventario (producto_id, ubicacion_id, lote_id, tipo, motivo, cantidad, usuario_id,
+                                                   registrado_en)
+                SELECT l.producto_id, l.ubicacion_id, l.id, ?, ?, ?, (SELECT id FROM usuario WHERE correo = 'productor@ccpip.test'),
+                       ?::timestamptz
+                FROM lote l WHERE l.id = ?""", tipo, motivo, new BigDecimal(cantidad), cuando, loteId);
     }
 
     private long pedido(String numero, String estado, String confirmado) {
