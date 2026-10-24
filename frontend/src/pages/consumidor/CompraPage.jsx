@@ -4,6 +4,7 @@ import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoCamion from '../../assets/icons/camion.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import { consultarCarrito, recargarUnidadesCarrito } from '../../api/carrito.js'
+import { obtenerMisDatos } from '../../api/cuenta.js'
 import { confirmarCompra, consultarDistritosEntrega, consultarPuntosRecojo, pagarPedido } from '../../api/compra.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -29,7 +30,7 @@ const ANIOS = Array.from({ length: 12 }, (_, i) => ({ valor: String(ANIO + i), e
 
 const VACIO = {
   modalidad: 'RECOJO', puntoId: '', recogeOtro: false, personaAutorizada: '', celular: '',
-  ubigeo: '', direccion: '', referencia: '', nombreRecibe: '',
+  departamento: '', provincia: '', ubigeo: '', direccion: '', referencia: '', nombreRecibe: '',
   numero: '', titular: '', mes: '', anio: '', cvv: '',
 }
 
@@ -74,18 +75,22 @@ const LIMPIAR = {
 }
 
 /** Las mismas reglas que el servidor (Tarjeta.java, PersonaDeRecojo.java), para avisar antes de enviar. */
-function validar(f) {
+function validar(f, distritos) {
   const t = (clave, opciones) => i18n.t(`compra.validacion.${clave}`, opciones)
   const errores = {}
   if (f.modalidad === 'ENVIO') {
-    if (!f.ubigeo) errores.ubigeo = t('distrito')
+    // El destino se elige por niveles: se avisa el primero que falta
+    if (!f.departamento) errores.departamento = t('departamento')
+    else if (!f.provincia) errores.provincia = t('provincia')
+    else if (!f.ubigeo) errores.ubigeo = t('distrito')
+    else if (puntosDe(distritos, f.ubigeo).length === 0) errores.ubigeo = t('sinEntrega')
     if (!f.direccion.trim()) errores.direccion = t('direccion')
     else if (!direccionCompleta(f.direccion)) errores.direccion = t('direccionCompleta')
     if (!f.nombreRecibe.trim()) errores.nombreRecibe = t('quienRecibe')
     else if (!NOMBRE.test(f.nombreRecibe.trim())) errores.nombreRecibe = t('soloLetras')
   }
-  // A domicilio, mientras no haya distrito no hay puntos entre los que elegir: el aviso del distrito basta
-  if (!f.puntoId && !(f.modalidad === 'ENVIO' && !f.ubigeo)) errores.puntoId = t('punto')
+  // A domicilio, si el distrito no tiene puntos entre los que elegir (aun no hay distrito o ninguno lo cubre), el aviso del distrito basta
+  if (!f.puntoId && !(f.modalidad === 'ENVIO' && puntosDe(distritos, f.ubigeo).length === 0)) errores.puntoId = t('punto')
   if (f.modalidad === 'RECOJO' && f.recogeOtro && !f.personaAutorizada.trim()) errores.personaAutorizada = t('persona')
   else if (f.modalidad === 'RECOJO' && f.recogeOtro && !NOMBRE.test(f.personaAutorizada.trim())) errores.personaAutorizada = t('soloLetras')
   if (!celularValido(f.celular)) errores.celular = t('celular')
@@ -143,10 +148,8 @@ export default function CompraPage() {
         setDistritos(d)
         // Al recargar, lo elegido puede ya no ofrecerse: el distrito, o el punto aunque el distrito siga disponible por otro
         setForm((f) => {
-          if (f.modalidad === 'ENVIO') {
-            if (!d.some((x) => x.distrito.ubigeo === f.ubigeo)) return { ...f, ubigeo: '', puntoId: '' }
-            return { ...f, puntoId: puntoVigente(f.puntoId, puntosDe(d, f.ubigeo)) }
-          }
+          // El distrito puede seguir en el catalogo sin cobertura: se conserva, pero el punto debe seguir ofreciendose
+          if (f.modalidad === 'ENVIO') return { ...f, puntoId: puntoVigente(f.puntoId, puntosDe(d, f.ubigeo)) }
           return { ...f, puntoId: puntoVigente(f.puntoId, p) }
         })
       })
@@ -163,7 +166,10 @@ export default function CompraPage() {
   const cambiar = (campo, valor) => {
     setForm((f) => {
       const nuevo = { ...f, [campo]: LIMPIAR[campo] ? LIMPIAR[campo](valor, f) : valor }
-      // Al cambiar el distrito, el punto se elige de nuevo entre los que lo cubren (uno solo, ya elegido)
+      // El destino se elige por niveles: cambiar uno vacia los de abajo y el punto, que depende del distrito
+      if (campo === 'departamento') Object.assign(nuevo, { provincia: '', ubigeo: '', puntoId: '' })
+      if (campo === 'provincia') Object.assign(nuevo, { ubigeo: '', puntoId: '' })
+      // Al elegir el distrito, el punto se elige de nuevo entre los que lo cubren (uno solo, ya elegido)
       if (campo === 'ubigeo') {
         const cubren = puntosDe(distritos, valor)
         nuevo.puntoId = cubren.length === 1 ? String(cubren[0].id) : ''
@@ -173,19 +179,37 @@ export default function CompraPage() {
       return nuevo
     })
     // Elegir distrito tambien elige el punto si es uno solo: su aviso ya no corresponde
-    setErrores((e) => ({ ...e, [campo]: undefined, ...(campo === 'ubigeo' && { puntoId: undefined }) }))
+    setErrores((e) => ({ ...e, [campo]: undefined, ...(campo === 'departamento' && { provincia: undefined, ubigeo: undefined }), ...(campo === 'provincia' && { ubigeo: undefined }), ...(campo === 'ubigeo' && { puntoId: undefined }) }))
   }
+  // CCPIP-61: el contacto de entrega parte de los datos del comprador, que puede cambiar; solo si estaba vacio
+  const contactoPrecargado = useRef(false)
+  function precargarContacto() {
+    if (contactoPrecargado.current) return
+    contactoPrecargado.current = true
+    obtenerMisDatos()
+      .then((d) => setForm((f) => ({
+        ...f,
+        nombreRecibe: f.nombreRecibe || soloNombre(`${d.nombres ?? ''} ${d.apellidos ?? ''}`.trim()),
+        celular: f.celular || limpiarCelular(d.celular ?? ''),
+      })))
+      .catch(() => {})
+  }
+
   // Cambiar entre recojo y domicilio cambia los puntos entre los que se elige
   const elegirModalidad = (modalidad) => {
-    setForm((f) => ({ ...f, modalidad, ubigeo: '', puntoId: modalidad === 'RECOJO' && puntos.length === 1 ? String(puntos[0].id) : '' }))
+    setForm((f) => ({
+      ...f, modalidad, departamento: '', provincia: '', ubigeo: '',
+      puntoId: modalidad === 'RECOJO' && puntos.length === 1 ? String(puntos[0].id) : '',
+    }))
     setErrores({})
+    if (modalidad === 'ENVIO') precargarContacto()
   }
   const alEscribir = (campo) => (e) => cambiar(campo, e.target.type === 'checkbox' ? e.target.checked : e.target.value)
 
   async function pagar(e) {
     e.preventDefault()
     setAviso(null)
-    const nuevos = validar(form)
+    const nuevos = validar(form, distritos)
     setErrores(nuevos)
     if (Object.keys(nuevos).length > 0) return
 
@@ -353,7 +377,7 @@ export default function CompraPage() {
                 )}
                 <p className="caption compra__ayuda">{t(aDomicilio ? 'compra.domicilio.ayuda' : 'compra.puntoAyuda')}</p>
                 {aDomicilio && <EntregaDomicilio distritos={distritos} form={form} errores={errores} alEscribir={alEscribir} />}
-                {(!aDomicilio || form.ubigeo) && (
+                {(!aDomicilio || puntosVisibles.length > 0) && (
                 <OpcionTarjeta
                   nombre="punto"
                   etiqueta={t(aDomicilio ? 'compra.domicilio.eligePunto' : 'compra.eligeDonde')}

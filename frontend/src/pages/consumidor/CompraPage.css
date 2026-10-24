@@ -33,6 +33,7 @@
 
 .compra__seguro { display: flex; align-items: center; gap: 6px; margin: -8px 0 0; font-size: 14px; color: var(--color-text-secondary); }
 .compra__fila { display: grid; grid-template-columns: 1fr 1fr 120px; gap: 16px; }
+.compra__fila--territorio { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 .compra__resumen {
   position: sticky;
@@ -71,4 +72,5 @@
   .compra__titulo { font-size: 28px; line-height: 36px; }
   .compra__seccion { padding: 16px; }
   .compra__fila { grid-template-columns: 1fr 1fr; }
+  .compra__fila--territorio { grid-template-columns: 1fr; }
 }
