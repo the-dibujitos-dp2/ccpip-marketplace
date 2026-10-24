@@ -62,19 +62,35 @@ class DistribucionDisponiblesTest extends IntegrationTest {
         return id;
     }
 
-    /** Los numeros de esta prueba que aparecen en la lista, en el orden en que llegan. */
-    private List<String> mios(String ruta) throws Exception {
-        JsonNode lista = objectMapper.readTree(mockMvc.perform(get(ruta).cookie(distribuidor))
+    /** Pide una pagina y la devuelve tal como llega. */
+    private JsonNode pagina(String ruta) throws Exception {
+        return objectMapper.readTree(mockMvc.perform(get(ruta).cookie(distribuidor))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+    }
+
+    /** Los numeros de esta prueba que aparecen en la cola, en el orden en que llegan, recorriendo todas las paginas. */
+    private List<String> mios(String ruta) throws Exception {
         List<String> numeros = new ArrayList<>();
-        lista.forEach(p -> {
-            if (p.get("numero").asText().startsWith("DIS-")) {
-                numeros.add(p.get("numero").asText());
-            }
-        });
+        String cursor = null;
+        do {
+            String union = ruta.contains("?") ? "&" : "?";
+            JsonNode pagina = pagina(ruta + union + "limite=50" + (cursor == null ? "" : "&cursor=" + cursor));
+            pagina.get("items").forEach(p -> {
+                if (p.get("numero").asText().startsWith("DIS-")) {
+                    numeros.add(p.get("numero").asText());
+                }
+            });
+            cursor = pagina.get("siguiente").isNull() ? null : pagina.get("siguiente").asText();
+        } while (cursor != null);
         return numeros;
     }
 
+    /** Los numeros de una sola pagina, tal como llegan. */
+    private List<String> numeros(JsonNode pagina) {
+        List<String> numeros = new ArrayList<>();
+        pagina.get("items").forEach(p -> numeros.add(p.get("numero").asText()));
+        return numeros;
+    }
     @Test
     void listaSoloLosPedidosADomicilioPreparadosYSinAsumir() throws Exception {
         pedido("DIS-A", LIMA, "ENVIO", "LISTO_PARA_DESPACHO", "150122", "DISPONIBLE", false, 50);
@@ -85,6 +101,10 @@ class DistribucionDisponiblesTest extends IntegrationTest {
         pedido("DIS-PREPARANDO", LIMA, "ENVIO", "EN_PREPARACION", "150122", "DISPONIBLE", false, 3);
         pedido("DIS-CANCELADO", LIMA, "ENVIO", "CANCELADO", "150122", "DISPONIBLE", false, 3);
         pedido("DIS-ASUMIDO", LIMA, "ENVIO", "LISTO_PARA_DESPACHO", "150122", "ASIGNADA", true, 3);
+        pedido("DIS-RETIRADO", LIMA, "ENVIO", "LISTO_PARA_DESPACHO", "150122", "RETIRADA", true, 3);
+        // Tampoco el que sale de un punto de acopio que ya no esta activo
+        pedido("DIS-PUNTO-INACTIVO", CUSCO, "ENVIO", "LISTO_PARA_DESPACHO", "080108", "DISPONIBLE", false, 3);
+        jdbc.update("UPDATE ubicacion SET activo = false WHERE nombre = ?", CUSCO);
 
         assertThat(mios(RUTA)).containsExactly("DIS-A", "DIS-B");
     }
@@ -102,7 +122,7 @@ class DistribucionDisponiblesTest extends IntegrationTest {
     void cadaPedidoTraeOrigenDestinoYAntiguedad() throws Exception {
         pedido("DIS-A", LIMA, "ENVIO", "LISTO_PARA_DESPACHO", "150122", "DISPONIBLE", false, 50);
 
-        String fila = "$[?(@.numero == 'DIS-A')]";
+        String fila = "$.items[?(@.numero == 'DIS-A')]";
         mockMvc.perform(get(RUTA).cookie(distribuidor))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(fila + ".origen.nombre").value(LIMA))
@@ -114,9 +134,8 @@ class DistribucionDisponiblesTest extends IntegrationTest {
                 .andExpect(jsonPath(fila + ".destino.departamento").value("Lima"))
                 .andExpect(jsonPath(fila + ".disponibleDesde").exists());
         // Lleva unas 50 horas esperando
-        JsonNode a = objectMapper.readTree(mockMvc.perform(get(RUTA).cookie(distribuidor)).andReturn().getResponse().getContentAsString());
         long espera = 0;
-        for (JsonNode p : a) {
+        for (JsonNode p : pagina(RUTA).get("items")) {
             if ("DIS-A".equals(p.get("numero").asText())) {
                 espera = p.get("esperaMinutos").asLong();
             }
@@ -135,6 +154,107 @@ class DistribucionDisponiblesTest extends IntegrationTest {
     }
 
     @Test
+    void unPuntoSinPedidosOInexistenteDaListaVaciaYUnoMalEscritoSeRechaza() throws Exception {
+        pedido("DIS-LIMA", LIMA, "ENVIO", "LISTO_PARA_DESPACHO", "150122", "DISPONIBLE", false, 4);
+        long cusco = jdbc.queryForObject("SELECT id FROM ubicacion WHERE nombre = ?", Long.class, CUSCO);
+
+        assertThat(mios(RUTA + "?punto=" + cusco)).isEmpty();
+        assertThat(mios(RUTA + "?punto=999999999")).isEmpty();
+        mockMvc.perform(get(RUTA + "?punto=abc").cookie(distribuidor)).andExpect(status().isBadRequest());
+    }
+
+    private void asumir(String numero) {
+        jdbc.update("""
+                UPDATE entrega SET estado = 'ASIGNADA',
+                       distribuidor_id = (SELECT id FROM usuario WHERE correo = 'distribuidor@ccpip.test')
+                WHERE pedido_id = (SELECT id FROM pedido WHERE numero = ?)""", numero);
+    }
+
+    @Test
+    void recorreLaColaPorPaginasSinRepetirNiSaltarYConElOrdenDeSiempre() throws Exception {
+        // Mismo momento de disponibilidad: empatan y los desempata el id, asi el orden es estable
+        for (int i = 1; i <= 5; i++) {
+            pedido("DIS-P" + i, LIMA, "ENVIO", "LISTO_PARA_DESPACHO", "150122", "DISPONIBLE", false, 10);
+        }
+
+        JsonNode primera = pagina(RUTA + "?limite=2");
+        assertThat(numeros(primera)).containsExactly("DIS-P1", "DIS-P2");
+        assertThat(primera.get("siguiente").isNull()).isFalse();
+        JsonNode segunda = pagina(RUTA + "?limite=2&cursor=" + primera.get("siguiente").asText());
+        assertThat(numeros(segunda)).containsExactly("DIS-P3", "DIS-P4");
+        JsonNode tercera = pagina(RUTA + "?limite=2&cursor=" + segunda.get("siguiente").asText());
+        assertThat(numeros(tercera)).containsExactly("DIS-P5");
+        assertThat(tercera.get("siguiente").isNull()).isTrue();
+        // Una pagina exacta no promete otra vacia
+        assertThat(pagina(RUTA + "?limite=5").get("siguiente").isNull()).isTrue();
+        assertThat(mios(RUTA)).containsExactly("DIS-P1", "DIS-P2", "DIS-P3", "DIS-P4", "DIS-P5");
+    }
+
+    @Test
+    void ordenaPorAntiguedadTambienAlPaginar() throws Exception {
+        pedido("DIS-RECIENTE", LIMA, "ENVIO", "LISTO_PARA_DESPACHO", "150122", "DISPONIBLE", false, 1);
+        pedido("DIS-ANTIGUO", CUSCO, "ENVIO", "LISTO_PARA_DESPACHO", "080108", "DISPONIBLE", false, 30);
+        pedido("DIS-MEDIO", LIMA, "ENVIO", "LISTO_PARA_DESPACHO", "150131", "DISPONIBLE", false, 5);
+
+        JsonNode primera = pagina(RUTA + "?limite=1");
+        assertThat(numeros(primera)).containsExactly("DIS-ANTIGUO");
+        JsonNode segunda = pagina(RUTA + "?limite=1&cursor=" + primera.get("siguiente").asText());
+        assertThat(numeros(segunda)).containsExactly("DIS-MEDIO");
+        assertThat(numeros(pagina(RUTA + "?limite=1&cursor=" + segunda.get("siguiente").asText()))).containsExactly("DIS-RECIENTE");
+    }
+
+    @Test
+    void unPedidoQueSeAsumeMientrasSeRecorreNoHaceSaltarNiRepetirAlResto() throws Exception {
+        for (int i = 1; i <= 4; i++) {
+            pedido("DIS-P" + i, LIMA, "ENVIO", "LISTO_PARA_DESPACHO", "150122", "DISPONIBLE", false, 10);
+        }
+        JsonNode primera = pagina(RUTA + "?limite=2");
+        assertThat(numeros(primera)).containsExactly("DIS-P1", "DIS-P2");
+
+        // Otro distribuidor asume uno ya visto y otro que aun no se ve
+        asumir("DIS-P1");
+        asumir("DIS-P3");
+
+        JsonNode segunda = pagina(RUTA + "?limite=2&cursor=" + primera.get("siguiente").asText());
+        assertThat(numeros(segunda)).containsExactly("DIS-P4");
+        assertThat(segunda.get("siguiente").isNull()).isTrue();
+    }
+
+    @Test
+    void informaElTotalYLosPuntosConPedidosSinImportarElFiltro() throws Exception {
+        pedido("DIS-L1", LIMA, "ENVIO", "LISTO_PARA_DESPACHO", "150122", "DISPONIBLE", false, 4);
+        pedido("DIS-L2", LIMA, "ENVIO", "LISTO_PARA_DESPACHO", "150131", "DISPONIBLE", false, 3);
+        pedido("DIS-C1", CUSCO, "ENVIO", "LISTO_PARA_DESPACHO", "080108", "DISPONIBLE", false, 2);
+        long cusco = jdbc.queryForObject("SELECT id FROM ubicacion WHERE nombre = ?", Long.class, CUSCO);
+
+        JsonNode todos = pagina(RUTA + "?limite=1");
+        assertThat(todos.get("total").asLong()).isEqualTo(3);
+        assertThat(todos.get("puntos")).hasSize(2);
+        assertThat(todos.get("puntos").get(0).get("nombre").asText()).isEqualTo(LIMA);
+        assertThat(todos.get("puntos").get(0).get("total").asLong()).isEqualTo(2);
+        assertThat(todos.get("puntos").get(1).get("nombre").asText()).isEqualTo(CUSCO);
+        assertThat(todos.get("puntos").get(1).get("id").asLong()).isEqualTo(cusco);
+
+        // Con filtro, el total es el del punto, pero los puntos siguen siendo todos para poder cambiar
+        JsonNode soloCusco = pagina(RUTA + "?punto=" + cusco);
+        assertThat(soloCusco.get("total").asLong()).isEqualTo(1);
+        assertThat(soloCusco.get("puntos")).hasSize(2);
+        assertThat(numeros(soloCusco)).containsExactly("DIS-C1");
+    }
+
+    @Test
+    void rechazaUnLimiteFueraDeRangoYUnCursorQueNoEsDeLaCola() throws Exception {
+        mockMvc.perform(get(RUTA).param("limite", "0").cookie(distribuidor)).andExpect(status().isBadRequest());
+        mockMvc.perform(get(RUTA).param("limite", "51").cookie(distribuidor)).andExpect(status().isBadRequest());
+        mockMvc.perform(get(RUTA).param("limite", "mucho").cookie(distribuidor)).andExpect(status().isBadRequest());
+        // Texto cualquiera, base64 de otra cosa ("abc") y base64 de dos numeros incompletos ("1:")
+        for (String cursor : List.of("xyz", "YWJj", "MToK", "LTE6LTE")) {
+            mockMvc.perform(get(RUTA).param("cursor", cursor).cookie(distribuidor))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.code").value("CURSOR_INVALIDO"));
+        }
+    }
+    @Test
     void noMuestraLaDireccionNiElContactoDeQuienRecibe() throws Exception {
         pedido("DIS-A", LIMA, "ENVIO", "LISTO_PARA_DESPACHO", "150122", "DISPONIBLE", false, 4);
 
@@ -143,15 +263,17 @@ class DistribucionDisponiblesTest extends IntegrationTest {
         assertThat(cuerpo).doesNotContain("Calle Secreta").doesNotContain("Persona Reservada").doesNotContain("999888777")
                 .doesNotContain("Consumidor de Prueba");
         mockMvc.perform(get(RUTA).cookie(distribuidor))
-                .andExpect(jsonPath("$[?(@.numero == 'DIS-A')].destino.direccion").doesNotExist())
-                .andExpect(jsonPath("$[?(@.numero == 'DIS-A')].contactoCelular").doesNotExist());
+                .andExpect(jsonPath("$.items[?(@.numero == 'DIS-A')].destino.direccion").doesNotExist())
+                .andExpect(jsonPath("$.items[?(@.numero == 'DIS-A')].contactoCelular").doesNotExist());
     }
 
     @Test
     void sinPedidosPreparadosLaListaVacia() throws Exception {
         mockMvc.perform(get(RUTA).param("punto", "999999").cookie(distribuidor))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
+                .andExpect(jsonPath("$.items", hasSize(0)))
+                .andExpect(jsonPath("$.siguiente").doesNotExist())
+                .andExpect(jsonPath("$.total").value(0));
     }
 
     @Test
