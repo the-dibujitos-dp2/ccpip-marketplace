@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
@@ -7,6 +8,9 @@ function abrirEn(ruta) {
   window.history.replaceState(null, '', ruta)
   return render(<App />)
 }
+
+// Vitest no procesa el CSS: se lee el archivo tal cual
+const css = (archivo) => readFileSync(new URL(archivo, import.meta.url), 'utf8')
 
 const sinSesion = { ...PUBLICAS, 'GET /api/auth/me': SIN_SESION, 'GET /api/productos/1': () => [200, copia(DATOS.detalle)] }
 
@@ -83,5 +87,27 @@ describe('CCPIP-365 Evidencias publicas de certificacion (CW-03)', () => {
     abrirEn('/productos/1')
     expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Certificación del producto' })).not.toBeInTheDocument()
+  })
+})
+
+describe('CCPIP-406 Calificaciones despues de las certificaciones', () => {
+  it('el bloque de calificaciones sigue inmediatamente al de certificaciones', async () => {
+    servidor({ ...sinSesion, 'GET /api/productos/1/certificacion': () => [200, copia(VERIFICADA)] })
+    abrirEn('/productos/1')
+    const certificacion = await screen.findByRole('region', { name: 'Certificación del producto' })
+    const calificaciones = screen.getByRole('region', { name: 'Calificaciones' })
+    expect(certificacion.nextElementSibling).toBe(calificaciones)
+    // Y la confianza (con la cosecha) queda antes de ambos
+    const confianza = screen.getByRole('region', { name: 'Por qué puedes confiar en este producto' })
+    expect(confianza.compareDocumentPosition(certificacion) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('en movil ninguna regla CSS reordena estas secciones', () => {
+    // El orden visual es el del DOM: solo los datos de la galeria usan order (CCPIP-411)
+    const conOrder = /[{;\s]order\s*:/
+    expect(css('./CertificacionProducto.css')).not.toMatch(conOrder)
+    expect(css('./Valoraciones.css')).not.toMatch(conOrder)
+    const reglasConOrder = css('./ProductoPage.css').match(/[^{}]+\{[^}]*[{;\s]order\s*:[^}]*\}/g) ?? []
+    expect(reglasConOrder.map((r) => r.split('{')[0].trim())).toEqual(['.ficha__datos'])
   })
 })
