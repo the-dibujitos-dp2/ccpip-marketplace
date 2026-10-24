@@ -16,6 +16,7 @@ const SESION_DISTRIBUIDOR = {
   expiresInSeconds: 120,
 }
 
+const VACIA = { items: [], siguiente: null, total: 0, puntos: [] }
 const LIMA = { id: 1, nombre: 'Centro Nacional Lima', distrito: 'Lima', direccion: 'Sede central CCPIP' }
 const CUSCO = { id: 3, nombre: 'Centro Regional Cusco', distrito: 'Cusco', direccion: 'Centro regional andino' }
 const destino = (distrito, ubigeo, provincia = 'Lima', departamento = 'Lima') => ({ ubigeo, departamento, provincia, distrito })
@@ -29,12 +30,42 @@ const PEDIDOS = [
 
 const DISPONIBLES = 'GET /api/distribuidor/pedidos/disponibles'
 
+/**
+ * El servidor de la cola: filtra por punto y entrega las paginas con un cursor (aqui, la posicion en la lista),
+ * junto con el total y los puntos con pedidos, que no dependen del filtro.
+ */
+function cola(pedidos, tamano = 20) {
+  return (_opciones, url) => {
+    const query = new URL(url, 'http://servidor').searchParams
+    const punto = query.get('punto') ? Number(query.get('punto')) : null
+    const desde = query.get('cursor') ? Number(query.get('cursor')) : 0
+    const filtrados = pedidos.filter((p) => punto === null || p.origen.id === punto)
+    const porPunto = new Map()
+    pedidos.forEach((p) => porPunto.set(p.origen.id, { id: p.origen.id, nombre: p.origen.nombre, total: (porPunto.get(p.origen.id)?.total ?? 0) + 1 }))
+    return [200, {
+      items: filtrados.slice(desde, desde + tamano),
+      siguiente: desde + tamano < filtrados.length ? String(desde + tamano) : null,
+      total: filtrados.length,
+      puntos: [...porPunto.values()].sort((a, b) => a.nombre.localeCompare(b.nombre)),
+    }]
+  }
+}
+
 const comoDistribuidor = (extra = {}) => ({
   ...PUBLICAS,
   'GET /api/auth/me': [200, SESION_DISTRIBUIDOR],
-  [DISPONIBLES]: [200, PEDIDOS],
+  [DISPONIBLES]: cola(PEDIDOS),
   ...extra,
 })
+
+// Mas pedidos de los que caben en una pagina, el que lleva mas esperando primero
+const MUCHOS = Array.from({ length: 25 }, (_, i) => ({
+  numero: `MC-${String(200 + i).padStart(5, '0')}`,
+  origen: i % 5 === 4 ? CUSCO : LIMA,
+  destino: destino('Miraflores', '150122'),
+  disponibleDesde: '2026-10-22T15:00:00Z',
+  esperaMinutos: 3000 - i * 10,
+}))
 
 describe('DW-01 Pedidos disponibles del distribuidor (CCPIP-107)', () => {
   afterEach(() => i18n.changeLanguage('es'))
@@ -67,39 +98,98 @@ describe('DW-01 Pedidos disponibles del distribuidor (CCPIP-107)', () => {
   })
 
   it('se filtra por punto de acopio y se vuelve a ver todos', async () => {
-    servidor(comoDistribuidor())
+    const fetchMock = servidor(comoDistribuidor())
     const usuario = userEvent.setup()
     abrirEn('/distribuidor/pedidos')
 
     const filtro = within(await screen.findByRole('group', { name: 'Filtrar por punto de acopio' }))
     expect(filtro.getByRole('button', { name: 'Todos (3)' })).toHaveAttribute('aria-pressed', 'true')
     await usuario.click(filtro.getByRole('button', { name: 'Centro Regional Cusco (1)' }))
-    const tabla = screen.getByRole('table', { name: 'Pedidos disponibles' })
-    expect(within(tabla).getAllByRole('row')).toHaveLength(2)
+    const tabla = await screen.findByRole('table', { name: 'Pedidos disponibles' })
+    await waitFor(() => expect(within(tabla).getAllByRole('row')).toHaveLength(2))
+    expect(llamadas(fetchMock, `${DISPONIBLES}?punto=3`)).toHaveLength(1)
     expect(within(tabla).getByText('MC-00151')).toBeInTheDocument()
     expect(within(tabla).queryByText('MC-00139')).not.toBeInTheDocument()
     expect(screen.getByText('1 pedido disponible')).toBeInTheDocument()
 
     await usuario.click(filtro.getByRole('button', { name: 'Todos (3)' }))
-    expect(within(screen.getByRole('table', { name: 'Pedidos disponibles' })).getAllByRole('row')).toHaveLength(4)
+    await waitFor(() => expect(within(screen.getByRole('table', { name: 'Pedidos disponibles' })).getAllByRole('row')).toHaveLength(4))
   })
 
   it('si el punto filtrado ya no tiene pedidos al actualizar, vuelve a mostrar todos', async () => {
-    let vez = 0
-    servidor(comoDistribuidor({ [DISPONIBLES]: () => [200, ++vez === 1 ? PEDIDOS : PEDIDOS.filter((p) => p.origen.id === 1)] }))
+    let actuales = PEDIDOS
+    servidor(comoDistribuidor({ [DISPONIBLES]: (opciones, url) => cola(actuales)(opciones, url) }))
     const usuario = userEvent.setup()
     abrirEn('/distribuidor/pedidos')
 
     await usuario.click(await screen.findByRole('button', { name: 'Centro Regional Cusco (1)' }))
+    await waitFor(() => expect(screen.queryByText('MC-00139')).not.toBeInTheDocument())
+    // El punto filtrado se queda sin pedidos mientras tanto
+    actuales = PEDIDOS.filter((p) => p.origen.id === 1)
     await usuario.click(screen.getByRole('button', { name: 'Actualizar' }))
     expect(await screen.findByText('MC-00139')).toBeInTheDocument()
     expect(screen.getByText('MC-00153')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Centro Regional Cusco/ })).not.toBeInTheDocument()
   })
 
+  it('muestra la cola por páginas: avisa cuántos faltan y carga el resto con el cursor', async () => {
+    const fetchMock = servidor(comoDistribuidor({ [DISPONIBLES]: cola(MUCHOS) }))
+    const usuario = userEvent.setup()
+    abrirEn('/distribuidor/pedidos')
+
+    const tabla = await screen.findByRole('table', { name: 'Pedidos disponibles' })
+    expect(within(tabla).getAllByRole('row')).toHaveLength(21)
+    expect(screen.getByText('25 pedidos disponibles')).toBeInTheDocument()
+    expect(screen.getByText('Mostrando 20 de 25')).toBeInTheDocument()
+
+    await usuario.click(screen.getByRole('button', { name: 'Cargar más pedidos' }))
+    await waitFor(() => expect(within(tabla).getAllByRole('row')).toHaveLength(26))
+    // Las páginas se encadenan en el orden del servidor y sin repetir pedidos
+    const numeros = within(tabla).getAllByRole('rowheader').map((c) => c.textContent)
+    expect(numeros).toEqual(MUCHOS.map((p) => p.numero))
+    expect(screen.queryByRole('button', { name: 'Cargar más pedidos' })).not.toBeInTheDocument()
+    expect(llamadas(fetchMock, `${DISPONIBLES}?cursor=20`)).toHaveLength(1)
+  })
+
+  it('si falla cargar más lo avisa, conserva lo cargado y deja reintentar', async () => {
+    let paginas = 0
+    servidor(comoDistribuidor({
+      [DISPONIBLES]: (opciones, url) => (url.includes('cursor') && ++paginas === 1 ? [500, { code: 'ERROR', error: 'Falla' }] : cola(MUCHOS)(opciones, url)),
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/distribuidor/pedidos')
+
+    await usuario.click(await screen.findByRole('button', { name: 'Cargar más pedidos' }))
+    expect(await screen.findByText('No pudimos cargar más pedidos')).toBeInTheDocument()
+    expect(within(screen.getByRole('table', { name: 'Pedidos disponibles' })).getAllByRole('row')).toHaveLength(21)
+    await usuario.click(screen.getByRole('button', { name: 'Cargar más pedidos' }))
+    await waitFor(() => expect(within(screen.getByRole('table', { name: 'Pedidos disponibles' })).getAllByRole('row')).toHaveLength(26))
+    expect(screen.queryByText('No pudimos cargar más pedidos')).not.toBeInTheDocument()
+  })
+
+  it('al cambiar de punto o actualizar vuelve a la primera página', async () => {
+    const fetchMock = servidor(comoDistribuidor({ [DISPONIBLES]: cola(MUCHOS) }))
+    const usuario = userEvent.setup()
+    abrirEn('/distribuidor/pedidos')
+
+    await usuario.click(await screen.findByRole('button', { name: 'Cargar más pedidos' }))
+    await waitFor(() => expect(within(screen.getByRole('table', { name: 'Pedidos disponibles' })).getAllByRole('row')).toHaveLength(26))
+    await usuario.click(screen.getByRole('button', { name: 'Actualizar' }))
+    await waitFor(() => expect(within(screen.getByRole('table', { name: 'Pedidos disponibles' })).getAllByRole('row')).toHaveLength(21))
+    expect(screen.getByRole('button', { name: 'Cargar más pedidos' })).toBeInTheDocument()
+
+    // Los chips cuentan todos los pedidos de cada punto, no solo los cargados
+    await usuario.click(screen.getByRole('button', { name: 'Centro Regional Cusco (5)' }))
+    await waitFor(() => expect(within(screen.getByRole('table', { name: 'Pedidos disponibles' })).getAllByRole('row')).toHaveLength(6))
+    expect(screen.getByText('5 pedidos disponibles')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Cargar más pedidos' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Todos (25)' })).toBeInTheDocument()
+    expect(llamadas(fetchMock, `${DISPONIBLES}?punto=3`)).toHaveLength(1)
+  })
+
   it('sin pedidos explica por qué y deja actualizar', async () => {
     let vez = 0
-    const fetchMock = servidor(comoDistribuidor({ [DISPONIBLES]: () => [200, ++vez === 1 ? [] : PEDIDOS] }))
+    const fetchMock = servidor(comoDistribuidor({ [DISPONIBLES]: (opciones, url) => (++vez === 1 ? [200, VACIA] : cola(PEDIDOS)(opciones, url)) }))
     const usuario = userEvent.setup()
     abrirEn('/distribuidor/pedidos')
 
@@ -113,7 +203,7 @@ describe('DW-01 Pedidos disponibles del distribuidor (CCPIP-107)', () => {
 
   it('si falla la consulta lo avisa y deja reintentar', async () => {
     let vez = 0
-    servidor(comoDistribuidor({ [DISPONIBLES]: () => (++vez === 1 ? [500, { code: 'ERROR', error: 'Falla' }] : [200, PEDIDOS]) }))
+    servidor(comoDistribuidor({ [DISPONIBLES]: (opciones, url) => (++vez === 1 ? [500, { code: 'ERROR', error: 'Falla' }] : cola(PEDIDOS)(opciones, url)) }))
     const usuario = userEvent.setup()
     abrirEn('/distribuidor/pedidos')
 
@@ -124,7 +214,7 @@ describe('DW-01 Pedidos disponibles del distribuidor (CCPIP-107)', () => {
 
   it('no muestra la dirección exacta ni el contacto de quien recibe', async () => {
     const conDatos = PEDIDOS.map((p) => ({ ...p, destino: { ...p.destino, direccion: 'Calle Secreta 999' }, contactoCelular: '999888777', comprador: 'Persona Reservada' }))
-    servidor(comoDistribuidor({ [DISPONIBLES]: [200, conDatos] }))
+    servidor(comoDistribuidor({ [DISPONIBLES]: cola(conDatos) }))
     abrirEn('/distribuidor/pedidos')
     await screen.findByText('MC-00139')
     expect(screen.queryByText(/Calle Secreta/)).not.toBeInTheDocument()
@@ -137,7 +227,7 @@ describe('DW-01 Pedidos disponibles del distribuidor (CCPIP-107)', () => {
     servidor(comoDistribuidor())
     abrirEn('/distribuidor/pedidos')
     expect(await screen.findByRole('heading', { level: 1, name: 'Available orders' })).toBeInTheDocument()
-    expect(screen.getByRole('columnheader', { name: 'Pick up at' })).toBeInTheDocument()
+    expect(await screen.findByRole('columnheader', { name: 'Pick up at' })).toBeInTheDocument()
     expect(screen.getByText('3 orders available')).toBeInTheDocument()
   })
 })
@@ -155,7 +245,7 @@ describe('Acceso al reparto y su inicio (CCPIP-107)', () => {
       ...PUBLICAS,
       'GET /api/auth/me': [200, SESION],
       'GET /api/panel/consumidor': [200, PANEL],
-      [DISPONIBLES]: [200, PEDIDOS],
+      [DISPONIBLES]: cola(PEDIDOS),
     })
     abrirEn('/distribuidor/pedidos')
     await waitFor(() => expect(window.location.pathname).toBe('/inicio'))
