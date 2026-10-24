@@ -1779,7 +1779,9 @@
       "faltaParaAgregar_other": "Agrega {{count}} und más para poder agregarlo al carrito",
       "desdeMayorista": "Desde {{minimo}} und pagas {{precio}} c/u (precio mayorista).",
       "resumenMinorista": "{{precio}} minorista",
-      "resumenMayorista": "{{precio}} desde {{minimo}} und"
+      "resumenMayorista": "{{precio}} desde {{minimo}} und",
+      "avisoLateral": "Agregaste «{{producto}}» al carrito",
+      "verCarrito": "Ver carrito"
     },
     "pasos": {
       "etiqueta": "Pasos de la compra",
