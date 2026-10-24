@@ -5,6 +5,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { fechaHoraLarga } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
@@ -74,7 +75,7 @@ export default function ParametrosPage({ path }) {
   return (
     <LayoutAdmin path={path} migas={t('admin.nav.parametros')} titulo={t('admin.parametros.titulo')}>
       {errorCarga && <Alerta tono="error" titulo={t('admin.parametros.errorCargar')} descripcion={t('comun.errorConexion')} />}
-      {!vigencia && !errorCarga && <p className="caption">{t('comun.cargando')}</p>}
+      {!vigencia && !errorCarga && <Cargando />}
       {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
       {vigencia && (
         <section className="tarjeta-panel parametros" aria-labelledby="parametros-titulo">

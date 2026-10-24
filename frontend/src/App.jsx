@@ -64,6 +64,7 @@ import AlertasProductorPage from './pages/productor/AlertasPage.jsx'
 import MermaProductorPage from './pages/productor/MermaPage.jsx'
 import { navigate, RUTAS, rutaInterna, useLocation } from './router.js'
 import { SesionContexto } from './sesion.js'
+import Cargando from './components/Cargando.jsx'
 
 const RUTA_PRODUCTO = /^\/productos\/(\d+)$/
 const RUTA_TIENDA = /^\/tiendas\/(\d+)$/
@@ -230,7 +231,7 @@ export default function App() {
   const actualizarUsuario = useCallback((cambios) => setSesion((s) => (s ? { ...s, user: { ...s.user, ...cambios } } : s)), [])
   const contexto = useMemo(() => ({ user, cerrarSesion: handleCerrarSesion, cerrando, actualizarUsuario }), [user, handleCerrarSesion, cerrando, actualizarUsuario])
 
-  if (cargando) return <p className="visually-hidden">{t('comun.cargando')}</p>
+  if (cargando) return <Cargando />
 
   let pagina
   if (path === RUTAS.ingresar || path === RUTAS.registro) {

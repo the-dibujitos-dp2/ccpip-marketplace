@@ -8,6 +8,7 @@ import { cambiarEstadoCuenta, modificarCuenta, obtenerCuenta, puntosAsignables, 
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { fechaCorta, fechaHora } from '../../formato.js'
@@ -148,7 +149,7 @@ export default function DetalleCuentaPage({ path, id, search = '' }) {
   return (
     <LayoutAdmin path={path} migas={`${t('admin.nav.cuentas')} / ${titulo}`} titulo={titulo}>
       {error && <Alerta tono="error" titulo={mensajeError(error, 'cuentas.errorCargar')} />}
-      {!cuenta && !error && <p className="caption">{t('comun.cargando')}</p>}
+      {!cuenta && !error && <Cargando />}
       {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
       {cuenta && (
         <div className="cuenta-admin">

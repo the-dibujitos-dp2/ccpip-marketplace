@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { consultarPermisos } from '../../api/admin.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import '../productor/productor.css'
 import './admin.css'
@@ -17,7 +18,7 @@ export default function PermisosPage({ path }) {
     <LayoutAdmin path={path} migas={t('admin.nav.permisos')} titulo={t('admin.permisos.titulo')}>
       <p className="body-s">{t('admin.permisos.descripcion')}</p>
       {error && <Alerta tono="error" titulo={t('admin.permisos.error')} descripcion={t('comun.errorConexion')} />}
-      {!datos && !error && <p className="caption">{t('comun.cargando')}</p>}
+      {!datos && !error && <Cargando />}
       {datos && <Tabla permisos={datos} />}
     </LayoutAdmin>
   )
