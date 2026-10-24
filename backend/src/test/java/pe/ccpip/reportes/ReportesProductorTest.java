@@ -6,7 +6,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -21,7 +25,8 @@ import pe.ccpip.support.IntegrationTest;
 
 /**
  * Pantalla «Reportes» del productor: estadisticas de sus productos por periodo. CCPIP-114 (RF-25): ventas;
- * CCPIP-333 (RF-223): produccion; CCPIP-334 (RF-224): inventario; CCPIP-115 (RF-26): exportacion en PDF.
+ * CCPIP-333 (RF-223): produccion; CCPIP-334 (RF-224): inventario; CCPIP-115 (RF-26) y CCPIP-335 (RF-225):
+ * exportacion en PDF y Excel.
  *
  * <p>Los datos de la prueba son de mayo y junio de 2024, meses que ninguna otra prueba usa, y la transaccion
  * se deshace al terminar.
@@ -35,6 +40,7 @@ class ReportesProductorTest extends IntegrationTest {
     private static final String PRODUCCION = "/api/productor/reportes/produccion";
     private static final String INVENTARIO = "/api/productor/reportes/inventario";
     private static final String PDF = "/api/productor/reportes/pdf";
+    private static final String XLSX = "/api/productor/reportes/xlsx";
 
     private long aceite;
     private long harina;
@@ -277,6 +283,37 @@ class ReportesProductorTest extends IntegrationTest {
         mockMvc.perform(get(PDF).cookie(loginAs("consumidor@ccpip.test"))).andExpect(status().isForbidden());
     }
 
+    @Test
+    void elExcelTraeUnaHojaPorSeccionConLasCifrasComoNumeros() throws Exception {
+        ventasDePrueba();
+        inventarioDePrueba();
+
+        byte[] xlsx = mockMvc.perform(get(XLSX + "?desde=2024-05-01&hasta=2024-06-30&lang=en").cookie(loginAs(PRODUCTOR)))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .andExpect(header().string("Content-Language", "en"))
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(header().string("Content-Disposition",
+                        Matchers.containsString("attachment; filename=\"reporte-productos.xlsx\"")))
+                .andReturn().getResponse().getContentAsByteArray();
+
+        String libro = entrada(xlsx, "xl/workbook.xml");
+        assertThat(libro).contains("name=\"Product report\"", "name=\"Sales by period\"", "name=\"Sales by product\"",
+                "name=\"Production by period\"", "name=\"Inventory by period\"", "name=\"Inventory by product\"");
+        // Hoja 2, ventas por periodo: el total es un numero (no texto) con formato de importe
+        String ventas = entrada(xlsx, "xl/worksheets/sheet2.xml");
+        assertThat(ventas).contains("May 2024", "<v>320.00</v>").doesNotContain("RP Ajeno");
+        String inventario = entrada(xlsx, "xl/worksheets/sheet6.xml");
+        assertThat(inventario).contains("Closing", "<v>96.000</v>");
+        assertThat(entrada(xlsx, "xl/worksheets/sheet1.xml")).contains("Producer: ", "Period: 01/05/2024 to 30/06/2024");
+    }
+
+    @Test
+    void elExcelRespetaLosPermisos() throws Exception {
+        mockMvc.perform(get(XLSX + "?producto=" + ajeno).cookie(loginAs(PRODUCTOR))).andExpect(status().isNotFound());
+        mockMvc.perform(get(XLSX).cookie(loginAs("admin_acopio@ccpip.test"))).andExpect(status().isForbidden());
+    }
+
     /**
      * Mayo: aceite 2 und minorista (S/ 40) el 3; harina 10 und mayorista (S/ 100) el 20, ya entregada; aceite
      * 1 und minorista (S/ 20) el 31 a las 23:30 de Lima. Junio: aceite 1 und minorista (S/ 20) el 15. No
@@ -361,6 +398,18 @@ class ReportesProductorTest extends IntegrationTest {
         try (PDDocument documento = Loader.loadPDF(pdf)) {
             return new PDFTextStripper().getText(documento);
         }
+    }
+
+    /** El contenido de una parte del XLSX, que es un ZIP. */
+    private static String entrada(byte[] xlsx, String nombre) throws Exception {
+        try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(xlsx))) {
+            for (ZipEntry e = zip.getNextEntry(); e != null; e = zip.getNextEntry()) {
+                if (e.getName().equals(nombre)) {
+                    return new String(zip.readAllBytes(), StandardCharsets.UTF_8);
+                }
+            }
+        }
+        throw new AssertionError("El XLSX no trae " + nombre);
     }
 
     private long pedido(String numero, String estado, String confirmado) {

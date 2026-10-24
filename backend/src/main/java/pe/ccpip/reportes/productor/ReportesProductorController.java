@@ -36,6 +36,9 @@ import pe.ccpip.reportes.productor.ReportesProductorModelos.ReporteVentas;
 @RequestMapping("/api/productor/reportes")
 public class ReportesProductorController {
 
+    private static final MediaType XLSX =
+            MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
     private final ReportesProductorService service;
     private final ProductorActual productorActual;
 
@@ -91,6 +94,24 @@ public class ReportesProductorController {
         Idioma idioma = idioma(lang, acceptLanguage);
         DocumentoReporte documento = service.documento(productorActual.id(s), desde, hasta, agrupacion, producto, modalidad, idioma);
         return descarga(ReportePdf.generar(documento), MediaType.APPLICATION_PDF, "reporte-productos.pdf", idioma);
+    }
+
+    /**
+     * CCPIP-335 (RF-225): el mismo reporte en Excel, una hoja por seccion y con las cifras como numeros para
+     * que el productor pueda seguir calculando.
+     */
+    @GetMapping("/xlsx")
+    public ResponseEntity<byte[]> excel(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+                                        @RequestParam(required = false) Agrupacion agrupacion,
+                                        @RequestParam(required = false) Long producto,
+                                        @RequestParam(required = false) Modalidad modalidad,
+                                        @RequestParam(required = false) String lang,
+                                        @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage) {
+        Idioma idioma = idioma(lang, acceptLanguage);
+        DocumentoReporte documento = service.documento(productorActual.id(s), desde, hasta, agrupacion, producto, modalidad, idioma);
+        return descarga(ReporteXlsx.generar(documento), XLSX, "reporte-productos.xlsx", idioma);
     }
 
     /** El idioma solo cambia los textos, nunca los datos ni los permisos. */
