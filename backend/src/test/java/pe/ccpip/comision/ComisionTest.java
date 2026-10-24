@@ -340,6 +340,18 @@ class ComisionTest extends IntegrationTest {
     }
 
     @Test
+    void seFiltraPorUnPedidoADomicilioListoParaDespacho() throws Exception {
+        long despacho = pedidoConfirmadoEnBase(18.00);
+        long confirmado = pedidoConfirmadoEnBase(19.00);
+        jdbc.update("UPDATE pedido SET modalidad = 'ENVIO', estado = 'LISTO_PARA_DESPACHO' WHERE id = ?", despacho);
+
+        JsonNode respuesta = leer(mockMvc.perform(get("/api/admin/comision/pedidos?estado=LISTO_PARA_DESPACHO").cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("LISTO_PARA_DESPACHO")));
+        assertThat(numeros(respuesta)).contains(numero(despacho)).doesNotContain(numero(confirmado));
+    }
+
+    @Test
     void elRangoDeFechasSeValida() throws Exception {
         Cookie sesion = loginAs(SUB);
         mockMvc.perform(get("/api/admin/comision/pedidos?desde=2026-10-10&hasta=2026-10-01").cookie(sesion))

@@ -809,17 +809,20 @@
       "marcado": "El pedido {{numero}} está listo para recojo",
       "errorMarcar": "No pudimos marcar el pedido",
       "aDomicilio": "A domicilio",
-      "aDomicilioNota": "Pedido a domicilio: aún no se despacha desde aquí.",
+      "esperaDistribuidor": "Espera a que un distribuidor lo retire.",
+      "despachoRegistrado": "El pedido {{numero}} está listo para despacho",
+      "errorDespacho": "No pudimos registrar la salida del pedido",
       "preparacionRegistrada": "El pedido {{numero}} está en preparación",
       "errorPreparacion": "No pudimos registrar la preparación",
       "entregado": "El pedido {{numero}} se entregó a {{persona}}",
       "errorCargar": "No pudimos cargar los pedidos",
       "vacio": "Aún no hay pedidos",
-      "vacioTexto": "Aquí verás los pedidos que los compradores recogerán en tu punto.",
+      "vacioTexto": "Aquí verás los pedidos de tu punto, para recoger o para despachar a domicilio.",
       "columna": {
         "CONFIRMADO": "Confirmado",
         "EN_PREPARACION": "En preparación",
         "LISTO_PARA_RECOJO": "Listo para recojo",
+        "LISTO_PARA_DESPACHO": "Listo para despacho",
         "ENTREGADO": "Entregado hoy"
       },
       "columnaConteo": "{{titulo}} ({{total}})",
@@ -827,6 +830,7 @@
         "CONFIRMADO": "No hay pedidos por preparar.",
         "EN_PREPARACION": "No hay pedidos en preparación.",
         "LISTO_PARA_RECOJO": "Ningún pedido espera a su comprador.",
+        "LISTO_PARA_DESPACHO": "Ningún pedido espera a un distribuidor.",
         "ENTREGADO": "Aún no se entregó ningún pedido hoy."
       },
       "productosDe": "Productos del pedido {{numero}}",
@@ -837,9 +841,12 @@
         "CONFIRMADO": "Confirmado",
         "EN_PREPARACION": "En preparación",
         "LISTO_PARA_RECOJO": "Listo",
+        "LISTO_PARA_DESPACHO": "Listo para despacho",
         "ENTREGADO": "Entregado"
       },
       "marcarEtiqueta": "Marcar el pedido {{numero}} como listo para recojo",
+      "despachoEtiqueta": "Registrar la salida del pedido {{numero}} para despacho",
+      "registrandoSalida": "Registrando salida…",
       "preparacionEtiqueta": "Registrar la preparación del pedido {{numero}}",
       "registrandoPreparacion": "Registrando…",
       "marcando": "Marcando…",
@@ -1118,6 +1125,7 @@
         "CONFIRMADO": "Confirmado",
         "EN_PREPARACION": "En preparación",
         "LISTO_PARA_RECOJO": "Listo para recojo",
+        "LISTO_PARA_DESPACHO": "Listo para despacho",
         "ENTREGADO": "Entregado"
       }
     },
@@ -1478,6 +1486,7 @@
     "PUNTO_SIN_EXISTENCIAS": "Este punto de acopio ya no tiene existencias para todo tu carrito. Elige otro punto.",
     "SIN_COBERTURA": "Este punto de acopio no entrega a domicilio en ese distrito. Elige otro punto o el recojo.",
     "PEDIDO_A_DOMICILIO": "Este pedido se entrega a domicilio, no se recoge en el punto.",
+    "PEDIDO_PARA_RECOJO": "Este pedido se recoge en el punto, no se despacha a domicilio.",
     "PEDIDO_NO_PAGABLE": "Este pedido ya no se puede pagar.",
     "PAGO_EN_CURSO": "Ya hay un pago en curso para este pedido. Espera su resultado antes de reintentar.",
     "CLAVE_REUTILIZADA": "Este intento de pago pertenece a otro pedido.",
@@ -2023,6 +2032,7 @@
       "CONFIRMADO": "Pago confirmado",
       "EN_PREPARACION": "En preparación",
       "LISTO_PARA_RECOJO": "Disponible en acopio",
+      "LISTO_PARA_DESPACHO": "Listo para despacho",
       "ENTREGADO": "Entregado",
       "CANCELADO": "Cancelado"
     },
@@ -2037,6 +2047,7 @@
       "CONFIRMADO": "Pago aprobado y pedido confirmado",
       "EN_PREPARACION": "En preparación",
       "LISTO_PARA_RECOJO": "Listo para recoger en el punto de acopio",
+      "LISTO_PARA_DESPACHO": "Preparado en el punto de acopio, espera a un distribuidor",
       "ENTREGADO": "Entregado",
       "CANCELADO": "Pedido cancelado"
     }

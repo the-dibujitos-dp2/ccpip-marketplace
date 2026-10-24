@@ -13,7 +13,8 @@ import { RUTAS } from '../../router.js'
 import LateralCuenta from './LateralCuenta.jsx'
 import './MisPedidosPage.css'
 
-const EN_CURSO = ['PENDIENTE_PAGO', 'CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO']
+// CCPIP-320: el pedido a domicilio listo para despacho sigue en curso hasta que se entregue
+const EN_CURSO = ['PENDIENTE_PAGO', 'CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO', 'LISTO_PARA_DESPACHO']
 const RECIENTES = 3
 
 const TONO_ESTADO = {
@@ -21,6 +22,7 @@ const TONO_ESTADO = {
   CONFIRMADO: 'info',
   EN_PREPARACION: 'info',
   LISTO_PARA_RECOJO: 'exito',
+  LISTO_PARA_DESPACHO: 'info',
   ENTREGADO: 'marca',
   CANCELADO: 'neutro',
 }

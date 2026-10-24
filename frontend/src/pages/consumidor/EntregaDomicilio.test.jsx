@@ -507,13 +507,13 @@ describe('A-05 Tablero del punto con un pedido a domicilio (CCPIP-59)', () => {
     expect(confirmado.getByRole('button', { name: 'Registrar la preparación del pedido MC-00155' })).toBeEnabled()
   })
 
-  it('en preparación no ofrece marcarlo listo para recojo y explica por qué', async () => {
+  it('en preparación no ofrece marcarlo listo para recojo, sino registrar su salida (CCPIP-320)', async () => {
     servidor(comoAcopio(tablero('EN_PREPARACION')))
     abrirEn('/acopio/pedidos')
     const preparacion = within(await screen.findByRole('region', { name: 'En preparación' }))
     expect(preparacion.getByText('A domicilio')).toBeInTheDocument()
-    expect(preparacion.getByText('Pedido a domicilio: aún no se despacha desde aquí.')).toBeInTheDocument()
     expect(preparacion.queryByRole('button', { name: /listo para recojo/ })).not.toBeInTheDocument()
+    expect(preparacion.getByRole('button', { name: 'Registrar la salida del pedido MC-00155 para despacho' })).toBeEnabled()
   })
 
   it('un pedido para recojo sigue sin la marca y con su acción', async () => {

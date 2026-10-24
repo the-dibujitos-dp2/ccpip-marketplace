@@ -18,7 +18,7 @@ import '../productor/productor.css'
 import './admin.css'
 
 /** Estados que se pueden filtrar; un pedido cancelado no aparece en esta consulta. */
-const ESTADOS = ['CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO', 'ENTREGADO']
+const ESTADOS = ['CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO', 'LISTO_PARA_DESPACHO', 'ENTREGADO']
 
 const SIN_FILTROS = { desde: '', hasta: '', productor: '', estado: '', pagina: 0 }
 
