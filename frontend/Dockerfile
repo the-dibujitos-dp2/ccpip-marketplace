@@ -9,7 +9,7 @@ RUN npm run build
 # Caddy compilado con Go y x/net parchados. La imagen oficial caddy:2.11.7 trae Go 1.26.8 y
 # x/net 0.59 (CVE-2026-78667, 78669 y 97031, HIGH). Mismo Caddy y mismos modulos estandar;
 # volver a FROM caddy:2-alpine solo cuando la imagen oficial ya traiga Go >= 1.26.9.
-FROM golang:1.27-alpine AS caddy
+FROM golang:1.27.3-alpine AS caddy
 ARG CADDY_VERSION=v2.11.7
 WORKDIR /src
 RUN go mod init ccpip-caddy \
@@ -21,9 +21,11 @@ RUN go mod init ccpip-caddy \
 FROM caddy:2-alpine
 COPY --from=caddy /caddy /usr/bin/caddy
 # El binario oficial trae cap_net_bind_service; al reemplazarlo hay que volver a darsela
-RUN apk add --no-cache libcap \
+# Pin brotli-libs to Alpine's fixed CVE-2026-111497 release and remove APK indexes from the runtime image.
+RUN apk add --no-cache libcap brotli-libs=1.2.1-r0 \
     && setcap cap_net_bind_service=+ep /usr/bin/caddy \
-    && apk del libcap
+    && apk del libcap \
+    && rm -rf /var/cache/apk/*
 # Caddy sin root: el binario ya trae cap_net_bind_service para usar 80/443.
 # Certificados y config en rutas propias (montadas como volumenes en deploy/docker-compose.yml)
 ENV XDG_DATA_HOME=/caddy/data \
