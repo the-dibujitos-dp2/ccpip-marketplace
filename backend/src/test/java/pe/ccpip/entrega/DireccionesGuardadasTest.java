@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -49,10 +50,20 @@ class DireccionesGuardadasTest extends IntegrationTest {
     }
 
     private long direccionGuardada(String correo) {
+        return direccionGuardada(correo, "Av. Larco 123, dpto. 4");
+    }
+
+    private long direccionGuardada(String correo, String direccion) {
         return jdbc.queryForObject("""
                 INSERT INTO direccion_guardada (usuario_id, alias, ubigeo, direccion, referencia)
-                SELECT id, 'Casa', '150122', 'Av. Larco 123, dpto. 4', 'Frente al parque Kennedy'
-                FROM usuario WHERE correo = ? RETURNING id""", Long.class, correo);
+                SELECT id, 'Casa', '150122', ?, 'Frente al parque Kennedy'
+                FROM usuario WHERE correo = ? RETURNING id""", Long.class, direccion, correo);
+    }
+
+    private String datosDireccion(long id) {
+        return jdbc.queryForObject("""
+                SELECT coalesce(alias, '') || '|' || ubigeo || '|' || direccion || '|' || coalesce(referencia, '')
+                FROM direccion_guardada WHERE id = ?""", String.class, id);
     }
 
     private void crearOtraCompradora() {
@@ -64,6 +75,10 @@ class DireccionesGuardadasTest extends IntegrationTest {
 
     private ResultActions retirar(Cookie sesion, long id) throws Exception {
         return mockMvc.perform(delete(RUTA + "/{id}", id).cookie(sesion));
+    }
+
+    private ResultActions modificar(Cookie sesion, long id, Map<String, Object> cuerpo) throws Exception {
+        return mockMvc.perform(put(RUTA + "/{id}", id).cookie(sesion).contentType(MediaType.APPLICATION_JSON).content(json(cuerpo)));
     }
 
     private long pedidoConDestinoHistorico(String correo) {
@@ -98,6 +113,105 @@ class DireccionesGuardadasTest extends IntegrationTest {
                 .andExpect(jsonPath("$.direccion").value("Av. Larco 123, dpto. 4"))
                 .andExpect(jsonPath("$.referencia").value("Frente al parque Kennedy"));
         assertThat(guardadas(COMPRADOR)).isEqualTo(1);
+    }
+
+    @Test
+    void modificaSoloLaDireccionActivaPropiaYDevuelveSuGeografiaSinCambiarLaEntregaHistorica() throws Exception {
+        long id = direccionGuardada(COMPRADOR);
+        long pedido = pedidoConDestinoHistorico(COMPRADOR);
+        String destinoAntes = destinoHistorico(pedido);
+        Map<String, Object> actualizada = direccion();
+        actualizada.put("alias", "Oficina");
+        actualizada.put("ubigeo", "150131");
+        actualizada.put("direccion", "  Calle Las Begonias 456  ");
+        actualizada.put("referencia", "  Torre azul  ");
+
+        modificar(loginAs(COMPRADOR), id, actualizada)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.alias").value("Oficina"))
+                .andExpect(jsonPath("$.ubigeo").value("150131"))
+                .andExpect(jsonPath("$.distrito").value("San Isidro"))
+                .andExpect(jsonPath("$.provincia").value("Lima"))
+                .andExpect(jsonPath("$.departamento").value("Lima"))
+                .andExpect(jsonPath("$.direccion").value("Calle Las Begonias 456"))
+                .andExpect(jsonPath("$.referencia").value("Torre azul"));
+
+        assertThat(destinoHistorico(pedido)).isEqualTo(destinoAntes);
+    }
+
+    @Test
+    void modificarValidaLaDireccionYElDistritoYNoCambiaLaFilaSiFalla() throws Exception {
+        long id = direccionGuardada(COMPRADOR);
+        String antes = datosDireccion(id);
+        Cookie comprador = loginAs(COMPRADOR);
+
+        Map<String, Object> corta = direccion();
+        corta.put("direccion", "12345");
+        modificar(comprador, id, corta).andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("DIRECCION_INVALIDA"));
+
+        Map<String, Object> malFormada = direccion();
+        malFormada.put("ubigeo", "15");
+        modificar(comprador, id, malFormada).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.ubigeo").value("El distrito no es válido"));
+
+        Map<String, Object> inexistente = direccion();
+        inexistente.put("ubigeo", "999999");
+        modificar(comprador, id, inexistente).andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("DESTINO_NO_ADMITIDO"));
+
+        assertThat(datosDireccion(id)).isEqualTo(antes);
+    }
+
+    @Test
+    void modificarExcluyeLaMismaDireccionAlBuscarDuplicadosPeroNoActualizaSiColisionaConOtra() throws Exception {
+        long propia = direccionGuardada(COMPRADOR);
+        long otra = direccionGuardada(COMPRADOR, "Calle Dos 456");
+        Cookie comprador = loginAs(COMPRADOR);
+
+        Map<String, Object> igualAPropia = direccion();
+        igualAPropia.put("direccion", "  av. larco 123, dpto. 4 ");
+        igualAPropia.put("alias", "Actualizada");
+        modificar(comprador, propia, igualAPropia).andExpect(status().isOk())
+                .andExpect(jsonPath("$.alias").value("Actualizada"));
+
+        String antesDeColision = datosDireccion(propia);
+        Map<String, Object> duplicada = direccion();
+        duplicada.put("direccion", "  CALLE DOS 456 ");
+        modificar(comprador, propia, duplicada).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("DIRECCION_YA_GUARDADA"));
+
+        assertThat(datosDireccion(propia)).isEqualTo(antesDeColision);
+    }
+
+    @Test
+    void modificarNoRevelaSiLaDireccionEsAjenaInexistenteOYaRetirada() throws Exception {
+        crearOtraCompradora();
+        long ajena = direccionGuardada("otra.compradora@ccpip.test");
+        long retirada = direccionGuardada(COMPRADOR);
+        Cookie comprador = loginAs(COMPRADOR);
+        retirar(comprador, retirada).andExpect(status().isNoContent());
+
+        MvcResult ajenaResultado = modificar(comprador, ajena, direccion()).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("DIRECCION_NO_ENCONTRADA")).andReturn();
+        MvcResult inexistenteResultado = modificar(comprador, 999999L, direccion()).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("DIRECCION_NO_ENCONTRADA")).andReturn();
+        MvcResult retiradaResultado = modificar(comprador, retirada, direccion()).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("DIRECCION_NO_ENCONTRADA")).andReturn();
+
+        assertThat(ajenaResultado.getResponse().getContentAsString())
+                .isEqualTo(inexistenteResultado.getResponse().getContentAsString())
+                .isEqualTo(retiradaResultado.getResponse().getContentAsString());
+    }
+
+    @Test
+    void modificarDireccionExigeSesionDeComprador() throws Exception {
+        long id = direccionGuardada(COMPRADOR);
+        mockMvc.perform(put(RUTA + "/{id}", id).contentType(MediaType.APPLICATION_JSON).content(json(direccion())))
+                .andExpect(status().isUnauthorized());
+        modificar(loginAs("productor@ccpip.test"), id, direccion()).andExpect(status().isForbidden());
+        modificar(loginAs("admin_acopio@ccpip.test"), id, direccion()).andExpect(status().isForbidden());
     }
 
     @Test
