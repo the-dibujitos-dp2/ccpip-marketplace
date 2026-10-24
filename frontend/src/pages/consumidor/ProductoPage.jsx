@@ -265,8 +265,6 @@ export default function ProductoPage({ id }) {
           </section>
         )}
 
-        <CalificacionesProducto producto={producto} />
-
         <section className="seccion" aria-labelledby="titulo-confianza">
           <h2 id="titulo-confianza" className="seccion__titulo">{t('producto.confianza')}</h2>
           <div className="ficha__confianza">
@@ -302,6 +300,9 @@ export default function ProductoPage({ id }) {
         </section>
 
         <CertificacionProducto productoId={id} />
+
+        {/* CCPIP-406: las calificaciones van justo despues de las certificaciones, tambien en movil */}
+        <CalificacionesProducto producto={producto} />
 
         {/* Figma CW-03 "Volumen y otras ofertas": la compra por volumen y, al lado, los demas productores (CCPIP-42) */}
         {(conMayorista || otrasOfertas.length > 0) && (

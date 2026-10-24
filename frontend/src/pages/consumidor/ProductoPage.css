@@ -68,7 +68,10 @@ div.ficha__precio { cursor: default; }
 .historia__nota { display: flex; align-items: center; gap: 6px; font-size: 12px; opacity: 0.75; }
 
 .ficha__confianza { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 24px; align-items: start; }
-.ficha__cosecha { padding: 20px 24px; border-radius: var(--radius-xl); background: var(--color-bg-sand); }
+/* CCPIP-407: "Sobre esta cosecha" y el sello de "Por que puedes confiar" en un tono mas claro (superficie
+   blanca con borde); el texto conserva contraste AA (secundario 8.1:1, marca 8.2:1 sobre blanco) */
+.ficha__cosecha { padding: 20px 24px; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
+.ficha__confianza .sello--completo { background: var(--color-bg-surface); }
 .ficha__cosecha dl, .ficha__volumen dl { display: grid; gap: 10px; margin: 12px 0 0; }
 .ficha__cosecha dl div, .ficha__volumen dl div { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--color-border-default); font-size: 14px; }
 .ficha__cosecha dt, .ficha__volumen dt { color: var(--color-text-secondary); }
