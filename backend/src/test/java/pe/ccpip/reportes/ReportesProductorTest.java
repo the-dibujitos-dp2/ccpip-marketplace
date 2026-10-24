@@ -15,7 +15,7 @@ import pe.ccpip.support.IntegrationTest;
 
 /**
  * Pantalla «Reportes» del productor: estadisticas de sus productos por periodo. CCPIP-114 (RF-25): ventas;
- * CCPIP-333 (RF-223): produccion.
+ * CCPIP-333 (RF-223): produccion; CCPIP-334 (RF-224): inventario.
  *
  * <p>Los datos de la prueba son de mayo y junio de 2024, meses que ninguna otra prueba usa, y la transaccion
  * se deshace al terminar.
@@ -27,6 +27,7 @@ class ReportesProductorTest extends IntegrationTest {
     private static final String OTRO = "productor2@ccpip.test";
     private static final String VENTAS = "/api/productor/reportes/ventas";
     private static final String PRODUCCION = "/api/productor/reportes/produccion";
+    private static final String INVENTARIO = "/api/productor/reportes/inventario";
 
     private long aceite;
     private long harina;
@@ -177,6 +178,55 @@ class ReportesProductorTest extends IntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void elInventarioExplicaCadaSaldoConSusMovimientos() throws Exception {
+        inventarioDePrueba();
+
+        mockMvc.perform(get(INVENTARIO + "?desde=2024-05-01&hasta=2024-06-30").cookie(loginAs(PRODUCTOR)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.periodos.length()").value(2))
+                // Abril dejo 20 de aceite
+                .andExpect(jsonPath("$.periodos[0].saldoInicial").value(20))
+                .andExpect(jsonPath("$.periodos[0].entradas").value(60))
+                .andExpect(jsonPath("$.periodos[0].vendidasB2c").value(5))
+                .andExpect(jsonPath("$.periodos[0].vendidasB2b").value(0))
+                .andExpect(jsonPath("$.periodos[0].saldoFinal").value(75))
+                .andExpect(jsonPath("$.periodos[1].saldoInicial").value(75))
+                .andExpect(jsonPath("$.periodos[1].entradas").value(30))
+                .andExpect(jsonPath("$.periodos[1].vendidasB2b").value(4))
+                .andExpect(jsonPath("$.periodos[1].merma").value(3))
+                .andExpect(jsonPath("$.periodos[1].otrasSalidas").value(2))
+                .andExpect(jsonPath("$.periodos[1].saldoFinal").value(96))
+                .andExpect(jsonPath("$.totales.saldoInicial").value(20))
+                .andExpect(jsonPath("$.totales.entradas").value(90))
+                .andExpect(jsonPath("$.totales.vendidasB2c").value(5))
+                .andExpect(jsonPath("$.totales.vendidasB2b").value(4))
+                .andExpect(jsonPath("$.totales.saldoFinal").value(96))
+                // Por producto, por nombre; lo de otro productor no aparece
+                .andExpect(jsonPath("$.porProducto.length()").value(2))
+                .andExpect(jsonPath("$.porProducto[0].producto").value("RP Aceite"))
+                .andExpect(jsonPath("$.porProducto[0].saldoInicial").value(20))
+                .andExpect(jsonPath("$.porProducto[0].vendidas").value(5))
+                .andExpect(jsonPath("$.porProducto[0].merma").value(3))
+                .andExpect(jsonPath("$.porProducto[0].saldoFinal").value(72))
+                .andExpect(jsonPath("$.porProducto[1].producto").value("RP Harina"))
+                .andExpect(jsonPath("$.porProducto[1].otrasSalidas").value(2))
+                .andExpect(jsonPath("$.porProducto[1].saldoFinal").value(24));
+    }
+
+    @Test
+    void elInventarioSeFiltraPorProducto() throws Exception {
+        inventarioDePrueba();
+
+        mockMvc.perform(get(INVENTARIO + "?desde=2024-06-01&hasta=2024-06-30&agrupacion=SEMANA&producto=" + harina)
+                        .cookie(loginAs(PRODUCTOR)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totales.saldoInicial").value(0))
+                .andExpect(jsonPath("$.totales.entradas").value(30))
+                .andExpect(jsonPath("$.totales.saldoFinal").value(24))
+                .andExpect(jsonPath("$.porProducto.length()").value(1));
+    }
+
     /**
      * Mayo: aceite 2 und minorista (S/ 40) el 3; harina 10 und mayorista (S/ 100) el 20, ya entregada; aceite
      * 1 und minorista (S/ 20) el 31 a las 23:30 de Lima. Junio: aceite 1 und minorista (S/ 20) el 15. No
@@ -232,6 +282,31 @@ class ReportesProductorTest extends IntegrationTest {
                 FROM lote l WHERE l.id = ?""", tipo, motivo, new BigDecimal(cantidad), cuando, loteId);
     }
 
+    /**
+     * La produccion de {@link #produccionDePrueba()} mas: un lote de aceite de 20 en abril (saldo inicial);
+     * en mayo se venden 5 de aceite a tarifa minorista; en junio, 4 de harina a tarifa mayorista, 3 de aceite
+     * van a merma y se retiran 2 de harina.
+     */
+    private void inventarioDePrueba() {
+        lote(aceite, "RP-A0", "20", "2024-04-10 09:00-05");
+        long[] lotes = produccionDePrueba();
+        venta(lotes[0], linea(pedido("RPI-1", "CONFIRMADO", "2024-05-25 10:00-05"), aceite, "5", "100.00", "MINORISTA"),
+                "5", "2024-05-25 10:00-05");
+        venta(lotes[1], linea(pedido("RPI-2", "CONFIRMADO", "2024-06-12 10:00-05"), harina, "4", "40.00", "MAYORISTA"),
+                "4", "2024-06-12 10:00-05");
+        movimiento(lotes[0], "MERMA", null, "3", "2024-06-05 10:00-05");
+        movimiento(lotes[1], "SALIDA", "RETIRO_PRODUCTOR", "2", "2024-06-20 10:00-05");
+    }
+
+    /** La salida por venta de una linea del pedido, como la registra la compra (CCPIP-62). */
+    private void venta(long loteId, long itemId, String cantidad, String cuando) {
+        jdbc.update("""
+                INSERT INTO movimiento_inventario (producto_id, ubicacion_id, lote_id, tipo, cantidad, pedido_id, item_pedido_id,
+                                                   registrado_en)
+                SELECT l.producto_id, l.ubicacion_id, l.id, 'SALIDA_VENTA', ?, i.pedido_id, i.id, ?::timestamptz
+                FROM lote l, item_pedido i WHERE l.id = ? AND i.id = ?""", new BigDecimal(cantidad), cuando, loteId, itemId);
+    }
+
     private long pedido(String numero, String estado, String confirmado) {
         return jdbc.queryForObject("""
                 INSERT INTO pedido (numero, usuario_id, modalidad, ubicacion_origen_id, total, estado, confirmado_en)
@@ -240,12 +315,12 @@ class ReportesProductorTest extends IntegrationTest {
                 RETURNING id""", Long.class, numero, estado, confirmado);
     }
 
-    private void linea(long pedidoId, long productoId, String cantidad, String subtotal, String tarifa) {
+    private long linea(long pedidoId, long productoId, String cantidad, String subtotal, String tarifa) {
         BigDecimal unidades = new BigDecimal(cantidad);
         BigDecimal monto = new BigDecimal(subtotal);
-        jdbc.update("""
+        return jdbc.queryForObject("""
                 INSERT INTO item_pedido (pedido_id, producto_id, productor_id, cantidad, precio_unitario, subtotal, tarifa)
-                SELECT ?, id, productor_id, ?, ?, ?, ? FROM producto WHERE id = ?""",
+                SELECT ?, id, productor_id, ?, ?, ?, ? FROM producto WHERE id = ? RETURNING id""", Long.class,
                 pedidoId, unidades, monto.divide(unidades, 2, java.math.RoundingMode.HALF_UP), monto, tarifa, productoId);
     }
 }

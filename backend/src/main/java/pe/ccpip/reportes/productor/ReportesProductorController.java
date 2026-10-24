@@ -16,6 +16,7 @@ import pe.ccpip.auth.model.Rol;
 import pe.ccpip.productor.ProductorActual;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.Modalidad;
+import pe.ccpip.reportes.productor.ReportesProductorModelos.ReporteInventario;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.ReporteProduccion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.ReporteVentas;
 
@@ -55,5 +56,15 @@ public class ReportesProductorController {
                                         @RequestParam(required = false) Agrupacion agrupacion,
                                         @RequestParam(required = false) Long producto) {
         return service.produccion(productorActual.id(s), desde, hasta, agrupacion, producto);
+    }
+
+    /** CCPIP-334 (RF-224): existencias de sus productos por periodo, con filtro de producto. */
+    @GetMapping("/inventario")
+    public ReporteInventario inventario(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+                                        @RequestParam(required = false) Agrupacion agrupacion,
+                                        @RequestParam(required = false) Long producto) {
+        return service.inventario(productorActual.id(s), desde, hasta, agrupacion, producto);
     }
 }

@@ -67,4 +67,33 @@ public final class ReportesProductorModelos {
                                     TotalesProduccion totales, List<PeriodoProduccion> periodos,
                                     List<ProductoProduccion> porProducto, List<ProductoOpcion> productos) {
     }
+
+    /**
+     * CCPIP-334: existencias de un periodo. {@code saldoFinal} = {@code saldoInicial} + {@code entradas} -
+     * {@code vendidasB2c} - {@code vendidasB2b} - {@code merma} - {@code otrasSalidas}, siempre.
+     */
+    public record PeriodoInventario(LocalDate inicio, LocalDate fin, BigDecimal saldoInicial, BigDecimal entradas,
+                                    BigDecimal vendidasB2c, BigDecimal vendidasB2b, BigDecimal merma,
+                                    BigDecimal otrasSalidas, BigDecimal saldoFinal) {
+    }
+
+    /** CCPIP-334: el movimiento de un producto en todo el rango; {@code vendidas} suma B2C y B2B. */
+    public record ProductoExistencias(long productoId, String producto, BigDecimal saldoInicial, BigDecimal entradas,
+                                      BigDecimal vendidas, BigDecimal merma, BigDecimal otrasSalidas,
+                                      BigDecimal saldoFinal) {
+    }
+
+    public record TotalesInventario(BigDecimal saldoInicial, BigDecimal entradas, BigDecimal vendidasB2c,
+                                    BigDecimal vendidasB2b, BigDecimal merma, BigDecimal otrasSalidas,
+                                    BigDecimal saldoFinal) {
+    }
+
+    /**
+     * CCPIP-334 (RF-224): existencias de sus productos por periodo, en su inventario virtual unico (su
+     * almacen y los puntos de acopio juntos). La modalidad se ve en lo vendido, separado en B2C y B2B.
+     */
+    public record ReporteInventario(LocalDate desde, LocalDate hasta, Agrupacion agrupacion, Long producto,
+                                    TotalesInventario totales, List<PeriodoInventario> periodos,
+                                    List<ProductoExistencias> porProducto, List<ProductoOpcion> productos) {
+    }
 }
