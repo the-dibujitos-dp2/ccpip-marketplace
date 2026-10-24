@@ -75,7 +75,8 @@
       "transferencias": "Transfers",
       "denuncias": "Reports",
       "alertas": "Alerts",
-      "merma": "Shrinkage"
+      "merma": "Shrinkage",
+      "reportes": "Reports"
     },
     "tabla": {
       "producto": "Product",
@@ -325,6 +326,51 @@
       "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
       "sinComisionCelda": "No commission",
       "nota": "Only your products are included. Commission and net are fixed when each order is confirmed; an order cancelled after payment is not settled."
+    },
+    "reportes": {
+      "titulo": "My product reports",
+      "desde": "From",
+      "hasta": "To",
+      "agrupacion": "Group by",
+      "por": {
+        "DIA": "Day",
+        "SEMANA": "Week",
+        "MES": "Month"
+      },
+      "producto": "Product",
+      "todos": "All products",
+      "modalidad": "Purchase mode",
+      "ambas": "Retail and wholesale",
+      "modalidades": {
+        "MINORISTA": "Retail (B2C)",
+        "MAYORISTA": "Wholesale (B2B)"
+      },
+      "error": "We couldn't load the report",
+      "semana": "{{inicio}} to {{fin}}",
+      "b2c": "B2C (retail)",
+      "b2cDetalle": "Sold at the retail price",
+      "b2b": "B2B (wholesale)",
+      "b2bDetalle": "Sold at the wholesale price",
+      "vacioTexto": "Try another period or all products.",
+      "col": {
+        "periodo": "Period",
+        "producto": "Product",
+        "barraVentas": "B2C and B2B",
+        "unidades": "Units",
+        "b2c": "B2C",
+        "b2b": "B2B",
+        "total": "Total",
+        "acumulado": "Cumulative"
+      },
+      "ventas": {
+        "pestana": "Sales",
+        "total": "Total sold",
+        "unidades": "{{cantidad}} units sold",
+        "porPeriodo": "Sales by period",
+        "porProducto": "Sales by product",
+        "vacio": "No sales in this period",
+        "nota": "Subtotal of your products in each paid, non-cancelled order, by the date it was confirmed (Lima time). A sale is B2B if it was made at the wholesale price."
+      }
     },
     "productos": {
       "badge": {

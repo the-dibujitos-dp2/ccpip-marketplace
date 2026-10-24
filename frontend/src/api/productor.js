@@ -69,6 +69,21 @@ function rutaLiquidacion(sufijo, { desde, hasta } = {}) {
   const consulta = q.toString()
   return `${base}/liquidaciones${sufijo}${consulta ? `?${consulta}` : ''}`
 }
+// Reportes de sus productos por periodo (CCPIP-114 y siguientes). Sin filtros, el servidor usa el año en
+// curso por mes y responde con el rango y la agrupacion que aplico.
+const FILTROS_REPORTE = ['desde', 'hasta', 'agrupacion', 'producto', 'modalidad']
+
+function rutaReporte(sufijo, filtros = {}) {
+  const q = new URLSearchParams()
+  for (const campo of FILTROS_REPORTE) {
+    if (filtros[campo] != null && filtros[campo] !== '') q.set(campo, String(filtros[campo]))
+  }
+  const consulta = q.toString()
+  return `${base}/reportes${sufijo}${consulta ? `?${consulta}` : ''}`
+}
+
+/** `metrica`: ventas. */
+export const consultarReporteProductor = (metrica, filtros) => apiFetch(rutaReporte(`/${metrica}`, filtros))
 // CCPIP-161: todos sus lotes, de todos sus productos, primero el que vence antes
 export const listarTodosLosLotes = () => apiFetch(`${base}/lotes`)
 export const listarLotes = async (id) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`)

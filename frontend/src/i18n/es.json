@@ -75,7 +75,8 @@
       "transferencias": "Transferencias",
       "denuncias": "Denuncias",
       "alertas": "Alertas",
-      "merma": "Merma"
+      "merma": "Merma",
+      "reportes": "Reportes"
     },
     "tabla": {
       "producto": "Producto",
@@ -325,6 +326,51 @@
       "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
       "sinComisionCelda": "Sin comisión",
       "nota": "Solo se incluyen tus productos. La comisión y el neto quedan fijados al confirmar cada pedido; un pedido cancelado después del pago no se liquida."
+    },
+    "reportes": {
+      "titulo": "Reportes de mis productos",
+      "desde": "Desde",
+      "hasta": "Hasta",
+      "agrupacion": "Agrupar por",
+      "por": {
+        "DIA": "Día",
+        "SEMANA": "Semana",
+        "MES": "Mes"
+      },
+      "producto": "Producto",
+      "todos": "Todos los productos",
+      "modalidad": "Modalidad",
+      "ambas": "Minorista y mayorista",
+      "modalidades": {
+        "MINORISTA": "Minorista (B2C)",
+        "MAYORISTA": "Mayorista (B2B)"
+      },
+      "error": "No pudimos cargar el reporte",
+      "semana": "{{inicio}} al {{fin}}",
+      "b2c": "B2C (minorista)",
+      "b2cDetalle": "Vendido a precio minorista",
+      "b2b": "B2B (mayorista)",
+      "b2bDetalle": "Vendido a precio mayorista",
+      "vacioTexto": "Prueba con otro período o con todos los productos.",
+      "col": {
+        "periodo": "Período",
+        "producto": "Producto",
+        "barraVentas": "B2C y B2B",
+        "unidades": "Unidades",
+        "b2c": "B2C",
+        "b2b": "B2B",
+        "total": "Total",
+        "acumulado": "Acumulado"
+      },
+      "ventas": {
+        "pestana": "Ventas",
+        "total": "Total vendido",
+        "unidades": "{{cantidad}} unidades vendidas",
+        "porPeriodo": "Ventas por período",
+        "porProducto": "Ventas por producto",
+        "vacio": "No hubo ventas en este período",
+        "nota": "Subtotal de tus productos en cada pedido pagado y no cancelado, por la fecha en que se confirmó (hora de Lima). Una venta es B2B si se hizo a precio mayorista."
+      }
     },
     "productos": {
       "badge": {
