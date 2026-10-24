@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.comun.Idioma;
 import pe.ccpip.comun.RangoFechas;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.Modalidad;
@@ -304,6 +305,24 @@ public class ReportesProductorService {
 
     private static BigDecimal[] fila(Map<Long, BigDecimal[]> porProducto, long productoId) {
         return porProducto.computeIfAbsent(productoId, id -> ceros(5));
+    }
+
+    /**
+     * CCPIP-115 y CCPIP-335: el reporte de sus productos para exportar, con las mismas cifras que la pantalla
+     * para los mismos filtros (la modalidad solo filtra las ventas), en el idioma pedido.
+     */
+    @Transactional(readOnly = true)
+    DocumentoReporte documento(long productorId, LocalDate desde, LocalDate hasta, Agrupacion agrupacion, Long producto,
+                               Modalidad modalidad, Idioma idioma) {
+        ReporteVentas ventas = ventas(productorId, desde, hasta, agrupacion, producto, modalidad);
+        // Mismo rango resuelto para las tres secciones, aunque se haya pedido sin fechas
+        ReporteProduccion produccion = produccion(productorId, ventas.desde(), ventas.hasta(), ventas.agrupacion(), producto);
+        ReporteInventario inventario = inventario(productorId, ventas.desde(), ventas.hasta(), ventas.agrupacion(), producto);
+        String nombre = jdbc.queryForObject("SELECT coalesce(nombre_tienda, comunidad) FROM productor WHERE id = :productor",
+                new MapSqlParameterSource("productor", productorId), String.class);
+        String nombreProducto = producto == null ? null : ventas.productos().stream()
+                .filter(o -> o.id() == producto).map(ProductoOpcion::nombre).findFirst().orElse(null);
+        return ContenidoReporte.documento(nombre, ventas, produccion, inventario, nombreProducto, idioma);
     }
 
     /** Sus productos, para el filtro de la pantalla. */

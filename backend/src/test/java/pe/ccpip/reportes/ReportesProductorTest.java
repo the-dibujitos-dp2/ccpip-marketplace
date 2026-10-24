@@ -1,11 +1,17 @@
 package pe.ccpip.reportes;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +21,7 @@ import pe.ccpip.support.IntegrationTest;
 
 /**
  * Pantalla «Reportes» del productor: estadisticas de sus productos por periodo. CCPIP-114 (RF-25): ventas;
- * CCPIP-333 (RF-223): produccion; CCPIP-334 (RF-224): inventario.
+ * CCPIP-333 (RF-223): produccion; CCPIP-334 (RF-224): inventario; CCPIP-115 (RF-26): exportacion en PDF.
  *
  * <p>Los datos de la prueba son de mayo y junio de 2024, meses que ninguna otra prueba usa, y la transaccion
  * se deshace al terminar.
@@ -28,6 +34,7 @@ class ReportesProductorTest extends IntegrationTest {
     private static final String VENTAS = "/api/productor/reportes/ventas";
     private static final String PRODUCCION = "/api/productor/reportes/produccion";
     private static final String INVENTARIO = "/api/productor/reportes/inventario";
+    private static final String PDF = "/api/productor/reportes/pdf";
 
     private long aceite;
     private long harina;
@@ -227,6 +234,49 @@ class ReportesProductorTest extends IntegrationTest {
                 .andExpect(jsonPath("$.porProducto.length()").value(1));
     }
 
+    @Test
+    void elPdfTraeLasTresSeccionesConLasMismasCifras() throws Exception {
+        ventasDePrueba();
+        inventarioDePrueba();
+
+        byte[] pdf = mockMvc.perform(get(PDF + "?desde=2024-05-01&hasta=2024-06-30").cookie(loginAs(PRODUCTOR)))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/pdf"))
+                .andExpect(header().string("Content-Language", "es"))
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("Content-Disposition",
+                        Matchers.containsString("attachment; filename=\"reporte-productos.pdf\"")))
+                .andReturn().getResponse().getContentAsByteArray();
+
+        String texto = texto(pdf);
+        assertThat(texto).contains("Reporte de sus productos", "Período: 01/05/2024 al 30/06/2024", "Producto: Todos",
+                "Ventas por período", "Mayo 2024", "Junio 2024", "Ventas por producto", "RP Harina", "RP Aceite",
+                "Producción por período", "Inventario por período (unidades)", "Inventario por producto (unidades)");
+        // Ventas: las cuatro de mayo y junio mas las dos del inventario; sin lo cancelado, lo no pagado ni lo ajeno
+        assertThat(texto).contains("Total 23 180.00 140.00 320.00 320.00");
+        // Inventario: 20 de abril + 90 entradas - 9 vendidas - 3 de merma - 2 retiradas
+        assertThat(texto).contains("Total 20 90 5 4 3 2 96");
+        assertThat(texto).doesNotContain("RP Ajeno", "consumidor@ccpip.test", "RPP-1");
+    }
+
+    @Test
+    void elPdfSaleEnInglesYRespetaLosFiltros() throws Exception {
+        ventasDePrueba();
+        Cookie sesion = loginAs(PRODUCTOR);
+
+        byte[] pdf = mockMvc.perform(get(PDF + "?desde=2024-05-01&hasta=2024-06-30&producto=" + harina + "&modalidad=MAYORISTA&lang=en")
+                        .cookie(sesion))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Language", "en"))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertThat(texto(pdf)).contains("Product report", "Product: RP Harina", "Purchase mode (sales only): Wholesale (B2B)",
+                "Sales by period", "May 2024", "Inventory by period (units)").doesNotContain("RP Aceite");
+
+        mockMvc.perform(get(PDF + "?producto=" + ajeno).cookie(sesion)).andExpect(status().isNotFound());
+        mockMvc.perform(get(PDF).cookie(loginAs("consumidor@ccpip.test"))).andExpect(status().isForbidden());
+    }
+
     /**
      * Mayo: aceite 2 und minorista (S/ 40) el 3; harina 10 und mayorista (S/ 100) el 20, ya entregada; aceite
      * 1 und minorista (S/ 20) el 31 a las 23:30 de Lima. Junio: aceite 1 und minorista (S/ 20) el 15. No
@@ -305,6 +355,12 @@ class ReportesProductorTest extends IntegrationTest {
                                                    registrado_en)
                 SELECT l.producto_id, l.ubicacion_id, l.id, 'SALIDA_VENTA', ?, i.pedido_id, i.id, ?::timestamptz
                 FROM lote l, item_pedido i WHERE l.id = ? AND i.id = ?""", new BigDecimal(cantidad), cuando, loteId, itemId);
+    }
+
+    private static String texto(byte[] pdf) throws Exception {
+        try (PDDocument documento = Loader.loadPDF(pdf)) {
+            return new PDFTextStripper().getText(documento);
+        }
     }
 
     private long pedido(String numero, String estado, String confirmado) {
