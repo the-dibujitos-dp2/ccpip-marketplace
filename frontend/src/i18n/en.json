@@ -75,7 +75,8 @@
       "transferencias": "Transfers",
       "denuncias": "Reports",
       "alertas": "Alerts",
-      "merma": "Shrinkage"
+      "merma": "Shrinkage",
+      "reportes": "Reports"
     },
     "tabla": {
       "producto": "Product",
@@ -214,13 +215,25 @@
         "enPunto": "At the point",
         "porUbicacion": "By location",
         "lotes": "Batches",
-        "disponible": "Available"
+        "disponible": "Available",
+        "almacen": "Warehouse",
+        "detalle": "Breakdown by warehouse"
       },
       "lote": "Batch {{codigo}}",
       "cosecha": "Harvest {{mes}}",
       "vence": "expires {{fecha}}",
       "sinVencimiento": "No expiry",
       "soloVencidos": "Expired batches only",
+      "verAlmacenes": "See warehouses",
+      "ocultarAlmacenes": "Hide",
+      "verAlmacenesDe": "See which warehouses hold {{producto}}",
+      "ocultarAlmacenesDe": "Hide the warehouses of {{producto}}",
+      "almacenesDe": "Warehouses of {{producto}}",
+      "sinDisponible": "No units of this product are available in any warehouse.",
+      "tipoAlmacen": "Your warehouse",
+      "tipoPunto": "Collection point",
+      "vencidosAparte_one": "{{count}} expired batch is not counted as available.",
+      "vencidosAparte_other": "{{count}} expired batches are not counted as available.",
       "estado": {
         "DISPONIBLE": "Available",
         "POR_VENCER": "Expiring soon",
@@ -313,6 +326,92 @@
       "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
       "sinComisionCelda": "No commission",
       "nota": "Only your products are included. Commission and net are fixed when each order is confirmed; an order cancelled after payment is not settled."
+    },
+    "reportes": {
+      "titulo": "My product reports",
+      "desde": "From",
+      "hasta": "To",
+      "agrupacion": "Group by",
+      "por": {
+        "DIA": "Day",
+        "SEMANA": "Week",
+        "MES": "Month"
+      },
+      "producto": "Product",
+      "todos": "All products",
+      "modalidad": "Purchase mode",
+      "ambas": "Retail and wholesale",
+      "modalidades": {
+        "MINORISTA": "Retail (B2C)",
+        "MAYORISTA": "Wholesale (B2B)"
+      },
+      "error": "We couldn't load the report",
+      "semana": "{{inicio}} to {{fin}}",
+      "b2c": "B2C (retail)",
+      "b2cDetalle": "Sold at the retail price",
+      "b2b": "B2B (wholesale)",
+      "b2bDetalle": "Sold at the wholesale price",
+      "vacioTexto": "Try another period or all products.",
+      "exportar": {
+        "pdf": "Download PDF",
+        "xlsx": "Download Excel"
+      },
+      "col": {
+        "periodo": "Period",
+        "producto": "Product",
+        "barraVentas": "B2C and B2B",
+        "unidades": "Units",
+        "b2c": "B2C",
+        "b2b": "B2B",
+        "total": "Total",
+        "acumulado": "Cumulative",
+        "barraProduccion": "Units in",
+        "ingresadas": "Units in",
+        "lotes": "New batches",
+        "saldoInicial": "Opening",
+        "entradas": "In",
+        "vendidasB2c": "Sold B2C",
+        "vendidasB2b": "Sold B2B",
+        "vendidas": "Sold",
+        "merma": "Shrinkage",
+        "otrasSalidas": "Other out",
+        "saldoFinal": "Closing"
+      },
+      "ventas": {
+        "pestana": "Sales",
+        "total": "Total sold",
+        "unidades": "{{cantidad}} units sold",
+        "porPeriodo": "Sales by period",
+        "porProducto": "Sales by product",
+        "vacio": "No sales in this period",
+        "nota": "Subtotal of your products in each paid, non-cancelled order, by the date it was confirmed (Lima time). A sale is B2B if it was made at the wholesale price."
+      },
+      "produccion": {
+        "pestana": "Production",
+        "unidades": "Units produced",
+        "unidadesDetalle": "New batches and production entries",
+        "lotes": "New batches",
+        "lotesDetalle": "Registered in the period",
+        "porPeriodo": "Production by period",
+        "porProducto": "Production by product",
+        "vacio": "No production in this period",
+        "nota": "Every entry into your batches, by the date it was registered (Lima time): a new batch and production or reception entries into an existing batch. Transfers do not count because they only move what was already produced."
+      },
+      "inventario": {
+        "pestana": "Inventory",
+        "saldoInicial": "Opening stock",
+        "alInicio": "At the start of the period",
+        "entradas": "In",
+        "entradasDetalle": "New batches and entries",
+        "salidas": "Out",
+        "salidasDetalle": "{{vendidas}} sold · {{merma}} shrinkage",
+        "saldoFinal": "Closing stock",
+        "alFinal": "At the end of the period",
+        "porPeriodo": "Inventory by period",
+        "porProducto": "Inventory by product",
+        "vacio": "You had no stock in this period",
+        "nota": "It comes from your batch movements: closing = opening + in − sold − shrinkage − other out (withdrawals and returns). Transfers do not change your inventory total and are not counted; stock in transit or expired but not yet written off is still yours."
+      }
     },
     "productos": {
       "badge": {

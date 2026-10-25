@@ -1,0 +1,18 @@
+/* Reportes del productor (CCPIP-114 y siguientes), con el formato de SA-05 */
+.reportes-productor__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
+.reportes-productor__filtros .campo { width: 190px; }
+/* Producto y modalidad necesitan mas ancho para leer su opcion */
+.reportes-productor__filtros .reportes-productor__selector-ancho { width: 240px; }
+.reportes-productor__exportar { display: flex; gap: 8px; margin-left: auto; }
+.reportes-productor__periodo { flex: 0 0 190px; }
+.reportes-productor__num { flex: 0 0 110px; text-align: right; font-variant-numeric: tabular-nums; }
+/* El inventario tiene siete columnas de cifras: mas angostas para que quepan sin desplazar */
+.reportes-productor__num--estrecha { flex-basis: 96px; }
+.reportes-productor__barra { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--color-bg-surface-alt); }
+.reportes-productor__barra-0 { background: var(--color-bg-brand); }
+.reportes-productor__barra-1 { background: var(--color-bg-accent); }
+
+@media (max-width: 720px) {
+  .reportes-productor__filtros .campo { width: 100%; }
+  .reportes-productor__exportar { margin-left: 0; }
+}
