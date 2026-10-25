@@ -2971,7 +2971,12 @@
     "comentario": "Comentario (opcional)",
     "comentarioAyuda": "Se publica sin tu nombre. Hasta 500 caracteres.",
     "enviando": "Enviando…",
-    "enviar": "Enviar calificación"
+    "enviar": "Enviar calificación",
+    "calificaEsteProducto": "Califica este producto",
+    "loRecibiste": "Lo recibiste en tu pedido {{numero}}.",
+    "yaCalificaste": "Ya calificaste este producto. ¡Gracias!",
+    "cuandoRecibas": "Podrás calificarlo cuando recibas tu pedido {{numero}}.",
+    "soloSiRecibiste": "Solo puedes calificarlo si lo compraste y ya lo recibiste."
   },
   "denuncia": {
     "titulo": "Presentar una denuncia",

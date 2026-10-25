@@ -2971,7 +2971,12 @@
     "comentario": "Comment (optional)",
     "comentarioAyuda": "Published without your name. Up to 500 characters.",
     "enviando": "Sending…",
-    "enviar": "Submit rating"
+    "enviar": "Submit rating",
+    "calificaEsteProducto": "Rate this product",
+    "loRecibiste": "You received it in your order {{numero}}.",
+    "yaCalificaste": "You already rated this product. Thank you!",
+    "cuandoRecibas": "You can rate it once you receive your order {{numero}}.",
+    "soloSiRecibiste": "You can rate it only if you bought it and have already received it."
   },
   "denuncia": {
     "titulo": "File a report",
