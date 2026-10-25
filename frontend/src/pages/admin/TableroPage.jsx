@@ -15,6 +15,18 @@ import './admin.css'
 
 /** CCPIP-430: color de cada nivel de merma (siempre con texto, nunca solo color). */
 const TONO_MERMA = { NORMAL: 'exito', ALERTA: 'aviso', CRITICO: 'error' }
+const GRAVEDAD = { NORMAL: 0, ALERTA: 1, CRITICO: 2 }
+
+/** La linea con mas merma de un punto: primero la de peor nivel y, a igual nivel, la de mayor %. */
+function lineaMasComprometida(mermaPorLinea, puntoId) {
+  return mermaPorLinea
+    .filter((m) => m.puntoId === puntoId)
+    .reduce((peor, m) => {
+      if (!peor) return m
+      const diferencia = GRAVEDAD[m.nivel] - GRAVEDAD[peor.nivel]
+      return diferencia > 0 || (diferencia === 0 && Number(m.porcentaje) > Number(peor.porcentaje)) ? m : peor
+    }, null)
+}
 
 /**
  * SA-01 (CCPIP-111): la operacion del mes con informacion agregada y de solo lectura. La merma del mes se
@@ -88,7 +100,9 @@ function Contenido({ tablero }) {
               <span className="tabla__celda admin__num" role="cell">{t('comun.und', { cantidad: unidades(p.stock) })}</span>
               <span className="tabla__celda admin__num" role="cell">{p.pedidosDelMes}</span>
               <span className="tabla__celda admin__num" role="cell">{precio(p.ventasDelMes)}</span>
-              <span className="tabla__celda admin__merma" role="cell"><MermaPunto merma={p.merma} /></span>
+              <span className="tabla__celda admin__merma" role="cell">
+                <MermaPunto merma={p.merma} linea={lineaMasComprometida(tablero.mermaPorLinea ?? [], p.id)} />
+              </span>
               <span className="tabla__celda admin__num" role="cell" aria-label={t('admin.tablero.pronto')}>—</span>
             </div>
           ))}
@@ -111,9 +125,20 @@ function NivelMerma({ porcentaje, nivel }) {
   )
 }
 
-/** Un punto sin stock ni merma no tiene porcentaje: se muestra sin dato, no como 0 %. */
-function MermaPunto({ merma }) {
+/**
+ * La merma de un punto es la de su linea con mas merma: el % que se ve es el que decide el color, y debajo se
+ * nombra la linea cuando pide atencion. Sin merma en el mes, el % del punto (0 %); sin stock ni merma, sin dato.
+ */
+function MermaPunto({ merma, linea }) {
   const { t } = useTranslation()
+  if (linea) {
+    return (
+      <span className="admin__merma-punto">
+        <NivelMerma porcentaje={linea.porcentaje} nivel={linea.nivel} />
+        {linea.nivel !== 'NORMAL' && <span className="caption admin__merma-linea">{linea.linea}</span>}
+      </span>
+    )
+  }
   if (merma?.porcentaje == null) return <span aria-label={t('admin.tablero.merma.sinDato')}>—</span>
   return <NivelMerma porcentaje={merma.porcentaje} nivel={merma.nivel} />
 }

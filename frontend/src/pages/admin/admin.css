@@ -5,6 +5,8 @@
 .admin__num { flex: 0 0 120px; text-align: right; font-variant-numeric: tabular-nums; }
 /* CCPIP-430: % de merma con su nivel */
 .admin__merma { flex: 0 0 160px; display: flex; justify-content: flex-end; font-variant-numeric: tabular-nums; }
+.admin__merma-punto { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.admin__merma-linea { color: var(--color-text-secondary); text-align: right; }
 
 .admin__barras { display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 0; list-style: none; }
 .admin__barra { display: grid; grid-template-columns: 140px 1fr 110px; align-items: center; gap: 16px; }

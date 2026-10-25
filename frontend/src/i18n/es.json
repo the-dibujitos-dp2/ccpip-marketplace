@@ -1031,7 +1031,7 @@
         "intro": "Merma del mes sobre la merma más el stock vigente de cada línea en cada punto. El color sigue los umbrales de la línea, que se cambian en Catálogo maestro › Líneas.",
         "valor": "{{porcentaje}} % · {{nivel}}",
         "sinDato": "Sin stock ni merma este mes",
-        "notaPunto": "El color de la merma de un punto es el de su línea más comprometida.",
+        "notaPunto": "La merma de cada punto es la de su línea con más merma, nombrada debajo cuando requiere atención.",
         "vacio": "No hay merma registrada este mes.",
         "punto": "Punto de acopio",
         "linea": "Línea",

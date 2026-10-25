@@ -1031,7 +1031,7 @@
         "intro": "Waste this month over waste plus current stock of each line at each point. The colour follows the line's thresholds, which you can change in Master catalogue › Lines.",
         "valor": "{{porcentaje}} % · {{nivel}}",
         "sinDato": "No stock or waste this month",
-        "notaPunto": "A point's waste colour is that of its most affected line.",
+        "notaPunto": "Each point shows the waste of its most affected line, named below when it needs attention.",
         "vacio": "No waste recorded this month.",
         "punto": "Collection point",
         "linea": "Line",
