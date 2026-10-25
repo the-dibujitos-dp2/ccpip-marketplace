@@ -15,9 +15,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.comun.Idioma;
 import pe.ccpip.comun.PuntosDeAcopio;
 import pe.ccpip.comun.RangoFechas;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
+import pe.ccpip.reportes.exportar.DocumentoReporte;
 import pe.ccpip.reportes.Tramos;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.Opcion;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.PeriodoEntradas;
@@ -423,6 +425,28 @@ public class ReportesAcopioService {
                 .toList();
         return new ReporteInventario(c.puntos(), c.desde(), c.hasta(), c.agrupacion(), c.productor(), c.producto(),
                 totales, periodos, productos, productores(usuarioId), productos(usuarioId));
+    }
+
+    /**
+     * CCPIP-325, CCPIP-378, CCPIP-380, CCPIP-382 (y su Excel): los cuatro reportes juntos con los mismos
+     * filtros, listos para exportar. El rango se resuelve una vez, aunque se haya pedido sin fechas.
+     */
+    @Transactional(readOnly = true)
+    public DocumentoReporte documento(long usuarioId, LocalDate desde, LocalDate hasta, Agrupacion agrupacion,
+                                      Long productor, Long producto, Idioma idioma) {
+        ReporteEntradas entradas = entradas(usuarioId, desde, hasta, agrupacion, productor, producto);
+        LocalDate d = entradas.desde();
+        LocalDate h = entradas.hasta();
+        Agrupacion a = entradas.agrupacion();
+        ReporteSalidas salidas = salidas(usuarioId, d, h, a, productor, producto);
+        ReporteVentas ventas = ventas(usuarioId, d, h, a, productor, producto);
+        ReporteInventario inventario = inventario(usuarioId, d, h, a, productor, producto);
+        return ContenidoReporteAcopio.documento(entradas, salidas, ventas, inventario, nombre(entradas.productores(), productor),
+                nombre(entradas.productos(), producto), idioma == Idioma.EN);
+    }
+
+    private static String nombre(List<Opcion> opciones, Long id) {
+        return id == null ? null : opciones.stream().filter(o -> o.id() == id).map(Opcion::nombre).findFirst().orElse(null);
     }
 
     private static BigDecimal[] fila(Map<Long, BigDecimal[]> porProducto, Map<Long, String[]> nombres, long id,

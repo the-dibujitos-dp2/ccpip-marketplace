@@ -1,11 +1,17 @@
 package pe.ccpip.reportes;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +22,7 @@ import pe.ccpip.support.IntegrationTest;
 /**
  * Pantalla «Reportes» del administrador de punto de acopio: lo que paso en sus puntos por periodo.
  * CCPIP-117 (RF-65): entradas; CCPIP-341 (RF-231): salidas; CCPIP-342 (RF-232): ventas;
- * CCPIP-343 (RF-233): inventario.
+ * CCPIP-343 (RF-233): inventario. Exportados juntos: CCPIP-325, 378, 380 y 382 en PDF.
  *
  * <p>admin_acopio@ administra el Centro Nacional Lima; lo de Cusco no es suyo. Los datos son de mayo y
  * junio de 2024, meses que ninguna otra prueba usa, y la transaccion se deshace al terminar.
@@ -31,6 +37,7 @@ class ReportesAcopioTest extends IntegrationTest {
     private static final String SALIDAS = "/api/acopio/reportes/salidas";
     private static final String VENTAS = "/api/acopio/reportes/ventas";
     private static final String INVENTARIO = "/api/acopio/reportes/inventario";
+    private static final String PDF = "/api/acopio/reportes/pdf";
 
     private long aceite;
     private long harina;
@@ -196,6 +203,55 @@ class ReportesAcopioTest extends IntegrationTest {
     }
 
     @Test
+    void elPdfTraeLosCuatroReportesJuntosConLasMismasCifras() throws Exception {
+        entradasDePrueba();
+        salidasDePrueba();
+
+        byte[] pdf = mockMvc.perform(get(PDF + "?desde=2024-05-01&hasta=2024-06-30").cookie(loginAs(ADMIN)))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/pdf"))
+                .andExpect(header().string("Content-Language", "es"))
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("Content-Disposition",
+                        Matchers.containsString("attachment; filename=\"reporte-punto-de-acopio.pdf\"")))
+                .andReturn().getResponse().getContentAsByteArray();
+
+        String texto = texto(pdf);
+        assertThat(texto).contains("Reporte de su punto de acopio", "Punto de acopio: " + LIMA,
+                "Período: 01/05/2024 al 30/06/2024", "Productor: Todos", "Producto: Todos", "Resumen",
+                "Entradas por período (unidades)", "Entradas por producto (unidades)", "Salidas por período (unidades)",
+                "Salidas por producto (unidades)", "Ventas por período", "Ventas por producto",
+                "Inventario por período (unidades)", "Inventario por producto (unidades)", "Mayo 2024", "Junio 2024",
+                "RA Aceite", "RA Harina");
+        // Pendientes: 1 transferencia de 7 unidades por llegar; 3 unidades vendidas aun en el punto
+        assertThat(texto).contains("Transferencias por llegar 1", "Unidades por llegar 7",
+                "Unidades vendidas aún en el punto 3");
+        // Entradas: 50 + 12 + 30 + 50 del lote de salidas; salidas: 5 entregadas, 3 por entregar, 4, 2 y 1
+        assertThat(texto).contains("Total 130 12 142 142", "Total 5 3 4 2 1 15 15");
+        // Inventario: 142 entradas - 15 salidas
+        assertThat(texto).contains("Total 0 142 15 127");
+        assertThat(texto).doesNotContain("RA Solo en Cusco", "consumidor@ccpip.test", "RAS-1");
+    }
+
+    @Test
+    void elPdfSaleEnInglesYRespetaLosFiltrosYLosPermisos() throws Exception {
+        entradasDePrueba();
+        Cookie sesion = loginAs(ADMIN);
+
+        byte[] pdf = mockMvc.perform(get(PDF + "?desde=2024-05-01&hasta=2024-06-30&producto=" + harina + "&lang=en")
+                        .cookie(sesion))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Language", "en"))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertThat(texto(pdf)).contains("Collection point report", "Product: RA Harina", "Producer: All",
+                "Stock in by period (units)", "May 2024", "Inventory by product (units)").doesNotContain("RA Aceite");
+
+        mockMvc.perform(get(PDF + "?producto=" + soloEnCusco).cookie(sesion)).andExpect(status().isNotFound());
+        mockMvc.perform(get(PDF).cookie(loginAs("productor@ccpip.test"))).andExpect(status().isForbidden());
+    }
+
+    @Test
     void loAjenoNoExisteYOtroRolNoEntra() throws Exception {
         entradasDePrueba();
         Cookie sesion = loginAs(ADMIN);
@@ -329,5 +385,11 @@ class ReportesAcopioTest extends IntegrationTest {
                        (SELECT id FROM ubicacion WHERE nombre = ?), ?, ?::timestamptz
                 FROM lote l JOIN producto pr ON pr.id = l.producto_id WHERE l.id = ? RETURNING id""", Long.class,
                 origen, destino, estado, cuando, lote);
+    }
+
+    private static String texto(byte[] pdf) throws Exception {
+        try (PDDocument documento = Loader.loadPDF(pdf)) {
+            return new PDFTextStripper().getText(documento);
+        }
     }
 }
