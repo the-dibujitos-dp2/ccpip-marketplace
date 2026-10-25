@@ -72,7 +72,8 @@ function Contenido({ tablero }) {
 
       <section className="productor__seccion" aria-labelledby="titulo-puntos">
         <h2 id="titulo-puntos" className="heading-h3">{t('admin.tablero.puntos.titulo')}</h2>
-        <div className="tabla" role="table" aria-labelledby="titulo-puntos">
+        {/* tabIndex: en un celular la tabla se desplaza de lado y debe poder hacerse con el teclado */}
+        <div className="tabla" role="table" aria-labelledby="titulo-puntos" tabIndex={0}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('admin.tablero.puntos.punto')}</span>
             <span className="tabla__celda admin__num" role="columnheader">{t('admin.tablero.puntos.stock')}</span>
@@ -127,7 +128,7 @@ function MermaPorLinea({ filas }) {
       {filas.length === 0 ? (
         <p className="body-s">{t('admin.tablero.merma.vacio')}</p>
       ) : (
-        <div className="tabla" role="table" aria-labelledby="titulo-merma">
+        <div className="tabla" role="table" aria-labelledby="titulo-merma" tabIndex={0}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('admin.tablero.merma.punto')}</span>
             <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('admin.tablero.merma.linea')}</span>
