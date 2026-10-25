@@ -1112,7 +1112,26 @@
         "merma": "% waste",
         "reclamos": "Complaints"
       },
-      "notaPronto": "Ratings, waste and complaints will show here once the platform starts recording them."
+      "notaPronto": "Ratings and complaints will show here once the platform starts recording them.",
+      "merma": {
+        "titulo": "Waste this month by line",
+        "intro": "Waste this month over waste plus current stock of each line at each point. The colour follows the line's thresholds, which you can change in Master catalogue › Lines.",
+        "valor": "{{porcentaje}} % · {{nivel}}",
+        "sinDato": "No stock or waste this month",
+        "notaPunto": "Each point shows the waste of its most affected line, named below when it needs attention.",
+        "vacio": "No waste recorded this month.",
+        "punto": "Collection point",
+        "linea": "Line",
+        "unidades": "Waste",
+        "porcentaje": "% waste",
+        "umbrales": "Warning · critical",
+        "umbralesValor": "{{alerta}} % · {{critico}} %",
+        "nivel": {
+          "NORMAL": "Normal",
+          "ALERTA": "Warning",
+          "CRITICO": "Critical"
+        }
+      }
     },
     "restringido": {
       "titulo": "Restricted access",
@@ -1577,6 +1596,7 @@
     "TIPO_INVALIDO": "Unknown movement type.",
     "UBICACION_INVALIDA": "Choose your warehouse or a collection point.",
     "UNIDAD_INVALIDA": "Choose a unit from the catalog.",
+    "UMBRALES_MERMA_INVALIDOS": "The warning threshold must be lower than the critical threshold.",
     "VENCIMIENTO_PASADO": "The expiry date can't be earlier than today.",
     "VENTA_PAUSADA": "Sales of this product are paused for now. You can view it, but you can't buy it yet.",
     "CARRITO_VACIO": "Your cart is empty.",
@@ -2968,8 +2988,10 @@
         "vencimiento": "Expiry",
         "unidad": "Suggested unit",
         "productos": "Products",
-        "ofertas": "Offers"
+        "ofertas": "Offers",
+        "merma": "Waste: warning · critical"
       },
+      "umbrales": "{{alerta}} % · {{critico}} %",
       "vence": "Expires",
       "noVence": "Does not expire",
       "form": {
@@ -2984,7 +3006,11 @@
         "sinUnidad": "No suggested unit",
         "orden": "Catalog order",
         "ordenAyuda": "Empty: goes last.",
-        "vencimiento": "Its batches have an expiry date"
+        "vencimiento": "Its batches have an expiry date",
+        "mermaTitulo": "Waste thresholds",
+        "mermaAyuda": "The dashboard shows this line's waste this month as a warning (yellow) from the first value and as critical (red) from the second.",
+        "mermaAlerta": "Warning from (%)",
+        "mermaCritico": "Critical from (%)"
       },
       "creada": "Line {{nombre}} created.",
       "guardada": "Changes saved to {{nombre}}.",
@@ -3030,7 +3056,9 @@
       "nombre": "Enter the name.",
       "orden": "Use a number from 0 to 999.",
       "linea": "Choose the line.",
-      "revisar": "Check this field."
+      "revisar": "Check this field.",
+      "umbral": "Use a percentage from 0.1 to 100, with at most one decimal.",
+      "umbralOrden": "Must be higher than the warning threshold."
     }
   },
   "calificaciones": {

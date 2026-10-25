@@ -84,7 +84,71 @@ describe('SA-01 Tablero de operación del superadministrador (CCPIP-111)', () =>
     expect(within(fila).getByText('Centro Regional Ucayali · Pucallpa')).toBeInTheDocument()
     expect(within(fila).getByText('842.5 und')).toBeInTheDocument()
     expect(within(fila).getByText('12')).toBeInTheDocument()
-    expect(within(fila).getAllByRole('cell', { name: 'Disponible pronto' })).toHaveLength(2)
+    // Reclamos aun no se registran; la merma ya tiene su dato (CCPIP-430)
+    expect(within(fila).getAllByRole('cell', { name: 'Disponible pronto' })).toHaveLength(1)
+  })
+
+  it('cada punto muestra la merma de su línea más comprometida, nombrada si requiere atención (CCPIP-430)', async () => {
+    servidor(comoSuper())
+    abrirEn('/admin')
+
+    const tabla = within(await screen.findByRole('table', { name: 'Estado de los puntos de acopio' }))
+    const [, lima, ucayali, loreto] = tabla.getAllByRole('row')
+    // Siempre texto además del color: el nivel se lee, no solo se ve. El % es el que decide el color.
+    expect(within(lima).getByText('9.1 % · Alerta')).toHaveClass('badge-estado--aviso')
+    expect(within(lima).getByText('Superfrutos')).toBeInTheDocument()
+    // El total del punto (3.2 %) no se muestra: no es el que decide su color
+    expect(within(lima).queryByText(/3.2 %/)).not.toBeInTheDocument()
+    expect(within(ucayali).getByText('0 % · Normal')).toHaveClass('badge-estado--exito')
+    expect(within(loreto).getByText('23.4 % · Crítico')).toHaveClass('badge-estado--error')
+    expect(within(loreto).getByText('Superfrutos')).toBeInTheDocument()
+    expect(screen.getByText(/La merma de cada punto es la de su línea con más merma/)).toBeInTheDocument()
+
+    const porLinea = within(screen.getByRole('table', { name: 'Merma del mes por línea' }))
+    const filas = porLinea.getAllByRole('row').slice(1)
+    expect(filas).toHaveLength(3)
+    expect(within(filas[0]).getByText('Centro Nacional Lima')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('Superfrutos')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('30 und')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('9.1 % · Alerta')).toHaveClass('badge-estado--aviso')
+    // Cada línea con sus propios umbrales
+    expect(within(filas[0]).getByText('8 % · 15 %')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('2.9 % · Normal')).toHaveClass('badge-estado--exito')
+    expect(within(filas[1]).getByText('5 % · 10 %')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('23.4 % · Crítico')).toHaveClass('badge-estado--error')
+  })
+
+  it('con varias líneas en un punto gana la de peor nivel y, a igual nivel, la de mayor % (CCPIP-430)', async () => {
+    const varias = copia(DATOS.tableroAdmin)
+    const lima = { puntoId: 1, punto: 'Centro Nacional Lima', stock: 100, umbralAlerta: 5, umbralCritico: 10 }
+    varias.mermaPorLinea = [
+      { ...lima, codigo: 'CAFE', linea: 'Café', unidades: 40, porcentaje: 28.6, nivel: 'ALERTA', umbralAlerta: 20, umbralCritico: 30 },
+      { ...lima, codigo: 'CACAO', linea: 'Cacao y chocolates', unidades: 12, porcentaje: 10.7, nivel: 'CRITICO' },
+      { ...lima, codigo: 'ACEITES', linea: 'Aceites', unidades: 15, porcentaje: 13.0, nivel: 'CRITICO' },
+      { ...lima, puntoId: 4, punto: 'Centro Regional Ucayali', codigo: 'CAFE', linea: 'Café', unidades: 1, porcentaje: 1.0, nivel: 'NORMAL' },
+    ]
+    servidor(comoSuper({ [`GET ${RUTA}`]: [200, varias] }))
+    abrirEn('/admin')
+
+    const [, filaLima, filaUcayali] = within(await screen.findByRole('table', { name: 'Estado de los puntos de acopio' })).getAllByRole('row')
+    expect(within(filaLima).getByText('13 % · Crítico')).toBeInTheDocument()
+    expect(within(filaLima).getByText('Aceites')).toBeInTheDocument()
+    // Una línea normal no se nombra: la fila queda limpia
+    expect(within(filaUcayali).getByText('1 % · Normal')).toBeInTheDocument()
+    expect(within(filaUcayali).queryByText('Café')).not.toBeInTheDocument()
+  })
+
+  it('sin merma en el mes lo dice, y un punto sin stock ni merma queda sin dato (CCPIP-430)', async () => {
+    const sin = copia(DATOS.tableroAdmin)
+    sin.mermaPorLinea = []
+    sin.puntos[0].merma = { unidades: 0, porcentaje: null, nivel: null }
+    servidor(comoSuper({ [`GET ${RUTA}`]: [200, sin] }))
+    abrirEn('/admin')
+
+    expect(await screen.findByText('No hay merma registrada este mes.')).toBeInTheDocument()
+    expect(screen.queryByRole('table', { name: 'Merma del mes por línea' })).not.toBeInTheDocument()
+    const lima = within(screen.getByRole('table', { name: 'Estado de los puntos de acopio' })).getAllByRole('row')[1]
+    expect(within(lima).getByLabelText('Sin stock ni merma este mes')).toHaveTextContent('—')
   })
 
   it('sin ventas en el mes lo dice en vez de dejar la lista vacía', async () => {
@@ -196,7 +260,9 @@ describe('Superadministrador en inglés (CCPIP-111)', () => {
     expect(await screen.findByText('▲ 22 % vs. September')).toBeInTheDocument()
     expect(screen.getByText('+ 6 new this month')).toBeInTheDocument()
     expect(screen.getByRole('table', { name: 'Collection points status' })).toBeInTheDocument()
-    expect(screen.queryByText(/Ventas|Productores|Disponible/)).not.toBeInTheDocument()
+    expect(screen.getAllByText('23.4 % · Critical')).toHaveLength(2)
+    expect(screen.getByRole('table', { name: 'Waste this month by line' })).toBeInTheDocument()
+    expect(screen.queryByText(/Ventas|Productores|Disponible|Alerta|Crítico/)).not.toBeInTheDocument()
     unmount()
 
     abrirEn('/carrito')

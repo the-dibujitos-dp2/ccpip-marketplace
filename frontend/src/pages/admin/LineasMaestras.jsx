@@ -7,12 +7,23 @@ import Alerta from '../../components/Alerta.jsx'
 import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
+import { unidades as numero } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { AccionesFila, BadgeActivo, DialogoEdicion, DialogoEstado, Filtros, useCambioEstado, useEdicion, useListado } from './catalogoMaestro.jsx'
 
 const CODIGO = /^[A-Za-z0-9_]{2,40}$/
 const ORDEN = /^\d{1,3}$/
-const CAMPO_DEL_CODE = { CODIGO_DUPLICADO: 'codigo', NOMBRE_DUPLICADO: 'nombre', UNIDAD_INVALIDA: 'unidadSugerida' }
+// CCPIP-430: porcentaje entre 0.1 y 100, con un decimal como maximo (punto o coma)
+const UMBRAL = /^\d{1,3}([.,]\d)?$/
+const CAMPO_DEL_CODE = {
+  CODIGO_DUPLICADO: 'codigo',
+  NOMBRE_DUPLICADO: 'nombre',
+  UNIDAD_INVALIDA: 'unidadSugerida',
+  UMBRALES_MERMA_INVALIDOS: 'mermaUmbralCritico',
+}
+
+const aNumero = (texto) => Number(texto.trim().replace(',', '.'))
+const umbralValido = (texto) => UMBRAL.test(texto.trim()) && aNumero(texto) > 0 && aNumero(texto) <= 100
 
 const aFormulario = (l) => ({
   codigo: l?.codigo ?? '',
@@ -21,6 +32,9 @@ const aFormulario = (l) => ({
   requiereVencimiento: l?.requiereVencimiento ?? true,
   unidadSugerida: l?.unidadSugerida?.codigo ?? '',
   orden: l ? String(l.orden) : '',
+  // Una linea nueva nace con los umbrales iniciales de la base (CCPIP-430)
+  mermaUmbralAlerta: String(l?.mermaUmbralAlerta ?? 5),
+  mermaUmbralCritico: String(l?.mermaUmbralCritico ?? 10),
 })
 
 const aCuerpo = (f) => ({
@@ -30,11 +44,14 @@ const aCuerpo = (f) => ({
   requiereVencimiento: f.requiereVencimiento,
   unidadSugerida: f.unidadSugerida || null,
   orden: f.orden.trim() === '' ? null : Number(f.orden),
+  mermaUmbralAlerta: aNumero(f.mermaUmbralAlerta),
+  mermaUmbralCritico: aNumero(f.mermaUmbralCritico),
 })
 
 /**
  * CCPIP-96 consultar, CCPIP-309 crear, CCPIP-310 modificar y CCPIP-311 desactivar las lineas del catalogo
  * maestro. El codigo no se edita: es la clave de sus traducciones y de las ofertas que la usan.
+ * CCPIP-430: cada linea tiene a la vista sus umbrales de merma, que colorean el tablero SA-01.
  */
 export default function LineasMaestras() {
   const { t } = useTranslation()
@@ -47,6 +64,11 @@ export default function LineasMaestras() {
     if (!CODIGO.test(f.codigo.trim())) e.codigo = t('catalogoMaestro.validacion.codigo')
     if (!f.nombre.trim()) e.nombre = t('catalogoMaestro.validacion.nombre')
     if (f.orden.trim() !== '' && !ORDEN.test(f.orden.trim())) e.orden = t('catalogoMaestro.validacion.orden')
+    if (!umbralValido(f.mermaUmbralAlerta)) e.mermaUmbralAlerta = t('catalogoMaestro.validacion.umbral')
+    if (!umbralValido(f.mermaUmbralCritico)) e.mermaUmbralCritico = t('catalogoMaestro.validacion.umbral')
+    else if (!e.mermaUmbralAlerta && aNumero(f.mermaUmbralAlerta) >= aNumero(f.mermaUmbralCritico)) {
+      e.mermaUmbralCritico = t('catalogoMaestro.validacion.umbralOrden')
+    }
     return e
   }
   const edicion = useEdicion({
@@ -88,6 +110,7 @@ export default function LineasMaestras() {
             <span className="tabla__celda catalogo-maestro__col" role="columnheader">{t('catalogoMaestro.lineas.col.unidad')}</span>
             <span className="tabla__celda catalogo-maestro__num" role="columnheader">{t('catalogoMaestro.lineas.col.productos')}</span>
             <span className="tabla__celda catalogo-maestro__num" role="columnheader">{t('catalogoMaestro.lineas.col.ofertas')}</span>
+            <span className="tabla__celda catalogo-maestro__col" role="columnheader">{t('catalogoMaestro.lineas.col.merma')}</span>
             <span className="tabla__celda catalogo-maestro__estado" role="columnheader">{t('catalogoMaestro.col.estado')}</span>
             <span className="tabla__celda catalogo-maestro__acciones" role="columnheader"><span className="visually-hidden">{t('catalogoMaestro.col.acciones')}</span></span>
           </div>
@@ -101,6 +124,10 @@ export default function LineasMaestras() {
               <span className="tabla__celda catalogo-maestro__col" role="cell">{l.unidadSugerida?.nombre ?? '—'}</span>
               <span className="tabla__celda catalogo-maestro__num" role="cell">{l.productos}</span>
               <span className="tabla__celda catalogo-maestro__num" role="cell">{l.ofertas}</span>
+              <span className="tabla__celda catalogo-maestro__col" role="cell">
+                {l.mermaUmbralAlerta == null ? '—'
+                  : t('catalogoMaestro.lineas.umbrales', { alerta: numero(l.mermaUmbralAlerta), critico: numero(l.mermaUmbralCritico) })}
+              </span>
               <span className="tabla__celda catalogo-maestro__estado" role="cell"><BadgeActivo activo={l.activa} /></span>
               <AccionesFila nombre={l.nombre} activo={l.activa} onEditar={() => edicion.abrir(l)} onEstado={() => cambio.pedir(l)} />
             </div>
@@ -124,6 +151,16 @@ export default function LineasMaestras() {
               <input type="checkbox" checked={f.requiereVencimiento} onChange={set('requiereVencimiento')} />
               {t('catalogoMaestro.lineas.form.vencimiento')}
             </label>
+            <fieldset className="catalogo-maestro__umbrales">
+              <legend className="label-m">{t('catalogoMaestro.lineas.form.mermaTitulo')}</legend>
+              <p className="caption">{t('catalogoMaestro.lineas.form.mermaAyuda')}</p>
+              <div className="catalogo-maestro__umbrales-campos">
+                <Campo etiqueta={t('catalogoMaestro.lineas.form.mermaAlerta')} value={f.mermaUmbralAlerta} onChange={set('mermaUmbralAlerta')}
+                  error={errores.mermaUmbralAlerta} inputMode="decimal" maxLength={5} autoComplete="off" />
+                <Campo etiqueta={t('catalogoMaestro.lineas.form.mermaCritico')} value={f.mermaUmbralCritico} onChange={set('mermaUmbralCritico')}
+                  error={errores.mermaUmbralCritico} inputMode="decimal" maxLength={5} autoComplete="off" />
+              </div>
+            </fieldset>
           </>
         )}
       </DialogoEdicion>

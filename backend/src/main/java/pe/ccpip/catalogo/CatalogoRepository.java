@@ -239,6 +239,33 @@ public class CatalogoRepository {
                 p, CatalogoRepository::resumen);
     }
 
+    /**
+     * CCPIP-339: unidades vendidas del producto p entre :desde y :hasta (fechas de Lima), en pedidos
+     * confirmados (pagados) y no cancelados, igual que los reportes de ventas (CCPIP-345, CCPIP-114).
+     */
+    private static final String VENDIDAS = """
+            (SELECT coalesce(sum(i.cantidad), 0) FROM item_pedido i JOIN pedido pe ON pe.id = i.pedido_id
+             WHERE i.producto_id = p.id AND pe.confirmado_en IS NOT NULL AND pe.estado <> 'CANCELADO'
+               AND (pe.confirmado_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta)""";
+
+    /** CCPIP-339: en cuantos pedidos distintos se vendio p en el mismo periodo; desempata las unidades. */
+    private static final String PEDIDOS = """
+            (SELECT count(DISTINCT i.pedido_id) FROM item_pedido i JOIN pedido pe ON pe.id = i.pedido_id
+             WHERE i.producto_id = p.id AND pe.confirmado_en IS NOT NULL AND pe.estado <> 'CANCELADO'
+               AND (pe.confirmado_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta)""";
+
+    /**
+     * CCPIP-339 (RF-229): los productos visibles mas vendidos del periodo, de mas a menos unidades; a igual
+     * cantidad, el que estuvo en mas pedidos y luego por nombre. Solo cuenta ventas reales: un producto
+     * sin ventas en el periodo no aparece. Se muestra aunque se haya agotado, con su estado.
+     */
+    public List<ProductoResumen> masVendidos(LocalDate desde, LocalDate hasta, int cuantos) {
+        MapSqlParameterSource p = new MapSqlParameterSource("n", cuantos).addValue("desde", desde).addValue("hasta", hasta);
+        return jdbc.query("SELECT * FROM (SELECT " + COLUMNAS + ", " + VENDIDAS + " AS unidades_vendidas, " + PEDIDOS
+                + " AS pedidos_venta " + VISIBLE + ") x WHERE x.unidades_vendidas > 0"
+                + " ORDER BY x.unidades_vendidas DESC, x.pedidos_venta DESC, x.nombre, x.id LIMIT :n", p, CatalogoRepository::resumen);
+    }
+
     public List<ProductoResumen> novedades(int cuantos) {
         MapSqlParameterSource p = new MapSqlParameterSource("n", cuantos);
         return jdbc.query("SELECT " + COLUMNAS + VISIBLE + " AND " + EN_VENTA + " > 0"

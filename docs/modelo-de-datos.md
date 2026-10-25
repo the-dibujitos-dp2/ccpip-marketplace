@@ -1361,3 +1361,61 @@ en el catalogo responde `422 DESTINO_NO_ADMITIDO`. La direccion se pide completa
 (`422 DIRECCION_INVALIDA`). La misma direccion en el mismo distrito no se guarda dos veces para un comprador
 (`409 DIRECCION_YA_GUARDADA`, sin distinguir mayusculas); otro comprador si puede guardarla. Los pedidos copian su
 destino en `entrega` y no dependen de esta tabla.
+
+## Aceptar y editar el borrador de descripcion de la IA (CCPIP-49)
+
+Migracion `V202610241300`. El productor edita el borrador de descripcion que propone la IA (RF-73, RNF-29): la IA
+no publica nada, la aceptacion queda registrada y se conservan la version sugerida y la final, como ya ocurria con
+la historia (`producto_historia`). Nuevas columnas en `producto`:
+
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| descripcion_sugerida | text | si | La sugerencia de la IA que el productor acepto, tal como la propuso. La final, editada, es `descripcion` |
+| descripcion_aceptada_en | timestamptz | si | Cuando la acepto |
+| descripcion_aceptada_por | bigint | si | Quien la acepto |
+
+Las tres van juntas (CHECK `producto_descripcion_aceptada_completa`). `descripcion_propuesta` queda como el
+borrador **pendiente** de decision: al aceptarlo pasa a `descripcion_sugerida`, y pedir otra version o descartarla
+(CCPIP-280) ya no borra la sugerencia que el productor habia aceptado.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `POST /api/productor/productos/{id}/ia/descripcion/aceptar` | PRODUCTOR | Acepta el borrador pendiente para editarlo. Devuelve el producto con `descripcionSugerida`. `409 SIN_BORRADOR` si no hay borrador; un producto ajeno, `404`. **No esta en el contrato de la API; hay que agregarlo** |
+
+**Reglas.** Aceptar no cambia `descripcion` ni publica nada: la version final es la que el productor guarde despues
+con `PUT /api/productor/productos/{id}`. Cada aceptacion queda en `producto_auditoria` (`EDITAR`, con
+`descripcionIaAceptada` y el texto sugerido), junto a los rechazos de CCPIP-280. `descripcion_asistida` solo se
+marca si el productor acepto una sugerencia (o ya era asistida); un borrador pendiente sin aceptar ya no basta.
+
+**Datos existentes.** La migracion pasa a `descripcion_sugerida` la propuesta de las descripciones ya marcadas como
+asistidas, con la fecha y el responsable de la ultima edicion del producto, que es la mejor evidencia disponible.
+
+## Umbrales de merma por linea (CCPIP-430)
+
+Migracion `V202610251300`. Mejora de la sesion de laboratorio del 22/10: el tablero del superadministrador
+(SA-01) colorea la merma del mes de cada punto de acopio segun el nivel de perdida. Lo que es normal depende de
+que tan perecible es lo que agrupa cada linea (la fruta se pierde mas que el grano), asi que cada linea del
+catalogo maestro tiene sus umbrales. El equipo acordo el 25/10 que nazcan en 5 % y 10 % y que el
+superadministrador los cambie en Catalogo maestro > Lineas: no hay un valor por defecto escondido.
+
+### linea_producto (columnas nuevas)
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| merma_umbral_alerta | numeric(4,1) | no | % de merma del mes desde el que la linea se ve en alerta. Nace en 5 |
+| merma_umbral_critico | numeric(4,1) | no | % de merma del mes desde el que la linea se ve en estado critico. Nace en 10 |
+
+La base exige `0 < alerta < critico <= 100` (`linea_producto_umbrales_merma_validos`).
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `GET /api/admin/catalogo/lineas` | SUPER_ADMIN | Cada linea trae `mermaUmbralAlerta` y `mermaUmbralCritico` |
+| `POST /api/admin/catalogo/lineas`, `PUT /api/admin/catalogo/lineas/{id}` | SUPER_ADMIN | Aceptan los dos umbrales, opcionales: nulo conserva el actual (al crear, 5 y 10). Hasta un decimal, entre 0.1 y 100 (`400`); la alerta menor que el critico (`422 UMBRALES_MERMA_INVALIDOS`). El cambio queda en `catalogo_maestro_auditoria` |
+| `GET /api/admin/tablero` | SUPER_ADMIN | `puntos[].merma` (`unidades`, `porcentaje`, `nivel`) y `mermaPorLinea[]` |
+
+**Calculo.** El % de merma de una linea en un punto es la merma del mes (calendario de Lima) entre la merma del
+mes mas el stock vigente de esa linea en el punto, con un decimal. Debajo de la alerta es `NORMAL`; desde la
+alerta, `ALERTA`; desde el critico, `CRITICO`. La linea de una oferta es su linea principal (`producto.linea_id`).
+`mermaPorLinea` trae solo las lineas con merma en el mes. El punto suma la merma de todas sus ofertas sobre su
+stock vigente; su nivel es el de su linea mas comprometida, para que avise aunque las demas lineas diluyan el
+porcentaje. Un punto sin stock ni merma no tiene porcentaje ni nivel. Cambiar un umbral cambia el color desde la
+siguiente consulta; la merma registrada no cambia.
