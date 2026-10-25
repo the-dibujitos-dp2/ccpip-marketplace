@@ -17,6 +17,8 @@ import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.comun.Idioma;
 import pe.ccpip.comun.RangoFechas;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
+import pe.ccpip.reportes.Tramos;
+import pe.ccpip.reportes.exportar.DocumentoReporte;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.Modalidad;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.PeriodoInventario;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.PeriodoProduccion;
