@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import App from '../App.jsx'
-import { copia, DATOS, PUBLICAS, servidor, SESION_ACOPIO, SESION_SUB } from '../test/servidor.js'
+import { copia, DATOS, PUBLICAS, servidor, SESION_ACOPIO, SESION_SUB, SESION_SUPER } from '../test/servidor.js'
 import Cargando from './Cargando.jsx'
 
 function abrirEn(ruta) {
@@ -56,6 +56,28 @@ describe('Indicador de carga (CCPIP-413)', () => {
     indicador()
     tiendas.soltar([200, copia(DATOS.tiendas)])
     expect(await screen.findByText('Asoc. Nii Joi')).toBeInTheDocument()
+    expect(screen.queryByText('Cargando…')).not.toBeInTheDocument()
+  })
+
+  it('en Parámetros cada tarjeta muestra su indicador dentro, sin quedar vacía', async () => {
+    const vigencia = retenida()
+    const minimo = retenida()
+    servidor({
+      ...PUBLICAS,
+      'GET /api/auth/me': [200, SESION_SUPER],
+      'GET /api/admin/parametros/vigencia-carrito': vigencia.respuesta,
+      'GET /api/admin/parametros/minimo-calificaciones': minimo.respuesta,
+    })
+    abrirEn('/admin/parametros')
+
+    await waitFor(() => expect(vigencia.pedida() && minimo.pedida()).toBe(true))
+    const tarjetas = screen.getAllByRole('region')
+    expect(tarjetas).toHaveLength(2)
+    tarjetas.forEach((tarjeta) => expect(within(tarjeta).getByRole('status')).toHaveTextContent('Cargando…'))
+
+    vigencia.soltar([200, copia(DATOS.vigenciaCarritoAdmin)])
+    minimo.soltar([200, { calificaciones: 3, provisional: true }])
+    expect(await screen.findByRole('button', { name: 'Guardar mínimo' })).toBeInTheDocument()
     expect(screen.queryByText('Cargando…')).not.toBeInTheDocument()
   })
 
