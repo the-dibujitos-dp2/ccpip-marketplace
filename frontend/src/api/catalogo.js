@@ -24,6 +24,8 @@ export const obtenerProducto = async (id) => apiFetch(`/api/productos/${idRuta(i
 /** CCPIP-365: evidencias publicas de certificacion del producto (sin archivos). */
 export const obtenerCertificacion = async (id) => apiFetch(`/api/productos/${idRuta(id)}/certificacion`, publico)
 export const obtenerInicio = () => apiFetch('/api/inicio', publico)
+/** CCPIP-339: los mas vendidos del periodo (ULTIMOS_30_DIAS, ULTIMOS_3_MESES o ESTE_ANIO), en orden de puesto. */
+export const obtenerMasVendidos = (periodo) => apiFetch(`/api/mas-vendidos?periodo=${encodeURIComponent(periodo)}`, publico)
 export const listarTiendas = () => apiFetch('/api/tiendas', publico)
 export const obtenerTienda = async (id) => apiFetch(`/api/tiendas/${idRuta(id)}`, publico)
 export const obtenerCatalogos = () => apiFetch('/api/catalogos', publico)
