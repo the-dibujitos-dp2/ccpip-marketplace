@@ -240,6 +240,8 @@ function ConfigurarAlertas({ rol, onPuntos }) {
     <form className="alertas__config tarjeta-panel" onSubmit={guardar} aria-labelledby="titulo-config-alertas" noValidate>
       <h2 id="titulo-config-alertas" className="heading-h4">{t('alertas.config.titulo')}</h2>
       {estado && <Alerta tono={estado.tono} titulo={estado.titulo} />}
+      {/* CCPIP-413: la tarjeta no queda vacia mientras llegan las preferencias */}
+      {!form && puntos === null && !estado && <Cargando />}
       {puntos?.length > 1 && (
         <Campo
           tipo="selector"

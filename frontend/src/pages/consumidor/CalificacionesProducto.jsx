@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { resumenCalificaciones } from '../../api/valoracion.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import DialogoDenuncia from '../../components/DialogoDenuncia.jsx'
 import Estrellas from '../../components/Estrellas.jsx'
 import { fecha, unidades } from '../../formato.js'
@@ -27,13 +28,18 @@ export default function CalificacionesProducto({ producto }) {
   const { t } = useTranslation()
   const { user } = useSesion()
   const [resumen, setResumen] = useState(null)
+  const [cargando, setCargando] = useState(true)
   const [denunciando, setDenunciando] = useState(false)
   const [enviada, setEnviada] = useState(false)
 
   useEffect(() => {
     let vigente = true
+    setCargando(true)
     // Sin resumen (error de red), la ficha se ve igual, sin esta seccion
-    resumenCalificaciones(producto.id).then((r) => vigente && setResumen(r)).catch(() => {})
+    resumenCalificaciones(producto.id)
+      .then((r) => vigente && setResumen(r))
+      .catch(() => {})
+      .finally(() => vigente && setCargando(false))
     return () => {
       vigente = false
     }
@@ -43,6 +49,8 @@ export default function CalificacionesProducto({ producto }) {
   return (
     <section className="seccion valoraciones" aria-labelledby="titulo-calificaciones">
       <h2 id="titulo-calificaciones" className="seccion__titulo">{t('calificaciones.titulo')}</h2>
+      {/* CCPIP-413: mientras llega el resumen, el indicador en lugar de una seccion vacia */}
+      {cargando && <Cargando />}
       {resumen?.suficiente && (
         <div className="valoraciones__resumen">
           <div className="valoraciones__promedio">
