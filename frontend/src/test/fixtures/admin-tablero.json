@@ -19,8 +19,19 @@
     { "id": 4, "nombre": "C.N. Puerto Alegre", "pueblo": null, "monto": 512.0 }
   ],
   "puntos": [
-    { "id": 1, "nombre": "Centro Nacional Lima", "distrito": "Lima", "stock": 1284.0, "pedidosDelMes": 21, "ventasDelMes": 2411.0 },
-    { "id": 4, "nombre": "Centro Regional Ucayali", "distrito": "Pucallpa", "stock": 842.5, "pedidosDelMes": 12, "ventasDelMes": 1840.0 },
-    { "id": 2, "nombre": "Centro Regional Loreto", "distrito": "Iquitos", "stock": 366.0, "pedidosDelMes": 4, "ventasDelMes": 641.0 }
+    { "id": 1, "nombre": "Centro Nacional Lima", "distrito": "Lima", "stock": 1284.0, "pedidosDelMes": 21, "ventasDelMes": 2411.0,
+      "merma": { "unidades": 42.0, "porcentaje": 3.2, "nivel": "ALERTA" } },
+    { "id": 4, "nombre": "Centro Regional Ucayali", "distrito": "Pucallpa", "stock": 842.5, "pedidosDelMes": 12, "ventasDelMes": 1840.0,
+      "merma": { "unidades": 0, "porcentaje": 0.0, "nivel": "NORMAL" } },
+    { "id": 2, "nombre": "Centro Regional Loreto", "distrito": "Iquitos", "stock": 366.0, "pedidosDelMes": 4, "ventasDelMes": 641.0,
+      "merma": { "unidades": 61.0, "porcentaje": 14.3, "nivel": "CRITICO" } }
+  ],
+  "mermaPorLinea": [
+    { "puntoId": 1, "punto": "Centro Nacional Lima", "codigo": "SUPERFRUTOS", "linea": "Superfrutos", "unidades": 30.0, "stock": 300.0,
+      "porcentaje": 9.1, "umbralAlerta": 8.0, "umbralCritico": 15.0, "nivel": "ALERTA" },
+    { "puntoId": 1, "punto": "Centro Nacional Lima", "codigo": "CAFE", "linea": "Café", "unidades": 12.0, "stock": 400.0,
+      "porcentaje": 2.9, "umbralAlerta": 5.0, "umbralCritico": 10.0, "nivel": "NORMAL" },
+    { "puntoId": 2, "punto": "Centro Regional Loreto", "codigo": "SUPERFRUTOS", "linea": "Superfrutos", "unidades": 61.0, "stock": 200.0,
+      "porcentaje": 23.4, "umbralAlerta": 8.0, "umbralCritico": 15.0, "nivel": "CRITICO" }
   ]
 }
