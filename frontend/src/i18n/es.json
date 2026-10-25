@@ -1439,7 +1439,8 @@
     "AMBAS": "Minorista y mayorista"
   },
   "tarjetaProducto": {
-    "agotado": "Agotado"
+    "agotado": "Agotado",
+    "puesto": "N.º {{puesto}}"
   },
   "tarjetaTienda": {
     "visitar": "Visitar tienda",
@@ -1508,10 +1509,19 @@
     "lineas": "Explora por línea",
     "descubrir": {
       "titulo": "Productos para descubrir",
-      "bajada": "Elegidos por las comunidades y recién llegados.",
+      "bajada": "Elegidos por las comunidades, recién llegados y los más vendidos.",
       "verTodo": "Ver todo",
       "destacados": "Destacados",
-      "novedades": "Novedades"
+      "novedades": "Novedades",
+      "masVendidos": "Más vendidos",
+      "periodo": "Período",
+      "periodos": {
+        "ULTIMOS_30_DIAS": "Últimos 30 días",
+        "ULTIMOS_3_MESES": "Últimos 3 meses",
+        "ESTE_ANIO": "Este año"
+      },
+      "sinVentas": "Aún no hay ventas en este período. Prueba con uno más largo.",
+      "notaMasVendidos": "Según las unidades vendidas en compras pagadas y no canceladas del período."
     },
     "mayorista": {
       "titulo": "¿Compras por volumen para tu tienda, cafetería o para exportar?",

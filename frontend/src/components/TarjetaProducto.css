@@ -25,6 +25,19 @@
 
 .tarjeta-producto:hover .tarjeta-producto__imagen { transform: scale(1.03); }
 .tarjeta-producto__sello { position: absolute; top: 8px; left: 8px; }
+/* CCPIP-339: el puesto entre los mas vendidos, a la derecha para no tapar el sello de origen */
+.tarjeta-producto__puesto {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--color-bg-brand);
+  color: var(--color-text-on-brand);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 20px;
+}
 
 .tarjeta-producto__info { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
 .tarjeta-producto__nombre { font-weight: 600; font-size: 14px; line-height: 20px; }
