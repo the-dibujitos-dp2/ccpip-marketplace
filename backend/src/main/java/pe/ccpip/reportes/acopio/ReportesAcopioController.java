@@ -22,6 +22,7 @@ import pe.ccpip.auth.model.Rol;
 import pe.ccpip.comun.Idioma;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.exportar.ReportePdf;
+import pe.ccpip.reportes.exportar.ReporteXlsx;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteEntradas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteInventario;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteSalidas;
@@ -35,6 +36,9 @@ import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteVentas;
 @RestController
 @RequestMapping("/api/acopio/reportes")
 public class ReportesAcopioController {
+
+    private static final MediaType XLSX =
+            MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
     private final ReportesAcopioService service;
 
@@ -102,6 +106,24 @@ public class ReportesAcopioController {
         Idioma idioma = idioma(lang, acceptLanguage);
         byte[] pdf = ReportePdf.generar(service.documento(s.userId(), desde, hasta, agrupacion, productor, producto, idioma));
         return descarga(pdf, MediaType.APPLICATION_PDF, "reporte-punto-de-acopio.pdf", idioma);
+    }
+
+    /**
+     * CCPIP-377, CCPIP-379, CCPIP-381, CCPIP-383: los mismos cuatro reportes en Excel, una hoja por seccion
+     * y con las cifras como numeros para que el administrador pueda seguir calculando.
+     */
+    @GetMapping("/xlsx")
+    public ResponseEntity<byte[]> excel(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+                                        @RequestParam(required = false) Agrupacion agrupacion,
+                                        @RequestParam(required = false) Long productor,
+                                        @RequestParam(required = false) Long producto,
+                                        @RequestParam(required = false) String lang,
+                                        @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage) {
+        Idioma idioma = idioma(lang, acceptLanguage);
+        byte[] xlsx = ReporteXlsx.generar(service.documento(s.userId(), desde, hasta, agrupacion, productor, producto, idioma));
+        return descarga(xlsx, XLSX, "reporte-punto-de-acopio.xlsx", idioma);
     }
 
     /** El idioma solo cambia los textos, nunca los datos ni los permisos. */

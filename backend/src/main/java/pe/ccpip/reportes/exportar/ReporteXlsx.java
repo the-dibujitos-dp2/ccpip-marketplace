@@ -102,10 +102,13 @@ public final class ReporteXlsx {
             boolean total = s.conTotales() && i == s.filas().size() - 1;
             hoja.fila(s.filas().get(i), s.moneda(), total ? NEGRITA : 0);
         }
+        // Las columnas de texto (periodo, producto, productor) son mas anchas que las de cifras
         int[] anchos = new int[s.encabezados().size()];
         anchos[0] = 36;
         for (int i = 1; i < anchos.length; i++) {
-            anchos[i] = 16;
+            int columna = i;
+            boolean texto = s.filas().stream().anyMatch(f -> columna < f.size() && f.get(columna) instanceof String);
+            anchos[i] = texto ? 36 : 16;
         }
         return hoja.xml(anchos);
     }

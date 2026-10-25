@@ -6,7 +6,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -22,7 +26,8 @@ import pe.ccpip.support.IntegrationTest;
 /**
  * Pantalla «Reportes» del administrador de punto de acopio: lo que paso en sus puntos por periodo.
  * CCPIP-117 (RF-65): entradas; CCPIP-341 (RF-231): salidas; CCPIP-342 (RF-232): ventas;
- * CCPIP-343 (RF-233): inventario. Exportados juntos: CCPIP-325, 378, 380 y 382 en PDF.
+ * CCPIP-343 (RF-233): inventario. Exportados juntos: CCPIP-325, 378, 380 y 382 en PDF;
+ * CCPIP-377, 379, 381 y 383 en Excel.
  *
  * <p>admin_acopio@ administra el Centro Nacional Lima; lo de Cusco no es suyo. Los datos son de mayo y
  * junio de 2024, meses que ninguna otra prueba usa, y la transaccion se deshace al terminar.
@@ -38,6 +43,7 @@ class ReportesAcopioTest extends IntegrationTest {
     private static final String VENTAS = "/api/acopio/reportes/ventas";
     private static final String INVENTARIO = "/api/acopio/reportes/inventario";
     private static final String PDF = "/api/acopio/reportes/pdf";
+    private static final String XLSX = "/api/acopio/reportes/xlsx";
 
     private long aceite;
     private long harina;
@@ -252,6 +258,40 @@ class ReportesAcopioTest extends IntegrationTest {
     }
 
     @Test
+    void elExcelTraeUnaHojaPorSeccionConLasCifrasComoNumeros() throws Exception {
+        entradasDePrueba();
+        salidasDePrueba();
+
+        byte[] xlsx = mockMvc.perform(get(XLSX + "?desde=2024-05-01&hasta=2024-06-30&lang=en").cookie(loginAs(ADMIN)))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .andExpect(header().string("Content-Language", "en"))
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(header().string("Content-Disposition",
+                        Matchers.containsString("attachment; filename=\"reporte-punto-de-acopio.xlsx\"")))
+                .andReturn().getResponse().getContentAsByteArray();
+
+        assertThat(entrada(xlsx, "xl/workbook.xml")).contains("name=\"Collection point report\"", "name=\"Summary\"",
+                "name=\"Stock in by period\"", "name=\"Stock in by product\"", "name=\"Stock out by period\"",
+                "name=\"Stock out by product\"", "name=\"Sales by period\"", "name=\"Sales by product\"",
+                "name=\"Inventory by period\"", "name=\"Inventory by product\"");
+        assertThat(entrada(xlsx, "xl/worksheets/sheet1.xml")).contains("Collection point: " + LIMA,
+                "Period: 01/05/2024 to 30/06/2024");
+        // Hoja 3, entradas por periodo: el total es un numero, no texto
+        assertThat(entrada(xlsx, "xl/worksheets/sheet3.xml")).contains("May 2024", "<v>142.000</v>");
+        // Hoja 10, inventario por producto: con su productor y lo vendido que aun espera entrega
+        assertThat(entrada(xlsx, "xl/worksheets/sheet10.xml")).contains("RA Aceite", "Sale pending", "<v>3.000</v>")
+                .doesNotContain("RA Solo en Cusco");
+    }
+
+    @Test
+    void elExcelRespetaLosPermisos() throws Exception {
+        entradasDePrueba();
+        mockMvc.perform(get(XLSX + "?producto=" + soloEnCusco).cookie(loginAs(ADMIN))).andExpect(status().isNotFound());
+        mockMvc.perform(get(XLSX).cookie(loginAs("productor@ccpip.test"))).andExpect(status().isForbidden());
+    }
+
+    @Test
     void loAjenoNoExisteYOtroRolNoEntra() throws Exception {
         entradasDePrueba();
         Cookie sesion = loginAs(ADMIN);
@@ -391,5 +431,17 @@ class ReportesAcopioTest extends IntegrationTest {
         try (PDDocument documento = Loader.loadPDF(pdf)) {
             return new PDFTextStripper().getText(documento);
         }
+    }
+
+    /** El contenido de una parte del XLSX, que es un ZIP. */
+    private static String entrada(byte[] xlsx, String nombre) throws Exception {
+        try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(xlsx))) {
+            for (ZipEntry e = zip.getNextEntry(); e != null; e = zip.getNextEntry()) {
+                if (e.getName().equals(nombre)) {
+                    return new String(zip.readAllBytes(), StandardCharsets.UTF_8);
+                }
+            }
+        }
+        throw new AssertionError("El XLSX no trae " + nombre);
     }
 }
