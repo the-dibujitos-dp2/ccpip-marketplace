@@ -25,7 +25,8 @@ import pe.ccpip.support.IntegrationTest;
 /**
  * CCPIP-81 (RF-88): compra verificada y una calificacion de 1 a 5 estrellas por linea de un pedido
  * recibido. CCPIP-82 (RF-89): el promedio publico solo con el minimo configurado (3 por defecto), y sin
- * calificaciones no hay promedio cero. Transaccional: lo que arma la prueba no llega a las demas.
+ * calificaciones no hay promedio cero. CCPIP-412: la ficha ofrece calificar solo lo recibido.
+ * Transaccional: lo que arma la prueba no llega a las demas.
  */
 @Transactional
 class CalificacionesTest extends IntegrationTest {
@@ -211,7 +212,62 @@ class CalificacionesTest extends IntegrationTest {
         assertRechazaLaBase(() -> jdbc.update("DELETE FROM calificacion WHERE item_pedido_id = ?", item), "solo insercion");
     }
 
+    @Test
+    void laFichaOfreceCalificarSoloLoQueSeRecibio() throws Exception {
+        miCalificacion().andExpect(status().isOk())
+                .andExpect(jsonPath("$.productoId").value(aguaje))
+                .andExpect(jsonPath("$.estado").value("SIN_COMPRA"))
+                .andExpect(jsonPath("$.pedidoId").doesNotExist());
+        // Un pedido cancelado o sin pagar no es una compra
+        pedido("CANCELADO", aguaje);
+        pedido("PENDIENTE_PAGO", aguaje);
+        miCalificacion().andExpect(jsonPath("$.estado").value("SIN_COMPRA"));
+
+        long enCurso = pedido("LISTO_PARA_RECOJO", aguaje);
+        miCalificacion().andExpect(jsonPath("$.estado").value("PEDIDO_EN_CURSO"))
+                .andExpect(jsonPath("$.pedidoId").value(enCurso))
+                .andExpect(jsonPath("$.numeroPedido").exists())
+                .andExpect(jsonPath("$.itemId").doesNotExist());
+
+        long recibido = pedido("ENTREGADO", aguaje);
+        long item = item(recibido);
+        miCalificacion().andExpect(jsonPath("$.estado").value("PUEDE_CALIFICAR"))
+                .andExpect(jsonPath("$.pedidoId").value(recibido))
+                .andExpect(jsonPath("$.itemId").value(item));
+
+        calificar(recibido, item, 5, "Llegó en buen estado").andExpect(status().isCreated());
+        miCalificacion().andExpect(jsonPath("$.estado").value("YA_CALIFICADO"))
+                .andExpect(jsonPath("$.calificacion.estrellas").value(5))
+                .andExpect(jsonPath("$.calificacion.comentario").value("Llegó en buen estado"))
+                .andExpect(jsonPath("$.itemId").doesNotExist());
+
+        // Cada pedido recibido se califica una vez: una nueva compra recibida vuelve a habilitarlo
+        long otro = pedido("ENTREGADO", aguaje);
+        miCalificacion().andExpect(jsonPath("$.estado").value("PUEDE_CALIFICAR"))
+                .andExpect(jsonPath("$.itemId").value(item(otro)));
+    }
+
+    @Test
+    void laFichaNoMiraPedidosAjenosNiOfertasOcultas() throws Exception {
+        long ajeno = pedidoConfirmado("CAL-AJENO-FICHA", LIMA, aguaje, 1); // de consumidor@ccpip.test
+        jdbc.update("UPDATE pedido SET estado = 'ENTREGADO' WHERE id = ?", ajeno);
+        miCalificacion().andExpect(jsonPath("$.estado").value("SIN_COMPRA"));
+
+        long borrador = productoConLote("Aguaje oculto", "BORRADOR", null, null);
+        mockMvc.perform(get("/api/productos/" + borrador + "/calificaciones/mia").cookie(sesion))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("PRODUCTO_NO_ENCONTRADO"));
+        mockMvc.perform(get("/api/productos/" + aguaje + "/calificaciones/mia").cookie(loginAs("productor@ccpip.test")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/productos/" + aguaje + "/calificaciones/mia"))
+                .andExpect(status().isUnauthorized());
+    }
+
     // --- Ayudas ---
+
+    private ResultActions miCalificacion() throws Exception {
+        return mockMvc.perform(get("/api/productos/" + aguaje + "/calificaciones/mia").cookie(sesion));
+    }
 
     private void insertarDirecto(long pedidoId, long itemId) {
         jdbc.update("""
@@ -239,9 +295,9 @@ class CalificacionesTest extends IntegrationTest {
         pedidos++;
         Long id = jdbc.queryForObject("""
                 INSERT INTO pedido (numero, usuario_id, modalidad, ubicacion_origen_id, total, estado, confirmado_en)
-                SELECT ?, u.id, 'RECOJO', l.id, 20, ?, now()
+                SELECT ?, u.id, 'RECOJO', l.id, 20, ?, CASE WHEN ? = 'PENDIENTE_PAGO' THEN NULL ELSE now() END
                 FROM usuario u, ubicacion l WHERE u.correo = ? AND l.nombre = ?
-                RETURNING id""", Long.class, "CAL-" + pedidos, estado, COMPRADORA, LIMA);
+                RETURNING id""", Long.class, "CAL-" + pedidos, estado, estado, COMPRADORA, LIMA);
         jdbc.update("""
                 INSERT INTO item_pedido (pedido_id, producto_id, productor_id, cantidad, precio_unitario, subtotal)
                 SELECT ?, id, productor_id, 1, precio, precio FROM producto WHERE id = ?""", id, productoId);
