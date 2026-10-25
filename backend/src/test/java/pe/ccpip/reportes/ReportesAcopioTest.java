@@ -15,7 +15,7 @@ import pe.ccpip.support.IntegrationTest;
 
 /**
  * Pantalla «Reportes» del administrador de punto de acopio: lo que paso en sus puntos por periodo.
- * CCPIP-117 (RF-65): entradas.
+ * CCPIP-117 (RF-65): entradas; CCPIP-341 (RF-231): salidas.
  *
  * <p>admin_acopio@ administra el Centro Nacional Lima; lo de Cusco no es suyo. Los datos son de mayo y
  * junio de 2024, meses que ninguna otra prueba usa, y la transaccion se deshace al terminar.
@@ -27,6 +27,7 @@ class ReportesAcopioTest extends IntegrationTest {
     private static final String LIMA = "Centro Nacional Lima";
     private static final String CUSCO = "Centro Regional Cusco";
     private static final String ENTRADAS = "/api/acopio/reportes/entradas";
+    private static final String SALIDAS = "/api/acopio/reportes/salidas";
 
     private long aceite;
     private long harina;
@@ -90,6 +91,37 @@ class ReportesAcopioTest extends IntegrationTest {
     }
 
     @Test
+    void lasSalidasSeparanLasVentasAtendidasDeLasPorEntregar() throws Exception {
+        salidasDePrueba();
+
+        mockMvc.perform(get(SALIDAS + "?desde=2024-05-01&hasta=2024-06-30").cookie(loginAs(ADMIN)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.periodos.length()").value(2))
+                .andExpect(jsonPath("$.periodos[0].ventasEntregadas").value(5))
+                .andExpect(jsonPath("$.periodos[0].ventasPorEntregar").value(0))
+                .andExpect(jsonPath("$.periodos[0].total").value(5))
+                .andExpect(jsonPath("$.periodos[1].ventasEntregadas").value(0))
+                .andExpect(jsonPath("$.periodos[1].ventasPorEntregar").value(3))
+                .andExpect(jsonPath("$.periodos[1].transferencias").value(4))
+                .andExpect(jsonPath("$.periodos[1].devoluciones").value(2))
+                .andExpect(jsonPath("$.periodos[1].merma").value(1))
+                .andExpect(jsonPath("$.periodos[1].total").value(10))
+                .andExpect(jsonPath("$.periodos[1].acumulado").value(15))
+                .andExpect(jsonPath("$.totales.ventasEntregadas").value(5))
+                .andExpect(jsonPath("$.totales.ventasPorEntregar").value(3))
+                .andExpect(jsonPath("$.totales.total").value(15))
+                // La merma de Cusco no es de sus puntos
+                .andExpect(jsonPath("$.porProducto.length()").value(1))
+                .andExpect(jsonPath("$.porProducto[0].producto").value("RA Aceite"))
+                .andExpect(jsonPath("$.porProducto[0].ventas").value(8))
+                .andExpect(jsonPath("$.porProducto[0].transferencias").value(4))
+                .andExpect(jsonPath("$.porProducto[0].devoluciones").value(2))
+                .andExpect(jsonPath("$.porProducto[0].merma").value(1))
+                .andExpect(jsonPath("$.porProducto[0].total").value(15))
+                .andExpect(jsonPath("$..numero").doesNotExist());
+    }
+
+    @Test
     void loAjenoNoExisteYOtroRolNoEntra() throws Exception {
         entradasDePrueba();
         Cookie sesion = loginAs(ADMIN);
@@ -117,6 +149,58 @@ class ReportesAcopioTest extends IntegrationTest {
         long harinaLima = lote(harina, LIMA, "RA-H1", "30", "2024-06-03 09:00-05");
         transferenciaPendiente(harinaLima, "7", "2024-06-10 09:00-05");
         lote(soloEnCusco, CUSCO, "RA-X1", "99", "2024-05-05 09:00-05");
+    }
+
+    /**
+     * Lima: lote de aceite de 50 el 2 de mayo. Mayo: 5 vendidos en un pedido ya entregado. Junio: 3 vendidos en
+     * un pedido listo para recoger (por entregar), 4 transferidos a Cusco, 2 devueltos al productor y 1 de
+     * merma. En Cusco, que no es suyo: 9 de merma.
+     */
+    private void salidasDePrueba() {
+        long enLima = lote(aceite, LIMA, "RA-S1", "50", "2024-05-02 09:00-05");
+        venta(enLima, "RAS-1", "ENTREGADO", "5", "2024-05-20 10:00-05");
+        venta(enLima, "RAS-2", "LISTO_PARA_RECOJO", "3", "2024-06-05 10:00-05");
+        long transferencia = transferencia(enLima, LIMA, CUSCO, "DESPACHADA", "2024-06-08 10:00-05");
+        long item = jdbc.queryForObject("""
+                INSERT INTO transferencia_item (transferencia_id, producto_id, lote_origen_id, cantidad)
+                SELECT ?, producto_id, id, 4 FROM lote WHERE id = ? RETURNING id""", Long.class, transferencia, enLima);
+        jdbc.update("""
+                INSERT INTO movimiento_inventario (producto_id, ubicacion_id, lote_id, tipo, cantidad, transferencia_item_id,
+                                                   registrado_en)
+                SELECT producto_id, ubicacion_id, id, 'TRANSFERENCIA_SALIDA', 4, ?, '2024-06-08 10:00-05'::timestamptz
+                FROM lote WHERE id = ?""", item, enLima);
+        salida(enLima, "SALIDA", "DEVOLUCION_PRODUCTOR", "2", "2024-06-09 10:00-05");
+        salida(enLima, "MERMA", null, "1", "2024-06-12 10:00-05");
+        long enCusco = lote(aceite, CUSCO, "RA-S2", "20", "2024-05-02 09:00-05");
+        salida(enCusco, "MERMA", null, "9", "2024-05-10 10:00-05");
+    }
+
+    /** Un pedido confirmado en {@code cuando}, ahora en {@code estado}, con su SALIDA_VENTA del lote. */
+    private void venta(long lote, String numero, String estado, String cantidad, String cuando) {
+        BigDecimal unidades = new BigDecimal(cantidad);
+        long pedido = jdbc.queryForObject("""
+                INSERT INTO pedido (numero, usuario_id, modalidad, ubicacion_origen_id, total, estado, confirmado_en)
+                SELECT ?, u.id, 'RECOJO', l.ubicacion_id, ?, ?, ?::timestamptz
+                FROM usuario u, lote l WHERE u.correo = 'consumidor@ccpip.test' AND l.id = ?
+                RETURNING id""", Long.class, numero, unidades, estado, cuando, lote);
+        long item = jdbc.queryForObject("""
+                INSERT INTO item_pedido (pedido_id, producto_id, productor_id, cantidad, precio_unitario, subtotal, tarifa)
+                SELECT ?, pr.id, pr.productor_id, ?, 1, ?, 'MINORISTA' FROM lote l JOIN producto pr ON pr.id = l.producto_id
+                WHERE l.id = ? RETURNING id""", Long.class, pedido, unidades, unidades, lote);
+        jdbc.update("""
+                INSERT INTO movimiento_inventario (producto_id, ubicacion_id, lote_id, tipo, cantidad, pedido_id, item_pedido_id,
+                                                   registrado_en)
+                SELECT producto_id, ubicacion_id, id, 'SALIDA_VENTA', ?, ?, ?, ?::timestamptz FROM lote WHERE id = ?""",
+                unidades, pedido, item, cuando, lote);
+    }
+
+    /** Una salida manual (con motivo) o una merma del lote, registrada en {@code cuando}. */
+    private void salida(long lote, String tipo, String motivo, String cantidad, String cuando) {
+        jdbc.update("""
+                INSERT INTO movimiento_inventario (producto_id, ubicacion_id, lote_id, tipo, motivo, cantidad, usuario_id,
+                                                   registrado_en)
+                SELECT producto_id, ubicacion_id, id, ?, ?, ?, (SELECT id FROM usuario WHERE correo = ?), ?::timestamptz
+                FROM lote WHERE id = ?""", tipo, motivo, new BigDecimal(cantidad), ADMIN, cuando, lote);
     }
 
     /** Un lote en la ubicacion indicada, con la ENTRADA de su registro en {@code cuando}. */

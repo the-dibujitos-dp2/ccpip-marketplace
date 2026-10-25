@@ -15,6 +15,7 @@ import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteEntradas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteSalidas;
 
 /**
  * Pantalla «Reportes» del administrador de punto de acopio: lo que paso en sus puntos por periodo. Solo el
@@ -40,5 +41,16 @@ public class ReportesAcopioController {
                                     @RequestParam(required = false) Long productor,
                                     @RequestParam(required = false) Long producto) {
         return service.entradas(s.userId(), desde, hasta, agrupacion, productor, producto);
+    }
+
+    /** CCPIP-341 (RF-231): salidas de existencias por periodo, con las ventas atendidas y por entregar. */
+    @GetMapping("/salidas")
+    public ReporteSalidas salidas(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+                                  @RequestParam(required = false) Agrupacion agrupacion,
+                                  @RequestParam(required = false) Long productor,
+                                  @RequestParam(required = false) Long producto) {
+        return service.salidas(s.userId(), desde, hasta, agrupacion, productor, producto);
     }
 }

@@ -21,9 +21,13 @@ import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.Tramos;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.Opcion;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.PeriodoEntradas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.PeriodoSalidas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ProductoEntradas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ProductoSalidas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteEntradas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteSalidas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.TotalesEntradas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.TotalesSalidas;
 
 /**
  * Reportes del punto de acopio por periodo. Todo se limita en el servidor a los puntos que el usuario
@@ -37,6 +41,12 @@ public class ReportesAcopioService {
     static final String SUS_PUNTOS = """
             (SELECT uu.ubicacion_id FROM usuario_ubicacion uu JOIN ubicacion u ON u.id = uu.ubicacion_id
              WHERE uu.usuario_id = :usuario AND u.tipo = 'PUNTO_ACOPIO')""";
+
+    /**
+     * Estados de un pedido pagado que aun no se entrega: su salida por venta ya se registro (al confirmarse
+     * la compra, CCPIP-62), pero las unidades siguen fisicamente en el punto.
+     */
+    static final String POR_ENTREGAR = "('CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO', 'LISTO_PARA_DESPACHO')";
 
     /** Nombre del productor {@code po}: su tienda o, si aun no tiene, su comunidad. */
     static final String NOMBRE_PRODUCTOR = "coalesce(po.nombre_tienda, po.comunidad)";
@@ -158,6 +168,82 @@ public class ReportesAcopioService {
                 .sorted(Comparator.comparing(ProductoEntradas::total).reversed().thenComparing(ProductoEntradas::producto))
                 .toList();
         return new ReporteEntradas(c.puntos(), c.desde(), c.hasta(), c.agrupacion(), c.productor(), c.producto(),
+                totales, periodos, productos, productores(usuarioId), productos(usuarioId));
+    }
+
+    /**
+     * CCPIP-341 (RF-231): lo que salio de sus puntos, por la fecha en que se registro cada salida. Las ventas
+     * se separan en atendidas (pedido entregado o cerrado) y no atendidas (pagado y aun por entregar, segun el
+     * estado actual del pedido); ademas, transferencias enviadas, devoluciones al productor y merma.
+     */
+    @Transactional(readOnly = true)
+    public ReporteSalidas salidas(long usuarioId, LocalDate desde, LocalDate hasta, Agrupacion agrupacion,
+                                  Long productor, Long producto) {
+        Consulta c = consulta(usuarioId, desde, hasta, agrupacion, productor, producto);
+        Tramos tramos = new Tramos(c.desde(), c.hasta(), c.agrupacion());
+        int n = tramos.cantidad();
+        // entregadas, por entregar, transferencias, devoluciones, merma
+        BigDecimal[][] columnas = new BigDecimal[5][];
+        for (int k = 0; k < columnas.length; k++) {
+            columnas[k] = ceros(n);
+        }
+        Map<Long, BigDecimal[]> porProducto = new LinkedHashMap<>();
+        Map<Long, String[]> nombres = new LinkedHashMap<>();
+
+        jdbc.query("""
+                SELECT %s AS fecha, pr.id AS producto_id, pr.nombre AS producto, %s AS productor,
+                       CASE m.tipo
+                           WHEN 'SALIDA_VENTA' THEN CASE WHEN pe.estado IN %s THEN 1 ELSE 0 END
+                           WHEN 'TRANSFERENCIA_SALIDA' THEN 2
+                           WHEN 'SALIDA' THEN 3
+                           ELSE 4
+                       END AS columna,
+                       sum(m.cantidad) AS cantidad
+                FROM movimiento_inventario m
+                JOIN producto pr ON pr.id = m.producto_id
+                JOIN productor po ON po.id = pr.productor_id
+                LEFT JOIN pedido pe ON pe.id = m.pedido_id
+                WHERE m.ubicacion_id IN %s AND m.tipo IN ('SALIDA_VENTA', 'TRANSFERENCIA_SALIDA', 'SALIDA', 'MERMA')
+                  AND %s BETWEEN :desde AND :hasta
+                """.formatted(FECHA.formatted("m.registrado_en"), NOMBRE_PRODUCTOR, POR_ENTREGAR, SUS_PUNTOS,
+                FECHA.formatted("m.registrado_en")) + c.filtros() + """
+
+                GROUP BY 1, pr.id, pr.nombre, 4, 5""", c.parametros(), rs -> {
+            int i = tramos.posicion(rs.getObject("fecha", LocalDate.class));
+            int k = rs.getInt("columna");
+            BigDecimal cantidad = rs.getBigDecimal("cantidad");
+            columnas[k][i] = columnas[k][i].add(cantidad);
+            long id = rs.getLong("producto_id");
+            nombres.putIfAbsent(id, new String[] {rs.getString("producto"), rs.getString("productor")});
+            BigDecimal[] f = porProducto.computeIfAbsent(id, x -> ceros(4));
+            // Por producto, las ventas van juntas: atendidas y no atendidas
+            int col = Math.max(0, k - 1);
+            f[col] = f[col].add(cantidad);
+        });
+
+        List<PeriodoSalidas> periodos = new ArrayList<>();
+        BigDecimal acumulado = BigDecimal.ZERO;
+        for (int i = 0; i < n; i++) {
+            Tramos.Tramo t = tramos.lista().get(i);
+            BigDecimal total = BigDecimal.ZERO;
+            for (BigDecimal[] columna : columnas) {
+                total = total.add(columna[i]);
+            }
+            acumulado = acumulado.add(total);
+            periodos.add(new PeriodoSalidas(t.inicio(), t.fin(), columnas[0][i], columnas[1][i], columnas[2][i],
+                    columnas[3][i], columnas[4][i], total, acumulado));
+        }
+        TotalesSalidas totales = new TotalesSalidas(suma(columnas[0]), suma(columnas[1]), suma(columnas[2]),
+                suma(columnas[3]), suma(columnas[4]), acumulado);
+        List<ProductoSalidas> productos = porProducto.entrySet().stream()
+                .map(e -> {
+                    BigDecimal[] f = e.getValue();
+                    String[] nombre = nombres.get(e.getKey());
+                    return new ProductoSalidas(e.getKey(), nombre[0], nombre[1], f[0], f[1], f[2], f[3], suma(f));
+                })
+                .sorted(Comparator.comparing(ProductoSalidas::total).reversed().thenComparing(ProductoSalidas::producto))
+                .toList();
+        return new ReporteSalidas(c.puntos(), c.desde(), c.hasta(), c.agrupacion(), c.productor(), c.producto(),
                 totales, periodos, productos, productores(usuarioId), productos(usuarioId));
     }
 

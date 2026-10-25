@@ -46,4 +46,29 @@ public final class ReportesAcopioModelos {
                                   Long producto, TotalesEntradas totales, List<PeriodoEntradas> periodos,
                                   List<ProductoEntradas> porProducto, List<Opcion> productores, List<Opcion> productos) {
     }
+
+    /**
+     * CCPIP-341: un periodo de salidas. Las ventas se separan en atendidas (pedido cerrado: entregado o
+     * cancelado) y no atendidas (pagado pero aun por entregar); el resto son transferencias enviadas,
+     * devoluciones al productor y merma.
+     */
+    public record PeriodoSalidas(LocalDate inicio, LocalDate fin, BigDecimal ventasEntregadas, BigDecimal ventasPorEntregar,
+                                 BigDecimal transferencias, BigDecimal devoluciones, BigDecimal merma, BigDecimal total,
+                                 BigDecimal acumulado) {
+    }
+
+    /** CCPIP-341: lo que salio de un producto en todo el rango; {@code ventas} suma atendidas y no atendidas. */
+    public record ProductoSalidas(long productoId, String producto, String productor, BigDecimal ventas,
+                                  BigDecimal transferencias, BigDecimal devoluciones, BigDecimal merma, BigDecimal total) {
+    }
+
+    public record TotalesSalidas(BigDecimal ventasEntregadas, BigDecimal ventasPorEntregar, BigDecimal transferencias,
+                                 BigDecimal devoluciones, BigDecimal merma, BigDecimal total) {
+    }
+
+    /** CCPIP-341 (RF-231): salidas de existencias de sus puntos por periodo. */
+    public record ReporteSalidas(String puntos, LocalDate desde, LocalDate hasta, Agrupacion agrupacion, Long productor,
+                                 Long producto, TotalesSalidas totales, List<PeriodoSalidas> periodos,
+                                 List<ProductoSalidas> porProducto, List<Opcion> productores, List<Opcion> productos) {
+    }
 }
