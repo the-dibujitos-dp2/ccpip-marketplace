@@ -45,6 +45,7 @@ public class PanelController {
     @RolesPermitidos(Rol.DISTRIBUIDOR)
     @GetMapping("/distribuidor")
     public Panel distribuidor() {
-        return new Panel("Tus compras mayoristas", "Aqui haras pedidos por volumen a las comunidades.");
+        // CCPIP-107: el distribuidor es quien reparte los pedidos a domicilio, no un comprador mayorista
+        return new Panel("Tus entregas", "Aqui veras los pedidos listos para repartir y los que asumas.");
     }
 }
