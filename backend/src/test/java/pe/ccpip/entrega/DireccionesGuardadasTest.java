@@ -2,6 +2,7 @@ package pe.ccpip.entrega;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -12,6 +13,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.servlet.http.Cookie;
@@ -44,6 +46,43 @@ class DireccionesGuardadasTest extends IntegrationTest {
         return jdbc.queryForObject("""
                 SELECT count(*) FROM direccion_guardada d JOIN usuario u ON u.id = d.usuario_id
                 WHERE u.correo = ? AND d.activa""", Long.class, correo);
+    }
+
+    private long direccionGuardada(String correo) {
+        return jdbc.queryForObject("""
+                INSERT INTO direccion_guardada (usuario_id, alias, ubigeo, direccion, referencia)
+                SELECT id, 'Casa', '150122', 'Av. Larco 123, dpto. 4', 'Frente al parque Kennedy'
+                FROM usuario WHERE correo = ? RETURNING id""", Long.class, correo);
+    }
+
+    private void crearOtraCompradora() {
+        jdbc.update("""
+                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
+                SELECT 'otra.compradora@ccpip.test', contrasena_hash, 'Otra Compradora', 1, true FROM usuario
+                WHERE correo = 'consumidor@ccpip.test' ON CONFLICT (correo) DO NOTHING""");
+    }
+
+    private ResultActions retirar(Cookie sesion, long id) throws Exception {
+        return mockMvc.perform(delete(RUTA + "/{id}", id).cookie(sesion));
+    }
+
+    private long pedidoConDestinoHistorico(String correo) {
+        long pedido = jdbc.queryForObject("""
+                INSERT INTO pedido (numero, usuario_id, modalidad, ubicacion_origen_id, total)
+                SELECT 'DIR-HISTORICA', u.id, 'ENVIO', l.id, 1.00
+                FROM usuario u, ubicacion l
+                WHERE u.correo = ? AND l.nombre = 'Centro Nacional Lima' RETURNING id""", Long.class, correo);
+        jdbc.update("""
+                INSERT INTO entrega (pedido_id, ubigeo, direccion, referencia, contacto_nombre, contacto_celular)
+                VALUES (?, '150122', 'Av. Larco 123, dpto. 4', 'Frente al parque Kennedy', 'Ana Quispe', '987654321')""",
+                pedido);
+        return pedido;
+    }
+
+    private String destinoHistorico(long pedido) {
+        return jdbc.queryForObject("""
+                SELECT ubigeo || '|' || direccion || '|' || referencia || '|' || contacto_nombre || '|' || contacto_celular
+                FROM entrega WHERE pedido_id = ?""", String.class, pedido);
     }
 
     @Test
@@ -131,11 +170,41 @@ class DireccionesGuardadasTest extends IntegrationTest {
         assertThat(guardadas(COMPRADOR)).isEqualTo(2);
 
         // Otro comprador puede guardar la misma direccion
-        jdbc.update("""
-                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
-                SELECT 'otra.compradora@ccpip.test', contrasena_hash, 'Otra Compradora', 1, true FROM usuario
-                WHERE correo = 'consumidor@ccpip.test' ON CONFLICT (correo) DO NOTHING""");
+        crearOtraCompradora();
         guardar(loginAs("otra.compradora@ccpip.test"), direccion()).andExpect(status().isCreated());
+    }
+
+    @Test
+    void retiraSoloSuDireccionActivaSinCambiarElDestinoHistoricoDelPedido() throws Exception {
+        long id = direccionGuardada(COMPRADOR);
+        long pedido = pedidoConDestinoHistorico(COMPRADOR);
+        String destinoAntes = destinoHistorico(pedido);
+
+        retirar(loginAs(COMPRADOR), id).andExpect(status().isNoContent());
+
+        assertThat(jdbc.queryForObject("SELECT activa FROM direccion_guardada WHERE id = ?", Boolean.class, id)).isFalse();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM direccion_guardada WHERE id = ?", Long.class, id)).isEqualTo(1);
+        assertThat(destinoHistorico(pedido)).isEqualTo(destinoAntes);
+    }
+
+    @Test
+    void noRevelaSiUnaDireccionEsAjenaInexistenteOYaRetirada() throws Exception {
+        crearOtraCompradora();
+        long ajena = direccionGuardada("otra.compradora@ccpip.test");
+        long propia = direccionGuardada(COMPRADOR);
+        Cookie comprador = loginAs(COMPRADOR);
+        retirar(comprador, propia).andExpect(status().isNoContent());
+
+        MvcResult ajenaResultado = retirar(comprador, ajena).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("DIRECCION_NO_ENCONTRADA")).andReturn();
+        MvcResult inexistenteResultado = retirar(comprador, 999999L).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("DIRECCION_NO_ENCONTRADA")).andReturn();
+        MvcResult repetidaResultado = retirar(comprador, propia).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("DIRECCION_NO_ENCONTRADA")).andReturn();
+
+        assertThat(ajenaResultado.getResponse().getContentAsString())
+                .isEqualTo(inexistenteResultado.getResponse().getContentAsString())
+                .isEqualTo(repetidaResultado.getResponse().getContentAsString());
     }
 
     @Test
@@ -144,5 +213,13 @@ class DireccionesGuardadasTest extends IntegrationTest {
                 .andExpect(status().isUnauthorized());
         guardar(loginAs("productor@ccpip.test"), direccion()).andExpect(status().isForbidden());
         guardar(loginAs("admin_acopio@ccpip.test"), direccion()).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void retirarDireccionExigeSesionDeComprador() throws Exception {
+        long id = direccionGuardada(COMPRADOR);
+        mockMvc.perform(delete(RUTA + "/{id}", id)).andExpect(status().isUnauthorized());
+        retirar(loginAs("productor@ccpip.test"), id).andExpect(status().isForbidden());
+        retirar(loginAs("admin_acopio@ccpip.test"), id).andExpect(status().isForbidden());
     }
 }
