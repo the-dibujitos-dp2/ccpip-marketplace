@@ -8,6 +8,8 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import pe.ccpip.comun.Idioma;
+
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
@@ -100,5 +102,13 @@ public final class MermaModelos {
 
     /** CCPIP-422: las causas, productos y productores con merma en sus puntos, sin aplicar los filtros. */
     public record OpcionesMerma(List<Opcion> causas, List<Opcion> productos, List<Opcion> productores) {
+    }
+
+    /** Filtros textuales del reporte. No transportan ids de producto, lote ni ubicación: el alcance sale de la sesión. */
+    public record FiltroReporteMerma(LocalDate desde, LocalDate hasta, String lote, String producto, String ubicacion) {
+    }
+
+    /** Todas las filas autorizadas para una exportación de merma. */
+    public record ReporteMerma(List<Merma> items, Idioma idioma) {
     }
 }

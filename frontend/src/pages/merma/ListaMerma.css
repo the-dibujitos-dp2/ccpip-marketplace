@@ -18,3 +18,5 @@
 }
 .merma__barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .merma__barra p { margin: 0; }
+.merma__filtros { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin: 20px 0; }
+.merma__filtros .campo { min-width: 150px; }
