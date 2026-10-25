@@ -33,6 +33,7 @@ import PedidosPage from './pages/acopio/PedidosPage.jsx'
 import TransferenciasPuntoPage from './pages/acopio/TransferenciasPage.jsx'
 import AlertasPuntoPage from './pages/acopio/AlertasPage.jsx'
 import MermaPuntoPage from './pages/acopio/MermaPage.jsx'
+import PedidosDisponiblesPage from './pages/distribuidor/PedidosDisponiblesPage.jsx'
 import BuscarPage from './pages/consumidor/BuscarPage.jsx'
 import CarritoPage from './pages/consumidor/CarritoPage.jsx'
 import CompraPage from './pages/consumidor/CompraPage.jsx'
@@ -167,8 +168,9 @@ export default function App() {
   const delProductor = path === RUTAS.productor || path.startsWith(`${RUTAS.productor}/`)
   const delComprador = path === RUTAS.carrito || path === RUTAS.compra || path === RUTAS.misPedidos || path === RUTAS.misDatos || RUTA_PEDIDO.test(path)
   const delAcopio = path === RUTAS.acopio || path.startsWith(`${RUTAS.acopio}/`)
+  const delDistribuidor = path === RUTAS.distribuidor || path.startsWith(`${RUTAS.distribuidor}/`)
   const delAdmin = path === RUTAS.admin || path.startsWith(`${RUTAS.admin}/`)
-  const protegida = path === RUTAS.inicio || delProductor || delComprador || delAcopio || delAdmin
+  const protegida = path === RUTAS.inicio || delProductor || delComprador || delAcopio || delDistribuidor || delAdmin
 
   // Al cargar y al volver a una pantalla protegida con "atras", se vuelve a preguntar al servidor
   useEffect(() => {
@@ -211,6 +213,7 @@ export default function App() {
     else if (sesion && delProductor && user.role !== 'PRODUCTOR') navigate(RUTAS.inicio, { replace: true })
     else if (sesion && delComprador && user.role !== 'CONSUMIDOR') navigate(RUTAS.inicio, { replace: true })
     else if (sesion && delAcopio && user.role !== 'ADMIN_PUNTO') navigate(RUTAS.inicio, { replace: true })
+    else if (sesion && delDistribuidor && user.role !== 'DISTRIBUIDOR') navigate(RUTAS.inicio, { replace: true })
     else if (sesion && delAdmin && user.role === 'SUB_ADMIN' && !puedeVerAdmin(user, path)) navigate(RUTAS.adminAutorizaciones, { replace: true })
     else if (sesion && delAdmin && user.role === 'SUPER_ADMIN' && !puedeVerAdmin(user, path)) navigate(RUTAS.admin, { replace: true })
     else if (sesion && delAdmin && !puedeVerAdmin(user, path)) navigate(RUTAS.inicio, { replace: true })
@@ -336,6 +339,14 @@ export default function App() {
     else if (path === RUTAS.acopioMerma) pagina = <MermaPuntoPage path={path} />
     else {
       navigate(RUTAS.acopioPedidos, { replace: true })
+      pagina = null
+    }
+  } else if (delDistribuidor) {
+    // Por ahora el distribuidor tiene Pedidos disponibles (DW-01, CCPIP-107); lo demas llega con CCPIP-108 a 110
+    if (user.role !== 'DISTRIBUIDOR') pagina = null
+    else if (path === RUTAS.distribuidorPedidos) pagina = <PedidosDisponiblesPage path={path} />
+    else {
+      navigate(RUTAS.distribuidorPedidos, { replace: true })
       pagina = null
     }
   } else if (path === RUTAS.catalogo) {
