@@ -95,4 +95,35 @@ public final class ReportesAcopioModelos {
                                 Long producto, TotalesVentas totales, List<PeriodoVentas> periodos,
                                 List<ProductoVentas> porProducto, List<Opcion> productores, List<Opcion> productos) {
     }
+
+    /**
+     * CCPIP-343: existencias de sus puntos en un periodo. {@code saldoFinal} = {@code saldoInicial} +
+     * {@code entradas} - {@code salidas}, siempre; aqui las transferencias si cuentan, porque cambian lo que
+     * hay en el punto.
+     */
+    public record PeriodoInventario(LocalDate inicio, LocalDate fin, BigDecimal saldoInicial, BigDecimal entradas,
+                                    BigDecimal salidas, BigDecimal saldoFinal) {
+    }
+
+    /** CCPIP-343: un producto en todo el rango, con lo vendido que aun espera entrega en el punto. */
+    public record ProductoInventario(long productoId, String producto, String productor, BigDecimal saldoInicial,
+                                     BigDecimal entradas, BigDecimal salidas, BigDecimal saldoFinal,
+                                     BigDecimal porEntregar) {
+    }
+
+    /**
+     * CCPIP-343: {@code porEntregar} son las unidades vendidas hasta el fin del rango cuyo pedido aun no se
+     * entrega (no atendidas): ya no estan en el saldo, pero siguen en el punto. {@code existenciaFisica} =
+     * {@code saldoFinal} + {@code porEntregar}.
+     */
+    public record TotalesInventario(BigDecimal saldoInicial, BigDecimal entradas, BigDecimal salidas,
+                                    BigDecimal saldoFinal, BigDecimal porEntregar, BigDecimal existenciaFisica) {
+    }
+
+    /** CCPIP-343 (RF-233): inventario de sus puntos por periodo. */
+    public record ReporteInventario(String puntos, LocalDate desde, LocalDate hasta, Agrupacion agrupacion,
+                                    Long productor, Long producto, TotalesInventario totales,
+                                    List<PeriodoInventario> periodos, List<ProductoInventario> porProducto,
+                                    List<Opcion> productores, List<Opcion> productos) {
+    }
 }

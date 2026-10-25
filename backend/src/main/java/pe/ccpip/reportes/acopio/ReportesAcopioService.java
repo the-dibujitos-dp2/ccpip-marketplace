@@ -21,15 +21,19 @@ import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.Tramos;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.Opcion;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.PeriodoEntradas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.PeriodoInventario;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.PeriodoSalidas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.PeriodoVentas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ProductoEntradas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ProductoInventario;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ProductoSalidas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ProductoVentas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteEntradas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteInventario;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteSalidas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteVentas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.TotalesEntradas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.TotalesInventario;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.TotalesSalidas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.TotalesVentas;
 
@@ -327,6 +331,104 @@ public class ReportesAcopioService {
                 .toList();
         return new ReporteVentas(c.puntos(), c.desde(), c.hasta(), c.agrupacion(), c.productor(), c.producto(),
                 totales, periodos, productos, productores(usuarioId), productos(usuarioId));
+    }
+
+    /** Movimiento con signo: lo que entra al punto suma y lo que sale resta (sin ajustes, que ya no se usan). */
+    private static final String CON_SIGNO = """
+            CASE WHEN m.tipo IN ('ENTRADA', 'TRANSFERENCIA_ENTRADA') THEN m.cantidad ELSE -m.cantidad END""";
+
+    private static final String MOVIMIENTOS_DEL_PUNTO =
+            "m.tipo IN ('ENTRADA', 'TRANSFERENCIA_ENTRADA', 'SALIDA', 'SALIDA_VENTA', 'TRANSFERENCIA_SALIDA', 'MERMA')";
+
+    /**
+     * CCPIP-343 (RF-233): cuanto hubo en sus puntos y por que cambio, periodo a periodo, desde los movimientos
+     * de sus lotes (RNF-15, ADR-10): cada saldo queda explicado por sus entradas y salidas. Como no atendido,
+     * las unidades vendidas que siguen en el punto esperando entrega.
+     */
+    @Transactional(readOnly = true)
+    public ReporteInventario inventario(long usuarioId, LocalDate desde, LocalDate hasta, Agrupacion agrupacion,
+                                        Long productor, Long producto) {
+        Consulta c = consulta(usuarioId, desde, hasta, agrupacion, productor, producto);
+        Tramos tramos = new Tramos(c.desde(), c.hasta(), c.agrupacion());
+        int n = tramos.cantidad();
+        BigDecimal[] entradas = ceros(n);
+        BigDecimal[] salidas = ceros(n);
+        // Por producto: saldo inicial, entradas, salidas, por entregar
+        Map<Long, BigDecimal[]> porProducto = new LinkedHashMap<>();
+        Map<Long, String[]> nombres = new LinkedHashMap<>();
+        String base = """
+                FROM movimiento_inventario m
+                JOIN producto pr ON pr.id = m.producto_id
+                JOIN productor po ON po.id = pr.productor_id
+                WHERE m.ubicacion_id IN %s AND %s
+                """.formatted(SUS_PUNTOS, MOVIMIENTOS_DEL_PUNTO) + c.filtros();
+        String fecha = FECHA.formatted("m.registrado_en");
+
+        jdbc.query("SELECT pr.id AS producto_id, pr.nombre AS producto, " + NOMBRE_PRODUCTOR + " AS productor, sum("
+                + CON_SIGNO + ") AS saldo " + base + " AND " + fecha + " < :desde GROUP BY pr.id, pr.nombre, 3",
+                c.parametros(), rs -> {
+                    fila(porProducto, nombres, rs.getLong("producto_id"), rs.getString("producto"),
+                            rs.getString("productor"))[0] = rs.getBigDecimal("saldo");
+                });
+
+        jdbc.query("SELECT " + fecha + " AS fecha, pr.id AS producto_id, pr.nombre AS producto, " + NOMBRE_PRODUCTOR
+                + " AS productor, m.tipo IN ('ENTRADA', 'TRANSFERENCIA_ENTRADA') AS entra, sum(m.cantidad) AS cantidad "
+                + base + " AND " + fecha + " BETWEEN :desde AND :hasta GROUP BY 1, pr.id, pr.nombre, 4, 5",
+                c.parametros(), rs -> {
+            int i = tramos.posicion(rs.getObject("fecha", LocalDate.class));
+            BigDecimal cantidad = rs.getBigDecimal("cantidad");
+            BigDecimal[] f = fila(porProducto, nombres, rs.getLong("producto_id"), rs.getString("producto"),
+                    rs.getString("productor"));
+            if (rs.getBoolean("entra")) {
+                entradas[i] = entradas[i].add(cantidad);
+                f[1] = f[1].add(cantidad);
+            } else {
+                salidas[i] = salidas[i].add(cantidad);
+                f[2] = f[2].add(cantidad);
+            }
+        });
+
+        jdbc.query("SELECT pr.id AS producto_id, pr.nombre AS producto, " + NOMBRE_PRODUCTOR
+                + " AS productor, sum(m.cantidad) AS cantidad " + base.replace(MOVIMIENTOS_DEL_PUNTO, "m.tipo = 'SALIDA_VENTA'")
+                + " AND " + fecha + " <= :hasta AND EXISTS (SELECT 1 FROM pedido pe WHERE pe.id = m.pedido_id AND pe.estado IN "
+                + POR_ENTREGAR + ") GROUP BY pr.id, pr.nombre, 3", c.parametros(),
+                rs -> {
+                    fila(porProducto, nombres, rs.getLong("producto_id"), rs.getString("producto"),
+                            rs.getString("productor"))[3] = rs.getBigDecimal("cantidad");
+                });
+
+        BigDecimal saldoInicial = porProducto.values().stream().map(f -> f[0]).reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<PeriodoInventario> periodos = new ArrayList<>();
+        BigDecimal saldo = saldoInicial;
+        for (int i = 0; i < n; i++) {
+            Tramos.Tramo t = tramos.lista().get(i);
+            BigDecimal inicio = saldo;
+            saldo = saldo.add(entradas[i]).subtract(salidas[i]);
+            periodos.add(new PeriodoInventario(t.inicio(), t.fin(), inicio, entradas[i], salidas[i], saldo));
+        }
+        BigDecimal porEntregar = porProducto.values().stream().map(f -> f[3]).reduce(BigDecimal.ZERO, BigDecimal::add);
+        TotalesInventario totales = new TotalesInventario(saldoInicial, suma(entradas), suma(salidas), saldo, porEntregar,
+                saldo.add(porEntregar));
+        List<ProductoInventario> productos = porProducto.entrySet().stream()
+                .map(e -> {
+                    BigDecimal[] f = e.getValue();
+                    String[] nombre = nombres.get(e.getKey());
+                    return new ProductoInventario(e.getKey(), nombre[0], nombre[1], f[0], f[1], f[2],
+                            f[0].add(f[1]).subtract(f[2]), f[3]);
+                })
+                // Un producto sin existencias ni movimientos en el rango no aporta nada al reporte
+                .filter(p -> p.saldoInicial().signum() != 0 || p.entradas().signum() != 0 || p.salidas().signum() != 0
+                        || p.porEntregar().signum() != 0)
+                .sorted(Comparator.comparing(ProductoInventario::producto).thenComparing(ProductoInventario::productoId))
+                .toList();
+        return new ReporteInventario(c.puntos(), c.desde(), c.hasta(), c.agrupacion(), c.productor(), c.producto(),
+                totales, periodos, productos, productores(usuarioId), productos(usuarioId));
+    }
+
+    private static BigDecimal[] fila(Map<Long, BigDecimal[]> porProducto, Map<Long, String[]> nombres, long id,
+                                     String producto, String productor) {
+        nombres.putIfAbsent(id, new String[] {producto, productor});
+        return porProducto.computeIfAbsent(id, x -> ceros(4));
     }
 
     /** Productores con algun lote en sus puntos, para el filtro. */

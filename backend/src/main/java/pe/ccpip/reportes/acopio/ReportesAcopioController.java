@@ -15,6 +15,7 @@ import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteEntradas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteInventario;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteSalidas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteVentas;
 
@@ -64,5 +65,16 @@ public class ReportesAcopioController {
                                 @RequestParam(required = false) Long productor,
                                 @RequestParam(required = false) Long producto) {
         return service.ventas(s.userId(), desde, hasta, agrupacion, productor, producto);
+    }
+
+    /** CCPIP-343 (RF-233): inventario de sus puntos por periodo, con lo vendido que aun espera entrega. */
+    @GetMapping("/inventario")
+    public ReporteInventario inventario(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+                                        @RequestParam(required = false) Agrupacion agrupacion,
+                                        @RequestParam(required = false) Long productor,
+                                        @RequestParam(required = false) Long producto) {
+        return service.inventario(s.userId(), desde, hasta, agrupacion, productor, producto);
     }
 }

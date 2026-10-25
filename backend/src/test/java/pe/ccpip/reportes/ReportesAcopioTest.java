@@ -15,7 +15,8 @@ import pe.ccpip.support.IntegrationTest;
 
 /**
  * Pantalla «Reportes» del administrador de punto de acopio: lo que paso en sus puntos por periodo.
- * CCPIP-117 (RF-65): entradas; CCPIP-341 (RF-231): salidas; CCPIP-342 (RF-232): ventas.
+ * CCPIP-117 (RF-65): entradas; CCPIP-341 (RF-231): salidas; CCPIP-342 (RF-232): ventas;
+ * CCPIP-343 (RF-233): inventario.
  *
  * <p>admin_acopio@ administra el Centro Nacional Lima; lo de Cusco no es suyo. Los datos son de mayo y
  * junio de 2024, meses que ninguna otra prueba usa, y la transaccion se deshace al terminar.
@@ -29,6 +30,7 @@ class ReportesAcopioTest extends IntegrationTest {
     private static final String ENTRADAS = "/api/acopio/reportes/entradas";
     private static final String SALIDAS = "/api/acopio/reportes/salidas";
     private static final String VENTAS = "/api/acopio/reportes/ventas";
+    private static final String INVENTARIO = "/api/acopio/reportes/inventario";
 
     private long aceite;
     private long harina;
@@ -151,6 +153,46 @@ class ReportesAcopioTest extends IntegrationTest {
                 .andExpect(jsonPath("$.porProducto[0].unidades").value(8))
                 .andExpect(jsonPath("$..numero").doesNotExist())
                 .andExpect(jsonPath("$..correo").doesNotExist());
+    }
+
+    @Test
+    void elInventarioExplicaCadaSaldoYCuentaLoVendidoQueSigueEnElPunto() throws Exception {
+        salidasDePrueba();
+        Cookie sesion = loginAs(ADMIN);
+
+        // Junio parte de lo que quedo en mayo: 50 recibidos menos 5 vendidos
+        mockMvc.perform(get(INVENTARIO + "?desde=2024-06-01&hasta=2024-06-30&agrupacion=SEMANA&producto=" + aceite)
+                        .cookie(sesion))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.periodos[0].inicio").value("2024-06-01"))
+                .andExpect(jsonPath("$.periodos[0].saldoInicial").value(45))
+                // Semana del 3 al 9: venta de 3, transferencia de 4 y devolucion de 2
+                .andExpect(jsonPath("$.periodos[1].salidas").value(9))
+                .andExpect(jsonPath("$.periodos[1].saldoFinal").value(36))
+                .andExpect(jsonPath("$.periodos[2].saldoInicial").value(36))
+                .andExpect(jsonPath("$.totales.saldoInicial").value(45))
+                .andExpect(jsonPath("$.totales.entradas").value(0))
+                .andExpect(jsonPath("$.totales.salidas").value(10))
+                .andExpect(jsonPath("$.totales.saldoFinal").value(35))
+                // Los 3 vendidos en el pedido listo para recoger siguen fisicamente en el punto
+                .andExpect(jsonPath("$.totales.porEntregar").value(3))
+                .andExpect(jsonPath("$.totales.existenciaFisica").value(38))
+                // La merma de Cusco no es de sus puntos
+                .andExpect(jsonPath("$.porProducto.length()").value(1))
+                .andExpect(jsonPath("$.porProducto[0].producto").value("RA Aceite"))
+                .andExpect(jsonPath("$.porProducto[0].saldoInicial").value(45))
+                .andExpect(jsonPath("$.porProducto[0].salidas").value(10))
+                .andExpect(jsonPath("$.porProducto[0].saldoFinal").value(35))
+                .andExpect(jsonPath("$.porProducto[0].porEntregar").value(3));
+
+        // A fin de mayo esa venta aun no existia
+        mockMvc.perform(get(INVENTARIO + "?desde=2024-05-01&hasta=2024-05-31&producto=" + aceite).cookie(sesion))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totales.saldoInicial").value(0))
+                .andExpect(jsonPath("$.totales.entradas").value(50))
+                .andExpect(jsonPath("$.totales.salidas").value(5))
+                .andExpect(jsonPath("$.totales.saldoFinal").value(45))
+                .andExpect(jsonPath("$.totales.porEntregar").value(0));
     }
 
     @Test
