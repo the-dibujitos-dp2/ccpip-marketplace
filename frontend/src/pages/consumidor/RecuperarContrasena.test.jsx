@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
@@ -48,7 +48,8 @@ describe('CCPIP-33 Recuperar la contraseña', () => {
     abrirEn('/restablecer-contrasena?token=abc123')
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Elige una contraseña nueva' })).toBeInTheDocument()
-    expect(window.location.search).toBe('')
+    // El token se quita de la barra en un efecto, despues de dibujar la pantalla: se espera, no se asume
+    await waitFor(() => expect(window.location.search).toBe(''))
 
     await user.type(screen.getByLabelText('Contraseña nueva'), 'corta')
     await user.type(screen.getByLabelText('Repite la contraseña nueva'), 'otra')
