@@ -141,6 +141,77 @@ describe('Denunciar una oferta (CCPIP-83)', () => {
   })
 })
 
+describe('Calificar desde la ficha solo lo recibido (CCPIP-412)', () => {
+  afterEach(() => i18n.changeLanguage('es'))
+
+  it('con un pedido recibido califica desde la ficha y luego muestra su calificación', async () => {
+    let mia = { productoId: 1, estado: 'PUEDE_CALIFICAR', pedidoId: 60, numeroPedido: 'CCP-000060', itemId: 601 }
+    const fetchMock = servidor(comoComprador({
+      'GET /api/productos/1/calificaciones/mia': () => [200, copia(mia)],
+      'POST /api/pedidos/60/calificaciones': () => {
+        mia = { productoId: 1, estado: 'YA_CALIFICADO', pedidoId: 60, numeroPedido: 'CCP-000060',
+          calificacion: { estrellas: 4, comentario: 'Muy rico', calificadoEn: '2026-10-25T15:00:00Z' } }
+        return [201, copia(DATOS.calificacionesPedido)]
+      },
+    }))
+    const user = userEvent.setup()
+    abrirEn('/productos/1')
+    const s = await seccion()
+    const grupo = within(await s.findByRole('group', { name: 'Califica este producto' }))
+    expect(grupo.getByText('Lo recibiste en tu pedido CCP-000060.')).toBeInTheDocument()
+
+    await user.click(grupo.getByRole('radio', { name: '4 estrellas' }))
+    await user.type(grupo.getByLabelText('Comentario (opcional)'), 'Muy rico')
+    await user.click(grupo.getByRole('button', { name: 'Enviar calificación' }))
+
+    expect(await s.findByText('Ya calificaste este producto. ¡Gracias!')).toBeInTheDocument()
+    expect(s.getByText('Muy rico')).toBeInTheDocument()
+    expect(s.queryByRole('group', { name: 'Califica este producto' })).not.toBeInTheDocument()
+    const [, opciones] = llamadas(fetchMock, 'POST /api/pedidos/60/calificaciones')[0]
+    expect(JSON.parse(opciones.body)).toEqual({ itemId: 601, estrellas: 4, comentario: 'Muy rico' })
+    // El resumen público se vuelve a pedir para incluir la nueva calificación
+    expect(llamadas(fetchMock, 'GET /api/productos/1/calificaciones')).toHaveLength(2)
+  })
+
+  it('sin compra la opción está deshabilitada y explica por qué', async () => {
+    servidor(comoComprador({ 'GET /api/productos/1/calificaciones/mia': [200, { productoId: 1, estado: 'SIN_COMPRA' }] }))
+    abrirEn('/productos/1')
+    const s = await seccion()
+    const boton = await s.findByRole('button', { name: 'Califica este producto' })
+    expect(boton).toBeDisabled()
+    expect(boton).toHaveAccessibleDescription('Solo puedes calificarlo si lo compraste y ya lo recibiste.')
+    expect(s.queryByRole('radio', { name: '5 estrellas' })).not.toBeInTheDocument()
+  })
+
+  it('con el pedido aún en camino avisa que podrá calificarlo al recibirlo', async () => {
+    servidor(comoComprador({
+      'GET /api/productos/1/calificaciones/mia': [200, { productoId: 1, estado: 'PEDIDO_EN_CURSO', pedidoId: 61, numeroPedido: 'CCP-000061' }],
+    }))
+    abrirEn('/productos/1')
+    const s = await seccion()
+    expect(await s.findByRole('button', { name: 'Califica este producto' })).toBeDisabled()
+    expect(s.getByText('Podrás calificarlo cuando recibas tu pedido CCP-000061.')).toBeInTheDocument()
+  })
+
+  it('un visitante no ve la opción ni se consulta su compra', async () => {
+    const fetchMock = servidor(comoVisitante())
+    abrirEn('/productos/1')
+    const s = await seccion()
+    expect(await s.findByText('Basado en 4 calificaciones')).toBeInTheDocument()
+    expect(s.queryByRole('button', { name: 'Califica este producto' })).not.toBeInTheDocument()
+    expect(llamadas(fetchMock, 'GET /api/productos/1/calificaciones/mia')).toHaveLength(0)
+  })
+
+  it('en inglés', async () => {
+    await i18n.changeLanguage('en')
+    servidor(comoComprador({ 'GET /api/productos/1/calificaciones/mia': [200, { productoId: 1, estado: 'SIN_COMPRA' }] }))
+    abrirEn('/productos/1')
+    const s = within(await screen.findByRole('region', { name: 'Ratings' }))
+    expect(await s.findByRole('button', { name: 'Rate this product' })).toBeDisabled()
+    expect(s.getByText('You can rate it only if you bought it and have already received it.')).toBeInTheDocument()
+  })
+})
+
 const PEDIDO = {
   ...DATOS.misPedidos.find((p) => p.id === 60),
   personaAutorizada: null,
