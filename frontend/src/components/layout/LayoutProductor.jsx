@@ -28,6 +28,8 @@ const NAV = [
   { to: RUTAS.productorPedidos, clave: 'pedidos', icono: iconoPaquete, activo: (p) => p.startsWith(RUTAS.productorPedidos) },
   // CCPIP-92: lo que le corresponde por sus ventas de cada periodo
   { to: RUTAS.productorLiquidaciones, clave: 'liquidaciones', icono: iconoGrafico, activo: (p) => p.startsWith(RUTAS.productorLiquidaciones) },
+  // CCPIP-114, 333 y 334: estadisticas de sus productos por periodo
+  { to: RUTAS.productorReportes, clave: 'reportes', icono: iconoGrafico, activo: (p) => p.startsWith(RUTAS.productorReportes) },
   { to: RUTAS.productorDenuncias, clave: 'denuncias', icono: iconoAviso, activo: (p) => p.startsWith(RUTAS.productorDenuncias) },
   { to: RUTAS.productorCuenta, clave: 'cuenta', icono: iconoBillete, activo: (p) => p.startsWith(RUTAS.productorCuenta) },
   // PW-21: alertas y su configuracion
