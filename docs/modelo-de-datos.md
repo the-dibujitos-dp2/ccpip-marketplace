@@ -1362,6 +1362,34 @@ en el catalogo responde `422 DESTINO_NO_ADMITIDO`. La direccion se pide completa
 (`409 DIRECCION_YA_GUARDADA`, sin distinguir mayusculas); otro comprador si puede guardarla. Los pedidos copian su
 destino en `entrega` y no dependen de esta tabla.
 
+## Aceptar y editar el borrador de descripcion de la IA (CCPIP-49)
+
+Migracion `V202610241300`. El productor edita el borrador de descripcion que propone la IA (RF-73, RNF-29): la IA
+no publica nada, la aceptacion queda registrada y se conservan la version sugerida y la final, como ya ocurria con
+la historia (`producto_historia`). Nuevas columnas en `producto`:
+
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| descripcion_sugerida | text | si | La sugerencia de la IA que el productor acepto, tal como la propuso. La final, editada, es `descripcion` |
+| descripcion_aceptada_en | timestamptz | si | Cuando la acepto |
+| descripcion_aceptada_por | bigint | si | Quien la acepto |
+
+Las tres van juntas (CHECK `producto_descripcion_aceptada_completa`). `descripcion_propuesta` queda como el
+borrador **pendiente** de decision: al aceptarlo pasa a `descripcion_sugerida`, y pedir otra version o descartarla
+(CCPIP-280) ya no borra la sugerencia que el productor habia aceptado.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `POST /api/productor/productos/{id}/ia/descripcion/aceptar` | PRODUCTOR | Acepta el borrador pendiente para editarlo. Devuelve el producto con `descripcionSugerida`. `409 SIN_BORRADOR` si no hay borrador; un producto ajeno, `404`. **No esta en el contrato de la API; hay que agregarlo** |
+
+**Reglas.** Aceptar no cambia `descripcion` ni publica nada: la version final es la que el productor guarde despues
+con `PUT /api/productor/productos/{id}`. Cada aceptacion queda en `producto_auditoria` (`EDITAR`, con
+`descripcionIaAceptada` y el texto sugerido), junto a los rechazos de CCPIP-280. `descripcion_asistida` solo se
+marca si el productor acepto una sugerencia (o ya era asistida); un borrador pendiente sin aceptar ya no basta.
+
+**Datos existentes.** La migracion pasa a `descripcion_sugerida` la propuesta de las descripciones ya marcadas como
+asistidas, con la fecha y el responsable de la ultima edicion del producto, que es la mejor evidencia disponible.
+
 ## Umbrales de merma por linea (CCPIP-430)
 
 Migracion `V202610251300`. Mejora de la sesion de laboratorio del 22/10: el tablero del superadministrador
