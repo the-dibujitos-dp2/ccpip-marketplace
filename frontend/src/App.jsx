@@ -62,6 +62,7 @@ import TiendaEditorPage from './pages/productor/TiendaEditorPage.jsx'
 import TransferenciasPage from './pages/productor/TransferenciasPage.jsx'
 import AlertasProductorPage from './pages/productor/AlertasPage.jsx'
 import MermaProductorPage from './pages/productor/MermaPage.jsx'
+import ReportesProductorPage from './pages/productor/ReportesPage.jsx'
 import { navigate, RUTAS, rutaInterna, useLocation } from './router.js'
 import { SesionContexto } from './sesion.js'
 
@@ -306,6 +307,7 @@ export default function App() {
     else if (path === RUTAS.productorTransferencias) pagina = <TransferenciasPage key={search} path={path} search={search} />
     else if (path === RUTAS.productorAlertas) pagina = <AlertasProductorPage path={path} />
     else if (path === RUTAS.productorMerma) pagina = <MermaProductorPage path={path} />
+    else if (path === RUTAS.productorReportes) pagina = <ReportesProductorPage path={path} />
     else if (path === RUTAS.productorTransferenciaNueva) pagina = <NuevaTransferenciaPage />
     else if (RUTA_EVIDENCIAS.test(path)) pagina = <EvidenciasPage path={RUTAS.productorProductos} productoId={path.match(RUTA_EVIDENCIAS)[1]} />
     else if (editor) {
