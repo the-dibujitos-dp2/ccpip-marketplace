@@ -1120,14 +1120,14 @@
       "desde": "From",
       "hasta": "To",
       "productor": "Producer",
-      "todosProductores": "All producers",
       "producto": "Product",
-      "todosProductos": "All products",
+      "todos": "All",
       "error": "We couldn't load the report",
       "semana": "{{inicio}} to {{fin}}",
       "vacioTexto": "Try another period, producer or product.",
       "exportar": {
-        "pdf": "Download PDF"
+        "pdf": "Download PDF",
+        "xlsx": "Download Excel"
       },
       "col": {
         "periodo": "Period",

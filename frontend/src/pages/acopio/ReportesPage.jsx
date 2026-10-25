@@ -21,7 +21,7 @@ const REPORTES = { entradas: Entradas, salidas: Salidas, ventas: Ventas, inventa
 const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
 
 /** Formatos de exportacion: los cuatro reportes juntos, con los filtros que se ven. */
-const FORMATOS = ['pdf']
+const FORMATOS = ['pdf', 'xlsx']
 
 /**
  * A-06 · Reportes del administrador de punto de acopio: lo que paso en sus puntos por periodo, con los
@@ -32,6 +32,7 @@ const FORMATOS = ['pdf']
  * - CCPIP-342 (RF-232): ventas
  * - CCPIP-343 (RF-233): inventario
  * - CCPIP-325, CCPIP-378, CCPIP-380 y CCPIP-382: los cuatro, juntos en PDF
+ * - CCPIP-377, CCPIP-379, CCPIP-381 y CCPIP-383: los cuatro, juntos en Excel
  */
 export default function ReportesPage({ path }) {
   const { t, i18n } = useTranslation()
@@ -104,7 +105,7 @@ export default function ReportesPage({ path }) {
           etiqueta={t('acopio.reportes.productor')}
           className="reportes-acopio__selector"
           tipo="selector"
-          placeholder={t('acopio.reportes.todosProductores')}
+          placeholder={t('acopio.reportes.todos')}
           value={filtro.productor}
           onChange={cambiar('productor')}
           opciones={(datos?.productores ?? []).map((p) => ({ valor: String(p.id), etiqueta: p.nombre }))}
@@ -113,7 +114,7 @@ export default function ReportesPage({ path }) {
           etiqueta={t('acopio.reportes.producto')}
           className="reportes-acopio__selector"
           tipo="selector"
-          placeholder={t('acopio.reportes.todosProductos')}
+          placeholder={t('acopio.reportes.todos')}
           value={filtro.producto}
           onChange={cambiar('producto')}
           opciones={(datos?.productos ?? []).map((p) => ({ valor: String(p.id), etiqueta: p.nombre }))}

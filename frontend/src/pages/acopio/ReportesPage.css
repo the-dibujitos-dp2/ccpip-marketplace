@@ -3,9 +3,9 @@
 .reportes-acopio__chips { flex-direction: row; align-items: center; gap: 12px; }
 .reportes-acopio__chips legend { float: left; margin: 0 12px 0 0; line-height: 36px; }
 .reportes-acopio__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
-.reportes-acopio__filtros .campo { width: 170px; }
+.reportes-acopio__filtros .campo { width: 160px; }
 /* Productor y producto necesitan mas ancho para leer su opcion */
-.reportes-acopio__filtros .reportes-acopio__selector { width: 240px; }
+.reportes-acopio__filtros .reportes-acopio__selector { width: 200px; }
 .reportes-acopio__exportar { display: flex; gap: 8px; margin-left: auto; }
 
 .reportes-acopio__periodo { flex: 0 0 190px; }

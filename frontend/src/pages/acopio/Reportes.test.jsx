@@ -253,10 +253,13 @@ describe('A-06 Reportes del punto de acopio', () => {
     const pdf = await screen.findByRole('link', { name: 'Descargar PDF' })
     expect(pdf).toHaveAttribute('href', `${BASE}/pdf?${RANGO}&lang=es`)
     expect(pdf).toHaveAttribute('download')
+    // CCPIP-377: los mismos cuatro reportes en Excel, con los mismos filtros
+    expect(screen.getByRole('link', { name: 'Descargar Excel' })).toHaveAttribute('href', `${BASE}/xlsx?${RANGO}&lang=es`)
 
     fireEvent.change(screen.getByLabelText('Productor'), { target: { value: '5' } })
     await screen.findByDisplayValue('C.N. Puerto Alegre')
     expect(screen.getByRole('link', { name: 'Descargar PDF' })).toHaveAttribute('href', `${BASE}/pdf?${RANGO}&productor=5&lang=es`)
+    expect(screen.getByRole('link', { name: 'Descargar Excel' })).toHaveAttribute('href', `${BASE}/xlsx?${RANGO}&productor=5&lang=es`)
     // El PDF trae los cuatro reportes: cambiar de reporte no cambia la descarga (CCPIP-378, 380 y 382)
     await user.click(screen.getByRole('button', { name: 'Salidas' }))
     await screen.findByRole('table', { name: 'Salidas por período' })
@@ -272,5 +275,6 @@ describe('A-06 Reportes del punto de acopio', () => {
     expect(screen.getByRole('button', { name: 'Monthly', pressed: true })).toBeInTheDocument()
     expect(screen.getByLabelText('Producer')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Download PDF' }).getAttribute('href')).toContain('lang=en')
+    expect(screen.getByRole('link', { name: 'Download Excel' }).getAttribute('href')).toContain('/xlsx?')
   })
 })

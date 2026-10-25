@@ -1120,14 +1120,14 @@
       "desde": "Desde",
       "hasta": "Hasta",
       "productor": "Productor",
-      "todosProductores": "Todos los productores",
       "producto": "Producto",
-      "todosProductos": "Todos los productos",
+      "todos": "Todos",
       "error": "No pudimos cargar el reporte",
       "semana": "{{inicio}} al {{fin}}",
       "vacioTexto": "Prueba con otro período, productor o producto.",
       "exportar": {
-        "pdf": "Descargar PDF"
+        "pdf": "Descargar PDF",
+        "xlsx": "Descargar Excel"
       },
       "col": {
         "periodo": "Período",
