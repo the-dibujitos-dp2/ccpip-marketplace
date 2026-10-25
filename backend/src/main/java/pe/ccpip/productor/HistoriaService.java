@@ -16,6 +16,7 @@ import pe.ccpip.productor.Auditoria.Accion;
 import pe.ccpip.productor.ProductoModelos.AprobarHistoria;
 import pe.ccpip.productor.ProductoModelos.DatosHistoria;
 import pe.ccpip.productor.ProductoModelos.Historia;
+import pe.ccpip.productor.ProductoModelos.ProductoEdicion;
 import pe.ccpip.traduccion.InvalidacionTraducciones;
 import pe.ccpip.traduccion.Traducciones.Entidad;
 
@@ -138,13 +139,36 @@ public class HistoriaService {
         return propuesta;
     }
 
+    /**
+     * CCPIP-49 (RF-73): el productor acepta el borrador de descripcion de la IA para editarlo. El borrador pasa a ser
+     * la version sugerida, con quien lo acepto y cuando, y queda en la auditoria. La version final es la que el
+     * productor guarde despues en la descripcion: aceptar no la cambia ni publica nada. Sin un borrador pendiente no
+     * hay nada que aceptar (409).
+     */
+    @Transactional
+    public ProductoEdicion aceptarDescripcion(long productorId, long usuarioId, long productoId) {
+        productos.obtener(productorId, productoId);
+        String texto = jdbc.queryForObject("SELECT descripcion_propuesta FROM producto WHERE id = ? FOR UPDATE",
+                String.class, productoId);
+        if (texto == null) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "SIN_BORRADOR", "No hay un borrador de la IA para aceptar.");
+        }
+        jdbc.update("""
+                UPDATE producto SET descripcion_sugerida = descripcion_propuesta, descripcion_propuesta = NULL,
+                       descripcion_aceptada_en = now(), descripcion_aceptada_por = ?
+                WHERE id = ?""", usuarioId, productoId);
+        auditoria.registrar(productoId, usuarioId, Accion.EDITAR, Map.of("descripcionIaAceptada", texto));
+        return productos.obtener(productorId, productoId);
+    }
+
     /** Que borrador de la IA se descarta: la descripcion de PW-04 o la historia de PW-05. */
     public enum Borrador { DESCRIPCION, HISTORIA }
 
     /**
      * CCPIP-280 (RF-180): el productor rechaza el borrador de la IA. No se publica nada; la propuesta
      * sale del editor y el texto rechazado queda en la auditoria, que es de solo insercion (RNF-29).
-     * Sin un borrador pendiente no hay nada que rechazar (409).
+     * Sin un borrador pendiente no hay nada que rechazar (409). La sugerencia de descripcion que el productor
+     * ya habia aceptado no se toca (CCPIP-49).
      */
     @Transactional
     public void rechazar(long productorId, long usuarioId, long productoId, Borrador borrador) {
