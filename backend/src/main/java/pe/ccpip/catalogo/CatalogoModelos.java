@@ -121,4 +121,18 @@ public final class CatalogoModelos {
     /** {@code comisionPorcentaje}: comision vigente de la Camara para la vista previa de PW-04 (CCPIP-90); nula si no hay ninguna configurada. */
     public record Catalogos(List<LineaCatalogo> lineas, List<Codigo> unidades, BigDecimal comisionPorcentaje) {
     }
+
+    /**
+     * CCPIP-339 (RF-229): periodos que el visitante puede elegir para ver los mas vendidos. Todos terminan
+     * hoy (fecha de Lima).
+     */
+    public enum PeriodoVentas { ULTIMOS_30_DIAS, ULTIMOS_3_MESES, ESTE_ANIO }
+
+    /**
+     * CCPIP-339: los productos mas vendidos del periodo, en orden de puesto (el primero es el mas vendido),
+     * cada uno con su productor. Solo el puesto: ni unidades ni montos, que son datos comerciales del
+     * productor (SA-08). Si nada se vendio en el periodo la lista va vacia; no se rellena.
+     */
+    public record MasVendidos(PeriodoVentas periodo, LocalDate desde, LocalDate hasta, List<ProductoResumen> productos) {
+    }
 }
