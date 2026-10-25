@@ -16,6 +16,12 @@ export const calificarLinea = (pedidoId, { itemId, estrellas, comentario }) =>
 export const resumenCalificaciones = (productoId) =>
   apiFetch(`/api/productos/${idRuta(productoId)}/calificaciones`, { sessionRequired: false })
 
+/**
+ * CCPIP-412: si el comprador de la sesion puede calificar el producto desde la ficha.
+ * { estado: PUEDE_CALIFICAR | YA_CALIFICADO | PEDIDO_EN_CURSO | SIN_COMPRA, pedidoId?, numeroPedido?, itemId?, calificacion? }
+ */
+export const miCalificacionProducto = (productoId) => apiFetch(`/api/productos/${idRuta(productoId)}/calificaciones/mia`)
+
 /** CCPIP-83: denuncia sobre un producto ({ productoId }) o sobre una comunidad ({ productorId }). */
 export const presentarDenuncia = ({ productoId, productorId, motivo, descripcion }) =>
   apiFetch('/api/denuncias', { method: 'POST', body: { productoId, productorId, motivo, descripcion: descripcion.trim() } })

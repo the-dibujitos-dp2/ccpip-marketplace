@@ -75,7 +75,8 @@
       "transferencias": "Transferencias",
       "denuncias": "Denuncias",
       "alertas": "Alertas",
-      "merma": "Merma"
+      "merma": "Merma",
+      "reportes": "Reportes"
     },
     "tabla": {
       "producto": "Producto",
@@ -214,13 +215,25 @@
         "enPunto": "En el punto",
         "porUbicacion": "Por ubicación",
         "lotes": "Lotes",
-        "disponible": "Disponible"
+        "disponible": "Disponible",
+        "almacen": "Almacén",
+        "detalle": "Detalle por almacén"
       },
       "lote": "Lote {{codigo}}",
       "cosecha": "Cosecha {{mes}}",
       "vence": "vence {{fecha}}",
       "sinVencimiento": "Sin vencimiento",
       "soloVencidos": "Solo lotes vencidos",
+      "verAlmacenes": "Ver almacenes",
+      "ocultarAlmacenes": "Ocultar",
+      "verAlmacenesDe": "Ver en qué almacenes está {{producto}}",
+      "ocultarAlmacenesDe": "Ocultar los almacenes de {{producto}}",
+      "almacenesDe": "Almacenes de {{producto}}",
+      "sinDisponible": "No hay unidades disponibles de este producto en ningún almacén.",
+      "tipoAlmacen": "Tu almacén",
+      "tipoPunto": "Punto de acopio",
+      "vencidosAparte_one": "{{count}} lote vencido no se cuenta como disponible.",
+      "vencidosAparte_other": "{{count}} lotes vencidos no se cuentan como disponibles.",
       "estado": {
         "DISPONIBLE": "Disponible",
         "POR_VENCER": "Por vencer",
@@ -313,6 +326,92 @@
       "conPorcentaje": "{{monto}} ({{porcentaje}} %)",
       "sinComisionCelda": "Sin comisión",
       "nota": "Solo se incluyen tus productos. La comisión y el neto quedan fijados al confirmar cada pedido; un pedido cancelado después del pago no se liquida."
+    },
+    "reportes": {
+      "titulo": "Reportes de mis productos",
+      "desde": "Desde",
+      "hasta": "Hasta",
+      "agrupacion": "Agrupar por",
+      "por": {
+        "DIA": "Día",
+        "SEMANA": "Semana",
+        "MES": "Mes"
+      },
+      "producto": "Producto",
+      "todos": "Todos los productos",
+      "modalidad": "Modalidad",
+      "ambas": "Minorista y mayorista",
+      "modalidades": {
+        "MINORISTA": "Minorista (B2C)",
+        "MAYORISTA": "Mayorista (B2B)"
+      },
+      "error": "No pudimos cargar el reporte",
+      "semana": "{{inicio}} al {{fin}}",
+      "b2c": "B2C (minorista)",
+      "b2cDetalle": "Vendido a precio minorista",
+      "b2b": "B2B (mayorista)",
+      "b2bDetalle": "Vendido a precio mayorista",
+      "vacioTexto": "Prueba con otro período o con todos los productos.",
+      "exportar": {
+        "pdf": "Descargar PDF",
+        "xlsx": "Descargar Excel"
+      },
+      "col": {
+        "periodo": "Período",
+        "producto": "Producto",
+        "barraVentas": "B2C y B2B",
+        "unidades": "Unidades",
+        "b2c": "B2C",
+        "b2b": "B2B",
+        "total": "Total",
+        "acumulado": "Acumulado",
+        "barraProduccion": "Unidades ingresadas",
+        "ingresadas": "Ingresadas",
+        "lotes": "Lotes nuevos",
+        "saldoInicial": "Saldo inicial",
+        "entradas": "Entradas",
+        "vendidasB2c": "Vendidas B2C",
+        "vendidasB2b": "Vendidas B2B",
+        "vendidas": "Vendidas",
+        "merma": "Merma",
+        "otrasSalidas": "Otras salidas",
+        "saldoFinal": "Saldo final"
+      },
+      "ventas": {
+        "pestana": "Ventas",
+        "total": "Total vendido",
+        "unidades": "{{cantidad}} unidades vendidas",
+        "porPeriodo": "Ventas por período",
+        "porProducto": "Ventas por producto",
+        "vacio": "No hubo ventas en este período",
+        "nota": "Subtotal de tus productos en cada pedido pagado y no cancelado, por la fecha en que se confirmó (hora de Lima). Una venta es B2B si se hizo a precio mayorista."
+      },
+      "produccion": {
+        "pestana": "Producción",
+        "unidades": "Unidades producidas",
+        "unidadesDetalle": "Lotes nuevos y entradas de producción",
+        "lotes": "Lotes nuevos",
+        "lotesDetalle": "Registrados en el período",
+        "porPeriodo": "Producción por período",
+        "porProducto": "Producción por producto",
+        "vacio": "No hubo producción en este período",
+        "nota": "Cada entrada en tus lotes, por la fecha en que se registró (hora de Lima): el registro de un lote nuevo y las entradas de producción o recepción en un lote existente. Las transferencias no cuentan porque solo mueven lo ya producido."
+      },
+      "inventario": {
+        "pestana": "Inventario",
+        "saldoInicial": "Saldo inicial",
+        "alInicio": "Al inicio del período",
+        "entradas": "Entradas",
+        "entradasDetalle": "Lotes nuevos y entradas",
+        "salidas": "Salidas",
+        "salidasDetalle": "{{vendidas}} vendidas · {{merma}} de merma",
+        "saldoFinal": "Saldo final",
+        "alFinal": "Al cierre del período",
+        "porPeriodo": "Inventario por período",
+        "porProducto": "Inventario por producto",
+        "vacio": "No tuviste existencias en este período",
+        "nota": "Sale de los movimientos de tus lotes: saldo final = saldo inicial + entradas − vendidas − merma − otras salidas (retiros y devoluciones). Las transferencias no cambian el total de tu inventario y no se cuentan; lo que está en tránsito o vencido sin dar de baja sigue siendo tuyo."
+      }
     },
     "productos": {
       "badge": {
@@ -1013,7 +1112,26 @@
         "merma": "% merma",
         "reclamos": "Reclamos"
       },
-      "notaPronto": "Calificaciones, merma y reclamos aparecerán aquí cuando la plataforma empiece a registrarlos."
+      "notaPronto": "Calificaciones y reclamos aparecerán aquí cuando la plataforma empiece a registrarlos.",
+      "merma": {
+        "titulo": "Merma del mes por línea",
+        "intro": "Merma del mes sobre la merma más el stock vigente de cada línea en cada punto. El color sigue los umbrales de la línea, que se cambian en Catálogo maestro › Líneas.",
+        "valor": "{{porcentaje}} % · {{nivel}}",
+        "sinDato": "Sin stock ni merma este mes",
+        "notaPunto": "La merma de cada punto es la de su línea con más merma, nombrada debajo cuando requiere atención.",
+        "vacio": "No hay merma registrada este mes.",
+        "punto": "Punto de acopio",
+        "linea": "Línea",
+        "unidades": "Merma",
+        "porcentaje": "% merma",
+        "umbrales": "Alerta · crítico",
+        "umbralesValor": "{{alerta}} % · {{critico}} %",
+        "nivel": {
+          "NORMAL": "Normal",
+          "ALERTA": "Alerta",
+          "CRITICO": "Crítico"
+        }
+      }
     },
     "restringido": {
       "titulo": "Acceso restringido",
@@ -1478,6 +1596,7 @@
     "TIPO_INVALIDO": "Tipo de movimiento desconocido.",
     "UBICACION_INVALIDA": "Elige tu almacén o un punto de acopio.",
     "UNIDAD_INVALIDA": "Elige una unidad del catálogo.",
+    "UMBRALES_MERMA_INVALIDOS": "El umbral de alerta debe ser menor que el umbral crítico.",
     "VENCIMIENTO_PASADO": "La fecha de vencimiento no puede ser anterior a hoy.",
     "VENTA_PAUSADA": "La venta de este producto está pausada por ahora. Puedes verlo, pero aún no comprarlo.",
     "CARRITO_VACIO": "Tu carrito está vacío.",
@@ -2869,8 +2988,10 @@
         "vencimiento": "Vencimiento",
         "unidad": "Unidad sugerida",
         "productos": "Productos",
-        "ofertas": "Ofertas"
+        "ofertas": "Ofertas",
+        "merma": "Merma: alerta · crítico"
       },
+      "umbrales": "{{alerta}} % · {{critico}} %",
       "vence": "Vence",
       "noVence": "No vence",
       "form": {
@@ -2885,7 +3006,11 @@
         "sinUnidad": "Sin unidad sugerida",
         "orden": "Orden en el catálogo",
         "ordenAyuda": "Vacío: va al final.",
-        "vencimiento": "Sus lotes tienen fecha de vencimiento"
+        "vencimiento": "Sus lotes tienen fecha de vencimiento",
+        "mermaTitulo": "Umbrales de merma",
+        "mermaAyuda": "El tablero muestra la merma del mes de esta línea en alerta (amarillo) desde el primer valor y en estado crítico (rojo) desde el segundo.",
+        "mermaAlerta": "Alerta desde (%)",
+        "mermaCritico": "Crítico desde (%)"
       },
       "creada": "Línea {{nombre}} creada.",
       "guardada": "Cambios guardados en {{nombre}}.",
@@ -2931,7 +3056,9 @@
       "nombre": "Escribe el nombre.",
       "orden": "Usa un número entre 0 y 999.",
       "linea": "Elige la línea.",
-      "revisar": "Revisa este dato."
+      "revisar": "Revisa este dato.",
+      "umbral": "Usa un porcentaje entre 0.1 y 100, con un decimal como máximo.",
+      "umbralOrden": "Debe ser mayor que el umbral de alerta."
     }
   },
   "calificaciones": {
@@ -2959,7 +3086,12 @@
     "comentario": "Comentario (opcional)",
     "comentarioAyuda": "Se publica sin tu nombre. Hasta 500 caracteres.",
     "enviando": "Enviando…",
-    "enviar": "Enviar calificación"
+    "enviar": "Enviar calificación",
+    "calificaEsteProducto": "Califica este producto",
+    "loRecibiste": "Lo recibiste en tu pedido {{numero}}.",
+    "yaCalificaste": "Ya calificaste este producto. ¡Gracias!",
+    "cuandoRecibas": "Podrás calificarlo cuando recibas tu pedido {{numero}}.",
+    "soloSiRecibiste": "Solo puedes calificarlo si lo compraste y ya lo recibiste."
   },
   "denuncia": {
     "titulo": "Presentar una denuncia",

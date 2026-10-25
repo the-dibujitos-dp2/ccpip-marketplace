@@ -95,6 +95,8 @@ describe('Catálogo maestro: líneas (CCPIP-96, 309, 310, 311)', LENTA, () => {
     expect(await screen.findByText('Línea Miel creada.')).toBeInTheDocument()
     expect(cuerpo(llamadas(fetchMock, `POST ${LINEAS}`)[0])).toEqual({
       codigo: 'MIEL', nombre: 'Miel', nombreEn: 'Honey', requiereVencimiento: false, unidadSugerida: 'FRASCO', orden: null,
+      // CCPIP-430: nace con los umbrales iniciales, a la vista en el formulario
+      mermaUmbralAlerta: 5, mermaUmbralCritico: 10,
     })
     expect(llamadas(fetchMock, `GET ${LINEAS}?estado=TODOS`).length).toBeGreaterThanOrEqual(2)
   })
@@ -133,7 +135,59 @@ describe('Catálogo maestro: líneas (CCPIP-96, 309, 310, 311)', LENTA, () => {
     expect(await screen.findByText('Cambios guardados en Cafés especiales.')).toBeInTheDocument()
     expect(cuerpo(llamadas(fetchMock, `PUT ${LINEAS}/2`)[0])).toEqual({
       codigo: 'CAFE', nombre: 'Cafés especiales', nombreEn: null, requiereVencimiento: true, unidadSugerida: 'BOLSA', orden: 2,
+      mermaUmbralAlerta: 5, mermaUmbralCritico: 10,
     })
+  })
+
+  it('muestra y cambia los umbrales de merma de una línea (CCPIP-430)', async () => {
+    const fetchMock = servidor(comoSuper({
+      [`PUT ${LINEAS}/3`]: [200, { ...copia(DATOS.lineasMaestras.lineas[2]), mermaUmbralAlerta: 12.5, mermaUmbralCritico: 20 }],
+    }))
+    abrirEn('/admin/catalogo')
+    await screen.findByRole('table', { name: 'Líneas' })
+    // Cada línea tiene sus umbrales a la vista en la lista
+    expect(within(fila('Superfrutos')).getByText('8 % · 15 %')).toBeInTheDocument()
+    expect(within(fila('Café')).getByText('5 % · 10 %')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Editar Superfrutos' }))
+    const d = dialogo('Editar línea')
+    expect(d.getByLabelText('Alerta desde (%)')).toHaveValue('8')
+    expect(d.getByLabelText('Crítico desde (%)')).toHaveValue('15')
+
+    // Fuera de rango, con dos decimales o la alerta por encima del crítico: no se envía
+    await userEvent.clear(d.getByLabelText('Alerta desde (%)'))
+    await userEvent.type(d.getByLabelText('Alerta desde (%)'), '0')
+    await userEvent.clear(d.getByLabelText('Crítico desde (%)'))
+    await userEvent.type(d.getByLabelText('Crítico desde (%)'), '7,25')
+    await userEvent.click(d.getByRole('button', { name: 'Guardar cambios' }))
+    expect(d.getAllByText('Usa un porcentaje entre 0.1 y 100, con un decimal como máximo.')).toHaveLength(2)
+    await userEvent.clear(d.getByLabelText('Alerta desde (%)'))
+    await userEvent.type(d.getByLabelText('Alerta desde (%)'), '20')
+    await userEvent.clear(d.getByLabelText('Crítico desde (%)'))
+    await userEvent.type(d.getByLabelText('Crítico desde (%)'), '20')
+    await userEvent.click(d.getByRole('button', { name: 'Guardar cambios' }))
+    expect(d.getByText('Debe ser mayor que el umbral de alerta.')).toBeInTheDocument()
+    expect(llamadas(fetchMock, `PUT ${LINEAS}/3`)).toHaveLength(0)
+
+    // Con coma o punto decimal
+    await userEvent.clear(d.getByLabelText('Alerta desde (%)'))
+    await userEvent.type(d.getByLabelText('Alerta desde (%)'), '12,5')
+    await userEvent.click(d.getByRole('button', { name: 'Guardar cambios' }))
+    expect(await screen.findByText('Cambios guardados en Superfrutos.')).toBeInTheDocument()
+    expect(cuerpo(llamadas(fetchMock, `PUT ${LINEAS}/3`)[0])).toMatchObject({ mermaUmbralAlerta: 12.5, mermaUmbralCritico: 20 })
+  })
+
+  it('muestra en el umbral crítico el rechazo del servidor (CCPIP-430)', async () => {
+    servidor(comoSuper({
+      [`PUT ${LINEAS}/2`]: [422, { code: 'UMBRALES_MERMA_INVALIDOS', error: 'El umbral de alerta debe ser menor que el umbral crítico.' }],
+    }))
+    abrirEn('/admin/catalogo')
+    await screen.findByRole('table', { name: 'Líneas' })
+    await userEvent.click(screen.getByRole('button', { name: 'Editar Café' }))
+    const d = dialogo('Editar línea')
+    await userEvent.click(d.getByRole('button', { name: 'Guardar cambios' }))
+    expect(await d.findByText('El umbral de alerta debe ser menor que el umbral crítico.')).toBeInTheDocument()
+    expect(d.getByLabelText('Crítico desde (%)')).toHaveAttribute('aria-invalid', 'true')
   })
 
   it('desactiva una línea tras confirmar que se conservan sus ofertas', async () => {

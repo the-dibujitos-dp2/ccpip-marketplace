@@ -1,6 +1,8 @@
 package pe.ccpip.catalogo;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Locale;
 
@@ -23,6 +25,8 @@ import pe.ccpip.catalogo.CatalogoModelos.Catalogos;
 import pe.ccpip.catalogo.CatalogoModelos.Codigo;
 import pe.ccpip.catalogo.CatalogoModelos.Facetas;
 import pe.ccpip.catalogo.CatalogoModelos.Inicio;
+import pe.ccpip.catalogo.CatalogoModelos.MasVendidos;
+import pe.ccpip.catalogo.CatalogoModelos.PeriodoVentas;
 import pe.ccpip.catalogo.CatalogoModelos.LineaCatalogo;
 import pe.ccpip.catalogo.CatalogoModelos.ProductoDetalle;
 import pe.ccpip.catalogo.CatalogoModelos.ProductoMaestro;
@@ -42,6 +46,11 @@ import pe.ccpip.comun.Idioma;
 @Publico
 @RestController
 public class CatalogoController {
+
+    /** CCPIP-339: cuantos mas vendidos muestra el inicio, como Destacados y Novedades. */
+    static final int MAS_VENDIDOS = 8;
+
+    private static final ZoneId LIMA = ZoneId.of("America/Lima");
 
     private final CatalogoRepository catalogo;
     private final TiendasRepository tiendas;
@@ -148,6 +157,25 @@ public class CatalogoController {
         Filtro todos = new Filtro(null, List.of(), null, List.of(), null, null, null, true);
         Inicio inicio = new Inicio(tiendas.listar(3), catalogo.facetaLineas(todos), catalogo.destacados(8), catalogo.novedades(8));
         return traductor.inicio(inicio, idioma(acceptLanguage, response));
+    }
+
+    /**
+     * CCPIP-339 (RF-229): los productos mas vendidos y sus productores en los ultimos 30 dias (por defecto),
+     * los ultimos 3 meses o el año en curso, hasta hoy. Publico, como el resto del inicio (CW-01).
+     */
+    @GetMapping("/api/mas-vendidos")
+    public MasVendidos masVendidos(@RequestParam(required = false) PeriodoVentas periodo,
+                                   @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+                                   HttpServletResponse response) {
+        PeriodoVentas elegido = periodo == null ? PeriodoVentas.ULTIMOS_30_DIAS : periodo;
+        LocalDate hasta = LocalDate.now(LIMA);
+        LocalDate desde = switch (elegido) {
+            case ULTIMOS_30_DIAS -> hasta.minusDays(29);
+            case ULTIMOS_3_MESES -> hasta.minusMonths(3).plusDays(1);
+            case ESTE_ANIO -> hasta.withDayOfYear(1);
+        };
+        MasVendidos mas = new MasVendidos(elegido, desde, hasta, catalogo.masVendidos(desde, hasta, MAS_VENDIDOS));
+        return traductor.masVendidos(mas, idioma(acceptLanguage, response));
     }
 
     /** Catalogos cerrados para los formularios (RNF-32). */
