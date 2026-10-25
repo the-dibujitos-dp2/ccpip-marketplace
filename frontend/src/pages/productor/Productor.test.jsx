@@ -28,6 +28,9 @@ function productor(rutas = {}) {
 }
 
 const cuerpo = (fetchMock, clave) => JSON.parse(llamadas(fetchMock, clave).at(-1)[1].body)
+// CCPIP-49: borrador de descripcion que propone la IA y ruta para aceptarlo en el producto 9
+const SUGERIDA = 'Aceite prensado en frío por mujeres shipibo.'
+const ACEPTAR_9 = 'POST /api/productor/productos/9/ia/descripcion/aceptar'
 const foto = (nombre = 'foto.jpg', bytes = 10) => new File([new Uint8Array(bytes)], nombre, { type: 'image/jpeg' })
 
 describe('Acceso al panel del productor', () => {
@@ -398,19 +401,113 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
 
   it('la descripcion asistida se revisa antes de aceptarse y queda marcada como IA', async () => {
     const fetchMock = productor({
-      'POST /api/productor/ia/descripcion': [200, { texto: 'Aceite prensado en frío por mujeres shipibo.' }],
+      'POST /api/productor/ia/descripcion': [200, { texto: SUGERIDA }],
+      [ACEPTAR_9]: () => [200, { ...copia(DATOS.edicion), descripcionSugerida: SUGERIDA }],
       'PUT /api/productor/productos/9': () => [200, copia(DATOS.edicion)],
     })
     const user = userEvent.setup()
     abrirEn('/productor/productos/9')
     await user.click(await screen.findByRole('button', { name: 'Sugerir una descripción con IA (borrador)' }))
     expect(await screen.findByText('Borrador asistido por IA · revisa antes de publicar')).toBeInTheDocument()
+    expect(cuerpo(fetchMock, 'POST /api/productor/ia/descripcion')).toMatchObject({ productoId: 9 })
     expect(screen.getByLabelText('Descripción')).toHaveValue(DATOS.edicion.descripcion)
+    // CCPIP-49: aceptarla queda registrado en el servidor antes de usarla
     await user.click(screen.getByRole('button', { name: 'Aceptar descripción' }))
-    expect(screen.getByLabelText('Descripción (borrador asistido por IA, editable)')).toHaveValue('Aceite prensado en frío por mujeres shipibo.')
+    expect(await screen.findByLabelText('Descripción (borrador asistido por IA, editable)')).toHaveValue(SUGERIDA)
+    expect(llamadas(fetchMock, ACEPTAR_9)).toHaveLength(1)
+    // El productor la edita: lo que se guarda es su version final
+    await user.type(screen.getByLabelText('Descripción (borrador asistido por IA, editable)'), ' Cosecha 2026.')
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
     expect(await screen.findByText('Cambios guardados')).toBeInTheDocument()
-    expect(cuerpo(fetchMock, 'PUT /api/productor/productos/9')).toMatchObject({ descripcionAsistida: true })
+    expect(cuerpo(fetchMock, 'PUT /api/productor/productos/9')).toMatchObject({ descripcion: `${SUGERIDA} Cosecha 2026.`, descripcionAsistida: true })
+  })
+
+  it('en un producto nuevo, pedir la descripcion guarda primero el borrador para que la sugerencia quede registrada (CCPIP-49)', async () => {
+    const creado = { ...copia(DATOS.edicion), id: 32, estado: 'BORRADOR', nombre: 'Aceite de sacha inchi', descripcion: null, imagenes: [], historia: null }
+    const fetchMock = productor({
+      'POST /api/productor/productos': [201, creado],
+      'GET /api/productor/productos/32': () => [200, copia(creado)],
+      'POST /api/productor/ia/descripcion': [200, { texto: SUGERIDA }],
+      'POST /api/productor/productos/32/ia/descripcion/aceptar': () => [200, { ...copia(creado), descripcionSugerida: SUGERIDA }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/nuevo')
+    await user.type(await screen.findByLabelText('Nombre del producto'), 'Aceite de sacha inchi')
+    await user.click(screen.getByRole('button', { name: 'Sugerir una descripción con IA (borrador)' }))
+
+    expect(await screen.findByText(SUGERIDA)).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/productor/productos/32')
+    expect(cuerpo(fetchMock, 'POST /api/productor/productos')).toMatchObject({ nombre: 'Aceite de sacha inchi' })
+    expect(cuerpo(fetchMock, 'POST /api/productor/ia/descripcion')).toMatchObject({ productoId: 32, nombre: 'Aceite de sacha inchi' })
+    // Nacer como borrador no publica nada ni borra lo escrito
+    expect(screen.getByLabelText('Nombre del producto')).toHaveValue('Aceite de sacha inchi')
+
+    await user.click(screen.getByRole('button', { name: 'Aceptar descripción' }))
+    expect(await screen.findByLabelText('Descripción (borrador asistido por IA, editable)')).toHaveValue(SUGERIDA)
+    expect(llamadas(fetchMock, 'POST /api/productor/productos/32/ia/descripcion/aceptar')).toHaveLength(1)
+  })
+
+  it('si no se puede guardar el producto nuevo no pide la sugerencia y lo explica', async () => {
+    const fetchMock = productor({
+      'POST /api/productor/productos': [422, { code: 'CAMPO_NO_PERMITIDO', error: 'Solo fijas el precio ordinario: no existen descuentos ni precios promocionales.' }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/nuevo')
+    await user.type(await screen.findByLabelText('Nombre del producto'), 'Aceite de sacha inchi')
+    await user.click(screen.getByRole('button', { name: 'Sugerir una descripción con IA (borrador)' }))
+    expect(await screen.findByText('Solo fijas el precio ordinario: no existen descuentos ni precios promocionales.')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/productor/ia/descripcion')).toHaveLength(0)
+    expect(screen.getByRole('button', { name: 'Sugerir una descripción con IA (borrador)' })).toBeEnabled()
+  })
+
+  it('mientras el servidor registra la aceptacion no se puede decidir otra vez', async () => {
+    let responder
+    const fetchMock = productor({
+      'POST /api/productor/ia/descripcion': [200, { texto: SUGERIDA }],
+      [ACEPTAR_9]: () => new Promise((resolver) => { responder = resolver }),
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.click(await screen.findByRole('button', { name: 'Sugerir una descripción con IA (borrador)' }))
+    await user.click(await screen.findByRole('button', { name: 'Aceptar descripción' }))
+    for (const nombre of ['Aceptar descripción', 'Editar', 'Generar otra', 'Descartar']) {
+      expect(screen.getByRole('button', { name: nombre })).toBeDisabled()
+    }
+    // Sin respuesta aun, la descripcion sigue siendo la del productor
+    expect(screen.getByLabelText('Descripción')).toHaveValue(DATOS.edicion.descripcion)
+    responder([200, copia(DATOS.edicion)])
+    expect(await screen.findByLabelText('Descripción (borrador asistido por IA, editable)')).toHaveValue(SUGERIDA)
+    expect(llamadas(fetchMock, ACEPTAR_9)).toHaveLength(1)
+  })
+
+  it('si el servidor no registra la aceptacion, la descripcion no cambia y el borrador sigue a la vista', async () => {
+    productor({
+      'POST /api/productor/ia/descripcion': [200, { texto: SUGERIDA }],
+      [ACEPTAR_9]: [500, {}],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.click(await screen.findByRole('button', { name: 'Sugerir una descripción con IA (borrador)' }))
+    await user.click(await screen.findByRole('button', { name: 'Aceptar descripción' }))
+    expect(await screen.findByText('No pudimos aceptar el borrador')).toBeInTheDocument()
+    expect(screen.getByLabelText('Descripción')).toHaveValue(DATOS.edicion.descripcion)
+    expect(screen.getByText(SUGERIDA)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Aceptar descripción' })).toBeEnabled()
+  })
+
+  it('un borrador que ya no esta pendiente no se usa: se avisa y se puede pedir otro', async () => {
+    productor({
+      'POST /api/productor/ia/descripcion': [200, { texto: SUGERIDA }],
+      [ACEPTAR_9]: [409, { code: 'SIN_BORRADOR', error: 'No hay un borrador de la IA para aceptar.' }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.click(await screen.findByRole('button', { name: 'Sugerir una descripción con IA (borrador)' }))
+    await user.click(await screen.findByRole('button', { name: 'Aceptar descripción' }))
+    expect(await screen.findByText('Este borrador ya no está pendiente. Pide otro si lo necesitas.')).toBeInTheDocument()
+    expect(screen.queryByText(SUGERIDA)).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Descripción')).toHaveValue(DATOS.edicion.descripcion)
+    expect(screen.getByRole('button', { name: 'Sugerir una descripción con IA (borrador)' })).toBeInTheDocument()
   })
 
   it('descartar el borrador de la descripcion lo registra y no toca lo escrito (CCPIP-280)', async () => {
