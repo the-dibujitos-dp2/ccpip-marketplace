@@ -18,8 +18,10 @@ import pe.ccpip.catalogo.CatalogoRepository;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.valoracion.ValoracionModelos.Calificacion;
 import pe.ccpip.valoracion.ValoracionModelos.CalificacionesPedido;
+import pe.ccpip.valoracion.ValoracionModelos.EstadoCalificacionProducto;
 import pe.ccpip.valoracion.ValoracionModelos.Estrellas;
 import pe.ccpip.valoracion.ValoracionModelos.LineaCalificable;
+import pe.ccpip.valoracion.ValoracionModelos.MiCalificacionProducto;
 import pe.ccpip.valoracion.ValoracionModelos.NuevaCalificacion;
 import pe.ccpip.valoracion.ValoracionModelos.Resena;
 import pe.ccpip.valoracion.ValoracionModelos.ResumenCalificaciones;
@@ -28,6 +30,7 @@ import pe.ccpip.valoracion.ValoracionModelos.ResumenCalificaciones;
  * CCPIP-81 (RF-88): el comprador califica con 1 a 5 estrellas cada linea de un pedido que recibio
  * (ENTREGADO), una sola vez. CCPIP-82 (RF-89): el promedio publico de una oferta solo se muestra con el
  * minimo de calificaciones de SA-02 ({@link MinimoCalificacionesService}); sin ellas no hay promedio.
+ * CCPIP-412: la ficha ofrece calificar solo a quien recibio el producto en un pedido.
  */
 @Service
 public class CalificacionesService {
@@ -90,14 +93,40 @@ public class CalificacionesService {
         return delPedido(usuarioId, pedidoId);
     }
 
+    /**
+     * CCPIP-412: si el comprador puede calificar el producto desde la ficha. Ofrece la linea recibida mas
+     * antigua aun sin calificar; si todas las recibidas ya estan calificadas, la ultima calificacion.
+     */
+    @Transactional(readOnly = true)
+    public MiCalificacionProducto miCalificacion(long usuarioId, long productoId) {
+        exigirVisible(productoId);
+        List<LineaComprada> lineas = jdbc.query("""
+                SELECT i.id, pe.id AS pedido_id, pe.numero, pe.estado, c.estrellas, c.comentario, c.calificado_en
+                FROM item_pedido i
+                JOIN pedido pe ON pe.id = i.pedido_id
+                LEFT JOIN calificacion c ON c.item_pedido_id = i.id
+                WHERE pe.usuario_id = ? AND i.producto_id = ? AND pe.estado NOT IN ('CANCELADO', 'PENDIENTE_PAGO')
+                ORDER BY i.id""",
+                (rs, row) -> new LineaComprada(rs.getLong("id"), rs.getLong("pedido_id"), rs.getString("numero"),
+                        rs.getString("estado"), calificacion(rs)), usuarioId, productoId);
+        List<LineaComprada> recibidas = lineas.stream().filter(l -> "ENTREGADO".equals(l.estado())).toList();
+        return recibidas.stream().filter(l -> l.calificacion() == null).findFirst()
+                .map(l -> new MiCalificacionProducto(productoId, EstadoCalificacionProducto.PUEDE_CALIFICAR, l.pedidoId(),
+                        l.numero(), l.itemId(), null))
+                .or(() -> recibidas.stream().reduce((a, b) -> b)
+                        .map(l -> new MiCalificacionProducto(productoId, EstadoCalificacionProducto.YA_CALIFICADO, l.pedidoId(),
+                                l.numero(), null, l.calificacion())))
+                .or(() -> lineas.stream().findFirst()
+                        .map(l -> new MiCalificacionProducto(productoId, EstadoCalificacionProducto.PEDIDO_EN_CURSO, l.pedidoId(),
+                                l.numero(), null, null)))
+                .orElseGet(() -> new MiCalificacionProducto(productoId, EstadoCalificacionProducto.SIN_COMPRA, null, null,
+                        null, null));
+    }
+
     /** CCPIP-82: resumen publico de la oferta. Sin suficiente evidencia, solo el conteo y el umbral. */
     @Transactional(readOnly = true)
     public ResumenCalificaciones resumen(long productoId) {
-        Long visible = jdbc.queryForObject("SELECT count(*) " + CatalogoRepository.VISIBLE + " AND p.id = ?",
-                Long.class, productoId);
-        if (visible == null || visible == 0) {
-            throw ErrorNegocio.noEncontrado("PRODUCTO_NO_ENCONTRADO", "El producto no existe o ya no está disponible");
-        }
+        exigirVisible(productoId);
         int minimo = minimos.vigente().calificaciones();
         return jdbc.queryForObject("""
                 SELECT count(*) AS total, avg(estrellas) AS promedio,
@@ -115,6 +144,14 @@ public class CalificacionesService {
                     return new ResumenCalificaciones(productoId, total, minimo, true, promedio, distribucion,
                             resenas(productoId));
                 }, productoId);
+    }
+
+    private void exigirVisible(long productoId) {
+        Long visible = jdbc.queryForObject("SELECT count(*) " + CatalogoRepository.VISIBLE + " AND p.id = ?",
+                Long.class, productoId);
+        if (visible == null || visible == 0) {
+            throw ErrorNegocio.noEncontrado("PRODUCTO_NO_ENCONTRADO", "El producto no existe o ya no está disponible");
+        }
     }
 
     private List<Resena> resenas(long productoId) {
@@ -137,6 +174,9 @@ public class CalificacionesService {
     }
 
     private record Cabecera(String numero, String estado) {
+    }
+
+    private record LineaComprada(long itemId, long pedidoId, String numero, String estado, Calificacion calificacion) {
     }
 
     /** Con {@code bloquear}, dos envios simultaneos de la misma calificacion se ordenan. */
