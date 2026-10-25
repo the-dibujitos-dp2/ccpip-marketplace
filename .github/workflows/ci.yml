@@ -173,7 +173,7 @@ jobs:
       # Sin el detector JDBC: marca cualquier URL jdbc: (incluso sin clave) y en .properties no
       # se puede poner "trufflehog:ignore" en la misma linea. Las claves fijas en el codigo
       # las sigue detectando SonarQube (regla S2068) y las reales viven en secretos de GitHub.
-      - uses: trufflesecurity/trufflehog@e76dff8a7e57d6df0c60ad8cbf5d5cba505a8fc9 # v3.99.2
+      - uses: trufflesecurity/trufflehog@e63326d6545de8f425d93ce24078c6e68d83f70e # v3.99.3
         with:
           extra_args: --results=verified,unknown --exclude-detectors=JDBC
 
