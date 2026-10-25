@@ -954,7 +954,8 @@
       "inventario": "Inventory",
       "transferencias": "Transfers",
       "alertas": "Alerts",
-      "merma": "Shrinkage"
+      "merma": "Shrinkage",
+      "reportes": "Reports"
     },
     "pedidos": {
       "vence": "expires {{fecha}}",
@@ -1107,6 +1108,46 @@
       "errorRecibir": "We could not record the receipt",
       "errorCargar": "We could not load the transfers",
       "errorDetalle": "We could not load the details"
+    },
+    "reportes": {
+      "reporteDe": "Report on",
+      "periodo": "Period",
+      "por": {
+        "DIA": "Daily",
+        "SEMANA": "Weekly",
+        "MES": "Monthly"
+      },
+      "desde": "From",
+      "hasta": "To",
+      "productor": "Producer",
+      "todosProductores": "All producers",
+      "producto": "Product",
+      "todosProductos": "All products",
+      "error": "We couldn't load the report",
+      "semana": "{{inicio}} to {{fin}}",
+      "vacioTexto": "Try another period, producer or product.",
+      "col": {
+        "periodo": "Period",
+        "producto": "Product",
+        "productor": "Producer",
+        "total": "Total",
+        "acumulado": "Cumulative",
+        "barraEntradas": "Received and transfers",
+        "recepcion": "Received",
+        "transferencias": "Transfers"
+      },
+      "entradas": {
+        "pestana": "Stock in",
+        "total": "Units received",
+        "totalDetalle": "{{recepcion}} received · {{transferencias}} by transfer",
+        "porLlegar": "On the way",
+        "porLlegarDetalle_one": "{{count}} requested transfer hasn't arrived yet",
+        "porLlegarDetalle_other": "{{count}} requested transfers haven't arrived yet",
+        "porPeriodo": "Stock in by period",
+        "porProducto": "Stock in by product",
+        "vacio": "No stock came in this period",
+        "nota": "Every entry in your point's batches, by the date it was recorded (Lima time): stock received from a producer and stock received from another point by transfer. On the way means transfers to your point requested in the period that haven't been received yet."
+      }
     }
   },
   "admin": {

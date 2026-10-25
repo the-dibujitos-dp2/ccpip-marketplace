@@ -62,3 +62,19 @@ export const obtenerTransferencia = (id) => apiFetch(`/api/acopio/transferencias
 
 /** CCPIP-278: el punto de destino registra la recepcion; las unidades entran a un lote del punto. */
 export const recibirTransferencia = (id) => apiFetch(`/api/acopio/transferencias/${encodeURIComponent(id)}/recibir`, { method: 'POST' })
+
+const FILTROS_REPORTE = ['desde', 'hasta', 'agrupacion', 'productor', 'producto']
+
+function rutaReporte(sufijo, filtros = {}, idioma = null) {
+  const q = new URLSearchParams()
+  for (const campo of FILTROS_REPORTE) {
+    if (filtros[campo] != null && filtros[campo] !== '') q.set(campo, String(filtros[campo]))
+  }
+  // Una descarga por enlace no lleva Accept-Language: el idioma viaja como `lang`
+  if (idioma) q.set('lang', idioma)
+  const consulta = q.toString()
+  return `/api/acopio/reportes${sufijo}${consulta ? `?${consulta}` : ''}`
+}
+
+/** CCPIP-117 y siguientes: `reporte` es entradas, salidas, ventas o inventario de sus puntos. */
+export const consultarReporteAcopio = (reporte, filtros) => apiFetch(rutaReporte(`/${reporte}`, filtros))

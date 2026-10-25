@@ -954,7 +954,8 @@
       "inventario": "Inventario",
       "transferencias": "Transferencias",
       "alertas": "Alertas",
-      "merma": "Merma"
+      "merma": "Merma",
+      "reportes": "Reportes"
     },
     "pedidos": {
       "vence": "vence {{fecha}}",
@@ -1107,6 +1108,46 @@
       "errorRecibir": "No pudimos registrar la recepción",
       "errorCargar": "No pudimos cargar las transferencias",
       "errorDetalle": "No pudimos cargar el detalle"
+    },
+    "reportes": {
+      "reporteDe": "Reporte de",
+      "periodo": "Período",
+      "por": {
+        "DIA": "Diario",
+        "SEMANA": "Semanal",
+        "MES": "Mensual"
+      },
+      "desde": "Desde",
+      "hasta": "Hasta",
+      "productor": "Productor",
+      "todosProductores": "Todos los productores",
+      "producto": "Producto",
+      "todosProductos": "Todos los productos",
+      "error": "No pudimos cargar el reporte",
+      "semana": "{{inicio}} al {{fin}}",
+      "vacioTexto": "Prueba con otro período, productor o producto.",
+      "col": {
+        "periodo": "Período",
+        "producto": "Producto",
+        "productor": "Productor",
+        "total": "Total",
+        "acumulado": "Acumulado",
+        "barraEntradas": "Recepción y transferencias",
+        "recepcion": "Recepción",
+        "transferencias": "Transferencias"
+      },
+      "entradas": {
+        "pestana": "Entradas",
+        "total": "Unidades recibidas",
+        "totalDetalle": "{{recepcion}} por recepción · {{transferencias}} por transferencia",
+        "porLlegar": "Por llegar",
+        "porLlegarDetalle_one": "{{count}} transferencia pedida aún no llega",
+        "porLlegarDetalle_other": "{{count}} transferencias pedidas aún no llegan",
+        "porPeriodo": "Entradas por período",
+        "porProducto": "Entradas por producto",
+        "vacio": "No hubo entradas en este período",
+        "nota": "Cada entrada en los lotes de su punto, por la fecha en que se registró (hora de Lima): la recepción de un productor y lo recibido de otro punto por transferencia. Por llegar son las transferencias hacia su punto pedidas en el período que aún no se reciben."
+      }
     }
   },
   "admin": {
