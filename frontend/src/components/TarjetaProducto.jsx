@@ -15,8 +15,11 @@ const MODALIDAD = {
   AMBAS: { icono: iconoPaquete, clase: 'neutro' },
 }
 
-/** Tarjeta de catalogo (Figma 66:834). La comunidad va antes que el nombre: la historia primero. */
-export default function TarjetaProducto({ producto }) {
+/**
+ * Tarjeta de catalogo (Figma 66:834). La comunidad va antes que el nombre: la historia primero.
+ * `puesto` (CCPIP-339): su lugar entre los mas vendidos, en la esquina de la foto.
+ */
+export default function TarjetaProducto({ producto, puesto }) {
   const { t } = useTranslation()
   const { tienda } = producto
   const clave = MODALIDAD[producto.modalidad] ? producto.modalidad : 'MINORISTA'
@@ -26,6 +29,7 @@ export default function TarjetaProducto({ producto }) {
     <Enlace to={`/productos/${producto.id}`} className="tarjeta-producto">
       <span className="tarjeta-producto__media">
         <ImagenProducto url={producto.imagen} linea={producto.linea?.codigo} className="tarjeta-producto__imagen" />
+        {puesto != null && <span className="tarjeta-producto__puesto">{t('tarjetaProducto.puesto', { puesto })}</span>}
         {tienda.origenVerificado && (
           <span className="tarjeta-producto__sello">
             <SelloOrigen variante="mini" />
