@@ -1389,3 +1389,33 @@ marca si el productor acepto una sugerencia (o ya era asistida); un borrador pen
 
 **Datos existentes.** La migracion pasa a `descripcion_sugerida` la propuesta de las descripciones ya marcadas como
 asistidas, con la fecha y el responsable de la ultima edicion del producto, que es la mejor evidencia disponible.
+
+## Umbrales de merma por linea (CCPIP-430)
+
+Migracion `V202610251300`. Mejora de la sesion de laboratorio del 22/10: el tablero del superadministrador
+(SA-01) colorea la merma del mes de cada punto de acopio segun el nivel de perdida. Lo que es normal depende de
+que tan perecible es lo que agrupa cada linea (la fruta se pierde mas que el grano), asi que cada linea del
+catalogo maestro tiene sus umbrales. El equipo acordo el 25/10 que nazcan en 5 % y 10 % y que el
+superadministrador los cambie en Catalogo maestro > Lineas: no hay un valor por defecto escondido.
+
+### linea_producto (columnas nuevas)
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| merma_umbral_alerta | numeric(4,1) | no | % de merma del mes desde el que la linea se ve en alerta. Nace en 5 |
+| merma_umbral_critico | numeric(4,1) | no | % de merma del mes desde el que la linea se ve en estado critico. Nace en 10 |
+
+La base exige `0 < alerta < critico <= 100` (`linea_producto_umbrales_merma_validos`).
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `GET /api/admin/catalogo/lineas` | SUPER_ADMIN | Cada linea trae `mermaUmbralAlerta` y `mermaUmbralCritico` |
+| `POST /api/admin/catalogo/lineas`, `PUT /api/admin/catalogo/lineas/{id}` | SUPER_ADMIN | Aceptan los dos umbrales, opcionales: nulo conserva el actual (al crear, 5 y 10). Hasta un decimal, entre 0.1 y 100 (`400`); la alerta menor que el critico (`422 UMBRALES_MERMA_INVALIDOS`). El cambio queda en `catalogo_maestro_auditoria` |
+| `GET /api/admin/tablero` | SUPER_ADMIN | `puntos[].merma` (`unidades`, `porcentaje`, `nivel`) y `mermaPorLinea[]` |
+
+**Calculo.** El % de merma de una linea en un punto es la merma del mes (calendario de Lima) entre la merma del
+mes mas el stock vigente de esa linea en el punto, con un decimal. Debajo de la alerta es `NORMAL`; desde la
+alerta, `ALERTA`; desde el critico, `CRITICO`. La linea de una oferta es su linea principal (`producto.linea_id`).
+`mermaPorLinea` trae solo las lineas con merma en el mes. El punto suma la merma de todas sus ofertas sobre su
+stock vigente; su nivel es el de su linea mas comprometida, para que avise aunque las demas lineas diluyan el
+porcentaje. Un punto sin stock ni merma no tiene porcentaje ni nivel. Cambiar un umbral cambia el color desde la
+siguiente consulta; la merma registrada no cambia.
