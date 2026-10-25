@@ -6,15 +6,20 @@ import iconoPorcentaje from '../../assets/icons/porcentaje.svg'
 import iconoUsuario from '../../assets/icons/usuario.svg'
 import { obtenerTablero } from '../../api/admin.js'
 import Alerta from '../../components/Alerta.jsx'
+import Badge from '../../components/Badge.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { mesAnterior, precio, unidades } from '../../formato.js'
 import '../productor/productor.css'
 import './admin.css'
 
+/** CCPIP-430: color de cada nivel de merma (siempre con texto, nunca solo color). */
+const TONO_MERMA = { NORMAL: 'exito', ALERTA: 'aviso', CRITICO: 'error' }
+
 /**
- * SA-01 (CCPIP-111): la operacion del mes con informacion agregada y de solo lectura. Calificaciones,
- * merma y reclamos aun no se registran en la plataforma: se muestran sin dato, no con un numero inventado.
+ * SA-01 (CCPIP-111): la operacion del mes con informacion agregada y de solo lectura. La merma del mes se
+ * colorea con los umbrales de cada linea (CCPIP-430). Calificaciones y reclamos aun no se registran en la
+ * plataforma: se muestran sin dato, no con un numero inventado.
  */
 export default function TableroPage({ path }) {
   const { t } = useTranslation()
@@ -73,7 +78,7 @@ function Contenido({ tablero }) {
             <span className="tabla__celda admin__num" role="columnheader">{t('admin.tablero.puntos.stock')}</span>
             <span className="tabla__celda admin__num" role="columnheader">{t('admin.tablero.puntos.pedidos')}</span>
             <span className="tabla__celda admin__num" role="columnheader">{t('admin.tablero.puntos.ventas')}</span>
-            <span className="tabla__celda admin__num" role="columnheader">{t('admin.tablero.puntos.merma')}</span>
+            <span className="tabla__celda admin__merma" role="columnheader">{t('admin.tablero.puntos.merma')}</span>
             <span className="tabla__celda admin__num" role="columnheader">{t('admin.tablero.puntos.reclamos')}</span>
           </div>
           {tablero.puntos.map((p) => (
@@ -82,14 +87,68 @@ function Contenido({ tablero }) {
               <span className="tabla__celda admin__num" role="cell">{t('comun.und', { cantidad: unidades(p.stock) })}</span>
               <span className="tabla__celda admin__num" role="cell">{p.pedidosDelMes}</span>
               <span className="tabla__celda admin__num" role="cell">{precio(p.ventasDelMes)}</span>
-              <span className="tabla__celda admin__num" role="cell" aria-label={t('admin.tablero.pronto')}>—</span>
+              <span className="tabla__celda admin__merma" role="cell"><MermaPunto merma={p.merma} /></span>
               <span className="tabla__celda admin__num" role="cell" aria-label={t('admin.tablero.pronto')}>—</span>
             </div>
           ))}
         </div>
-        <p className="productor__nota">{t('admin.tablero.notaPronto')}</p>
+        <p className="productor__nota">{t('admin.tablero.merma.notaPunto')} {t('admin.tablero.notaPronto')}</p>
       </section>
+
+      <MermaPorLinea filas={tablero.mermaPorLinea ?? []} />
     </>
+  )
+}
+
+/** CCPIP-430: % de merma del mes con el color de su nivel. */
+function NivelMerma({ porcentaje, nivel }) {
+  const { t } = useTranslation()
+  return (
+    <Badge tono={TONO_MERMA[nivel]}>
+      {t('admin.tablero.merma.valor', { porcentaje: unidades(porcentaje), nivel: t(`admin.tablero.merma.nivel.${nivel}`) })}
+    </Badge>
+  )
+}
+
+/** Un punto sin stock ni merma no tiene porcentaje: se muestra sin dato, no como 0 %. */
+function MermaPunto({ merma }) {
+  const { t } = useTranslation()
+  if (merma?.porcentaje == null) return <span aria-label={t('admin.tablero.merma.sinDato')}>—</span>
+  return <NivelMerma porcentaje={merma.porcentaje} nivel={merma.nivel} />
+}
+
+/** CCPIP-430: merma del mes de cada linea en cada punto, solo donde hubo merma. */
+function MermaPorLinea({ filas }) {
+  const { t } = useTranslation()
+  return (
+    <section className="productor__seccion" aria-labelledby="titulo-merma">
+      <h2 id="titulo-merma" className="heading-h3">{t('admin.tablero.merma.titulo')}</h2>
+      <p className="productor__nota">{t('admin.tablero.merma.intro')}</p>
+      {filas.length === 0 ? (
+        <p className="body-s">{t('admin.tablero.merma.vacio')}</p>
+      ) : (
+        <div className="tabla" role="table" aria-labelledby="titulo-merma">
+          <div className="tabla__fila tabla__fila--encabezado" role="row">
+            <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('admin.tablero.merma.punto')}</span>
+            <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('admin.tablero.merma.linea')}</span>
+            <span className="tabla__celda admin__num" role="columnheader">{t('admin.tablero.merma.unidades')}</span>
+            <span className="tabla__celda admin__merma" role="columnheader">{t('admin.tablero.merma.porcentaje')}</span>
+            <span className="tabla__celda admin__num" role="columnheader">{t('admin.tablero.merma.umbrales')}</span>
+          </div>
+          {filas.map((m) => (
+            <div key={`${m.puntoId}-${m.codigo}`} className="tabla__fila" role="row">
+              <span className="tabla__celda tabla__celda--flex label-m" role="cell">{m.punto}</span>
+              <span className="tabla__celda tabla__celda--flex" role="cell">{m.linea}</span>
+              <span className="tabla__celda admin__num" role="cell">{t('comun.und', { cantidad: unidades(m.unidades) })}</span>
+              <span className="tabla__celda admin__merma" role="cell"><NivelMerma porcentaje={m.porcentaje} nivel={m.nivel} /></span>
+              <span className="tabla__celda admin__num" role="cell">
+                {t('admin.tablero.merma.umbralesValor', { alerta: unidades(m.umbralAlerta), critico: unidades(m.umbralCritico) })}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   )
 }
 

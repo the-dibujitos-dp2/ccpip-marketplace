@@ -3,6 +3,8 @@
 .admin__lineas { flex: 2 1 420px; }
 .admin__top { flex: 1 1 300px; }
 .admin__num { flex: 0 0 120px; text-align: right; font-variant-numeric: tabular-nums; }
+/* CCPIP-430: % de merma con su nivel */
+.admin__merma { flex: 0 0 160px; display: flex; justify-content: flex-end; font-variant-numeric: tabular-nums; }
 
 .admin__barras { display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 0; list-style: none; }
 .admin__barra { display: grid; grid-template-columns: 140px 1fr 110px; align-items: center; gap: 16px; }
@@ -141,6 +143,11 @@
 .catalogo-maestro__acciones { flex: 0 0 210px; }
 .catalogo-maestro__formulario { display: flex; flex-direction: column; gap: 16px; min-width: min(480px, 80vw); }
 .catalogo-maestro__casilla { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--color-text-primary); }
+/* CCPIP-430: umbrales de merma de la linea */
+.catalogo-maestro__umbrales { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.catalogo-maestro__umbrales legend { padding: 0; margin-bottom: 4px; }
+.catalogo-maestro__umbrales .caption { margin: 0; color: var(--color-text-secondary); }
+.catalogo-maestro__umbrales-campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .catalogo-maestro__aviso { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 10px 12px; border-radius: var(--radius-m); background: var(--color-status-info-bg); color: var(--color-text-secondary); }
 
 @media (max-width: 600px) {
