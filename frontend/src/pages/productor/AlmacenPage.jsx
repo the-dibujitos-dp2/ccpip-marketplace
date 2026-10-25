@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoGrafico from '../../assets/icons/grafico.svg'
 import { marcarMermaAlmacen } from '../../api/merma.js'
@@ -251,6 +251,8 @@ function PorUbicacion({ ubicacion, lotes, onMovimiento, onMerma }) {
 /** El almacen virtual unico (CCPIP-136): el total de cada producto y donde esta. */
 function PorProducto({ productos }) {
   const { t } = useTranslation()
+  // CCPIP-427: el producto cuyo reparto por almacen esta desplegado
+  const [abierto, setAbierto] = useState(null)
   const titulo = t('productor.almacen.inventarioProductos')
   return (
     <section className="productor__seccion" aria-labelledby="titulo-inventario">
@@ -266,9 +268,11 @@ function PorProducto({ productos }) {
             <span className="tabla__celda almacen__col-ubicaciones" role="columnheader">{t('productor.almacen.col.porUbicacion')}</span>
             <span className="tabla__celda almacen__col-lotes" role="columnheader">{t('productor.almacen.col.lotes')}</span>
             <span className="tabla__celda almacen__col-cantidad" role="columnheader">{t('productor.almacen.col.disponible')}</span>
+            <span className="tabla__celda almacen__col-detalle" role="columnheader"><span className="visually-hidden">{t('productor.almacen.col.detalle')}</span></span>
           </div>
           {productos.map((p) => (
-            <div key={p.id} className="tabla__fila" role="row">
+            <Fragment key={p.id}>
+            <div className="tabla__fila" role="row">
               <span className="tabla__celda tabla__celda--flex tabla__producto" role="cell">
                 <ImagenProducto url={p.miniatura} className="tabla__miniatura" />
                 <span className="label-m">{p.nombre}</span>
@@ -282,10 +286,70 @@ function PorProducto({ productos }) {
               </span>
               <span className="tabla__celda almacen__col-lotes" role="cell">{p.lotes.length}</span>
               <span className="tabla__celda almacen__col-cantidad label-m" role="cell">{t('comun.und', { cantidad: unidades(p.total) })}</span>
+              <span className="tabla__celda almacen__col-detalle" role="cell">
+                <Boton
+                  tipo="terciario"
+                  tamano="S"
+                  aria-expanded={abierto === p.id}
+                  aria-controls={`almacenes-${p.id}`}
+                  aria-label={t(abierto === p.id ? 'productor.almacen.ocultarAlmacenesDe' : 'productor.almacen.verAlmacenesDe', { producto: p.nombre })}
+                  onClick={() => setAbierto(abierto === p.id ? null : p.id)}
+                >
+                  {t(abierto === p.id ? 'productor.almacen.ocultarAlmacenes' : 'productor.almacen.verAlmacenes')}
+                </Boton>
+              </span>
             </div>
+            {abierto === p.id && (
+              <div className="tabla__fila almacen__detalle-fila" role="row">
+                <div className="tabla__celda almacen__detalle" role="cell" id={`almacenes-${p.id}`}>
+                  <AlmacenesDe producto={p} />
+                </div>
+              </div>
+            )}
+            </Fragment>
           ))}
         </div>
       )}
     </section>
+  )
+}
+
+/**
+ * CCPIP-427: en que almacenes esta un producto y cuanto hay en cada uno, para decidir donde reponer
+ * o desde donde vender. Solo cuenta lo vigente, igual que el total de la fila; los lotes vencidos se
+ * mencionan aparte porque no estan disponibles.
+ */
+function AlmacenesDe({ producto }) {
+  const { t } = useTranslation()
+  const vigentes = (u) => producto.lotes.filter((l) => l.ubicacionId === u && l.estado !== 'VENCIDO').length
+  const vencidos = producto.lotes.filter((l) => l.estado === 'VENCIDO').length
+  const titulo = t('productor.almacen.almacenesDe', { producto: producto.nombre })
+  return (
+    <>
+      {producto.porUbicacion.length === 0 ? (
+        <p className="body-s">{t('productor.almacen.sinDisponible')}</p>
+      ) : (
+        <div className="almacen__subtabla" role="table" aria-label={titulo}>
+          <div className="tabla__fila tabla__fila--encabezado" role="row">
+            <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.almacen.col.almacen')}</span>
+            <span className="tabla__celda almacen__col-lotes" role="columnheader">{t('productor.almacen.col.lotes')}</span>
+            <span className="tabla__celda almacen__col-cantidad" role="columnheader">{t('productor.almacen.col.disponible')}</span>
+          </div>
+          {producto.porUbicacion.map((e) => (
+            <div key={e.ubicacionId} className="tabla__fila" role="row">
+              <span className="tabla__celda tabla__celda--flex" role="cell">
+                <span className="label-m">{e.ubicacion}</span>
+                <span className="caption almacen__tipo">
+                  {t(e.tipo === 'ALMACEN_PRODUCTOR' ? 'productor.almacen.tipoAlmacen' : 'productor.almacen.tipoPunto')}
+                </span>
+              </span>
+              <span className="tabla__celda almacen__col-lotes" role="cell">{vigentes(e.ubicacionId)}</span>
+              <span className="tabla__celda almacen__col-cantidad label-m" role="cell">{t('comun.und', { cantidad: unidades(e.cantidad) })}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {vencidos > 0 && <p className="productor__nota">{t('productor.almacen.vencidosAparte', { count: vencidos })}</p>}
+    </>
   )
 }

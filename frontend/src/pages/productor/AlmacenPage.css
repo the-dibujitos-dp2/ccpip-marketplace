@@ -6,3 +6,12 @@
 .almacen__col-accion { display: flex; justify-content: flex-end; width: 90px; }
 .almacen__col-ubicaciones { width: 260px; }
 .almacen__col-lotes { width: 60px; }
+
+/* CCPIP-427: reparto de un producto por almacen, desplegado bajo su fila */
+/* relative: el texto oculto del encabezado no debe escapar del scroll de la tabla */
+.almacen__col-detalle { position: relative; display: flex; justify-content: flex-end; width: 150px; }
+.almacen__detalle-fila { padding-top: 0; border-top: 0; }
+.almacen__detalle { flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px; padding-left: 56px; }
+.almacen__subtabla { border: 1px solid var(--color-border-default); border-radius: var(--radius-m); background: var(--color-bg-surface-alt); }
+.almacen__subtabla .tabla__fila:first-child { border-top: 0; }
+.almacen__tipo { display: block; color: var(--color-text-secondary); }
