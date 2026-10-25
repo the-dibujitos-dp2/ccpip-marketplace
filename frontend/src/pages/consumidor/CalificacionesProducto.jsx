@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { resumenCalificaciones } from '../../api/valoracion.js'
+import { miCalificacionProducto, resumenCalificaciones } from '../../api/valoracion.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import DialogoDenuncia from '../../components/DialogoDenuncia.jsx'
 import Estrellas from '../../components/Estrellas.jsx'
-import { fecha, unidades } from '../../formato.js'
+import { diaMes, fecha, unidades } from '../../formato.js'
 import { RUTAS } from '../../router.js'
 import { useSesion } from '../../sesion.js'
+import { FormularioCalificacion } from './CalificarPedido.jsx'
 import './Valoraciones.css'
 
 const NIVELES = [
@@ -23,14 +24,18 @@ const NIVELES = [
  * CW-03, seccion "Calificaciones". CCPIP-82 (RF-89): el promedio solo con suficiente evidencia (el
  * umbral lo fija el servidor); sin ella no se muestra un promedio, y menos un cero. Las resenas no
  * llevan el nombre de quien califico. CCPIP-83: el comprador puede denunciar la oferta desde aqui.
+ * CCPIP-412: y calificarla, solo si la recibio en un pedido; si no, la opcion explica por que no.
  */
 export default function CalificacionesProducto({ producto }) {
   const { t } = useTranslation()
   const { user } = useSesion()
   const [resumen, setResumen] = useState(null)
   const [cargando, setCargando] = useState(true)
+  const [mia, setMia] = useState(null)
+  const [version, setVersion] = useState(0)
   const [denunciando, setDenunciando] = useState(false)
   const [enviada, setEnviada] = useState(false)
+  const comprador = user?.role === 'CONSUMIDOR'
 
   useEffect(() => {
     let vigente = true
@@ -43,14 +48,23 @@ export default function CalificacionesProducto({ producto }) {
     return () => {
       vigente = false
     }
-  }, [producto.id])
+  }, [producto.id, version])
 
-  const comprador = user?.role === 'CONSUMIDOR'
+  useEffect(() => {
+    if (!comprador) return undefined
+    let vigente = true
+    // Sin respuesta, la ficha no ofrece calificar: el servidor igual lo exige al enviar
+    miCalificacionProducto(producto.id).then((m) => vigente && setMia(m)).catch(() => {})
+    return () => {
+      vigente = false
+    }
+  }, [producto.id, comprador, version])
+
   return (
     <section className="seccion valoraciones" aria-labelledby="titulo-calificaciones">
       <h2 id="titulo-calificaciones" className="seccion__titulo">{t('calificaciones.titulo')}</h2>
-      {/* CCPIP-413: mientras llega el resumen, el indicador en lugar de una seccion vacia */}
-      {cargando && <Cargando />}
+      {/* CCPIP-413: mientras llega el primer resumen, el indicador en lugar de una seccion vacia */}
+      {cargando && !resumen && <Cargando />}
       {resumen?.suficiente && (
         <div className="valoraciones__resumen">
           <div className="valoraciones__promedio">
@@ -90,6 +104,7 @@ export default function CalificacionesProducto({ producto }) {
           ))}
         </ul>
       )}
+      {comprador && mia && <CalificarDesdeFicha mia={mia} onCalificada={() => setVersion((v) => v + 1)} />}
       <p className="caption">{t('calificaciones.comoSeCalifica')}</p>
 
       <div className="valoraciones__denuncia">
@@ -112,5 +127,41 @@ export default function CalificacionesProducto({ producto }) {
           }} />
       )}
     </section>
+  )
+}
+
+/**
+ * CCPIP-412: con un pedido recibido que incluye el producto, el formulario; si ya lo califico, su
+ * calificacion; si no lo recibio, la opcion deshabilitada con el motivo.
+ */
+function CalificarDesdeFicha({ mia, onCalificada }) {
+  const { t } = useTranslation()
+  if (mia.estado === 'PUEDE_CALIFICAR') {
+    return (
+      <div className="valoraciones__calificar" role="group" aria-labelledby="calificar-producto">
+        <h3 id="calificar-producto" className="label-m">{t('calificaciones.calificaEsteProducto')}</h3>
+        <p className="body-s">{t('calificaciones.loRecibiste', { numero: mia.numeroPedido })}</p>
+        <FormularioCalificacion pedidoId={mia.pedidoId} itemId={mia.itemId} onCalificada={onCalificada} />
+      </div>
+    )
+  }
+  if (mia.estado === 'YA_CALIFICADO') {
+    return (
+      <div className="valoraciones__calificar">
+        <p className="label-m">{t('calificaciones.yaCalificaste')}</p>
+        <Estrellas valor={mia.calificacion.estrellas} />
+        {mia.calificacion.comentario && <p className="body-s">{mia.calificacion.comentario}</p>}
+        <span className="caption">{t('calificaciones.calificadoEl', { fecha: diaMes(mia.calificacion.calificadoEn) })}</span>
+      </div>
+    )
+  }
+  const motivo = mia.estado === 'PEDIDO_EN_CURSO'
+    ? t('calificaciones.cuandoRecibas', { numero: mia.numeroPedido })
+    : t('calificaciones.soloSiRecibiste')
+  return (
+    <div className="valoraciones__calificar">
+      <Boton tipo="secundario" tamano="S" disabled aria-describedby="calificar-motivo">{t('calificaciones.calificaEsteProducto')}</Boton>
+      <p id="calificar-motivo" className="caption">{motivo}</p>
+    </div>
   )
 }
