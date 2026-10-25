@@ -11,16 +11,19 @@ import '../productor/productor.css'
 import '../../components/Chips.css'
 import './ReportesPage.css'
 import Entradas from './reportes/Entradas.jsx'
+import Salidas from './reportes/Salidas.jsx'
 
 /** Reportes de la pantalla, en orden. Cada uno es /api/acopio/reportes/{clave}. */
-const REPORTES = { entradas: Entradas }
+const REPORTES = { entradas: Entradas, salidas: Salidas }
 
 const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
 
 /**
  * A-06 · Reportes del administrador de punto de acopio: lo que paso en sus puntos por periodo, con los
- * filtros de fechas, agrupacion, productor y producto. CCPIP-117 (RF-65): entradas. El servidor solo
- * envia lo de sus puntos (RNF-05) y ningun dato de los compradores; la pantalla solo muestra lo calculado.
+ * filtros de fechas, agrupacion, productor y producto. El servidor solo envia lo de sus puntos (RNF-05) y
+ * ningun dato de los compradores; la pantalla solo muestra lo calculado.
+ * - CCPIP-117 (RF-65): entradas
+ * - CCPIP-341 (RF-231): salidas
  */
 export default function ReportesPage({ path }) {
   const { t } = useTranslation()

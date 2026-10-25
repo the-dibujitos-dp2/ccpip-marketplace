@@ -48,6 +48,19 @@ const ENTRADAS = {
   ],
 }
 
+const SALIDAS = {
+  ...COMUN,
+  totales: { ventasEntregadas: 5, ventasPorEntregar: 3, transferencias: 4, devoluciones: 2, merma: 1, total: 15 },
+  periodos: [
+    { inicio: '2026-01-01', fin: '2026-01-31', ventasEntregadas: 5, ventasPorEntregar: 0, transferencias: 0, devoluciones: 0, merma: 0, total: 5, acumulado: 5 },
+    { inicio: '2026-02-01', fin: '2026-02-28', ventasEntregadas: 0, ventasPorEntregar: 0, transferencias: 0, devoluciones: 0, merma: 0, total: 0, acumulado: 5 },
+    { inicio: '2026-03-01', fin: '2026-03-18', ventasEntregadas: 0, ventasPorEntregar: 3, transferencias: 4, devoluciones: 2, merma: 1, total: 10, acumulado: 15 },
+  ],
+  porProducto: [
+    { productoId: 9, producto: 'Aceite de sacha inchi 250 ml', productor: 'Asoc. Nii Joi', ventas: 8, transferencias: 4, devoluciones: 2, merma: 1, total: 15 },
+  ],
+}
+
 function acopio(rutas = {}) {
   return servidor({
     ...PUBLICAS,
@@ -131,6 +144,33 @@ describe('A-06 Reportes del punto de acopio', () => {
     await user.click(screen.getByRole('button', { name: 'Diario' }))
     expect(await screen.findByText('No pudimos cargar el reporte')).toBeInTheDocument()
     expect(screen.getByText('Consulta como máximo un año a la vez.')).toBeInTheDocument()
+  })
+
+  it('CCPIP-341: las salidas separan las ventas entregadas de las que siguen por entregar', async () => {
+    const fetchMock = acopio({
+      [`GET ${BASE}/entradas?${RANGO}&productor=3`]: () => [200, { ...copia(ENTRADAS), productor: 3 }],
+      [`GET ${BASE}/salidas?${RANGO}&productor=3`]: () => [200, { ...copia(SALIDAS), productor: 3 }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/acopio/reportes')
+    await screen.findByRole('table', { name: 'Entradas por período' })
+    fireEvent.change(screen.getByLabelText('Productor'), { target: { value: '3' } })
+    await screen.findByDisplayValue('Asoc. Nii Joi')
+    await user.click(screen.getByRole('button', { name: 'Salidas' }))
+
+    expect(await screen.findByRole('region', { name: 'Unidades que salieron' })).toHaveTextContent('15 und')
+    expect(screen.getByRole('region', { name: 'Unidades que salieron' })).toHaveTextContent('4 transferidas · 2 devueltas · 1 de merma')
+    expect(screen.getByRole('region', { name: 'Ventas entregadas' })).toHaveTextContent('5 und')
+    expect(screen.getByRole('region', { name: 'Ventas por entregar' })).toHaveTextContent('3 und')
+    expect(screen.getByRole('button', { name: 'Salidas', pressed: true })).toBeInTheDocument()
+    // Los filtros se conservan al cambiar de reporte
+    expect(llamadas(fetchMock, `GET ${BASE}/salidas?${RANGO}&productor=3`)).toHaveLength(1)
+
+    const periodos = within(screen.getByRole('table', { name: 'Salidas por período' })).getAllByRole('row')
+    expect(within(periodos[0]).getByText('Venta pendiente')).toBeInTheDocument()
+    expect(celdas(periodos[3])).toEqual(['Marzo de 2026', '0', '3', '4', '2', '1', '10', '15'])
+    const productos = within(screen.getByRole('table', { name: 'Salidas por producto' })).getAllByRole('row')
+    expect(celdas(productos[1])).toEqual(['Aceite de sacha inchi 250 ml', 'Asoc. Nii Joi', '8', '4', '2', '1', '15'])
   })
 
   it('sale en ingles', async () => {

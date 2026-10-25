@@ -11,8 +11,8 @@
 .reportes-acopio__periodo { flex: 0 0 190px; }
 .reportes-acopio__texto { flex: 1 0 180px; min-width: 180px; }
 .reportes-acopio__num { flex: 0 0 110px; text-align: right; font-variant-numeric: tabular-nums; }
-/* Tablas con siete u ocho columnas de cifras: mas angostas para que quepan sin desplazar */
-.reportes-acopio__num--estrecha { flex-basis: 92px; }
+/* Tablas con siete u ocho columnas de cifras: parten mas angostas y se reparten el ancho disponible */
+.reportes-acopio__num--estrecha { flex: 1 0 92px; }
 .reportes-acopio__barra-celda { min-width: 120px; flex-basis: 120px; }
 .reportes-acopio__barra { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--color-bg-surface-alt); }
 .reportes-acopio__barra-0 { background: var(--color-bg-brand); }

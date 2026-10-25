@@ -1134,7 +1134,12 @@
         "acumulado": "Acumulado",
         "barraEntradas": "Recepción y transferencias",
         "recepcion": "Recepción",
-        "transferencias": "Transferencias"
+        "transferencias": "Transferencias",
+        "ventasEntregadas": "Venta entregada",
+        "ventasPorEntregar": "Venta pendiente",
+        "devoluciones": "Devoluciones",
+        "merma": "Merma",
+        "ventas": "Ventas"
       },
       "entradas": {
         "pestana": "Entradas",
@@ -1147,6 +1152,19 @@
         "porProducto": "Entradas por producto",
         "vacio": "No hubo entradas en este período",
         "nota": "Cada entrada en los lotes de su punto, por la fecha en que se registró (hora de Lima): la recepción de un productor y lo recibido de otro punto por transferencia. Por llegar son las transferencias hacia su punto pedidas en el período que aún no se reciben."
+      },
+      "salidas": {
+        "pestana": "Salidas",
+        "total": "Unidades que salieron",
+        "totalDetalle": "{{transferencias}} transferidas · {{devoluciones}} devueltas · {{merma}} de merma",
+        "entregadas": "Ventas entregadas",
+        "entregadasDetalle": "Pedidos ya entregados al comprador",
+        "porEntregar": "Ventas por entregar",
+        "porEntregarDetalle": "Pagadas, aún en el punto esperando entrega",
+        "porPeriodo": "Salidas por período",
+        "porProducto": "Salidas por producto",
+        "vacio": "No hubo salidas en este período",
+        "nota": "Cada salida de los lotes de su punto, por la fecha en que se registró (hora de Lima). Una venta descuenta el stock al confirmarse el pago; se cuenta como pendiente mientras el pedido no se entrega. Devoluciones son los retiros del productor; las transferencias, lo enviado a otro punto."
       }
     }
   },

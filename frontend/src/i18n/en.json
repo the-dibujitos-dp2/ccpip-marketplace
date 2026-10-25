@@ -1134,7 +1134,12 @@
         "acumulado": "Cumulative",
         "barraEntradas": "Received and transfers",
         "recepcion": "Received",
-        "transferencias": "Transfers"
+        "transferencias": "Transfers",
+        "ventasEntregadas": "Sale delivered",
+        "ventasPorEntregar": "Sale pending",
+        "devoluciones": "Returns",
+        "merma": "Shrinkage",
+        "ventas": "Sales"
       },
       "entradas": {
         "pestana": "Stock in",
@@ -1147,6 +1152,19 @@
         "porProducto": "Stock in by product",
         "vacio": "No stock came in this period",
         "nota": "Every entry in your point's batches, by the date it was recorded (Lima time): stock received from a producer and stock received from another point by transfer. On the way means transfers to your point requested in the period that haven't been received yet."
+      },
+      "salidas": {
+        "pestana": "Stock out",
+        "total": "Units out",
+        "totalDetalle": "{{transferencias}} transferred · {{devoluciones}} returned · {{merma}} shrinkage",
+        "entregadas": "Sales delivered",
+        "entregadasDetalle": "Orders already handed to the buyer",
+        "porEntregar": "Sales to deliver",
+        "porEntregarDetalle": "Paid, still at the point awaiting delivery",
+        "porPeriodo": "Stock out by period",
+        "porProducto": "Stock out by product",
+        "vacio": "No stock went out this period",
+        "nota": "Every exit from your point's batches, by the date it was recorded (Lima time). A sale takes stock out when payment is confirmed; it counts as pending until the order is delivered. Returns are stock withdrawn by the producer; transfers, stock sent to another point."
       }
     }
   },
