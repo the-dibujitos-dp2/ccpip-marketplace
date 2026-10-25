@@ -18,6 +18,7 @@ import pe.ccpip.catalogo.CatalogoModelos.Faceta;
 import pe.ccpip.catalogo.CatalogoModelos.Facetas;
 import pe.ccpip.catalogo.CatalogoModelos.HistoriaPublica;
 import pe.ccpip.catalogo.CatalogoModelos.Inicio;
+import pe.ccpip.catalogo.CatalogoModelos.MasVendidos;
 import pe.ccpip.catalogo.CatalogoModelos.LineaCatalogo;
 import pe.ccpip.catalogo.CatalogoModelos.Oferta;
 import pe.ccpip.catalogo.CatalogoModelos.PartesHistoria;
@@ -132,6 +133,17 @@ public class TraductorCatalogo {
                 d.pueblo(), d.comunidad(), d.region(), d.localidad(), d.socios(), d.origenVerificado(), d.desde(),
                 d.portada(), d.galeria(), t.facetas(Entidad.LINEA, d.lineas()),
                 d.productos().stream().map(t::resumen).toList(), d.destacados(), campos.isEmpty() ? null : campos);
+    }
+
+    /** CCPIP-339: los nombres de los productos y de sus tiendas, como en el resto del catalogo. */
+    public MasVendidos masVendidos(MasVendidos m, Idioma idioma) {
+        if (idioma == Idioma.ES) {
+            return m;
+        }
+        Claves c = new Claves();
+        m.productos().forEach(c::resumen);
+        Textos t = cargar(c, idioma);
+        return new MasVendidos(m.periodo(), m.desde(), m.hasta(), m.productos().stream().map(t::resumen).toList());
     }
 
     public Inicio inicio(Inicio i, Idioma idioma) {
