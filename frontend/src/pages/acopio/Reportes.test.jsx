@@ -61,6 +61,19 @@ const SALIDAS = {
   ],
 }
 
+const VENTAS = {
+  ...COMUN,
+  totales: { pedidos: 2, pedidosAtendidos: 1, pedidosPorEntregar: 1, unidades: 8, b2c: 100, b2b: 60, total: 160 },
+  periodos: [
+    { inicio: '2026-01-01', fin: '2026-01-31', pedidos: 1, pedidosAtendidos: 1, pedidosPorEntregar: 0, unidades: 5, b2c: 100, b2b: 0, total: 100, acumulado: 100 },
+    { inicio: '2026-02-01', fin: '2026-02-28', pedidos: 0, pedidosAtendidos: 0, pedidosPorEntregar: 0, unidades: 0, b2c: 0, b2b: 0, total: 0, acumulado: 100 },
+    { inicio: '2026-03-01', fin: '2026-03-18', pedidos: 1, pedidosAtendidos: 0, pedidosPorEntregar: 1, unidades: 3, b2c: 0, b2b: 60, total: 60, acumulado: 160 },
+  ],
+  porProducto: [
+    { productoId: 9, producto: 'Aceite de sacha inchi 250 ml', productor: 'Asoc. Nii Joi', unidades: 8, total: 160 },
+  ],
+}
+
 function acopio(rutas = {}) {
   return servidor({
     ...PUBLICAS,
@@ -70,7 +83,8 @@ function acopio(rutas = {}) {
   })
 }
 
-const celdas = (fila) => within(fila).getAllByRole('cell').map((c) => c.textContent)
+// Los importes llevan un espacio duro entre S/ y la cifra
+const celdas = (fila) => within(fila).getAllByRole('cell').map((c) => c.textContent.replace(/\u00a0/g, ' '))
 
 describe('A-06 Reportes del punto de acopio', () => {
   afterEach(async () => {
@@ -171,6 +185,26 @@ describe('A-06 Reportes del punto de acopio', () => {
     expect(celdas(periodos[3])).toEqual(['Marzo de 2026', '0', '3', '4', '2', '1', '10', '15'])
     const productos = within(screen.getByRole('table', { name: 'Salidas por producto' })).getAllByRole('row')
     expect(celdas(productos[1])).toEqual(['Aceite de sacha inchi 250 ml', 'Asoc. Nii Joi', '8', '4', '2', '1', '15'])
+  })
+
+  it('CCPIP-342: las ventas cuentan los pedidos atendidos y por entregar, con su importe B2C y B2B', async () => {
+    acopio({ [`GET ${BASE}/ventas?${RANGO}`]: () => [200, copia(VENTAS)] })
+    const user = userEvent.setup()
+    abrirEn('/acopio/reportes')
+    await screen.findByRole('table', { name: 'Entradas por período' })
+    await user.click(screen.getByRole('button', { name: 'Ventas' }))
+
+    expect(await screen.findByRole('region', { name: 'Total vendido' })).toHaveTextContent('S/ 160.00')
+    expect(screen.getByRole('region', { name: 'Total vendido' })).toHaveTextContent('8 unidades · B2C S/ 100.00 · B2B S/ 60.00')
+    expect(screen.getByRole('region', { name: 'Pedidos atendidos' })).toHaveTextContent('1De 2 pedidos pagados')
+    expect(screen.getByRole('region', { name: 'Pedidos por entregar' })).toHaveTextContent('1')
+
+    const periodos = within(screen.getByRole('table', { name: 'Ventas por período' })).getAllByRole('row')
+    expect(celdas(periodos[3])).toEqual(['Marzo de 2026', '1', '0', '1', '3', 'S/ 0.00', 'S/ 60.00', 'S/ 60.00', 'S/ 160.00'])
+    const productos = within(screen.getByRole('table', { name: 'Ventas por producto' })).getAllByRole('row')
+    expect(celdas(productos[1])).toEqual(['Aceite de sacha inchi 250 ml', 'Asoc. Nii Joi', '8', 'S/ 160.00'])
+    // Sin datos de los compradores
+    expect(screen.queryByText(/@/)).not.toBeInTheDocument()
   })
 
   it('sale en ingles', async () => {

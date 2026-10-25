@@ -1139,7 +1139,13 @@
         "ventasPorEntregar": "Sale pending",
         "devoluciones": "Returns",
         "merma": "Shrinkage",
-        "ventas": "Sales"
+        "ventas": "Sales",
+        "pedidos": "Orders",
+        "pedidosAtendidos": "Delivered",
+        "pedidosPorEntregar": "To deliver",
+        "unidades": "Units",
+        "b2c": "B2C",
+        "b2b": "B2B"
       },
       "entradas": {
         "pestana": "Stock in",
@@ -1165,6 +1171,20 @@
         "porProducto": "Stock out by product",
         "vacio": "No stock went out this period",
         "nota": "Every exit from your point's batches, by the date it was recorded (Lima time). A sale takes stock out when payment is confirmed; it counts as pending until the order is delivered. Returns are stock withdrawn by the producer; transfers, stock sent to another point."
+      },
+      "ventas": {
+        "pestana": "Sales",
+        "total": "Total sold",
+        "totalDetalle": "{{unidades}} units · B2C {{b2c}} · B2B {{b2b}}",
+        "atendidos": "Orders delivered",
+        "atendidosDetalle_one": "Out of {{count}} paid order",
+        "atendidosDetalle_other": "Out of {{count}} paid orders",
+        "porEntregar": "Orders to deliver",
+        "porEntregarDetalle": "Paid, not delivered yet",
+        "porPeriodo": "Sales by period",
+        "porProducto": "Sales by product",
+        "vacio": "No sales in this period",
+        "nota": "Paid, non-cancelled orders shipped from your point, by the date payment was confirmed (Lima time). An order is delivered once handed over; until then it's still to deliver. A sale is B2B if it was made at the wholesale price."
       }
     }
   },

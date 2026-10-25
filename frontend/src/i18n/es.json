@@ -1139,7 +1139,13 @@
         "ventasPorEntregar": "Venta pendiente",
         "devoluciones": "Devoluciones",
         "merma": "Merma",
-        "ventas": "Ventas"
+        "ventas": "Ventas",
+        "pedidos": "Pedidos",
+        "pedidosAtendidos": "Atendidos",
+        "pedidosPorEntregar": "Por entregar",
+        "unidades": "Unidades",
+        "b2c": "B2C",
+        "b2b": "B2B"
       },
       "entradas": {
         "pestana": "Entradas",
@@ -1165,6 +1171,20 @@
         "porProducto": "Salidas por producto",
         "vacio": "No hubo salidas en este período",
         "nota": "Cada salida de los lotes de su punto, por la fecha en que se registró (hora de Lima). Una venta descuenta el stock al confirmarse el pago; se cuenta como pendiente mientras el pedido no se entrega. Devoluciones son los retiros del productor; las transferencias, lo enviado a otro punto."
+      },
+      "ventas": {
+        "pestana": "Ventas",
+        "total": "Total vendido",
+        "totalDetalle": "{{unidades}} unidades · B2C {{b2c}} · B2B {{b2b}}",
+        "atendidos": "Pedidos atendidos",
+        "atendidosDetalle_one": "De {{count}} pedido pagado",
+        "atendidosDetalle_other": "De {{count}} pedidos pagados",
+        "porEntregar": "Pedidos por entregar",
+        "porEntregarDetalle": "Pagados, aún sin entregar",
+        "porPeriodo": "Ventas por período",
+        "porProducto": "Ventas por producto",
+        "vacio": "No hubo ventas en este período",
+        "nota": "Pedidos pagados y no cancelados que salen de su punto, por la fecha en que se confirmó el pago (hora de Lima). Un pedido está atendido cuando se entregó; mientras tanto, está por entregar. Una venta es B2B si se hizo a precio mayorista."
       }
     }
   },
