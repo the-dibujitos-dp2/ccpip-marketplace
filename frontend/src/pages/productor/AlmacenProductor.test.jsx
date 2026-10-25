@@ -170,6 +170,39 @@ describe('CCPIP-136 y CCPIP-162 Mi almacén del productor (PW-16)', () => {
     expect(within(filas[1]).getByText('33 und')).toBeInTheDocument()
   })
 
+  it('CCPIP-427: al desplegar un producto muestra cuánto hay en cada almacén', async () => {
+    productor()
+    const user = userEvent.setup()
+    abrirEn('/productor/almacen')
+    await user.click(await screen.findByRole('tab', { name: 'Por producto' }))
+    expect(screen.queryByRole('table', { name: 'Almacenes de Aceite de sacha inchi 250 ml' })).not.toBeInTheDocument()
+
+    const ver = screen.getByRole('button', { name: 'Ver en qué almacenes está Aceite de sacha inchi 250 ml' })
+    expect(ver).toHaveAttribute('aria-expanded', 'false')
+    await user.click(ver)
+
+    const detalle = screen.getByRole('table', { name: 'Almacenes de Aceite de sacha inchi 250 ml' })
+    const filas = within(detalle).getAllByRole('row').slice(1)
+    expect(filas).toHaveLength(2)
+    expect(within(filas[0]).getByText('Almacén Comunidad Shipibo')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('Tu almacén')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('40 und')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('Centro Regional Ucayali')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('Punto de acopio')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('216 und')).toBeInTheDocument()
+    // El lote vencido de Lima no suma: no aparece como almacén y se menciona aparte
+    expect(within(detalle).queryByText('Centro Nacional Lima')).not.toBeInTheDocument()
+    expect(screen.getByText('1 lote vencido no se cuenta como disponible.')).toBeInTheDocument()
+
+    // Solo un producto abierto a la vez; el botón lo vuelve a cerrar
+    await user.click(screen.getByRole('button', { name: 'Ver en qué almacenes está Harina de aguaje 500 g' }))
+    expect(screen.queryByRole('table', { name: 'Almacenes de Aceite de sacha inchi 250 ml' })).not.toBeInTheDocument()
+    const harina = screen.getByRole('table', { name: 'Almacenes de Harina de aguaje 500 g' })
+    expect(within(harina).getByText('9 und')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Ocultar los almacenes de Harina de aguaje 500 g' }))
+    expect(screen.queryByRole('table', { name: 'Almacenes de Harina de aguaje 500 g' })).not.toBeInTheDocument()
+  })
+
   it('el aviso de inventario unico se puede cerrar', async () => {
     productor()
     const user = userEvent.setup()

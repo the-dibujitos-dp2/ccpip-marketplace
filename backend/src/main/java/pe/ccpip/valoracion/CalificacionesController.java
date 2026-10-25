@@ -16,12 +16,14 @@ import pe.ccpip.auth.filter.SessionAuthFilter;
 import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.valoracion.ValoracionModelos.CalificacionesPedido;
+import pe.ccpip.valoracion.ValoracionModelos.MiCalificacionProducto;
 import pe.ccpip.valoracion.ValoracionModelos.NuevaCalificacion;
 import pe.ccpip.valoracion.ValoracionModelos.ResumenCalificaciones;
 
 /**
  * CCPIP-81: el comprador califica los productos de su pedido recibido. CCPIP-82: el resumen publico de
- * calificaciones de la ficha, que no requiere sesion. El acceso se declara en cada metodo.
+ * calificaciones de la ficha, que no requiere sesion. CCPIP-412: si el comprador puede calificar el
+ * producto desde la ficha. El acceso se declara en cada metodo.
  */
 @RestController
 public class CalificacionesController {
@@ -51,5 +53,13 @@ public class CalificacionesController {
     @GetMapping("/api/productos/{id}/calificaciones")
     public ResumenCalificaciones resumen(@PathVariable long id) {
         return service.resumen(id);
+    }
+
+    /** CCPIP-412: si el comprador de la sesion puede calificar el producto desde la ficha. */
+    @RolesPermitidos(Rol.CONSUMIDOR)
+    @GetMapping("/api/productos/{id}/calificaciones/mia")
+    public MiCalificacionProducto miCalificacion(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                                 @PathVariable long id) {
+        return service.miCalificacion(s.userId(), id);
     }
 }
