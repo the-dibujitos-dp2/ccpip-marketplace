@@ -66,8 +66,13 @@ public final class ProductoModelos {
     public record Publicable(boolean listo, List<String> faltan) {
     }
 
+    /**
+     * {@code descripcionPropuesta} es el borrador de la IA pendiente de decision; {@code descripcionSugerida}, el que el
+     * productor acepto (CCPIP-49), que se conserva junto a la version final, {@code descripcion}.
+     */
     public record ProductoEdicion(long id, Estado estado, String nombre, String descripcion, boolean descripcionAsistida,
-                                  String descripcionPropuesta, List<String> lineas, String unidad, String contenido,
+                                  String descripcionPropuesta, String descripcionSugerida, List<String> lineas,
+                                  String unidad, String contenido,
                                   Modalidad modalidad, BigDecimal precio, BigDecimal precioMayorista,
                                   Integer cantidadMinimaMayorista, boolean esMateriaPrima, List<Imagen> imagenes,
                                   Historia historia, BigDecimal enVenta, Publicable publicable) {

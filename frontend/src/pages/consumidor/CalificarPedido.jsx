@@ -51,28 +51,7 @@ export default function CalificarPedido({ pedidoId }) {
 
 function LineaCalificar({ pedidoId, linea, onCalificada, onDenunciar }) {
   const { t } = useTranslation()
-  const [estrellas, setEstrellas] = useState(null)
-  const [comentario, setComentario] = useState('')
-  const [enviando, setEnviando] = useState(false)
-  const [error, setError] = useState(null)
   const hecha = linea.calificacion
-
-  async function enviar(e) {
-    e.preventDefault()
-    if (!estrellas) {
-      setError(t('calificaciones.eligeEstrellas'))
-      return
-    }
-    setEnviando(true)
-    setError(null)
-    try {
-      onCalificada(await calificarLinea(pedidoId, { itemId: linea.itemId, estrellas, comentario }))
-    } catch (err) {
-      setError(mensajeError(err, 'calificaciones.errorEnvio'))
-    } finally {
-      setEnviando(false)
-    }
-  }
 
   return (
     <article className="calificar__linea" aria-label={linea.nombre}>
@@ -92,18 +71,51 @@ function LineaCalificar({ pedidoId, linea, onCalificada, onDenunciar }) {
           <span className="caption">{t('calificaciones.calificadoEl', { fecha: diaMes(hecha.calificadoEn) })}</span>
         </div>
       ) : (
-        <form className="calificar" onSubmit={enviar} noValidate>
-          <SelectorEstrellas valor={estrellas} onCambiar={setEstrellas} etiqueta={t('calificaciones.tuCalificacion')} disabled={enviando} />
-          <Campo tipo="area" etiqueta={t('calificaciones.comentario')} value={comentario} maxLength={500} rows={2}
-            onChange={(e) => setComentario(e.target.value)} ayuda={t('calificaciones.comentarioAyuda')} />
-          {error && <Alerta tono="error" titulo={error} />}
-          <div className="calificar__acciones">
-            <Boton type="submit" tamano="S" disabled={enviando}>
-              {enviando ? t('calificaciones.enviando') : t('calificaciones.enviar')}
-            </Boton>
-          </div>
-        </form>
+        <FormularioCalificacion pedidoId={pedidoId} itemId={linea.itemId} onCalificada={onCalificada} />
       )}
     </article>
+  )
+}
+
+/**
+ * Estrellas y comentario de una linea recibida. onCalificada recibe las calificaciones del pedido que
+ * devuelve el servidor. CCPIP-412: tambien lo usa la ficha del producto.
+ */
+export function FormularioCalificacion({ pedidoId, itemId, onCalificada }) {
+  const { t } = useTranslation()
+  const [estrellas, setEstrellas] = useState(null)
+  const [comentario, setComentario] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [error, setError] = useState(null)
+
+  async function enviar(e) {
+    e.preventDefault()
+    if (!estrellas) {
+      setError(t('calificaciones.eligeEstrellas'))
+      return
+    }
+    setEnviando(true)
+    setError(null)
+    try {
+      onCalificada(await calificarLinea(pedidoId, { itemId, estrellas, comentario }))
+    } catch (err) {
+      setError(mensajeError(err, 'calificaciones.errorEnvio'))
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  return (
+    <form className="calificar" onSubmit={enviar} noValidate>
+      <SelectorEstrellas valor={estrellas} onCambiar={setEstrellas} etiqueta={t('calificaciones.tuCalificacion')} disabled={enviando} />
+      <Campo tipo="area" etiqueta={t('calificaciones.comentario')} value={comentario} maxLength={500} rows={2}
+        onChange={(e) => setComentario(e.target.value)} ayuda={t('calificaciones.comentarioAyuda')} />
+      {error && <Alerta tono="error" titulo={error} />}
+      <div className="calificar__acciones">
+        <Boton type="submit" tamano="S" disabled={enviando}>
+          {enviando ? t('calificaciones.enviando') : t('calificaciones.enviar')}
+        </Boton>
+      </div>
+    </form>
   )
 }
