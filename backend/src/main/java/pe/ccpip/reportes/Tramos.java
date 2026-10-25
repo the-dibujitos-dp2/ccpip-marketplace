@@ -1,4 +1,4 @@
-package pe.ccpip.reportes.productor;
+package pe.ccpip.reportes;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -11,15 +11,15 @@ import java.util.Map;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 
 /**
- * Los periodos de un reporte del productor entre {@code desde} y {@code hasta} (fechas de Lima, inclusive),
+ * Los periodos de un reporte por periodo (productor, punto de acopio) entre {@code desde} y {@code hasta} (fechas de Lima, inclusive),
  * por dia, semana (de lunes a domingo, ISO 8601) o mes, igual que los reportes de la plataforma (SA-05).
  * El primero y el ultimo se recortan al rango. Estan todos, aun sin movimiento, para que la serie no
  * tenga huecos.
  */
-final class Tramos {
+public final class Tramos {
 
     /** Un periodo ya recortado al rango. */
-    record Tramo(LocalDate inicio, LocalDate fin) {
+    public record Tramo(LocalDate inicio, LocalDate fin) {
     }
 
     private final Agrupacion agrupacion;
@@ -27,7 +27,7 @@ final class Tramos {
     /** Inicio sin recortar de cada periodo -> su posicion en la lista. */
     private final Map<LocalDate, Integer> posiciones = new LinkedHashMap<>();
 
-    Tramos(LocalDate desde, LocalDate hasta, Agrupacion agrupacion) {
+    public Tramos(LocalDate desde, LocalDate hasta, Agrupacion agrupacion) {
         this.agrupacion = agrupacion;
         for (LocalDate inicio = truncar(desde); !inicio.isAfter(hasta); inicio = finDe(inicio).plusDays(1)) {
             posiciones.put(inicio, lista.size());
@@ -36,16 +36,16 @@ final class Tramos {
         }
     }
 
-    List<Tramo> lista() {
+    public List<Tramo> lista() {
         return lista;
     }
 
-    int cantidad() {
+    public int cantidad() {
         return lista.size();
     }
 
     /** La posicion del periodo que contiene {@code fecha}; la fecha debe estar en el rango. */
-    int posicion(LocalDate fecha) {
+    public int posicion(LocalDate fecha) {
         Integer i = posiciones.get(truncar(fecha));
         if (i == null) {
             throw new IllegalArgumentException("Fecha fuera del rango del reporte: " + fecha);

@@ -10,7 +10,8 @@ import java.util.Locale;
 
 import pe.ccpip.comun.Idioma;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
-import pe.ccpip.reportes.productor.DocumentoReporte.Seccion;
+import pe.ccpip.reportes.exportar.DocumentoReporte;
+import pe.ccpip.reportes.exportar.DocumentoReporte.Seccion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.PeriodoInventario;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.PeriodoProduccion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.PeriodoVentas;

@@ -1,4 +1,4 @@
-package pe.ccpip.reportes.productor;
+package pe.ccpip.reportes.exportar;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import pe.ccpip.reportes.productor.DocumentoReporte.Seccion;
+import pe.ccpip.reportes.exportar.DocumentoReporte.Seccion;
 
 /**
  * CCPIP-335: el reporte de sus productos en Excel (XLSX). Una hoja con los filtros y una por seccion, con
@@ -18,7 +18,7 @@ import pe.ccpip.reportes.productor.DocumentoReporte.Seccion;
  * de calculo. Se escribe el formato Office Open XML a mano, como el reporte de merma (CCPIP-78), sin sumar
  * una libreria al proyecto.
  */
-final class ReporteXlsx {
+public final class ReporteXlsx {
 
     private static final String XML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>";
     private static final String MAIN = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
@@ -34,7 +34,7 @@ final class ReporteXlsx {
     private ReporteXlsx() {
     }
 
-    static byte[] generar(DocumentoReporte documento) {
+    public static byte[] generar(DocumentoReporte documento) {
         List<String> nombres = new ArrayList<>();
         List<String> hojas = new ArrayList<>();
         nombres.add(nombreHoja(documento.titulo()));

@@ -1,4 +1,4 @@
-package pe.ccpip.reportes.productor;
+package pe.ccpip.reportes.exportar;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -14,7 +14,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 
-import pe.ccpip.reportes.productor.DocumentoReporte.Seccion;
+import pe.ccpip.reportes.exportar.DocumentoReporte.Seccion;
 
 /**
  * CCPIP-115: el reporte de sus productos en PDF, A4 horizontal para que quepan las ocho columnas del
@@ -22,7 +22,7 @@ import pe.ccpip.reportes.productor.DocumentoReporte.Seccion;
  * encabezado. Usa la fuente Noto incrustada que ya usa el reporte de merma (CCPIP-78), asi que se ven
  * bien las tildes, la ñ y los nombres en otros alfabetos.
  */
-final class ReportePdf {
+public final class ReportePdf {
 
     private static final String FUENTE = "/fonts/noto-sans-sc-variable.ttf";
     private static final PDRectangle HOJA = new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth());
@@ -38,7 +38,7 @@ final class ReportePdf {
     private ReportePdf() {
     }
 
-    static byte[] generar(DocumentoReporte documento) {
+    public static byte[] generar(DocumentoReporte documento) {
         try (PDDocument pdf = new PDDocument(); ByteArrayOutputStream salida = new ByteArrayOutputStream()) {
             PDType0Font fuente;
             try (InputStream entrada = ReportePdf.class.getResourceAsStream(FUENTE)) {
