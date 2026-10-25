@@ -48,6 +48,22 @@ public final class ValoracionModelos {
                                        int pendientes, List<LineaCalificable> lineas) {
     }
 
+    /**
+     * CCPIP-412: si el comprador puede calificar el producto desde la ficha. Solo con un pedido ENTREGADO
+     * que lo incluya y aun no calificado; los pedidos cancelados o sin pagar no cuentan como compra.
+     */
+    public enum EstadoCalificacionProducto { PUEDE_CALIFICAR, YA_CALIFICADO, PEDIDO_EN_CURSO, SIN_COMPRA }
+
+    /**
+     * CCPIP-412: lo que la ficha necesita para ofrecer la calificacion. {@code pedidoId} e {@code itemId}
+     * son la linea por calificar (PUEDE_CALIFICAR) o el pedido aun no recibido (PEDIDO_EN_CURSO);
+     * {@code calificacion}, la ultima que dejo (YA_CALIFICADO).
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record MiCalificacionProducto(long productoId, EstadoCalificacionProducto estado, Long pedidoId,
+                                         String numeroPedido, Long itemId, Calificacion calificacion) {
+    }
+
     /** Una resena publica: sin nombre ni dato alguno del comprador. Solo el dia en que se califico. */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record Resena(int estrellas, String comentario, LocalDate fecha) {

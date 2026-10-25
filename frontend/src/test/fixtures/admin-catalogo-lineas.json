@@ -18,6 +18,8 @@
       "activa": true,
       "productos": 2,
       "ofertas": 3,
+      "mermaUmbralAlerta": 5.0,
+      "mermaUmbralCritico": 10.0,
       "actualizadaEn": "2026-10-17T05:00:00Z",
       "desactivadaEn": null
     },
@@ -35,6 +37,8 @@
       "activa": true,
       "productos": 2,
       "ofertas": 2,
+      "mermaUmbralAlerta": 5.0,
+      "mermaUmbralCritico": 10.0,
       "actualizadaEn": "2026-10-17T05:00:00Z",
       "desactivadaEn": null
     },
@@ -52,6 +56,8 @@
       "activa": true,
       "productos": 1,
       "ofertas": 1,
+      "mermaUmbralAlerta": 8.0,
+      "mermaUmbralCritico": 15.0,
       "actualizadaEn": "2026-10-17T05:00:00Z",
       "desactivadaEn": null
     },
@@ -69,6 +75,8 @@
       "activa": true,
       "productos": 2,
       "ofertas": 2,
+      "mermaUmbralAlerta": 5.0,
+      "mermaUmbralCritico": 10.0,
       "actualizadaEn": "2026-10-17T05:00:00Z",
       "desactivadaEn": null
     },
@@ -86,6 +94,8 @@
       "activa": true,
       "productos": 1,
       "ofertas": 1,
+      "mermaUmbralAlerta": 5.0,
+      "mermaUmbralCritico": 10.0,
       "actualizadaEn": "2026-10-17T05:00:00Z",
       "desactivadaEn": null
     },
@@ -103,6 +113,8 @@
       "activa": true,
       "productos": 1,
       "ofertas": 1,
+      "mermaUmbralAlerta": 5.0,
+      "mermaUmbralCritico": 10.0,
       "actualizadaEn": "2026-10-17T05:00:00Z",
       "desactivadaEn": null
     },
@@ -120,6 +132,8 @@
       "activa": true,
       "productos": 1,
       "ofertas": 1,
+      "mermaUmbralAlerta": 5.0,
+      "mermaUmbralCritico": 10.0,
       "actualizadaEn": "2026-10-17T05:00:00Z",
       "desactivadaEn": null
     }

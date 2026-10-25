@@ -206,6 +206,67 @@ class CatalogoMaestroTest extends IntegrationTest {
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("NOMBRE_DUPLICADO"));
     }
 
+    // --- CCPIP-430: umbrales de merma de la linea ---
+
+    @Test
+    void lasLineasNacenConUmbralesDeMermaYElSuperadministradorLosCambiaAuditados() throws Exception {
+        Cookie sesion = loginAs(SUPER);
+        // Toda linea tiene sus umbrales a la vista: las existentes y las nuevas nacen en 5 % y 10 %
+        mockMvc.perform(get(LINEAS).cookie(sesion))
+                .andExpect(jsonPath("$.lineas[?(@.codigo == 'CAFE')].mermaUmbralAlerta", hasItem(5.0)))
+                .andExpect(jsonPath("$.lineas[?(@.codigo == 'CAFE')].mermaUmbralCritico", hasItem(10.0)));
+        enviar(post(LINEAS), sesion, nuevaLinea("MIEL", "Miel"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.mermaUmbralAlerta").value(5.0))
+                .andExpect(jsonPath("$.mermaUmbralCritico").value(10.0));
+        Map<String, Object> flores = nuevaLinea("FLORES", "Flores");
+        flores.put("mermaUmbralAlerta", 12);
+        flores.put("mermaUmbralCritico", 25.5);
+        enviar(post(LINEAS), sesion, flores)
+                .andExpect(jsonPath("$.mermaUmbralAlerta").value(12.0))
+                .andExpect(jsonPath("$.mermaUmbralCritico").value(25.5));
+
+        int cafe = idLinea("CAFE");
+        enviar(put(LINEAS + "/{id}", cafe), sesion, umbrales(8, 15))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mermaUmbralAlerta").value(8.0))
+                .andExpect(jsonPath("$.mermaUmbralCritico").value(15.0));
+        assertThat(jdbc.queryForObject("""
+                SELECT cambios::text FROM catalogo_maestro_auditoria WHERE entidad = 'LINEA' AND entidad_id = ? AND accion = 'EDITAR'""",
+                String.class, cafe)).contains("\"mermaUmbralAlerta\"").contains("\"mermaUmbralCritico\"");
+
+        // Sin umbrales en el cuerpo (un formulario anterior a CCPIP-430) se conservan los que tiene
+        enviar(put(LINEAS + "/{id}", cafe), sesion, datosLinea("Café", true, null, null))
+                .andExpect(jsonPath("$.mermaUmbralAlerta").value(8.0))
+                .andExpect(jsonPath("$.mermaUmbralCritico").value(15.0));
+    }
+
+    @Test
+    void losUmbralesDeMermaSeValidan() throws Exception {
+        Cookie sesion = loginAs(SUPER);
+        int cafe = idLinea("CAFE");
+        enviar(put(LINEAS + "/{id}", cafe), sesion, umbrales(10, 10))
+                .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("UMBRALES_MERMA_INVALIDOS"));
+        // Solo la alerta, por encima del critico que ya tiene (10 %)
+        enviar(put(LINEAS + "/{id}", cafe), sesion, umbrales(12, null))
+                .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("UMBRALES_MERMA_INVALIDOS"));
+        Map<String, Object> nueva = nuevaLinea("MIEL", "Miel");
+        nueva.put("mermaUmbralAlerta", 20);
+        enviar(post(LINEAS), sesion, nueva)
+                .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("UMBRALES_MERMA_INVALIDOS"));
+        enviar(put(LINEAS + "/{id}", cafe), sesion, umbrales(0, 10))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.campos.mermaUmbralAlerta").exists());
+        enviar(put(LINEAS + "/{id}", cafe), sesion, umbrales(5, 101))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.campos.mermaUmbralCritico").exists());
+        enviar(put(LINEAS + "/{id}", cafe), sesion, umbrales(5.25, 10))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.campos.mermaUmbralAlerta").exists());
+
+        assertThat(jdbc.queryForMap("""
+                SELECT merma_umbral_alerta::text AS alerta, merma_umbral_critico::text AS critico
+                FROM linea_producto WHERE id = ?""", cafe))
+                .containsEntry("alerta", "5.0").containsEntry("critico", "10.0");
+    }
+
     // --- CCPIP-311: desactivar linea ---
 
     @Test
@@ -429,7 +490,8 @@ class CatalogoMaestroTest extends IntegrationTest {
             "UPDATE linea_producto SET codigo = 'CAFE_X' WHERE codigo = 'CAFE'",
             "UPDATE producto_maestro SET codigo = 'CAFE-X' WHERE codigo = 'CAFE-MOLIDO'",
             "UPDATE catalogo_maestro_auditoria SET accion = 'CREAR'",
-            "DELETE FROM catalogo_maestro_auditoria"})
+            "DELETE FROM catalogo_maestro_auditoria",
+            "UPDATE linea_producto SET merma_umbral_alerta = 20 WHERE codigo = 'CAFE'"})
     void laBaseConservaElCatalogoYSuHistorial(String sql) throws Exception {
         Cookie sesion = loginAs(SUPER);
         mockMvc.perform(post(LINEAS + "/{id}/desactivar", idLinea("TEXTIL")).cookie(sesion)).andExpect(status().isOk());
@@ -458,6 +520,14 @@ class CatalogoMaestroTest extends IntegrationTest {
         d.put("requiereVencimiento", vence);
         d.put("unidadSugerida", unidad);
         d.put("orden", orden);
+        return d;
+    }
+
+    /** Los datos de la linea Cafe con esos umbrales de merma (nulo: no se envia). */
+    private static Map<String, Object> umbrales(Number alerta, Number critico) {
+        Map<String, Object> d = datosLinea("Café", true, null, null);
+        d.put("mermaUmbralAlerta", alerta);
+        d.put("mermaUmbralCritico", critico);
         return d;
     }
 
