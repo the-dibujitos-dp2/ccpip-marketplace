@@ -101,6 +101,64 @@ class SuperAdministradorTest extends IntegrationTest {
         assertThat(TableroRepository.variacion(new BigDecimal("50"), BigDecimal.ZERO)).isNull();
     }
 
+    // --- CCPIP-430: merma del mes con los umbrales de cada linea ---
+
+    @Test
+    void laMermaDelMesSeColoreaConLosUmbralesDeSuLinea() throws Exception {
+        Cookie sesion = loginAs(SUPER);
+        jdbc.update("""
+                INSERT INTO linea_producto (codigo, nombre, orden, merma_umbral_alerta, merma_umbral_critico)
+                VALUES ('MERMA_TABLERO', 'Línea de la merma del tablero', 99, 10, 20)""");
+        long producto = productoConLote("Camu camu de la merma", "PUBLICADO", null, null);
+        jdbc.update("UPDATE producto SET linea_id = (SELECT id FROM linea_producto WHERE codigo = 'MERMA_TABLERO') WHERE id = ?", producto);
+        long lote = loteEnCentroNacional(producto, new BigDecimal("90"));
+        BigDecimal mermaAntes = monto(punto(tablero(sesion), "Centro Nacional Lima", "merma").get("unidades"));
+        assertThat(mermaDeLinea(tablero(sesion), "MERMA_TABLERO")).isEmpty();
+
+        // El punto marca 10 de 90: 10 / (10 + 80) = 11.1 %, entre la alerta (10 %) y el critico (20 %)
+        marcarMerma(lote, "10");
+        JsonNode tablero = tablero(sesion);
+        JsonNode fila = mermaDeLinea(tablero, "MERMA_TABLERO").orElseThrow();
+        assertThat(fila.get("punto").asText()).isEqualTo("Centro Nacional Lima");
+        assertThat(fila.get("unidades").decimalValue()).isEqualByComparingTo("10");
+        assertThat(fila.get("stock").decimalValue()).isEqualByComparingTo("80");
+        assertThat(fila.get("porcentaje").decimalValue()).isEqualByComparingTo("11.1");
+        assertThat(fila.get("umbralAlerta").decimalValue()).isEqualByComparingTo("10");
+        assertThat(fila.get("umbralCritico").decimalValue()).isEqualByComparingTo("20");
+        assertThat(fila.get("nivel").asText()).isEqualTo("ALERTA");
+
+        // El punto suma esa merma y avisa al menos con el nivel de su linea mas comprometida
+        JsonNode merma = punto(tablero, "Centro Nacional Lima", "merma");
+        assertThat(monto(merma.get("unidades")).subtract(mermaAntes)).isEqualByComparingTo("10");
+        assertThat(merma.get("porcentaje").isNumber()).isTrue();
+        assertThat(merma.get("nivel").asText()).isIn("ALERTA", "CRITICO");
+
+        // Con umbrales mas exigentes, la misma merma pasa a critica: el color sigue a la linea, no a un valor fijo
+        jdbc.update("UPDATE linea_producto SET merma_umbral_alerta = 5, merma_umbral_critico = 11 WHERE codigo = 'MERMA_TABLERO'");
+        tablero = tablero(sesion);
+        assertThat(mermaDeLinea(tablero, "MERMA_TABLERO").orElseThrow().get("nivel").asText()).isEqualTo("CRITICO");
+        assertThat(punto(tablero, "Centro Nacional Lima", "merma").get("nivel").asText()).isEqualTo("CRITICO");
+    }
+
+    @Test
+    void elNivelDeMermaSigueLosUmbrales() {
+        BigDecimal alerta = new BigDecimal("5");
+        BigDecimal critico = new BigDecimal("10");
+        assertThat(TableroModelos.NivelMerma.de(new BigDecimal("4.9"), alerta, critico)).isEqualTo(TableroModelos.NivelMerma.NORMAL);
+        assertThat(TableroModelos.NivelMerma.de(new BigDecimal("5.0"), alerta, critico)).isEqualTo(TableroModelos.NivelMerma.ALERTA);
+        assertThat(TableroModelos.NivelMerma.de(new BigDecimal("9.9"), alerta, critico)).isEqualTo(TableroModelos.NivelMerma.ALERTA);
+        assertThat(TableroModelos.NivelMerma.de(new BigDecimal("10.0"), alerta, critico)).isEqualTo(TableroModelos.NivelMerma.CRITICO);
+
+        assertThat(TableroRepository.porcentajeMerma(new BigDecimal("1"), new BigDecimal("2"))).isEqualByComparingTo("33.3");
+        assertThat(TableroRepository.porcentajeMerma(BigDecimal.ZERO, new BigDecimal("40"))).isEqualByComparingTo("0");
+        assertThat(TableroRepository.porcentajeMerma(BigDecimal.ZERO, BigDecimal.ZERO)).isNull();
+
+        // Un punto sin stock ni merma no tiene porcentaje ni color; con stock y sin merma, es normal
+        assertThat(TableroRepository.mermaDelPunto(1, BigDecimal.ZERO, BigDecimal.ZERO, List.of()).nivel()).isNull();
+        assertThat(TableroRepository.mermaDelPunto(1, BigDecimal.ZERO, BigDecimal.TEN, List.of()).nivel())
+                .isEqualTo(TableroModelos.NivelMerma.NORMAL);
+    }
+
     // --- Sin edicion directa (criterio de aceptacion) ---
 
     @Test
@@ -157,6 +215,40 @@ class SuperAdministradorTest extends IntegrationTest {
                 .filter(p -> nombre.equals(p.get("nombre").asText()))
                 .map(p -> p.get(campo))
                 .findFirst().orElseThrow();
+    }
+
+    private static java.util.Optional<JsonNode> mermaDeLinea(JsonNode tablero, String codigo) {
+        return StreamSupport.stream(tablero.get("mermaPorLinea").spliterator(), false)
+                .filter(m -> codigo.equals(m.get("codigo").asText()))
+                .findFirst();
+    }
+
+    /** Un lote vigente en Centro Nacional Lima con su ENTRADA y su stock, como lo deja el registro del lote. */
+    private long loteEnCentroNacional(long producto, BigDecimal cantidad) {
+        Long id = jdbc.queryForObject("""
+                INSERT INTO lote (producto_id, ubicacion_id, codigo, cantidad_inicial, cantidad_actual,
+                                  fecha_produccion, fecha_vencimiento)
+                SELECT ?, u.id, 'L-M' || ?, ?, ?, current_date - 10, current_date + 180
+                FROM ubicacion u WHERE u.nombre = 'Centro Nacional Lima'
+                RETURNING id""", Long.class, producto, producto, cantidad, cantidad);
+        jdbc.update("""
+                INSERT INTO movimiento_inventario (producto_id, ubicacion_id, lote_id, tipo, cantidad, observacion)
+                SELECT producto_id, ubicacion_id, id, 'ENTRADA', cantidad_inicial, 'Registro del lote' FROM lote WHERE id = ?""", id);
+        jdbc.update("""
+                INSERT INTO stock (producto_id, ubicacion_id, cantidad)
+                SELECT producto_id, ubicacion_id, cantidad_inicial FROM lote WHERE id = ?
+                ON CONFLICT (producto_id, ubicacion_id) DO UPDATE SET cantidad = stock.cantidad + EXCLUDED.cantidad""", id);
+        return id == null ? 0 : id;
+    }
+
+    /** El administrador del punto marca merma del lote, confirmada (CCPIP-76). */
+    private void marcarMerma(long lote, String cantidad) throws Exception {
+        Long causa = jdbc.queryForObject("SELECT id FROM motivo_merma WHERE nombre = 'Daño'", Long.class);
+        mockMvc.perform(post("/api/acopio/merma").cookie(loginAs("admin_acopio@ccpip.test"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(java.util.Map.of("loteId", lote, "cantidad", cantidad, "motivoId", causa,
+                                "clave", java.util.UUID.randomUUID().toString(), "confirmada", true))))
+                .andExpect(status().isCreated());
     }
 
     private static List<String> nombres(JsonNode lista) {

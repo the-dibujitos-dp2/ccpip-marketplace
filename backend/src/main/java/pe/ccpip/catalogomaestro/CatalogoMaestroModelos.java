@@ -1,8 +1,12 @@
 package pe.ccpip.catalogomaestro;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -33,9 +37,12 @@ public final class CatalogoMaestroModelos {
     /**
      * Una linea del catalogo maestro. {@code productos}: productos maestros de la linea; {@code ofertas}:
      * ofertas de productores que la tienen, que se conservan aunque la linea se desactive.
+     * {@code mermaUmbralAlerta} y {@code mermaUmbralCritico}: % de merma del mes desde el que el tablero
+     * SA-01 la muestra en alerta o en estado critico (CCPIP-430).
      */
     public record Linea(int id, String codigo, String nombre, String nombreEn, boolean requiereVencimiento,
                         Codigo unidadSugerida, int orden, boolean activa, long productos, long ofertas,
+                        BigDecimal mermaUmbralAlerta, BigDecimal mermaUmbralCritico,
                         Instant actualizadaEn, Instant desactivadaEn) {
     }
 
@@ -44,14 +51,21 @@ public final class CatalogoMaestroModelos {
 
     /**
      * Lo que se edita de una linea (CCPIP-310). El codigo no cambia: es la clave de sus traducciones.
-     * {@code nombreEn} opcional: nombre aprobado en ingles. {@code orden} nulo conserva el actual.
+     * {@code nombreEn} opcional: nombre aprobado en ingles. {@code orden} nulo conserva el actual, igual que
+     * un umbral de merma nulo (CCPIP-430); al crear, nulo deja el inicial (5 % y 10 %).
      */
     public record DatosLinea(
             @NotBlank(message = "Escribe el nombre de la línea") @Size(max = 80, message = "Máximo 80 caracteres") String nombre,
             @Size(max = 80, message = "Máximo 80 caracteres") String nombreEn,
             @NotNull(message = "Indica si sus lotes vencen") Boolean requiereVencimiento,
             String unidadSugerida,
-            @Min(value = 0, message = "El orden no puede ser negativo") @Max(value = 999, message = "Máximo 999") Integer orden) {
+            @Min(value = 0, message = "El orden no puede ser negativo") @Max(value = 999, message = "Máximo 999") Integer orden,
+            @DecimalMin(value = "0.1", message = "El umbral debe ser mayor que 0")
+            @DecimalMax(value = "100", message = "El umbral no puede pasar de 100 %")
+            @Digits(integer = 3, fraction = 1, message = "Usa hasta 1 decimal") BigDecimal mermaUmbralAlerta,
+            @DecimalMin(value = "0.1", message = "El umbral debe ser mayor que 0")
+            @DecimalMax(value = "100", message = "El umbral no puede pasar de 100 %")
+            @Digits(integer = 3, fraction = 1, message = "Usa hasta 1 decimal") BigDecimal mermaUmbralCritico) {
     }
 
     /** Linea nueva (CCPIP-309). {@code codigo}: letras, numeros o guion bajo; se guarda en mayusculas. */
@@ -62,10 +76,17 @@ public final class CatalogoMaestroModelos {
             @Size(max = 80, message = "Máximo 80 caracteres") String nombreEn,
             @NotNull(message = "Indica si sus lotes vencen") Boolean requiereVencimiento,
             String unidadSugerida,
-            @Min(value = 0, message = "El orden no puede ser negativo") @Max(value = 999, message = "Máximo 999") Integer orden) {
+            @Min(value = 0, message = "El orden no puede ser negativo") @Max(value = 999, message = "Máximo 999") Integer orden,
+            @DecimalMin(value = "0.1", message = "El umbral debe ser mayor que 0")
+            @DecimalMax(value = "100", message = "El umbral no puede pasar de 100 %")
+            @Digits(integer = 3, fraction = 1, message = "Usa hasta 1 decimal") BigDecimal mermaUmbralAlerta,
+            @DecimalMin(value = "0.1", message = "El umbral debe ser mayor que 0")
+            @DecimalMax(value = "100", message = "El umbral no puede pasar de 100 %")
+            @Digits(integer = 3, fraction = 1, message = "Usa hasta 1 decimal") BigDecimal mermaUmbralCritico) {
 
         DatosLinea datos() {
-            return new DatosLinea(nombre, nombreEn, requiereVencimiento, unidadSugerida, orden);
+            return new DatosLinea(nombre, nombreEn, requiereVencimiento, unidadSugerida, orden, mermaUmbralAlerta,
+                    mermaUmbralCritico);
         }
     }
 
