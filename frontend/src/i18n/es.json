@@ -584,7 +584,10 @@
         "aceptar": "Aceptar descripción",
         "descartar": "Descartar",
         "descartada": "Descartaste el borrador. Escribe la descripción con tus palabras o pide otro.",
-        "errorDescartar": "No pudimos descartar el borrador"
+        "errorDescartar": "No pudimos descartar el borrador",
+        "errorAceptar": "No pudimos aceptar el borrador",
+        "yaNoPendiente": "Este borrador ya no está pendiente. Pide otro si lo necesitas.",
+        "guardaAntes": "Guarda el producto antes de pedir una descripción con IA"
       },
       "descripcionAsistida": "Descripción (borrador asistido por IA, editable)",
       "descripcion": "Descripción",

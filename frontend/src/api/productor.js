@@ -30,6 +30,12 @@ export const proponerDescripcion = (datos) => apiFetch(`${base}/ia/descripcion`,
 /** CCPIP-280: `borrador` DESCRIPCION | HISTORIA. Queda registrado y no se publica nada. */
 export const rechazarBorrador = async (id, borrador) =>
   apiFetch(`${base}/productos/${idRuta(id)}/ia/rechazar?${new URLSearchParams({ borrador })}`, { method: 'POST' })
+/**
+ * CCPIP-49: aceptar el borrador de descripcion pendiente para editarlo. Queda registrado quien y cuando, y se
+ * conserva como version sugerida; no cambia la descripcion publicada. 409 SIN_BORRADOR si no hay borrador.
+ */
+export const aceptarBorradorDescripcion = async (id) =>
+  apiFetch(`${base}/productos/${idRuta(id)}/ia/descripcion/aceptar`, { method: 'POST' })
 
 // CCPIP-147 y CCPIP-170: traduccion del producto (PW-04) y de la tienda (PW-08). `idioma` es el de
 // destino. Traducir responde 503 TRADUCCION_NO_DISPONIBLE si no hay proveedor; nada se publica
