@@ -15,7 +15,7 @@ import pe.ccpip.support.IntegrationTest;
 
 /**
  * Pantalla «Reportes» del administrador de punto de acopio: lo que paso en sus puntos por periodo.
- * CCPIP-117 (RF-65): entradas; CCPIP-341 (RF-231): salidas.
+ * CCPIP-117 (RF-65): entradas; CCPIP-341 (RF-231): salidas; CCPIP-342 (RF-232): ventas.
  *
  * <p>admin_acopio@ administra el Centro Nacional Lima; lo de Cusco no es suyo. Los datos son de mayo y
  * junio de 2024, meses que ninguna otra prueba usa, y la transaccion se deshace al terminar.
@@ -28,6 +28,7 @@ class ReportesAcopioTest extends IntegrationTest {
     private static final String CUSCO = "Centro Regional Cusco";
     private static final String ENTRADAS = "/api/acopio/reportes/entradas";
     private static final String SALIDAS = "/api/acopio/reportes/salidas";
+    private static final String VENTAS = "/api/acopio/reportes/ventas";
 
     private long aceite;
     private long harina;
@@ -122,6 +123,37 @@ class ReportesAcopioTest extends IntegrationTest {
     }
 
     @Test
+    void lasVentasDelPuntoCuentanPedidosAtendidosYPorEntregar() throws Exception {
+        long enLima = lote(aceite, LIMA, "RA-V1", "50", "2024-05-02 09:00-05");
+        venta(enLima, "RAV-1", "ENTREGADO", "5", "2024-05-20 10:00-05");
+        venta(enLima, "RAV-2", "LISTO_PARA_RECOJO", "3", "2024-06-05 10:00-05", "MAYORISTA");
+        venta(enLima, "RAV-3", "CANCELADO", "9", "2024-06-06 10:00-05");
+        long enCusco = lote(aceite, CUSCO, "RA-V2", "20", "2024-05-02 09:00-05");
+        venta(enCusco, "RAV-4", "ENTREGADO", "7", "2024-05-21 10:00-05");
+
+        mockMvc.perform(get(VENTAS + "?desde=2024-05-01&hasta=2024-06-30").cookie(loginAs(ADMIN)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.periodos[0].pedidos").value(1))
+                .andExpect(jsonPath("$.periodos[0].pedidosAtendidos").value(1))
+                .andExpect(jsonPath("$.periodos[0].unidades").value(5))
+                .andExpect(jsonPath("$.periodos[0].b2c").value(5.00))
+                .andExpect(jsonPath("$.periodos[1].pedidosPorEntregar").value(1))
+                .andExpect(jsonPath("$.periodos[1].b2b").value(3.00))
+                .andExpect(jsonPath("$.periodos[1].acumulado").value(8.00))
+                // Ni el pedido cancelado ni la venta de Cusco
+                .andExpect(jsonPath("$.totales.pedidos").value(2))
+                .andExpect(jsonPath("$.totales.pedidosAtendidos").value(1))
+                .andExpect(jsonPath("$.totales.pedidosPorEntregar").value(1))
+                .andExpect(jsonPath("$.totales.unidades").value(8))
+                .andExpect(jsonPath("$.totales.total").value(8.00))
+                .andExpect(jsonPath("$.porProducto.length()").value(1))
+                .andExpect(jsonPath("$.porProducto[0].producto").value("RA Aceite"))
+                .andExpect(jsonPath("$.porProducto[0].unidades").value(8))
+                .andExpect(jsonPath("$..numero").doesNotExist())
+                .andExpect(jsonPath("$..correo").doesNotExist());
+    }
+
+    @Test
     void loAjenoNoExisteYOtroRolNoEntra() throws Exception {
         entradasDePrueba();
         Cookie sesion = loginAs(ADMIN);
@@ -175,8 +207,12 @@ class ReportesAcopioTest extends IntegrationTest {
         salida(enCusco, "MERMA", null, "9", "2024-05-10 10:00-05");
     }
 
-    /** Un pedido confirmado en {@code cuando}, ahora en {@code estado}, con su SALIDA_VENTA del lote. */
     private void venta(long lote, String numero, String estado, String cantidad, String cuando) {
+        venta(lote, numero, estado, cantidad, cuando, "MINORISTA");
+    }
+
+    /** Un pedido confirmado en {@code cuando}, ahora en {@code estado}, con su SALIDA_VENTA del lote. */
+    private void venta(long lote, String numero, String estado, String cantidad, String cuando, String tarifa) {
         BigDecimal unidades = new BigDecimal(cantidad);
         long pedido = jdbc.queryForObject("""
                 INSERT INTO pedido (numero, usuario_id, modalidad, ubicacion_origen_id, total, estado, confirmado_en)
@@ -185,8 +221,8 @@ class ReportesAcopioTest extends IntegrationTest {
                 RETURNING id""", Long.class, numero, unidades, estado, cuando, lote);
         long item = jdbc.queryForObject("""
                 INSERT INTO item_pedido (pedido_id, producto_id, productor_id, cantidad, precio_unitario, subtotal, tarifa)
-                SELECT ?, pr.id, pr.productor_id, ?, 1, ?, 'MINORISTA' FROM lote l JOIN producto pr ON pr.id = l.producto_id
-                WHERE l.id = ? RETURNING id""", Long.class, pedido, unidades, unidades, lote);
+                SELECT ?, pr.id, pr.productor_id, ?, 1, ?, ? FROM lote l JOIN producto pr ON pr.id = l.producto_id
+                WHERE l.id = ? RETURNING id""", Long.class, pedido, unidades, unidades, tarifa, lote);
         jdbc.update("""
                 INSERT INTO movimiento_inventario (producto_id, ubicacion_id, lote_id, tipo, cantidad, pedido_id, item_pedido_id,
                                                    registrado_en)

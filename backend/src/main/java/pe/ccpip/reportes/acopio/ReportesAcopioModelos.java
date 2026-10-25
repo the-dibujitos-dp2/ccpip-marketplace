@@ -71,4 +71,28 @@ public final class ReportesAcopioModelos {
                                  Long producto, TotalesSalidas totales, List<PeriodoSalidas> periodos,
                                  List<ProductoSalidas> porProducto, List<Opcion> productores, List<Opcion> productos) {
     }
+
+    /**
+     * CCPIP-342: un periodo de ventas del punto: pedidos (atendidos = entregados; no atendidos = pagados y aun
+     * por entregar), unidades e importe B2C (tarifa minorista) y B2B (mayorista).
+     */
+    public record PeriodoVentas(LocalDate inicio, LocalDate fin, long pedidos, long pedidosAtendidos,
+                                long pedidosPorEntregar, BigDecimal unidades, BigDecimal b2c, BigDecimal b2b,
+                                BigDecimal total, BigDecimal acumulado) {
+    }
+
+    /** CCPIP-342: lo vendido de un producto en todo el rango. */
+    public record ProductoVentas(long productoId, String producto, String productor, BigDecimal unidades,
+                                 BigDecimal total) {
+    }
+
+    public record TotalesVentas(long pedidos, long pedidosAtendidos, long pedidosPorEntregar, BigDecimal unidades,
+                                BigDecimal b2c, BigDecimal b2b, BigDecimal total) {
+    }
+
+    /** CCPIP-342 (RF-232): ventas de sus puntos por periodo. */
+    public record ReporteVentas(String puntos, LocalDate desde, LocalDate hasta, Agrupacion agrupacion, Long productor,
+                                Long producto, TotalesVentas totales, List<PeriodoVentas> periodos,
+                                List<ProductoVentas> porProducto, List<Opcion> productores, List<Opcion> productos) {
+    }
 }

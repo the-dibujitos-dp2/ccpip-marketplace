@@ -16,6 +16,7 @@ import pe.ccpip.auth.model.Rol;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteEntradas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteSalidas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteVentas;
 
 /**
  * Pantalla «Reportes» del administrador de punto de acopio: lo que paso en sus puntos por periodo. Solo el
@@ -52,5 +53,16 @@ public class ReportesAcopioController {
                                   @RequestParam(required = false) Long productor,
                                   @RequestParam(required = false) Long producto) {
         return service.salidas(s.userId(), desde, hasta, agrupacion, productor, producto);
+    }
+
+    /** CCPIP-342 (RF-232): ventas de sus puntos por periodo, con los pedidos atendidos y por entregar. */
+    @GetMapping("/ventas")
+    public ReporteVentas ventas(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+                                @RequestParam(required = false) Agrupacion agrupacion,
+                                @RequestParam(required = false) Long productor,
+                                @RequestParam(required = false) Long producto) {
+        return service.ventas(s.userId(), desde, hasta, agrupacion, productor, producto);
     }
 }

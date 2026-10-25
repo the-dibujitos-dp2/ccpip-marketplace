@@ -22,12 +22,16 @@ import pe.ccpip.reportes.Tramos;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.Opcion;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.PeriodoEntradas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.PeriodoSalidas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.PeriodoVentas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ProductoEntradas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ProductoSalidas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ProductoVentas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteEntradas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteSalidas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteVentas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.TotalesEntradas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.TotalesSalidas;
+import pe.ccpip.reportes.acopio.ReportesAcopioModelos.TotalesVentas;
 
 /**
  * Reportes del punto de acopio por periodo. Todo se limita en el servidor a los puntos que el usuario
@@ -244,6 +248,84 @@ public class ReportesAcopioService {
                 .sorted(Comparator.comparing(ProductoSalidas::total).reversed().thenComparing(ProductoSalidas::producto))
                 .toList();
         return new ReporteSalidas(c.puntos(), c.desde(), c.hasta(), c.agrupacion(), c.productor(), c.producto(),
+                totales, periodos, productos, productores(usuarioId), productos(usuarioId));
+    }
+
+    /**
+     * CCPIP-342 (RF-232): lo vendido desde sus puntos (el punto de origen del pedido), por la fecha en que se
+     * confirmo cada compra, en pedidos pagados y no cancelados, como los demas reportes de ventas. Cuenta los
+     * pedidos atendidos (entregados) y los no atendidos (aun por entregar) segun su estado actual; con un
+     * filtro de productor o producto, solo los pedidos que lo incluyen.
+     */
+    @Transactional(readOnly = true)
+    public ReporteVentas ventas(long usuarioId, LocalDate desde, LocalDate hasta, Agrupacion agrupacion,
+                                Long productor, Long producto) {
+        Consulta c = consulta(usuarioId, desde, hasta, agrupacion, productor, producto);
+        Tramos tramos = new Tramos(c.desde(), c.hasta(), c.agrupacion());
+        int n = tramos.cantidad();
+        BigDecimal[] unidades = ceros(n);
+        BigDecimal[] b2c = ceros(n);
+        BigDecimal[] b2b = ceros(n);
+        long[] atendidos = new long[n];
+        long[] porEntregar = new long[n];
+        Map<Long, ProductoVentas> porProducto = new LinkedHashMap<>();
+        String desdeSusPuntos = """
+                FROM item_pedido i
+                JOIN pedido pe ON pe.id = i.pedido_id
+                JOIN producto pr ON pr.id = i.producto_id
+                JOIN productor po ON po.id = pr.productor_id
+                WHERE pe.ubicacion_origen_id IN %s
+                  AND pe.confirmado_en IS NOT NULL AND pe.estado <> 'CANCELADO'
+                  AND %s BETWEEN :desde AND :hasta
+                """.formatted(SUS_PUNTOS, FECHA.formatted("pe.confirmado_en")) + c.filtros();
+
+        jdbc.query("SELECT " + FECHA.formatted("pe.confirmado_en") + " AS fecha, pr.id AS producto_id, pr.nombre AS producto, "
+                + NOMBRE_PRODUCTOR + " AS productor, i.tarifa, sum(i.cantidad) AS unidades, sum(i.subtotal) AS monto "
+                + desdeSusPuntos + " GROUP BY 1, pr.id, pr.nombre, 4, i.tarifa", c.parametros(), rs -> {
+            int i = tramos.posicion(rs.getObject("fecha", LocalDate.class));
+            BigDecimal u = rs.getBigDecimal("unidades");
+            BigDecimal monto = rs.getBigDecimal("monto");
+            unidades[i] = unidades[i].add(u);
+            if ("MAYORISTA".equals(rs.getString("tarifa"))) {
+                b2b[i] = b2b[i].add(monto);
+            } else {
+                b2c[i] = b2c[i].add(monto);
+            }
+            long id = rs.getLong("producto_id");
+            ProductoVentas previo = porProducto.getOrDefault(id, new ProductoVentas(id, rs.getString("producto"),
+                    rs.getString("productor"), BigDecimal.ZERO, BigDecimal.ZERO));
+            porProducto.put(id, new ProductoVentas(id, previo.producto(), previo.productor(), previo.unidades().add(u),
+                    previo.total().add(monto)));
+        });
+        jdbc.query("SELECT " + FECHA.formatted("pe.confirmado_en") + " AS fecha, pe.estado IN " + POR_ENTREGAR
+                + " AS pendiente, count(DISTINCT pe.id) AS pedidos " + desdeSusPuntos + " GROUP BY 1, 2", c.parametros(), rs -> {
+            int i = tramos.posicion(rs.getObject("fecha", LocalDate.class));
+            if (rs.getBoolean("pendiente")) {
+                porEntregar[i] += rs.getLong("pedidos");
+            } else {
+                atendidos[i] += rs.getLong("pedidos");
+            }
+        });
+
+        List<PeriodoVentas> periodos = new ArrayList<>();
+        BigDecimal acumulado = BigDecimal.ZERO;
+        long totalAtendidos = 0;
+        long totalPorEntregar = 0;
+        for (int i = 0; i < n; i++) {
+            Tramos.Tramo t = tramos.lista().get(i);
+            BigDecimal total = b2c[i].add(b2b[i]);
+            acumulado = acumulado.add(total);
+            totalAtendidos += atendidos[i];
+            totalPorEntregar += porEntregar[i];
+            periodos.add(new PeriodoVentas(t.inicio(), t.fin(), atendidos[i] + porEntregar[i], atendidos[i], porEntregar[i],
+                    unidades[i], b2c[i], b2b[i], total, acumulado));
+        }
+        TotalesVentas totales = new TotalesVentas(totalAtendidos + totalPorEntregar, totalAtendidos, totalPorEntregar,
+                suma(unidades), suma(b2c), suma(b2b), acumulado);
+        List<ProductoVentas> productos = porProducto.values().stream()
+                .sorted(Comparator.comparing(ProductoVentas::total).reversed().thenComparing(ProductoVentas::producto))
+                .toList();
+        return new ReporteVentas(c.puntos(), c.desde(), c.hasta(), c.agrupacion(), c.productor(), c.producto(),
                 totales, periodos, productos, productores(usuarioId), productos(usuarioId));
     }
 
