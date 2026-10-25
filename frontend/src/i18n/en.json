@@ -485,7 +485,10 @@
         "aceptar": "Accept description",
         "descartar": "Discard",
         "descartada": "You discarded the draft. Write the description in your own words or ask for another one.",
-        "errorDescartar": "We couldn't discard the draft"
+        "errorDescartar": "We couldn't discard the draft",
+        "errorAceptar": "We couldn't accept the draft",
+        "yaNoPendiente": "This draft is no longer pending. Ask for another one if you need it.",
+        "guardaAntes": "Save the product before asking for a description with AI"
       },
       "descripcionAsistida": "Description (AI-assisted draft, editable)",
       "descripcion": "Description",
