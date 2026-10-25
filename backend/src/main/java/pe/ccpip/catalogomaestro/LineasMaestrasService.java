@@ -1,5 +1,6 @@
 package pe.ccpip.catalogomaestro;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
@@ -39,7 +40,7 @@ public class LineasMaestrasService {
 
     private static final String SELECT = """
             SELECT l.id, l.codigo, l.nombre, t.texto AS nombre_en, l.requiere_vencimiento, l.orden, l.activo,
-                   l.actualizado_en, l.desactivado_en, u.codigo AS unidad_codigo, u.nombre AS unidad_nombre,
+                   l.merma_umbral_alerta, l.merma_umbral_critico, l.actualizado_en, l.desactivado_en, u.codigo AS unidad_codigo, u.nombre AS unidad_nombre,
                    (SELECT count(*) FROM producto_maestro m WHERE m.linea_id = l.id) AS productos,
                    (SELECT count(*) FROM producto p
                     WHERE p.linea_id = l.id OR EXISTS (SELECT 1 FROM producto_linea pl WHERE pl.producto_id = p.id AND pl.linea_id = l.id)) AS ofertas
@@ -68,7 +69,10 @@ public class LineasMaestrasService {
         return new Lineas(comun.contadores(Tabla.LINEA), jdbc.query(sql, p, (rs, row) -> linea(rs)));
     }
 
-    /** CCPIP-309: la linea nace activa. El codigo y el nombre no se repiten. */
+    /**
+     * CCPIP-309: la linea nace activa. El codigo y el nombre no se repiten. Sin umbrales de merma, nace con
+     * los iniciales de la base (5 % y 10 %, CCPIP-430).
+     */
     @Transactional
     public Linea crear(long usuarioId, NuevaLinea nueva) {
         String codigo = nueva.codigo().strip().toUpperCase(Locale.ROOT);
@@ -84,7 +88,8 @@ public class LineasMaestrasService {
                         coalesce(:orden, (SELECT coalesce(max(orden), 0) + 1 FROM linea_producto)))
                 RETURNING id""", parametros(d, p), Integer.class);
         guardarNombreEn(codigo, d.nombreEn());
-        Linea creada = obtener(Objects.requireNonNull(id));
+        guardarUmbrales(obtener(Objects.requireNonNull(id)), d);
+        Linea creada = obtener(id);
         comun.auditar(Entidad.LINEA, creada.id(), usuarioId, Accion.CREAR, foto(creada));
         return creada;
     }
@@ -92,7 +97,8 @@ public class LineasMaestrasService {
     /**
      * CCPIP-310: cambia nombre, vencimiento, unidad sugerida, orden y nombre en ingles. Si cambia el nombre,
      * su traduccion anterior queda desactualizada (CCPIP-373) salvo que se escriba la nueva. Las ofertas no
-     * se tocan: muestran la linea por su referencia.
+     * se tocan: muestran la linea por su referencia. Los umbrales de merma (CCPIP-430) cambian el color del
+     * tablero desde la siguiente consulta; la merma registrada no cambia.
      */
     @Transactional
     public Linea modificar(long usuarioId, int id, DatosLinea d) {
@@ -102,6 +108,7 @@ public class LineasMaestrasService {
                 UPDATE linea_producto SET nombre = :nombre, requiere_vencimiento = :vence, unidad_sugerida_id = :unidad,
                        orden = coalesce(:orden, orden), actualizado_en = now()
                 WHERE id = :id""", parametros(d, new MapSqlParameterSource("id", id)));
+        guardarUmbrales(antes, d);
         if (!antes.nombre().equals(d.nombre().strip())) {
             traducciones.invalidar(Traducciones.Entidad.LINEA, antes.codigo(), CAMPO_NOMBRE);
         }
@@ -157,6 +164,21 @@ public class LineasMaestrasService {
         }
     }
 
+    /**
+     * CCPIP-430: un umbral nulo conserva el actual. La alerta queda siempre por debajo del critico, si no
+     * ninguna merma se veria en alerta.
+     */
+    private void guardarUmbrales(Linea actual, DatosLinea d) {
+        BigDecimal alerta = d.mermaUmbralAlerta() == null ? actual.mermaUmbralAlerta() : d.mermaUmbralAlerta();
+        BigDecimal critico = d.mermaUmbralCritico() == null ? actual.mermaUmbralCritico() : d.mermaUmbralCritico();
+        if (alerta.compareTo(critico) >= 0) {
+            throw ErrorNegocio.invalido("UMBRALES_MERMA_INVALIDOS",
+                    "El umbral de alerta debe ser menor que el umbral crítico.");
+        }
+        jdbc.update("UPDATE linea_producto SET merma_umbral_alerta = :alerta, merma_umbral_critico = :critico WHERE id = :id",
+                new MapSqlParameterSource("id", actual.id()).addValue("alerta", alerta).addValue("critico", critico));
+    }
+
     private MapSqlParameterSource parametros(DatosLinea d, MapSqlParameterSource p) {
         String unidad = CatalogoComun.limpio(d.unidadSugerida());
         return p.addValue("nombre", d.nombre().strip()).addValue("vence", d.requiereVencimiento())
@@ -181,6 +203,8 @@ public class LineasMaestrasService {
         f.put("requiereVencimiento", l.requiereVencimiento());
         f.put("unidadSugerida", l.unidadSugerida() == null ? null : l.unidadSugerida().codigo());
         f.put("orden", l.orden());
+        f.put("mermaUmbralAlerta", l.mermaUmbralAlerta());
+        f.put("mermaUmbralCritico", l.mermaUmbralCritico());
         return f;
     }
 
@@ -196,6 +220,7 @@ public class LineasMaestrasService {
         return new Linea(rs.getInt("id"), rs.getString("codigo"), rs.getString(CAMPO_NOMBRE), rs.getString("nombre_en"),
                 rs.getBoolean("requiere_vencimiento"), unidad == null ? null : new Codigo(unidad, rs.getString("unidad_nombre")),
                 rs.getInt("orden"), rs.getBoolean("activo"), rs.getLong("productos"), rs.getLong("ofertas"),
+                rs.getBigDecimal("merma_umbral_alerta"), rs.getBigDecimal("merma_umbral_critico"),
                 CatalogoComun.instante(rs, "actualizado_en"), CatalogoComun.instante(rs, "desactivado_en"));
     }
 }
