@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoCheck from '../../assets/icons/check.svg'
-import { consultarReporteAcopio } from '../../api/acopio.js'
+import { consultarReporteAcopio, urlReporteAcopio } from '../../api/acopio.js'
 import Alerta from '../../components/Alerta.jsx'
 import Campo from '../../components/Campo.jsx'
 import Icono from '../../components/Icono.jsx'
@@ -20,6 +20,9 @@ const REPORTES = { entradas: Entradas, salidas: Salidas, ventas: Ventas, inventa
 
 const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
 
+/** Formatos de exportacion: los cuatro reportes juntos, con los filtros que se ven. */
+const FORMATOS = ['pdf']
+
 /**
  * A-06 · Reportes del administrador de punto de acopio: lo que paso en sus puntos por periodo, con los
  * filtros de fechas, agrupacion, productor y producto. El servidor solo envia lo de sus puntos (RNF-05) y
@@ -28,9 +31,10 @@ const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
  * - CCPIP-341 (RF-231): salidas
  * - CCPIP-342 (RF-232): ventas
  * - CCPIP-343 (RF-233): inventario
+ * - CCPIP-325, CCPIP-378, CCPIP-380 y CCPIP-382: los cuatro, juntos en PDF
  */
 export default function ReportesPage({ path }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const claves = Object.keys(REPORTES)
   const [reporte, setReporte] = useState(claves[0])
   const [filtro, setFiltro] = useState({ desde: '', hasta: '', agrupacion: '', productor: '', producto: '' })
@@ -114,6 +118,16 @@ export default function ReportesPage({ path }) {
           onChange={cambiar('producto')}
           opciones={(datos?.productos ?? []).map((p) => ({ valor: String(p.id), etiqueta: p.nombre }))}
         />
+        {datos && (
+          <div className="reportes-acopio__exportar">
+            {FORMATOS.map((f) => (
+              <a key={f} className="boton boton--secundario boton--M" download
+                href={urlReporteAcopio(f, datos, i18n.resolvedLanguage === 'en' ? 'en' : 'es')}>
+                {t(`acopio.reportes.exportar.${f}`)}
+              </a>
+            ))}
+          </div>
+        )}
       </div>
       {error && <Alerta tono="error" titulo={t('acopio.reportes.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
       {cargando && !datos && <p className="caption">{t('comun.cargando')}</p>}

@@ -243,6 +243,26 @@ describe('A-06 Reportes del punto de acopio', () => {
     expect(screen.getByText(/las transferencias sí cuentan/)).toBeInTheDocument()
   })
 
+  it('CCPIP-325: descarga en PDF los cuatro reportes con los filtros que se ven', async () => {
+    acopio({
+      [`GET ${BASE}/entradas?${RANGO}&productor=5`]: () => [200, { ...copia(ENTRADAS), productor: 5 }],
+      [`GET ${BASE}/salidas?${RANGO}&productor=5`]: () => [200, { ...copia(SALIDAS), productor: 5 }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/acopio/reportes')
+    const pdf = await screen.findByRole('link', { name: 'Descargar PDF' })
+    expect(pdf).toHaveAttribute('href', `${BASE}/pdf?${RANGO}&lang=es`)
+    expect(pdf).toHaveAttribute('download')
+
+    fireEvent.change(screen.getByLabelText('Productor'), { target: { value: '5' } })
+    await screen.findByDisplayValue('C.N. Puerto Alegre')
+    expect(screen.getByRole('link', { name: 'Descargar PDF' })).toHaveAttribute('href', `${BASE}/pdf?${RANGO}&productor=5&lang=es`)
+    // El PDF trae los cuatro reportes: cambiar de reporte no cambia la descarga (CCPIP-378, 380 y 382)
+    await user.click(screen.getByRole('button', { name: 'Salidas' }))
+    await screen.findByRole('table', { name: 'Salidas por período' })
+    expect(screen.getByRole('link', { name: 'Descargar PDF' })).toHaveAttribute('href', `${BASE}/pdf?${RANGO}&productor=5&lang=es`)
+  })
+
   it('sale en ingles', async () => {
     await i18n.changeLanguage('en')
     acopio()
@@ -251,5 +271,6 @@ describe('A-06 Reportes del punto de acopio', () => {
     expect(screen.getByRole('table', { name: 'Stock in by period' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Monthly', pressed: true })).toBeInTheDocument()
     expect(screen.getByLabelText('Producer')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Download PDF' }).getAttribute('href')).toContain('lang=en')
   })
 })

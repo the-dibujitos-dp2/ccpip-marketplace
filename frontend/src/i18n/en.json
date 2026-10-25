@@ -1126,6 +1126,9 @@
       "error": "We couldn't load the report",
       "semana": "{{inicio}} to {{fin}}",
       "vacioTexto": "Try another period, producer or product.",
+      "exportar": {
+        "pdf": "Download PDF"
+      },
       "col": {
         "periodo": "Period",
         "producto": "Product",

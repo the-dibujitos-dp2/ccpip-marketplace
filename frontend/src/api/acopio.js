@@ -78,3 +78,8 @@ function rutaReporte(sufijo, filtros = {}, idioma = null) {
 
 /** CCPIP-117 y siguientes: `reporte` es entradas, salidas, ventas o inventario de sus puntos. */
 export const consultarReporteAcopio = (reporte, filtros) => apiFetch(rutaReporte(`/${reporte}`, filtros))
+/**
+ * CCPIP-325, CCPIP-378, CCPIP-380 y CCPIP-382: enlace de descarga de los cuatro reportes juntos con los
+ * mismos filtros; la cookie de sesion viaja sola.
+ */
+export const urlReporteAcopio = (formato, filtros, idioma) => rutaReporte(`/${formato}`, filtros, idioma)

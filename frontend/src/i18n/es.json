@@ -1126,6 +1126,9 @@
       "error": "No pudimos cargar el reporte",
       "semana": "{{inicio}} al {{fin}}",
       "vacioTexto": "Prueba con otro período, productor o producto.",
+      "exportar": {
+        "pdf": "Descargar PDF"
+      },
       "col": {
         "periodo": "Período",
         "producto": "Producto",
