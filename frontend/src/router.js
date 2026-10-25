@@ -29,6 +29,7 @@ export const RUTAS = {
   productorTransferenciaNueva: '/productor/transferencias/nueva',
   productorAlertas: '/productor/alertas',
   productorMerma: '/productor/merma',
+  productorReportes: '/productor/reportes',
   acopio: '/acopio',
   acopioPedidos: '/acopio/pedidos',
   acopioMovimientos: '/acopio/movimientos',
