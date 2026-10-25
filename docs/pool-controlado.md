@@ -1,131 +1,154 @@
-# CCPIP: pool controlado de agentes
+# CCPIP: política operativa del pool controlado
 
-## Propósito
+## Estado, propósito y fuentes de verdad
 
-Este documento define cómo se ejecutan las historias de Jira sin convertir el proyecto en un conjunto de agentes que editan, mezclan o despliegan cambios sin control. Jira mantiene el alcance y los criterios de aceptación; GitHub y el código mantienen la evidencia de implementación y pruebas.
+Esta es la política vigente para ejecutar historias de Jira sin que agentes concurrentes mezclen cambios, inventen requisitos, modifiquen datos, desplieguen o eludan revisión. **Jira define el alcance y los criterios de aceptación completos y más recientes.** El repositorio, las pruebas y GitHub aportan evidencia de implementación e integración. Figma es una referencia visual que puede estar desactualizada: sirve para inspección de experiencia y consistencia, pero nunca amplía, contradice ni sustituye a Jira. Una regla de producto no presente en Jira solo puede proponerse mediante una decisión humana identificada y enlazada a la historia; un documento redactado por agentes, o sin aprobación humana verificable, no es autoridad.
 
-**Fuentes auditadas el 23 de octubre de 2026**
+El pool admite **hasta cinco carriles de implementación independientes y activos**. No es una cola de un único worktree ni de una única historia. La concurrencia solo es válida cuando cada carril tiene una historia distinta, un alcance verificable y ningún solapamiento material de archivos, contratos o migraciones.
 
-- Backlog Jira recuperado: **184** ítems en `To Do`: 160 historias, 17 épicas y 7 tareas.
-- Historias de negocio de mayor prioridad: IA de redacción/documentos/imágenes, cumplimiento y moderación, logística de entrega, reportes, analítica y permisos.
-- Repositorio: Spring Boot con Java 21, React/Vite, PostgreSQL y S3Mock locales, Playwright E2E y CI en GitHub Actions.
-- No hay pull requests ni issues de GitHub abiertos al momento de la auditoría.
-- La rama de trabajo encontrada para CCPIP-22 queda fuera de este pool hasta que su autora o revisor la gestione; no se reutiliza como base de nuevas historias.
+- **Orquestador:** `gpt-6.1-sol`.
+- **Ejecutor, QA/E2E y revisor independiente:** `gpt-6-luna`.
+- **Delegación y observabilidad:** toda tarea de cada carril se inicia mediante `delegate_task` desde la sesión del orquestador; así permanece visible en **Subagent Viewer**. No se sustituyen los carriles por subprocesos autónomos invisibles.
+- **Límites no negociables:** ningún agente hace push directo a `main`, despliega, ejecuta Terraform `apply`, borra datos, cambia Jira automáticamente ni introduce reglas de producto que no estén en Jira o en una decisión humana aprobada y enlazada a Jira.
 
-## Hallazgos que condicionan el trabajo
+## Roles y responsabilidades
 
-1. La instalación local del frontend estaba desactualizada respecto de `package-lock.json`. Tras `npm ci`, la suite pasó: **12 archivos y 184 pruebas**; `npm run build` y `npm audit --omit=dev --audit-level=high` también pasaron.
-2. La primera ejecución de backend quedó bloqueada porque Docker Desktop no estaba disponible: Testcontainers abortó antes de ejecutar la integración. Tras iniciar Docker Desktop se repitió la suite y pasó con **725 pruebas**, sin fallos ni errores. No se interpreta el primer fallo como defecto funcional del backend.
-3. Hay historias `To Do` cuyo flujo ya aparece en código, por ejemplo retiro/publicación lógica de productos y la propuesta/aprobación de historia asistida. Antes de escribir código para esas historias hay que contrastar cada criterio de aceptación con pruebas y actualizar Jira solamente con evidencia verificable.
-4. Las historias de IA de imagen y documentos exigen decisiones de diseño que el backlog no resuelve por sí solo: modelo propio para correspondencia de imágenes, tipos de certificados/documentos, límites de archivos, conservación de originales y forma de explicar recomendaciones. No se deben simular esas decisiones como si fueran requisitos aprobados.
-
-## Pool y límites de concurrencia
-
-El pool trabaja por historia, no por módulo genérico. En cada momento puede existir **una sola historia en implementación** y hasta dos trabajos de lectura/verificación paralelos.
-
-| Rol | Modelo objetivo | Permiso | Entrega obligatoria |
+| Rol | Modelo | Responsabilidad | Límites y entrega |
 |---|---|---|---|
-| Orquestador | `gpt-6.1-sol` | Lee Jira/GitHub, selecciona la siguiente historia y abre/cierra gates. No implementa a ciegas. | Ficha de historia y decisión de avanzar, bloquear o reconciliar. |
-| Implementador backend o frontend | `gpt-6-luna` | Edita exclusivamente un worktree y una rama de una historia aprobada. | Diff pequeño, pruebas nuevas y comandos reproducibles. |
-| QA de API y E2E | `gpt-6-luna` | No cambia producción; puede añadir pruebas en el worktree de la historia. | Casos válidos, inválidos, permisos y regresión. |
-| Revisor independiente | `gpt-6-luna` | Solo lectura sobre el diff hasta que el implementador entregue. | Hallazgos priorizados contra criterios Jira. |
-| DevSecOps/operaciones | `gpt-6-luna` | Valida CI, dependencias, infraestructura y despliegue; no ejecuta `apply` ni despliega. | Evidencia de checks y bloqueos operativos. |
-| Simuladores por rol | `gpt-6-luna` | No escriben producción ni cambian Jira. | Escenarios E2E de productor, consumidor, acopio, distribuidor y administrador, únicamente cuando el rol exista en la historia. |
+| Orquestador | `gpt-6.1-sol` | Selecciona hasta cinco historias independientes, abre/cierra gates, mantiene el ledger de solapamientos y coordina reemplazos. | No implementa a ciegas. Entrega ficha de historia, decisión de gate y estado del carril. |
+| Ejecutor frontend o backend | `gpt-6-luna` | Implementa una sola historia en su worktree aislado. | Solo toca el alcance aprobado. Entrega diff, pruebas y comandos reproducibles. |
+| QA/E2E | `gpt-6-luna` | Define y ejecuta casos válidos, inválidos, de permisos y regresión. | No modifica producción fuera del worktree y alcance de la historia. Entrega evidencia de pruebas. |
+| Revisor independiente | `gpt-6-luna` | Contrasta diff, criterios Jira, permisos y regresiones. | No revisa su propio cambio. Entrega aprobación o hallazgos accionables. |
+| DevSecOps de apoyo | `gpt-6-luna` | Comprueba CI, dependencias e impacto de infraestructura. | No despliega ni aplica infraestructura. Entrega estado de checks y bloqueos. |
 
-Los simuladores son críticos para comprobar que cada rol ve solo la información y acciones definidas por Jira; no introducen nuevas reglas de negocio.
+Los simuladores de rol, cuando hagan falta, son tareas `gpt-6-luna` delegadas y visibles. Solo prueban los roles presentes en la historia; no crean reglas de negocio.
+
+## Ledger obligatorio de carriles y solapamientos
+
+Antes de abrir un carril, el orquestador mantiene un ledger en la ficha o tablero operativo con una fila por historia activa o reservada:
+
+| Campo | Registro obligatorio |
+|---|---|
+| Carril | `1` a `5`, o `apoyo` para una tarea corta no implementadora. |
+| Historia y estado | Clave Jira, `preparación`, `implementación`, `QA`, `revisión`, `PR`, `bloqueada` o `liberada`. |
+| Responsable y tarea | Rol, modelo y referencia de `delegate_task` visible en Subagent Viewer. |
+| Base aislada | Rama, worktree y commit/base de `origin/main`. |
+| Superficie de cambio | Archivos, directorios, contratos API, migraciones, componentes compartidos y pruebas previstas. |
+| Riesgo de solapamiento | `ninguno`, `posible` o `material`, con la historia/carril afectado y la decisión. |
+| Gate y evidencia | Gate actual, comandos, resultados, revisión y bloqueo si existe. |
+
+Un carril no empieza implementación con riesgo **material** de solapamiento. Se debe dividir el alcance, secuenciar las historias o resolver explícitamente la dependencia antes de asignarlo. Si dos historias comparten un archivo o componente pero los cambios son realmente independientes, el ledger debe nombrar el archivo, explicar la separación y definir el orden de integración. Una CI verde en una rama hermana no prueba integración conjunta.
 
 ## Gates obligatorios
 
-### Gate 0 — Elegibilidad
+### Gate 0 — Elegibilidad y aislamiento
 
-Una historia entra al pool solo si:
+Una historia entra a un carril solo si:
 
-- Está en Jira como `To Do` o `Ready`, no está absorbida, retirada ni duplicada.
-- Tiene actor, operación y aceptación concretos.
-- Sus dependencias están implementadas o se pueden probar mediante una interfaz existente.
-- No existe una rama o PR abierto que cubra la misma historia.
-- El orquestador identifica los componentes afectados y los casos de permiso/fracaso.
+1. está en Jira como `To Do` o `Ready`, no está retirada, absorbida o duplicada;
+2. tiene actor, operación, criterios de aceptación y dependencias verificables;
+3. el orquestador revisó ramas y PR existentes y clasificó la relación como independiente, dependiente, duplicada, obsoleta o bloqueada;
+4. hay una superficie de cambio y matriz mínima de pruebas identificadas;
+5. el ledger no muestra solapamiento material con otro carril activo.
 
-Si el código ya cubre la historia, no se reimplementa: pasa a **reconciliación** con matriz criterio → evidencia → prueba. Jira solo cambia cuando la evidencia sea suficiente.
+Si el código parece cubrir la historia, se abre una tarea de **reconciliación**, no una reimplementación: cada criterio se mapea a comportamiento y prueba. Jira solo se actualiza con evidencia verificable.
 
-### Gate 1 — Diseño por historia
+### Gate 1 — Ficha de implementación y trazabilidad de diseño
 
-Antes del primer cambio se registra en la ficha:
+Antes del primer cambio, la ficha registra:
 
-- clave y criterio de aceptación literal;
-- archivos/componentes implicados;
-- contrato API o comportamiento de interfaz;
-- datos que se preservan y acciones prohibidas;
-- pruebas unitarias, de API, UI y E2E necesarias;
-- ambigüedades que requieren decisión humana.
+- clave Jira y criterio de aceptación literal;
+- archivos, componentes, contratos API, migraciones y datos preservados;
+- comportamiento permitido, acciones prohibidas, ambigüedades y decisiones humanas pendientes;
+- matriz de pruebas unitarias, API, UI y E2E;
+- entrada del ledger de solapamientos;
+- para toda historia con interfaz visible, la **página y el frame relevante de Figma**, si están disponibles, como referencia de inspección visual.
+
+Si alguien propone una regla de producto adicional o contradictoria con Jira, la ficha debe citar una decisión humana identificada —comentario, adjunto o decisión enlazada desde Jira— y nombrar a quien la aprobó. Si falta o entra en conflicto con Jira, se bloquea la propuesta; no se bloquea la historia definida por Jira. Un documento de agente o no aprobado no resuelve esa propuesta.
+
+El archivo Figma proporcionado para DP2 es una **referencia visual no autoritativa**. La ficha identifica el frame concreto cuando exista para registrar la comparación visual. Si Figma no contiene el frame, está desactualizado o contradice Jira, se implementa Jira y se registra el drift visual para reconciliación de diseño posterior. No se infieren requisitos de producto a partir de una pantalla.
 
 ### Gate 2 — Implementación aislada
 
-- Un worktree desde `origin/main` y una rama `feature/<area>-CCPIP-<n>-<descripcion>`.
-- Commits pequeños con la clave Jira.
-- Ningún agente hace merge, push directo a `main`, borrado de datos, Terraform `apply` o despliegue.
+- Cada historia tiene rama y worktree propios, creados desde un `origin/main` actualizado y con la convención del repositorio.
+- Cada tarea de implementación, QA, revisión o diagnóstico de carril se crea con `delegate_task` desde el orquestador.
+- Los cambios se limitan al alcance de la ficha y se registran inmediatamente en el ledger si amplían la superficie de archivos o contratos.
+- Los commits llevan la clave Jira y son revisables; no se hace push directo a `main`, despliegue, cambio automático de Jira ni operación destructiva. La integración queda exclusivamente en Gate 4.
 
-### Gate 3 — Calidad
+### Gate 3 — Calidad y revisión independiente
 
-La historia no pasa a PR sin:
+No se propone una PR sin:
 
-1. pruebas nuevas para el cambio y los rechazos relevantes;
-2. pruebas backend y frontend según el área afectada;
-3. Playwright cuando la historia sea visible para un rol;
-4. revisión independiente del diff contra Jira;
-5. verificación de permisos, trazabilidad y no exposición de datos ajenos.
+1. pruebas nuevas o ajustadas que demuestren aceptación y rechazos relevantes;
+2. pruebas backend, frontend y E2E según el área afectada;
+3. verificación de permisos, trazabilidad y no exposición de datos ajenos;
+4. revisión independiente de `gpt-6-luna` contra Jira y diff;
+5. para historias con interfaz visible, comparación visual documentada contra el frame Figma disponible de Gate 1 en **desktop y mobile**, antes de abrir la PR;
+6. registro del drift visual observado. El drift no bloquea ni modifica la historia cuando Figma difiere de Jira: se implementan los criterios Jira y se deja el registro para reconciliación posterior. Una preferencia del implementador tampoco justifica apartarse de Jira.
 
-Cuando Docker no esté disponible, se permite avanzar hasta revisión local estática y pruebas frontend, pero no se declara lista para PR hasta ejecutar las pruebas de integración que usan Testcontainers. En la auditoría inicial se recuperó Docker Desktop y la suite backend pasó con 725 pruebas.
+La falta de Docker permite análisis estático o pruebas que no lo necesiten, pero bloquea la declaración de lista para PR cuando faltan integraciones con Testcontainers. Un fallo de entorno se registra como bloqueo operativo, no como defecto del producto, después de intentar reproducirlo con la precondición correcta.
 
-### Gate 4 — Pull request y decisión humana
+### Gate 4 — PR, CI e integración
 
-El pool puede crear una PR hacia `main` con la plantilla del repositorio y evidencia de pruebas. Cuando todas las validaciones obligatorias de GitHub hayan terminado correctamente, no exista conflicto ni revisión pendiente bloqueante, el orquestador hace `Squash and merge` y elimina la rama. El pool no despliega. Jira recibe comentarios o propuestas de estado; no se mueve automáticamente de estado sin evidencia y una decisión explícita.
+Una PR solo puede abrirse con la evidencia de Gate 3 y debe declarar historia Jira, archivos modificados, pruebas, frame Figma cuando aplique y drift visual observado. Si incluye una regla de producto adicional ajena a Jira, debe adjuntar la decisión humana aprobada y enlazada a la historia; nunca se presenta como una desviación aceptada por el agente.
 
-## Orden de ejecución
+La integración exige, en este orden:
 
-### Carril 0 — Estabilización y trazabilidad (iniciado)
+1. checks requeridos de GitHub terminados correctamente;
+2. revisión independiente aprobada y sin hallazgos bloqueantes;
+3. ausencia de conflictos y de solapamientos nuevos contra la base actual;
+4. para PRs hermanas o apiladas, rebase o integración en orden de dependencia y CI contra la base integrada;
+5. lectura final de estado de merge, revisiones y check rollup.
 
-1. Mantener este plan y la matriz de historias como evidencia de `CCPIP-223`.
-2. Corregir la capacidad de prueba local: Docker Desktop debe estar activo para backend/E2E.
-3. Reconciliar primero historias aparentemente cubiertas por código: `CCPIP-48`, `CCPIP-49`, `CCPIP-279`, `CCPIP-280`, `CCPIP-315` y `CCPIP-316`. Cada una requiere sus pruebas y criterios, no solo coincidencia de nombres.
+Solo cuando CI requerida esté verde, no haya conflicto ni hallazgo bloqueante de revisión, y el ledger registre la evidencia de los cinco puntos anteriores, el orquestador ejecuta `Squash and merge` conforme a los permisos y la política del repositorio. Esa evidencia es el límite de auditoría del orquestador; ningún otro agente hace merge. El merge no autoriza despliegue ni cambio automático de estado en Jira. Si algún gate falla, la PR vuelve al carril de corrección y el ledger registra el motivo.
 
-### Carril 1 — IA, prioridad máxima y con compuerta de alcance
+## Regla de relevo y uso del pool
 
-- `CCPIP-144` y `CCPIP-168`: correspondencia y recomendación sobre imágenes.
-- `CCPIP-176`, `CCPIP-272`, `CCPIP-281`, `CCPIP-282` y `CCPIP-364`: mejora, comparación, aceptación/rechazo y reemplazo de imágenes.
-- `CCPIP-50`: análisis preliminar de certificados/documentos.
+El pool mantiene hasta cinco carriles implementadores independientes cuando haya historias claras y sin solapamiento material. Las tareas de reconocimiento, CI o revisión son apoyo breve: no deben ocupar la capacidad destinada a historias listas para implementar.
 
-Estas historias se trabajan como una cadena, pero solo después de una ficha de decisión que no invente el modelo, proveedor, formatos o reglas de certificados. La primera entrega técnica puede ser una interfaz verificable y un estado de recomendación no bloqueante; no puede fingir que un modelo propio fue entrenado o validado si no lo fue.
+Cuando un trabajador termina, el orquestador debe hacer primero una de estas acciones, en este orden:
 
-### Carril 2 — Flujos operativos con dependencias explícitas
+1. avanzar su historia al siguiente paso necesario —corrección, QA, revisión o PR— mediante una tarea delegada y visible; o
+2. liberar el carril y reemplazarlo de inmediato por la siguiente historia elegible e independiente.
 
-- **Cumplimiento y moderación:** `CCPIP-29`, `CCPIP-34`, `CCPIP-35`, `CCPIP-38`, `CCPIP-43`, `CCPIP-46`, `CCPIP-329`, `CCPIP-331`, `CCPIP-332`, `CCPIP-336`, `CCPIP-169`, `CCPIP-184`.
-- **Entrega/distribución:** `CCPIP-59`, `CCPIP-60`, `CCPIP-61`, `CCPIP-65`, `CCPIP-68`, `CCPIP-107` a `CCPIP-110`, `CCPIP-149`, `CCPIP-317` a `CCPIP-320`, `CCPIP-393` a `CCPIP-403`.
-- **Reportes/analítica:** `CCPIP-78`, `CCPIP-80`, `CCPIP-94`, `CCPIP-114`, `CCPIP-115`, `CCPIP-117`, `CCPIP-122`, `CCPIP-123`, `CCPIP-135`, `CCPIP-138`, `CCPIP-333` a `CCPIP-356`, `CCPIP-376` a `CCPIP-383`.
+No se mantiene un carril ocioso para abrir exploración adicional mientras exista una historia lista. Un carril bloqueado se registra con el bloqueo concreto; si no puede desbloquearse sin decisión humana, se libera y se sustituye. El orquestador vuelve a evaluar el ledger antes de cada reemplazo.
 
-En cada carril se implementa primero el dato y la consulta protegida por rol; después la exportación PDF/Excel y finalmente los agregados. No se adelantan reportes que no tengan fuente de datos confiable.
+## Mapa actual de páginas Figma
 
-### Fuera de la cola automática
+El siguiente mapa es de navegación y trazabilidad; no añade requisitos funcionales. En Gate 1 se debe identificar la página y el frame concreto aplicable.
 
-Historias retiradas, absorbidas, futuras o condicionadas por reglas no aprobadas —por ejemplo servicios, logística internacional, geolocalización real, moneda o métodos de pago alternativos— se mantienen como bloqueadas. El pool no intenta “completarlas” mediante supuestos.
+| Página Figma | Uso de trazabilidad |
+|---|---|
+| `00 Portada` | Referencia general del archivo. |
+| `01 Design System` | Componentes, tokens y patrones visuales. |
+| `02 Consumidor final` | Flujos del consumidor final. |
+| `03 Productor` | Flujos del productor. |
+| `04 Admin punto de acopio` | Flujos de administración de punto de acopio. |
+| `05 Sub administrador` | Flujos de subadministración. |
+| `06 Super administrador` | Flujos de superadministración. |
+| `07 Distribuidor` | Flujos de distribución. |
+| `08 Changelog` | Cambios documentados en diseño. |
+| `09 UX` | Personas, journeys y arquitectura UX. |
 
-## Primera ficha de ejecución posterior a este plan
+## Evidencia histórica de línea base — no es instrucción vigente
 
-La siguiente ejecución de código no se elige por título ni por prioridad aislada. El orquestador debe comparar, en este orden:
+Esta sección conserva la evidencia observada durante la auditoría del **23 de octubre de 2026**. Sus conteos, estado de PR, ramas y prioridad eran una fotografía de ese momento; no describen el estado actual del backlog ni autorizan seleccionar una “primera” historia o limitar el pool a una implementación.
 
-1. `CCPIP-144` contra el alcance real del requisito de modelo propio y decidir si existe una especificación suficiente;
-2. las seis historias de reconciliación, para evitar duplicar una capacidad ya construida;
-3. la primera historia de cumplimiento, entrega o consulta con dependencias satisfechas y criterios completos.
+- Backlog recuperado entonces: **184** ítems en `To Do`: 160 historias, 17 épicas y 7 tareas.
+- Se registraron como áreas prioritarias IA de redacción/documentos/imágenes, cumplimiento y moderación, logística de entrega, reportes, analítica y permisos.
+- El repositorio se describió como Spring Boot con Java 21, React/Vite, PostgreSQL y S3Mock locales, Playwright E2E y CI en GitHub Actions.
+- En esa auditoría no había pull requests ni issues de GitHub abiertos, y una rama de `CCPIP-22` se dejó fuera del pool hasta gestión de su autora o revisor. Ese dato no es una condición operativa actual.
+- Tras `npm ci`, frontend registró **12 archivos y 184 pruebas**; `npm run build` y `npm audit --omit=dev --audit-level=high` pasaron.
+- La primera ejecución backend se bloqueó por Docker Desktop no disponible; al repetir con Docker disponible, se registraron **725 pruebas** sin fallos ni errores.
+- Se identificaron historias `To Do` aparentemente cubiertas por código y ambigüedades de producto para IA de imágenes/documentos. Siguen sujetas a Gate 0 y reconciliación; esta observación no equivale a requisitos aprobados.
 
-La ficha resultante habilita un único worktree de implementación. Hasta entonces, el trabajo iniciado es la estabilización del entorno, la trazabilidad del backlog y el control de riesgos.
-
-## Comandos de verificación observados
+### Comandos observados en la línea base
 
 ```text
 frontend: npm ci
 frontend: npm run test:coverage        # 12 archivos, 184 pruebas
-frontend: npm run build                # pasa
+frontend: npm run build                # pasó
 frontend: npm audit --omit=dev --audit-level=high  # 0 vulnerabilidades
 backend: ./mvnw -B test                # 725 pruebas, sin fallos ni errores
-e2e: npm ci && npm run stack && npm test && npm run stack:down  # 22 pruebas Playwright, pasa y limpia contenedores
+e2e: npm ci && npm run stack && npm test && npm run stack:down  # 22 pruebas Playwright, pasó y limpió contenedores
 ```

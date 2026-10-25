@@ -194,8 +194,10 @@ describe('CW-05 Entrega y pago (CCPIP-157, CCPIP-62) y confirmación (CCPIP-64)'
     await usuario.click(screen.getByRole('button', { name: PAGAR }))
 
     expect(screen.getByText('El número de tarjeta no es válido')).toBeInTheDocument()
+    expect(screen.getByLabelText('Número de tarjeta')).toHaveAttribute('aria-invalid', 'true')
     if (mesPasado > 0) expect(screen.getByText('La tarjeta está vencida')).toBeInTheDocument()
     expect(llamadas(fetchMock, 'POST /api/pedidos')).toHaveLength(0)
+    expect(llamadas(fetchMock, 'POST /api/pedidos/77/pagos')).toHaveLength(0)
   })
 
   it('sin datos completos no envía nada y marca lo que falta', async () => {

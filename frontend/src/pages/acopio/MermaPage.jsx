@@ -1,14 +1,13 @@
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listarMermaPunto } from '../../api/merma.js'
+import { listarMermaPunto, urlReporteMermaPunto } from '../../api/merma.js'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
 import { RUTAS } from '../../router.js'
 import ListaMerma from '../merma/ListaMerma.jsx'
 
 /**
  * A-04 · CCPIP-76 y CCPIP-75: la merma de los lotes de sus puntos, la marcada por el punto y la
- * automatica por vencimiento, con el productor de cada lote (CCPIP-423). Se marca desde el lote, en
- * el inventario (A-02).
+ * automatica por vencimiento. Se marca desde el lote, en el inventario (A-02).
  */
 export default function MermaPage({ path }) {
   const { t } = useTranslation()
@@ -18,6 +17,7 @@ export default function MermaPage({ path }) {
     <LayoutAcopio path={path} punto={punto} titulo={t('acopio.nav.merma')}>
       <ListaMerma
         consultar={listarMermaPunto}
+        exportar={urlReporteMermaPunto}
         conProductor
         onDatos={alCargar}
         irTexto={t('merma.lista.comoMarcarPunto')}

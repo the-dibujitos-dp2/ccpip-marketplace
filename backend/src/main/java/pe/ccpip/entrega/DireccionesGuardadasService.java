@@ -59,4 +59,16 @@ public class DireccionesGuardadasService {
     private static String vacioANulo(String texto) {
         return texto == null || texto.isBlank() ? null : texto.strip();
     }
+
+    /** Retira logicamente una direccion activa propia; cualquier otra no existe para el comprador (RNF-05). */
+    @Transactional
+    public void retirar(long usuarioId, long direccionId) {
+        int actualizadas = jdbc.update("""
+                UPDATE direccion_guardada SET activa = false
+                WHERE id = :direccion AND usuario_id = :usuario AND activa""",
+                new MapSqlParameterSource("direccion", direccionId).addValue("usuario", usuarioId));
+        if (actualizadas == 0) {
+            throw ErrorNegocio.noEncontrado("DIRECCION_NO_ENCONTRADA", "La dirección no existe.");
+        }
+    }
 }
