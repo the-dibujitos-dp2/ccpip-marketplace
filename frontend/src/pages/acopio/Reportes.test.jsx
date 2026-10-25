@@ -74,6 +74,20 @@ const VENTAS = {
   ],
 }
 
+const INVENTARIO = {
+  ...COMUN,
+  totales: { saldoInicial: 20, entradas: 92, salidas: 15, saldoFinal: 97, porEntregar: 3, existenciaFisica: 100 },
+  periodos: [
+    { inicio: '2026-01-01', fin: '2026-01-31', saldoInicial: 20, entradas: 62, salidas: 5, saldoFinal: 77 },
+    { inicio: '2026-02-01', fin: '2026-02-28', saldoInicial: 77, entradas: 0, salidas: 0, saldoFinal: 77 },
+    { inicio: '2026-03-01', fin: '2026-03-18', saldoInicial: 77, entradas: 30, salidas: 10, saldoFinal: 97 },
+  ],
+  porProducto: [
+    { productoId: 9, producto: 'Aceite de sacha inchi 250 ml', productor: 'Asoc. Nii Joi', saldoInicial: 20, entradas: 62, salidas: 15, saldoFinal: 67, porEntregar: 3 },
+    { productoId: 10, producto: 'Harina de aguaje 500 g', productor: 'C.N. Puerto Alegre', saldoInicial: 0, entradas: 30, salidas: 0, saldoFinal: 30, porEntregar: 0 },
+  ],
+}
+
 function acopio(rutas = {}) {
   return servidor({
     ...PUBLICAS,
@@ -205,6 +219,28 @@ describe('A-06 Reportes del punto de acopio', () => {
     expect(celdas(productos[1])).toEqual(['Aceite de sacha inchi 250 ml', 'Asoc. Nii Joi', '8', 'S/ 160.00'])
     // Sin datos de los compradores
     expect(screen.queryByText(/@/)).not.toBeInTheDocument()
+  })
+
+  it('CCPIP-343: el inventario explica cada saldo y cuenta lo vendido que sigue en el punto', async () => {
+    acopio({ [`GET ${BASE}/inventario?${RANGO}`]: () => [200, copia(INVENTARIO)] })
+    const user = userEvent.setup()
+    abrirEn('/acopio/reportes')
+    await screen.findByRole('table', { name: 'Entradas por período' })
+    await user.click(screen.getByRole('button', { name: 'Inventario' }))
+
+    expect(await screen.findByRole('region', { name: 'Saldo inicial' })).toHaveTextContent('20 und')
+    expect(screen.getByRole('region', { name: 'Variación' })).toHaveTextContent('77 und')
+    expect(screen.getByRole('region', { name: 'Variación' })).toHaveTextContent('92 entradas · 15 salidas')
+    expect(screen.getByRole('region', { name: 'Saldo final' })).toHaveTextContent('97 und')
+    expect(screen.getByRole('region', { name: 'Vendido aún en el punto' })).toHaveTextContent('3 und')
+    expect(screen.getByRole('region', { name: 'Vendido aún en el punto' })).toHaveTextContent('Existencia física: 100 und')
+
+    const periodos = within(screen.getByRole('table', { name: 'Inventario por período' })).getAllByRole('row')
+    expect(celdas(periodos[3])).toEqual(['Marzo de 2026', '77', '30', '10', '97'])
+    const productos = within(screen.getByRole('table', { name: 'Inventario por producto' })).getAllByRole('row')
+    expect(within(productos[0]).getByText('Venta pendiente')).toBeInTheDocument()
+    expect(celdas(productos[1])).toEqual(['Aceite de sacha inchi 250 ml', 'Asoc. Nii Joi', '20', '62', '15', '67', '3'])
+    expect(screen.getByText(/las transferencias sí cuentan/)).toBeInTheDocument()
   })
 
   it('sale en ingles', async () => {

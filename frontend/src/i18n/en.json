@@ -1145,7 +1145,11 @@
         "pedidosPorEntregar": "To deliver",
         "unidades": "Units",
         "b2c": "B2C",
-        "b2b": "B2B"
+        "b2b": "B2B",
+        "saldoInicial": "Opening",
+        "entradas": "In",
+        "salidas": "Out",
+        "saldoFinal": "Closing"
       },
       "entradas": {
         "pestana": "Stock in",
@@ -1185,6 +1189,21 @@
         "porProducto": "Sales by product",
         "vacio": "No sales in this period",
         "nota": "Paid, non-cancelled orders shipped from your point, by the date payment was confirmed (Lima time). An order is delivered once handed over; until then it's still to deliver. A sale is B2B if it was made at the wholesale price."
+      },
+      "inventario": {
+        "pestana": "Inventory",
+        "saldoInicial": "Opening balance",
+        "alInicio": "At the start of the period",
+        "movimiento": "Change",
+        "movimientoDetalle": "{{entradas}} in · {{salidas}} out",
+        "saldoFinal": "Closing balance",
+        "alFinal": "At the end of the period",
+        "porEntregar": "Sold, still at the point",
+        "porEntregarDetalle": "Physical stock: {{cantidad}}",
+        "porPeriodo": "Inventory by period",
+        "porProducto": "Inventory by product",
+        "vacio": "No stock in this period",
+        "nota": "Based on your point's batch movements: closing balance = opening balance + in − out. Transfers do count here, because they change what's at the point. Units sold but not yet delivered are already out of the balance, but stay in the warehouse until delivery."
       }
     }
   },

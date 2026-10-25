@@ -11,11 +11,12 @@ import '../productor/productor.css'
 import '../../components/Chips.css'
 import './ReportesPage.css'
 import Entradas from './reportes/Entradas.jsx'
+import Inventario from './reportes/Inventario.jsx'
 import Salidas from './reportes/Salidas.jsx'
 import Ventas from './reportes/Ventas.jsx'
 
 /** Reportes de la pantalla, en orden. Cada uno es /api/acopio/reportes/{clave}. */
-const REPORTES = { entradas: Entradas, salidas: Salidas, ventas: Ventas }
+const REPORTES = { entradas: Entradas, salidas: Salidas, ventas: Ventas, inventario: Inventario }
 
 const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
 
@@ -26,6 +27,7 @@ const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
  * - CCPIP-117 (RF-65): entradas
  * - CCPIP-341 (RF-231): salidas
  * - CCPIP-342 (RF-232): ventas
+ * - CCPIP-343 (RF-233): inventario
  */
 export default function ReportesPage({ path }) {
   const { t } = useTranslation()

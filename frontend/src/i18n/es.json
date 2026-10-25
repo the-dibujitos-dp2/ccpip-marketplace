@@ -1145,7 +1145,11 @@
         "pedidosPorEntregar": "Por entregar",
         "unidades": "Unidades",
         "b2c": "B2C",
-        "b2b": "B2B"
+        "b2b": "B2B",
+        "saldoInicial": "Saldo inicial",
+        "entradas": "Entradas",
+        "salidas": "Salidas",
+        "saldoFinal": "Saldo final"
       },
       "entradas": {
         "pestana": "Entradas",
@@ -1185,6 +1189,21 @@
         "porProducto": "Ventas por producto",
         "vacio": "No hubo ventas en este período",
         "nota": "Pedidos pagados y no cancelados que salen de su punto, por la fecha en que se confirmó el pago (hora de Lima). Un pedido está atendido cuando se entregó; mientras tanto, está por entregar. Una venta es B2B si se hizo a precio mayorista."
+      },
+      "inventario": {
+        "pestana": "Inventario",
+        "saldoInicial": "Saldo inicial",
+        "alInicio": "Al inicio del período",
+        "movimiento": "Variación",
+        "movimientoDetalle": "{{entradas}} entradas · {{salidas}} salidas",
+        "saldoFinal": "Saldo final",
+        "alFinal": "Al cierre del período",
+        "porEntregar": "Vendido aún en el punto",
+        "porEntregarDetalle": "Existencia física: {{cantidad}}",
+        "porPeriodo": "Inventario por período",
+        "porProducto": "Inventario por producto",
+        "vacio": "No hubo existencias en este período",
+        "nota": "Sale de los movimientos de los lotes de su punto: saldo final = saldo inicial + entradas − salidas. Aquí las transferencias sí cuentan, porque cambian lo que hay en el punto. Lo vendido aún por entregar ya salió del saldo, pero sigue en el almacén hasta que se entrega."
       }
     }
   },
