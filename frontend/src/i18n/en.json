@@ -892,6 +892,42 @@
       }
     }
   },
+  "distribuidor": {
+    "rol": "Distributor",
+    "migas": "Delivery",
+    "nav": {
+      "pedidos": "Available orders"
+    },
+    "pedidos": {
+      "titulo": "Available orders",
+      "cargando": "Loading the available orders…",
+      "error": "We couldn't load the available orders",
+      "reintentar": "Try again",
+      "actualizar": "Refresh",
+      "vacio": "There are no orders available to deliver",
+      "vacioTexto": "When a collection point leaves a home delivery order ready to dispatch, it will show up here.",
+      "filtro": "Filter by collection point",
+      "todos": "All ({{total}})",
+      "total_one": "{{count}} order available",
+      "total_other": "{{count}} orders available",
+      "col": {
+        "pedido": "Order",
+        "recoger": "Pick up at",
+        "destino": "Destination",
+        "espera": "Waiting"
+      },
+      "cargarMas": "Load more orders",
+      "cargandoMas": "Loading…",
+      "errorMas": "We couldn't load more orders",
+      "mostrando": "Showing {{n}} of {{total}}",
+      "disponibleDesde": "Available since {{fecha}}",
+      "espera": {
+        "minutos": "{{m}} min",
+        "horas": "{{h}} h",
+        "dias": "{{d}}d {{h}}h"
+      }
+    }
+  },
   "acopio": {
     "rol": "Collection point",
     "nav": {
@@ -1403,7 +1439,8 @@
     "AMBAS": "Retail & wholesale"
   },
   "tarjetaProducto": {
-    "agotado": "Out of stock"
+    "agotado": "Out of stock",
+    "puesto": "No. {{puesto}}"
   },
   "tarjetaTienda": {
     "visitar": "Visit store",
@@ -1472,10 +1509,19 @@
     "lineas": "Explore by product line",
     "descubrir": {
       "titulo": "Products to discover",
-      "bajada": "Picked by the communities and just arrived.",
+      "bajada": "Picked by the communities, just arrived and best sellers.",
       "verTodo": "See all",
       "destacados": "Featured",
-      "novedades": "New arrivals"
+      "novedades": "New arrivals",
+      "masVendidos": "Best sellers",
+      "periodo": "Period",
+      "periodos": {
+        "ULTIMOS_30_DIAS": "Last 30 days",
+        "ULTIMOS_3_MESES": "Last 3 months",
+        "ESTE_ANIO": "This year"
+      },
+      "sinVentas": "No sales in this period yet. Try a longer one.",
+      "notaMasVendidos": "Based on units sold in paid, non-cancelled purchases in the period."
     },
     "mayorista": {
       "titulo": "Buying in volume for your store, café or for export?",
@@ -1517,6 +1563,7 @@
     "hola": "Hello, {{nombre}}",
     "error": "We couldn't load your dashboard",
     "verPedidos": "See the point's orders",
+    "verPedidosDisponibles": "View available orders",
     "verMovimientos": "See the point's stock movements",
     "seguridad": "For security, your session closes after {{minutos}} minutes of inactivity.",
     "panel": {
@@ -1541,8 +1588,8 @@
         "descripcion": "Here you'll oversee producers, collection points and accounts."
       },
       "DISTRIBUIDOR": {
-        "titulo": "Your wholesale purchases",
-        "descripcion": "Here you'll place volume orders with the communities."
+        "titulo": "Your deliveries",
+        "descripcion": "Here you'll see the orders ready to deliver and the ones you take on."
       }
     },
     "verTablero": "See the operations dashboard"

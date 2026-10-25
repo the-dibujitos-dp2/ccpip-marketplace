@@ -61,3 +61,11 @@
   .valores { grid-template-columns: minmax(0, 1fr); }
   .mayorista__img { display: none; }
 }
+
+/* CCPIP-339: mas vendidos del periodo */
+.mas-vendidos { display: flex; flex-direction: column; gap: 20px; }
+.mas-vendidos__periodo { width: 240px; }
+
+@media (max-width: 720px) {
+  .mas-vendidos__periodo { width: 100%; }
+}
