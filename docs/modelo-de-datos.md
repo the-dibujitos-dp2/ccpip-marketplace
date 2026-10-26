@@ -1483,3 +1483,23 @@ distribuidor no hay entrega (RNF-05).
 **Lo que no cambia.** El pedido sigue `LISTO_PARA_DESPACHO` hasta que el distribuidor lo retire del punto (CCPIP-109),
 y no se mueve inventario: el descuento ocurrio al confirmar la compra (CCPIP-158). La respuesta no trae la direccion
 exacta ni el contacto de quien recibe (CCPIP-110), ni nunca al comprador.
+
+## Consultar las entregas asignadas al distribuidor (CCPIP-317)
+
+Sin migracion: lee las columnas de `entrega` (`distribuidor_id`, `estado`, `asignada_en`, `retirada_en` y
+`entregada_en`, migracion `V202610231000`). El distribuidor consulta los pedidos que tiene asignados (RF-199): los que
+asumio en la cola de disponibles (CCPIP-108) y aun no termina.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `GET /api/distribuidor/pedidos` | DISTRIBUIDOR | Las entregas asignadas al distribuidor de la sesion: cada una con `numero`, `origen` (el punto de acopio), `destino` (hasta el distrito), `estado` de la entrega, `asignadaEn` y `retiradaEn` (nulo hasta que la retire) |
+
+**Cuales se listan.** Solo las de `entrega.distribuidor_id` igual al distribuidor de la sesion; las de otro
+distribuidor y las que nadie asumio no aparecen (RNF-05). Primero las que estan en curso (`ASIGNADA`, `RETIRADA` o
+`EN_CAMINO`), la que asumio antes primero; despues las `ENTREGADA` de hoy, hora de Lima, la ultima primero. Las
+entregadas de dias anteriores ya no se listan. Retirarla (CCPIP-109), llevarla (CCPIP-318) y entregarla (CCPIP-319)
+cambian el `estado` con sus historias.
+
+**Que se muestra.** Lo mismo que al asumirla, mas el estado y la fecha del retiro. La direccion exacta y el contacto de
+quien recibe llegan con CCPIP-110, y el comprador no se muestra nunca. Sin paginacion: son solo las entregas en curso
+del distribuidor.
