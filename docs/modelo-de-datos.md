@@ -1331,8 +1331,8 @@ nombra "Listo para despacho".
 ## Direcciones de entrega guardadas (CCPIP-65)
 
 Migracion `V202610231400`. El comprador guarda sus direcciones de entrega habituales (RF-46) para no escribirlas
-en cada compra. Sigue la tabla `direccion_guardada` del modelo de datos del proyecto; consultarlas (CCPIP-393),
-modificarlas (CCPIP-394) y retirarlas (CCPIP-395) llegan con sus historias.
+en cada compra. Sigue la tabla `direccion_guardada` del modelo de datos del proyecto. Consultarlas (CCPIP-393) y
+retirarlas (CCPIP-395) usan la misma tabla; modificarlas llega con CCPIP-394.
 
 ```mermaid
 erDiagram
@@ -1354,13 +1354,16 @@ erDiagram
 
 | Endpoint | Rol | Descripcion |
 |---|---|---|
+| `GET /api/cuenta/direcciones` | CONSUMIDOR | CCPIP-393: las direcciones activas del comprador, la ultima que guardo primero, cada una con su distrito, provincia y departamento. Sin direcciones, una lista vacia |
 | `POST /api/cuenta/direcciones` | CONSUMIDOR | Guarda una direccion del comprador. `201` con la direccion y su distrito, provincia y departamento |
+| `DELETE /api/cuenta/direcciones/{id}` | CONSUMIDOR | CCPIP-395: retira una direccion activa propia (`activa = false`, sin borrarla). `204`; una ajena, inexistente o ya retirada responde `404 DIRECCION_NO_ENCONTRADA` |
 
 **Reglas.** Solo datos propios: el comprador sale de la sesion. Solo destinos admitidos: un distrito que no esta
 en el catalogo responde `422 DESTINO_NO_ADMITIDO`. La direccion se pide completa, como en el pedido a domicilio
 (`422 DIRECCION_INVALIDA`). La misma direccion en el mismo distrito no se guarda dos veces para un comprador
 (`409 DIRECCION_YA_GUARDADA`, sin distinguir mayusculas); otro comprador si puede guardarla. Los pedidos copian su
-destino en `entrega` y no dependen de esta tabla.
+destino en `entrega` y no dependen de esta tabla. La consulta solo devuelve las direcciones propias y activas: las de
+otros compradores y las retiradas no aparecen (RNF-05).
 
 ## Aceptar y editar el borrador de descripcion de la IA (CCPIP-49)
 
