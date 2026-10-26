@@ -30,8 +30,10 @@ import pe.ccpip.reportes.gestion.GestionModelos.Estrellas;
 import pe.ccpip.reportes.gestion.GestionModelos.Flujo;
 import pe.ccpip.reportes.gestion.GestionModelos.Indicador;
 import pe.ccpip.reportes.gestion.GestionModelos.IndicadoresProductores;
+import pe.ccpip.reportes.gestion.GestionModelos.IndicadoresProductos;
 import pe.ccpip.reportes.gestion.GestionModelos.IndicadoresVentas;
 import pe.ccpip.reportes.gestion.GestionModelos.Linea;
+import pe.ccpip.reportes.gestion.GestionModelos.LineaPublicados;
 import pe.ccpip.reportes.gestion.GestionModelos.PeriodoIndicadores;
 import pe.ccpip.reportes.gestion.GestionModelos.ProductoCalificado;
 import pe.ccpip.reportes.gestion.GestionModelos.ProductorCalificado;
@@ -82,6 +84,9 @@ public class ReportesGestionService {
 
     /** Diferencia de promedio (en estrellas) desde la que la tendencia sube o baja. */
     static final BigDecimal CAMBIO_TENDENCIA = new BigDecimal("0.3");
+
+    /** Un producto publicado (por ultima vez) en el rango (fecha de Lima). */
+    static final String PUBLICADO_EN_RANGO = "(publicado_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta";
 
     /** Lo vendido de las lineas {@code i} separado en B2C (tarifa minorista) y B2B (mayorista). */
     static final String POR_TARIFA = """
@@ -385,7 +390,8 @@ public class ReportesGestionService {
     /**
      * Indicadores agregados de la plataforma en el rango, frente al periodo anterior de igual duracion, con su
      * serie por dia, semana o mes (por mes si no se indica). CCPIP-348 (RF-238): ventas, pedidos y ticket
-     * promedio; CCPIP-349 (RF-239): productores activos, con ventas y nuevos.
+     * promedio; CCPIP-349 (RF-239): productores activos, con ventas y nuevos; CCPIP-350 (RF-240): productos
+     * publicados, nuevos y con ventas, y los publicados por linea.
      */
     @Transactional(readOnly = true)
     public ReporteIndicadores indicadores(LocalDate desde, LocalDate hasta, Agrupacion agrupacion) {
@@ -406,6 +412,18 @@ public class ReportesGestionService {
                 jdbc.getJdbcTemplate().queryForObject("SELECT count(*) FROM productor WHERE activo", Long.class),
                 comparar(BigDecimal.valueOf(actual.productores()), BigDecimal.valueOf(previa.productores())),
                 comparar(contar(nuevosProductores, rango), contar(nuevosProductores, anterior)));
+        String nuevosProductos = "SELECT count(*) FROM producto WHERE " + PUBLICADO_EN_RANGO;
+        IndicadoresProductos productos = new IndicadoresProductos(
+                jdbc.getJdbcTemplate().queryForObject("SELECT count(*) FROM producto WHERE estado = 'PUBLICADO'", Long.class),
+                comparar(contar(nuevosProductos, rango), contar(nuevosProductos, anterior)),
+                comparar(BigDecimal.valueOf(actual.productos()), BigDecimal.valueOf(previa.productos())),
+                jdbc.query("""
+                        SELECT l.codigo, l.nombre, count(p.id) AS publicados
+                        FROM linea_producto l
+                        LEFT JOIN producto p ON p.linea_id = l.id AND p.estado = 'PUBLICADO'
+                        WHERE l.activo
+                        GROUP BY l.id ORDER BY publicados DESC, l.nombre""",
+                        (rs, row) -> new LineaPublicados(rs.getString("codigo"), rs.getString("nombre"), rs.getLong("publicados"))));
 
         int n = tramos.cantidad();
         BigDecimal[] ventasPorPeriodo = new BigDecimal[n];
@@ -423,17 +441,24 @@ public class ReportesGestionService {
             pedidos[i] = rs.getLong("pedidos");
             conVentas[i] = rs.getLong("productores");
         });
+        long[] productosNuevos = new long[n];
+        jdbc.query("""
+                SELECT date_trunc('%s', publicado_en AT TIME ZONE 'America/Lima')::date AS periodo, count(*) AS nuevos
+                FROM producto WHERE %s GROUP BY 1""".formatted(unidad(por), PUBLICADO_EN_RANGO), parametros(rango), rs -> {
+            productosNuevos[tramos.posicion(rs.getObject("periodo", LocalDate.class))] = rs.getLong("nuevos");
+        });
         List<PeriodoIndicadores> periodos = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             Tramos.Tramo t = tramos.lista().get(i);
-            periodos.add(new PeriodoIndicadores(t.inicio(), t.fin(), ventasPorPeriodo[i], pedidos[i], conVentas[i]));
+            periodos.add(new PeriodoIndicadores(t.inicio(), t.fin(), ventasPorPeriodo[i], pedidos[i], conVentas[i],
+                    productosNuevos[i]));
         }
         return new ReporteIndicadores(rango.desde(), rango.hasta(), por, anterior.desde(), anterior.hasta(), ventas,
-                productores, periodos);
+                productores, productos, periodos);
     }
 
-    /** Lo que hubo en un rango: ventas por tarifa, pedidos y productores que vendieron. */
-    private record Actividad(Desglose ventas, long pedidos, long productores) {
+    /** Lo que hubo en un rango: ventas por tarifa, pedidos y productores y productos que vendieron. */
+    private record Actividad(Desglose ventas, long pedidos, long productores, long productos) {
 
         /** Lo vendido por pedido, con dos decimales; cero sin pedidos. */
         BigDecimal ticketPromedio() {
@@ -443,11 +468,12 @@ public class ReportesGestionService {
 
     private Actividad actividad(RangoFechas rango) {
         return jdbc.queryForObject("""
-                SELECT %s, count(DISTINCT pe.id) AS pedidos, count(DISTINCT i.productor_id) AS productores
+                SELECT %s, count(DISTINCT pe.id) AS pedidos, count(DISTINCT i.productor_id) AS productores,
+                       count(DISTINCT i.producto_id) AS productos
                 FROM item_pedido i JOIN pedido pe ON pe.id = i.pedido_id
                 WHERE %s""".formatted(POR_TARIFA, VENDIDO), parametros(rango),
                 (rs, row) -> new Actividad(desglose(rs.getBigDecimal("b2c"), rs.getBigDecimal("b2b")), rs.getLong("pedidos"),
-                        rs.getLong("productores")));
+                        rs.getLong("productores"), rs.getLong("productos")));
     }
 
     /** Un conteo de {@code sql} (con {@code :desde} y {@code :hasta}) en el rango. */

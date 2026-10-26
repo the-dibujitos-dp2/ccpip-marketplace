@@ -21,7 +21,7 @@ import pe.ccpip.support.IntegrationTest;
  * ventas; CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias de los puntos de acopio; CCPIP-123
  * (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y de productores; CCPIP-80 (RF-66): origen y
  * destino de las ventas; indicadores agregados de la plataforma (CCPIP-348 ventas,
- * CCPIP-349 productores).
+ * CCPIP-349 productores, CCPIP-350 productos).
  *
  * <p>Los datos son de agosto y septiembre de 2023, meses que ninguna otra prueba usa, y la transaccion se
  * deshace al terminar.
@@ -289,6 +289,24 @@ class ReportesGestionTest extends IntegrationTest {
                 .andExpect(jsonPath("$.ventas.total.valor").value(30.00))
                 .andExpect(jsonPath("$.ventas.total.anterior").value(0))
                 .andExpect(jsonPath("$.ventas.total.variacion").doesNotExist());
+    }
+
+    @Test
+    void losIndicadoresDeProductosCuentanLosPublicadosYLosQueSeVendieron() throws Exception {
+        ventasDePrueba();
+        jdbc.update("UPDATE producto SET publicado_en = '2023-09-08 10:00-05'::timestamptz WHERE id = ?", aceite);
+
+        mockMvc.perform(get("/api/admin/reportes/indicadores" + SEPTIEMBRE).cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.productos.publicados").isNumber())
+                .andExpect(jsonPath("$.productos.nuevos.valor").value(1))
+                .andExpect(jsonPath("$.productos.nuevos.anterior").value(0))
+                // Se vendieron el aceite y la harina en septiembre; solo la harina en agosto
+                .andExpect(jsonPath("$.productos.conVentas.valor").value(2))
+                .andExpect(jsonPath("$.productos.conVentas.anterior").value(1))
+                .andExpect(jsonPath("$.productos.porLinea[?(@.codigo == 'SUPERFRUTOS')].publicados").isNotEmpty())
+                .andExpect(jsonPath("$.productos.porLinea[?(@.codigo == 'TEXTIL')]").exists())
+                .andExpect(jsonPath("$.periodos[0].productosNuevos").value(1));
     }
 
     @Test

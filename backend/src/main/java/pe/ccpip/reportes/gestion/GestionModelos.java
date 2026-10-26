@@ -158,18 +158,31 @@ public final class GestionModelos {
     public record IndicadoresProductores(long activos, Indicador conVentas, Indicador nuevos) {
     }
 
+    /** CCPIP-350: cuantos productos publicados hay hoy de una linea (su linea principal). */
+    public record LineaPublicados(String codigo, String nombre, long publicados) {
+    }
+
+    /**
+     * CCPIP-350: productos. {@code publicados}, los que hoy estan a la venta; {@code nuevos}, los publicados en
+     * el rango; {@code conVentas}, los que se vendieron en el rango; {@code porLinea}, los publicados hoy por
+     * linea, incluidas las que no tienen ninguno.
+     */
+    public record IndicadoresProductos(long publicados, Indicador nuevos, Indicador conVentas,
+                                       List<LineaPublicados> porLinea) {
+    }
+
     /** Un periodo de la serie de indicadores, recortado al rango. */
     public record PeriodoIndicadores(LocalDate inicio, LocalDate fin, BigDecimal ventas, long pedidos,
-                                     long productoresConVentas) {
+                                     long productoresConVentas, long productosNuevos) {
     }
 
     /**
      * Indicadores agregados de la plataforma en el rango, cada uno frente al periodo anterior de igual
      * duracion ({@code anteriorDesde} a {@code anteriorHasta}), y su serie por dia, semana o mes. CCPIP-348
-     * (RF-238): ventas; CCPIP-349 (RF-239): productores activos.
+     * (RF-238): ventas; CCPIP-349 (RF-239): productores activos; CCPIP-350 (RF-240): productos publicados.
      */
     public record ReporteIndicadores(LocalDate desde, LocalDate hasta, Agrupacion agrupacion, LocalDate anteriorDesde,
                                      LocalDate anteriorHasta, IndicadoresVentas ventas, IndicadoresProductores productores,
-                                     List<PeriodoIndicadores> periodos) {
+                                     IndicadoresProductos productos, List<PeriodoIndicadores> periodos) {
     }
 }
