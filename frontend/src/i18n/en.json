@@ -1973,6 +1973,8 @@
     "VIGENCIA_INVALIDA": "The validity ends before it starts.",
     "SIN_CERTIFICADO_VIGENTE": "To approve, the product needs at least one valid certificate of its own.",
     "SOLICITUD_YA_RESUELTA": "This request is no longer pending review.",
+    "MODERACION_YA_RESUELTA": "This publication request was already resolved.",
+    "OFERTA_NO_APROBABLE": "The offer cannot be published yet.",
     "SOLICITUD_NO_ENCONTRADA": "The request doesn't exist.",
     "MOTIVO_REQUERIDO": "Enter the reason for the decision.",
     "DESTINO_INVALIDO": "Choose a collection point as the destination.",
@@ -3083,9 +3085,26 @@
       "revision": "Before approving",
       "lista": "Meets what is needed to be published",
       "noSustituye": "This review doesn't replace the documentary assessment of the sale authorization.",
+      "motivo": "Reason for the decision",
+      "motivoAyuda": "Required. The producer will see it.",
+      "motivoRequerido": "Write the reason for the decision",
+      "aprobar": "Approve publication",
+      "noAprobable": "To approve, the offer must meet everything on the list.",
+      "hecho": {
+        "aprobar": "You approved the publication. The offer is now in the catalog."
+      },
+      "errorDecision": "We could not record the decision",
       "resuelta": {
         "APROBADA": "This publication was already approved.",
         "RECHAZADA": "This publication was rejected."
+      }
+    },
+    "dialogo": {
+      "motivo": "Reason: “{{motivo}}”",
+      "aprobar": {
+        "titulo": "Approve the publication of {{producto}}",
+        "confirmar": "Approve",
+        "texto": "The offer goes into the catalog and {{organizacion}} receives your reason. The decision is recorded and cannot be edited."
       }
     }
   },
@@ -3839,6 +3858,7 @@
     "todas": "All",
     "tipos": {
       "AUTORIZACIONES": "Authorizations",
+      "MODERACION": "Moderation",
       "PRODUCTORES": "Producers",
       "DENUNCIAS": "Reports",
       "CUENTAS": "Accounts"
@@ -3854,6 +3874,7 @@
       "AUTORIZACION_RECHAZADA": "Rejected authorization",
       "AUTORIZACION_REVOCADA": "Revoked authorization",
       "RENOVACION_SOLICITADA": "Requested renewal",
+      "PUBLICACION_APROBADA": "Approved publication",
       "HABILITAR_TIENDA": "Enabled store",
       "REVOCAR_VENTA": "Revoked sale",
       "RESTITUIR_VENTA": "Restored sale",

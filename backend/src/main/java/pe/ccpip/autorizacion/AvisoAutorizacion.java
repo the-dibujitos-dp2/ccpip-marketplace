@@ -11,7 +11,7 @@ import pe.ccpip.aviso.Correo;
 
 /**
  * Notifica al productor cada decision humana sobre su venta (CCPIP-37, CCPIP-297, CCPIP-39,
- * CCPIP-291, CCPIP-330, CCPIP-85, CCPIP-322). El canal es el acordado el 30/09 (Figma, CCPIP-103): correo, y el aviso en
+ * CCPIP-291, CCPIP-330, CCPIP-85, CCPIP-322) y sobre la publicacion de sus ofertas (CCPIP-331). El canal es el acordado el 30/09 (Figma, CCPIP-103): correo, y el aviso en
  * la plataforma, que son el estado y el motivo que el productor ve en sus pantallas.
  *
  * <p>Se llama despues de que la decision quedo guardada: si el correo falla, la decision no se deshace
@@ -23,10 +23,10 @@ public class AvisoAutorizacion {
     /**
      * Que se decidio. {@code producto} es nulo en las decisiones sobre el productor. Las dos ultimas son
      * las variantes de restituir y desbloquear cuando la otra restriccion sigue vigente: el aviso no
-     * promete que los productos vuelven a la venta.
+     * promete que los productos vuelven a la venta. PUBLICACION_*: la moderacion de una oferta.
      */
     public enum Tipo { APROBADA, RECHAZADA, REVOCADA, HABILITAR_TIENDA, REVOCAR_VENTA, RESTITUIR_VENTA, BLOQUEAR_VENTA, DESBLOQUEAR_VENTA,
-        RESTITUIR_VENTA_SIGUE_BLOQUEADA, DESBLOQUEAR_VENTA_SIGUE_REVOCADA }
+        RESTITUIR_VENTA_SIGUE_BLOQUEADA, DESBLOQUEAR_VENTA_SIGUE_REVOCADA, PUBLICACION_APROBADA }
 
     private record Destinatario(long usuarioId, String correo, String nombre, boolean ingles) {
     }
@@ -57,7 +57,8 @@ public class AvisoAutorizacion {
                             + "Te avisaremos cuando la Cámara levante el bloqueo.",
                     "Levantamos el bloqueo de tu organización", "Ya no tienes un bloqueo de ventas. Sin embargo, tus productos "
                             + "todavía no se pueden comprar, porque la autorización de venta de tu organización sigue revocada. "
-                            + "Te avisaremos cuando la Cámara la restituya."));
+                            + "Te avisaremos cuando la Cámara la restituya.",
+                    "Publicamos tu oferta %s", "Ya está en el catálogo de Mercado CCPIP."));
 
     // El motivo lo escribe el subadministrador en espanol: se envia tal cual
     private static final Idioma EN = new Idioma("Hello", "Reason",
@@ -78,7 +79,8 @@ public class AvisoAutorizacion {
                             + "We will let you know when the Chamber lifts the block.",
                     "We lifted your organization's block", "Your sales are no longer blocked. However, your products cannot "
                             + "be purchased yet, because your organization's sale authorization is still revoked. "
-                            + "We will let you know when the Chamber restores it."));
+                            + "We will let you know when the Chamber restores it.",
+                    "We published your offer %s", "It is now in the Mercado CCPIP catalog."));
 
     private final JdbcTemplate jdbc;
     private final Avisos avisos;
@@ -90,8 +92,9 @@ public class AvisoAutorizacion {
 
     /**
      * Envia el aviso al usuario del productor, en su idioma, y lo deja en el registro de avisos.
-     * {@code decisionId} es la fila de autorizacion_decision (decisiones por producto) o de
-     * productor_decision (decisiones sobre el productor). Devuelve false si no salio.
+     * {@code decisionId} es la fila de autorizacion_decision (decisiones por producto), de
+     * productor_decision (decisiones sobre el productor) o de moderacion_publicacion (la publicacion de una
+     * oferta). Devuelve false si no salio.
      */
     public boolean notificar(long productorId, Tipo tipo, String producto, String motivo, long decisionId) {
         Destinatario d = jdbc.query("""
@@ -102,11 +105,18 @@ public class AvisoAutorizacion {
         if (d == null) {
             return false;
         }
-        Avisos.Tipo registro = producto == null ? Avisos.Tipo.DECISION_PRODUCTOR : Avisos.Tipo.DECISION_AUTORIZACION;
+        Avisos.Tipo registro = registro(tipo, producto);
         Correo correo = correo(d, d.ingles() ? EN : ES, tipo, producto, motivo);
         return avisos.registrar(d.usuarioId(), registro, decisionId)
                 .map(avisoId -> avisos.enviar(avisoId, correo))
                 .orElse(false);
+    }
+
+    private static Avisos.Tipo registro(Tipo tipo, String producto) {
+        if (tipo.name().startsWith("PUBLICACION_")) {
+            return Avisos.Tipo.DECISION_MODERACION;
+        }
+        return producto == null ? Avisos.Tipo.DECISION_PRODUCTOR : Avisos.Tipo.DECISION_AUTORIZACION;
     }
 
     private static Correo correo(Destinatario d, Idioma idioma, Tipo tipo, String producto, String motivo) {

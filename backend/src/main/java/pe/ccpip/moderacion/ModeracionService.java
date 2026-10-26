@@ -5,9 +5,12 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +29,8 @@ import pe.ccpip.moderacion.ModeracionModelos.Expediente;
 import pe.ccpip.moderacion.ModeracionModelos.Fila;
 import pe.ccpip.moderacion.ModeracionModelos.Oferta;
 import pe.ccpip.moderacion.ModeracionModelos.Solicitud;
+import pe.ccpip.productor.Auditoria;
+import pe.ccpip.productor.Auditoria.Accion;
 import pe.ccpip.productor.ProductoModelos.ProductoEdicion;
 import pe.ccpip.productor.ProductosService;
 
@@ -36,6 +41,8 @@ import pe.ccpip.productor.ProductosService;
  *   <li>CCPIP-46 (RF-21): consultar las ofertas pendientes y el expediente de cada una: la oferta como se
  *       publicaria, el productor, su autorizacion de venta con las evidencias vigentes y el historial de
  *       solicitudes.</li>
+ *   <li>CCPIP-331 (RF-221): aprobar con motivo una oferta autorizada para la venta y completa; pasa al
+ *       catalogo.</li>
  * </ul>
  * La revision no sustituye la evaluacion documental de la autorizacion (CCPIP-174): solo la muestra.
  */
@@ -51,11 +58,14 @@ public class ModeracionService {
     private final JdbcTemplate jdbc;
     private final ProductosService productos;
     private final EvidenciasService evidencias;
+    private final Auditoria auditoria;
 
-    public ModeracionService(JdbcTemplate jdbc, ProductosService productos, EvidenciasService evidencias) {
+    public ModeracionService(JdbcTemplate jdbc, ProductosService productos, EvidenciasService evidencias,
+                             Auditoria auditoria) {
         this.jdbc = jdbc;
         this.productos = productos;
         this.evidencias = evidencias;
+        this.auditoria = auditoria;
     }
 
     /** CCPIP-46: pendientes primero las mas antiguas; las decididas, de la mas reciente a la mas antigua. */
@@ -95,6 +105,49 @@ public class ModeracionService {
         boolean pendiente = c.estado() == Estado.PENDIENTE;
         return new Expediente(c.id(), c.estado(), c.solicitadaEn(), c.solicitadaPor(), c.republicacion(), oferta(p),
                 c.productor(), autorizacion, historial(c.productoId()), faltan, pendiente, pendiente && faltan.isEmpty());
+    }
+
+    /**
+     * CCPIP-331 (RF-221): la oferta pasa al catalogo. Se vuelve a comprobar lo que muestra el expediente,
+     * porque la autorizacion o el stock pueden haber cambiado desde que se abrio. El historial del producto
+     * lo registra como publicacion (o republicacion, si venia de un retiro), con el subadministrador como autor.
+     */
+    @Transactional
+    public Expediente aprobar(long id, long usuarioId, String motivo) {
+        String texto = RevisionService.motivoRequerido(motivo);
+        Cabecera c = cabecera(id, true);
+        exigirPendiente(c);
+        ProductoEdicion p = productos.obtener(c.productor().id(), c.productoId());
+        List<String> faltan = faltan(p, autorizacion(c));
+        if (!faltan.isEmpty()) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "OFERTA_NO_APROBABLE",
+                    "La oferta todavía no se puede publicar.", faltan);
+        }
+        jdbc.update("""
+                UPDATE producto SET estado = 'PUBLICADO', publicado_en = coalesce(publicado_en, now())
+                WHERE id = ? AND estado = 'EN_MODERACION'""", c.productoId());
+        decidir(c, usuarioId, Estado.APROBADA, texto,
+                "RETIRADO".equals(c.estadoAnterior()) ? Accion.REPUBLICAR : Accion.PUBLICAR);
+        return expediente(id);
+    }
+
+    /** Guarda la decision (una sola vez: lo asegura el trigger) y la deja en el historial del producto. */
+    private void decidir(Cabecera c, long usuarioId, Estado decision, String motivo, Accion accion) {
+        jdbc.update("""
+                UPDATE moderacion_publicacion SET decision = ?, motivo = ?, decidida_por = ?, decidida_en = now()
+                WHERE id = ?""", decision.name(), motivo, usuarioId, c.id());
+        Map<String, Object> cambios = new LinkedHashMap<>();
+        cambios.put("solicitud", c.id());
+        cambios.put("decision", decision.name());
+        cambios.put("motivo", motivo);
+        auditoria.registrar(c.productoId(), usuarioId, accion, cambios);
+    }
+
+    private static void exigirPendiente(Cabecera c) {
+        if (c.estado() != Estado.PENDIENTE) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "MODERACION_YA_RESUELTA",
+                    "Esta solicitud de publicación ya fue resuelta.");
+        }
     }
 
     /**

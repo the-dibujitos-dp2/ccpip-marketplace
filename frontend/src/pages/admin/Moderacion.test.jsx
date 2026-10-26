@@ -139,6 +139,61 @@ describe('CCPIP-46 Moderación de publicaciones', () => {
     expect(autorizacion.queryByRole('link', { name: 'Ver la autorización' })).not.toBeInTheDocument()
   })
 
+  it('CCPIP-331: aprueba con motivo y la oferta pasa al catálogo', async () => {
+    const aprobada = {
+      ...copia(EXP), estado: 'APROBADA', puedeDecidir: false, puedeAprobar: false,
+      historial: [{ ...EXP.historial[0], estado: 'APROBADA', motivo: 'Fotos y precios conformes', decididaPor: 'Lucía Paredes', decididaEn: '2026-10-26T15:00:00Z' }],
+    }
+    const fetchMock = comoSub({ [`POST ${EXPEDIENTE}/aprobar`]: () => [200, aprobada] })
+    const user = userEvent.setup()
+    abrirEn('/admin/moderacion/7')
+    const d = await decision()
+
+    // Sin motivo no se abre el dialogo
+    await user.click(d.getByRole('button', { name: 'Aprobar publicación' }))
+    expect(d.getByText('Escribe el motivo de la decisión')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    await user.type(d.getByLabelText('Motivo de la decisión'), 'Fotos y precios conformes')
+    await user.click(d.getByRole('button', { name: 'Aprobar publicación' }))
+    const dialogo = within(screen.getByRole('dialog'))
+    expect(dialogo.getByRole('heading', { name: 'Aprobar la publicación de Miel de abeja melipona 250 g' })).toBeInTheDocument()
+    expect(dialogo.getByText('Motivo: «Fotos y precios conformes»')).toBeInTheDocument()
+    expect(dialogo.getByText(/Asoc\. Nii Joi recibe tu motivo/)).toBeInTheDocument()
+    await user.click(dialogo.getByRole('button', { name: 'Aprobar' }))
+
+    expect(await screen.findByText('Aprobaste la publicación. La oferta ya está en el catálogo.')).toBeInTheDocument()
+    const [[, opciones]] = llamadas(fetchMock, `POST ${EXPEDIENTE}/aprobar`)
+    expect(JSON.parse(opciones.body)).toEqual({ motivo: 'Fotos y precios conformes' })
+    expect((await decision()).getByText('Esta publicación ya se aprobó.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Aprobar publicación' })).not.toBeInTheDocument()
+  })
+
+  it('CCPIP-331: no se aprueba lo que no cumple, y si cambió al decidir se vuelve a cargar', async () => {
+    let cambio = false
+    const fetchMock = comoSub({
+      [`GET ${EXPEDIENTE}`]: () => [200, cambio
+        ? { ...copia(EXP), puedeAprobar: false, faltan: ['Una autorización de venta vigente para este producto'] }
+        : copia(EXP)],
+      [`POST ${EXPEDIENTE}/aprobar`]: () => {
+        cambio = true
+        return [409, { code: 'OFERTA_NO_APROBABLE', error: 'La oferta todavía no se puede publicar.', detalles: ['Una autorización de venta vigente para este producto'] }]
+      },
+    })
+    const user = userEvent.setup()
+    abrirEn('/admin/moderacion/7')
+    const d = await decision()
+    await user.type(d.getByLabelText('Motivo de la decisión'), 'Conforme')
+    await user.click(d.getByRole('button', { name: 'Aprobar publicación' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Aprobar' }))
+
+    expect(await screen.findByText('La oferta todavía no se puede publicar.')).toBeInTheDocument()
+    expect(await d.findByText('Una autorización de venta vigente para este producto')).toBeInTheDocument()
+    expect(d.getByText('Para aprobar, la oferta debe cumplir todo lo de la lista.')).toBeInTheDocument()
+    expect(d.getByRole('button', { name: 'Aprobar publicación' })).toBeDisabled()
+    expect(llamadas(fetchMock, `GET ${EXPEDIENTE}`)).toHaveLength(2)
+  })
+
   it('el superadministrador no modera', async () => {
     servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_SUPER], 'GET /api/admin/tablero': () => [200, copia(DATOS.tableroAdmin)] })
     abrirEn('/admin/moderacion')

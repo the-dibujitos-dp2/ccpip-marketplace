@@ -1973,6 +1973,8 @@
     "VIGENCIA_INVALIDA": "La vigencia termina antes de empezar.",
     "SIN_CERTIFICADO_VIGENTE": "Para aprobar, el producto necesita al menos un certificado vigente propio.",
     "SOLICITUD_YA_RESUELTA": "Esta solicitud ya no está pendiente de revisión.",
+    "MODERACION_YA_RESUELTA": "Esta solicitud de publicación ya fue resuelta.",
+    "OFERTA_NO_APROBABLE": "La oferta todavía no se puede publicar.",
     "SOLICITUD_NO_ENCONTRADA": "La solicitud no existe.",
     "MOTIVO_REQUERIDO": "Escribe el motivo de la decisión.",
     "DESTINO_INVALIDO": "Elige un punto de acopio como destino.",
@@ -3083,9 +3085,26 @@
       "revision": "Antes de aprobar",
       "lista": "Cumple lo necesario para publicarse",
       "noSustituye": "Esta revisión no reemplaza la evaluación documental de la autorización de venta.",
+      "motivo": "Motivo de la decisión",
+      "motivoAyuda": "Obligatorio. El productor lo verá.",
+      "motivoRequerido": "Escribe el motivo de la decisión",
+      "aprobar": "Aprobar publicación",
+      "noAprobable": "Para aprobar, la oferta debe cumplir todo lo de la lista.",
+      "hecho": {
+        "aprobar": "Aprobaste la publicación. La oferta ya está en el catálogo."
+      },
+      "errorDecision": "No pudimos registrar la decisión",
       "resuelta": {
         "APROBADA": "Esta publicación ya se aprobó.",
         "RECHAZADA": "Esta publicación se rechazó."
+      }
+    },
+    "dialogo": {
+      "motivo": "Motivo: «{{motivo}}»",
+      "aprobar": {
+        "titulo": "Aprobar la publicación de {{producto}}",
+        "confirmar": "Aprobar",
+        "texto": "La oferta pasa al catálogo y {{organizacion}} recibe tu motivo. La decisión queda registrada y no se edita."
       }
     }
   },
@@ -3839,6 +3858,7 @@
     "todas": "Todas",
     "tipos": {
       "AUTORIZACIONES": "Autorizaciones",
+      "MODERACION": "Moderación",
       "PRODUCTORES": "Productores",
       "DENUNCIAS": "Denuncias",
       "CUENTAS": "Cuentas"
@@ -3854,6 +3874,7 @@
       "AUTORIZACION_RECHAZADA": "Rechazó autorización",
       "AUTORIZACION_REVOCADA": "Revocó autorización",
       "RENOVACION_SOLICITADA": "Pidió renovación",
+      "PUBLICACION_APROBADA": "Aprobó publicación",
       "HABILITAR_TIENDA": "Habilitó tienda",
       "REVOCAR_VENTA": "Revocó venta",
       "RESTITUIR_VENTA": "Restituyó venta",

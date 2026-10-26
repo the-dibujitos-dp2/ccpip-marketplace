@@ -2,8 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoCandado from '../../assets/icons/candado.svg'
 import iconoCheck from '../../assets/icons/check-circulo.svg'
+import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import iconoReloj from '../../assets/icons/reloj.svg'
-import { expedienteModeracion } from '../../api/moderacion.js'
+import { aprobarModeracion, expedienteModeracion } from '../../api/moderacion.js'
+import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Icono from '../../components/Icono.jsx'
@@ -12,16 +14,20 @@ import { fechaCorta, fechaHora, precio, unidades } from '../../formato.js'
 import { traducirFaltante } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import { BadgeAutorizacion } from './ModeracionPage.jsx'
-import { FilaEvidencia, SinExpediente } from './revision.jsx'
+import { CampoMotivo, DialogoDecision, FilaEvidencia, SinExpediente, useDecision } from './revision.jsx'
 import '../productor/productor.css'
 import './admin.css'
 
 const TONO_ESTADO = { PENDIENTE: 'info', APROBADA: 'exito', RECHAZADA: 'error' }
+const ENVIAR = { aprobar: aprobarModeracion }
+// La solicitud ya se decidio, o la oferta dejo de cumplir: se vuelve a cargar para mostrar por que
+const RECARGAR_SI = ['MODERACION_YA_RESUELTA', 'OFERTA_NO_APROBABLE']
 
 /**
  * CCPIP-46 (RF-21): el expediente de una oferta que el productor pide publicar. El sub administrador ve
  * la oferta como se publicaria, su autorizacion de venta con las evidencias vigentes (que no se decide
- * aqui) y las solicitudes anteriores. No hay pantalla en Figma: sigue el formato de S-02.
+ * aqui) y las solicitudes anteriores. Aprueba con motivo (CCPIP-331) si la oferta cumple todo lo de la
+ * lista. No hay pantalla en Figma: sigue el formato de S-02.
  */
 export default function ExpedienteModeracionPage({ path, id }) {
   const { t } = useTranslation()
@@ -41,12 +47,18 @@ export default function ExpedienteModeracionPage({ path, id }) {
     cargar()
   }, [cargar])
 
+  const decision = useDecision({
+    textos: 'moderacion',
+    id, enviar: ENVIAR, alDecidir: setExp, recargar: cargar, recargarSi: RECARGAR_SI,
+  })
+
   const migas = `${t('admin.nav.moderacion')}${exp ? ` / ${exp.oferta.nombre}` : ''}`
   if (!exp) return <SinExpediente path={path} migas={migas} textos="moderacion" error={error} volverA={RUTAS.adminModeracion} />
 
   const { oferta, autorizacion } = exp
   return (
     <LayoutAdmin path={path} migas={migas} titulo={`${exp.productor.organizacion} · ${oferta.nombre}`}>
+      {decision.aviso && <Alerta {...decision.aviso} onCerrar={() => decision.setAviso(null)} />}
       <div className="expediente">
         <div className="expediente__principal">
           <section className="tarjeta-panel expediente__cabecera" aria-label={t('moderacion.expediente.solicitud')}>
@@ -125,9 +137,22 @@ export default function ExpedienteModeracionPage({ path, id }) {
             </ul>
           )}
           <p className="caption">{t('moderacion.expediente.noSustituye')}</p>
-          {!exp.puedeDecidir && <p className="body-s">{t(`moderacion.expediente.resuelta.${exp.estado}`)}</p>}
+          {exp.puedeDecidir ? (
+            <>
+              <CampoMotivo decision={decision} etiqueta={t('moderacion.expediente.motivo')} ayuda={t('moderacion.expediente.motivoAyuda')} />
+              {!exp.puedeAprobar && <p className="caption">{t('moderacion.expediente.noAprobable')}</p>}
+              <Boton tamano="M" icono={iconoEscudo} anchoCompleto onClick={() => decision.pedirConfirmacion('aprobar')}
+                disabled={!exp.puedeAprobar || decision.decidiendo}>
+                {t('moderacion.expediente.aprobar')}
+              </Boton>
+            </>
+          ) : (
+            <p className="body-s">{t(`moderacion.expediente.resuelta.${exp.estado}`)}</p>
+          )}
         </aside>
       </div>
+
+      <DialogoDecision decision={decision} producto={oferta.nombre} organizacion={exp.productor.organizacion} />
     </LayoutAdmin>
   )
 }

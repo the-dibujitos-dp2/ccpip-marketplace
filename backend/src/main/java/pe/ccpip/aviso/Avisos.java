@@ -23,8 +23,10 @@ public class Avisos {
     /**
      * DECISION_AUTORIZACION y DECISION_PRODUCTOR: decisiones del subadministrador sobre la venta del productor.
      * RENOVACION_CERTIFICADO: el subadministrador pide renovar un certificado (CCPIP-321).
+     * DECISION_MODERACION: la publicacion de una oferta (CCPIP-331, CCPIP-332).
      */
-    public enum Tipo { PEDIDO_LISTO, INTERES_VENDIBLE, DECISION_AUTORIZACION, DECISION_PRODUCTOR, RENOVACION_CERTIFICADO }
+    public enum Tipo { PEDIDO_LISTO, INTERES_VENDIBLE, DECISION_AUTORIZACION, DECISION_PRODUCTOR, RENOVACION_CERTIFICADO,
+        DECISION_MODERACION }
 
     private final NamedParameterJdbcTemplate jdbc;
     private final EnvioCorreo envio;

@@ -7,3 +7,7 @@ export const bandejaModeracion = (estado = 'PENDIENTE') => apiFetch(`/api/admin/
 
 /** CCPIP-46: la oferta, su autorizacion de venta con sus evidencias y el historial de solicitudes. */
 export const expedienteModeracion = async (id) => apiFetch(`/api/admin/moderacion/${idRuta(id)}`)
+
+/** CCPIP-331: aprobar con motivo; la oferta pasa al catalogo. Devuelve el expediente actualizado. */
+export const aprobarModeracion = async (id, motivo) =>
+  apiFetch(`/api/admin/moderacion/${idRuta(id)}/aprobar`, { method: 'POST', body: { motivo } })
