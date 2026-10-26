@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import pe.ccpip.comun.ErrorNegocio;
-import pe.ccpip.distribucion.DistribucionModelos.EntregaAsumida;
+import pe.ccpip.distribucion.DistribucionModelos.EntregaDelDistribuidor;
 import pe.ccpip.support.IntegrationTest;
 
 /**
@@ -78,11 +78,11 @@ class DistribucionAsumirConcurrenciaTest extends IntegrationTest {
                 () -> distribucion.asumir(uno, numero),
                 () -> distribucion.asumir(otro, numero));
 
-        assertThat(resultados).filteredOn(EntregaAsumida.class::isInstance).hasSize(1);
+        assertThat(resultados).filteredOn(EntregaDelDistribuidor.class::isInstance).hasSize(1);
         assertThat(resultados).filteredOn(ErrorNegocio.class::isInstance)
                 .singleElement().extracting(e -> ((ErrorNegocio) e).code()).isEqualTo("PEDIDO_YA_ASUMIDO");
         // El ganador es quien quedo en la entrega
-        long ganador = resultados.get(0) instanceof EntregaAsumida ? uno : otro;
+        long ganador = resultados.get(0) instanceof EntregaDelDistribuidor ? uno : otro;
         assertThat(jdbc.queryForObject("SELECT distribuidor_id FROM entrega WHERE pedido_id = ?", Long.class, pedido))
                 .isEqualTo(ganador);
         assertThat(jdbc.queryForObject("SELECT estado FROM entrega WHERE pedido_id = ?", String.class, pedido))
@@ -95,19 +95,19 @@ class DistribucionAsumirConcurrenciaTest extends IntegrationTest {
                 () -> distribucion.asumir(uno, numero),
                 () -> distribucion.asumir(uno, numero));
 
-        assertThat(resultados).allMatch(EntregaAsumida.class::isInstance);
-        assertThat(resultados).extracting(r -> ((EntregaAsumida) r).asignadaEn()).containsOnly(((EntregaAsumida) resultados.get(0)).asignadaEn());
+        assertThat(resultados).allMatch(EntregaDelDistribuidor.class::isInstance);
+        assertThat(resultados).extracting(r -> ((EntregaDelDistribuidor) r).asignadaEn()).containsOnly(((EntregaDelDistribuidor) resultados.get(0)).asignadaEn());
         assertThat(jdbc.queryForObject("SELECT distribuidor_id FROM entrega WHERE pedido_id = ?", Long.class, pedido)).isEqualTo(uno);
     }
 
     /** Lanza las solicitudes al mismo tiempo y devuelve lo que respondio cada una, o su error de negocio. */
     @SafeVarargs
-    private List<Object> aLaVez(Callable<EntregaAsumida>... solicitudes) throws Exception {
+    private List<Object> aLaVez(Callable<EntregaDelDistribuidor>... solicitudes) throws Exception {
         ExecutorService hilos = Executors.newFixedThreadPool(solicitudes.length);
         CountDownLatch largada = new CountDownLatch(1);
         try {
             List<Future<Object>> futuros = new ArrayList<>();
-            for (Callable<EntregaAsumida> solicitud : solicitudes) {
+            for (Callable<EntregaDelDistribuidor> solicitud : solicitudes) {
                 futuros.add(hilos.submit(() -> {
                     largada.await();
                     try {
