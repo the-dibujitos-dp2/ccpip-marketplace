@@ -496,3 +496,26 @@ describe('Exportar los reportes de gestion (SA-10)', () => {
       .toHaveAttribute('href', `/api/admin/reportes/calificaciones/xlsx?${RANGO}&linea=CAFE&lang=es`)
   })
 })
+
+describe('Las descargas de gestion siguen los filtros que se ven', () => {
+  it('con una fecha vacia o mientras se consulta no descarga el reporte anterior', async () => {
+    let soltar
+    comoSuper({
+      [`GET /api/admin/reportes/productores?${RANGO}`]: () => [200, copia(PRODUCTORES)],
+      'GET /api/admin/reportes/productores?desde=2026-02-01&hasta=2026-03-18': () => new Promise((resolve) => {
+        soltar = () => resolve([200, { ...copia(PRODUCTORES), desde: '2026-02-01' }])
+      }),
+    })
+    await abrirPestana('Productores')
+    await screen.findByRole('link', { name: 'Descargar PDF' })
+
+    fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '' } })
+    expect(screen.getByRole('button', { name: 'Descargar PDF' })).toBeDisabled()
+
+    fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '2026-02-01' } })
+    expect(screen.getByRole('button', { name: 'Descargar Excel' })).toHaveAccessibleDescription(/Actualizando el reporte/)
+    soltar()
+    expect(await screen.findByRole('link', { name: 'Descargar Excel' }))
+      .toHaveAttribute('href', '/api/admin/reportes/productores/xlsx?desde=2026-02-01&hasta=2026-03-18&lang=es')
+  })
+})

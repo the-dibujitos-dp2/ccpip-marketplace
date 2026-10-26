@@ -68,13 +68,10 @@ const seAgrupa = (clave) => esMetrica(clave) || clave === 'indicadores'
 export default function ReportesPage({ path }) {
   const { t } = useTranslation()
   const [pestana, setPestana] = useState(PESTANAS[0])
-  const { filtro, setFiltro, datos, error, cargando, cargar } = useReporte(consultarReporte, aFiltro, PESTANAS[0], FILTRO_VACIO)
+  const { filtro, datos, error, cargando, vigente, cargar, aplicar } =
+    useReporte(consultarReporte, aFiltro, PESTANAS[0], FILTRO_VACIO)
 
-  const cambiar = (campo) => (e) => {
-    const nuevo = { ...filtro, [campo]: e.target.value }
-    setFiltro(nuevo)
-    if (nuevo.desde && nuevo.hasta) cargar(pestana, nuevo)
-  }
+  const cambiar = (campo) => (e) => aplicar(pestana, { ...filtro, [campo]: e.target.value })
 
   function elegir(clave) {
     setPestana(clave)
@@ -115,8 +112,8 @@ export default function ReportesPage({ path }) {
           />
         )}
         {Gestion && (
-          <DescargasReporte className="reportes__exportar" formatos={FORMATOS} etiqueta={(f) => t(`admin.reportes.exportar.${f}`)}
-            url={(f, idioma) => urlReporteGestion(datos.clave, f, datos, idioma)} />
+          <DescargasReporte className="reportes__exportar" formatos={FORMATOS} disponible={vigente} cargando={cargando}
+            etiqueta={(f) => t(`admin.reportes.exportar.${f}`)} url={(f, idioma) => urlReporteGestion(datos.clave, f, datos.aplicado, idioma)} />
         )}
       </div>
       {error && <Alerta tono="error" titulo={t('admin.reportes.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
