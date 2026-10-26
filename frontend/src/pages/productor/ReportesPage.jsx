@@ -10,6 +10,7 @@ import iconoTienda from '../../assets/icons/tienda.svg'
 import { consultarReporteProductor, urlReporteProductor } from '../../api/productor.js'
 import Alerta from '../../components/Alerta.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
@@ -141,7 +142,7 @@ export default function ReportesPage({ path }) {
         )}
       </div>
       {error && <Alerta tono="error" titulo={t('productor.reportes.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
-      {cargando && !datos && <p className="caption">{t('comun.cargando')}</p>}
+      {cargando && !datos && <Cargando />}
       {mostrada === 'ventas' && <Ventas datos={datos} />}
       {mostrada === 'produccion' && <Produccion datos={datos} />}
       {mostrada === 'inventario' && <Inventario datos={datos} />}

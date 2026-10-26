@@ -197,7 +197,7 @@ function MasVendidos({ periodo, onPeriodo, idioma }) {
         opciones={PERIODOS.map((p) => ({ valor: p, etiqueta: t(`inicio.descubrir.periodos.${p}`) }))}
       />
       {error && <Alerta tono="error" titulo={t('inicio.error')} descripcion={t('comun.errorConexion')} />}
-      {!error && !actual && <p className="caption">{t('comun.cargando')}</p>}
+      {!error && !actual && <Cargando />}
       {actual && actual.productos.length === 0 && <p className="body-m">{t('inicio.descubrir.sinVentas')}</p>}
       {actual && actual.productos.length > 0 && (
         <ul className="grilla-productos" aria-label={t('inicio.descubrir.masVendidos')}>
