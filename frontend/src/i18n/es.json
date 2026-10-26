@@ -780,7 +780,15 @@
         "RECHAZADO": "No publicado"
       },
       "motivo": "Motivo de la Cámara: «{{motivo}}»",
-      "lleno": "Tu tienda ya tiene {{max}} videos. Retira uno para subir otro."
+      "lleno": "Tu tienda ya tiene {{max}} videos. Retira uno para subir otro.",
+      "reemplazar": "Reemplazar",
+      "reemplazarDe": "Reemplazar el video {{titulo}}",
+      "reemplazaA": "Reemplaza a «{{titulo}}»",
+      "conReemplazo": "Su reemplazo está en revisión",
+      "reemplazoEnviado": "Reemplazo enviado a revisión",
+      "reemplazoPublicado": "Tu tienda sigue mostrando el video actual hasta que la Cámara apruebe el nuevo.",
+      "reemplazoTexto": "El video anterior quedó retirado. Lo verás en tu tienda cuando la Cámara apruebe el nuevo.",
+      "noReemplazo": "No pudimos reemplazar el video"
     },
     "cuenta": {
       "titulo": "Cuenta bancaria",
@@ -2117,7 +2125,8 @@
     "TITULO_REQUERIDO": "Escribe un título para el video.",
     "TITULO_MUY_LARGO": "El título admite hasta 120 caracteres.",
     "VIDEO_YA_RESUELTO": "Este video ya no está pendiente de revisión.",
-    "VIDEO_NO_ENCONTRADO": "El video no existe."
+    "VIDEO_NO_ENCONTRADO": "El video no existe.",
+    "REEMPLAZO_EN_REVISION": "Este video ya tiene un reemplazo en revisión. Espera la decisión de la Cámara o retíralo."
   },
   "buscar": {
     "comunidad": "Comunidad",

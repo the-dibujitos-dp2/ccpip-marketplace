@@ -32,6 +32,7 @@ import pe.ccpip.imagenes.ImagenStorage;
  * <ul>
  *   <li>CCPIP-118 (RF-10): subir un video a la galeria de su tienda.</li>
  *   <li>CCPIP-390 (RF-282): consultar los videos de su propia tienda, con su revision.</li>
+ *   <li>CCPIP-391 (RF-283): reemplazar un video por otro, que tambien pasa por la revision.</li>
  * </ul>
  * El archivo va al mismo bucket que las imagenes, en {@code productores/<productor>/videos/}, y se sirve por
  * partes (Range) para que el navegador pueda adelantarlo sin descargarlo entero.
@@ -83,6 +84,43 @@ public class VideosService {
                     "Tu tienda puede tener hasta " + MAX_VIDEOS + " videos. Retira uno para agregar otro.");
         }
         return buscar(guardar(productorId, usuarioId, texto, archivo, null)).orElseThrow();
+    }
+
+    /**
+     * CCPIP-391: cambia un video propio por otro, con el mismo titulo si no se da uno nuevo. Si el anterior se
+     * ve en la tienda, sigue ahi hasta que la Camara aprueba el nuevo, que apunta a el ({@code reemplaza_a}); si
+     * aun no se veia (en revision o rechazado), se retira ya y queda apuntando al nuevo
+     * ({@code reemplazado_por}); si era el reemplazo en revision de uno publicado, el nuevo pasa a reemplazar a
+     * ese. Asi el historial de cada video se conserva.
+     */
+    @Transactional
+    public Video reemplazar(long productorId, long usuarioId, long id, String titulo, MultipartFile archivo) {
+        bloquearProductor(productorId);
+        Video anterior = jdbc.query("SELECT * FROM video_tienda WHERE id = ? AND productor_id = ? AND retirado_en IS NULL",
+                VideosService::mapear, id, productorId).stream().findFirst().orElseThrow(VideosService::noEncontrado);
+        Integer enCurso = jdbc.queryForObject("""
+                SELECT count(*) FROM video_tienda WHERE reemplaza_a = ? AND estado = 'EN_REVISION' AND retirado_en IS NULL""",
+                Integer.class, id);
+        if (enCurso != null && enCurso > 0) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "REEMPLAZO_EN_REVISION",
+                    "Este video ya tiene un reemplazo en revisión. Espera la decisión de la Cámara o retíralo.");
+        }
+        String texto = titulo == null || titulo.isBlank() ? anterior.titulo() : tituloValido(titulo);
+        if (anterior.estado() == Estado.PUBLICADO) {
+            return buscar(guardar(productorId, usuarioId, texto, archivo, id)).orElseThrow();
+        }
+        // Aun no se veia: se retira antes, y si era a su vez un reemplazo, el nuevo hereda a quien reemplaza
+        retirar(id, usuarioId, null);
+        long nuevo = guardar(productorId, usuarioId, texto, archivo, anterior.reemplazaA());
+        jdbc.update("UPDATE video_tienda SET reemplazado_por = ? WHERE id = ?", nuevo, id);
+        return buscar(nuevo).orElseThrow();
+    }
+
+    /** Retira un video vigente; {@code reemplazadoPor} es el que toma su lugar, si lo hay (CCPIP-391). */
+    public void retirar(long id, long usuarioId, Long reemplazadoPor) {
+        jdbc.update("""
+                UPDATE video_tienda SET retirado_por = ?, retirado_en = now(), reemplazado_por = ?
+                WHERE id = ? AND retirado_en IS NULL""", usuarioId, reemplazadoPor, id);
     }
 
     /**

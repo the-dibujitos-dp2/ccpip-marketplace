@@ -151,6 +151,74 @@ class VideosTest extends IntegrationTest {
         mockMvc.perform(get("/api/productor/videos").cookie(subAdmin)).andExpect(status().isForbidden());
     }
 
+    // ---------- CCPIP-391: reemplazar ----------
+
+    @Test
+    void elReemplazoDeUnVideoPublicadoSeVeSoloCuandoSeAprueba() throws Exception {
+        long original = id(subir("Cosecha de cacao", "cosecha.mp4", "video/mp4"));
+        decidir(original, "aprobar", "Muestra el trabajo de la comunidad.").andExpect(status().isOk());
+
+        long nuevo = id(reemplazar(original, null, "telar.webm", "video/webm")
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.titulo").value("Cosecha de cacao"))
+                .andExpect(jsonPath("$.estado").value("EN_REVISION"))
+                .andExpect(jsonPath("$.reemplazaA").value((int) original)));
+        // Mientras tanto se sigue viendo el anterior, y no se pide otro reemplazo encima
+        mockMvc.perform(get("/api/tiendas/{id}", tienda)).andExpect(jsonPath("$.videos[*].id").value(hasItem((int) original)));
+        reemplazar(original, "Otro", "cosecha.mp4", "video/mp4")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("REEMPLAZO_EN_REVISION"));
+        mockMvc.perform(get("/api/admin/moderacion/videos/{id}", nuevo).cookie(subAdmin))
+                .andExpect(jsonPath("$.reemplaza.id").value((int) original))
+                .andExpect(jsonPath("$.reemplaza.titulo").value("Cosecha de cacao"));
+        mockMvc.perform(get("/api/admin/moderacion/videos").cookie(subAdmin))
+                .andExpect(jsonPath("$.solicitudes[?(@.id == %d)].reemplazo".formatted(nuevo)).value(true));
+
+        decidir(nuevo, "aprobar", "Mejor calidad.").andExpect(status().isOk());
+        mockMvc.perform(get("/api/tiendas/{id}", tienda))
+                .andExpect(jsonPath("$.videos[*].id").value(hasItem((int) nuevo)))
+                .andExpect(jsonPath("$.videos[*].id").value(not(hasItem((int) original))));
+        // El anterior no se borra: queda retirado y apunta al nuevo
+        Map<String, Object> anterior = jdbc.queryForMap("SELECT retirado_en, reemplazado_por FROM video_tienda WHERE id = ?", original);
+        assertThat(anterior.get("retirado_en")).isNotNull();
+        assertThat(((Number) anterior.get("reemplazado_por")).longValue()).isEqualTo(nuevo);
+        mockMvc.perform(get("/api/productor/videos").cookie(productor))
+                .andExpect(jsonPath("$[*].id").value(not(hasItem((int) original))));
+    }
+
+    @Test
+    void reemplazarElReemplazoEnRevisionSigueApuntandoAlPublicado() throws Exception {
+        long original = id(subir("Cosecha de cacao", "cosecha.mp4", "video/mp4"));
+        decidir(original, "aprobar", "Muestra el trabajo de la comunidad.").andExpect(status().isOk());
+        long primero = id(reemplazar(original, null, "telar.webm", "video/webm"));
+        long segundo = id(reemplazar(primero, null, "cosecha.mp4", "video/mp4")
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.reemplazaA").value((int) original)));
+        assertThat(jdbc.queryForObject("SELECT reemplazado_por FROM video_tienda WHERE id = ? AND retirado_en IS NOT NULL",
+                Long.class, primero)).isEqualTo(segundo);
+        mockMvc.perform(get("/api/tiendas/{id}", tienda)).andExpect(jsonPath("$.videos[*].id").value(hasItem((int) original)));
+    }
+
+    @Test
+    void reemplazarUnoQueAunNoSeVeLoRetiraYa() throws Exception {
+        long rechazado = id(subir("Telar", "telar.webm", "video/webm"));
+        decidir(rechazado, "rechazar", "Se ve el logo de otra marca.").andExpect(status().isOk());
+        long nuevo = id(reemplazar(rechazado, "Telar de cintura", "cosecha.mp4", "video/mp4")
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.titulo").value("Telar de cintura"))
+                .andExpect(jsonPath("$.reemplazaA").doesNotExist()));
+        assertThat(jdbc.queryForObject("SELECT reemplazado_por FROM video_tienda WHERE id = ?", Long.class, rechazado))
+                .isEqualTo(nuevo);
+        // El nuevo se valida como al subir; el de otro productor o uno retirado no existe
+        reemplazar(nuevo, null, "largo.mp4", "video/mp4").andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("VIDEO_MUY_LARGO"));
+        reemplazar(rechazado, null, "cosecha.mp4", "video/mp4").andExpect(status().isNotFound());
+        mockMvc.perform(multipart("/api/productor/videos/{id}/reemplazo", nuevo).file(archivo("cosecha.mp4", "video/mp4"))
+                        .cookie(loginAs("productor_nuevo@ccpip.test")))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("VIDEO_NO_ENCONTRADO"));
+    }
+
     // ---------- CCPIP-118: la revision del subadministrador ----------
 
     @Test
@@ -220,6 +288,11 @@ class VideosTest extends IntegrationTest {
     private ResultActions subir(String titulo, String recurso, String tipo) throws Exception {
         return mockMvc.perform(multipart("/api/productor/videos").file(archivo(recurso, tipo)).param("titulo", titulo)
                 .cookie(productor));
+    }
+
+    private ResultActions reemplazar(long video, String titulo, String recurso, String tipo) throws Exception {
+        var peticion = multipart("/api/productor/videos/{id}/reemplazo", video).file(archivo(recurso, tipo)).cookie(productor);
+        return mockMvc.perform(titulo == null ? peticion : peticion.param("titulo", titulo));
     }
 
     private ResultActions decidir(long video, String accion, String motivo) throws Exception {

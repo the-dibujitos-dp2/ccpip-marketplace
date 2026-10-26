@@ -780,7 +780,15 @@
         "RECHAZADO": "Not published"
       },
       "motivo": "The Chamber's reason: “{{motivo}}”",
-      "lleno": "Your store already has {{max}} videos. Withdraw one to upload another."
+      "lleno": "Your store already has {{max}} videos. Withdraw one to upload another.",
+      "reemplazar": "Replace",
+      "reemplazarDe": "Replace the video {{titulo}}",
+      "reemplazaA": "Replaces “{{titulo}}”",
+      "conReemplazo": "Its replacement is in review",
+      "reemplazoEnviado": "Replacement sent for review",
+      "reemplazoPublicado": "Your store keeps showing the current video until the Chamber approves the new one.",
+      "reemplazoTexto": "The previous video was withdrawn. You will see the new one in your store once the Chamber approves it.",
+      "noReemplazo": "We could not replace the video"
     },
     "cuenta": {
       "titulo": "Bank account",
@@ -2117,7 +2125,8 @@
     "TITULO_REQUERIDO": "Write a title for the video.",
     "TITULO_MUY_LARGO": "The title can be up to 120 characters.",
     "VIDEO_YA_RESUELTO": "This video is no longer pending review.",
-    "VIDEO_NO_ENCONTRADO": "The video does not exist."
+    "VIDEO_NO_ENCONTRADO": "The video does not exist.",
+    "REEMPLAZO_EN_REVISION": "This video already has a replacement in review. Wait for the Chamber's decision or withdraw it."
   },
   "buscar": {
     "comunidad": "Community",

@@ -21,7 +21,8 @@ import pe.ccpip.video.VideosService;
 /**
  * CCPIP-118: el subadministrador revisa los videos que los productores suben a su tienda, como las ofertas
  * (CCPIP-46): los aprueba, y se ven en la tienda publica, o los rechaza; siempre con motivo, que el
- * productor ve. Un video retirado por su productor mientras esperaba deja de estar pendiente.
+ * productor ve. Un video retirado por su productor mientras esperaba deja de estar pendiente. Un reemplazo
+ * (CCPIP-391) se revisa junto al video que se ve hoy.
  */
 @Service
 public class ModeracionVideosService {
@@ -31,9 +32,11 @@ public class ModeracionVideosService {
             CASE v.estado WHEN 'EN_REVISION' THEN 'PENDIENTE' WHEN 'PUBLICADO' THEN 'APROBADA' ELSE 'RECHAZADA' END""";
 
     private final JdbcTemplate jdbc;
+    private final VideosService videos;
 
-    public ModeracionVideosService(JdbcTemplate jdbc) {
+    public ModeracionVideosService(JdbcTemplate jdbc, VideosService videos) {
         this.jdbc = jdbc;
+        this.videos = videos;
     }
 
     /** Pendientes primero los mas antiguos; los decididos, del mas reciente al mas antiguo. */
@@ -62,10 +65,17 @@ public class ModeracionVideosService {
         return expediente(id, false);
     }
 
-    /** Aprobar: el video se ve en la tienda publica. */
+    /**
+     * Aprobar: el video se ve en la tienda publica. Si reemplaza a otro (CCPIP-391), el anterior se retira y
+     * queda apuntando al nuevo.
+     */
     @Transactional
     public ExpedienteVideo aprobar(long id, long usuarioId, String motivo) {
-        return decidir(id, usuarioId, motivo, "PUBLICADO");
+        ExpedienteVideo v = decidir(id, usuarioId, motivo, "PUBLICADO");
+        if (v.reemplaza() != null) {
+            videos.retirar(v.reemplaza().id(), usuarioId, id);
+        }
+        return v;
     }
 
     /** Rechazar: el video no se ve; el productor ve el motivo y puede subir otro. */

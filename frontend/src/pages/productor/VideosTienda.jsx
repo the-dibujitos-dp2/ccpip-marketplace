@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoSubir from '../../assets/icons/subir.svg'
-import { MAX_MB, MAX_MINUTOS, MAX_VIDEOS, misVideos, ocupaLugar, subirVideo, TIPOS_VIDEO } from '../../api/videos.js'
+import { MAX_MB, MAX_MINUTOS, MAX_VIDEOS, misVideos, ocupaLugar, reemplazarVideo, subirVideo, TIPOS_VIDEO } from '../../api/videos.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
@@ -14,13 +14,20 @@ import './VideosTienda.css'
 
 const MAX_BYTES = MAX_MB * 1024 * 1024
 
-/** Que le falta al formulario antes de enviarlo; el servidor vuelve a validar formato, peso y duracion. */
+/** Por que no se puede enviar el archivo; el servidor vuelve a validar formato, peso y duracion. */
+function problemaArchivo(archivo, t) {
+  if (!archivo) return t('productor.videos.archivoRequerido')
+  if (!TIPOS_VIDEO.includes(archivo.type)) return t('productor.videos.tipoInvalido')
+  if (archivo.size > MAX_BYTES) return t('productor.videos.muyPesado', { max: MAX_MB })
+  return undefined
+}
+
+/** Que le falta al formulario antes de enviarlo. */
 function validar(titulo, archivo, t) {
   const errores = {}
   if (!titulo.trim()) errores.titulo = t('productor.videos.tituloRequerido')
-  if (!archivo) errores.archivo = t('productor.videos.archivoRequerido')
-  else if (!TIPOS_VIDEO.includes(archivo.type)) errores.archivo = t('productor.videos.tipoInvalido')
-  else if (archivo.size > MAX_BYTES) errores.archivo = t('productor.videos.muyPesado', { max: MAX_MB })
+  const problema = problemaArchivo(archivo, t)
+  if (problema) errores.archivo = problema
   return errores
 }
 
@@ -33,6 +40,7 @@ const megas = (bytes) => (bytes / (1024 * 1024)).toLocaleString(undefined, { max
  * 50 MB y 3 minutos); queda en revision y se ve en su tienda cuando la Camara lo aprueba. No hay pantalla en
  * Figma: sigue el formato de la galeria. Si la subida se corta, el archivo elegido se conserva para reintentar.
  * CCPIP-390 (RF-282): ve sus videos con el estado de su revision y, si se rechazaron, el motivo.
+ * CCPIP-391 (RF-283): reemplaza un video por otro; el que se ve en la tienda sigue ahi hasta que se aprueba el nuevo.
  */
 export default function VideosTienda() {
   const { t } = useTranslation()
@@ -43,6 +51,7 @@ export default function VideosTienda() {
   const [aviso, setAviso] = useState(null)
   const [videos, setVideos] = useState(null)
   const [errorLista, setErrorLista] = useState(false)
+  const [reemplazando, setReemplazando] = useState(null)
 
   const cargar = useCallback(async () => {
     try {
@@ -77,7 +86,30 @@ export default function VideosTienda() {
     }
   }
 
+  async function reemplazar(video, nuevo) {
+    const problema = problemaArchivo(nuevo, t)
+    if (problema) {
+      setAviso({ tono: 'error', titulo: t('productor.videos.noReemplazo'), descripcion: problema })
+      return
+    }
+    setReemplazando(video.id)
+    setAviso(null)
+    try {
+      await reemplazarVideo(video.id, nuevo)
+      const publicado = video.estado === 'PUBLICADO'
+      setAviso({ tono: 'exito', titulo: t('productor.videos.reemplazoEnviado'),
+        descripcion: t(publicado ? 'productor.videos.reemplazoPublicado' : 'productor.videos.reemplazoTexto') })
+      await cargar()
+    } catch (err) {
+      setAviso({ tono: 'error', titulo: t('productor.videos.noReemplazo'), descripcion: mensajeError(err, 'productor.videos.seCorto') })
+    } finally {
+      setReemplazando(null)
+    }
+  }
+
   const lleno = (videos ?? []).filter(ocupaLugar).length >= MAX_VIDEOS
+  const conReemplazo = new Set((videos ?? []).filter((v) => v.reemplazaA && v.estado === 'EN_REVISION').map((v) => v.reemplazaA))
+  const tituloDe = (id) => videos?.find((v) => v.id === id)?.titulo
   return (
     <section className="tarjeta-panel videos-tienda" aria-labelledby="titulo-videos">
       <div className="tienda-editor__destacados-cabecera">
@@ -99,8 +131,23 @@ export default function VideosTienda() {
                 <span className="label-m">{v.titulo}</span>
                 <span className="caption">{[duracion(v.duracionSegundos), v.formato, `${megas(v.bytes)} MB`].join(' · ')}</span>
                 <Badge tono={TONO[v.estado]}>{t(`productor.videos.estado.${v.estado}`)}</Badge>
+                {v.reemplazaA && v.estado === 'EN_REVISION' && tituloDe(v.reemplazaA) && (
+                  <span className="caption">{t('productor.videos.reemplazaA', { titulo: tituloDe(v.reemplazaA) })}</span>
+                )}
                 {v.estado === 'RECHAZADO' && v.motivo && (
                   <p className="body-s">{t('productor.videos.motivo', { motivo: v.motivo })}</p>
+                )}
+              </div>
+              <div className="videos-tienda__acciones">
+                {conReemplazo.has(v.id) ? (
+                  <span className="caption">{t('productor.videos.conReemplazo')}</span>
+                ) : (
+                  <label className="boton boton--terciario boton--S videos-tienda__elegir">
+                    {reemplazando === v.id ? t('productor.videos.subiendo') : t('productor.videos.reemplazar')}
+                    <input className="visually-hidden" type="file" accept={TIPOS_VIDEO.join(',')} disabled={reemplazando !== null}
+                      aria-label={t('productor.videos.reemplazarDe', { titulo: v.titulo })}
+                      onChange={(e) => { const nuevo = e.target.files?.[0]; e.target.value = ''; if (nuevo) void reemplazar(v, nuevo) }} />
+                  </label>
                 )}
               </div>
             </li>

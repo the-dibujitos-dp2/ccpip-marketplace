@@ -31,7 +31,10 @@ import pe.ccpip.imagenes.ImagenStorage;
 import pe.ccpip.productor.ProductorActual;
 import pe.ccpip.video.VideosService.Video;
 
-/** Videos de la tienda: el productor los sube (CCPIP-118) y los consulta (CCPIP-390); cualquiera ve los aprobados. */
+/**
+ * Videos de la tienda: el productor los sube (CCPIP-118), los consulta (CCPIP-390) y los reemplaza (CCPIP-391);
+ * cualquiera ve los aprobados.
+ */
 @RestController
 public class VideosController {
 
@@ -120,5 +123,15 @@ public class VideosController {
                                        @RequestParam String titulo, @RequestParam MultipartFile archivo) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(service.subir(productorActual.id(sesion), sesion.userId(), titulo, archivo));
+    }
+
+    /** CCPIP-391: otro video en lugar de uno propio; el nuevo pasa por la revision. {@code titulo} es opcional. */
+    @RolesPermitidos(Rol.PRODUCTOR)
+    @PostMapping(value = "/api/productor/videos/{id}/reemplazo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Video> reemplazar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession sesion,
+                                            @PathVariable long id, @RequestParam(required = false) String titulo,
+                                            @RequestParam MultipartFile archivo) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(service.reemplazar(productorActual.id(sesion), sesion.userId(), id, titulo, archivo));
     }
 }

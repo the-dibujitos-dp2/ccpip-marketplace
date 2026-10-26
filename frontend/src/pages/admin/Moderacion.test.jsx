@@ -260,6 +260,23 @@ describe('CCPIP-46 Moderación de publicaciones', () => {
     expect((await decision()).getByText('Este video ya se aprobó.')).toBeInTheDocument()
   })
 
+  it('CCPIP-391: un reemplazo se revisa junto al video que se ve hoy', async () => {
+    comoSub({
+      [`GET ${BANDEJA}/videos/8`]: () => [200, {
+        id: 8, estado: 'PENDIENTE', titulo: 'Cosecha de cacao', formato: 'WEBM', bytes: 2097152, duracionSegundos: 61, url: '/api/videos/8',
+        subidoEn: '2026-10-26T15:00:00Z', subidoPor: 'María Shirampari',
+        productor: { id: 3, organizacion: 'Asoc. Nii Joi', comunidad: 'C.N. Nii Joi', pueblo: 'Asháninka', region: 'Junín' },
+        reemplaza: { id: 4, titulo: 'Cosecha de cacao 2025', duracionSegundos: 95.5, url: '/api/videos/4' },
+        motivo: null, decididoPor: null, decididoEn: null, puedeDecidir: true,
+      }],
+    })
+    abrirEn('/admin/moderacion/videos/8')
+    const anterior = within(await screen.findByRole('region', { name: 'El video que reemplaza' }))
+    expect(anterior.getByText('Hoy se ve en la tienda «Cosecha de cacao 2025». Si apruebas, este lo reemplaza.')).toBeInTheDocument()
+    expect(anterior.getByLabelText('Cosecha de cacao 2025')).toHaveAttribute('src', '/api/videos/4')
+    expect(screen.getByText(/Reemplazo$/)).toBeInTheDocument()
+  })
+
   it('el superadministrador no modera', async () => {
     servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_SUPER], 'GET /api/admin/tablero': () => [200, copia(DATOS.tableroAdmin)] })
     abrirEn('/admin/moderacion')

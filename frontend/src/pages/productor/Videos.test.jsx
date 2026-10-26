@@ -137,6 +137,49 @@ describe('CCPIP-118 Videos de la tienda', () => {
     expect(v.getByLabelText('Título del video')).toHaveValue('Cosecha')
   })
 
+  it('CCPIP-391: reemplaza un video publicado; el actual sigue hasta que se apruebe el nuevo', async () => {
+    const publicado = { ...copia(VIDEO), id: 1, titulo: 'Cosecha de cacao', estado: 'PUBLICADO', motivo: 'Bien', decididoEn: '2026-10-26T16:00:00Z' }
+    const reemplazo = { ...copia(VIDEO), id: 7, titulo: 'Cosecha de cacao', reemplazaA: 1 }
+    let lista = [publicado]
+    const fetchMock = productor({
+      'GET /api/productor/videos': () => [200, copia(lista)],
+      'POST /api/productor/videos/1/reemplazo': () => {
+        lista = [publicado, reemplazo]
+        return [201, copia(reemplazo)]
+      },
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/tienda')
+    const v = await videos()
+    await user.upload(await v.findByLabelText('Reemplazar el video Cosecha de cacao'), archivo('nuevo.webm', 'video/webm'))
+
+    expect(await v.findByText('Reemplazo enviado a revisión')).toBeInTheDocument()
+    expect(v.getByText('Tu tienda sigue mostrando el video actual hasta que la Cámara apruebe el nuevo.')).toBeInTheDocument()
+    const [[, opciones]] = llamadas(fetchMock, 'POST /api/productor/videos/1/reemplazo')
+    expect(opciones.body.get('archivo').name).toBe('nuevo.webm')
+    const items = within(v.getByRole('list', { name: 'Videos de tu tienda' })).getAllByRole('listitem')
+    expect(within(items[0]).getByText('Su reemplazo está en revisión')).toBeInTheDocument()
+    expect(within(items[0]).queryByLabelText(/Reemplazar el video/)).not.toBeInTheDocument()
+    expect(within(items[1]).getByText('Reemplaza a «Cosecha de cacao»')).toBeInTheDocument()
+  })
+
+  it('CCPIP-391: no envía un reemplazo que no es video y muestra el error del servidor', async () => {
+    const fetchMock = productor({
+      'GET /api/productor/videos': () => [200, [{ ...copia(VIDEO), id: 1, estado: 'RECHAZADO', motivo: 'Logo ajeno' }]],
+      'POST /api/productor/videos/1/reemplazo': [422, { code: 'VIDEO_MUY_LARGO', error: 'El video dura más de 3 minutos. Recórtalo e inténtalo otra vez.' }],
+    })
+    const user = userEvent.setup({ applyAccept: false })
+    abrirEn('/productor/tienda')
+    const v = await videos()
+    await user.upload(await v.findByLabelText('Reemplazar el video Cosecha de cacao'), archivo('foto.png', 'image/png'))
+    expect(await v.findByText('Elige un video MP4 o WebM')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/productor/videos/1/reemplazo')).toHaveLength(0)
+
+    await user.upload(v.getByLabelText('Reemplazar el video Cosecha de cacao'), archivo())
+    expect(await v.findByText('El video dura más de 3 minutos. Recórtalo e inténtalo otra vez.')).toBeInTheDocument()
+    expect(v.getByText('No pudimos reemplazar el video')).toBeInTheDocument()
+  })
+
   it('la tienda pública muestra los videos aprobados', async () => {
     servidor({
       ...PUBLICAS,
