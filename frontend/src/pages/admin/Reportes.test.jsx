@@ -122,3 +122,63 @@ describe('CCPIP-345 Ventas acumuladas de la plataforma (SA-05)', () => {
     expect(screen.getByText(/pagos aprobados/)).toBeInTheDocument()
   })
 })
+
+const RANGO = 'desde=2026-01-01&hasta=2026-03-18'
+
+/** Abre los reportes y pasa a la pestana `nombre`, que consulta el mismo rango que las ventas. */
+async function abrirPestana(nombre) {
+  const user = userEvent.setup()
+  abrirEn('/admin/reportes')
+  await screen.findByRole('table', { name: 'Ventas por periodo' })
+  await user.click(screen.getByRole('tab', { name: nombre }))
+  return user
+}
+
+const PRODUCTORES = {
+  desde: '2026-01-01',
+  hasta: '2026-03-18',
+  totales: { b2c: 1300, b2b: 900, total: 2200 },
+  productoresConVentas: 2,
+  limite: 20,
+  productores: [
+    { productorId: 7, productor: 'Tienda Asháninka', pueblo: 'Asháninka', pedidos: 3, unidades: 40, b2c: 400, b2b: 900, total: 1300, participacion: 59.1 },
+    { productorId: 9, productor: 'Café Yanesha', pueblo: null, pedidos: 2, unidades: 12.5, b2c: 900, b2b: 0, total: 900, participacion: 40.9 },
+  ],
+}
+
+describe('CCPIP-122 Productores que mas venden (SA-10)', () => {
+  it('la pestana Productores consulta el mismo rango y los lista de mayor a menor venta', async () => {
+    const fetchMock = comoSuper({ [`GET /api/admin/reportes/productores?${RANGO}`]: () => [200, copia(PRODUCTORES)] })
+    await abrirPestana('Productores')
+
+    expect(await screen.findByRole('region', { name: 'Ventas de la plataforma' })).toHaveTextContent('S/ 2,200.00')
+    expect(screen.getByRole('region', { name: 'Productores con ventas' })).toHaveTextContent('2')
+    expect(screen.getByRole('region', { name: 'Mayor participación' })).toHaveTextContent('59.1%')
+    expect(screen.getByRole('region', { name: 'Mayor participación' })).toHaveTextContent('Tienda Asháninka')
+    // Un reporte por rango no se agrupa
+    expect(screen.queryByLabelText('Agrupar por')).not.toBeInTheDocument()
+
+    const filas = within(screen.getByRole('table', { name: 'Productores que más venden' })).getAllByRole('row')
+    expect(filas).toHaveLength(3)
+    expect(within(filas[1]).getByText('Tienda Asháninka')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('S/ 1,300.00')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('12.5')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('40.9%')).toBeInTheDocument()
+    expect(llamadas(fetchMock, `GET /api/admin/reportes/productores?${RANGO}`)).toHaveLength(1)
+  })
+
+  it('cambiar el rango vuelve a consultar los productores sin agrupacion', async () => {
+    const fetchMock = comoSuper({
+      [`GET /api/admin/reportes/productores?${RANGO}`]: () => [200, copia(PRODUCTORES)],
+      'GET /api/admin/reportes/productores?desde=2026-02-01&hasta=2026-03-18': () => [200, {
+        ...copia(PRODUCTORES), desde: '2026-02-01', productoresConVentas: 0, productores: [],
+      }],
+    })
+    await abrirPestana('Productores')
+    await screen.findByRole('table', { name: 'Productores que más venden' })
+    fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '2026-02-01' } })
+    expect(await screen.findByText('Ningún productor vendió en este período')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Mayor participación' })).toHaveTextContent('Nadie vendió en este período')
+    expect(llamadas(fetchMock, 'GET /api/admin/reportes/productores?desde=2026-02-01&hasta=2026-03-18')).toHaveLength(1)
+  })
+})

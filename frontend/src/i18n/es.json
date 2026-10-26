@@ -1417,6 +1417,7 @@
         "MES": "Mes"
       },
       "error": "No pudimos cargar el reporte",
+      "vacioTexto": "Prueba con otro período.",
       "rango": "Del {{desde}} al {{hasta}}",
       "b2c": "B2C (minorista)",
       "b2cDetalle": "Vendido a precio minorista",
@@ -1429,7 +1430,12 @@
         "b2c": "B2C",
         "b2b": "B2B",
         "total": "Total",
-        "acumulado": "Acumulado"
+        "acumulado": "Acumulado",
+        "productor": "Productor",
+        "pueblo": "Pueblo",
+        "pedidos": "Pedidos",
+        "unidades": "Unidades",
+        "participacion": "Participación"
       },
       "metrica": {
         "ventas": {
@@ -1450,6 +1456,19 @@
           "tabla": "Ingresos por periodo",
           "nota": "Lo cobrado a los compradores: los pagos aprobados, por la fecha en que se aprobaron (hora de Lima). Un pago anulado y devuelto no es un ingreso."
         }
+      },
+      "productores": {
+        "pestana": "Productores",
+        "ventas": "Ventas de la plataforma",
+        "ventasDetalle": "Del {{desde}} al {{hasta}}",
+        "conVentas": "Productores con ventas",
+        "conVentasDetalle": "Se listan los {{limite}} que más venden",
+        "lider": "Mayor participación",
+        "liderDetalle": "{{productor}}",
+        "sinLider": "Nadie vendió en este período",
+        "tabla": "Productores que más venden",
+        "vacio": "Ningún productor vendió en este período",
+        "nota": "Hasta {{limite}} productores, de mayor a menor venta. Pedidos pagados y no cancelados, por la fecha en que se confirmaron (hora de Lima); la participación es su porcentaje de las ventas de la plataforma."
       }
     },
     "parametros": {

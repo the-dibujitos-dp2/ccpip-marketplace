@@ -1,5 +1,6 @@
 // API de la administracion de la Camara. El servidor valida el rol (CCPIP-111, RNF-04).
 import { apiFetch, idRuta } from './http.js'
+import { rutaReporte } from './rutaReporte.js'
 
 /** CCPIP-111 (SA-01): ventas, comision, productores, lineas y puntos de acopio del mes en curso. */
 export const obtenerTablero = () => apiFetch('/api/admin/tablero')
@@ -7,15 +8,21 @@ export const obtenerTablero = () => apiFetch('/api/admin/tablero')
 /** CCPIP-28: permisos declarados por rol, derivados de los accesos del servidor. Solo lectura. */
 export const consultarPermisos = () => apiFetch('/api/admin/permisos')
 
-/** SA-05 (CCPIP-345): una metrica acumulada por periodo; sin filtro, el año en curso por mes. */
-export function consultarReporte(metrica, { desde, hasta, agrupacion } = {}) {
-  const q = new URLSearchParams()
-  if (desde) q.set('desde', desde)
-  if (hasta) q.set('hasta', hasta)
-  if (agrupacion) q.set('agrupacion', agrupacion)
-  const consulta = q.toString()
-  return apiFetch(`/api/admin/reportes/${encodeURIComponent(metrica)}${consulta ? `?${consulta}` : ''}`)
-}
+const RANGO = ['desde', 'hasta']
+
+/** Los filtros de cada reporte; las metricas por periodo (SA-05) tambien se agrupan. */
+const FILTROS_REPORTE = { productores: RANGO }
+
+const rutaReporteAdmin = (reporte, sufijo, filtros, idioma) =>
+  rutaReporte('/api/admin/reportes', FILTROS_REPORTE[reporte] ?? [...RANGO, 'agrupacion'], sufijo, filtros, idioma)
+
+/**
+ * SA-05 y SA-10: un reporte de la plataforma; sin filtro, el año en curso. `reporte` es una metrica
+ * acumulada por periodo (ventas, comisiones o ingresos, CCPIP-345) o un reporte de gestion (productores,
+ * CCPIP-122).
+ */
+export const consultarReporte = (reporte, filtros) =>
+  apiFetch(rutaReporteAdmin(reporte, `/${encodeURIComponent(reporte)}`, filtros))
 
 /** CCPIP-354 (RF-244): existencias agregadas de los puntos de acopio. Solo superadministrador, solo lectura. */
 export const existenciasAgregadas = () => apiFetch('/api/admin/reportes/existencias')

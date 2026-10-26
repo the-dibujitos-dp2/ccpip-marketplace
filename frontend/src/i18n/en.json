@@ -1417,6 +1417,7 @@
         "MES": "Month"
       },
       "error": "We couldn't load the report",
+      "vacioTexto": "Try another period.",
       "rango": "From {{desde}} to {{hasta}}",
       "b2c": "B2C (retail)",
       "b2cDetalle": "Sold at retail price",
@@ -1429,7 +1430,12 @@
         "b2c": "B2C",
         "b2b": "B2B",
         "total": "Total",
-        "acumulado": "Cumulative"
+        "acumulado": "Cumulative",
+        "productor": "Producer",
+        "pueblo": "Indigenous people",
+        "pedidos": "Orders",
+        "unidades": "Units",
+        "participacion": "Share"
       },
       "metrica": {
         "ventas": {
@@ -1450,6 +1456,19 @@
           "tabla": "Revenue by period",
           "nota": "What buyers paid: approved payments, by the date they were approved (Lima time). A voided, refunded payment is not revenue."
         }
+      },
+      "productores": {
+        "pestana": "Producers",
+        "ventas": "Platform sales",
+        "ventasDetalle": "From {{desde}} to {{hasta}}",
+        "conVentas": "Producers with sales",
+        "conVentasDetalle": "The top {{limite}} sellers are listed",
+        "lider": "Largest share",
+        "liderDetalle": "{{productor}}",
+        "sinLider": "No sales in this period",
+        "tabla": "Top-selling producers",
+        "vacio": "No producer sold in this period",
+        "nota": "Up to {{limite}} producers, from highest to lowest sales. Paid, non-cancelled orders, by the date they were confirmed (Lima time); the share is their percentage of platform sales."
       }
     },
     "parametros": {
