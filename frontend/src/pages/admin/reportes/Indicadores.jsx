@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next'
+import iconoAlerta from '../../../assets/icons/alerta-aviso.svg'
 import iconoComunidad from '../../../assets/icons/comunidad.svg'
+import iconoEstrella from '../../../assets/icons/estrella.svg'
 import iconoEtiqueta from '../../../assets/icons/etiqueta.svg'
 import iconoGrafico from '../../../assets/icons/grafico.svg'
 import iconoPaquete from '../../../assets/icons/paquete.svg'
@@ -42,11 +44,12 @@ function Grupo({ id, tarjetas }) {
  * - CCPIP-348 (RF-238): ventas, pedidos y ticket promedio, con el desglose B2C y B2B
  * - CCPIP-349 (RF-239): productores activos, con ventas y nuevos
  * - CCPIP-350 (RF-240): productos publicados, nuevos y con ventas, y los publicados por linea
+ * - CCPIP-94 (RF-81): actividad: compradores (sin decir quienes), registros, calificaciones y denuncias
  */
 export default function Indicadores({ datos }) {
   const { t } = useTranslation()
   const { texto, cantidad, importe } = columnas(t)
-  const { ventas, productores, productos } = datos
+  const { ventas, productores, productos, actividad } = datos
   const mayor = Math.max(...datos.periodos.map((p) => Number(p.ventas)), 0)
   return (
     <>
@@ -70,12 +73,19 @@ export default function Indicadores({ datos }) {
         { clave: 'nuevos', valor: unidades(productos.nuevos.valor), icono: iconoEtiqueta, ...variacion(productos.nuevos) },
         { clave: 'conVentas', valor: unidades(productos.conVentas.valor), icono: iconoGrafico, ...variacion(productos.conVentas) },
       ]} />
+      <Grupo id="actividad" tarjetas={[
+        { clave: 'compradores', valor: unidades(actividad.compradores.valor), icono: iconoUsuario, ...variacion(actividad.compradores) },
+        { clave: 'registros', valor: unidades(actividad.registros.valor), icono: iconoUsuario, ...variacion(actividad.registros) },
+        { clave: 'calificaciones', valor: unidades(actividad.calificaciones.valor), icono: iconoEstrella, ...variacion(actividad.calificaciones) },
+        // Mas denuncias es peor
+        { clave: 'denuncias', valor: unidades(actividad.denuncias.valor), icono: iconoAlerta, ...variacion(actividad.denuncias, true) },
+      ]} />
       <TablaReporte id="indicadores-periodos" titulo={t(`${TEXTOS}.porPeriodo`)} filas={datos.periodos} clave={(p) => p.inicio}
         nota={t(`${TEXTOS}.nota`)}
         columnas={[
           { clave: 'periodo', etiqueta: t('admin.reportes.col.periodo'), periodo: true, valor: (p) => nombrePeriodo(p, datos.agrupacion, t, 'admin.reportes.semana') },
           { clave: 'barra', etiqueta: t('admin.reportes.col.barraVentas'), barra: true, valor: (p) => <Barra partes={[Number(p.ventas)]} mayor={mayor} /> },
-          importe('ventas'), cantidad('pedidos'), cantidad('productoresConVentas'), cantidad('productosNuevos'),
+          importe('ventas'), cantidad('pedidos'), cantidad('productoresConVentas'), cantidad('productosNuevos'), cantidad('compradores'),
         ]} />
       <TablaReporte id="indicadores-lineas" titulo={t(`${TEXTOS}.productos.porLinea`)} filas={productos.porLinea}
         clave={(l) => l.codigo} vacio={t(`${TEXTOS}.productos.sinLineas`)}

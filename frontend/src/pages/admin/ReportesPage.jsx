@@ -53,8 +53,8 @@ const seAgrupa = (clave) => esMetrica(clave) || clave === 'indicadores'
  * compradores (SA-08).
  * - CCPIP-345 (RF-235), CCPIP-346 (RF-236) y CCPIP-93 (RF-71): ventas, comisiones e ingresos acumulados por
  *   periodo con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista)
- * - CCPIP-348 (RF-238), CCPIP-349 (RF-239) y CCPIP-350 (RF-240): indicadores de ventas, productores y
- *   productos frente al periodo anterior
+ * - CCPIP-348 (RF-238), CCPIP-349 (RF-239), CCPIP-350 (RF-240) y CCPIP-94 (RF-81): indicadores de ventas,
+ *   productores, productos y actividad frente al periodo anterior
  * - CCPIP-122 (RF-86): productores que mas venden
  * - CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias por punto de acopio
  * - CCPIP-123 (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y productores, por linea

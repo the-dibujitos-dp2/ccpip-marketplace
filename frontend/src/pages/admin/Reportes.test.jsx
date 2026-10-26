@@ -452,3 +452,21 @@ describe('CCPIP-350 Indicadores de productos (SA-10)', () => {
     expect(within(lineas[2]).getByText('0')).toBeInTheDocument()
   })
 })
+
+describe('CCPIP-94 Indicadores de actividad (SA-10)', () => {
+  it('muestra compradores, cuentas nuevas, calificaciones y denuncias sin datos de los compradores', async () => {
+    comoSuper({ [`GET /api/admin/reportes/indicadores?${RANGO}&agrupacion=MES`]: () => [200, copia(INDICADORES)] })
+    await abrirPestana('Indicadores')
+
+    const actividad = await screen.findByRole('region', { name: 'Actividad' })
+    expect(within(actividad).getByRole('region', { name: 'Compradores' })).toHaveTextContent('+100% frente al período anterior')
+    expect(within(actividad).getByRole('region', { name: 'Cuentas nuevas' })).toHaveTextContent('7')
+    expect(within(actividad).getByRole('region', { name: 'Calificaciones' })).toHaveTextContent('10')
+    // Mas denuncias que antes es una mala noticia: en rojo
+    const denuncias = within(actividad).getByRole('region', { name: 'Denuncias' })
+    expect(denuncias).toHaveTextContent('+200% frente al período anterior')
+    expect(denuncias.querySelector('.tarjeta-kpi__detalle--error')).not.toBeNull()
+    const filas = within(screen.getByRole('table', { name: 'Indicadores por período' })).getAllByRole('row')
+    expect(within(filas[0]).getByRole('columnheader', { name: 'Compradores' })).toBeInTheDocument()
+  })
+})

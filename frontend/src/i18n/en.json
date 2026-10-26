@@ -1458,7 +1458,8 @@
         "productoresConVentas": "Producers with sales",
         "productosNuevos": "New products",
         "linea": "Product line",
-        "publicados": "Published"
+        "publicados": "Published",
+        "compradores": "Buyers"
       },
       "metrica": {
         "ventas": {
@@ -1511,8 +1512,15 @@
           "porLinea": "Published products by line",
           "sinLineas": "There are no active product lines"
         },
+        "actividad": {
+          "titulo": "Activity",
+          "compradores": "Buyers",
+          "registros": "New accounts",
+          "calificaciones": "Ratings",
+          "denuncias": "Reports"
+        },
         "porPeriodo": "Indicators by period",
-        "nota": "Paid, non-cancelled orders, by the date they were confirmed (Lima time). The average ticket is sales per order."
+        "nota": "Paid, non-cancelled orders, by the date they were confirmed (Lima time). The average ticket is sales per order. Buyers: how many accounts bought, without saying who; new accounts: buyers who signed up."
       },
       "productores": {
         "pestana": "Producers",

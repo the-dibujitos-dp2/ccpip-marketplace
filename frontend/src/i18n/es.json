@@ -1458,7 +1458,8 @@
         "productoresConVentas": "Productores con ventas",
         "productosNuevos": "Productos nuevos",
         "linea": "Línea",
-        "publicados": "Publicados"
+        "publicados": "Publicados",
+        "compradores": "Compradores"
       },
       "metrica": {
         "ventas": {
@@ -1511,8 +1512,15 @@
           "porLinea": "Productos publicados por línea",
           "sinLineas": "No hay líneas de producto activas"
         },
+        "actividad": {
+          "titulo": "Actividad",
+          "compradores": "Compradores",
+          "registros": "Cuentas nuevas",
+          "calificaciones": "Calificaciones",
+          "denuncias": "Denuncias"
+        },
         "porPeriodo": "Indicadores por período",
-        "nota": "Pedidos pagados y no cancelados, por la fecha en que se confirmaron (hora de Lima). El ticket promedio es lo vendido por pedido."
+        "nota": "Pedidos pagados y no cancelados, por la fecha en que se confirmaron (hora de Lima). El ticket promedio es lo vendido por pedido. Compradores: cuántas cuentas compraron, sin decir quiénes; cuentas nuevas: compradores que se registraron."
       },
       "productores": {
         "pestana": "Productores",
