@@ -16,6 +16,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import Icono from '../../components/Icono.jsx'
 import { mensajeError } from '../../i18n/errores.js'
@@ -153,7 +154,7 @@ export default function CuentaBancariaPage({ path }) {
   return (
     <PaginaProductor path={path} seccion={titulo} titulo={titulo}>
       {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
-      {cuenta === undefined && !alerta && <p className="caption">{t('comun.cargando')}</p>}
+      {cuenta === undefined && !alerta && <Cargando />}
       {cuenta !== undefined && (
         <div className="cuenta-bancaria">
           <form className="tarjeta-panel cuenta-bancaria__formulario" onSubmit={guardar} noValidate aria-labelledby="cuenta-titulo">

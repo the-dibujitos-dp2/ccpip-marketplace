@@ -5,6 +5,7 @@ import { obtenerCatalogos } from '../../api/catalogo.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import { unidades as numero } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
@@ -99,7 +100,7 @@ export default function LineasMaestras() {
       <Filtros filtros={filtros} onFiltrar={setFiltros} nuevo={t('catalogoMaestro.lineas.nueva')} onNuevo={() => edicion.abrir()} contadores={datos?.contadores} />
       {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
       {error && <Alerta tono="error" titulo={t('catalogoMaestro.errorCargar')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
-      {!datos && !error && <p className="caption">{t('comun.cargando')}</p>}
+      {!datos && !error && <Cargando />}
       {datos?.lineas.length === 0 && <EstadoVacio titulo={t('catalogoMaestro.lineas.vacio')} />}
       {datos?.lineas.length > 0 && (
         <div className="tabla" role="table" aria-label={t('catalogoMaestro.vista.lineas')}>

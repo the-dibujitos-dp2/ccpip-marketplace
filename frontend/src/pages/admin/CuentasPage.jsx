@@ -6,6 +6,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Buscador from '../../components/Buscador.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
@@ -101,7 +102,7 @@ export default function CuentasPage({ path }) {
         />
       </div>
       {error && <Alerta tono="error" titulo={mensajeError(error, 'cuentas.errorCargar')} />}
-      {!datos && !error && <p className="caption">{t('comun.cargando')}</p>}
+      {!datos && !error && <Cargando />}
       {datos && datos.items.length === 0 && (
         <EstadoVacio titulo={t('cuentas.vacio')} descripcion={q || estado ? t('cuentas.vacioFiltros') : undefined} />
       )}

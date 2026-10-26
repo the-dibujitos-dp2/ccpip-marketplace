@@ -7,6 +7,7 @@ import Badge from '../../components/Badge.jsx'
 import BadgeDenuncia from '../../components/BadgeDenuncia.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { fechaHora } from '../../formato.js'
@@ -45,6 +46,7 @@ export default function ExpedienteDenunciasPage({ path, productorId }) {
       <Boton tipo="terciario" tamano="S" to={RUTAS.adminDenuncias}>{t('denunciasAdmin.volver')}</Boton>
       {error?.status === 404 && <EstadoVacio titulo={t('denunciasAdmin.sinDenuncias')} />}
       {error && error.status !== 404 && <Alerta tono="error" titulo={mensajeError(error, 'denunciasAdmin.error')} />}
+      {!datos && !error && <Cargando />}
       {p && (
         <p className="body-m">
           {t('denunciasAdmin.resumenProductor', { total: p.total, abiertas: p.abiertas })}

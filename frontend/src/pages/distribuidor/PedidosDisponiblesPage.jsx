@@ -6,6 +6,7 @@ import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LayoutDistribuidor from '../../components/layout/LayoutDistribuidor.jsx'
 import { fechaHora } from '../../formato.js'
@@ -119,7 +120,7 @@ export default function PedidosDisponiblesPage({ path }) {
             <Boton tamano="M" onClick={recargar}>{t('distribuidor.pedidos.reintentar')}</Boton>
           </EstadoVacio>
         )}
-        {!datos && !error && <p className="visually-hidden">{t('distribuidor.pedidos.cargando')}</p>}
+        {!datos && !error && <Cargando texto={t('distribuidor.pedidos.cargando')} />}
 
         {datos && !hayPedidos && (
           <EstadoVacio titulo={t('distribuidor.pedidos.vacio')} descripcion={t('distribuidor.pedidos.vacioTexto')}>

@@ -6,6 +6,7 @@ import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
 import { mensajeError } from '../../i18n/errores.js'
@@ -85,7 +86,7 @@ export default function ProductosMaestros() {
       </Filtros>
       {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
       {error && <Alerta tono="error" titulo={t('catalogoMaestro.errorCargar')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
-      {!datos && !error && <p className="caption">{t('comun.cargando')}</p>}
+      {!datos && !error && <Cargando />}
       {datos?.productos.length === 0 && <EstadoVacio titulo={t('catalogoMaestro.productos.vacio')} />}
       {datos?.productos.length > 0 && (
         <div className="tabla" role="table" aria-label={t('catalogoMaestro.vista.productos')}>

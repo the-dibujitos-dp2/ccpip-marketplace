@@ -7,6 +7,7 @@ import { bandejaAutorizaciones } from '../../api/autorizaciones.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
@@ -69,6 +70,7 @@ export default function AutorizacionesPage({ path }) {
         opciones={ESTADOS.map((e) => ({ valor: e, etiqueta: t(`autorizaciones.pestana.${e}`) }))}
       />
       {error && <Alerta tono="error" titulo={mensajeError(error, 'autorizaciones.error')} />}
+      {!datos && !error && <Cargando />}
       {datos && datos.solicitudes.length === 0 && <EstadoVacio titulo={t(`autorizaciones.vacio.${estado}`)} />}
       {datos && datos.solicitudes.length > 0 && (
         <div className="tabla" role="table" aria-label={t(`autorizaciones.pestana.${estado}`)}>

@@ -5,6 +5,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { fechaHoraLarga } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
@@ -74,39 +75,44 @@ export default function ParametrosPage({ path }) {
   return (
     <LayoutAdmin path={path} migas={t('admin.nav.parametros')} titulo={t('admin.parametros.titulo')}>
       {errorCarga && <Alerta tono="error" titulo={t('admin.parametros.errorCargar')} descripcion={t('comun.errorConexion')} />}
-      {!vigencia && !errorCarga && <p className="caption">{t('comun.cargando')}</p>}
       {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
-      {vigencia && (
+      {!errorCarga && (
         <section className="tarjeta-panel parametros" aria-labelledby="parametros-titulo">
           <header className="parametros__cabecera">
             <h2 id="parametros-titulo" className="heading-h4">{t('admin.parametros.seccion')}</h2>
-            {vigencia.provisional && <Badge tono="aviso" conPunto={false}>{t('admin.parametros.pendiente')}</Badge>}
+            {vigencia?.provisional && <Badge tono="aviso" conPunto={false}>{t('admin.parametros.pendiente')}</Badge>}
           </header>
           <p className="body-s parametros__texto">{t('admin.parametros.intro')}</p>
-          <form className="parametros__formulario" onSubmit={guardar} noValidate>
-            <Campo
-              etiqueta={t('admin.parametros.campo')}
-              value={horas}
-              onChange={(e) => {
-                setHoras(e.target.value)
-                setError(null)
-              }}
-              error={error}
-              ayuda={t('admin.parametros.ayuda', { minimo: MINIMO, maximo: MAXIMO })}
-              inputMode="numeric"
-              maxLength={4}
-              autoComplete="off"
-            />
-            <Boton type="submit" tamano="M" disabled={enviando}>
-              {t('admin.parametros.guardar')}
-            </Boton>
-          </form>
-          <p className="caption parametros__estado" role="status">
-            {vigencia.provisional
-              ? t('admin.parametros.provisional', { count: vigencia.horas })
-              : t('admin.parametros.configurada', { count: vigencia.horas, nombre: vigencia.registradoPor, fecha: fechaHoraLarga(vigencia.registradoEn) })}
-          </p>
-          <p className="caption">{t('admin.parametros.rigeYa')}</p>
+          {/* CCPIP-413: mientras llega la vigencia, el indicador va dentro de su tarjeta, en lugar del formulario */}
+          {!vigencia && <Cargando />}
+          {vigencia && (
+            <>
+              <form className="parametros__formulario" onSubmit={guardar} noValidate>
+                <Campo
+                  etiqueta={t('admin.parametros.campo')}
+                  value={horas}
+                  onChange={(e) => {
+                    setHoras(e.target.value)
+                    setError(null)
+                  }}
+                  error={error}
+                  ayuda={t('admin.parametros.ayuda', { minimo: MINIMO, maximo: MAXIMO })}
+                  inputMode="numeric"
+                  maxLength={4}
+                  autoComplete="off"
+                />
+                <Boton type="submit" tamano="M" disabled={enviando}>
+                  {t('admin.parametros.guardar')}
+                </Boton>
+              </form>
+              <p className="caption parametros__estado" role="status">
+                {vigencia.provisional
+                  ? t('admin.parametros.provisional', { count: vigencia.horas })
+                  : t('admin.parametros.configurada', { count: vigencia.horas, nombre: vigencia.registradoPor, fecha: fechaHoraLarga(vigencia.registradoEn) })}
+              </p>
+              <p className="caption">{t('admin.parametros.rigeYa')}</p>
+            </>
+          )}
         </section>
       )}
       <MinimoCalificaciones />

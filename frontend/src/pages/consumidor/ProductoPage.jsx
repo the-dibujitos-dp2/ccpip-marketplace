@@ -6,6 +6,7 @@ import { obtenerProducto } from '../../api/catalogo.js'
 import AvisoTraduccion from '../../components/AvisoTraduccion.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
@@ -87,7 +88,7 @@ export default function ProductoPage({ id }) {
     return (
       <LayoutTienda>
         <main className="contenedor ficha" aria-busy="true">
-          <p className="visually-hidden">{t('producto.cargando')}</p>
+          <Cargando texto={t('producto.cargando')} />
         </main>
       </LayoutTienda>
     )

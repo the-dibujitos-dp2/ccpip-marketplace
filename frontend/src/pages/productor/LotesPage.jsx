@@ -4,6 +4,7 @@ import { listarLotes, listarProductos, listarTodosLosLotes } from '../../api/pro
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import { unidades } from '../../formato.js'
@@ -59,6 +60,7 @@ export default function LotesPage({ path, search }) {
 
   return (
     <PaginaProductor path={path} seccion={t('productor.nav.lotes')} titulo={t('productor.panel.registrarLote')}>
+      {!productos && <Cargando />}
       {productos?.length === 0 && (
         <EstadoVacio titulo={t('productor.lotes.primeroProducto')} descripcion={t('productor.lotes.primeroProductoTexto')}>
           <Boton tamano="M" to={RUTAS.productorNuevo}>{t('productor.panel.publicarProducto')}</Boton>
