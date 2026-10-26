@@ -16,6 +16,8 @@ const TONO_TENDENCIA = { SUBE: 'exito', ESTABLE: 'neutro', BAJA: 'error' }
  * CCPIP-123 (RF-87, SA-05): calificaciones de los productos en el rango, con la linea como filtro. El
  * promedio solo se muestra desde el minimo de calificaciones configurado (CCPIP-82) y la tendencia compara
  * con el periodo anterior de igual duracion.
+ *
+ * CCPIP-352 (RF-242): las mismas cifras por productor, por todas sus ofertas calificadas.
  */
 export default function Calificaciones({ datos }) {
   const { t } = useTranslation()
@@ -50,6 +52,12 @@ export default function Calificaciones({ datos }) {
         clave={(p) => p.productoId} vacio={t(`${TEXTOS}.vacioProductos`)} nota={t(`${TEXTOS}.nota`, { minimo, ...anterior })}
         columnas={[
           texto('producto', { fuerte: true }), texto('productor'), promedio, cantidad('resenas'), cantidad('denuncias'), tendencia,
+        ]} />
+      <TablaReporte id="reportes-calificaciones-productores" titulo={t(`${TEXTOS}.productores`)} filas={datos.productores}
+        clave={(p) => p.productorId} vacio={t(`${TEXTOS}.vacioProductores`)} nota={t(`${TEXTOS}.notaProductores`)}
+        columnas={[
+          texto('productor', { fuerte: true }), texto('pueblo'), promedio, cantidad('resenas'), cantidad('productos'),
+          cantidad('denuncias'), tendencia,
         ]} />
     </>
   )

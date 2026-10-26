@@ -51,7 +51,7 @@ const seAgrupa = (clave) => METRICAS.includes(clave)
  *   periodo con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista)
  * - CCPIP-122 (RF-86): productores que mas venden
  * - CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias por punto de acopio
- * - CCPIP-123 (RF-87): calificaciones de los productos, por linea
+ * - CCPIP-123 (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y productores, por linea
  */
 export default function ReportesPage({ path }) {
   const { t } = useTranslation()

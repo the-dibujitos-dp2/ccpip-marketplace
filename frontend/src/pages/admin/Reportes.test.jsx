@@ -301,3 +301,19 @@ describe('CCPIP-123 Calificaciones de los productos (SA-05)', () => {
     expect(llamadas(fetchMock, `GET /api/admin/reportes/calificaciones?${RANGO}&linea=CAFE`)).toHaveLength(1)
   })
 })
+
+describe('CCPIP-352 Calificaciones de los productores (SA-05)', () => {
+  it('muestra cada productor con sus productos calificados, denuncias y tendencia', async () => {
+    comoSuper({ [`GET /api/admin/reportes/calificaciones?${RANGO}`]: () => [200, copia(CALIFICACIONES)] })
+    await abrirPestana('Calificaciones')
+
+    const tabla = await screen.findByRole('table', { name: 'Calificaciones por productor' })
+    const filas = within(tabla).getAllByRole('row')
+    expect(filas).toHaveLength(3)
+    expect(within(filas[1]).getByText('Yanesha')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('Estable')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('3.3')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('3')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('—')).toBeInTheDocument()
+  })
+})

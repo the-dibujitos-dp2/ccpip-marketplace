@@ -1448,7 +1448,8 @@
         "tendencia": "Tendencia",
         "estrellas": "Calificación",
         "distribucion": "Distribución",
-        "cantidad": "Cantidad"
+        "cantidad": "Cantidad",
+        "productos": "Productos"
       },
       "metrica": {
         "ventas": {
@@ -1517,7 +1518,10 @@
           "ESTABLE": "Estable",
           "BAJA": "En caída"
         },
-        "nota": "Calificaciones recibidas en el rango. El promedio se muestra desde {{minimo}} calificaciones. La tendencia compara con el período anterior de igual duración (del {{desde}} al {{hasta}}): sube o cae si el promedio cambia en 0.3 estrellas o más; sin tendencia si alguno de los dos no alcanza el mínimo. Denuncias: las recibidas en el rango sobre el producto."
+        "nota": "Calificaciones recibidas en el rango. El promedio se muestra desde {{minimo}} calificaciones. La tendencia compara con el período anterior de igual duración (del {{desde}} al {{hasta}}): sube o cae si el promedio cambia en 0.3 estrellas o más; sin tendencia si alguno de los dos no alcanza el mínimo. Denuncias: las recibidas en el rango sobre el producto.",
+        "productores": "Calificaciones por productor",
+        "vacioProductores": "Ningún productor recibió calificaciones en este período",
+        "notaProductores": "Por todas las ofertas calificadas del productor en el rango; productos es cuántas recibieron calificaciones. Denuncias: las recibidas en el rango sobre el productor o sus productos."
       }
     },
     "parametros": {

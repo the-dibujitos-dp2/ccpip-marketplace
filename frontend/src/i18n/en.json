@@ -1448,7 +1448,8 @@
         "tendencia": "Trend",
         "estrellas": "Rating",
         "distribucion": "Distribution",
-        "cantidad": "Count"
+        "cantidad": "Count",
+        "productos": "Products"
       },
       "metrica": {
         "ventas": {
@@ -1517,7 +1518,10 @@
           "ESTABLE": "Stable",
           "BAJA": "Falling"
         },
-        "nota": "Ratings received in the range. The average is shown from {{minimo}} ratings. The trend compares with the previous period of the same length ({{desde}} to {{hasta}}): rising or falling if the average changes by 0.3 stars or more; no trend if either period is below the minimum. Reports: those received in the range about the product."
+        "nota": "Ratings received in the range. The average is shown from {{minimo}} ratings. The trend compares with the previous period of the same length ({{desde}} to {{hasta}}): rising or falling if the average changes by 0.3 stars or more; no trend if either period is below the minimum. Reports: those received in the range about the product.",
+        "productores": "Ratings by producer",
+        "vacioProductores": "No producer was rated in this period",
+        "notaProductores": "Across all of the producer's rated offers in the range; products is how many were rated. Reports: those received in the range about the producer or their products."
       }
     },
     "parametros": {
