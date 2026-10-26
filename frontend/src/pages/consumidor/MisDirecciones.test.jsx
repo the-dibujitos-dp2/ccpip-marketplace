@@ -10,6 +10,7 @@ function abrirEn(ruta) {
 }
 
 const DIRECCIONES = 'GET /api/cuenta/direcciones'
+const RETIRAR = 'DELETE /api/cuenta/direcciones/'
 
 // Como las entrega el servidor: la ultima que se guardo primero
 const GUARDADAS = [
@@ -42,6 +43,72 @@ describe('CW-13 Mis direcciones (CCPIP-393)', () => {
     expect(within(tarjetas[1]).getByText('Av. Larco 123, dpto. 4')).toBeInTheDocument()
     expect(within(tarjetas[1]).getByText('Miraflores · Lima · Lima')).toBeInTheDocument()
     expect(within(tarjetas[1]).getByText('Referencia: Frente al parque Kennedy')).toBeInTheDocument()
+  })
+
+  it('permite confirmar el retiro de una dirección propia y recarga la lista sin afectar las demás', async () => {
+    let lista = [...GUARDADAS]
+    const fetchMock = servidor(comoComprador({
+      [DIRECCIONES]: () => [200, lista],
+      [`${RETIRAR}7`]: () => { lista = lista.filter((d) => d.id !== 7); return [204, null] },
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/cuenta/direcciones')
+
+    const tarjeta = within(await screen.findByRole('list', { name: 'Mis direcciones' })).getByText('Av. de la Cultura 1234').closest('li')
+    await usuario.click(within(tarjeta).getByRole('button', { name: 'Retirar dirección de entrega' }))
+    const dialogo = await screen.findByRole('dialog', { name: 'Retirar dirección' })
+    expect(within(dialogo).getByText(/¿Quieres retirar Av\. de la Cultura 1234/)).toBeInTheDocument()
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Retirar dirección' }))
+
+    expect(await screen.findByText('Dirección retirada')).toBeInTheDocument()
+    expect(screen.queryByText('Av. de la Cultura 1234')).not.toBeInTheDocument()
+    expect(screen.getByText('Av. Larco 123, dpto. 4')).toBeInTheDocument()
+    expect(llamadas(fetchMock, `${RETIRAR}7`)).toHaveLength(1)
+    expect(llamadas(fetchMock, DIRECCIONES)).toHaveLength(2)
+  })
+
+  it('deshabilita el retiro mientras espera y no permite doble envío', async () => {
+    let resolver
+    const fetchMock = servidor(comoComprador({
+      [`${RETIRAR}7`]: () => new Promise((resolve) => { resolver = resolve }),
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/cuenta/direcciones')
+    const tarjeta = within(await screen.findByRole('list', { name: 'Mis direcciones' })).getByText('Av. de la Cultura 1234').closest('li')
+    await usuario.click(within(tarjeta).getByRole('button', { name: 'Retirar dirección de entrega' }))
+    const dialogo = await screen.findByRole('dialog', { name: 'Retirar dirección' })
+    const retirar = within(dialogo).getByRole('button', { name: 'Retirar dirección' })
+    await usuario.click(retirar)
+    await waitFor(() => expect(retirar).toBeDisabled())
+    expect(llamadas(fetchMock, `${RETIRAR}7`)).toHaveLength(1)
+    resolver([204, null])
+    expect(await screen.findByText('Dirección retirada')).toBeInTheDocument()
+  })
+
+  it('si falla el retiro conserva la tarjeta y permite reintentar', async () => {
+    let intentos = 0
+    let lista = [...GUARDADAS]
+    const fetchMock = servidor(comoComprador({
+      [DIRECCIONES]: () => [200, lista],
+      [`${RETIRAR}7`]: () => {
+        intentos += 1
+        if (intentos === 1) return [500, { code: 'ERROR', error: 'Falla' }]
+        lista = lista.filter((d) => d.id !== 7)
+        return [204, null]
+      },
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/cuenta/direcciones')
+    const tarjeta = within(await screen.findByRole('list', { name: 'Mis direcciones' })).getByText('Av. de la Cultura 1234').closest('li')
+    await usuario.click(within(tarjeta).getByRole('button', { name: 'Retirar dirección de entrega' }))
+    let dialogo = await screen.findByRole('dialog', { name: 'Retirar dirección' })
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Retirar dirección' }))
+    expect(await within(dialogo).findByText(/No pudimos retirar la dirección/)).toBeInTheDocument()
+    expect(screen.getByText('Av. de la Cultura 1234')).toBeInTheDocument()
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Retirar dirección' }))
+    expect(await screen.findByText('Dirección retirada')).toBeInTheDocument()
+    expect(screen.queryByText('Av. de la Cultura 1234')).not.toBeInTheDocument()
+    expect(llamadas(fetchMock, `${RETIRAR}7`)).toHaveLength(2)
   })
 
   it('sin direcciones explica cómo se guardan', async () => {

@@ -1,5 +1,5 @@
 // CW-13 "Mi cuenta" del consumidor: sus datos (CCPIP-400, CCPIP-113) y sus direcciones (CCPIP-65, CCPIP-393). El servidor toma la cuenta de la sesion.
-import { apiFetch } from './http.js'
+import { apiFetch, idRuta } from './http.js'
 
 /** { nombres, apellidos, correo, correoConfirmado, celular }. Sin genero ni fecha de nacimiento. */
 export const obtenerMisDatos = () => apiFetch('/api/cuenta/datos')
@@ -19,3 +19,6 @@ export const guardarDireccionHabitual = (direccion) => apiFetch('/api/cuenta/dir
  * provincia, distrito, direccion, referencia }]. Solo las propias; las retiradas no llegan.
  */
 export const listarDirecciones = () => apiFetch('/api/cuenta/direcciones')
+
+/** CCPIP-395: retira una dirección guardada del consumidor actual; no afecta pedidos históricos. */
+export const retirarDireccion = (id) => apiFetch(`/api/cuenta/direcciones/${idRuta(id)}`, { method: 'DELETE' })
