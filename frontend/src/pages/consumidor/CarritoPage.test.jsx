@@ -437,6 +437,23 @@ describe('CCPIP-156 Quitar una oferta del carrito', () => {
     expect(llamadas(fetchMock, 'DELETE /api/carrito/items/8')).toHaveLength(1)
   })
 
+  it('mientras quita, el basurero muestra el aro de carga y no se puede repetir (CCPIP-413)', async () => {
+    let responder
+    servidor({ ...conSesion(), 'DELETE /api/carrito/items/8': () => new Promise((r) => { responder = r }) })
+    const user = userEvent.setup()
+    abrirEn('/carrito')
+    const quitar = await screen.findByRole('button', { name: 'Quitar Aceite de aguaje 250 ml del carrito' })
+    expect(quitar.querySelector('.boton__giro')).toBeNull()
+    await user.click(quitar)
+
+    expect(quitar).toBeDisabled()
+    expect(quitar).toHaveAttribute('aria-busy', 'true')
+    expect(quitar.querySelector('.boton__giro')).not.toBeNull()
+    expect(quitar.querySelector('.icono')).toBeNull()
+    responder([200, sinAceite()])
+    expect(await screen.findByText('Quitaste Aceite de aguaje 250 ml de tu carrito')).toBeInTheDocument()
+  })
+
   it('al quitar la ultima oferta queda el carrito vacio', async () => {
     const soloUna = copia(DATOS.carrito)
     soloUna.items = soloUna.items.slice(0, 1)

@@ -222,6 +222,27 @@ describe('PW-04 Mejora opcional con IA (CCPIP-176, 272, 281, 282)', () => {
     expect(llamadas(fetchMock, `POST /api/productor/imagenes/${A}/mejora/rechazar`)).toHaveLength(0)
   })
 
+  it('mientras prepara la mejora, el enlace muestra el aro de carga en lugar del icono (CCPIP-413)', async () => {
+    let responder
+    productor({
+      'GET /api/productor/productos/9': () => [200, conFotos(fotoDe(A, true))],
+      [`POST /api/productor/imagenes/${A}/mejora`]: () => new Promise((r) => { responder = r }),
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    const mejorar = await screen.findByRole('button', { name: 'Mejorar con IA' })
+    expect(mejorar.querySelector('.boton__giro')).toBeNull()
+    await user.click(mejorar)
+
+    const preparando = screen.getByRole('button', { name: 'Preparando la mejora…' })
+    expect(preparando).toBeDisabled()
+    expect(preparando).toHaveAttribute('aria-busy', 'true')
+    expect(preparando.querySelector('.boton__giro')).not.toBeNull()
+    expect(preparando.querySelector('.icono')).toBeNull()
+    responder([201, comparacion(A)])
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+  })
+
   it('cerrar no decide y conservar la original la rechaza', async () => {
     const fetchMock = productor({
       'GET /api/productor/productos/9': () => [200, conFotos(fotoDe(A, true))],
