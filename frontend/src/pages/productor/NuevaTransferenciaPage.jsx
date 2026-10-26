@@ -220,7 +220,7 @@ export default function NuevaTransferenciaPage() {
           {errorEnvio && <Alerta tono="error" titulo={t('productor.transferencias.form.errorEnviar')} descripcion={mensajeError(errorEnvio, 'comun.errorConexion')} />}
 
           <div className="nueva-transferencia__acciones">
-            <Boton tipo="primario" tamano="L" type="submit" disabled={enviando}>
+            <Boton tipo="primario" tamano="L" type="submit" cargando={enviando}>
               {t(enviando ? 'productor.transferencias.form.enviando' : tipo === 'ENTRE_PUNTOS' ? 'productor.transferencias.form.solicitar' : 'productor.transferencias.form.iniciar')}
             </Boton>
             <Boton tipo="terciario" tamano="L" to={RUTAS.productorTransferencias}>{t('comun.cancelar')}</Boton>

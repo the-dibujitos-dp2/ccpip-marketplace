@@ -188,7 +188,7 @@ export default function PedidosDisponiblesPage({ path }) {
             {elegidos.length > 0 && (
               <div className="pedidos-disponibles__tomar">
                 <p>{t('distribuidor.pedidos.seleccionados', { count: elegidos.length })}</p>
-                <Boton tamano="M" icono={iconoCheck} onClick={() => void tomar()} disabled={tomando}>
+                <Boton tamano="M" icono={iconoCheck} onClick={() => void tomar()} cargando={tomando}>
                   {tomando ? t('distribuidor.pedidos.tomando') : t('distribuidor.pedidos.tomar', { count: elegidos.length })}
                 </Boton>
               </div>
@@ -196,7 +196,7 @@ export default function PedidosDisponiblesPage({ path }) {
             {siguiente && (
               <div className="pedidos-disponibles__mas">
                 <p className="caption">{t('distribuidor.pedidos.mostrando', { n: items.length, total: datos.total })}</p>
-                <Boton tamano="M" tipo="secundario" onClick={cargarMas} disabled={cargandoMas}>
+                <Boton tamano="M" tipo="secundario" onClick={cargarMas} cargando={cargandoMas}>
                   {t(cargandoMas ? 'distribuidor.pedidos.cargandoMas' : 'distribuidor.pedidos.cargarMas')}
                 </Boton>
               </div>

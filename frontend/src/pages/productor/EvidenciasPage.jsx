@@ -292,7 +292,7 @@ function FormularioEvidencia({ tipo, productoId, onCancelar, onSubida }) {
       </div>
       <div className="evidencias__acciones">
         <Boton tipo="terciario" tamano="M" onClick={onCancelar} disabled={enviando}>{t('comun.cancelar')}</Boton>
-        <Boton tamano="M" type="submit" disabled={enviando}>{enviando ? t('evidencias.form.subiendo') : t('evidencias.form.subir')}</Boton>
+        <Boton tamano="M" type="submit" cargando={enviando}>{enviando ? t('evidencias.form.subiendo') : t('evidencias.form.subir')}</Boton>
       </div>
     </form>
   )

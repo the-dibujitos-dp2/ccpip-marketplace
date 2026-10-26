@@ -28,7 +28,8 @@ export default function MotivosMermaPage({ path }) {
   const [editando, setEditando] = useState(null)
   const [desactivando, setDesactivando] = useState(null)
   const [alerta, setAlerta] = useState(null)
-  const [ocupado, setOcupado] = useState(false)
+  // El id del motivo que se esta activando o desactivando (CCPIP-413: el aro va solo en su boton)
+  const [ocupado, setOcupado] = useState(null)
 
   const activos = datos?.filter((m) => m.activo).length ?? 0
 
@@ -46,7 +47,7 @@ export default function MotivosMermaPage({ path }) {
   }
 
   function cambiarEstado(motivo, activar) {
-    setOcupado(true)
+    setOcupado(motivo.id)
     ;(activar ? activarMotivo(motivo.id) : desactivarMotivo(motivo.id))
       .then((m) => {
         reemplazar(m)
@@ -57,7 +58,7 @@ export default function MotivosMermaPage({ path }) {
         setDesactivando(null)
         setAlerta({ tono: 'error', titulo: t('admin.motivosMerma.errorEstado'), descripcion: mensajeError(e) })
       })
-      .finally(() => setOcupado(false))
+      .finally(() => setOcupado(null))
   }
 
   const titulo = t('admin.motivosMerma.titulo')
@@ -109,7 +110,7 @@ export default function MotivosMermaPage({ path }) {
                     {t('admin.motivosMerma.desactivar')}
                   </Boton>
                 ) : (
-                  <Boton tipo="terciario" tamano="S" disabled={ocupado} onClick={() => cambiarEstado(m, true)} aria-label={t('admin.motivosMerma.activarDe', { nombre: m.nombre })}>
+                  <Boton tipo="terciario" tamano="S" disabled={ocupado !== null} cargando={ocupado === m.id} onClick={() => cambiarEstado(m, true)} aria-label={t('admin.motivosMerma.activarDe', { nombre: m.nombre })}>
                     {t('admin.motivosMerma.activar')}
                   </Boton>
                 ))}
@@ -128,7 +129,7 @@ export default function MotivosMermaPage({ path }) {
         tipoConfirmar="destructivo"
         onConfirmar={() => cambiarEstado(desactivando, false)}
         onCancelar={() => setDesactivando(null)}
-        ocupado={ocupado}
+        ocupado={ocupado !== null}
       >
         <p>{t('admin.motivosMerma.confirmarTexto', { count: desactivando?.usos ?? 0 })}</p>
       </Dialogo>

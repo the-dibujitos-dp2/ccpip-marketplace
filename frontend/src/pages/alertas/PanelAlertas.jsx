@@ -294,7 +294,7 @@ function ConfigurarAlertas({ rol, onPuntos }) {
             </label>
           </fieldset>
 
-          <Boton type="submit" anchoCompleto tamano="M" disabled={guardando}>
+          <Boton type="submit" anchoCompleto tamano="M" cargando={guardando}>
             {t('alertas.config.guardar')}
           </Boton>
         </>

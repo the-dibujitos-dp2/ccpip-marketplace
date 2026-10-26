@@ -41,7 +41,7 @@ export default function Dialogo({ abierto, titulo, children, confirmar, tipoConf
             <Boton tipo={tipoCancelar} tamano="M" onClick={onCancelar} disabled={ocupado}>
               {cancelar ?? t('comun.cancelar')}
             </Boton>
-            <Boton tipo={tipoConfirmar} tamano="M" onClick={onConfirmar} disabled={ocupado}>
+            <Boton tipo={tipoConfirmar} tamano="M" onClick={onConfirmar} cargando={ocupado}>
               {confirmar ?? t('comun.confirmar')}
             </Boton>
           </div>

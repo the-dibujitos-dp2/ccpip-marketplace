@@ -101,7 +101,7 @@ export default function ParametrosPage({ path }) {
                   maxLength={4}
                   autoComplete="off"
                 />
-                <Boton type="submit" tamano="M" disabled={enviando}>
+                <Boton type="submit" tamano="M" cargando={enviando}>
                   {t('admin.parametros.guardar')}
                 </Boton>
               </form>

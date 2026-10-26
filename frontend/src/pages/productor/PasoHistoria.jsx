@@ -39,6 +39,8 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
   const [editando, setEditando] = useState(false)
   const [manual, setManual] = useState({ titulo: h.titulo ?? '', texto: h.textoFinal ?? '' })
   const [estado, setEstado] = useState(null)
+  // CCPIP-413: que version se pidio (NORMAL, OTRA o CORTA), para que el aro vaya solo en su boton
+  const [variante, setVariante] = useState(null)
   const [alerta, setAlerta] = useState(null)
 
   useEffect(() => {
@@ -55,6 +57,7 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
       return
     }
     setEstado('generando')
+    setVariante(variante)
     setAlerta(null)
     try {
       const p = await proponerHistoria(producto.id, respuestas, variante)
@@ -70,6 +73,7 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
       }
     } finally {
       setEstado(null)
+      setVariante(null)
     }
   }
 
@@ -193,11 +197,11 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
             <h2 id="titulo-propuesta" className="heading-h2">{t('productor.historia.enBorrador')}</h2>
             <p className="body-s">{t('productor.historia.enBorradorTexto')}</p>
             <div className="editor__botones editor__botones--columna">
-              <Boton icono={iconoIa} onClick={() => pedir('NORMAL')} disabled={estado === 'generando'}>
+              <Boton icono={iconoIa} onClick={() => pedir('NORMAL')} cargando={estado === 'generando'}>
                 {estado === 'generando' ? t('productor.historia.preparando') : t('productor.historia.generar')}
               </Boton>
               <Boton tipo="secundario" onClick={() => setModo('manual')}>{t('productor.historia.escribirYo')}</Boton>
-              <Boton tipo="terciario" onClick={guardarYSeguir} disabled={estado === 'guardando'}>{t('productor.historia.seguirDespues')}</Boton>
+              <Boton tipo="terciario" onClick={guardarYSeguir} cargando={estado === 'guardando'}>{t('productor.historia.seguirDespues')}</Boton>
             </div>
           </>
         )}
@@ -223,20 +227,20 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
               <Boton tipo="secundario" tamano="S" icono={iconoEditar} onClick={() => setEditando((v) => !v)}>
                 {editando ? t('productor.historia.listo') : t('productor.historia.editarTexto')}
               </Boton>
-              <Boton tipo="terciario" tamano="S" icono={iconoIa} onClick={() => pedir('OTRA')} disabled={estado === 'generando'}>
+              <Boton tipo="terciario" tamano="S" icono={iconoIa} onClick={() => pedir('OTRA')} disabled={estado === 'generando'} cargando={variante === 'OTRA'}>
                 {t('productor.historia.otraVersion')}
               </Boton>
-              <Boton tipo="terciario" tamano="S" onClick={() => pedir('CORTA')} disabled={estado === 'generando'}>
+              <Boton tipo="terciario" tamano="S" onClick={() => pedir('CORTA')} disabled={estado === 'generando'} cargando={variante === 'CORTA'}>
                 {t('productor.historia.masCorto')}
               </Boton>
-              <Boton tipo="terciario" tamano="S" onClick={() => void descartar()} disabled={estado === 'descartando'}>
+              <Boton tipo="terciario" tamano="S" onClick={() => void descartar()} cargando={estado === 'descartando'}>
                 {t('productor.historia.descartar')}
               </Boton>
             </div>
             <p className="caption">{t('productor.historia.noSePublica')}</p>
             <div className="editor__botones">
               <Boton tipo="terciario" onClick={onAtras}>{t('productor.historia.atras')}</Boton>
-              <Boton icono={iconoCheck} onClick={() => aprobar({ titulo: propuesta.titulo, texto: propuesta.texto, asistida: true })} disabled={estado === 'aprobando'}>
+              <Boton icono={iconoCheck} onClick={() => aprobar({ titulo: propuesta.titulo, texto: propuesta.texto, asistida: true })} cargando={estado === 'aprobando'}>
                 {t('productor.historia.aprobar')}
               </Boton>
             </div>
@@ -259,7 +263,7 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
             />
             <div className="editor__botones">
               <Boton tipo="terciario" onClick={() => setModo(propuesta ? 'ia' : 'inicial')}>{t('productor.historia.atras')}</Boton>
-              <Boton icono={iconoCheck} onClick={() => aprobar({ titulo: manual.titulo, texto: manual.texto, asistida: false })} disabled={estado === 'aprobando'}>
+              <Boton icono={iconoCheck} onClick={() => aprobar({ titulo: manual.titulo, texto: manual.texto, asistida: false })} cargando={estado === 'aprobando'}>
                 {t('productor.historia.aprobar')}
               </Boton>
             </div>

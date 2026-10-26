@@ -170,7 +170,7 @@ export default function DetalleCuentaPage({ path, id, search = '' }) {
                   <p className="caption">{t('cuentas.noEditables')}</p>
                   <div className="cuentas__acciones">
                     <Boton tipo="terciario" tamano="M" onClick={() => setEditando(false)} disabled={guardando}>{t('comun.cancelar')}</Boton>
-                    <Boton type="submit" tamano="M" disabled={guardando}>{t('cuentas.guardar')}</Boton>
+                    <Boton type="submit" tamano="M" cargando={guardando}>{t('cuentas.guardar')}</Boton>
                   </div>
                 </form>
               ) : (
