@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.ReportesModelos.Desglose;
 
 /**
@@ -134,5 +135,32 @@ public final class GestionModelos {
     public record ReporteOrigenDestino(LocalDate desde, LocalDate hasta, long pedidos, BigDecimal total,
                                        List<Flujo> porPunto, List<Flujo> porProductor, List<Destino> porDestino,
                                        List<Ruta> rutas) {
+    }
+
+    /**
+     * Un indicador del rango frente al periodo anterior de igual duracion. {@code variacion} es el cambio en
+     * porcentaje, con un decimal; nula si el anterior fue cero.
+     */
+    public record Indicador(BigDecimal valor, BigDecimal anterior, BigDecimal variacion) {
+    }
+
+    /**
+     * CCPIP-348: ventas de la plataforma. {@code ticketPromedio} es lo vendido por pedido; {@code b2c} y
+     * {@code b2b}, el desglose del rango por tarifa.
+     */
+    public record IndicadoresVentas(Indicador total, Indicador pedidos, Indicador ticketPromedio, Desglose desglose) {
+    }
+
+    /** Un periodo de la serie de indicadores, recortado al rango. */
+    public record PeriodoIndicadores(LocalDate inicio, LocalDate fin, BigDecimal ventas, long pedidos) {
+    }
+
+    /**
+     * Indicadores agregados de la plataforma en el rango, cada uno frente al periodo anterior de igual
+     * duracion ({@code anteriorDesde} a {@code anteriorHasta}), y su serie por dia, semana o mes. CCPIP-348
+     * (RF-238): ventas.
+     */
+    public record ReporteIndicadores(LocalDate desde, LocalDate hasta, Agrupacion agrupacion, LocalDate anteriorDesde,
+                                     LocalDate anteriorHasta, IndicadoresVentas ventas, List<PeriodoIndicadores> periodos) {
     }
 }

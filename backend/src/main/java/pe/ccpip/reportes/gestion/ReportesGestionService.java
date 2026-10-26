@@ -2,9 +2,12 @@ package pe.ccpip.reportes.gestion;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -18,17 +21,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.comun.RangoFechas;
+import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.ReportesModelos.Desglose;
+import pe.ccpip.reportes.Tramos;
 import pe.ccpip.reportes.gestion.GestionModelos.Denuncias;
 import pe.ccpip.reportes.gestion.GestionModelos.Destino;
 import pe.ccpip.reportes.gestion.GestionModelos.Estrellas;
 import pe.ccpip.reportes.gestion.GestionModelos.Flujo;
+import pe.ccpip.reportes.gestion.GestionModelos.Indicador;
+import pe.ccpip.reportes.gestion.GestionModelos.IndicadoresVentas;
 import pe.ccpip.reportes.gestion.GestionModelos.Linea;
+import pe.ccpip.reportes.gestion.GestionModelos.PeriodoIndicadores;
 import pe.ccpip.reportes.gestion.GestionModelos.ProductoCalificado;
 import pe.ccpip.reportes.gestion.GestionModelos.ProductorCalificado;
 import pe.ccpip.reportes.gestion.GestionModelos.ProductorVentas;
 import pe.ccpip.reportes.gestion.GestionModelos.PuntoReporte;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteCalificaciones;
+import pe.ccpip.reportes.gestion.GestionModelos.ReporteIndicadores;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteOrigenDestino;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteProductores;
 import pe.ccpip.reportes.gestion.GestionModelos.ReportePuntos;
@@ -281,7 +290,7 @@ public class ReportesGestionService {
     }
 
     /** Lee las columnas de {@link #DOS_PERIODOS}. */
-    private static Calificado calificado(java.sql.ResultSet rs, int minimo) throws java.sql.SQLException {
+    private static Calificado calificado(ResultSet rs, int minimo) throws SQLException {
         long resenas = rs.getLong("resenas");
         long anteriores = rs.getLong("resenas_anterior");
         BigDecimal suma = rs.getBigDecimal("suma");
@@ -361,7 +370,7 @@ public class ReportesGestionService {
                 conParticipacion(porProductor, total), porDestino, rutas);
     }
 
-    private static Flujo flujo(java.sql.ResultSet rs) throws java.sql.SQLException {
+    private static Flujo flujo(ResultSet rs) throws SQLException {
         return new Flujo(rs.getString("nombre"), rs.getString("detalle"), rs.getLong("pedidos"), rs.getBigDecimal("total"),
                 null);
     }
@@ -370,6 +379,79 @@ public class ReportesGestionService {
         return flujos.stream()
                 .map(f -> new Flujo(f.nombre(), f.detalle(), f.pedidos(), f.total(), porcentaje(f.total(), total)))
                 .toList();
+    }
+
+    /**
+     * Indicadores agregados de la plataforma en el rango, frente al periodo anterior de igual duracion, con su
+     * serie por dia, semana o mes (por mes si no se indica). CCPIP-348 (RF-238): ventas, pedidos y ticket
+     * promedio.
+     */
+    @Transactional(readOnly = true)
+    public ReporteIndicadores indicadores(LocalDate desde, LocalDate hasta, Agrupacion agrupacion) {
+        RangoFechas rango = rango(desde, hasta);
+        RangoFechas anterior = anterior(rango);
+        Agrupacion por = agrupacion == null ? Agrupacion.MES : agrupacion;
+        Tramos tramos = new Tramos(rango.desde(), rango.hasta(), por);
+
+        Actividad actual = actividad(rango);
+        Actividad previa = actividad(anterior);
+        IndicadoresVentas ventas = new IndicadoresVentas(
+                comparar(actual.ventas().total(), previa.ventas().total()),
+                comparar(BigDecimal.valueOf(actual.pedidos()), BigDecimal.valueOf(previa.pedidos())),
+                comparar(actual.ticketPromedio(), previa.ticketPromedio()), actual.ventas());
+
+        int n = tramos.cantidad();
+        BigDecimal[] ventasPorPeriodo = new BigDecimal[n];
+        Arrays.fill(ventasPorPeriodo, BigDecimal.ZERO);
+        long[] pedidos = new long[n];
+        jdbc.query("""
+                SELECT date_trunc('%s', pe.confirmado_en AT TIME ZONE 'America/Lima')::date AS periodo,
+                       sum(i.subtotal) AS ventas, count(DISTINCT pe.id) AS pedidos
+                FROM item_pedido i JOIN pedido pe ON pe.id = i.pedido_id
+                WHERE %s GROUP BY 1""".formatted(unidad(por), VENDIDO), parametros(rango), rs -> {
+            int i = tramos.posicion(rs.getObject("periodo", LocalDate.class));
+            ventasPorPeriodo[i] = rs.getBigDecimal("ventas");
+            pedidos[i] = rs.getLong("pedidos");
+        });
+        List<PeriodoIndicadores> periodos = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            Tramos.Tramo t = tramos.lista().get(i);
+            periodos.add(new PeriodoIndicadores(t.inicio(), t.fin(), ventasPorPeriodo[i], pedidos[i]));
+        }
+        return new ReporteIndicadores(rango.desde(), rango.hasta(), por, anterior.desde(), anterior.hasta(), ventas, periodos);
+    }
+
+    /** Lo que hubo en un rango: ventas por tarifa y pedidos. */
+    private record Actividad(Desglose ventas, long pedidos) {
+
+        /** Lo vendido por pedido, con dos decimales; cero sin pedidos. */
+        BigDecimal ticketPromedio() {
+            return pedidos == 0 ? BigDecimal.ZERO : ventas.total().divide(BigDecimal.valueOf(pedidos), 2, RoundingMode.HALF_UP);
+        }
+    }
+
+    private Actividad actividad(RangoFechas rango) {
+        return jdbc.queryForObject("""
+                SELECT %s, count(DISTINCT pe.id) AS pedidos
+                FROM item_pedido i JOIN pedido pe ON pe.id = i.pedido_id
+                WHERE %s""".formatted(POR_TARIFA, VENDIDO), parametros(rango),
+                (rs, row) -> new Actividad(desglose(rs.getBigDecimal("b2c"), rs.getBigDecimal("b2b")), rs.getLong("pedidos")));
+    }
+
+    /** Un indicador con su variacion porcentual frente al anterior (nula si el anterior fue cero). */
+    static Indicador comparar(BigDecimal valor, BigDecimal anterior) {
+        BigDecimal variacion = anterior.signum() == 0 ? null
+                : valor.subtract(anterior).multiply(BigDecimal.valueOf(100)).divide(anterior, 1, RoundingMode.HALF_UP);
+        return new Indicador(valor, anterior, variacion);
+    }
+
+    /** La unidad de {@code date_trunc} de una agrupacion: la semana de Postgres empieza el lunes, como ISO 8601. */
+    static String unidad(Agrupacion por) {
+        return switch (por) {
+            case DIA -> "day";
+            case SEMANA -> "week";
+            case MES -> "month";
+        };
     }
 
     /** Las ventas de la plataforma en el rango y cuantos productores vendieron. */

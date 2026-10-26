@@ -20,7 +20,7 @@ import pe.ccpip.support.IntegrationTest;
  * Reportes de gestion del superadministrador (SA-05, SA-10). CCPIP-122 (RF-86): productores con mayores
  * ventas; CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias de los puntos de acopio; CCPIP-123
  * (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y de productores; CCPIP-80 (RF-66): origen y
- * destino de las ventas.
+ * destino de las ventas; indicadores agregados de la plataforma (CCPIP-348 ventas).
  *
  * <p>Los datos son de agosto y septiembre de 2023, meses que ninguna otra prueba usa, y la transaccion se
  * deshace al terminar.
@@ -220,6 +220,54 @@ class ReportesGestionTest extends IntegrationTest {
     }
 
     @Test
+    void losIndicadoresDeVentasSeComparanConElPeriodoAnterior() throws Exception {
+        ventasDePrueba();
+
+        mockMvc.perform(get("/api/admin/reportes/indicadores" + SEPTIEMBRE).cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.agrupacion").value("MES"))
+                .andExpect(jsonPath("$.anteriorDesde").value("2023-08-02"))
+                .andExpect(jsonPath("$.anteriorHasta").value("2023-08-31"))
+                // Septiembre: S/ 180 en 3 pedidos; agosto: S/ 25 en 1
+                .andExpect(jsonPath("$.ventas.total.valor").value(180.00))
+                .andExpect(jsonPath("$.ventas.total.anterior").value(25.00))
+                .andExpect(jsonPath("$.ventas.total.variacion").value(620.0))
+                .andExpect(jsonPath("$.ventas.pedidos.valor").value(3))
+                .andExpect(jsonPath("$.ventas.pedidos.variacion").value(200.0))
+                .andExpect(jsonPath("$.ventas.ticketPromedio.valor").value(60.00))
+                .andExpect(jsonPath("$.ventas.ticketPromedio.anterior").value(25.00))
+                .andExpect(jsonPath("$.ventas.desglose.b2c").value(80.00))
+                .andExpect(jsonPath("$.ventas.desglose.b2b").value(100.00))
+                .andExpect(jsonPath("$.periodos.length()").value(1))
+                .andExpect(jsonPath("$.periodos[0].ventas").value(180.00))
+                .andExpect(jsonPath("$.periodos[0].pedidos").value(3));
+    }
+
+    @Test
+    void losIndicadoresSeAgrupanPorSemanaConPeriodosSinVentas() throws Exception {
+        ventasDePrueba();
+
+        // Del lunes 4 al domingo 24 de septiembre: tres semanas; el pedido del 5 cae en la primera
+        mockMvc.perform(get("/api/admin/reportes/indicadores?desde=2023-09-04&hasta=2023-09-24&agrupacion=SEMANA")
+                        .cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.periodos.length()").value(3))
+                .andExpect(jsonPath("$.periodos[0].inicio").value("2023-09-04"))
+                .andExpect(jsonPath("$.periodos[0].ventas").value(30.00))
+                .andExpect(jsonPath("$.periodos[1].ventas").value(100.00))
+                .andExpect(jsonPath("$.periodos[2].ventas").value(50.00))
+                // El anterior va del 14 de agosto al 3 de septiembre: incluye el pedido del 15 de agosto
+                .andExpect(jsonPath("$.anteriorDesde").value("2023-08-14"))
+                .andExpect(jsonPath("$.ventas.total.anterior").value(25.00));
+        // Sin ventas en el periodo anterior, no hay variacion
+        mockMvc.perform(get("/api/admin/reportes/indicadores?desde=2023-09-01&hasta=2023-09-07").cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ventas.total.valor").value(30.00))
+                .andExpect(jsonPath("$.ventas.total.anterior").value(0))
+                .andExpect(jsonPath("$.ventas.total.variacion").doesNotExist());
+    }
+
+    @Test
     void sinVentasElRankingQuedaVacio() throws Exception {
         mockMvc.perform(get("/api/admin/reportes/productores?desde=2023-08-01&hasta=2023-08-02").cookie(loginAs(SUPER)))
                 .andExpect(status().isOk())
@@ -242,6 +290,7 @@ class ReportesGestionTest extends IntegrationTest {
         mockMvc.perform(get("/api/admin/reportes/puntos").cookie(loginAs(correo))).andExpect(status().isForbidden());
         mockMvc.perform(get("/api/admin/reportes/calificaciones").cookie(loginAs(correo))).andExpect(status().isForbidden());
         mockMvc.perform(get("/api/admin/reportes/origen-destino").cookie(loginAs(correo))).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/admin/reportes/indicadores").cookie(loginAs(correo))).andExpect(status().isForbidden());
     }
 
     @Test

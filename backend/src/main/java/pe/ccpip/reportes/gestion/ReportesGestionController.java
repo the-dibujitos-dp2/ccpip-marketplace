@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.model.Rol;
+import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteCalificaciones;
+import pe.ccpip.reportes.gestion.GestionModelos.ReporteIndicadores;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteOrigenDestino;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteProductores;
 import pe.ccpip.reportes.gestion.GestionModelos.ReportePuntos;
@@ -61,5 +63,16 @@ public class ReportesGestionController {
     public ReporteOrigenDestino origenDestino(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
         return service.origenDestino(desde, hasta);
+    }
+
+    /**
+     * Indicadores agregados de la plataforma en el rango frente al periodo anterior, con su serie por dia,
+     * semana o mes. CCPIP-348 (RF-238): ventas.
+     */
+    @GetMapping("/indicadores")
+    public ReporteIndicadores indicadores(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+                                          @RequestParam(required = false) Agrupacion agrupacion) {
+        return service.indicadores(desde, hasta, agrupacion);
     }
 }
