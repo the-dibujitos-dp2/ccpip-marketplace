@@ -1,6 +1,7 @@
 import { useSesion } from '../../sesion.js'
 import CabeceraTienda from './CabeceraTienda.jsx'
 import PieDePagina from './PieDePagina.jsx'
+import DecoracionBotanica from './DecoracionBotanica.jsx'
 
 /** Estructura de toda pagina publica de la tienda web (CW): cabecera, contenido y pie. */
 export default function LayoutTienda({ termino, children }) {
@@ -10,6 +11,7 @@ export default function LayoutTienda({ termino, children }) {
       <CabeceraTienda user={user} onCerrarSesion={cerrarSesion} cerrando={cerrando} termino={termino} />
       {children}
       <PieDePagina />
+      <DecoracionBotanica />
     </div>
   )
 }
