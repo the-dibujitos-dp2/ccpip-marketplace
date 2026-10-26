@@ -1,3 +1,4 @@
+import Giro from './Giro.jsx'
 import Icono from './Icono.jsx'
 import { navigate } from '../router.js'
 import './Boton.css'
@@ -20,11 +21,7 @@ export default function Boton({ tipo = 'primario', tamano = 'L', anchoCompleto =
   const lado = TAMANO_ICONO[tamano]
   const contenido = (
     <>
-      {cargando && !to ? (
-        <span className="boton__giro" style={{ width: lado, height: lado }} aria-hidden="true" />
-      ) : (
-        icono && <Icono src={icono} tamano={lado} />
-      )}
+      {cargando && !to ? <Giro tamano={lado} /> : icono && <Icono src={icono} tamano={lado} />}
       {children}
     </>
   )

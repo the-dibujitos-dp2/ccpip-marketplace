@@ -72,6 +72,8 @@
 }
 .carrito__quitar:hover:not(:disabled) { background: var(--color-bg-surface-alt); color: var(--color-status-error-fg); }
 .carrito__quitar:disabled { color: var(--color-text-disabled); cursor: wait; }
+/* CCPIP-413: el aro de carga conserva el color del texto, no el gris de un boton bloqueado */
+.carrito__quitar[aria-busy='true'] { color: var(--color-text-secondary); cursor: progress; }
 .carrito__aviso { margin-bottom: 16px; }
 /* CCPIP-134: aviso del minimo mayorista bajo los datos de la fila (Figma CW-05) */
 .carrito__mayorista { grid-column: 2 / -1; }

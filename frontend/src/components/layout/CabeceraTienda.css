@@ -81,6 +81,9 @@
 
 .cabecera-tienda__menu-nombre { font-weight: 600; }
 
+/* CCPIP-413: mientras cierra la sesion, el aro de carga junto al texto */
+.cabecera-tienda__menu button[aria-busy='true'] { display: inline-flex; align-items: center; gap: 6px; cursor: progress; }
+
 .cabecera-tienda__menu a,
 .cabecera-tienda__menu button {
   margin-top: 8px;
