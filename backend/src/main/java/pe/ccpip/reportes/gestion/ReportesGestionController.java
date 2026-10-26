@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.model.Rol;
+import pe.ccpip.reportes.gestion.GestionModelos.ReporteCalificaciones;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteProductores;
 import pe.ccpip.reportes.gestion.GestionModelos.ReportePuntos;
 
@@ -40,5 +41,16 @@ public class ReportesGestionController {
     public ReportePuntos puntos(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
                                 @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
         return service.puntos(desde, hasta);
+    }
+
+    /**
+     * CCPIP-123 (RF-87): calificaciones de productos en el rango, con el promedio solo desde el minimo
+     * configurado y la tendencia frente al periodo anterior. {@code linea} es el codigo de una linea de producto.
+     */
+    @GetMapping("/calificaciones")
+    public ReporteCalificaciones calificaciones(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+                                               @RequestParam(required = false) String linea) {
+        return service.calificaciones(desde, hasta, linea);
     }
 }

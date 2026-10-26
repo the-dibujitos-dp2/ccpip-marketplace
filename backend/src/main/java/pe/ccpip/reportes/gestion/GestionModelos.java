@@ -58,4 +58,41 @@ public final class GestionModelos {
     public record ReportePuntos(LocalDate desde, LocalDate hasta, Desglose totales, long pedidos, Denuncias denuncias,
                                 List<PuntoReporte> puntos) {
     }
+
+    /** CCPIP-123: como cambio el promedio frente al periodo anterior de igual duracion. */
+    public enum Tendencia { SUBE, ESTABLE, BAJA }
+
+    /** Una linea de producto, opcion del filtro. */
+    public record Linea(String codigo, String nombre) {
+    }
+
+    /** CCPIP-123: cuantas calificaciones de {@code estrellas} hubo. */
+    public record Estrellas(int estrellas, long cantidad) {
+    }
+
+    /**
+     * CCPIP-123: calificaciones del rango. {@code promedio} (un decimal) es nulo si no se alcanza el minimo de
+     * calificaciones configurado (CCPIP-82); {@code distribucion} va de 5 a 1 estrellas.
+     */
+    public record ResumenCalificaciones(BigDecimal promedio, long resenas, List<Estrellas> distribucion) {
+    }
+
+    /**
+     * CCPIP-123: un producto calificado en el rango. {@code promedio} es nulo bajo el minimo;
+     * {@code denuncias}, las recibidas en el rango sobre el producto; {@code tendencia}, nula si alguno de los
+     * dos periodos no alcanza el minimo.
+     */
+    public record ProductoCalificado(long productoId, String producto, String productor, BigDecimal promedio,
+                                     long resenas, long denuncias, Tendencia tendencia) {
+    }
+
+    /**
+     * CCPIP-123 (RF-87): reporte de calificaciones de productos. {@code anteriorDesde} y {@code anteriorHasta}
+     * son el periodo anterior de igual duracion con el que se calcula la tendencia; {@code minimo}, las
+     * calificaciones necesarias para mostrar un promedio; {@code linea}, el filtro aplicado (nulo si ninguno).
+     */
+    public record ReporteCalificaciones(LocalDate desde, LocalDate hasta, LocalDate anteriorDesde, LocalDate anteriorHasta,
+                                        int minimo, String linea, ResumenCalificaciones resumen,
+                                        List<ProductoCalificado> productos, List<Linea> lineas) {
+    }
 }

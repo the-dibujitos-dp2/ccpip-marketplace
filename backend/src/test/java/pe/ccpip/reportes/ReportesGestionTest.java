@@ -12,11 +12,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.servlet.http.Cookie;
+
 import pe.ccpip.support.IntegrationTest;
 
 /**
  * Reportes de gestion del superadministrador (SA-05, SA-10). CCPIP-122 (RF-86): productores con mayores
- * ventas; CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias de los puntos de acopio.
+ * ventas; CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias de los puntos de acopio; CCPIP-123
+ * (RF-87): calificaciones de productos.
  *
  * <p>Los datos son de agosto y septiembre de 2023, meses que ninguna otra prueba usa, y la transaccion se
  * deshace al terminar.
@@ -31,6 +34,7 @@ class ReportesGestionTest extends IntegrationTest {
 
     private long aceite;
     private long harina;
+    private int pedidos;
 
     @BeforeEach
     void productos() {
@@ -116,6 +120,58 @@ class ReportesGestionTest extends IntegrationTest {
     }
 
     @Test
+    void lasCalificacionesMuestranElPromedioDesdeElMinimoYSuTendencia() throws Exception {
+        calificacionesDePrueba();
+
+        mockMvc.perform(get("/api/admin/reportes/calificaciones" + SEPTIEMBRE).cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.minimo").value(2))
+                // Septiembre tiene 29 dias despues del 1: el anterior va del 2 al 31 de agosto
+                .andExpect(jsonPath("$.anteriorDesde").value("2023-08-02"))
+                .andExpect(jsonPath("$.anteriorHasta").value("2023-08-31"))
+                .andExpect(jsonPath("$.resumen.resenas").value(3))
+                .andExpect(jsonPath("$.resumen.promedio").value(4.0))
+                .andExpect(jsonPath("$.resumen.distribucion[0].estrellas").value(5))
+                .andExpect(jsonPath("$.resumen.distribucion[0].cantidad").value(1))
+                .andExpect(jsonPath("$.resumen.distribucion[3].estrellas").value(2))
+                .andExpect(jsonPath("$.resumen.distribucion[3].cantidad").value(0))
+                .andExpect(jsonPath("$.productos.length()").value(2))
+                .andExpect(jsonPath("$.productos[0].producto").value("RG Aceite"))
+                .andExpect(jsonPath("$.productos[0].promedio").value(4.5))
+                .andExpect(jsonPath("$.productos[0].resenas").value(2))
+                .andExpect(jsonPath("$.productos[0].denuncias").value(1))
+                // De 2.0 en agosto a 4.5 en septiembre
+                .andExpect(jsonPath("$.productos[0].tendencia").value("SUBE"))
+                // Una sola calificacion no alcanza el minimo: sin promedio ni tendencia
+                .andExpect(jsonPath("$.productos[1].producto").value("RG Harina"))
+                .andExpect(jsonPath("$.productos[1].promedio").doesNotExist())
+                .andExpect(jsonPath("$.productos[1].tendencia").doesNotExist())
+                .andExpect(jsonPath("$.lineas[?(@.codigo == 'SUPERFRUTOS')]").exists())
+                // Ni quien califico ni sus comentarios
+                .andExpect(jsonPath("$..comentario").doesNotExist())
+                .andExpect(jsonPath("$..correo").doesNotExist());
+    }
+
+    @Test
+    void lasCalificacionesSeFiltranPorLinea() throws Exception {
+        calificacionesDePrueba();
+        Cookie sesion = loginAs(SUPER);
+
+        mockMvc.perform(get("/api/admin/reportes/calificaciones" + SEPTIEMBRE + "&linea=CAFE").cookie(sesion))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.linea").value("CAFE"))
+                .andExpect(jsonPath("$.resumen.resenas").value(0))
+                .andExpect(jsonPath("$.resumen.promedio").doesNotExist())
+                .andExpect(jsonPath("$.productos.length()").value(0));
+        mockMvc.perform(get("/api/admin/reportes/calificaciones" + SEPTIEMBRE + "&linea=SUPERFRUTOS").cookie(sesion))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resumen.resenas").value(3));
+        mockMvc.perform(get("/api/admin/reportes/calificaciones?linea=NO_EXISTE").cookie(sesion))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("LINEA_NO_ENCONTRADA"));
+    }
+
+    @Test
     void sinVentasElRankingQuedaVacio() throws Exception {
         mockMvc.perform(get("/api/admin/reportes/productores?desde=2023-08-01&hasta=2023-08-02").cookie(loginAs(SUPER)))
                 .andExpect(status().isOk())
@@ -136,6 +192,7 @@ class ReportesGestionTest extends IntegrationTest {
     void losReportesDeGestionSonDelSuperadministrador(String correo) throws Exception {
         mockMvc.perform(get("/api/admin/reportes/productores").cookie(loginAs(correo))).andExpect(status().isForbidden());
         mockMvc.perform(get("/api/admin/reportes/puntos").cookie(loginAs(correo))).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/admin/reportes/calificaciones").cookie(loginAs(correo))).andExpect(status().isForbidden());
     }
 
     @Test
@@ -187,5 +244,31 @@ class ReportesGestionTest extends IntegrationTest {
                                 (SELECT p.id FROM productor p JOIN usuario u ON u.id = p.usuario_id WHERE u.correo = ?)),
                        ?, 'CALIDAD', 'Prueba de reporte', ?, ?::timestamptz""",
                 productoId, correoProductor, productoId, estado, cuando);
+    }
+
+    /**
+     * Minimo de 2 calificaciones. Septiembre: el aceite recibe 5 y 4 estrellas y una denuncia; la harina, 3.
+     * Agosto: el aceite recibio 2 y 2.
+     */
+    private void calificacionesDePrueba() {
+        jdbc.update("""
+                INSERT INTO parametro_plataforma (clave, valor, registrado_por)
+                SELECT 'CALIFICACIONES_MINIMO_PROMEDIO', 2, id FROM usuario WHERE correo = ?""", SUPER);
+        calificar(aceite, 5, "2023-09-03 10:00-05");
+        calificar(aceite, 4, "2023-09-15 10:00-05");
+        calificar(harina, 3, "2023-09-16 10:00-05");
+        calificar(aceite, 2, "2023-08-10 10:00-05");
+        calificar(aceite, 2, "2023-08-20 10:00-05");
+        denuncia(aceite, null, "EN_REVISION", "2023-09-17 10:00-05");
+    }
+
+    /** Un pedido entregado al consumidor con una linea del producto, calificada en {@code cuando}. */
+    private void calificar(long productoId, int estrellas, String cuando) {
+        long pedido = pedido("RGC-" + (++pedidos), "ENTREGADO", "2023-07-01 10:00-05", LIMA, "RECOJO");
+        long item = linea(pedido, productoId, 1, "10.00", "MINORISTA");
+        jdbc.update("""
+                INSERT INTO calificacion (item_pedido_id, pedido_id, producto_id, productor_id, usuario_id, estrellas, calificado_en)
+                SELECT i.id, i.pedido_id, i.producto_id, i.productor_id, pe.usuario_id, ?, ?::timestamptz
+                FROM item_pedido i JOIN pedido pe ON pe.id = i.pedido_id WHERE i.id = ?""", estrellas, cuando, item);
     }
 }
