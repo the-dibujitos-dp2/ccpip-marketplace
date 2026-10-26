@@ -2,15 +2,14 @@ package pe.ccpip.reportes.productor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import pe.ccpip.comun.Idioma;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
-import pe.ccpip.reportes.productor.DocumentoReporte.Seccion;
+import pe.ccpip.reportes.exportar.DocumentoReporte;
+import pe.ccpip.reportes.exportar.DocumentoReporte.Seccion;
+import pe.ccpip.reportes.exportar.TextosReporte;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.PeriodoInventario;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.PeriodoProduccion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.PeriodoVentas;
@@ -27,9 +26,6 @@ import pe.ccpip.reportes.productor.ReportesProductorModelos.ReporteVentas;
  */
 final class ContenidoReporte {
 
-    private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final DateTimeFormatter DIA_MES = DateTimeFormatter.ofPattern("dd/MM");
-
     private ContenidoReporte() {
     }
 
@@ -39,8 +35,8 @@ final class ContenidoReporte {
         boolean en = idioma == Idioma.EN;
         List<String> filtros = new ArrayList<>();
         filtros.add((en ? "Producer: " : "Productor: ") + productor);
-        filtros.add((en ? "Period: " : "Período: ") + FECHA.format(ventas.desde()) + (en ? " to " : " al ") + FECHA.format(ventas.hasta()));
-        filtros.add((en ? "Grouped by: " : "Agrupado por: ") + agrupacion(ventas.agrupacion(), en));
+        filtros.add(TextosReporte.rango(ventas.desde(), ventas.hasta(), en));
+        filtros.add((en ? "Grouped by: " : "Agrupado por: ") + TextosReporte.agrupacion(ventas.agrupacion(), en));
         filtros.add((en ? "Product: " : "Producto: ") + (producto == null ? (en ? "All" : "Todos") : producto));
         filtros.add((en ? "Purchase mode (sales only): " : "Modalidad (solo ventas): ") + modalidad(ventas, en));
 
@@ -133,28 +129,8 @@ final class ContenidoReporte {
                 en ? "No stock in this period." : "No hubo existencias en este período.");
     }
 
-    /**
-     * El nombre de un periodo: el mes, la semana de lunes a domingo (recortada al rango) o el dia. Los rangos
-     * se escriben con «al» y no con un guion: la fuente usa el mismo glifo para varios guiones y, al copiar
-     * o buscar en el PDF, el texto saldria con otro caracter.
-     */
-    static String periodo(LocalDate inicio, LocalDate fin, Agrupacion agrupacion, boolean en) {
-        return switch (agrupacion) {
-            case DIA -> FECHA.format(inicio);
-            case SEMANA -> DIA_MES.format(inicio) + (en ? " to " : " al ") + FECHA.format(fin);
-            case MES -> {
-                String mes = inicio.getMonth().getDisplayName(TextStyle.FULL, en ? Locale.ENGLISH : Locale.forLanguageTag("es-PE"));
-                yield Character.toUpperCase(mes.charAt(0)) + mes.substring(1) + " " + inicio.getYear();
-            }
-        };
-    }
-
-    private static String agrupacion(Agrupacion a, boolean en) {
-        return switch (a) {
-            case DIA -> en ? "day" : "día";
-            case SEMANA -> en ? "week" : "semana";
-            case MES -> en ? "month" : "mes";
-        };
+    private static String periodo(LocalDate inicio, LocalDate fin, Agrupacion agrupacion, boolean en) {
+        return TextosReporte.periodo(inicio, fin, agrupacion, en);
     }
 
     private static String modalidad(ReporteVentas ventas, boolean en) {

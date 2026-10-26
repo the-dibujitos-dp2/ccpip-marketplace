@@ -7,7 +7,7 @@ import iconoIa from '../../assets/icons/ia.svg'
 import iconoInfo from '../../assets/icons/info-pequeno.svg'
 import { obtenerCatalogos } from '../../api/catalogo.js'
 import {
-  aceptarMejora, eliminarImagen, marcarPrincipal, mejorarImagen, proponerDescripcion, rechazarBorrador, rechazarMejora, reemplazarImagen, subirImagen,
+  aceptarBorradorDescripcion, aceptarMejora, eliminarImagen, marcarPrincipal, mejorarImagen, proponerDescripcion, rechazarBorrador, rechazarMejora, reemplazarImagen, subirImagen,
 } from '../../api/productor.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
@@ -268,7 +268,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
 
   const principal = (imagen) => accionFoto(() => marcarPrincipal(imagen.id), 'productor.datos.errorPrincipal')
 
-  // ---------- Descripcion asistida (CCPIP-48, RNF-29) ----------
+  // ---------- Descripcion asistida (CCPIP-48, CCPIP-49, RNF-29) ----------
 
   async function sugerir() {
     if (!d.nombre.trim()) {
@@ -276,32 +276,51 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
       return
     }
     setIa({ estado: 'cargando' })
+    let productoId
     try {
-      const propuesta = await proponerDescripcion({ productoId: producto?.id ?? null, nombre: d.nombre.trim(), lineas: d.lineas, contenido: d.contenido || null })
-      setIa({ estado: 'propuesta', texto: propuesta.texto })
+      // CCPIP-49: el servidor guarda el borrador solo de un producto que existe; uno nuevo nace como borrador
+      productoId = Number(await asegurarProducto(aCuerpo(d)))
+    } catch (err) {
+      setIa({ estado: 'inicial' })
+      setAlerta({ tono: 'error', titulo: err instanceof ApiError ? mensajeError(err) : t('productor.datos.ia.guardaAntes') })
+      return
+    }
+    try {
+      const propuesta = await proponerDescripcion({ productoId, nombre: d.nombre.trim(), lineas: d.lineas, contenido: d.contenido || null })
+      setIa({ estado: 'propuesta', texto: propuesta.texto, productoId })
     } catch (err) {
       setIa({ estado: err.code === 'IA_NO_DISPONIBLE' ? 'no-disponible' : 'error', mensaje: mensajeError(err) })
     }
   }
 
-  // CCPIP-280: un borrador de un producto ya guardado quedo en el servidor; descartarlo lo registra
+  // CCPIP-280: descartar el borrador lo registra. Mientras responde no se puede decidir otra vez
   async function descartarDescripcion() {
-    if (producto?.id) {
-      try {
-        await rechazarBorrador(producto.id, 'DESCRIPCION')
-      } catch (err) {
-        // 409: el servidor no guardo ese borrador (se pidio antes de crear el producto); igual se descarta
-        if (err.status !== 409) {
-          setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.ia.errorDescartar') })
-          return
-        }
+    setIa({ ...ia, ocupado: true })
+    try {
+      await rechazarBorrador(ia.productoId, 'DESCRIPCION')
+    } catch (err) {
+      // 409: ya no estaba pendiente (se decidio en otra pestana); igual se descarta
+      if (err.status !== 409) {
+        setIa({ ...ia, ocupado: false })
+        setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.ia.errorDescartar') })
+        return
       }
     }
     setIa({ estado: 'descartada' })
   }
 
-  function aceptarDescripcion(editar) {
-    setD({ ...d, descripcion: ia.texto, descripcionAsistida: true })
+  // CCPIP-49: aceptarlo guarda la version sugerida, con quien y cuando; la final es la que el productor guarde
+  async function aceptarDescripcion(editar) {
+    setIa({ ...ia, ocupado: true })
+    try {
+      await aceptarBorradorDescripcion(ia.productoId)
+    } catch (err) {
+      // 409: ya no estaba pendiente; mejor pedir otro que usar un texto cuya aceptacion no quedo registrada
+      setIa(err.status === 409 ? { estado: 'inicial' } : { ...ia, ocupado: false })
+      setAlerta({ tono: 'error', titulo: err.status === 409 ? t('productor.datos.ia.yaNoPendiente') : mensajeError(err, 'productor.datos.ia.errorAceptar') })
+      return
+    }
+    setD((actual) => ({ ...actual, descripcion: ia.texto, descripcionAsistida: true }))
     setIa({ estado: 'aceptada' })
     if (editar) setTimeout(() => document.getElementById('descripcion-producto')?.focus(), 0)
   }
@@ -427,16 +446,16 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
               <p className="body-s editor__ia-texto">{ia.texto}</p>
               <p className="caption">{t('productor.datos.ia.editalo')}</p>
               <div className="editor__ia-acciones">
-                <Boton tipo="secundario" tamano="S" onClick={() => aceptarDescripcion(true)}>
+                <Boton tipo="secundario" tamano="S" disabled={ia.ocupado} onClick={() => void aceptarDescripcion(true)}>
                   {t('productor.editor.editar')}
                 </Boton>
-                <Boton tipo="terciario" tamano="S" onClick={sugerir}>
+                <Boton tipo="terciario" tamano="S" disabled={ia.ocupado} onClick={sugerir}>
                   {t('productor.datos.ia.generarOtra')}
                 </Boton>
-                <Boton tipo="terciario" tamano="S" onClick={() => void descartarDescripcion()}>
+                <Boton tipo="terciario" tamano="S" disabled={ia.ocupado} onClick={() => void descartarDescripcion()}>
                   {t('productor.datos.ia.descartar')}
                 </Boton>
-                <Boton tamano="S" onClick={() => aceptarDescripcion(false)}>
+                <Boton tamano="S" disabled={ia.ocupado} onClick={() => void aceptarDescripcion(false)}>
                   {t('productor.datos.ia.aceptar')}
                 </Boton>
               </div>

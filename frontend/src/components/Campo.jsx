@@ -9,7 +9,8 @@ import './Campo.css'
 
 /**
  * Campo de formulario con etiqueta persistente. Error = borde rojo 2px + icono + mensaje.
- * tipo: texto (por defecto) | area | selector | contrasena. Para selector, `opciones`: [{ valor, etiqueta }].
+ * tipo: texto (por defecto) | area | selector | contrasena. Para selector, `opciones`: [{ valor, etiqueta }];
+ * con `placeholder={false}` no ofrece la opcion vacia (cuando siempre hay una elegida).
  * contrasena: campo oculto con un boton de ojo para mostrar u ocultar lo escrito.
  */
 export default function Campo({ etiqueta, ayuda, error, tipo = 'texto', opciones = [], placeholder, className = '', id: idPropio, ...props }) {
@@ -35,7 +36,7 @@ export default function Campo({ etiqueta, ayuda, error, tipo = 'texto', opciones
       {tipo === 'selector' && (
         <div className="campo__selector">
           <select {...control}>
-            <option value="">{placeholder ?? t('campo.elegir')}</option>
+            {placeholder !== false && <option value="">{placeholder ?? t('campo.elegir')}</option>}
             {opciones.map((o) => (
               <option key={o.valor} value={o.valor}>
                 {o.etiqueta}

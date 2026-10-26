@@ -1,4 +1,4 @@
-package pe.ccpip.reportes.productor;
+package pe.ccpip.reportes.exportar;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -14,7 +14,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 
-import pe.ccpip.reportes.productor.DocumentoReporte.Seccion;
+import pe.ccpip.reportes.exportar.DocumentoReporte.Seccion;
 
 /**
  * CCPIP-115: el reporte de sus productos en PDF, A4 horizontal para que quepan las ocho columnas del
@@ -22,7 +22,7 @@ import pe.ccpip.reportes.productor.DocumentoReporte.Seccion;
  * encabezado. Usa la fuente Noto incrustada que ya usa el reporte de merma (CCPIP-78), asi que se ven
  * bien las tildes, la ñ y los nombres en otros alfabetos.
  */
-final class ReportePdf {
+public final class ReportePdf {
 
     private static final String FUENTE = "/fonts/noto-sans-sc-variable.ttf";
     private static final PDRectangle HOJA = new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth());
@@ -32,13 +32,13 @@ final class ReportePdf {
     private static final float TEXTO = 8.5f;
     private static final float SUBTITULO = 11;
     private static final float TITULO = 15;
-    /** La primera columna (periodo o producto) es mas ancha que las de cifras. */
+    /** Las columnas de texto (periodo, producto o productor) son mas anchas que las de cifras. */
     private static final float PESO_PRIMERA = 2.4f;
 
     private ReportePdf() {
     }
 
-    static byte[] generar(DocumentoReporte documento) {
+    public static byte[] generar(DocumentoReporte documento) {
         try (PDDocument pdf = new PDDocument(); ByteArrayOutputStream salida = new ByteArrayOutputStream()) {
             PDType0Font fuente;
             try (InputStream entrada = ReportePdf.class.getResourceAsStream(FUENTE)) {
@@ -70,6 +70,8 @@ final class ReportePdf {
         private final PDType0Font fuente;
         private PDPageContentStream contenido;
         private float y;
+        /** Por columna de la seccion en curso: si es de cifras, para alinear su encabezado a la derecha. */
+        private boolean[] deCifras = new boolean[0];
 
         Lienzo(PDDocument pdf, PDType0Font fuente) throws IOException {
             this.pdf = pdf;
@@ -83,7 +85,8 @@ final class ReportePdf {
             bajar(10);
             texto(s.titulo(), SUBTITULO, MARGEN);
             bajar(SUBTITULO + 4);
-            float[] anchos = anchos(s.encabezados().size());
+            deCifras = deCifras(s);
+            float[] anchos = anchos(deCifras);
             encabezado(s, anchos);
             if (s.filas().isEmpty()) {
                 texto(s.vacio() == null ? "" : s.vacio(), TEXTO, MARGEN + 4);
@@ -127,7 +130,7 @@ final class ReportePdf {
                 } else {
                     String txt = recortar(String.valueOf(celda), ancho - 10);
                     // Los encabezados de las columnas de cifras van a la derecha, como sus cifras
-                    boolean derecha = c > 0 && esEncabezado(celdas);
+                    boolean derecha = c < deCifras.length && deCifras[c] && esEncabezado(celdas);
                     float pos = derecha ? x + ancho - 6 - medir(txt, TEXTO) : x + 4;
                     texto(txt, TEXTO, pos);
                 }
@@ -141,12 +144,29 @@ final class ReportePdf {
             return celdas.stream().noneMatch(BigDecimal.class::isInstance);
         }
 
-        private float[] anchos(int columnas) {
-            float unidad = ANCHO_UTIL / (PESO_PRIMERA + columnas - 1);
-            float[] anchos = new float[columnas];
-            anchos[0] = unidad * PESO_PRIMERA;
-            for (int i = 1; i < columnas; i++) {
-                anchos[i] = unidad;
+        /**
+         * Una columna es de cifras salvo la primera (periodo o producto) y las que traen texto en alguna fila,
+         * como el productor en las tablas por producto del punto de acopio.
+         */
+        private static boolean[] deCifras(Seccion s) {
+            boolean[] cifras = new boolean[s.encabezados().size()];
+            for (int c = 1; c < cifras.length; c++) {
+                int columna = c;
+                cifras[c] = s.filas().stream().allMatch(f -> columna >= f.size() || f.get(columna) instanceof BigDecimal);
+            }
+            return cifras;
+        }
+
+        /** Las columnas de texto (periodo, producto, productor) son mas anchas que las de cifras. */
+        private float[] anchos(boolean[] cifras) {
+            float pesos = 0;
+            for (boolean cifra : cifras) {
+                pesos += cifra ? 1 : PESO_PRIMERA;
+            }
+            float unidad = ANCHO_UTIL / pesos;
+            float[] anchos = new float[cifras.length];
+            for (int i = 0; i < cifras.length; i++) {
+                anchos[i] = unidad * (cifras[i] ? 1 : PESO_PRIMERA);
             }
             return anchos;
         }
