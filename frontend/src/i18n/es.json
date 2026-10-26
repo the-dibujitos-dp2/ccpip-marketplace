@@ -1435,7 +1435,9 @@
         "pueblo": "Pueblo",
         "pedidos": "Pedidos",
         "unidades": "Unidades",
-        "participacion": "Participación"
+        "participacion": "Participación",
+        "punto": "Punto de acopio",
+        "departamento": "Departamento"
       },
       "metrica": {
         "ventas": {
@@ -1469,6 +1471,18 @@
         "tabla": "Productores que más venden",
         "vacio": "Ningún productor vendió en este período",
         "nota": "Hasta {{limite}} productores, de mayor a menor venta. Pedidos pagados y no cancelados, por la fecha en que se confirmaron (hora de Lima); la participación es su porcentaje de las ventas de la plataforma."
+      },
+      "puntos": {
+        "pestana": "Puntos de acopio",
+        "ventas": "Ventas de la plataforma",
+        "ventasDetalle": "Del {{desde}} al {{hasta}}",
+        "pedidos": "Pedidos",
+        "pedidosDetalle": "Pagados y no cancelados",
+        "conVentas": "Puntos con ventas",
+        "conVentasDetalle": "De {{total}} puntos activos",
+        "tabla": "Ventas por punto de acopio",
+        "vacio": "No hay puntos de acopio activos",
+        "nota": "Cada pedido sale de un punto de acopio. Pedidos pagados y no cancelados, por la fecha en que se confirmaron (hora de Lima); un punto activo sin ventas aparece en cero."
       }
     },
     "parametros": {

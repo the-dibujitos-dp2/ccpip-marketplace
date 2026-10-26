@@ -11,7 +11,7 @@ export const consultarPermisos = () => apiFetch('/api/admin/permisos')
 const RANGO = ['desde', 'hasta']
 
 /** Los filtros de cada reporte; las metricas por periodo (SA-05) tambien se agrupan. */
-const FILTROS_REPORTE = { productores: RANGO }
+const FILTROS_REPORTE = { productores: RANGO, puntos: RANGO }
 
 const rutaReporteAdmin = (reporte, sufijo, filtros, idioma) =>
   rutaReporte('/api/admin/reportes', FILTROS_REPORTE[reporte] ?? [...RANGO, 'agrupacion'], sufijo, filtros, idioma)
@@ -19,7 +19,7 @@ const rutaReporteAdmin = (reporte, sufijo, filtros, idioma) =>
 /**
  * SA-05 y SA-10: un reporte de la plataforma; sin filtro, el año en curso. `reporte` es una metrica
  * acumulada por periodo (ventas, comisiones o ingresos, CCPIP-345) o un reporte de gestion (productores,
- * CCPIP-122).
+ * CCPIP-122; puntos, CCPIP-355).
  */
 export const consultarReporte = (reporte, filtros) =>
   apiFetch(rutaReporteAdmin(reporte, `/${encodeURIComponent(reporte)}`, filtros))

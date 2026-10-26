@@ -182,3 +182,32 @@ describe('CCPIP-122 Productores que mas venden (SA-10)', () => {
     expect(llamadas(fetchMock, 'GET /api/admin/reportes/productores?desde=2026-02-01&hasta=2026-03-18')).toHaveLength(1)
   })
 })
+
+const PUNTOS = {
+  desde: '2026-01-01',
+  hasta: '2026-03-18',
+  totales: { b2c: 1300, b2b: 900, total: 2200 },
+  pedidos: 5,
+  denuncias: { total: 3, abiertas: 1, resueltas: 1, desestimadas: 1 },
+  puntos: [
+    { puntoId: 1, punto: 'Satipo', departamento: 'Junín', pedidos: 5, b2c: 1300, b2b: 900, total: 2200, participacion: 100, denuncias: 2, denunciasAbiertas: 1 },
+    { puntoId: 2, punto: 'Oxapampa', departamento: 'Pasco', pedidos: 0, b2c: 0, b2b: 0, total: 0, participacion: 0, denuncias: 0, denunciasAbiertas: 0 },
+  ],
+}
+
+describe('CCPIP-355 Ventas por punto de acopio (SA-10)', () => {
+  it('lista cada punto activo con sus ventas, tambien los que no vendieron', async () => {
+    const fetchMock = comoSuper({ [`GET /api/admin/reportes/puntos?${RANGO}`]: () => [200, copia(PUNTOS)] })
+    await abrirPestana('Puntos de acopio')
+
+    expect(await screen.findByRole('region', { name: 'Pedidos' })).toHaveTextContent('5')
+    expect(screen.getByRole('region', { name: 'Puntos con ventas' })).toHaveTextContent('De 2 puntos activos')
+    const filas = within(screen.getByRole('table', { name: 'Ventas por punto de acopio' })).getAllByRole('row')
+    expect(filas).toHaveLength(3)
+    expect(within(filas[1]).getByText('Junín')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('100%')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('Oxapampa')).toBeInTheDocument()
+    expect(within(filas[2]).getAllByText('S/ 0.00')).toHaveLength(3)
+    expect(llamadas(fetchMock, `GET /api/admin/reportes/puntos?${RANGO}`)).toHaveLength(1)
+  })
+})

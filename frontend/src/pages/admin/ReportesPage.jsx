@@ -18,12 +18,13 @@ import '../productor/productor.css'
 import './admin.css'
 import './ReportesPage.css'
 import Productores from './reportes/Productores.jsx'
+import Puntos from './reportes/Puntos.jsx'
 
 /** Metricas de SA-05, en el orden de las pestanas. Cada una es un endpoint /api/admin/reportes/{clave}. */
 const METRICAS = ['ventas', 'comisiones', 'ingresos']
 
 /** Reportes de gestion (SA-10), despues de las metricas: cada uno es /api/admin/reportes/{clave}. */
-const GESTION = { productores: Productores }
+const GESTION = { productores: Productores, puntos: Puntos }
 
 const PESTANAS = [...METRICAS, ...Object.keys(GESTION)]
 
@@ -43,6 +44,7 @@ const seAgrupa = (clave) => METRICAS.includes(clave)
  * - CCPIP-345 (RF-235), CCPIP-346 (RF-236) y CCPIP-93 (RF-71): ventas, comisiones e ingresos acumulados por
  *   periodo con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista)
  * - CCPIP-122 (RF-86): productores que mas venden
+ * - CCPIP-355 (RF-245): ventas por punto de acopio
  */
 export default function ReportesPage({ path }) {
   const { t } = useTranslation()
