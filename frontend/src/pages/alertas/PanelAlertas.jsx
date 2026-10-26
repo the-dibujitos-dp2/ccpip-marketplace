@@ -35,6 +35,9 @@ const ICONO = {
   PEDIDO_NUEVO: iconoPaquete,
 }
 
+/** CCPIP-425: cada cuanto se vuelve a consultar la bandeja abierta, que el servidor pone al dia al responder. */
+const ACTUALIZAR_CADA_MS = 15000
+
 /** Las opciones del Figma ("Elige 7, 15 o 30 dias, o un numero personalizado"). */
 const OPCIONES_DIAS = { diasVencimiento: [7, 15, 30], diasEstancado: [15, 30, 60] }
 
@@ -64,7 +67,7 @@ export default function PanelAlertas({ rol, onPuntos }) {
   const { t } = useTranslation()
   const [filtro, setFiltro] = useState('TODAS')
   const consultar = useCallback(() => listarAlertas(rol), [rol])
-  const { datos, setDatos, error } = useConsulta(consultar)
+  const { datos, setDatos, error, recargar } = useConsulta(consultar, { cadaMs: ACTUALIZAR_CADA_MS })
 
   const alertas = datos?.alertas ?? []
   const tiposConAlertas = TIPOS.filter((tipo) => alertas.some((a) => a.tipo === tipo))
@@ -126,7 +129,8 @@ export default function PanelAlertas({ rol, onPuntos }) {
         )}
       </section>
 
-      <ConfigurarAlertas rol={rol} onPuntos={onPuntos} />
+      {/* Otra anticipacion abre o cierra alertas: la bandeja se vuelve a pedir al guardarla */}
+      <ConfigurarAlertas rol={rol} onPuntos={onPuntos} onGuardado={recargar} />
     </div>
   )
 }
@@ -168,7 +172,7 @@ function ItemAlerta({ alerta: a, rol, onAbrir }) {
   )
 }
 
-function ConfigurarAlertas({ rol, onPuntos }) {
+function ConfigurarAlertas({ rol, onPuntos, onGuardado }) {
   const { t } = useTranslation()
   const [puntos, setPuntos] = useState(null)
   const [punto, setPunto] = useState(null)
@@ -228,6 +232,7 @@ function ConfigurarAlertas({ rol, onPuntos }) {
         setForm(formulario(preferencias))
         if (rol === 'acopio') setPuntos((ps) => ps.map((p) => (p.ubicacionId === r.ubicacionId ? r : p)))
         setEstado({ tono: 'exito', titulo: t('alertas.config.guardado') })
+        onGuardado()
       })
       .catch((err) => {
         setErrores(err.body?.campos ? erroresPorCampo(err) : {})
