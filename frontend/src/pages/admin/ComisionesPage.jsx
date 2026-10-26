@@ -8,6 +8,7 @@ import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import FiltroFechas from '../../components/FiltroFechas.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
@@ -63,7 +64,7 @@ export default function ComisionesPage({ path }) {
         )}
       </FiltroFechas>
       {error && <Alerta tono="error" titulo={t('admin.comisiones.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
-      {!datos && !error && <p className="caption">{t('comun.cargando')}</p>}
+      {!datos && !error && <Cargando />}
       {datos && <Resultado datos={datos} filtrado={filtrado} onPagina={(pagina) => setFiltros((f) => ({ ...f, pagina }))} />}
     </LayoutAdmin>
   )

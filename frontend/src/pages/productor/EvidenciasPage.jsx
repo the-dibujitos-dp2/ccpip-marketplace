@@ -11,6 +11,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import Icono from '../../components/Icono.jsx'
 import { fechaCorta } from '../../formato.js'
@@ -103,7 +104,7 @@ export default function EvidenciasPage({ path, productoId }) {
       </PaginaProductor>
     )
   }
-  if (!datos) return <PaginaProductor path={RUTAS.productorProductos} seccion={seccion} titulo={titulo}><p className="caption">{t('comun.cargando')}</p></PaginaProductor>
+  if (!datos) return <PaginaProductor path={RUTAS.productorProductos} seccion={seccion} titulo={titulo}><Cargando /></PaginaProductor>
 
   const editable = datos.autorizacion.estado !== 'APROBADA' || datos.puedeAdjuntar
   return (

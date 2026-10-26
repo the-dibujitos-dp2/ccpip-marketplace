@@ -1,5 +1,6 @@
 // API del administrador de punto de acopio. El servidor filtra todo por los puntos de la sesion (RNF-05).
 import { apiFetch } from './http.js'
+import { rutaReporte } from './rutaReporte.js'
 
 /** CCPIP-158 (A-03): `tipo` es la pestana (ENTRADAS, SALIDAS o AJUSTES); `pedido`, un numero exacto. */
 export function consultarMovimientos({ tipo, pedido, pagina = 0 } = {}) {
@@ -62,3 +63,16 @@ export const obtenerTransferencia = (id) => apiFetch(`/api/acopio/transferencias
 
 /** CCPIP-278: el punto de destino registra la recepcion; las unidades entran a un lote del punto. */
 export const recibirTransferencia = (id) => apiFetch(`/api/acopio/transferencias/${encodeURIComponent(id)}/recibir`, { method: 'POST' })
+
+const FILTROS_REPORTE = ['desde', 'hasta', 'agrupacion', 'productor', 'producto']
+
+const rutaReporteAcopio = (sufijo, filtros, idioma) =>
+  rutaReporte('/api/acopio/reportes', FILTROS_REPORTE, sufijo, filtros, idioma)
+
+/** CCPIP-117 y siguientes: `reporte` es entradas, salidas, ventas o inventario de sus puntos. */
+export const consultarReporteAcopio = (reporte, filtros) => apiFetch(rutaReporteAcopio(`/${reporte}`, filtros))
+/**
+ * Enlace de descarga de los cuatro reportes juntos con los mismos filtros, en PDF (CCPIP-325, 378, 380 y
+ * 382) o Excel (CCPIP-377, 379, 381 y 383); la cookie de sesion viaja sola.
+ */
+export const urlReporteAcopio = (formato, filtros, idioma) => rutaReporteAcopio(`/${formato}`, filtros, idioma)

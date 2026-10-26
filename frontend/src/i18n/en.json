@@ -11,7 +11,11 @@
     "und": "{{cantidad}} units",
     "cancelar": "Cancel",
     "confirmar": "Confirm",
-    "cerrarAviso": "Close notice"
+    "cerrarAviso": "Close notice",
+    "descargas": {
+      "cargando": "Updating the report; you can download it as soon as it finishes.",
+      "pendiente": "To download, the report must show the selected filters: complete the period or try again."
+    }
   },
   "app": {
     "sesionExpirada": {
@@ -917,8 +921,23 @@
         "pedido": "Order",
         "recoger": "Pick up at",
         "destino": "Destination",
-        "espera": "Waiting"
+        "espera": "Waiting",
+        "elegir": "Select"
       },
+      "elegir": "Select order {{numero}}",
+      "seleccionados_one": "{{count}} order selected",
+      "seleccionados_other": "{{count}} orders selected",
+      "tomar_one": "Take {{count}} order",
+      "tomar_other": "Take {{count}} orders",
+      "tomando": "Taking…",
+      "tomados_one": "You took order {{numeros}}.",
+      "tomados_other": "You took {{count}} orders: {{numeros}}.",
+      "yaTomados_one": "Another distributor already took order {{numeros}}.",
+      "yaTomados_other": "Another distributor already took these orders: {{numeros}}.",
+      "noDisponibles_one": "Order {{numeros}} is no longer available.",
+      "noDisponibles_other": "These orders are no longer available: {{numeros}}.",
+      "errorTomar_one": "We couldn't take order {{numeros}}. It stays selected so you can try again.",
+      "errorTomar_other": "We couldn't take these orders: {{numeros}}. They stay selected so you can try again.",
       "cargarMas": "Load more orders",
       "cargandoMas": "Loading…",
       "errorMas": "We couldn't load more orders",
@@ -939,7 +958,8 @@
       "inventario": "Inventory",
       "transferencias": "Transfers",
       "alertas": "Alerts",
-      "merma": "Shrinkage"
+      "merma": "Shrinkage",
+      "reportes": "Reports"
     },
     "pedidos": {
       "vence": "expires {{fecha}}",
@@ -1092,6 +1112,106 @@
       "errorRecibir": "We could not record the receipt",
       "errorCargar": "We could not load the transfers",
       "errorDetalle": "We could not load the details"
+    },
+    "reportes": {
+      "reporteDe": "Report on",
+      "periodo": "Period",
+      "por": {
+        "DIA": "Daily",
+        "SEMANA": "Weekly",
+        "MES": "Monthly"
+      },
+      "desde": "From",
+      "hasta": "To",
+      "productor": "Producer",
+      "producto": "Product",
+      "todos": "All",
+      "error": "We couldn't load the report",
+      "semana": "{{inicio}} to {{fin}}",
+      "vacioTexto": "Try another period, producer or product.",
+      "exportar": {
+        "pdf": "Download PDF",
+        "xlsx": "Download Excel"
+      },
+      "col": {
+        "periodo": "Period",
+        "producto": "Product",
+        "productor": "Producer",
+        "total": "Total",
+        "acumulado": "Cumulative",
+        "barraEntradas": "Received and transfers",
+        "recepcion": "Received",
+        "transferencias": "Transfers",
+        "ventasEntregadas": "Sale delivered",
+        "ventasPorEntregar": "Sale pending",
+        "devoluciones": "Returns",
+        "merma": "Shrinkage",
+        "ventas": "Sales",
+        "pedidos": "Orders",
+        "pedidosAtendidos": "Delivered",
+        "pedidosPorEntregar": "To deliver",
+        "unidades": "Units",
+        "b2c": "B2C",
+        "b2b": "B2B",
+        "saldoInicial": "Opening",
+        "entradas": "In",
+        "salidas": "Out",
+        "saldoFinal": "Closing"
+      },
+      "entradas": {
+        "pestana": "Stock in",
+        "total": "Units received",
+        "totalDetalle": "{{recepcion}} received · {{transferencias}} by transfer",
+        "porLlegar": "On the way",
+        "porLlegarDetalle_one": "{{count}} requested transfer hasn't arrived yet",
+        "porLlegarDetalle_other": "{{count}} requested transfers haven't arrived yet",
+        "porPeriodo": "Stock in by period",
+        "porProducto": "Stock in by product",
+        "vacio": "No stock came in this period",
+        "nota": "Every entry in your point's batches, by the date it was recorded (Lima time): stock received from a producer and stock received from another point by transfer. On the way means transfers to your point requested in the period that haven't been received yet."
+      },
+      "salidas": {
+        "pestana": "Stock out",
+        "total": "Units out",
+        "totalDetalle": "{{transferencias}} transferred · {{devoluciones}} returned · {{merma}} shrinkage",
+        "entregadas": "Sales delivered",
+        "entregadasDetalle": "Orders already handed to the buyer",
+        "porEntregar": "Sales to deliver",
+        "porEntregarDetalle": "Paid, still at the point awaiting delivery",
+        "porPeriodo": "Stock out by period",
+        "porProducto": "Stock out by product",
+        "vacio": "No stock went out this period",
+        "nota": "Every exit from your point's batches, by the date it was recorded (Lima time). A sale takes stock out when payment is confirmed; it counts as pending until the order is delivered. Returns are stock withdrawn by the producer; transfers, stock sent to another point."
+      },
+      "ventas": {
+        "pestana": "Sales",
+        "total": "Total sold",
+        "totalDetalle": "{{unidades}} units · B2C {{b2c}} · B2B {{b2b}}",
+        "atendidos": "Orders delivered",
+        "atendidosDetalle_one": "Out of {{count}} paid order",
+        "atendidosDetalle_other": "Out of {{count}} paid orders",
+        "porEntregar": "Orders to deliver",
+        "porEntregarDetalle": "Paid, not delivered yet",
+        "porPeriodo": "Sales by period",
+        "porProducto": "Sales by product",
+        "vacio": "No sales in this period",
+        "nota": "Paid, non-cancelled orders shipped from your point, by the date payment was confirmed (Lima time). An order is delivered once handed over; until then it's still to deliver. A sale is B2B if it was made at the wholesale price."
+      },
+      "inventario": {
+        "pestana": "Inventory",
+        "saldoInicial": "Opening balance",
+        "alInicio": "At the start of the period",
+        "movimiento": "Change",
+        "movimientoDetalle": "{{entradas}} in · {{salidas}} out",
+        "saldoFinal": "Closing balance",
+        "alFinal": "At the end of the period",
+        "porEntregar": "Sold, still at the point",
+        "porEntregarDetalle": "Physical stock: {{cantidad}}",
+        "porPeriodo": "Inventory by period",
+        "porProducto": "Inventory by product",
+        "vacio": "No stock in this period",
+        "nota": "Based on your point's batch movements: closing balance = opening balance + in − out. Transfers do count here, because they change what's at the point. Units sold but not yet delivered are already out of the balance, but stay in the warehouse until delivery."
+      }
     }
   },
   "admin": {
@@ -1656,6 +1776,8 @@
     "SIN_COBERTURA": "This collection point does not deliver to that district. Choose another point or pickup.",
     "PEDIDO_A_DOMICILIO": "This order is delivered to the customer's home; it is not picked up at the point.",
     "PEDIDO_PARA_RECOJO": "This order is picked up at the point; it is not dispatched for home delivery.",
+    "PEDIDO_YA_ASUMIDO": "Another distributor already took this order.",
+    "PEDIDO_NO_DISPONIBLE": "This order is not available to take.",
     "PEDIDO_NO_PAGABLE": "This order can no longer be paid.",
     "PAGO_EN_CURSO": "There's already a payment in progress for this order. Wait for its result before trying again.",
     "CLAVE_REUTILIZADA": "This payment attempt belongs to another order.",

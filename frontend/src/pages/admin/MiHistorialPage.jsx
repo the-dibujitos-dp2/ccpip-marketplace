@@ -5,6 +5,7 @@ import { miHistorial } from '../../api/admin.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
@@ -82,6 +83,7 @@ export default function MiHistorialPage({ path }) {
         />
       </div>
       {error && <Alerta tono="error" titulo={mensajeError(error, 'miHistorial.error')} />}
+      {!datos && !error && <Cargando />}
       {datos && datos.acciones.length === 0 && <EstadoVacio titulo={t('miHistorial.vacio')} />}
       {datos?.acciones.length > 0 && (
         <div className="tabla mi-historial__tabla" role="table" aria-label={t('miHistorial.titulo')}>

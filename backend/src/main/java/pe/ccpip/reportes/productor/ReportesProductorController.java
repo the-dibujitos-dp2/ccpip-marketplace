@@ -3,10 +3,7 @@ package pe.ccpip.reportes.productor;
 import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.CacheControl;
-import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -22,9 +19,7 @@ import pe.ccpip.auth.model.Rol;
 import pe.ccpip.comun.Idioma;
 import pe.ccpip.productor.ProductorActual;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
-import pe.ccpip.reportes.exportar.DocumentoReporte;
-import pe.ccpip.reportes.exportar.ReportePdf;
-import pe.ccpip.reportes.exportar.ReporteXlsx;
+import pe.ccpip.reportes.exportar.Descarga;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.Modalidad;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.ReporteInventario;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.ReporteProduccion;
@@ -39,8 +34,6 @@ import pe.ccpip.reportes.productor.ReportesProductorModelos.ReporteVentas;
 @RequestMapping("/api/productor/reportes")
 public class ReportesProductorController {
 
-    private static final MediaType XLSX =
-            MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
     private final ReportesProductorService service;
     private final ProductorActual productorActual;
@@ -94,9 +87,9 @@ public class ReportesProductorController {
                                       @RequestParam(required = false) Modalidad modalidad,
                                       @RequestParam(required = false) String lang,
                                       @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage) {
-        Idioma idioma = idioma(lang, acceptLanguage);
-        DocumentoReporte documento = service.documento(productorActual.id(s), desde, hasta, agrupacion, producto, modalidad, idioma);
-        return descarga(ReportePdf.generar(documento), MediaType.APPLICATION_PDF, "reporte-productos.pdf", idioma);
+        Idioma idioma = Descarga.idioma(lang, acceptLanguage);
+        return Descarga.pdf(service.documento(productorActual.id(s), desde, hasta, agrupacion, producto, modalidad, idioma),
+                "reporte-productos", idioma);
     }
 
     /**
@@ -112,22 +105,8 @@ public class ReportesProductorController {
                                         @RequestParam(required = false) Modalidad modalidad,
                                         @RequestParam(required = false) String lang,
                                         @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage) {
-        Idioma idioma = idioma(lang, acceptLanguage);
-        DocumentoReporte documento = service.documento(productorActual.id(s), desde, hasta, agrupacion, producto, modalidad, idioma);
-        return descarga(ReporteXlsx.generar(documento), XLSX, "reporte-productos.xlsx", idioma);
-    }
-
-    /** El idioma solo cambia los textos, nunca los datos ni los permisos. */
-    private static Idioma idioma(String lang, String acceptLanguage) {
-        return lang == null ? Idioma.deCabecera(acceptLanguage) : Idioma.deCodigo(lang).orElse(Idioma.ES);
-    }
-
-    /** Descarga privada: sin cache compartida y con tipo explicito, como el reporte de merma (CCPIP-78). */
-    private static ResponseEntity<byte[]> descarga(byte[] contenido, MediaType tipo, String nombre, Idioma idioma) {
-        return ResponseEntity.ok().contentType(tipo).cacheControl(CacheControl.noStore())
-                .header(HttpHeaders.CONTENT_LANGUAGE, idioma.codigo())
-                .header("X-Content-Type-Options", "nosniff")
-                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(nombre).build().toString())
-                .body(contenido);
+        Idioma idioma = Descarga.idioma(lang, acceptLanguage);
+        return Descarga.xlsx(service.documento(productorActual.id(s), desde, hasta, agrupacion, producto, modalidad, idioma),
+                "reporte-productos", idioma);
     }
 }

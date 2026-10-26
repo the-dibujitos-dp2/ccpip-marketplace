@@ -9,6 +9,7 @@ import { listarProductos, publicarProducto, retirarProducto } from '../../api/pr
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
@@ -122,6 +123,7 @@ export default function ProductosPage({ path, search }) {
 
       {aviso && <Alerta {...aviso} onCerrar={() => setAviso(null)} />}
       {error && <Alerta tono="error" titulo={t('productor.productos.error')} descripcion={t('comun.errorConexion')} />}
+      {!datos && !error && <Cargando />}
 
       {datos?.items.length === 0 && (
         <EstadoVacio

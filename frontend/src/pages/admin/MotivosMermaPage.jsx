@@ -7,6 +7,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import DialogoFormulario from '../../components/DialogoFormulario.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
@@ -63,7 +64,7 @@ export default function MotivosMermaPage({ path }) {
   return (
     <LayoutAdmin path={path} migas={t('admin.nav.motivosMerma')} titulo={titulo}>
       <div className="motivos__barra">
-        <p className="body-m">{datos ? t('admin.motivosMerma.resumen', { activos, total: datos.length }) : t('comun.cargando')}</p>
+        <p className="body-m">{datos && t('admin.motivosMerma.resumen', { activos, total: datos.length })}</p>
         <Boton tamano="M" icono={iconoMas} onClick={() => setEditando({})}>{t('admin.motivosMerma.nuevo')}</Boton>
       </div>
       <p className="body-s">{t('admin.motivosMerma.intro')}</p>
@@ -74,6 +75,8 @@ export default function MotivosMermaPage({ path }) {
           <Boton tamano="M" tipo="secundario" onClick={recargar}>{t('carrito.reintentar')}</Boton>
         </EstadoVacio>
       )}
+
+      {!datos && !error && <Cargando />}
 
       {datos?.length > 0 && (
         <div className="tabla" role="table" aria-label={titulo}>

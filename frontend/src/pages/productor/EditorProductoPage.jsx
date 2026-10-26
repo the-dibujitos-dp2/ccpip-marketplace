@@ -5,6 +5,7 @@ import { useTiendaActual } from '../../api/tiendaActual.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import { esFaltanteDeTienda, mensajeError, traducirFaltante } from '../../i18n/errores.js'
@@ -106,7 +107,13 @@ export default function EditorProductoPage({ path, id, search }) {
     )
   }
 
-  if (id && !producto) return <PaginaProductor path={path} seccion={t('productor.nav.productos')} titulo={t('productor.editor.producto')} />
+  if (id && !producto) {
+    return (
+      <PaginaProductor path={path} seccion={t('productor.nav.productos')} titulo={t('productor.editor.producto')}>
+        <Cargando />
+      </PaginaProductor>
+    )
+  }
 
   const nuevo = !producto || producto.estado === 'BORRADOR'
   const titulo = nuevo ? t('productor.editor.nuevoProducto') : producto.nombre

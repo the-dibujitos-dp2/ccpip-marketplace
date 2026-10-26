@@ -13,6 +13,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
@@ -113,6 +114,7 @@ export default function PanelAlertas({ rol, onPuntos }) {
         )}
 
         {error && <Alerta tono="error" titulo={t('alertas.errorCargar')} descripcion={t('comun.errorConexion')} />}
+        {!datos && !error && <Cargando />}
         {datos && alertas.length === 0 && <EstadoVacio titulo={t('alertas.vacio')} descripcion={t(`alertas.vacioTexto.${rol}`)} />}
 
         {visibles.length > 0 && (
@@ -238,6 +240,8 @@ function ConfigurarAlertas({ rol, onPuntos }) {
     <form className="alertas__config tarjeta-panel" onSubmit={guardar} aria-labelledby="titulo-config-alertas" noValidate>
       <h2 id="titulo-config-alertas" className="heading-h4">{t('alertas.config.titulo')}</h2>
       {estado && <Alerta tono={estado.tono} titulo={estado.titulo} />}
+      {/* CCPIP-413: la tarjeta no queda vacia mientras llegan las preferencias */}
+      {!form && puntos === null && !estado && <Cargando />}
       {puntos?.length > 1 && (
         <Campo
           tipo="selector"

@@ -8,6 +8,7 @@ import { consultarCarrito, fijarUnidadesCarrito, modificarCantidad, quitarDelCar
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
@@ -120,7 +121,7 @@ export default function CarritoPage() {
             </Boton>
           </EstadoVacio>
         )}
-        {!error && !carrito && <p className="visually-hidden">{t('carrito.cargando')}</p>}
+        {!error && !carrito && <Cargando texto={t('carrito.cargando')} />}
         {carrito?.items.length === 0 && carrito.vencidoEn && (
           <div className="carrito__aviso">
             <Alerta

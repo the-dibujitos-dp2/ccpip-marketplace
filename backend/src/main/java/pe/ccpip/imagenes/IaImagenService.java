@@ -168,12 +168,23 @@ public class IaImagenService {
     // ---------- Mejora opcional (CCPIP-176, CCPIP-272, CCPIP-281, CCPIP-282) ----------
 
     /**
+     * Bloquea la foto propia hasta el final de la transaccion: pedir la mejora, aceptarla o conservar la original
+     * sobre una misma foto se ordenan, y cada una decide con lo que dejo la anterior. Sin el bloqueo, dos pedidos
+     * simultaneos de mejora chocaban en el indice de la pendiente (500), y dos decisiones simultaneas reemplazaban la
+     * foto dos veces o la dejaban reemplazada con la mejora rechazada.
+     */
+    private void bloquear(long productorId, UUID id) {
+        jdbc.queryForList("SELECT id FROM imagen WHERE id = ? AND productor_id = ? FOR UPDATE", UUID.class, id, productorId);
+    }
+
+    /**
      * CCPIP-176: solo por pedido expreso del productor. Guarda la variante aparte y la deja
      * pendiente; si ya hay una pendiente se devuelve esa. Si la IA falla no se guarda nada y la
      * original sigue publicada (503).
      */
     @Transactional
     public Comparacion mejorar(long productorId, long usuarioId, UUID id) {
+        bloquear(productorId, id);
         ImagenService.FotoProducto foto = imagenes.fotoDeProducto(productorId, id);
         Optional<Comparacion> pendiente = pendiente(foto);
         if (pendiente.isPresent()) {
@@ -210,13 +221,14 @@ public class IaImagenService {
      */
     @Transactional
     public ImagenService.Imagen aceptar(long productorId, long usuarioId, UUID id) {
+        bloquear(productorId, id);
         ImagenService.FotoProducto foto = imagenes.fotoDeProducto(productorId, id);
         Pendiente mejora = pendienteDe(id).orElseThrow(IaImagenService::sinMejora);
         UUID nueva = UUID.randomUUID();
         imagenes.ocuparLugar(productorId, usuarioId, id, nueva, mejora.archivo());
         jdbc.update("""
                 UPDATE imagen_mejora SET estado = 'ACEPTADA', decidida_por = ?, decidida_en = now(), imagen_resultante = ?
-                WHERE id = ?""", usuarioId, nueva, mejora.id());
+                WHERE id = ? AND estado = 'PENDIENTE'""", usuarioId, nueva, mejora.id());
         auditoria.registrar(foto.productoId(), usuarioId, Accion.IMAGEN,
                 Map.of("mejorada", id.toString(), "nueva", nueva.toString(), "mejora", mejora.id().toString()));
         return imagenes.buscar(nueva).orElseThrow();
@@ -225,10 +237,12 @@ public class IaImagenService {
     /** CCPIP-281: conservar la original. La variante queda registrada como rechazada y nunca se publica. */
     @Transactional
     public void rechazar(long productorId, long usuarioId, UUID id) {
+        bloquear(productorId, id);
         ImagenService.FotoProducto foto = imagenes.fotoDeProducto(productorId, id);
         Pendiente mejora = pendienteDe(id).orElseThrow(IaImagenService::sinMejora);
-        jdbc.update("UPDATE imagen_mejora SET estado = 'RECHAZADA', decidida_por = ?, decidida_en = now() WHERE id = ?",
-                usuarioId, mejora.id());
+        jdbc.update("""
+                UPDATE imagen_mejora SET estado = 'RECHAZADA', decidida_por = ?, decidida_en = now()
+                WHERE id = ? AND estado = 'PENDIENTE'""", usuarioId, mejora.id());
         auditoria.registrar(foto.productoId(), usuarioId, Accion.IMAGEN,
                 Map.of("mejoraRechazada", mejora.id().toString(), "conservada", id.toString()));
     }

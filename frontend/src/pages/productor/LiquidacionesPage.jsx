@@ -5,6 +5,7 @@ import iconoPorcentaje from '../../assets/icons/porcentaje.svg'
 import { consultarLiquidacion, urlLiquidacion } from '../../api/productor.js'
 import { useConsultaPorFechas } from '../../api/useConsultaPorFechas.js'
 import Alerta from '../../components/Alerta.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import FiltroFechas from '../../components/FiltroFechas.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
@@ -30,7 +31,7 @@ export default function LiquidacionesPage({ path }) {
         {datos && <Exportar rango={{ desde: datos.desde, hasta: datos.hasta }} />}
       </FiltroFechas>
       {error && <Alerta tono="error" titulo={t('productor.liquidaciones.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
-      {cargando && !datos && <p className="caption">{t('comun.cargando')}</p>}
+      {cargando && !datos && <Cargando />}
       {datos && <Resultado datos={datos} />}
     </PaginaProductor>
   )

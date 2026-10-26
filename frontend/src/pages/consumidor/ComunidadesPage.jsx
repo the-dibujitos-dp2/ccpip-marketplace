@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { listarTiendas } from '../../api/catalogo.js'
 import Alerta from '../../components/Alerta.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import TarjetaTienda from '../../components/TarjetaTienda.jsx'
@@ -30,6 +31,7 @@ export default function ComunidadesPage() {
           <p className="body-m">{t('comunidades.bajada')}</p>
         </div>
         {error && <Alerta tono="error" titulo={t('comunidades.error')} descripcion={t('comun.errorConexion')} />}
+        {!tiendas && !error && <Cargando />}
         {tiendas?.length === 0 && <EstadoVacio titulo={t('comunidades.vacio')} descripcion={t('comun.vuelvePronto')} />}
         {tiendas?.length > 0 && (
           <div className="comunidades__grilla">

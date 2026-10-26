@@ -6,6 +6,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import Icono from '../../components/Icono.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
@@ -116,7 +117,7 @@ export default function ComisionPage({ path }) {
   return (
     <LayoutAdmin path={path} migas={t('admin.nav.comision')} titulo={t('admin.comision.titulo')}>
       {errorCarga && <Alerta tono="error" titulo={t('admin.comision.errorCargar')} descripcion={t('comun.errorConexion')} />}
-      {!estado && !errorCarga && <p className="caption">{t('comun.cargando')}</p>}
+      {!estado && !errorCarga && <Cargando />}
       {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
       {estado && (
         <div className="comision">

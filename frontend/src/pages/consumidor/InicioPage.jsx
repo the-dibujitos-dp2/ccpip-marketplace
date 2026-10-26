@@ -8,6 +8,7 @@ import { obtenerInicio, obtenerMasVendidos } from '../../api/catalogo.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
@@ -80,6 +81,7 @@ export default function InicioPage() {
         </ul>
 
         {error && <Alerta tono="error" titulo={t('inicio.error')} descripcion={t('comun.errorConexion')} />}
+        {!datos && !error && <Cargando />}
 
         {datos?.tiendas.length > 0 && (
           <section className="seccion" aria-labelledby="titulo-comunidades">
@@ -195,7 +197,7 @@ function MasVendidos({ periodo, onPeriodo, idioma }) {
         opciones={PERIODOS.map((p) => ({ valor: p, etiqueta: t(`inicio.descubrir.periodos.${p}`) }))}
       />
       {error && <Alerta tono="error" titulo={t('inicio.error')} descripcion={t('comun.errorConexion')} />}
-      {!error && !actual && <p className="caption">{t('comun.cargando')}</p>}
+      {!error && !actual && <Cargando />}
       {actual && actual.productos.length === 0 && <p className="body-m">{t('inicio.descubrir.sinVentas')}</p>}
       {actual && actual.productos.length > 0 && (
         <ul className="grilla-productos" aria-label={t('inicio.descubrir.masVendidos')}>

@@ -4,6 +4,7 @@ import { guardarMisDatos, obtenerMisDatos } from '../../api/cuenta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { erroresPorCampo, mensajeError } from '../../i18n/errores.js'
 import { useSesion } from '../../sesion.js'
@@ -79,6 +80,7 @@ export default function MisDatosPage() {
           <LateralCuenta activo="datos" />
           <section className="mis-pedidos__contenido" aria-busy={!datos && !errorCarga}>
             {errorCarga && <Alerta tono="error" titulo={t('misDatos.errorCargar')} descripcion={mensajeError(errorCarga, 'comun.errorConexion')} />}
+            {!datos && !errorCarga && <Cargando />}
             {form && (
               <form className="mis-datos" onSubmit={guardar} aria-labelledby="titulo-mis-datos" noValidate>
                 <h2 id="titulo-mis-datos" className="mis-datos__titulo">{t('misDatos.titulo')}</h2>
