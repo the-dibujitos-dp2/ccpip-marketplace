@@ -43,6 +43,7 @@ import IngresarPage from './pages/consumidor/IngresarPage.jsx'
 import InicioPage from './pages/consumidor/InicioPage.jsx'
 import MisPedidosPage from './pages/consumidor/MisPedidosPage.jsx'
 import MisDatosPage from './pages/consumidor/MisDatosPage.jsx'
+import MisDireccionesPage from './pages/consumidor/MisDireccionesPage.jsx'
 import PedidoPage from './pages/consumidor/PedidoPage.jsx'
 import RecuperarContrasenaPage from './pages/consumidor/RecuperarContrasenaPage.jsx'
 import RestablecerContrasenaPage from './pages/consumidor/RestablecerContrasenaPage.jsx'
@@ -167,7 +168,7 @@ export default function App() {
 
   // "/productores/1" (enlace antiguo) no es del panel: se compara por segmento
   const delProductor = path === RUTAS.productor || path.startsWith(`${RUTAS.productor}/`)
-  const delComprador = path === RUTAS.carrito || path === RUTAS.compra || path === RUTAS.misPedidos || path === RUTAS.misDatos || RUTA_PEDIDO.test(path)
+  const delComprador = path === RUTAS.carrito || path === RUTAS.compra || path === RUTAS.misPedidos || path === RUTAS.misDatos || path === RUTAS.misDirecciones || RUTA_PEDIDO.test(path)
   const delAcopio = path === RUTAS.acopio || path.startsWith(`${RUTAS.acopio}/`)
   const delDistribuidor = path === RUTAS.distribuidor || path.startsWith(`${RUTAS.distribuidor}/`)
   const delAdmin = path === RUTAS.admin || path.startsWith(`${RUTAS.admin}/`)
@@ -326,6 +327,7 @@ export default function App() {
     else if (path === RUTAS.compra) pagina = <CompraPage />
     else if (path === RUTAS.misPedidos) pagina = <MisPedidosPage />
     else if (path === RUTAS.misDatos) pagina = <MisDatosPage />
+    else if (path === RUTAS.misDirecciones) pagina = <MisDireccionesPage />
     else if (RUTA_PEDIDO.test(path)) pagina = <PedidoPage id={path.match(RUTA_PEDIDO)[1]} />
     else pagina = <CarritoPage />
   } else if (delAcopio) {
