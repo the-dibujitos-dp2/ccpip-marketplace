@@ -1449,7 +1449,10 @@
         "estrellas": "Calificación",
         "distribucion": "Distribución",
         "cantidad": "Cantidad",
-        "productos": "Productos"
+        "productos": "Productos",
+        "destino": "Destino",
+        "envios": "Envíos",
+        "recojos": "Recojos"
       },
       "metrica": {
         "ventas": {
@@ -1522,6 +1525,24 @@
         "productores": "Calificaciones por productor",
         "vacioProductores": "Ningún productor recibió calificaciones en este período",
         "notaProductores": "Por todas las ofertas calificadas del productor en el rango; productos es cuántas recibieron calificaciones. Denuncias: las recibidas en el rango sobre el productor o sus productos."
+      },
+      "origen-destino": {
+        "pestana": "Origen y destino",
+        "ventas": "Ventas de la plataforma",
+        "ventasDetalle": "Del {{desde}} al {{hasta}}",
+        "pedidos": "Pedidos",
+        "pedidosDetalle": "Pagados y no cancelados",
+        "destinos": "Departamentos de destino",
+        "destinosDetalle": "Donde se entregó o se recogió",
+        "envios": "Envíos a domicilio",
+        "enviosDetalle": "{{recojos}} recojos en punto de acopio",
+        "porPunto": "Origen por punto de acopio",
+        "porProductor": "Origen por productor",
+        "porDestino": "Destino por departamento",
+        "rutas": "Del punto de acopio al departamento",
+        "sinDireccion": "Sin dirección registrada",
+        "vacio": "No hubo ventas en este período",
+        "nota": "Cada pedido sale de un punto de acopio. El destino es el departamento de la dirección de entrega en un envío, o el del punto donde se recoge. Solo cifras agregadas: ninguna dirección ni comprador."
       }
     },
     "parametros": {

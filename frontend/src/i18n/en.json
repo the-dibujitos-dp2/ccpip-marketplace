@@ -1449,7 +1449,10 @@
         "estrellas": "Rating",
         "distribucion": "Distribution",
         "cantidad": "Count",
-        "productos": "Products"
+        "productos": "Products",
+        "destino": "Destination",
+        "envios": "Deliveries",
+        "recojos": "Pickups"
       },
       "metrica": {
         "ventas": {
@@ -1522,6 +1525,24 @@
         "productores": "Ratings by producer",
         "vacioProductores": "No producer was rated in this period",
         "notaProductores": "Across all of the producer's rated offers in the range; products is how many were rated. Reports: those received in the range about the producer or their products."
+      },
+      "origen-destino": {
+        "pestana": "Origin and destination",
+        "ventas": "Platform sales",
+        "ventasDetalle": "From {{desde}} to {{hasta}}",
+        "pedidos": "Orders",
+        "pedidosDetalle": "Paid and not cancelled",
+        "destinos": "Destination departments",
+        "destinosDetalle": "Where orders were delivered or picked up",
+        "envios": "Home deliveries",
+        "enviosDetalle": "{{recojos}} pickups at a collection point",
+        "porPunto": "Origin by collection point",
+        "porProductor": "Origin by producer",
+        "porDestino": "Destination by department",
+        "rutas": "From collection point to department",
+        "sinDireccion": "No address on record",
+        "vacio": "There were no sales in this period",
+        "nota": "Each order ships from a collection point. The destination is the department of the delivery address for a home delivery, or of the point where it is picked up. Aggregated figures only: no addresses or buyers."
       }
     },
     "parametros": {

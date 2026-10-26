@@ -18,6 +18,7 @@ import '../productor/productor.css'
 import './admin.css'
 import './ReportesPage.css'
 import Calificaciones from './reportes/Calificaciones.jsx'
+import OrigenDestino from './reportes/OrigenDestino.jsx'
 import Productores from './reportes/Productores.jsx'
 import Puntos from './reportes/Puntos.jsx'
 
@@ -25,7 +26,7 @@ import Puntos from './reportes/Puntos.jsx'
 const METRICAS = ['ventas', 'comisiones', 'ingresos']
 
 /** Reportes de gestion (SA-10), despues de las metricas: cada uno es /api/admin/reportes/{clave}. */
-const GESTION = { productores: Productores, puntos: Puntos, calificaciones: Calificaciones }
+const GESTION = { productores: Productores, puntos: Puntos, calificaciones: Calificaciones, 'origen-destino': OrigenDestino }
 
 const PESTANAS = [...METRICAS, ...Object.keys(GESTION)]
 
@@ -52,6 +53,7 @@ const seAgrupa = (clave) => METRICAS.includes(clave)
  * - CCPIP-122 (RF-86): productores que mas venden
  * - CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias por punto de acopio
  * - CCPIP-123 (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y productores, por linea
+ * - CCPIP-80 (RF-66): origen y destino de las ventas
  */
 export default function ReportesPage({ path }) {
   const { t } = useTranslation()

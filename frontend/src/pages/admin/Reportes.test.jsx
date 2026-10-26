@@ -317,3 +317,51 @@ describe('CCPIP-352 Calificaciones de los productores (SA-05)', () => {
     expect(within(filas[2]).getByText('—')).toBeInTheDocument()
   })
 })
+
+const ORIGEN_DESTINO = {
+  desde: '2026-01-01',
+  hasta: '2026-03-18',
+  pedidos: 5,
+  total: 2200,
+  porPunto: [
+    { nombre: 'Satipo', detalle: 'Junín', pedidos: 4, total: 1900, participacion: 86.4 },
+    { nombre: 'Oxapampa', detalle: 'Pasco', pedidos: 1, total: 300, participacion: 13.6 },
+  ],
+  porProductor: [
+    { nombre: 'Tienda Asháninka', detalle: 'Asháninka', pedidos: 3, total: 1300, participacion: 59.1 },
+    { nombre: 'Café Yanesha', detalle: null, pedidos: 2, total: 900, participacion: 40.9 },
+  ],
+  porDestino: [
+    { departamento: 'Lima', pedidos: 3, envios: 3, recojos: 0, total: 1500, participacion: 68.2 },
+    { departamento: 'Junín', pedidos: 1, envios: 0, recojos: 1, total: 400, participacion: 18.2 },
+    { departamento: null, pedidos: 1, envios: 1, recojos: 0, total: 300, participacion: 13.6 },
+  ],
+  rutas: [
+    { punto: 'Satipo', destino: 'Lima', pedidos: 3, total: 1500 },
+    { punto: 'Oxapampa', destino: null, pedidos: 1, total: 300 },
+  ],
+}
+
+describe('CCPIP-80 Origen y destino de las ventas (SA-10)', () => {
+  it('muestra de donde salen y hacia donde van las ventas, sin direcciones', async () => {
+    const fetchMock = comoSuper({ [`GET /api/admin/reportes/origen-destino?${RANGO}`]: () => [200, copia(ORIGEN_DESTINO)] })
+    await abrirPestana('Origen y destino')
+
+    expect(await screen.findByRole('region', { name: 'Departamentos de destino' })).toHaveTextContent('2')
+    expect(screen.getByRole('region', { name: 'Envíos a domicilio' })).toHaveTextContent('4')
+    expect(screen.getByRole('region', { name: 'Envíos a domicilio' })).toHaveTextContent('1 recojos en punto de acopio')
+
+    const puntos = within(screen.getByRole('table', { name: 'Origen por punto de acopio' })).getAllByRole('row')
+    expect(within(puntos[1]).getByText('Junín')).toBeInTheDocument()
+    expect(within(puntos[1]).getByText('86.4%')).toBeInTheDocument()
+    const productores = within(screen.getByRole('table', { name: 'Origen por productor' })).getAllByRole('row')
+    expect(within(productores[1]).getByText('Asháninka')).toBeInTheDocument()
+    const destinos = within(screen.getByRole('table', { name: 'Destino por departamento' })).getAllByRole('row')
+    expect(destinos).toHaveLength(4)
+    expect(within(destinos[3]).getByText('Sin dirección registrada')).toBeInTheDocument()
+    const rutas = within(screen.getByRole('table', { name: 'Del punto de acopio al departamento' })).getAllByRole('row')
+    expect(within(rutas[1]).getByText('S/ 1,500.00')).toBeInTheDocument()
+    expect(within(rutas[2]).getByText('Sin dirección registrada')).toBeInTheDocument()
+    expect(llamadas(fetchMock, `GET /api/admin/reportes/origen-destino?${RANGO}`)).toHaveLength(1)
+  })
+})
