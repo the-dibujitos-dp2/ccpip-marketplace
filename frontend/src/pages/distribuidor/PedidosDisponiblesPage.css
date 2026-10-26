@@ -1,4 +1,4 @@
-/* DW-01 · Pedidos disponibles (CCPIP-107) */
+/* DW-01 · Pedidos disponibles (CCPIP-107) y tomar los elegidos (CCPIP-108) */
 .pedidos-disponibles { display: flex; flex-direction: column; gap: 16px; }
 .pedidos-disponibles__barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 
@@ -23,3 +23,20 @@
   .pedidos-disponibles__tabla td { padding: 12px; }
 }
 .pedidos-disponibles__mas { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+
+/* CCPIP-108: la casilla de cada pedido y la barra para tomar los elegidos */
+.pedidos-disponibles__tabla .pedidos-disponibles__elegir { width: 1%; padding-right: 0; vertical-align: middle; }
+.pedidos-disponibles__elegir input { display: block; width: 20px; height: 20px; margin: 0; accent-color: var(--color-bg-brand); }
+.pedidos-disponibles__tomar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-brand-subtle);
+  color: var(--color-text-brand);
+  font-weight: 600;
+}
+.pedidos-disponibles__tomar p { margin: 0; }
