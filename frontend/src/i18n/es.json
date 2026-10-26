@@ -421,6 +421,7 @@
       "badge": {
         "borrador": "Borrador",
         "despublicado": "Despublicado",
+        "enRevision": "En revisión",
         "porVencer": "Lote por vencer",
         "sinStock": "Sin stock en venta",
         "stockBajo": "Stock bajo",
@@ -429,6 +430,8 @@
       "almacen": "Almacén",
       "publicado": "Producto publicado",
       "publicadoTexto": "Ya aparece en el catálogo y en tu tienda.",
+      "enviado": "Enviado a revisión",
+      "enviadoTexto": "La Cámara revisará tu producto antes de publicarlo en el catálogo y en tu tienda. Te avisaremos por correo cuando decida.",
       "despublicado": "Producto despublicado",
       "despublicadoTexto": "Ya no aparece en el catálogo. Puedes volver a publicarlo cuando quieras.",
       "errorEstado": "No se pudo cambiar el estado",
@@ -438,6 +441,7 @@
       "estadoEtiqueta": "Estado de los productos",
       "pestana": {
         "PUBLICADO": "Publicados ({{total}})",
+        "EN_MODERACION": "En revisión ({{total}})",
         "BORRADOR": "Borradores ({{total}})",
         "RETIRADO": "Despublicados ({{total}})"
       },
@@ -445,6 +449,7 @@
       "noEncontramos": "No encontramos “{{q}}”",
       "vacio": {
         "PUBLICADO": "Aún no tienes productos publicados",
+        "EN_MODERACION": "No tienes productos en revisión",
         "BORRADOR": "No tienes borradores",
         "RETIRADO": "No tienes productos despublicados"
       },
@@ -482,8 +487,9 @@
       "errorFotos": "No pudimos actualizar las fotos",
       "errorFotosTexto": "Recarga la página para verlas.",
       "enCatalogo": "Tu producto está en el catálogo. Los lotes nuevos se suman a lo que está en venta.",
-      "todoListo": "Todo listo: precio, línea y un lote en venta. Al publicar aparece en el catálogo y en tu tienda.",
-      "publicando": "Publicando…",
+      "enRevision": "La Cámara está revisando tu producto. Aparecerá en el catálogo cuando lo apruebe; mientras tanto puedes editarlo y registrar lotes.",
+      "todoListo": "Todo listo: precio, línea y un lote en venta. Al publicar, la Cámara lo revisa antes de mostrarlo en el catálogo y en tu tienda.",
+      "publicando": "Enviando a revisión…",
       "falta": "Para publicar todavía falta:",
       "irTienda": "Ir a Mi tienda",
       "volverProductos": "Volver a mis productos",
@@ -503,6 +509,7 @@
       "revisa": "Revisa los datos marcados",
       "cambiosGuardados": "Cambios guardados",
       "cambiosGuardadosTexto": "Ya se ven en el catálogo y en tu tienda.",
+      "cambiosEnRevisionTexto": "La Cámara los verá al revisar tu producto.",
       "borradorGuardado": "Borrador guardado",
       "borradorGuardadoTexto": "Puedes seguir más tarde desde Mis productos.",
       "errorGuardar": "No pudimos guardar",
@@ -1225,6 +1232,7 @@
       "reportes": "Reportes",
       "parametros": "Parámetros",
       "autorizaciones": "Autorizaciones",
+      "moderacion": "Moderación",
       "productores": "Productores",
       "cuentas": "Cuentas",
       "catalogo": "Catálogo maestro",
@@ -2291,7 +2299,8 @@
     "nombreTienda": "El nombre de la tienda",
     "descripcionTienda": "La descripción de la tienda",
     "historiaComunidad": "La historia de tu comunidad",
-    "pueblo": "El pueblo de pertenencia"
+    "pueblo": "El pueblo de pertenencia",
+    "autorizacion": "Una autorización de venta vigente para este producto"
   },
   "compra": {
     "validacion": {
@@ -2988,6 +2997,96 @@
       "error": "No pudimos registrar la solicitud",
       "registrada": "Solicitud de renovación registrada",
       "registradaTexto": "Avisamos al productor por correo."
+    }
+  },
+  "moderacion": {
+    "titulo": "Moderación de publicaciones",
+    "error": "No pudimos cargar las solicitudes",
+    "volver": "Volver a la moderación",
+    "nota": "Publicar o volver a publicar una oferta pasa por esta revisión. Aprobarla exige que el producto tenga una autorización de venta vigente, que se decide en Autorizaciones.",
+    "pestanasEtiqueta": "Estado de las solicitudes",
+    "pestana": {
+      "PENDIENTE": "Pendientes",
+      "APROBADA": "Aprobadas",
+      "RECHAZADA": "Rechazadas"
+    },
+    "vacio": {
+      "PENDIENTE": "No hay ofertas por revisar",
+      "APROBADA": "Aún no hay publicaciones aprobadas",
+      "RECHAZADA": "No hay publicaciones rechazadas"
+    },
+    "kpi": {
+      "pendientes": "Por revisar",
+      "pendientesDetalle": "Ofertas que esperan tu revisión",
+      "aprobadas": "Aprobadas este mes",
+      "rechazadas": "Rechazadas este mes",
+      "conMotivo": "Cada una con su motivo"
+    },
+    "col": {
+      "oferta": "Oferta",
+      "organizacion": "Organización",
+      "autorizacion": "Autorización de venta",
+      "tipo": "Tipo",
+      "enviada": "Enviada",
+      "decidida": "Decidida",
+      "accion": "Acción"
+    },
+    "autorizacion": {
+      "vigente": "Autorizada",
+      "estado": {
+        "SIN_SOLICITUD": "Sin solicitud",
+        "SOLICITADA": "En revisión",
+        "APROBADA": "No vigente",
+        "RECHAZADA": "Rechazada",
+        "REVOCADA": "Revocada"
+      }
+    },
+    "tipo": {
+      "nueva": "Nueva",
+      "republicacion": "Republicación"
+    },
+    "estado": {
+      "PENDIENTE": "Pendiente",
+      "APROBADA": "Aprobada",
+      "RECHAZADA": "Rechazada"
+    },
+    "revisar": "Revisar",
+    "ver": "Ver",
+    "revisarDe": "Revisar la publicación de {{producto}} de {{organizacion}}",
+    "expediente": {
+      "titulo": "Solicitud de publicación",
+      "error": "No pudimos cargar la solicitud",
+      "solicitud": "Solicitud",
+      "enviada": "Enviada por {{nombre}} el {{fecha}}",
+      "decididaPor": "Por {{nombre}} el {{fecha}}",
+      "oferta": "La oferta",
+      "fotos": "Fotos de la oferta",
+      "foto": "Foto {{n}} de {{producto}}",
+      "lineas": "Líneas",
+      "presentacion": "Presentación",
+      "modalidad": "Modalidad",
+      "precio": "Precio minorista",
+      "precioMayorista": "Precio mayorista",
+      "desde": "{{precio}} desde {{cantidad}} und",
+      "enVenta": "En venta (acopios)",
+      "historia": "Historia del producto",
+      "autorizacion": "Autorización de venta",
+      "autorizadaHasta": "Aprobada y vigente hasta el {{fecha}}.",
+      "autorizacionTexto": {
+        "vigente": "Aprobada y vigente.",
+        "noVigente": "El producto no tiene una autorización de venta vigente. Se decide en Autorizaciones, con sus evidencias."
+      },
+      "verAutorizacion": "Ver la autorización",
+      "evidencias": "Evidencias vigentes",
+      "historial": "Solicitudes de esta oferta",
+      "decision": "Decisión",
+      "revision": "Antes de aprobar",
+      "lista": "Cumple lo necesario para publicarse",
+      "noSustituye": "Esta revisión no reemplaza la evaluación documental de la autorización de venta.",
+      "resuelta": {
+        "APROBADA": "Esta publicación ya se aprobó.",
+        "RECHAZADA": "Esta publicación se rechazó."
+      }
     }
   },
   "transferencias": {

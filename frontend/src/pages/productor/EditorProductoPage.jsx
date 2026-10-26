@@ -20,7 +20,9 @@ import './productor.css'
 import './Editor.css'
 
 const CLAVES = ['datos', 'historia', 'lote']
-const ESTADO = { BORRADOR: ['neutro', 'borrador'], PUBLICADO: ['exito', 'publicado'], RETIRADO: ['neutro', 'despublicado'] }
+const ESTADO = {
+  BORRADOR: ['neutro', 'borrador'], EN_MODERACION: ['info', 'enRevision'], PUBLICADO: ['exito', 'publicado'], RETIRADO: ['neutro', 'despublicado'],
+}
 
 /**
  * PW-04, PW-05 y PW-06 como un asistente de 3 pasos: datos, historia y primer lote. El mismo
@@ -88,7 +90,8 @@ export default function EditorProductoPage({ path, id, search }) {
     setAlerta(null)
     try {
       await publicarProducto(id)
-      navigate(`${RUTAS.productorProductos}?publicado=1`)
+      // CCPIP-46: queda en revision de la Camara; la lista abre en esa pestana
+      navigate(`${RUTAS.productorProductos}?estado=EN_MODERACION&enviado=1`)
     } catch (e) {
       setAlerta({ tono: 'error', titulo: mensajeError(e, 'productor.editor.errorPublicar'), descripcion: e.body?.detalles?.map(traducirFaltante).join(' · ') })
       await cargar()
@@ -178,11 +181,11 @@ export default function EditorProductoPage({ path, id, search }) {
               <TablaLotes lotes={lotes} />
             </section>
             <section className="tarjeta-panel" aria-labelledby="titulo-publicar">
-              <h2 id="titulo-publicar" className="heading-h4">{producto.estado === 'PUBLICADO' ? t('productor.productos.publicado') : t('productor.productos.publicar')}</h2>
+              <h2 id="titulo-publicar" className="heading-h4">{tituloPublicar(producto.estado, t)}</h2>
               {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
-              {producto.estado === 'PUBLICADO' ? (
-                <p className="body-s">{t('productor.editor.enCatalogo')}</p>
-              ) : producto.publicable.listo ? (
+              {producto.estado === 'PUBLICADO' && <p className="body-s">{t('productor.editor.enCatalogo')}</p>}
+              {producto.estado === 'EN_MODERACION' && <p className="body-s">{t('productor.editor.enRevision')}</p>}
+              {(producto.estado === 'BORRADOR' || producto.estado === 'RETIRADO') && (producto.publicable.listo ? (
                 <>
                   <p className="body-s">{t('productor.editor.todoListo')}</p>
                   <Boton onClick={publicar} disabled={publicando}>
@@ -201,7 +204,7 @@ export default function EditorProductoPage({ path, id, search }) {
                     <Boton tipo="secundario" tamano="M" to={RUTAS.productorTienda}>{t('productor.editor.irTienda')}</Boton>
                   )}
                 </>
-              )}
+              ))}
               <Boton tipo="terciario" tamano="M" to={RUTAS.productorProductos}>
                 {t('productor.editor.volverProductos')}
               </Boton>
@@ -211,4 +214,11 @@ export default function EditorProductoPage({ path, id, search }) {
       )}
     </PaginaProductor>
   )
+}
+
+/** El titulo de la tarjeta de publicacion segun el estado de la oferta (CCPIP-46). */
+function tituloPublicar(estado, t) {
+  if (estado === 'PUBLICADO') return t('productor.productos.publicado')
+  if (estado === 'EN_MODERACION') return t('productor.productos.badge.enRevision')
+  return t('productor.productos.publicar')
 }

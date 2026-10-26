@@ -126,6 +126,17 @@
   .expediente { grid-template-columns: 1fr; }
 }
 
+/* CCPIP-46: moderacion de publicaciones (formato de S-01 y S-02) */
+.moderacion__autorizacion { flex: 0 0 170px; }
+.moderacion__tipo { flex: 0 0 120px; }
+.moderacion__fotos { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.moderacion__fotos img { display: block; width: 96px; height: 96px; object-fit: cover; border-radius: var(--radius-m); border: 1px solid var(--color-border-default); }
+.moderacion__datos { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; margin: 0; font-size: 14px; }
+.moderacion__datos dt { color: var(--color-text-secondary); }
+.moderacion__datos dd { margin: 0; }
+.moderacion__historia { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: var(--radius-m); background: var(--color-bg-sand); }
+.moderacion__historia h3, .moderacion__historia p { margin: 0; }
+
 /* CCPIP-292, CCPIP-291, CCPIP-330: productores y su venta */
 .productores__productos { flex: 0 0 200px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
 .productores__estado { flex: 0 0 220px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }

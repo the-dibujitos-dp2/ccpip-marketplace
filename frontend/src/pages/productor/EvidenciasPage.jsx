@@ -35,6 +35,19 @@ export function BadgeVigencia({ evidencia }) {
   return <Badge tono="exito">{t('evidencias.vigenteHasta', { fecha: fechaCorta(evidencia.vigenteHasta) })}</Badge>
 }
 
+/** La vigencia de una evidencia y el enlace para abrir su archivo (PW-14, S-02 y la moderacion de CCPIP-46). */
+export function VigenciaYArchivo({ evidencia }) {
+  const { t } = useTranslation()
+  return (
+    <>
+      <BadgeVigencia evidencia={evidencia} />
+      <a className="evidencias__ver" href={evidencia.url} target="_blank" rel="noopener noreferrer" aria-label={t('evidencias.verDe', { titulo: evidencia.titulo })}>
+        {t('evidencias.ver')}
+      </a>
+    </>
+  )
+}
+
 function alertaEstado(autorizacion, t) {
   const { estado, motivo, vigenteHasta, cubreLineas } = autorizacion
   // CCPIP-292: una linea nueva no la cubre la autorizacion anterior; se pide otra revision
@@ -190,10 +203,7 @@ function TarjetaTipo({ tipo, evidencias, puedeAdjuntar, editable, productoId, on
                   {[e.emisor, e.nombreArchivo, e.formato].filter(Boolean).join(' · ')}
                 </span>
               </span>
-              <BadgeVigencia evidencia={e} />
-              <a className="evidencias__ver" href={e.url} target="_blank" rel="noopener noreferrer" aria-label={t('evidencias.verDe', { titulo: e.titulo })}>
-                {t('evidencias.ver')}
-              </a>
+              <VigenciaYArchivo evidencia={e} />
               {editable && (
                 <Boton tipo="terciario" tamano="S" onClick={() => onRetirar(e)} aria-label={t('evidencias.retirarDe', { titulo: e.titulo })}>
                   {t('evidencias.retirar')}

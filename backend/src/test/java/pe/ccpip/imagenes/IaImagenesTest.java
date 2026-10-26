@@ -111,7 +111,8 @@ class IaImagenesTest extends IntegrationTest {
         mockMvc.perform(post("/api/productor/productos/{id}/retirar", producto).cookie(productor)).andExpect(status().isOk());
         mockMvc.perform(post("/api/productor/productos/{id}/publicar", producto).cookie(productor))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.estado").value("PUBLICADO"));
+                .andExpect(jsonPath("$.estado").value("EN_MODERACION"));
+        aprobarPublicacion(producto);
         mockMvc.perform(get("/api/productos/{id}", producto)).andExpect(jsonPath("$.imagenes[0].id").value(foto));
     }
 

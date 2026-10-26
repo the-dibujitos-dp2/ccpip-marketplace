@@ -25,6 +25,7 @@ import pe.ccpip.productor.ProductoModelos.Estado;
 import pe.ccpip.productor.ProductoModelos.Historia;
 import pe.ccpip.productor.ProductoModelos.ListaProductos;
 import pe.ccpip.productor.ProductoModelos.Modalidad;
+import pe.ccpip.productor.ProductoModelos.Moderacion;
 import pe.ccpip.productor.ProductoModelos.ProductoEdicion;
 import pe.ccpip.productor.ProductoModelos.ProductoFila;
 import pe.ccpip.productor.ProductoModelos.Publicable;
@@ -126,8 +127,8 @@ public class ProductosService {
         validarCoherencia(datos);
         escribir(id, productorId, usuarioId, datos);
         ProductoEdicion despues = obtener(productorId, id);
-        if (despues.estado() == Estado.PUBLICADO) {
-            // Un producto publicado no puede quedar en un estado que no se podria publicar
+        if (despues.estado() == Estado.PUBLICADO || despues.estado() == Estado.EN_MODERACION) {
+            // Un producto publicado (o en revision para publicarse) no puede quedar en un estado que no se podria publicar
             List<String> faltan = faltantesDeDatos(despues);
             if (!faltan.isEmpty()) {
                 throw new ErrorNegocio(HttpStatus.UNPROCESSABLE_ENTITY, "PRODUCTO_INCOMPLETO",
@@ -146,10 +147,15 @@ public class ProductosService {
 
     // ---------- Estado (CCPIP-160) ----------
 
+    /**
+     * CCPIP-160 y CCPIP-46: publicar (o volver a publicar tras un retiro o un rechazo) pide la revision del
+     * subadministrador. La oferta queda EN_MODERACION, fuera del catalogo, hasta que la aprueba (CCPIP-331)
+     * o la rechaza con motivo (CCPIP-332). Editar una oferta ya publicada no la vuelve a revisar.
+     */
     @Transactional
     public ProductoEdicion publicar(long productorId, long usuarioId, long id) {
         ProductoEdicion p = obtener(productorId, id);
-        if (p.estado() == Estado.PUBLICADO) {
+        if (p.estado() == Estado.PUBLICADO || p.estado() == Estado.EN_MODERACION) {
             return p;
         }
         if (!p.publicable().listo()) {
@@ -160,11 +166,20 @@ public class ProductosService {
             throw new ErrorNegocio(HttpStatus.UNPROCESSABLE_ENTITY, "PRODUCTO_NO_PUBLICABLE",
                     "La oferta no tiene una autorización de venta vigente.", List.of("Una autorización de venta vigente"));
         }
-        jdbc.update("""
-                UPDATE producto SET estado = 'PUBLICADO', publicado_en = coalesce(publicado_en, now()),
-                       actualizado_por = ?, actualizado_en = now()
-                WHERE id = ?""", usuarioId, id);
-        auditoria.registrar(id, usuarioId, p.estado() == Estado.RETIRADO ? Accion.REPUBLICAR : Accion.PUBLICAR, null);
+        // Solo pasa si sigue en el estado que se leyo: dos clics seguidos no piden dos revisiones
+        int cambiado = jdbc.update("""
+                UPDATE producto SET estado = 'EN_MODERACION', actualizado_por = ?, actualizado_en = now()
+                WHERE id = ? AND estado = ?""", usuarioId, id, p.estado().name());
+        if (cambiado == 0) {
+            return obtener(productorId, id);
+        }
+        Long solicitud = jdbc.queryForObject("""
+                INSERT INTO moderacion_publicacion (producto_id, productor_id, estado_anterior, solicitada_por)
+                VALUES (?, ?, ?, ?) RETURNING id""", Long.class, id, productorId, p.estado().name(), usuarioId);
+        Map<String, Object> cambios = new LinkedHashMap<>();
+        cambios.put("solicitud", solicitud);
+        cambios.put("estadoAnterior", p.estado().name());
+        auditoria.registrar(id, usuarioId, Accion.MODERACION, cambios);
         return obtener(productorId, id);
     }
 
@@ -274,14 +289,25 @@ public class ProductosService {
                 rs.getString("unidad_codigo"), rs.getString("contenido"),
                 Modalidad.valueOf(rs.getString("modalidad")), rs.getBigDecimal("precio"), rs.getBigDecimal("precio_mayorista"),
                 (Integer) rs.getObject("cantidad_minima_mayorista"), rs.getBoolean("es_materia_prima"),
-                imagenes.deProducto(id), historia(id), rs.getBigDecimal("en_venta"), null);
+                imagenes.deProducto(id), historia(id), rs.getBigDecimal("en_venta"), null, null);
         return new ProductoEdicion(sinPublicable.id(), sinPublicable.estado(), sinPublicable.nombre(),
                 sinPublicable.descripcion(), sinPublicable.descripcionAsistida(), sinPublicable.descripcionPropuesta(),
                 sinPublicable.descripcionSugerida(), sinPublicable.lineas(), sinPublicable.unidad(),
                 sinPublicable.contenido(), sinPublicable.modalidad(),
                 sinPublicable.precio(), sinPublicable.precioMayorista(), sinPublicable.cantidadMinimaMayorista(),
                 sinPublicable.esMateriaPrima(), sinPublicable.imagenes(), sinPublicable.historia(),
-                sinPublicable.enVenta(), publicable(productorId, sinPublicable));
+                sinPublicable.enVenta(), publicable(productorId, sinPublicable), moderacion(id));
+    }
+
+    /** CCPIP-46: la ultima solicitud de publicacion y, si ya se decidio, su motivo (CCPIP-331, CCPIP-332). */
+    private Moderacion moderacion(long productoId) {
+        return jdbc.query("""
+                        SELECT coalesce(decision, 'PENDIENTE') AS estado, motivo, solicitada_en, decidida_en
+                        FROM moderacion_publicacion WHERE producto_id = ? ORDER BY solicitada_en DESC, id DESC LIMIT 1""",
+                (rs, row) -> new Moderacion(rs.getString("estado"), rs.getString("motivo"),
+                        rs.getTimestamp("solicitada_en").toInstant(),
+                        rs.getTimestamp("decidida_en") == null ? null : rs.getTimestamp("decidida_en").toInstant()),
+                productoId).stream().findFirst().orElse(null);
     }
 
     Historia historia(long productoId) {

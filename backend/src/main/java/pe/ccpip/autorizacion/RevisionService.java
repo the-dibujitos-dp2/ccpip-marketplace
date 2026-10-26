@@ -238,7 +238,7 @@ public class RevisionService {
     }
 
     /** Toda decision humana lleva motivo (CCPIP-174, CCPIP-284, CCPIP-39, CCPIP-291, CCPIP-330). */
-    static String motivoRequerido(String motivo) {
+    public static String motivoRequerido(String motivo) {
         String texto = motivo == null ? "" : motivo.strip();
         if (texto.isEmpty()) {
             throw ErrorNegocio.invalido("MOTIVO_REQUERIDO", "Escribe el motivo de la decisión.");
@@ -297,7 +297,8 @@ public class RevisionService {
         }
     }
 
-    static String urlAdmin(long autorizacionId, UUID evidenciaId) {
+    /** Enlace del subadministrador al archivo de una evidencia (S-02 y la moderacion de CCPIP-46). */
+    public static String urlAdmin(long autorizacionId, UUID evidenciaId) {
         return "/api/admin/autorizaciones/" + autorizacionId + "/evidencias/" + evidenciaId + "/archivo";
     }
 

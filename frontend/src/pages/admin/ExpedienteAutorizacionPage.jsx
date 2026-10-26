@@ -17,16 +17,15 @@ import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
-import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import Icono from '../../components/Icono.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { fechaCorta, fechaHora } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
-import { BadgeVigencia } from '../productor/EvidenciasPage.jsx'
 import { BadgeAnalisis } from './AutorizacionesPage.jsx'
 import RenovacionesCertificado from './RenovacionesCertificado.jsx'
+import { FilaEvidencia, SinExpediente } from './revision.jsx'
 import '../productor/productor.css'
 import './admin.css'
 
@@ -110,14 +109,7 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
   }
 
   const migas = `${t('admin.nav.autorizaciones')}${exp ? ` / ${exp.producto}` : ''}`
-  if (!exp) {
-    return (
-      <LayoutAdmin path={path} migas={migas} titulo={t('autorizaciones.expediente.titulo')}>
-        {error ? <Alerta tono="error" titulo={mensajeError(error, 'autorizaciones.expediente.error')} /> : <Cargando />}
-        <Boton tipo="secundario" tamano="M" to={RUTAS.adminAutorizaciones}>{t('autorizaciones.volver')}</Boton>
-      </LayoutAdmin>
-    )
-  }
+  if (!exp) return <SinExpediente path={path} migas={migas} textos="autorizaciones" error={error} volverA={RUTAS.adminAutorizaciones} />
 
   const analisis = exp.analisis
   const completado = analisis?.estado === 'COMPLETADO'
@@ -150,18 +142,8 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
             <ul className="expediente__evidencias">
               {exp.evidencias.map((e) => (
                 <li key={e.id} className="expediente__evidencia">
-                  <div className="expediente__evidencia-fila">
-                    <span className="expediente__evidencia-datos">
-                      <span className="label-m">{e.titulo}</span>
-                      <span className="caption">
-                        {[t(`evidencias.tipo.${e.tipo}`), e.emisor, e.vigenteDesde && t('autorizaciones.expediente.desde', { fecha: fechaCorta(e.vigenteDesde) }), e.formato].filter(Boolean).join(' · ')}
-                      </span>
-                    </span>
-                    <BadgeVigencia evidencia={e} />
-                    <a className="evidencias__ver" href={e.url} target="_blank" rel="noopener noreferrer" aria-label={t('evidencias.verDe', { titulo: e.titulo })}>
-                      {t('evidencias.ver')}
-                    </a>
-                  </div>
+                  <FilaEvidencia evidencia={e} detalle={[t(`evidencias.tipo.${e.tipo}`), e.emisor,
+                    e.vigenteDesde && t('autorizaciones.expediente.desde', { fecha: fechaCorta(e.vigenteDesde) }), e.formato]} />
                   {hallazgosDe(e.id).map((h, i) => (
                     <div key={i} className="expediente__sugerencia">
                       <Icono src={iconoIa} tamano={16} />

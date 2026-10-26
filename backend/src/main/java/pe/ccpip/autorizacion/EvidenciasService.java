@@ -162,7 +162,8 @@ public class EvidenciasService {
                 .flatMap(ref -> storage.leer(ref.clave()).map(bytes -> new Archivo(ref.nombre(), ref.contentType(), bytes)));
     }
 
-    List<Evidencia> vigentes(long autorizacionId, Function<UUID, String> url) {
+    /** Las evidencias vigentes de una autorizacion; {@code url} arma el enlace de cada archivo. */
+    public List<Evidencia> vigentes(long autorizacionId, Function<UUID, String> url) {
         return jdbc.query(SELECT + " WHERE e.autorizacion_id = ? AND e.retirada_en IS NULL ORDER BY e.subida_en, e.id",
                 (rs, row) -> mapear(rs, url), autorizacionId);
     }
