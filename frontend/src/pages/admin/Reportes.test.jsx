@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
@@ -225,5 +225,79 @@ describe('CCPIP-356 Denuncias por punto de acopio (SA-10)', () => {
     const satipo = within(tabla).getAllByRole('row')[1]
     expect(within(satipo).getByText('2')).toBeInTheDocument()
     expect(screen.getByText(/una denuncia suma en cada punto/)).toBeInTheDocument()
+  })
+})
+
+const CALIFICACIONES = {
+  desde: '2026-01-01',
+  hasta: '2026-03-18',
+  anteriorDesde: '2025-10-16',
+  anteriorHasta: '2025-12-31',
+  minimo: 3,
+  linea: null,
+  resumen: {
+    promedio: 4.2,
+    resenas: 10,
+    distribucion: [
+      { estrellas: 5, cantidad: 5 }, { estrellas: 4, cantidad: 3 }, { estrellas: 3, cantidad: 1 },
+      { estrellas: 2, cantidad: 0 }, { estrellas: 1, cantidad: 1 },
+    ],
+  },
+  productos: [
+    { productoId: 11, producto: 'Café de altura', productor: 'Café Yanesha', promedio: 4.8, resenas: 6, denuncias: 0, tendencia: 'SUBE' },
+    { productoId: 12, producto: 'Cacao en grano', productor: 'Tienda Asháninka', promedio: 3.4, resenas: 3, denuncias: 2, tendencia: 'BAJA' },
+    { productoId: 13, producto: 'Miel', productor: 'Tienda Asháninka', promedio: null, resenas: 1, denuncias: 0, tendencia: null },
+  ],
+  productores: [
+    { productorId: 9, productor: 'Café Yanesha', pueblo: 'Yanesha', promedio: 4.8, resenas: 6, productos: 1, denuncias: 0, tendencia: 'ESTABLE' },
+    { productorId: 7, productor: 'Tienda Asháninka', pueblo: null, promedio: 3.3, resenas: 4, productos: 2, denuncias: 3, tendencia: null },
+  ],
+  lineas: [{ codigo: 'CAFE', nombre: 'Café' }, { codigo: 'MIEL', nombre: 'Miel y derivados' }],
+}
+
+describe('CCPIP-123 Calificaciones de los productos (SA-05)', () => {
+  it('muestra el promedio, la distribucion y cada producto con su tendencia', async () => {
+    comoSuper({ [`GET /api/admin/reportes/calificaciones?${RANGO}`]: () => [200, copia(CALIFICACIONES)] })
+    await abrirPestana('Calificaciones')
+
+    expect(await screen.findByRole('region', { name: 'Calificación promedio' })).toHaveTextContent('4.2')
+    expect(screen.getByRole('region', { name: 'Productos en caída' })).toHaveTextContent('1')
+    const distribucion = within(screen.getByRole('table', { name: 'Distribución de calificaciones' })).getAllByRole('row')
+    expect(distribucion).toHaveLength(6)
+    expect(within(distribucion[1]).getByText('5 estrellas')).toBeInTheDocument()
+    expect(within(distribucion[5]).getByText('1 estrella')).toBeInTheDocument()
+
+    const filas = within(screen.getByRole('table', { name: 'Calificaciones por producto' })).getAllByRole('row')
+    expect(within(filas[1]).getByText('Sube')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('En caída')).toBeInTheDocument()
+    // Bajo el minimo no hay promedio ni tendencia
+    expect(within(filas[3]).getAllByText('—')).toHaveLength(2)
+    expect(screen.getByText(/desde 3 calificaciones/)).toBeInTheDocument()
+  })
+
+  it('sin el minimo de calificaciones no muestra un promedio', async () => {
+    comoSuper({
+      [`GET /api/admin/reportes/calificaciones?${RANGO}`]: () => [200, {
+        ...copia(CALIFICACIONES), resumen: { ...CALIFICACIONES.resumen, promedio: null, resenas: 2 },
+      }],
+    })
+    await abrirPestana('Calificaciones')
+    expect(await screen.findByRole('region', { name: 'Calificación promedio' })).toHaveTextContent('Se necesitan al menos 3 calificaciones')
+  })
+
+  it('filtrar por linea consulta el mismo rango con la linea', async () => {
+    const fetchMock = comoSuper({
+      [`GET /api/admin/reportes/calificaciones?${RANGO}`]: () => [200, copia(CALIFICACIONES)],
+      [`GET /api/admin/reportes/calificaciones?${RANGO}&linea=CAFE`]: () => [200, {
+        ...copia(CALIFICACIONES), linea: 'CAFE', productos: CALIFICACIONES.productos.slice(0, 1),
+      }],
+    })
+    await abrirPestana('Calificaciones')
+    await screen.findByRole('table', { name: 'Calificaciones por producto' })
+    expect(screen.queryByLabelText('Agrupar por')).not.toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Línea'), { target: { value: 'CAFE' } })
+    await waitFor(() => expect(screen.queryByText('Cacao en grano')).not.toBeInTheDocument())
+    expect(screen.getByLabelText('Línea')).toHaveValue('CAFE')
+    expect(llamadas(fetchMock, `GET /api/admin/reportes/calificaciones?${RANGO}&linea=CAFE`)).toHaveLength(1)
   })
 })

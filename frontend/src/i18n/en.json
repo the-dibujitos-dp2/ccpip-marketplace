@@ -1411,6 +1411,8 @@
       "desde": "From",
       "hasta": "To",
       "agrupacion": "Group by",
+      "linea": "Product line",
+      "todas": "All",
       "por": {
         "DIA": "Day",
         "SEMANA": "Week",
@@ -1439,7 +1441,14 @@
         "punto": "Collection point",
         "departamento": "Department",
         "denuncias": "Reports",
-        "denunciasAbiertas": "Open"
+        "denunciasAbiertas": "Open",
+        "producto": "Product",
+        "promedio": "Average",
+        "resenas": "Reviews",
+        "tendencia": "Trend",
+        "estrellas": "Rating",
+        "distribucion": "Distribution",
+        "cantidad": "Count"
       },
       "metrica": {
         "ventas": {
@@ -1488,6 +1497,27 @@
         "vacio": "There are no active collection points",
         "nota": "Each order ships from a collection point. Paid, non-cancelled orders, by the date they were confirmed (Lima time); an active point with no sales shows as zero.",
         "notaDenuncias": "Reports are those received in the range about offers stocked at the point (the reported product, or any of the producer's products if the report names none); a report counts at every point that stocks the offer. Open: received or under review."
+      },
+      "calificaciones": {
+        "pestana": "Ratings",
+        "promedio": "Average rating",
+        "promedioDetalle": "Out of 5 stars",
+        "sinPromedio": "At least {{minimo}} ratings are needed",
+        "resenas": "Reviews",
+        "resenasDetalle": "From {{desde}} to {{hasta}}",
+        "enCaida": "Products falling",
+        "enCaidaDetalle": "Compared with {{desde}} to {{hasta}}",
+        "distribucion": "Rating distribution",
+        "estrellas_one": "{{count}} star",
+        "estrellas_other": "{{count}} stars",
+        "productos": "Ratings by product",
+        "vacioProductos": "No product was rated in this period",
+        "tendencia": {
+          "SUBE": "Rising",
+          "ESTABLE": "Stable",
+          "BAJA": "Falling"
+        },
+        "nota": "Ratings received in the range. The average is shown from {{minimo}} ratings. The trend compares with the previous period of the same length ({{desde}} to {{hasta}}): rising or falling if the average changes by 0.3 stars or more; no trend if either period is below the minimum. Reports: those received in the range about the product."
       }
     },
     "parametros": {

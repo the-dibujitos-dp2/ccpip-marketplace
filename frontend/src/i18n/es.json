@@ -1411,6 +1411,8 @@
       "desde": "Desde",
       "hasta": "Hasta",
       "agrupacion": "Agrupar por",
+      "linea": "Línea",
+      "todas": "Todas",
       "por": {
         "DIA": "Día",
         "SEMANA": "Semana",
@@ -1439,7 +1441,14 @@
         "punto": "Punto de acopio",
         "departamento": "Departamento",
         "denuncias": "Denuncias",
-        "denunciasAbiertas": "Abiertas"
+        "denunciasAbiertas": "Abiertas",
+        "producto": "Producto",
+        "promedio": "Promedio",
+        "resenas": "Reseñas",
+        "tendencia": "Tendencia",
+        "estrellas": "Calificación",
+        "distribucion": "Distribución",
+        "cantidad": "Cantidad"
       },
       "metrica": {
         "ventas": {
@@ -1488,6 +1497,27 @@
         "vacio": "No hay puntos de acopio activos",
         "nota": "Cada pedido sale de un punto de acopio. Pedidos pagados y no cancelados, por la fecha en que se confirmaron (hora de Lima); un punto activo sin ventas aparece en cero.",
         "notaDenuncias": "Las denuncias son las recibidas en el rango sobre ofertas que están en el punto (el producto denunciado, o cualquiera del productor si la denuncia no nombra uno); una denuncia suma en cada punto donde está la oferta. Abiertas: recibidas o en revisión."
+      },
+      "calificaciones": {
+        "pestana": "Calificaciones",
+        "promedio": "Calificación promedio",
+        "promedioDetalle": "Sobre 5 estrellas",
+        "sinPromedio": "Se necesitan al menos {{minimo}} calificaciones",
+        "resenas": "Reseñas",
+        "resenasDetalle": "Del {{desde}} al {{hasta}}",
+        "enCaida": "Productos en caída",
+        "enCaidaDetalle": "Frente al {{desde}} al {{hasta}}",
+        "distribucion": "Distribución de calificaciones",
+        "estrellas_one": "{{count}} estrella",
+        "estrellas_other": "{{count}} estrellas",
+        "productos": "Calificaciones por producto",
+        "vacioProductos": "Ningún producto recibió calificaciones en este período",
+        "tendencia": {
+          "SUBE": "Sube",
+          "ESTABLE": "Estable",
+          "BAJA": "En caída"
+        },
+        "nota": "Calificaciones recibidas en el rango. El promedio se muestra desde {{minimo}} calificaciones. La tendencia compara con el período anterior de igual duración (del {{desde}} al {{hasta}}): sube o cae si el promedio cambia en 0.3 estrellas o más; sin tendencia si alguno de los dos no alcanza el mínimo. Denuncias: las recibidas en el rango sobre el producto."
       }
     },
     "parametros": {

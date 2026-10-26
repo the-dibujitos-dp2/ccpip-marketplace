@@ -17,6 +17,7 @@ import { mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
 import './admin.css'
 import './ReportesPage.css'
+import Calificaciones from './reportes/Calificaciones.jsx'
 import Productores from './reportes/Productores.jsx'
 import Puntos from './reportes/Puntos.jsx'
 
@@ -24,16 +25,21 @@ import Puntos from './reportes/Puntos.jsx'
 const METRICAS = ['ventas', 'comisiones', 'ingresos']
 
 /** Reportes de gestion (SA-10), despues de las metricas: cada uno es /api/admin/reportes/{clave}. */
-const GESTION = { productores: Productores, puntos: Puntos }
+const GESTION = { productores: Productores, puntos: Puntos, calificaciones: Calificaciones }
 
 const PESTANAS = [...METRICAS, ...Object.keys(GESTION)]
 
 const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
 
-const FILTRO_VACIO = { desde: '', hasta: '', agrupacion: '' }
+const FILTRO_VACIO = { desde: '', hasta: '', agrupacion: '', linea: '' }
 
-/** Los filtros que aplico el servidor; un reporte sin agrupacion conserva la elegida. */
-const aFiltro = (r, anterior) => ({ ...anterior, desde: r.desde, hasta: r.hasta, agrupacion: r.agrupacion ?? anterior.agrupacion })
+/** Los filtros que aplico el servidor; un reporte sin agrupacion (o sin linea) conserva la elegida. */
+const aFiltro = (r, anterior) => ({
+  desde: r.desde,
+  hasta: r.hasta,
+  agrupacion: r.agrupacion ?? anterior.agrupacion,
+  linea: 'linea' in r ? (r.linea ?? '') : anterior.linea,
+})
 
 /** Solo las metricas por periodo se agrupan. */
 const seAgrupa = (clave) => METRICAS.includes(clave)
@@ -45,6 +51,7 @@ const seAgrupa = (clave) => METRICAS.includes(clave)
  *   periodo con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista)
  * - CCPIP-122 (RF-86): productores que mas venden
  * - CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias por punto de acopio
+ * - CCPIP-123 (RF-87): calificaciones de los productos, por linea
  */
 export default function ReportesPage({ path }) {
   const { t } = useTranslation()
@@ -83,6 +90,16 @@ export default function ReportesPage({ path }) {
             value={filtro.agrupacion}
             onChange={cambiar('agrupacion')}
             opciones={AGRUPACIONES.map((a) => ({ valor: a, etiqueta: t(`admin.reportes.por.${a}`) }))}
+          />
+        )}
+        {pestana === 'calificaciones' && (
+          <Campo
+            etiqueta={t('admin.reportes.linea')}
+            tipo="selector"
+            placeholder={t('admin.reportes.todas')}
+            value={filtro.linea}
+            onChange={cambiar('linea')}
+            opciones={(datos?.lineas ?? []).map((l) => ({ valor: l.codigo, etiqueta: l.nombre }))}
           />
         )}
       </div>
