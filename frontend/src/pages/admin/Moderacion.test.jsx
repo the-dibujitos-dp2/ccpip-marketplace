@@ -220,6 +220,46 @@ describe('CCPIP-46 Moderación de publicaciones', () => {
     expect((await decision()).getByText('Esta publicación se rechazó.')).toBeInTheDocument()
   })
 
+  it('CCPIP-118: revisa los videos de las tiendas y aprueba con motivo', async () => {
+    const VIDEO = {
+      id: 4, estado: 'PENDIENTE', titulo: 'Cosecha de cacao', formato: 'MP4', bytes: 3145728, duracionSegundos: 95.5,
+      url: '/api/videos/4', subidoEn: '2026-10-26T15:00:00Z', subidoPor: 'María Shirampari',
+      productor: { id: 3, organizacion: 'Asoc. Nii Joi', comunidad: 'C.N. Nii Joi', pueblo: 'Asháninka', region: 'Junín' },
+      reemplaza: null, motivo: null, decididoPor: null, decididoEn: null, puedeDecidir: true,
+    }
+    const fetchMock = comoSub({
+      [`GET ${BANDEJA}/videos`]: () => [200, {
+        contadores: { pendientes: 1, aprobadasMes: 0, rechazadasMes: 0 },
+        solicitudes: [{ id: 4, estado: 'PENDIENTE', titulo: 'Cosecha de cacao', duracionSegundos: 95.5, productorId: 3, organizacion: 'Asoc. Nii Joi',
+          pueblo: 'Asháninka', region: 'Junín', reemplazo: false, subidoEn: '2026-10-26T15:00:00Z', decididoEn: null }],
+      }],
+      [`GET ${BANDEJA}/videos/4`]: () => [200, copia(VIDEO)],
+      [`POST ${BANDEJA}/videos/4/aprobar`]: () => [200, { ...copia(VIDEO), estado: 'APROBADA', puedeDecidir: false, motivo: 'Muestra su trabajo', decididoPor: 'Lucía Paredes', decididoEn: '2026-10-26T16:00:00Z' }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/admin/moderacion')
+    await user.click(await screen.findByRole('link', { name: 'Videos de tiendas' }))
+    expect(screen.getByRole('link', { name: 'Videos de tiendas' })).toHaveAttribute('aria-current', 'page')
+    const filas = within(await screen.findByRole('table', { name: 'Pendientes' })).getAllByRole('row')
+    expect(within(filas[1]).getByText('Cosecha de cacao')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('1:36')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('Nuevo')).toBeInTheDocument()
+    await user.click(within(filas[1]).getByRole('link', { name: /Revisar la publicación de Cosecha de cacao/ }))
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Asoc. Nii Joi · Cosecha de cacao' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Cosecha de cacao')).toHaveAttribute('src', '/api/videos/4')
+    expect(screen.getByText('1:36 · MP4 · 3.0 MB')).toBeInTheDocument()
+    const d = await decision()
+    await user.type(d.getByLabelText('Motivo de la decisión'), 'Muestra su trabajo')
+    await user.click(d.getByRole('button', { name: 'Aprobar video' }))
+    const dialogo = within(screen.getByRole('dialog'))
+    expect(dialogo.getByRole('heading', { name: 'Aprobar el video Cosecha de cacao' })).toBeInTheDocument()
+    await user.click(dialogo.getByRole('button', { name: 'Aprobar' }))
+    expect(await screen.findByText('Aprobaste el video. Ya se ve en la tienda.')).toBeInTheDocument()
+    expect(JSON.parse(llamadas(fetchMock, `POST ${BANDEJA}/videos/4/aprobar`)[0][1].body)).toEqual({ motivo: 'Muestra su trabajo' })
+    expect((await decision()).getByText('Este video ya se aprobó.')).toBeInTheDocument()
+  })
+
   it('el superadministrador no modera', async () => {
     servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_SUPER], 'GET /api/admin/tablero': () => [200, copia(DATOS.tableroAdmin)] })
     abrirEn('/admin/moderacion')

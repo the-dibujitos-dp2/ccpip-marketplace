@@ -16,8 +16,11 @@ public final class GobernanzaModelos {
     /** Filtro "Tipo de accion" de S-05: el modulo donde quedo registrada. */
     public enum Tipo { AUTORIZACIONES, MODERACION, PRODUCTORES, DENUNCIAS, CUENTAS }
 
-    /** A que pantalla lleva "Sobre": la autorizacion, la moderacion, el productor, sus denuncias o la cuenta. */
-    public enum Objeto { AUTORIZACION, MODERACION, PRODUCTOR, DENUNCIAS, CUENTA }
+    /**
+     * A que pantalla lleva "Sobre": la autorizacion, la moderacion de una oferta o de un video, el productor, sus
+     * denuncias o la cuenta.
+     */
+    public enum Objeto { AUTORIZACION, MODERACION, VIDEO, PRODUCTOR, DENUNCIAS, CUENTA }
 
     /**
      * Una accion. {@code clave} es unica en la lista (tabla de origen e id). {@code accion} es el codigo

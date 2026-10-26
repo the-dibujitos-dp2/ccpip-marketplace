@@ -52,6 +52,7 @@ export const RUTAS = {
   adminAutorizaciones: '/admin/autorizaciones',
   // CCPIP-46: moderacion de la publicacion de ofertas
   adminModeracion: '/admin/moderacion',
+  adminModeracionVideos: '/admin/moderacion/videos',
   adminProductores: '/admin/productores',
   adminDenuncias: '/admin/denuncias',
   adminMiHistorial: '/admin/mi-historial',

@@ -15,7 +15,7 @@ import { fechaCorta, fechaHora, precio, unidades } from '../../formato.js'
 import { traducirFaltante } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import { BadgeAutorizacion } from './ModeracionPage.jsx'
-import { CampoMotivo, DialogoDecision, FilaEvidencia, SinExpediente, useDecision } from './revision.jsx'
+import { CabeceraSolicitud, CampoMotivo, DialogoDecision, FilaEvidencia, SinExpediente, useDecision } from './revision.jsx'
 import '../productor/productor.css'
 import './admin.css'
 
@@ -63,20 +63,9 @@ export default function ExpedienteModeracionPage({ path, id }) {
       {decision.aviso && <Alerta {...decision.aviso} onCerrar={() => decision.setAviso(null)} />}
       <div className="expediente">
         <div className="expediente__principal">
-          <section className="tarjeta-panel expediente__cabecera" aria-label={t('moderacion.expediente.solicitud')}>
-            <div>
-              <h2 className="heading-h3">{oferta.nombre}</h2>
-              <p className="body-s">
-                {[oferta.lineas[0], exp.productor.organizacion, exp.productor.pueblo, exp.productor.region].filter(Boolean).join(' · ')}
-              </p>
-              <p className="caption">
-                {t('moderacion.expediente.enviada', { nombre: exp.solicitadaPor, fecha: fechaHora(exp.solicitadaEn) })}
-                {' · '}
-                {exp.republicacion ? t('moderacion.tipo.republicacion') : t('moderacion.tipo.nueva')}
-              </p>
-            </div>
-            <Badge tono={TONO_ESTADO[exp.estado]}>{t(`moderacion.estado.${exp.estado}`)}</Badge>
-          </section>
+          <CabeceraSolicitud titulo={oferta.nombre} tono={TONO_ESTADO[exp.estado]} estado={t(`moderacion.estado.${exp.estado}`)}
+            detalle={[oferta.lineas[0], exp.productor.organizacion, exp.productor.pueblo, exp.productor.region]}
+            enviada={`${t('moderacion.expediente.enviada', { nombre: exp.solicitadaPor, fecha: fechaHora(exp.solicitadaEn) })} · ${exp.republicacion ? t('moderacion.tipo.republicacion') : t('moderacion.tipo.nueva')}`} />
 
           <Oferta oferta={oferta} />
 

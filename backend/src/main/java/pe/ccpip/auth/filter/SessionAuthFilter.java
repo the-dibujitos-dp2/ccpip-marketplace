@@ -44,8 +44,10 @@ public class SessionAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         // Ninguna respuesta de la API se guarda en cache: tras cerrar sesion,
         // el boton "atras" no puede mostrar datos del rol desde la cache del navegador.
-        // Las imagenes publicas son la excepcion: no tienen datos de sesion y nunca cambian.
-        if (!path(request).startsWith("/api/imagenes/")) {
+        // Las imagenes publicas son la excepcion: no tienen datos de sesion y nunca cambian. Los videos
+        // (CCPIP-118) deciden su cache al responder: los aprobados son publicos y los demas, no-store.
+        String ruta = path(request);
+        if (!ruta.startsWith("/api/imagenes/") && !ruta.startsWith("/api/videos/")) {
             response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
         }
 

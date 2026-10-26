@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Alerta from '../../components/Alerta.jsx'
+import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
@@ -166,5 +167,20 @@ export function DialogoDecision({ decision: d, producto, organizacion }) {
       <p>{t(`${d.textos}.dialogo.motivo`, { motivo: d.motivo.trim() })}</p>
       <p>{accion && t(`${d.textos}.dialogo.${accion}.texto`, { organizacion })}</p>
     </Dialogo>
+  )
+}
+
+/** La cabecera de un expediente de moderacion: que se revisa, de quien, cuando se envio y su estado (CCPIP-46, CCPIP-118). */
+export function CabeceraSolicitud({ titulo, detalle, enviada, tono, estado }) {
+  const { t } = useTranslation()
+  return (
+    <section className="tarjeta-panel expediente__cabecera" aria-label={t('moderacion.expediente.solicitud')}>
+      <div>
+        <h2 className="heading-h3">{titulo}</h2>
+        <p className="body-s">{detalle.filter(Boolean).join(' · ')}</p>
+        <p className="caption">{enviada}</p>
+      </div>
+      <Badge tono={tono}>{estado}</Badge>
+    </section>
   )
 }

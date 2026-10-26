@@ -50,6 +50,6 @@ public class ApiErrorHandler {
     public ResponseEntity<Map<String, Object>> archivoPesado(MaxUploadSizeExceededException e) {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(Map.of(
                 "code", "ARCHIVO_MUY_PESADO",
-                "error", "El archivo pesa más de 10 MB. Elige una foto más liviana."));
+                "error", "El archivo es demasiado pesado. Elige uno más liviano."));
     }
 }

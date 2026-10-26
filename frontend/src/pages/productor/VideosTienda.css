@@ -1,0 +1,10 @@
+/* CCPIP-118: videos de la tienda en Mi tienda; mismo lenguaje que la galeria */
+.videos-tienda { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; }
+.videos-tienda__formulario { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; gap: 12px; }
+.videos-tienda__archivo { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.videos-tienda__elegir { cursor: pointer; }
+.videos-tienda__elegir:focus-within { outline: 2px solid var(--color-border-focus); outline-offset: 2px; }
+
+@media (max-width: 720px) {
+  .videos-tienda__formulario { grid-template-columns: 1fr; align-items: stretch; }
+}
