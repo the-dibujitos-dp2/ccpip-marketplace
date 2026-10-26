@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listarPedidosDisponibles } from '../../api/distribucion.js'
+import iconoCheck from '../../assets/icons/check.svg'
+import { asumirEntrega, listarPedidosDisponibles } from '../../api/distribucion.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -26,8 +27,11 @@ export function textoEspera(minutos, t) {
  * DW-01 · CCPIP-107 (RF-54): los pedidos preparados que el distribuidor puede asumir, con el punto donde
  * recogerlos, el distrito de destino y cuanto llevan esperando; el que lleva mas esperando va primero. La cola
  * llega por paginas ("Cargar mas") y se filtra por punto de acopio. La direccion y el contacto de quien recibe
- * no se muestran: llegan al asumir la entrega (CCPIP-108, CCPIP-110), igual que el mapa, las rutas y la
- * seleccion para tomar pedidos.
+ * no se muestran: los consulta quien asumio la entrega (CCPIP-110), igual que el mapa y las rutas.
+ *
+ * CCPIP-108 (RF-55): el distribuidor elige pedidos con sus casillas y los toma con "Tomar N pedidos". Se asume
+ * uno por uno (un POST por pedido): si otro distribuidor se adelanto con alguno, se avisa cuales y el resto
+ * queda tomado igual. Despues la cola se vuelve a leer, sin los que ya se tomaron.
  */
 export default function PedidosDisponiblesPage({ path }) {
   const { t } = useTranslation()
@@ -38,9 +42,15 @@ export default function PedidosDisponiblesPage({ path }) {
   const [mas, setMas] = useState(null)
   const [cargandoMas, setCargandoMas] = useState(false)
   const [errorMas, setErrorMas] = useState(null)
+  // CCPIP-108: los numeros elegidos para tomar, y lo que paso al tomarlos
+  const [elegidos, setElegidos] = useState([])
+  const [tomando, setTomando] = useState(false)
+  const [avisos, setAvisos] = useState([])
   useEffect(() => {
     setMas(null)
     setErrorMas(null)
+    // Al releer la cola solo quedan elegidos los pedidos que siguen en ella
+    setElegidos((actuales) => actuales.filter((n) => datos?.items.some((p) => p.numero === n)))
   }, [datos])
   // Si el punto filtrado ya no tiene pedidos al recargar, se vuelve a ver todos
   useEffect(() => {
@@ -61,10 +71,49 @@ export default function PedidosDisponiblesPage({ path }) {
       .finally(() => setCargandoMas(false))
   }
 
+  const elegir = (numero, marcado) =>
+    setElegidos((actuales) => (marcado ? [...actuales, numero] : actuales.filter((n) => n !== numero)))
+
+  /** Asume los elegidos uno por uno y avisa cuales se tomaron, cuales gano otro y cuales fallaron. */
+  async function tomar() {
+    setTomando(true)
+    setAvisos([])
+    const tomados = []
+    const yaTomados = []
+    const noDisponibles = []
+    const fallidos = []
+    for (const numero of elegidos) {
+      try {
+        await asumirEntrega(numero)
+        tomados.push(numero)
+      } catch (e) {
+        // Un 401 ya lo maneja la app (vuelve a ingresar)
+        if (e.status === 401) return setTomando(false)
+        if (e.code === 'PEDIDO_YA_ASUMIDO') yaTomados.push(numero)
+        else if (e.status === 409 || e.status === 404) noDisponibles.push(numero)
+        else fallidos.push(numero)
+      }
+    }
+    const numeros = (lista) => lista.join(', ')
+    setAvisos([
+      tomados.length > 0 && { tono: 'exito', titulo: t('distribuidor.pedidos.tomados', { count: tomados.length, numeros: numeros(tomados) }) },
+      yaTomados.length > 0 && { tono: 'aviso', titulo: t('distribuidor.pedidos.yaTomados', { count: yaTomados.length, numeros: numeros(yaTomados) }) },
+      noDisponibles.length > 0 && { tono: 'aviso', titulo: t('distribuidor.pedidos.noDisponibles', { count: noDisponibles.length, numeros: numeros(noDisponibles) }) },
+      fallidos.length > 0 && { tono: 'error', titulo: t('distribuidor.pedidos.errorTomar', { count: fallidos.length, numeros: numeros(fallidos) }) },
+    ].filter(Boolean))
+    // Los que fallaron por la red siguen elegidos para reintentar
+    setElegidos(fallidos)
+    setTomando(false)
+    recargar()
+  }
+
   const titulo = t('distribuidor.pedidos.titulo')
   return (
     <LayoutDistribuidor path={path} titulo={titulo}>
       <section className="pedidos-disponibles" aria-busy={!datos && !error}>
+        {avisos.map((a) => (
+          <Alerta key={a.tono + a.titulo} {...a} onCerrar={() => setAvisos((actuales) => actuales.filter((x) => x !== a))} />
+        ))}
         {error && (
           <EstadoVacio titulo={t('distribuidor.pedidos.error')} descripcion={mensajeError(error)}>
             <Boton tamano="M" onClick={recargar}>{t('distribuidor.pedidos.reintentar')}</Boton>
@@ -98,6 +147,7 @@ export default function PedidosDisponiblesPage({ path }) {
               <caption className="visually-hidden">{titulo}</caption>
               <thead>
                 <tr>
+                  <th scope="col" className="pedidos-disponibles__elegir"><span className="visually-hidden">{t('distribuidor.pedidos.col.elegir')}</span></th>
                   <th scope="col">{t('distribuidor.pedidos.col.pedido')}</th>
                   <th scope="col">{t('distribuidor.pedidos.col.recoger')}</th>
                   <th scope="col">{t('distribuidor.pedidos.col.destino')}</th>
@@ -107,6 +157,15 @@ export default function PedidosDisponiblesPage({ path }) {
               <tbody>
                 {items.map((p) => (
                   <tr key={p.numero}>
+                    <td className="pedidos-disponibles__elegir">
+                      <input
+                        type="checkbox"
+                        checked={elegidos.includes(p.numero)}
+                        disabled={tomando}
+                        aria-label={t('distribuidor.pedidos.elegir', { numero: p.numero })}
+                        onChange={(e) => elegir(p.numero, e.target.checked)}
+                      />
+                    </td>
                     <th scope="row" className="pedidos-disponibles__numero">{p.numero}</th>
                     <td>
                       {p.origen.nombre}
@@ -125,6 +184,14 @@ export default function PedidosDisponiblesPage({ path }) {
                 ))}
               </tbody>
             </table>
+            {elegidos.length > 0 && (
+              <div className="pedidos-disponibles__tomar">
+                <p>{t('distribuidor.pedidos.seleccionados', { count: elegidos.length })}</p>
+                <Boton tamano="M" icono={iconoCheck} onClick={() => void tomar()} disabled={tomando}>
+                  {tomando ? t('distribuidor.pedidos.tomando') : t('distribuidor.pedidos.tomar', { count: elegidos.length })}
+                </Boton>
+              </div>
+            )}
             {siguiente && (
               <div className="pedidos-disponibles__mas">
                 <p className="caption">{t('distribuidor.pedidos.mostrando', { n: items.length, total: datos.total })}</p>
