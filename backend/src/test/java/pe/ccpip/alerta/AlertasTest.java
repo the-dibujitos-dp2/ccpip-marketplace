@@ -177,6 +177,46 @@ class AlertasTest extends IntegrationTest {
                 .andExpect(jsonPath("$.items[*].id", hasItem((int) lote)));
     }
 
+    // --- CCPIP-425: en tiempo real ---
+
+    @Test
+    void laBandejaMuestraAlInstanteUnLoteNuevoPorVencerSinEsperarLaRevisionNiEnviarCorreos() throws Exception {
+        long lote = lote(producto("Aguaje al instante"), LIMA, 4, HOY.plusDays(3));
+
+        mockMvc.perform(get("/api/productor/alertas").cookie(loginAs(PRODUCTOR)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(conLote(lote) + ".tipo", contains("POR_VENCER")));
+        mockMvc.perform(get("/api/acopio/alertas").cookie(loginAs(ADMIN)))
+                .andExpect(jsonPath("$.alertas[*].lote", hasItem("L-A" + lote)));
+        // El correo sale con la revision periodica, que no corre en la suite
+        assertThat(correos.enviados()).noneMatch(c -> c.texto().contains("L-A" + lote));
+    }
+
+    @Test
+    void cambiarLaAnticipacionActualizaAlInstanteLasAlertasYElInicio() throws Exception {
+        Cookie sesion = loginAs(PRODUCTOR);
+        long lote = lote(producto("Camu camu al instante"), LIMA, 6, HOY.plusDays(5));
+        revision.revisar();
+        assertThat(abiertas("POR_VENCER", lote)).isEqualTo(2);
+
+        guardar(sesion, "/api/productor/alertas/preferencias", 3, 30, List.of("POR_VENCER"), false)
+                .andExpect(status().isOk());
+        assertThat(abiertas("POR_VENCER", lote)).isEqualTo(1);
+        // El inicio (PW-01) dice la misma anticipacion y ya no cuenta ese lote
+        mockMvc.perform(get("/api/productor/panel").cookie(sesion))
+                .andExpect(jsonPath("$.diasAviso").value(3))
+                .andExpect(jsonPath("$.lotesPorVencer[*].codigo", not(hasItem("L-A" + lote))));
+
+        // El punto la sube y su alerta, ya cerrada, vuelve a abrirse
+        Cookie admin = loginAs(ADMIN);
+        guardar(admin, "/api/acopio/alertas/preferencias/" + ubicacion(LIMA), 2, 30, List.of("POR_VENCER", "ESTANCADO"), false)
+                .andExpect(status().isOk());
+        assertThat(abiertas("POR_VENCER", lote)).isZero();
+        guardar(admin, "/api/acopio/alertas/preferencias/" + ubicacion(LIMA), 30, 30, List.of("POR_VENCER", "ESTANCADO"), false)
+                .andExpect(status().isOk());
+        assertThat(abiertas("POR_VENCER", lote)).isEqualTo(1);
+    }
+
     @Test
     void unPuntoNoVeLasAlertasDeOtroPunto() throws Exception {
         long lote = lote(producto("Aceite de Loreto"), LORETO, 4, HOY.plusDays(2));

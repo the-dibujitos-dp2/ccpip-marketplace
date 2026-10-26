@@ -102,12 +102,12 @@
         "enVenta": "En venta",
         "enAcopios": "En puntos de acopio",
         "porVencer": "Lotes por vencer",
-        "proximos15": "En los próximos 15 días",
+        "proximos": "En los próximos {{dias}} días",
         "despublicados": "Despublicados",
         "republicar": "Puedes volver a publicarlos"
       },
-      "porVencer_one": "{{count}} lote vence pronto (según tu alerta de 15 días)",
-      "porVencer_other": "{{count}} lotes vencen pronto (según tu alerta de 15 días)",
+      "porVencer_one": "{{count}} lote vence pronto (según tu alerta de {{dias}} días)",
+      "porVencer_other": "{{count}} lotes vencen pronto (según tu alerta de {{dias}} días)",
       "porVencerTexto": "{{lotes}}. Coordina su salida con el punto de acopio.",
       "loteVence": "{{producto}} ({{codigo}}, en {{ubicacion}}, vence el {{fecha}})",
       "sinProductos": "Aún no tienes productos",
@@ -1411,12 +1411,19 @@
       "desde": "Desde",
       "hasta": "Hasta",
       "agrupacion": "Agrupar por",
+      "linea": "Línea",
+      "todas": "Todas",
+      "exportar": {
+        "pdf": "Descargar PDF",
+        "xlsx": "Descargar Excel"
+      },
       "por": {
         "DIA": "Día",
         "SEMANA": "Semana",
         "MES": "Mes"
       },
       "error": "No pudimos cargar el reporte",
+      "vacioTexto": "Prueba con otro período.",
       "rango": "Del {{desde}} al {{hasta}}",
       "b2c": "B2C (minorista)",
       "b2cDetalle": "Vendido a precio minorista",
@@ -1429,7 +1436,34 @@
         "b2c": "B2C",
         "b2b": "B2B",
         "total": "Total",
-        "acumulado": "Acumulado"
+        "acumulado": "Acumulado",
+        "productor": "Productor",
+        "pueblo": "Pueblo",
+        "pedidos": "Pedidos",
+        "unidades": "Unidades",
+        "participacion": "Participación",
+        "punto": "Punto de acopio",
+        "departamento": "Departamento",
+        "denuncias": "Denuncias",
+        "denunciasAbiertas": "Abiertas",
+        "producto": "Producto",
+        "promedio": "Promedio",
+        "resenas": "Reseñas",
+        "tendencia": "Tendencia",
+        "estrellas": "Calificación",
+        "distribucion": "Distribución",
+        "cantidad": "Cantidad",
+        "productos": "Productos",
+        "destino": "Destino",
+        "envios": "Envíos",
+        "recojos": "Recojos",
+        "ventas": "Ventas",
+        "barraVentas": "Ventas del período",
+        "productoresConVentas": "Productores con ventas",
+        "productosNuevos": "Productos nuevos",
+        "linea": "Línea",
+        "publicados": "Publicados",
+        "compradores": "Compradores"
       },
       "metrica": {
         "ventas": {
@@ -1450,6 +1484,117 @@
           "tabla": "Ingresos por periodo",
           "nota": "Lo cobrado a los compradores: los pagos aprobados, por la fecha en que se aprobaron (hora de Lima). Un pago anulado y devuelto no es un ingreso."
         }
+      },
+      "indicadores": {
+        "pestana": "Indicadores",
+        "frente": "Del {{desde}} al {{hasta}}, frente al período anterior de igual duración (del {{anteriorDesde}} al {{anteriorHasta}}).",
+        "variacion": "{{valor}} frente al período anterior",
+        "sinAnterior": "Sin cifras del período anterior",
+        "ventas": {
+          "titulo": "Ventas",
+          "total": "Ventas totales",
+          "pedidos": "Pedidos",
+          "ticket": "Ticket promedio",
+          "b2c": "B2C (minorista)",
+          "b2cDetalle": "Vendido a precio minorista",
+          "b2b": "B2B (mayorista)",
+          "b2bDetalle": "Vendido a precio mayorista"
+        },
+        "productores": {
+          "titulo": "Productores",
+          "activos": "Productores activos",
+          "activosDetalle": "Habilitados hoy en la plataforma",
+          "conVentas": "Productores con ventas",
+          "nuevos": "Productores nuevos"
+        },
+        "productos": {
+          "titulo": "Productos",
+          "publicados": "Productos publicados",
+          "publicadosDetalle": "A la venta hoy",
+          "nuevos": "Productos nuevos",
+          "conVentas": "Productos con ventas",
+          "porLinea": "Productos publicados por línea",
+          "sinLineas": "No hay líneas de producto activas"
+        },
+        "actividad": {
+          "titulo": "Actividad",
+          "compradores": "Compradores",
+          "registros": "Cuentas nuevas",
+          "calificaciones": "Calificaciones",
+          "denuncias": "Denuncias"
+        },
+        "porPeriodo": "Indicadores por período",
+        "nota": "Pedidos pagados y no cancelados, por la fecha en que se confirmaron (hora de Lima). El ticket promedio es lo vendido por pedido. Compradores: cuántas cuentas compraron, sin decir quiénes; cuentas nuevas: compradores que se registraron."
+      },
+      "productores": {
+        "pestana": "Productores",
+        "ventas": "Ventas de la plataforma",
+        "ventasDetalle": "Del {{desde}} al {{hasta}}",
+        "conVentas": "Productores con ventas",
+        "conVentasDetalle": "Se listan los {{limite}} que más venden",
+        "lider": "Mayor participación",
+        "liderDetalle": "{{productor}}",
+        "sinLider": "Nadie vendió en este período",
+        "tabla": "Productores que más venden",
+        "vacio": "Ningún productor vendió en este período",
+        "nota": "Hasta {{limite}} productores, de mayor a menor venta. Pedidos pagados y no cancelados, por la fecha en que se confirmaron (hora de Lima); la participación es su porcentaje de las ventas de la plataforma."
+      },
+      "puntos": {
+        "pestana": "Puntos de acopio",
+        "ventas": "Ventas de la plataforma",
+        "ventasDetalle": "Del {{desde}} al {{hasta}}",
+        "pedidos": "Pedidos",
+        "pedidosDetalle": "Pagados y no cancelados",
+        "conVentas": "Puntos con ventas",
+        "conVentasDetalle": "De {{total}} puntos activos",
+        "denuncias": "Denuncias recibidas",
+        "denunciasDetalle": "{{abiertas}} abiertas · {{resueltas}} resueltas · {{desestimadas}} desestimadas",
+        "tabla": "Ventas por punto de acopio",
+        "vacio": "No hay puntos de acopio activos",
+        "nota": "Cada pedido sale de un punto de acopio. Pedidos pagados y no cancelados, por la fecha en que se confirmaron (hora de Lima); un punto activo sin ventas aparece en cero.",
+        "notaDenuncias": "Las denuncias son las recibidas en el rango sobre ofertas que están en el punto (el producto denunciado, o cualquiera del productor si la denuncia no nombra uno); una denuncia suma en cada punto donde está la oferta. Abiertas: recibidas o en revisión."
+      },
+      "calificaciones": {
+        "pestana": "Calificaciones",
+        "promedio": "Calificación promedio",
+        "promedioDetalle": "Sobre 5 estrellas",
+        "sinPromedio": "Se necesitan al menos {{minimo}} calificaciones",
+        "resenas": "Reseñas",
+        "resenasDetalle": "Del {{desde}} al {{hasta}}",
+        "enCaida": "Productos en caída",
+        "enCaidaDetalle": "Frente al {{desde}} al {{hasta}}",
+        "distribucion": "Distribución de calificaciones",
+        "estrellas_one": "{{count}} estrella",
+        "estrellas_other": "{{count}} estrellas",
+        "productos": "Calificaciones por producto",
+        "vacioProductos": "Ningún producto recibió calificaciones en este período",
+        "tendencia": {
+          "SUBE": "Sube",
+          "ESTABLE": "Estable",
+          "BAJA": "En caída"
+        },
+        "nota": "Calificaciones recibidas en el rango. El promedio se muestra desde {{minimo}} calificaciones. La tendencia compara con el período anterior de igual duración (del {{desde}} al {{hasta}}): sube o cae si el promedio cambia en 0.3 estrellas o más; sin tendencia si alguno de los dos no alcanza el mínimo. Denuncias: las recibidas en el rango sobre el producto.",
+        "productores": "Calificaciones por productor",
+        "vacioProductores": "Ningún productor recibió calificaciones en este período",
+        "notaProductores": "Por todas las ofertas calificadas del productor en el rango; productos es cuántas recibieron calificaciones. Denuncias: las recibidas en el rango sobre el productor o sus productos."
+      },
+      "origen-destino": {
+        "pestana": "Origen y destino",
+        "ventas": "Ventas de la plataforma",
+        "ventasDetalle": "Del {{desde}} al {{hasta}}",
+        "pedidos": "Pedidos",
+        "pedidosDetalle": "Pagados y no cancelados",
+        "destinos": "Departamentos de destino",
+        "destinosDetalle": "Donde se entregó o se recogió",
+        "envios": "Envíos a domicilio",
+        "enviosDetalle": "{{recojos}} recojos en punto de acopio",
+        "porPunto": "Origen por punto de acopio",
+        "porProductor": "Origen por productor",
+        "porDestino": "Destino por departamento",
+        "rutas": "Del punto de acopio al departamento",
+        "sinDireccion": "Sin dirección registrada",
+        "vacio": "No hubo ventas en este período",
+        "nota": "Cada pedido sale de un punto de acopio. El destino es el departamento de la dirección de entrega en un envío, o el del punto donde se recoge. Solo cifras agregadas: ninguna dirección ni comprador."
       }
     },
     "parametros": {
@@ -2348,6 +2493,14 @@
       "ENTREGADO": "Entregado",
       "CANCELADO": "Pedido cancelado"
     }
+  },
+  "misDirecciones": {
+    "titulo": "Mis direcciones",
+    "error": "No pudimos cargar tus direcciones",
+    "vacio": "Aún no guardaste direcciones",
+    "vacioTexto": "Al comprar con entrega a domicilio puedes guardar la dirección para la próxima vez.",
+    "sinAlias": "Dirección de entrega",
+    "referencia": "Referencia: {{referencia}}"
   },
   "misDatos": {
     "titulo": "Datos personales",

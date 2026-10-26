@@ -6,6 +6,7 @@
     "borradores": 0,
     "retirados": 0,
     "stockEnVenta": 400.0,
+    "diasAviso": 15,
     "lotesPorVencer": [],
     "publicadosSinStock": []
 }
