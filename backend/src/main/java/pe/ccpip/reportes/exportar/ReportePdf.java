@@ -152,7 +152,8 @@ public final class ReportePdf {
             boolean[] cifras = new boolean[s.encabezados().size()];
             for (int c = 1; c < cifras.length; c++) {
                 int columna = c;
-                cifras[c] = s.filas().stream().allMatch(f -> columna >= f.size() || f.get(columna) instanceof BigDecimal);
+                cifras[c] = s.filas().stream().allMatch(f -> columna >= f.size() || f.get(columna) instanceof BigDecimal
+                        || DocumentoReporte.SIN_DATO.equals(f.get(columna)));
             }
             return cifras;
         }

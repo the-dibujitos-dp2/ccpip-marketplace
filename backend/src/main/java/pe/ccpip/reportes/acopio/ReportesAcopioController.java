@@ -3,10 +3,7 @@ package pe.ccpip.reportes.acopio;
 import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.CacheControl;
-import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -21,8 +18,7 @@ import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.comun.Idioma;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
-import pe.ccpip.reportes.exportar.ReportePdf;
-import pe.ccpip.reportes.exportar.ReporteXlsx;
+import pe.ccpip.reportes.exportar.Descarga;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteEntradas;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteInventario;
 import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteSalidas;
@@ -37,8 +33,6 @@ import pe.ccpip.reportes.acopio.ReportesAcopioModelos.ReporteVentas;
 @RequestMapping("/api/acopio/reportes")
 public class ReportesAcopioController {
 
-    private static final MediaType XLSX =
-            MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
     private final ReportesAcopioService service;
 
@@ -103,9 +97,9 @@ public class ReportesAcopioController {
                                       @RequestParam(required = false) Long producto,
                                       @RequestParam(required = false) String lang,
                                       @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage) {
-        Idioma idioma = idioma(lang, acceptLanguage);
-        byte[] pdf = ReportePdf.generar(service.documento(s.userId(), desde, hasta, agrupacion, productor, producto, idioma));
-        return descarga(pdf, MediaType.APPLICATION_PDF, "reporte-punto-de-acopio.pdf", idioma);
+        Idioma idioma = Descarga.idioma(lang, acceptLanguage);
+        return Descarga.pdf(service.documento(s.userId(), desde, hasta, agrupacion, productor, producto, idioma),
+                "reporte-punto-de-acopio", idioma);
     }
 
     /**
@@ -121,22 +115,8 @@ public class ReportesAcopioController {
                                         @RequestParam(required = false) Long producto,
                                         @RequestParam(required = false) String lang,
                                         @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage) {
-        Idioma idioma = idioma(lang, acceptLanguage);
-        byte[] xlsx = ReporteXlsx.generar(service.documento(s.userId(), desde, hasta, agrupacion, productor, producto, idioma));
-        return descarga(xlsx, XLSX, "reporte-punto-de-acopio.xlsx", idioma);
-    }
-
-    /** El idioma solo cambia los textos, nunca los datos ni los permisos. */
-    private static Idioma idioma(String lang, String acceptLanguage) {
-        return lang == null ? Idioma.deCabecera(acceptLanguage) : Idioma.deCodigo(lang).orElse(Idioma.ES);
-    }
-
-    /** Descarga privada: sin cache compartida y con tipo explicito, como el reporte del productor. */
-    private static ResponseEntity<byte[]> descarga(byte[] contenido, MediaType tipo, String nombre, Idioma idioma) {
-        return ResponseEntity.ok().contentType(tipo).cacheControl(CacheControl.noStore())
-                .header(HttpHeaders.CONTENT_LANGUAGE, idioma.codigo())
-                .header("X-Content-Type-Options", "nosniff")
-                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(nombre).build().toString())
-                .body(contenido);
+        Idioma idioma = Descarga.idioma(lang, acceptLanguage);
+        return Descarga.xlsx(service.documento(s.userId(), desde, hasta, agrupacion, productor, producto, idioma),
+                "reporte-punto-de-acopio", idioma);
     }
 }
