@@ -2494,6 +2494,14 @@
       "CANCELADO": "Order cancelled"
     }
   },
+  "misDirecciones": {
+    "titulo": "My addresses",
+    "error": "We couldn't load your addresses",
+    "vacio": "You haven't saved any addresses yet",
+    "vacioTexto": "When you buy with home delivery you can save the address for next time.",
+    "sinAlias": "Delivery address",
+    "referencia": "Reference: {{referencia}}"
+  },
   "misDatos": {
     "titulo": "Personal details",
     "nombres": "First names",

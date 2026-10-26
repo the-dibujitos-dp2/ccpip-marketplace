@@ -2494,6 +2494,14 @@
       "CANCELADO": "Pedido cancelado"
     }
   },
+  "misDirecciones": {
+    "titulo": "Mis direcciones",
+    "error": "No pudimos cargar tus direcciones",
+    "vacio": "Aún no guardaste direcciones",
+    "vacioTexto": "Al comprar con entrega a domicilio puedes guardar la dirección para la próxima vez.",
+    "sinAlias": "Dirección de entrega",
+    "referencia": "Referencia: {{referencia}}"
+  },
   "misDatos": {
     "titulo": "Datos personales",
     "nombres": "Nombres",

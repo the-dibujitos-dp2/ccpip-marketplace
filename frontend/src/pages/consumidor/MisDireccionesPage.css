@@ -1,0 +1,17 @@
+/* CW-13 · Mis direcciones (CCPIP-393): una tarjeta por direccion, como las de Mis pedidos */
+.mis-direcciones__titulo { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 24px; line-height: 32px; }
+.mis-direcciones__lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.mis-direcciones__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-surface);
+}
+.mis-direcciones__tarjeta p { margin: 0; }
+.mis-direcciones__alias { font-weight: 600; font-size: 16px; line-height: 24px; color: var(--color-text-primary); }
+.mis-direcciones__direccion { font-size: 15px; line-height: 22px; color: var(--color-text-primary); }
+.mis-direcciones__zona,
+.mis-direcciones__referencia { font-size: 14px; line-height: 20px; color: var(--color-text-secondary); }
