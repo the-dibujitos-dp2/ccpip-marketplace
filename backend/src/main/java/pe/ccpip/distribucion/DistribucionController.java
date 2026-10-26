@@ -18,9 +18,9 @@ import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.distribucion.DistribucionModelos.Disponibles;
-import pe.ccpip.distribucion.DistribucionModelos.EntregaAsumida;
+import pe.ccpip.distribucion.DistribucionModelos.EntregaDelDistribuidor;
 
-/** CCPIP-107 y CCPIP-108 (DW-01): los pedidos que el distribuidor puede asumir, y asumirlos. */
+/** CCPIP-107, CCPIP-108 y CCPIP-109 (DW-01, DW-02): los pedidos que el distribuidor puede asumir, asumirlos y retirarlos. */
 @RolesPermitidos(Rol.DISTRIBUIDOR)
 @RestController
 @RequestMapping("/api/distribuidor/pedidos")
@@ -49,9 +49,20 @@ public class DistribucionController {
      * dos la piden a la vez, solo uno la obtiene y el otro recibe 409 {@code PEDIDO_YA_ASUMIDO}.
      */
     @PostMapping("/{numero}/asumir")
-    public EntregaAsumida asumir(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
-                                 @PathVariable String numero) {
+    public EntregaDelDistribuidor asumir(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                         @PathVariable String numero) {
         return distribucion.asumir(s.userId(), numeroValido(numero));
+    }
+
+    /**
+     * CCPIP-109 (RF-56): el distribuidor registra que retiro del punto de acopio la entrega que asumio. Solo la suya
+     * (409 {@code PEDIDO_NO_ASIGNADO}) y mientras siga asignada (409 {@code PEDIDO_NO_RETIRABLE}); repetirlo no cambia
+     * nada. No se vuelve a descontar el stock.
+     */
+    @PostMapping("/{numero}/retirar")
+    public EntregaDelDistribuidor retirar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                          @PathVariable String numero) {
+        return distribucion.retirar(s.userId(), numeroValido(numero));
     }
 
     /** Un numero de pedido solo tiene letras, digitos y guiones (p. ej. MC-00148); se busca sin distinguir mayusculas. */
