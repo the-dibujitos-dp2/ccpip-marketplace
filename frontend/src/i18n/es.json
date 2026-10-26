@@ -1454,7 +1454,8 @@
         "envios": "Envíos",
         "recojos": "Recojos",
         "ventas": "Ventas",
-        "barraVentas": "Ventas del período"
+        "barraVentas": "Ventas del período",
+        "productoresConVentas": "Productores con ventas"
       },
       "metrica": {
         "ventas": {
@@ -1490,6 +1491,13 @@
           "b2cDetalle": "Vendido a precio minorista",
           "b2b": "B2B (mayorista)",
           "b2bDetalle": "Vendido a precio mayorista"
+        },
+        "productores": {
+          "titulo": "Productores",
+          "activos": "Productores activos",
+          "activosDetalle": "Habilitados hoy en la plataforma",
+          "conVentas": "Productores con ventas",
+          "nuevos": "Productores nuevos"
         },
         "porPeriodo": "Indicadores por período",
         "nota": "Pedidos pagados y no cancelados, por la fecha en que se confirmaron (hora de Lima). El ticket promedio es lo vendido por pedido."

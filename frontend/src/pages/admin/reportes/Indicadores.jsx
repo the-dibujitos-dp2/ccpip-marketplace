@@ -3,6 +3,7 @@ import iconoComunidad from '../../../assets/icons/comunidad.svg'
 import iconoGrafico from '../../../assets/icons/grafico.svg'
 import iconoPaquete from '../../../assets/icons/paquete.svg'
 import iconoTienda from '../../../assets/icons/tienda.svg'
+import iconoUsuario from '../../../assets/icons/usuario.svg'
 import { Barra, Kpis, nombrePeriodo } from '../../../components/TablaReporte.jsx'
 import { fecha, precio, unidades } from '../../../formato.js'
 import { columnas, TablaReporte } from './comun.jsx'
@@ -38,11 +39,12 @@ function Grupo({ id, tarjetas }) {
  * Indicadores agregados de la plataforma en el rango, cada uno frente al periodo anterior de igual
  * duracion, y su serie por dia, semana o mes. Solo cifras agregadas: ningun comprador.
  * - CCPIP-348 (RF-238): ventas, pedidos y ticket promedio, con el desglose B2C y B2B
+ * - CCPIP-349 (RF-239): productores activos, con ventas y nuevos
  */
 export default function Indicadores({ datos }) {
   const { t } = useTranslation()
   const { cantidad, importe } = columnas(t)
-  const { ventas } = datos
+  const { ventas, productores } = datos
   const mayor = Math.max(...datos.periodos.map((p) => Number(p.ventas)), 0)
   return (
     <>
@@ -56,12 +58,17 @@ export default function Indicadores({ datos }) {
         { clave: 'b2c', valor: precio(ventas.desglose.b2c), icono: iconoTienda },
         { clave: 'b2b', valor: precio(ventas.desglose.b2b), icono: iconoComunidad },
       ]} />
+      <Grupo id="productores" tarjetas={[
+        { clave: 'activos', valor: unidades(productores.activos), icono: iconoComunidad },
+        { clave: 'conVentas', valor: unidades(productores.conVentas.valor), icono: iconoGrafico, ...variacion(productores.conVentas) },
+        { clave: 'nuevos', valor: unidades(productores.nuevos.valor), icono: iconoUsuario, ...variacion(productores.nuevos) },
+      ]} />
       <TablaReporte id="indicadores-periodos" titulo={t(`${TEXTOS}.porPeriodo`)} filas={datos.periodos} clave={(p) => p.inicio}
         nota={t(`${TEXTOS}.nota`)}
         columnas={[
           { clave: 'periodo', etiqueta: t('admin.reportes.col.periodo'), periodo: true, valor: (p) => nombrePeriodo(p, datos.agrupacion, t, 'admin.reportes.semana') },
           { clave: 'barra', etiqueta: t('admin.reportes.col.barraVentas'), barra: true, valor: (p) => <Barra partes={[Number(p.ventas)]} mayor={mayor} /> },
-          importe('ventas'), cantidad('pedidos'),
+          importe('ventas'), cantidad('pedidos'), cantidad('productoresConVentas'),
         ]} />
     </>
   )

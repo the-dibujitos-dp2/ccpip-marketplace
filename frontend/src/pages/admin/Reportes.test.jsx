@@ -420,3 +420,18 @@ describe('CCPIP-348 Indicadores de ventas (SA-10)', () => {
     expect(llamadas(fetchMock, `GET /api/admin/reportes/indicadores?${RANGO}&agrupacion=MES`)).toHaveLength(1)
   })
 })
+
+describe('CCPIP-349 Indicadores de productores (SA-10)', () => {
+  it('muestra los productores activos, con ventas y nuevos frente al periodo anterior', async () => {
+    comoSuper({ [`GET /api/admin/reportes/indicadores?${RANGO}&agrupacion=MES`]: () => [200, copia(INDICADORES)] })
+    await abrirPestana('Indicadores')
+
+    const productores = await screen.findByRole('region', { name: 'Productores' })
+    expect(within(productores).getByRole('region', { name: 'Productores activos' })).toHaveTextContent('12')
+    // Sin productores con ventas en el periodo anterior no hay variacion
+    expect(within(productores).getByRole('region', { name: 'Productores con ventas' })).toHaveTextContent('Sin cifras del período anterior')
+    expect(within(productores).getByRole('region', { name: 'Productores nuevos' })).toHaveTextContent('0% frente al período anterior')
+    const tabla = screen.getByRole('table', { name: 'Indicadores por período' })
+    expect(within(tabla).getByRole('columnheader', { name: 'Productores con ventas' })).toBeInTheDocument()
+  })
+})

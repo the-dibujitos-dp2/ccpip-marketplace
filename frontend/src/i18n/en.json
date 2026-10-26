@@ -1454,7 +1454,8 @@
         "envios": "Deliveries",
         "recojos": "Pickups",
         "ventas": "Sales",
-        "barraVentas": "Sales in the period"
+        "barraVentas": "Sales in the period",
+        "productoresConVentas": "Producers with sales"
       },
       "metrica": {
         "ventas": {
@@ -1490,6 +1491,13 @@
           "b2cDetalle": "Sold at retail price",
           "b2b": "B2B (wholesale)",
           "b2bDetalle": "Sold at wholesale price"
+        },
+        "productores": {
+          "titulo": "Producers",
+          "activos": "Active producers",
+          "activosDetalle": "Enabled on the platform today",
+          "conVentas": "Producers with sales",
+          "nuevos": "New producers"
         },
         "porPeriodo": "Indicators by period",
         "nota": "Paid, non-cancelled orders, by the date they were confirmed (Lima time). The average ticket is sales per order."
