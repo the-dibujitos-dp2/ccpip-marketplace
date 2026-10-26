@@ -21,7 +21,7 @@ import pe.ccpip.support.IntegrationTest;
  * ventas; CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias de los puntos de acopio; CCPIP-123
  * (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y de productores; CCPIP-80 (RF-66): origen y
  * destino de las ventas; indicadores agregados de la plataforma (CCPIP-348 ventas,
- * CCPIP-349 productores, CCPIP-350 productos).
+ * CCPIP-349 productores, CCPIP-350 productos, CCPIP-94 actividad).
  *
  * <p>Los datos son de agosto y septiembre de 2023, meses que ninguna otra prueba usa, y la transaccion se
  * deshace al terminar.
@@ -307,6 +307,28 @@ class ReportesGestionTest extends IntegrationTest {
                 .andExpect(jsonPath("$.productos.porLinea[?(@.codigo == 'SUPERFRUTOS')].publicados").isNotEmpty())
                 .andExpect(jsonPath("$.productos.porLinea[?(@.codigo == 'TEXTIL')]").exists())
                 .andExpect(jsonPath("$.periodos[0].productosNuevos").value(1));
+    }
+
+    @Test
+    void losIndicadoresDeActividadCuentanCompradoresRegistrosCalificacionesYDenuncias() throws Exception {
+        ventasDePrueba();
+        calificacionesDePrueba();
+        jdbc.update("""
+                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado, creado_en)
+                VALUES ('rg-comprador@ccpip.test', 'x', 'Comprador nuevo', 1, true, '2023-09-02 10:00-05'::timestamptz)""");
+
+        mockMvc.perform(get("/api/admin/reportes/indicadores" + SEPTIEMBRE).cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                // Compro el mismo consumidor en septiembre y en agosto: se cuenta una vez y sin decir quien
+                .andExpect(jsonPath("$.actividad.compradores.valor").value(1))
+                .andExpect(jsonPath("$.actividad.compradores.variacion").value(0.0))
+                .andExpect(jsonPath("$.actividad.registros.valor").value(1))
+                .andExpect(jsonPath("$.actividad.calificaciones.valor").value(3))
+                .andExpect(jsonPath("$.actividad.calificaciones.anterior").value(2))
+                .andExpect(jsonPath("$.actividad.calificaciones.variacion").value(50.0))
+                .andExpect(jsonPath("$.actividad.denuncias.valor").value(1))
+                .andExpect(jsonPath("$.periodos[0].compradores").value(1))
+                .andExpect(jsonPath("$..correo").doesNotExist());
     }
 
     @Test

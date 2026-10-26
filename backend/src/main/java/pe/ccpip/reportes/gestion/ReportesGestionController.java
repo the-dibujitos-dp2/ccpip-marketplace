@@ -68,7 +68,7 @@ public class ReportesGestionController {
     /**
      * Indicadores agregados de la plataforma en el rango frente al periodo anterior, con su serie por dia,
      * semana o mes. CCPIP-348 (RF-238): ventas; CCPIP-349 (RF-239): productores activos; CCPIP-350 (RF-240):
-     * productos publicados.
+     * productos publicados; CCPIP-94 (RF-81): actividad.
      */
     @GetMapping("/indicadores")
     public ReporteIndicadores indicadores(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,

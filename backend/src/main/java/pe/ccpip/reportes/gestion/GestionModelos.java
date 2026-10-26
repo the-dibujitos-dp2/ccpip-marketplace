@@ -171,18 +171,29 @@ public final class GestionModelos {
                                        List<LineaPublicados> porLinea) {
     }
 
+    /**
+     * CCPIP-94: actividad de la plataforma en el rango. {@code compradores}, cuantos compraron (sin decir
+     * quienes); {@code registros}, compradores que crearon su cuenta; {@code calificaciones} y {@code denuncias},
+     * las recibidas.
+     */
+    public record IndicadoresActividad(Indicador compradores, Indicador registros, Indicador calificaciones,
+                                       Indicador denuncias) {
+    }
+
     /** Un periodo de la serie de indicadores, recortado al rango. */
     public record PeriodoIndicadores(LocalDate inicio, LocalDate fin, BigDecimal ventas, long pedidos,
-                                     long productoresConVentas, long productosNuevos) {
+                                     long productoresConVentas, long productosNuevos, long compradores) {
     }
 
     /**
      * Indicadores agregados de la plataforma en el rango, cada uno frente al periodo anterior de igual
      * duracion ({@code anteriorDesde} a {@code anteriorHasta}), y su serie por dia, semana o mes. CCPIP-348
-     * (RF-238): ventas; CCPIP-349 (RF-239): productores activos; CCPIP-350 (RF-240): productos publicados.
+     * (RF-238): ventas; CCPIP-349 (RF-239): productores activos; CCPIP-350 (RF-240): productos publicados;
+     * CCPIP-94 (RF-81): actividad.
      */
     public record ReporteIndicadores(LocalDate desde, LocalDate hasta, Agrupacion agrupacion, LocalDate anteriorDesde,
                                      LocalDate anteriorHasta, IndicadoresVentas ventas, IndicadoresProductores productores,
-                                     IndicadoresProductos productos, List<PeriodoIndicadores> periodos) {
+                                     IndicadoresProductos productos, IndicadoresActividad actividad,
+                                     List<PeriodoIndicadores> periodos) {
     }
 }
