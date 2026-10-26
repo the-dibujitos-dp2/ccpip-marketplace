@@ -151,16 +151,25 @@ public final class GestionModelos {
     public record IndicadoresVentas(Indicador total, Indicador pedidos, Indicador ticketPromedio, Desglose desglose) {
     }
 
+    /**
+     * CCPIP-349: productores. {@code activos}, los habilitados hoy en la plataforma; {@code conVentas}, los que
+     * vendieron en el rango; {@code nuevos}, los que se registraron en el rango.
+     */
+    public record IndicadoresProductores(long activos, Indicador conVentas, Indicador nuevos) {
+    }
+
     /** Un periodo de la serie de indicadores, recortado al rango. */
-    public record PeriodoIndicadores(LocalDate inicio, LocalDate fin, BigDecimal ventas, long pedidos) {
+    public record PeriodoIndicadores(LocalDate inicio, LocalDate fin, BigDecimal ventas, long pedidos,
+                                     long productoresConVentas) {
     }
 
     /**
      * Indicadores agregados de la plataforma en el rango, cada uno frente al periodo anterior de igual
      * duracion ({@code anteriorDesde} a {@code anteriorHasta}), y su serie por dia, semana o mes. CCPIP-348
-     * (RF-238): ventas.
+     * (RF-238): ventas; CCPIP-349 (RF-239): productores activos.
      */
     public record ReporteIndicadores(LocalDate desde, LocalDate hasta, Agrupacion agrupacion, LocalDate anteriorDesde,
-                                     LocalDate anteriorHasta, IndicadoresVentas ventas, List<PeriodoIndicadores> periodos) {
+                                     LocalDate anteriorHasta, IndicadoresVentas ventas, IndicadoresProductores productores,
+                                     List<PeriodoIndicadores> periodos) {
     }
 }

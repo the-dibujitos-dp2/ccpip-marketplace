@@ -20,7 +20,8 @@ import pe.ccpip.support.IntegrationTest;
  * Reportes de gestion del superadministrador (SA-05, SA-10). CCPIP-122 (RF-86): productores con mayores
  * ventas; CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias de los puntos de acopio; CCPIP-123
  * (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y de productores; CCPIP-80 (RF-66): origen y
- * destino de las ventas; indicadores agregados de la plataforma (CCPIP-348 ventas).
+ * destino de las ventas; indicadores agregados de la plataforma (CCPIP-348 ventas,
+ * CCPIP-349 productores).
  *
  * <p>Los datos son de agosto y septiembre de 2023, meses que ninguna otra prueba usa, y la transaccion se
  * deshace al terminar.
@@ -240,7 +241,30 @@ class ReportesGestionTest extends IntegrationTest {
                 .andExpect(jsonPath("$.ventas.desglose.b2b").value(100.00))
                 .andExpect(jsonPath("$.periodos.length()").value(1))
                 .andExpect(jsonPath("$.periodos[0].ventas").value(180.00))
-                .andExpect(jsonPath("$.periodos[0].pedidos").value(3));
+                .andExpect(jsonPath("$.periodos[0].pedidos").value(3))
+                .andExpect(jsonPath("$.periodos[0].productoresConVentas").value(2));
+    }
+
+    @Test
+    void losIndicadoresDeProductoresCuentanLosQueVendieronYLosNuevos() throws Exception {
+        ventasDePrueba();
+        long usuario = jdbc.queryForObject("""
+                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
+                VALUES ('rg-nuevo@ccpip.test', 'x', 'Productor nuevo', 2, true) RETURNING id""", Long.class);
+        jdbc.update("""
+                INSERT INTO productor (usuario_id, comunidad, region, creado_en)
+                VALUES (?, 'Comunidad nueva', 'Ucayali', '2023-09-10 10:00-05'::timestamptz)""", usuario);
+
+        mockMvc.perform(get("/api/admin/reportes/indicadores" + SEPTIEMBRE).cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.productores.activos").isNumber())
+                // Vendieron dos en septiembre y uno en agosto
+                .andExpect(jsonPath("$.productores.conVentas.valor").value(2))
+                .andExpect(jsonPath("$.productores.conVentas.anterior").value(1))
+                .andExpect(jsonPath("$.productores.conVentas.variacion").value(100.0))
+                .andExpect(jsonPath("$.productores.nuevos.valor").value(1))
+                .andExpect(jsonPath("$.productores.nuevos.anterior").value(0))
+                .andExpect(jsonPath("$.productores.nuevos.variacion").doesNotExist());
     }
 
     @Test

@@ -29,6 +29,7 @@ import pe.ccpip.reportes.gestion.GestionModelos.Destino;
 import pe.ccpip.reportes.gestion.GestionModelos.Estrellas;
 import pe.ccpip.reportes.gestion.GestionModelos.Flujo;
 import pe.ccpip.reportes.gestion.GestionModelos.Indicador;
+import pe.ccpip.reportes.gestion.GestionModelos.IndicadoresProductores;
 import pe.ccpip.reportes.gestion.GestionModelos.IndicadoresVentas;
 import pe.ccpip.reportes.gestion.GestionModelos.Linea;
 import pe.ccpip.reportes.gestion.GestionModelos.PeriodoIndicadores;
@@ -384,7 +385,7 @@ public class ReportesGestionService {
     /**
      * Indicadores agregados de la plataforma en el rango, frente al periodo anterior de igual duracion, con su
      * serie por dia, semana o mes (por mes si no se indica). CCPIP-348 (RF-238): ventas, pedidos y ticket
-     * promedio.
+     * promedio; CCPIP-349 (RF-239): productores activos, con ventas y nuevos.
      */
     @Transactional(readOnly = true)
     public ReporteIndicadores indicadores(LocalDate desde, LocalDate hasta, Agrupacion agrupacion) {
@@ -399,30 +400,40 @@ public class ReportesGestionService {
                 comparar(actual.ventas().total(), previa.ventas().total()),
                 comparar(BigDecimal.valueOf(actual.pedidos()), BigDecimal.valueOf(previa.pedidos())),
                 comparar(actual.ticketPromedio(), previa.ticketPromedio()), actual.ventas());
+        String nuevosProductores = "SELECT count(*) FROM productor WHERE (creado_en AT TIME ZONE 'America/Lima')::date "
+                + "BETWEEN :desde AND :hasta";
+        IndicadoresProductores productores = new IndicadoresProductores(
+                jdbc.getJdbcTemplate().queryForObject("SELECT count(*) FROM productor WHERE activo", Long.class),
+                comparar(BigDecimal.valueOf(actual.productores()), BigDecimal.valueOf(previa.productores())),
+                comparar(contar(nuevosProductores, rango), contar(nuevosProductores, anterior)));
 
         int n = tramos.cantidad();
         BigDecimal[] ventasPorPeriodo = new BigDecimal[n];
         Arrays.fill(ventasPorPeriodo, BigDecimal.ZERO);
         long[] pedidos = new long[n];
+        long[] conVentas = new long[n];
         jdbc.query("""
                 SELECT date_trunc('%s', pe.confirmado_en AT TIME ZONE 'America/Lima')::date AS periodo,
-                       sum(i.subtotal) AS ventas, count(DISTINCT pe.id) AS pedidos
+                       sum(i.subtotal) AS ventas, count(DISTINCT pe.id) AS pedidos,
+                       count(DISTINCT i.productor_id) AS productores
                 FROM item_pedido i JOIN pedido pe ON pe.id = i.pedido_id
                 WHERE %s GROUP BY 1""".formatted(unidad(por), VENDIDO), parametros(rango), rs -> {
             int i = tramos.posicion(rs.getObject("periodo", LocalDate.class));
             ventasPorPeriodo[i] = rs.getBigDecimal("ventas");
             pedidos[i] = rs.getLong("pedidos");
+            conVentas[i] = rs.getLong("productores");
         });
         List<PeriodoIndicadores> periodos = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             Tramos.Tramo t = tramos.lista().get(i);
-            periodos.add(new PeriodoIndicadores(t.inicio(), t.fin(), ventasPorPeriodo[i], pedidos[i]));
+            periodos.add(new PeriodoIndicadores(t.inicio(), t.fin(), ventasPorPeriodo[i], pedidos[i], conVentas[i]));
         }
-        return new ReporteIndicadores(rango.desde(), rango.hasta(), por, anterior.desde(), anterior.hasta(), ventas, periodos);
+        return new ReporteIndicadores(rango.desde(), rango.hasta(), por, anterior.desde(), anterior.hasta(), ventas,
+                productores, periodos);
     }
 
-    /** Lo que hubo en un rango: ventas por tarifa y pedidos. */
-    private record Actividad(Desglose ventas, long pedidos) {
+    /** Lo que hubo en un rango: ventas por tarifa, pedidos y productores que vendieron. */
+    private record Actividad(Desglose ventas, long pedidos, long productores) {
 
         /** Lo vendido por pedido, con dos decimales; cero sin pedidos. */
         BigDecimal ticketPromedio() {
@@ -432,10 +443,16 @@ public class ReportesGestionService {
 
     private Actividad actividad(RangoFechas rango) {
         return jdbc.queryForObject("""
-                SELECT %s, count(DISTINCT pe.id) AS pedidos
+                SELECT %s, count(DISTINCT pe.id) AS pedidos, count(DISTINCT i.productor_id) AS productores
                 FROM item_pedido i JOIN pedido pe ON pe.id = i.pedido_id
                 WHERE %s""".formatted(POR_TARIFA, VENDIDO), parametros(rango),
-                (rs, row) -> new Actividad(desglose(rs.getBigDecimal("b2c"), rs.getBigDecimal("b2b")), rs.getLong("pedidos")));
+                (rs, row) -> new Actividad(desglose(rs.getBigDecimal("b2c"), rs.getBigDecimal("b2b")), rs.getLong("pedidos"),
+                        rs.getLong("productores")));
+    }
+
+    /** Un conteo de {@code sql} (con {@code :desde} y {@code :hasta}) en el rango. */
+    private BigDecimal contar(String sql, RangoFechas rango) {
+        return BigDecimal.valueOf(jdbc.queryForObject(sql, parametros(rango), Long.class));
     }
 
     /** Un indicador con su variacion porcentual frente al anterior (nula si el anterior fue cero). */
