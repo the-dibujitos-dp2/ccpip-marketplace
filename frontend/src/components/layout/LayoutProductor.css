@@ -7,7 +7,11 @@
   background: var(--color-bg-surface);
 }
 
-/* La columna ocupa todo el alto de la pagina; su contenido queda fijo al hacer scroll */
+/*
+ * La columna ocupa todo el alto de la pagina; su contenido queda fijo al hacer scroll. Si el menu no
+ * cabe en la pantalla (el del productor es largo), la columna se desplaza sola hasta "Cerrar sesion"
+ * (CCPIP-425). 100dvh descuenta las barras del navegador en el celular.
+ */
 .layout-productor__sidebar-fijo {
   position: sticky;
   top: 0;
@@ -15,8 +19,13 @@
   flex-direction: column;
   gap: 4px;
   height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 24px 16px;
 }
+
+.layout-productor__sidebar-fijo > * { flex-shrink: 0; }
 
 .layout-productor__rol {
   margin: 24px 0 8px;
