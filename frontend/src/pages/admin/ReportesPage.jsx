@@ -10,15 +10,15 @@ import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import DescargasReporte from '../../components/DescargasReporte.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
-import { Barra, nombrePeriodo } from '../../components/TablaReporte.jsx'
-import TarjetaKpi from '../../components/TarjetaKpi.jsx'
+import { Barra, Kpis, nombrePeriodo } from '../../components/TablaReporte.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { fecha, precio } from '../../formato.js'
+import { precio } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
 import './admin.css'
 import './ReportesPage.css'
 import Calificaciones from './reportes/Calificaciones.jsx'
+import { rango } from './reportes/comun.jsx'
 import Indicadores from './reportes/Indicadores.jsx'
 import OrigenDestino from './reportes/OrigenDestino.jsx'
 import Productores from './reportes/Productores.jsx'
@@ -131,16 +131,16 @@ function Resultado({ datos }) {
   const { t } = useTranslation()
   const { totales, periodos, agrupacion } = datos
   // Los textos siguen a la metrica que respondio el servidor, no a la pestana que se acaba de pulsar
-  const clave = `admin.reportes.metrica.${datos.metrica.toLowerCase()}`
+  const metrica = `metrica.${datos.metrica.toLowerCase()}`
+  const clave = `admin.reportes.${metrica}`
   const mayor = Math.max(...periodos.map((p) => Number(p.total)), 0)
   return (
     <>
-      <div className="productor__kpis">
-        <TarjetaKpi titulo={t(`${clave}.total`)} valor={precio(totales.total)} tono="neutro" icono={iconoGrafico}
-          detalle={t('admin.reportes.rango', { desde: fecha(datos.desde), hasta: fecha(datos.hasta) })} />
-        <TarjetaKpi titulo={t('admin.reportes.b2c')} valor={precio(totales.b2c)} icono={iconoTienda} detalle={t('admin.reportes.b2cDetalle')} tono="neutro" />
-        <TarjetaKpi titulo={t('admin.reportes.b2b')} valor={precio(totales.b2b)} icono={iconoComunidad} detalle={t('admin.reportes.b2bDetalle')} tono="neutro" />
-      </div>
+      <Kpis textos="admin.reportes" tarjetas={[
+        { clave: `${metrica}.total`, valor: precio(totales.total), icono: iconoGrafico, detalle: 'rango', vars: rango(datos) },
+        { clave: 'b2c', valor: precio(totales.b2c), icono: iconoTienda },
+        { clave: 'b2b', valor: precio(totales.b2b), icono: iconoComunidad },
+      ]} />
       <section className="productor__seccion" aria-labelledby="reportes-tabla">
         <h2 id="reportes-tabla" className="heading-h3">{t(`${clave}.tabla`)}</h2>
         <div className="tabla" role="table" aria-labelledby="reportes-tabla">
