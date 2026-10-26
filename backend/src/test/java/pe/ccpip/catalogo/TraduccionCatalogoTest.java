@@ -43,7 +43,7 @@ class TraduccionCatalogoTest extends IntegrationTest {
                 .andExpect(jsonPath("$.linea.nombre").value("Oils"))
                 .andExpect(jsonPath("$.unidad.nombre").value("Milliliter"))
                 // Los nombres propios de la tienda no se traducen
-                .andExpect(jsonPath("$.tienda.nombre").value("Asoc. Nii Joi"));
+                .andExpect(jsonPath("$.tienda.nombre").value("Bordadoras de San Francisco"));
     }
 
     @Test
@@ -128,10 +128,10 @@ class TraduccionCatalogoTest extends IntegrationTest {
         mockMvc.perform(get("/api/tiendas/{id}", id).header(HttpHeaders.ACCEPT_LANGUAGE, "en"))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_LANGUAGE, "en"))
-                .andExpect(jsonPath("$.nombre").value("C.N. Yarina"))
-                .andExpect(jsonPath("$.descripcion").value("Fine-flavor cacao and herbal teas from the Upper Marañón."))
-                .andExpect(jsonPath("$.cita").value("We plant cacao where there was once logging."))
-                .andExpect(jsonPath("$.historia").value(org.hamcrest.Matchers.startsWith("Our cacao grows in the shade of the forest")))
+                .andExpect(jsonPath("$.nombre").value("Cacaoteros de Umukai"))
+                .andExpect(jsonPath("$.descripcion").value("Native cacao and Awajún herbal teas from Imaza, on the Marañón."))
+                .andExpect(jsonPath("$.cita").value("Nugkui taught us to sow the land."))
+                .andExpect(jsonPath("$.historia").value(org.hamcrest.Matchers.startsWith("In Umukai, in the district of Imaza, we grow native cacao")))
                 .andExpect(jsonPath("$.productos[*].nombre", hasItem("Cacao paste 500 g")));
     }
 
@@ -146,6 +146,6 @@ class TraduccionCatalogoTest extends IntegrationTest {
     @Test
     void laTiendaEnEspanolConservaSuTextoOriginal() throws Exception {
         mockMvc.perform(get("/api/tiendas/{id}", productor("productor2@ccpip.test")).header(HttpHeaders.ACCEPT_LANGUAGE, "es"))
-                .andExpect(jsonPath("$.cita").value("Sembramos cacao donde antes hubo tala."));
+                .andExpect(jsonPath("$.cita").value("Nugkui nos enseñó a sembrar la tierra."));
     }
 }

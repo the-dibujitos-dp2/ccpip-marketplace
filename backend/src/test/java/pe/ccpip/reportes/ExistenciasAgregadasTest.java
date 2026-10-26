@@ -67,7 +67,7 @@ class ExistenciasAgregadasTest extends IntegrationTest {
         assertThat(despues.at("/totales/puntosConExistencias").asInt()).isPositive();
 
         // Agregado: ningun productor ni producto con nombre
-        assertThat(despues.toString()).doesNotContain(cafe, "Asoc. Nii Joi");
+        assertThat(despues.toString()).doesNotContain(cafe, "Bordadoras de San Francisco");
     }
 
     @Test

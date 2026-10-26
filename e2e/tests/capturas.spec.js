@@ -13,7 +13,7 @@ test.describe('capturas para comparar con el Figma', () => {
     await capturar(page, 'CW-02-catalogo')
     await page.getByRole('link', { name: /Cacao en grano/ }).first().click()
     await capturar(page, 'CW-03-ficha')
-    await page.getByRole('link', { name: 'C.N. Yarina' }).first().click()
+    await page.getByRole('link', { name: 'Cacaoteros de Umukai' }).first().click()
     await capturar(page, 'CW-04-tienda')
     await page.goto('/comunidades')
     await capturar(page, 'CW-comunidades')

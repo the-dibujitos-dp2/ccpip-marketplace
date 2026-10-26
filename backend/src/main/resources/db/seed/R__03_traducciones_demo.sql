@@ -60,18 +60,31 @@ FROM (VALUES
     ('Infusion de guayusa 80 g', 'HISTORIA', 'texto', 'It''s drunk before dawn, in a circle, to share dreams.'),
     ('Cafe tostado en grano 500 g', 'PRODUCTO', 'nombre', 'Roasted coffee beans 500 g'),
     ('Cafe tostado en grano 500 g', 'PRODUCTO', 'descripcion', 'Medium roast, notes of panela and citrus.'),
-    ('Cafe tostado en grano 500 g', 'HISTORIA', 'texto', 'Grown at one thousand eight hundred meters among native trees.'),
+    ('Cafe tostado en grano 500 g', 'HISTORIA', 'texto', 'Grown on the slopes of the Perené valley, among native trees.'),
     ('Cafe molido 250 g', 'PRODUCTO', 'nombre', 'Ground coffee 250 g'),
     ('Cafe molido 250 g', 'PRODUCTO', 'descripcion', 'Medium grind, for filter.'),
     ('Cafe molido 250 g', 'HISTORIA', 'texto', 'From the same lot as the beans, ground right before packing.'),
     ('Canasta tejida de tamshi', 'PRODUCTO', 'nombre', 'Woven tamshi basket'),
     ('Canasta tejida de tamshi', 'PRODUCTO', 'descripcion', 'Woven with tamshi fiber from the forest.'),
-    ('Canasta tejida de tamshi', 'HISTORIA', 'texto', 'The fiber is gathered without killing the vine, so it grows back.')
+    ('Canasta tejida de tamshi', 'HISTORIA', 'texto', 'The fiber is gathered without killing the vine, so it grows back.'),
+    ('Chalina de alpaca teñida con cochinilla', 'PRODUCTO', 'nombre', 'Cochineal-dyed alpaca scarf'),
+    ('Chalina de alpaca teñida con cochinilla', 'PRODUCTO', 'descripcion', 'Woven on a backstrap loom with natural dyes.'),
+    ('Chalina de alpaca teñida con cochinilla', 'HISTORIA', 'texto', 'The red comes from the cochineal that lives on the valley''s prickly pears.'),
+    ('Manta tejida en telar de cintura', 'PRODUCTO', 'nombre', 'Backstrap loom blanket'),
+    ('Manta tejida en telar de cintura', 'PRODUCTO', 'descripcion', 'Sheep''s wool hand-spun with a pushka spindle.'),
+    ('Manta tejida en telar de cintura', 'HISTORIA', 'texto', 'A large blanket takes up to two months of work on the loom.'),
+    ('Chullo tejido a palitos', 'PRODUCTO', 'nombre', 'Hand-knitted chullo'),
+    ('Chullo tejido a palitos', 'PRODUCTO', 'descripcion', 'Alpaca wool, knitted by the men of the island.'),
+    ('Chullo tejido a palitos', 'HISTORIA', 'texto', 'On Taquile the men knit the chullo, and its colors tell whether the wearer is single or married.'),
+    ('Chumpi calendario de Taquile', 'PRODUCTO', 'nombre', 'Taquile calendar chumpi'),
+    ('Chumpi calendario de Taquile', 'PRODUCTO', 'descripcion', 'Loom-woven belt showing the months of the year.'),
+    ('Chumpi calendario de Taquile', 'HISTORIA', 'texto', 'Each band of the belt tells the work and festivities of one month on the island.')
 ) AS d(producto, entidad, campo, texto)
 JOIN producto pr ON pr.nombre = d.producto
 JOIN productor p ON p.id = pr.productor_id
 JOIN usuario u ON u.id = p.usuario_id
-WHERE u.correo IN ('productor@ccpip.test', 'productor2@ccpip.test', 'productor3@ccpip.test')
+WHERE u.correo IN ('productor@ccpip.test', 'productor2@ccpip.test', 'productor3@ccpip.test',
+                   'productor4@ccpip.test', 'productor5@ccpip.test')
 ON CONFLICT (entidad, clave, campo, idioma) DO UPDATE SET
     texto = EXCLUDED.texto, estado = 'APROBADA', origen = 'COMUNIDAD', proveedor = NULL,
     aprobada_en = coalesce(traduccion.aprobada_en, now()), actualizado_en = now()
@@ -81,15 +94,21 @@ WHERE traduccion.estado <> 'DESACTUALIZADA' AND (traduccion.texto <> EXCLUDED.te
 INSERT INTO traduccion (entidad, clave, campo, idioma, texto, estado, aprobada_en)
 SELECT d.entidad, p.id::text, d.campo, 'en', d.texto, 'APROBADA', now()
 FROM (VALUES
-    ('productor@ccpip.test', 'TIENDA', 'descripcion', 'Oils, superfruits and textiles made by Shipibo women from Yarinacocha.'),
+    ('productor@ccpip.test', 'TIENDA', 'descripcion', 'Kené embroidery, oils and superfruits made by Shipibo-Konibo women from Yarinacocha.'),
     ('productor@ccpip.test', 'COMUNIDAD', 'cita', 'The forest''s plants heal and nourish.'),
-    ('productor@ccpip.test', 'COMUNIDAD', 'historia', 'We have worked ungurahui oil for four generations. The harvest is done by hand, climbing the palm without cutting it, so it keeps bearing fruit the next year.'),
-    ('productor2@ccpip.test', 'TIENDA', 'descripcion', 'Fine-flavor cacao and herbal teas from the Upper Marañón.'),
-    ('productor2@ccpip.test', 'COMUNIDAD', 'cita', 'We plant cacao where there was once logging.'),
-    ('productor2@ccpip.test', 'COMUNIDAD', 'historia', 'Our cacao grows in the shade of the forest, without felling a single tree. We ferment it in wooden boxes for six days, as our grandmother taught us.'),
-    ('productor3@ccpip.test', 'TIENDA', 'descripcion', 'High-altitude coffee and Asháninka crafts from Chanchamayo.'),
+    ('productor@ccpip.test', 'COMUNIDAD', 'historia', 'We are Shipibo-Konibo families on the shores of the Yarinacocha lagoon. The women embroider kené, declared Cultural Heritage of the Nation in 2008, and in the forest we harvest ungurahui and aguaje without felling the palm.'),
+    ('productor2@ccpip.test', 'TIENDA', 'descripcion', 'Native cacao and Awajún herbal teas from Imaza, on the Marañón.'),
+    ('productor2@ccpip.test', 'COMUNIDAD', 'cita', 'Nugkui taught us to sow the land.'),
+    ('productor2@ccpip.test', 'COMUNIDAD', 'historia', 'In Umukai, in the district of Imaza, we grow native cacao in the shade of the forest, without felling a single tree. We ferment it in wooden boxes for six days, as our elders taught us.'),
+    ('productor3@ccpip.test', 'TIENDA', 'descripcion', 'Coffee, cacao and Asháninka crafts from the Perené valley.'),
     ('productor3@ccpip.test', 'COMUNIDAD', 'cita', 'Our coffee grows in the shade of the forest.'),
-    ('productor3@ccpip.test', 'COMUNIDAD', 'historia', 'We grow coffee at one thousand eight hundred meters, among native trees that shade the bean. Each sack carries the name of the family that harvested it.')
+    ('productor3@ccpip.test', 'COMUNIDAD', 'historia', 'Pampa Michi lies in the Perené valley, near La Merced. We welcome visitors with our dances and cushmas, and in the community''s plots we grow coffee and cacao among native trees.'),
+    ('productor4@ccpip.test', 'TIENDA', 'descripcion', 'Backstrap loom scarves and blankets, dyed with natural dyes.'),
+    ('productor4@ccpip.test', 'COMUNIDAD', 'cita', 'What we weave keeps the memory of our people.'),
+    ('productor4@ccpip.test', 'COMUNIDAD', 'historia', 'In Chinchero, more than 3,700 meters above sea level, we spin sheep and alpaca wool with a pushka and dye it with cochineal, chilca and other plants of the valley. We learned every design from our grandmothers.'),
+    ('productor5@ccpip.test', 'TIENDA', 'descripcion', 'Chullos and belts from Taquile Island, on Lake Titicaca.'),
+    ('productor5@ccpip.test', 'COMUNIDAD', 'cita', 'Do not steal, do not lie, do not be lazy.'),
+    ('productor5@ccpip.test', 'COMUNIDAD', 'historia', 'We live on Taquile Island, on Lake Titicaca. The men knit chullos and the women spin and weave the belts; in 2005 UNESCO proclaimed our textile art a Masterpiece of the Oral and Intangible Heritage of Humanity.')
 ) AS d(correo, entidad, campo, texto)
 JOIN usuario u ON u.correo = d.correo
 JOIN productor p ON p.usuario_id = u.id

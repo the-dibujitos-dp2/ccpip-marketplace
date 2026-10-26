@@ -60,7 +60,7 @@ class ProductorFlujoTest extends IntegrationTest {
         long tiendaId = mockMvc.perform(get("/api/productor/tienda").cookie(nuevo))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.publicada").value(false))
-                .andExpect(jsonPath("$.comunidad").value("Comunidad Kukama de Nauta"))
+                .andExpect(jsonPath("$.comunidad").value("Comunidad Kukama Kukamiria de Nauta"))
                 .andReturn().getResponse().getContentAsString().transform(this::idDe);
 
         // Sin los datos minimos no se publica, y se dice que falta

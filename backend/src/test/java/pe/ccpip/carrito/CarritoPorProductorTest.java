@@ -25,7 +25,7 @@ import pe.ccpip.support.IntegrationTest;
 /**
  * CCPIP-63 (RF-44): el comprador consulta su carrito agrupado por productor con el subtotal de cada
  * grupo. El total coincide con la suma de los grupos y no se cruzan ofertas ni inventarios.
- * productor@ccpip.test es la tienda "Asoc. Nii Joi" y productor2@ccpip.test, "C.N. Yarina".
+ * productor@ccpip.test es la tienda "Bordadoras de San Francisco" y productor2@ccpip.test, "Cacaoteros de Umukai".
  */
 @Transactional
 class CarritoPorProductorTest extends IntegrationTest {
@@ -54,13 +54,13 @@ class CarritoPorProductorTest extends IntegrationTest {
                 .andExpect(status().isOk())
                 // Un grupo por productor, en el orden de su primera oferta; las ofertas en el orden en que se agregaron
                 .andExpect(jsonPath("$.grupos.length()").value(2))
-                .andExpect(jsonPath("$.grupos[0].tienda.nombre").value("Asoc. Nii Joi"))
+                .andExpect(jsonPath("$.grupos[0].tienda.nombre").value("Bordadoras de San Francisco"))
                 .andExpect(jsonPath("$.grupos[0].tienda.comunidad").isString())
                 .andExpect(jsonPath("$.grupos[0].items.length()").value(2))
                 .andExpect(jsonPath("$.grupos[0].items[0].productoId").value(sacha))
                 .andExpect(jsonPath("$.grupos[0].items[1].productoId").value(camu))
                 .andExpect(jsonPath("$.grupos[0].subtotal").value(52.35))
-                .andExpect(jsonPath("$.grupos[1].tienda.nombre").value("C.N. Yarina"))
+                .andExpect(jsonPath("$.grupos[1].tienda.nombre").value("Cacaoteros de Umukai"))
                 .andExpect(jsonPath("$.grupos[1].items.length()").value(1))
                 .andExpect(jsonPath("$.grupos[1].items[0].productoId").value(cacao))
                 .andExpect(jsonPath("$.grupos[1].subtotal").value(46.5))

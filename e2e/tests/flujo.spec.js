@@ -11,7 +11,7 @@ import { api, enDias, fotoPng, ingresar, sinViolaciones, unico, vigilarConsola }
 // sobre la misma base nunca podria pasar y solo ocultaria la causa del primer fallo.
 test.describe.configure({ mode: 'serial', retries: 0 })
 
-const TIENDA = 'Comunidad Kukama de Nauta'
+const TIENDA = 'Comunidad Kukama Kukamiria de Nauta'
 const PRODUCTO = unico('Aceite de sacha inchi Nauta')
 const CERTIFICADO_PDF = '%PDF-1.4\n1 0 obj << >> endobj\n%%EOF\n'
 let productoId
@@ -58,7 +58,7 @@ test.describe('Productor: arma su tienda y publica su producto', () => {
     // El productor no vuelve operativa su tienda por su cuenta: primero la habilita el subadministrador
     await ingresar(page, 'sub_admin@ccpip.test')
     const productores = (await api(page, 'GET', '/api/admin/productores')).cuerpo
-    const kukama = productores.find((p) => p.comunidad === 'Comunidad Kukama de Nauta')
+    const kukama = productores.find((p) => p.comunidad === 'Comunidad Kukama Kukamiria de Nauta')
     expect(kukama.tiendaHabilitada).toBe(false)
     const habilitada = await api(page, 'POST', `/api/admin/productores/${kukama.id}/habilitar-tienda`, {
       motivo: 'Comunidad incorporada por la Cámara',
@@ -81,7 +81,8 @@ test.describe('Productor: arma su tienda y publica su producto', () => {
     await page.getByRole('button', { name: 'Publicar tienda' }).click()
     await expect(page.getByText('Escribe el nombre de tu tienda')).toBeVisible()
 
-    await page.getByLabel('Subir portada').setInputFiles(fotoPng('portada.png', { ancho: 1600, alto: 500 }))
+    // La comunidad ya trae la portada sembrada (PortadasSembradas): la reemplaza por la suya
+    await page.getByLabel('Cambiar portada').setInputFiles(fotoPng('portada.png', { ancho: 1600, alto: 500 }))
     await expect(page.getByText('Cambiar portada')).toBeVisible()
     await page.getByLabel('Categoría de las fotos nuevas').selectOption('CULTIVO')
     await page.getByLabel('Agregar foto').setInputFiles([fotoPng('chacra.png', { color: [120, 90, 30] }), fotoPng('cosecha.png', { color: [90, 40, 30] })])
