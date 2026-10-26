@@ -19,7 +19,7 @@ import pe.ccpip.support.IntegrationTest;
 /**
  * Reportes de gestion del superadministrador (SA-05, SA-10). CCPIP-122 (RF-86): productores con mayores
  * ventas; CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias de los puntos de acopio; CCPIP-123
- * (RF-87): calificaciones de productos.
+ * (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y de productores.
  *
  * <p>Los datos son de agosto y septiembre de 2023, meses que ninguna otra prueba usa, y la transaccion se
  * deshace al terminar.
@@ -146,6 +146,15 @@ class ReportesGestionTest extends IntegrationTest {
                 .andExpect(jsonPath("$.productos[1].producto").value("RG Harina"))
                 .andExpect(jsonPath("$.productos[1].promedio").doesNotExist())
                 .andExpect(jsonPath("$.productos[1].tendencia").doesNotExist())
+                // Por productor: productor@ (aceite) y productor2@ (harina)
+                .andExpect(jsonPath("$.productores.length()").value(2))
+                .andExpect(jsonPath("$.productores[0].promedio").value(4.5))
+                .andExpect(jsonPath("$.productores[0].productos").value(1))
+                .andExpect(jsonPath("$.productores[0].denuncias").value(1))
+                .andExpect(jsonPath("$.productores[0].tendencia").value("SUBE"))
+                .andExpect(jsonPath("$.productores[0].pueblo").exists())
+                .andExpect(jsonPath("$.productores[1].resenas").value(1))
+                .andExpect(jsonPath("$.productores[1].promedio").doesNotExist())
                 .andExpect(jsonPath("$.lineas[?(@.codigo == 'SUPERFRUTOS')]").exists())
                 // Ni quien califico ni sus comentarios
                 .andExpect(jsonPath("$..comentario").doesNotExist())
@@ -162,7 +171,8 @@ class ReportesGestionTest extends IntegrationTest {
                 .andExpect(jsonPath("$.linea").value("CAFE"))
                 .andExpect(jsonPath("$.resumen.resenas").value(0))
                 .andExpect(jsonPath("$.resumen.promedio").doesNotExist())
-                .andExpect(jsonPath("$.productos.length()").value(0));
+                .andExpect(jsonPath("$.productos.length()").value(0))
+                .andExpect(jsonPath("$.productores.length()").value(0));
         mockMvc.perform(get("/api/admin/reportes/calificaciones" + SEPTIEMBRE + "&linea=SUPERFRUTOS").cookie(sesion))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resumen.resenas").value(3));

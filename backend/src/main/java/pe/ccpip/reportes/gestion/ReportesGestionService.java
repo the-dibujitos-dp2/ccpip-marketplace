@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -22,6 +23,7 @@ import pe.ccpip.reportes.gestion.GestionModelos.Denuncias;
 import pe.ccpip.reportes.gestion.GestionModelos.Estrellas;
 import pe.ccpip.reportes.gestion.GestionModelos.Linea;
 import pe.ccpip.reportes.gestion.GestionModelos.ProductoCalificado;
+import pe.ccpip.reportes.gestion.GestionModelos.ProductorCalificado;
 import pe.ccpip.reportes.gestion.GestionModelos.ProductorVentas;
 import pe.ccpip.reportes.gestion.GestionModelos.PuntoReporte;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteCalificaciones;
@@ -169,7 +171,8 @@ public class ReportesGestionService {
     }
 
     /**
-     * CCPIP-123 (RF-87): las calificaciones del rango, en total y por producto. Un promedio solo se muestra con
+     * CCPIP-123 (RF-87) y CCPIP-352 (RF-242): las calificaciones del rango, en total, por producto y por
+     * productor. Un promedio solo se muestra con
      * el minimo de calificaciones que configura el superadministrador (CCPIP-82); la tendencia compara con el
      * periodo anterior de igual duracion. {@code linea} filtra por linea de producto (codigo).
      */
@@ -228,13 +231,45 @@ public class ReportesGestionService {
                     return new ProductoCalificado(rs.getLong("producto_id"), rs.getString("nombre"), rs.getString("productor"),
                             c.promedio(), c.resenas(), denuncias.getOrDefault(rs.getLong("producto_id"), 0L), c.tendencia());
                 });
-        List<ProductoCalificado> ordenados = productos.stream()
-                .sorted(Comparator.comparing(ProductoCalificado::promedio, Comparator.nullsLast(Comparator.reverseOrder()))
-                        .thenComparing(ProductoCalificado::resenas, Comparator.reverseOrder())
-                        .thenComparing(ProductoCalificado::producto))
-                .toList();
+        // CCPIP-352: los productores, por todas sus ofertas calificadas
+        Map<Long, Long> denunciasProductor = new HashMap<>();
+        jdbc.query("""
+                SELECT d.productor_id, count(*) AS denuncias FROM denuncia d
+                WHERE %s GROUP BY d.productor_id""".formatted(DENUNCIA_EN_RANGO), p,
+                rs -> {
+                    denunciasProductor.put(rs.getLong("productor_id"), rs.getLong("denuncias"));
+                });
+        List<ProductorCalificado> productores = jdbc.query("""
+                SELECT c.productor_id, coalesce(po.nombre_tienda, po.comunidad) AS productor, po.pueblo,
+                       count(DISTINCT c.producto_id) FILTER (WHERE %s) AS productos, %s
+                FROM calificacion c
+                JOIN productor po ON po.id = c.productor_id
+                WHERE %s %s
+                GROUP BY c.productor_id, po.nombre_tienda, po.comunidad, po.pueblo
+                HAVING count(*) FILTER (WHERE %s) > 0""".formatted(CALIFICADA_EN_RANGO, DOS_PERIODOS,
+                CALIFICADA_DESDE_ANTERIOR, deLaLinea, CALIFICADA_EN_RANGO), p,
+                (rs, row) -> {
+                    Calificado c = calificado(rs, minimo);
+                    return new ProductorCalificado(rs.getLong("productor_id"), rs.getString("productor"), rs.getString("pueblo"),
+                            c.promedio(), c.resenas(), rs.getLong("productos"),
+                            denunciasProductor.getOrDefault(rs.getLong("productor_id"), 0L), c.tendencia());
+                });
         return new ReporteCalificaciones(rango.desde(), rango.hasta(), anterior.desde(), anterior.hasta(), minimo, filtro,
-                resumen, ordenados, lineas);
+                resumen, ordenarPorPromedio(productos, ProductoCalificado::promedio, ProductoCalificado::resenas,
+                        ProductoCalificado::producto),
+                ordenarPorPromedio(productores, ProductorCalificado::promedio, ProductorCalificado::resenas,
+                        ProductorCalificado::productor),
+                lineas);
+    }
+
+    /** Del mejor promedio al peor (sin promedio al final), luego por mas calificaciones y por nombre. */
+    static <T> List<T> ordenarPorPromedio(List<T> lista, Function<T, BigDecimal> promedio, Function<T, Long> resenas,
+                                          Function<T, String> nombre) {
+        return lista.stream()
+                .sorted(Comparator.comparing(promedio, Comparator.nullsLast(Comparator.reverseOrder()))
+                        .thenComparing(resenas, Comparator.reverseOrder())
+                        .thenComparing(nombre))
+                .toList();
     }
 
     /** Lo que se calcula igual para un producto o un productor: promedio, calificaciones y tendencia. */

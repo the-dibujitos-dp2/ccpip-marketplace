@@ -44,8 +44,9 @@ public class ReportesGestionController {
     }
 
     /**
-     * CCPIP-123 (RF-87): calificaciones de productos en el rango, con el promedio solo desde el minimo
-     * configurado y la tendencia frente al periodo anterior. {@code linea} es el codigo de una linea de producto.
+     * CCPIP-123 (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y de productores en el rango, con el
+     * promedio solo desde el minimo configurado y la tendencia frente al periodo anterior. {@code linea} es el
+     * codigo de una linea de producto.
      */
     @GetMapping("/calificaciones")
     public ReporteCalificaciones calificaciones(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,

@@ -87,12 +87,23 @@ public final class GestionModelos {
     }
 
     /**
-     * CCPIP-123 (RF-87): reporte de calificaciones de productos. {@code anteriorDesde} y {@code anteriorHasta}
-     * son el periodo anterior de igual duracion con el que se calcula la tendencia; {@code minimo}, las
-     * calificaciones necesarias para mostrar un promedio; {@code linea}, el filtro aplicado (nulo si ninguno).
+     * CCPIP-352: un productor calificado en el rango, por todas sus ofertas: {@code productos} calificados,
+     * {@code denuncias} recibidas en el rango (sobre el productor o sus productos). Promedio y tendencia como en
+     * {@link ProductoCalificado}.
+     */
+    public record ProductorCalificado(long productorId, String productor, String pueblo, BigDecimal promedio,
+                                      long resenas, long productos, long denuncias, Tendencia tendencia) {
+    }
+
+    /**
+     * CCPIP-123 (RF-87) y CCPIP-352 (RF-242): reporte de calificaciones de productos y de productores.
+     * {@code anteriorDesde} y {@code anteriorHasta} son el periodo anterior de igual duracion con el que se
+     * calcula la tendencia; {@code minimo}, las calificaciones necesarias para mostrar un promedio;
+     * {@code linea}, el filtro aplicado (nulo si ninguno).
      */
     public record ReporteCalificaciones(LocalDate desde, LocalDate hasta, LocalDate anteriorDesde, LocalDate anteriorHasta,
                                         int minimo, String linea, ResumenCalificaciones resumen,
-                                        List<ProductoCalificado> productos, List<Linea> lineas) {
+                                        List<ProductoCalificado> productos, List<ProductorCalificado> productores,
+                                        List<Linea> lineas) {
     }
 }
