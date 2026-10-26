@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoCheck from '../../assets/icons/check.svg'
 import { consultarReporteAcopio, urlReporteAcopio } from '../../api/acopio.js'
+import { opcion, useReporte } from '../../api/useReporte.js'
 import Alerta from '../../components/Alerta.jsx'
 import Campo from '../../components/Campo.jsx'
+import DescargasReporte from '../../components/DescargasReporte.jsx'
 import Icono from '../../components/Icono.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
 import { mensajeError } from '../../i18n/errores.js'
@@ -23,6 +25,11 @@ const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
 /** Formatos de exportacion: los cuatro reportes juntos, con los filtros que se ven. */
 const FORMATOS = ['pdf', 'xlsx']
 
+const FILTRO_VACIO = { desde: '', hasta: '', agrupacion: '', productor: '', producto: '' }
+
+/** Los filtros que aplico el servidor, tal como los muestra la pantalla. */
+const aFiltro = (r) => ({ desde: r.desde, hasta: r.hasta, agrupacion: r.agrupacion, productor: opcion(r.productor), producto: opcion(r.producto) })
+
 /**
  * A-06 · Reportes del administrador de punto de acopio: lo que paso en sus puntos por periodo, con los
  * filtros de fechas, agrupacion, productor y producto. El servidor solo envia lo de sus puntos (RNF-05) y
@@ -35,37 +42,11 @@ const FORMATOS = ['pdf', 'xlsx']
  * - CCPIP-377, CCPIP-379, CCPIP-381 y CCPIP-383: los cuatro, juntos en Excel
  */
 export default function ReportesPage({ path }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const claves = Object.keys(REPORTES)
   const [reporte, setReporte] = useState(claves[0])
-  const [filtro, setFiltro] = useState({ desde: '', hasta: '', agrupacion: '', productor: '', producto: '' })
-  const [datos, setDatos] = useState(null)
-  const [error, setError] = useState(null)
-  const [cargando, setCargando] = useState(true)
-
-  const consultar = useCallback(async (clave, valores) => {
-    setCargando(true)
-    setError(null)
-    try {
-      const respuesta = await consultarReporteAcopio(clave, valores)
-      setDatos({ ...respuesta, clave })
-      setFiltro({
-        desde: respuesta.desde,
-        hasta: respuesta.hasta,
-        agrupacion: respuesta.agrupacion,
-        productor: respuesta.productor == null ? '' : String(respuesta.productor),
-        producto: respuesta.producto == null ? '' : String(respuesta.producto),
-      })
-    } catch (e) {
-      setError(e)
-    } finally {
-      setCargando(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    consultar(Object.keys(REPORTES)[0])
-  }, [consultar])
+  const { filtro, setFiltro, datos, error, cargando, cargar: consultar } =
+    useReporte(consultarReporteAcopio, aFiltro, claves[0], FILTRO_VACIO)
 
   function aplicar(nuevo) {
     setFiltro(nuevo)
@@ -120,14 +101,8 @@ export default function ReportesPage({ path }) {
           opciones={(datos?.productos ?? []).map((p) => ({ valor: String(p.id), etiqueta: p.nombre }))}
         />
         {datos && (
-          <div className="reportes-acopio__exportar">
-            {FORMATOS.map((f) => (
-              <a key={f} className="boton boton--secundario boton--M" download
-                href={urlReporteAcopio(f, datos, i18n.resolvedLanguage === 'en' ? 'en' : 'es')}>
-                {t(`acopio.reportes.exportar.${f}`)}
-              </a>
-            ))}
-          </div>
+          <DescargasReporte className="reportes-acopio__exportar" formatos={FORMATOS}
+            etiqueta={(f) => t(`acopio.reportes.exportar.${f}`)} url={(f, idioma) => urlReporteAcopio(f, datos, idioma)} />
         )}
       </div>
       {error && <Alerta tono="error" titulo={t('acopio.reportes.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
