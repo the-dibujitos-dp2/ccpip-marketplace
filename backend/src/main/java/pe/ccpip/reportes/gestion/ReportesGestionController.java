@@ -35,7 +35,7 @@ public class ReportesGestionController {
         return service.productores(desde, hasta);
     }
 
-    /** CCPIP-355 (RF-245): ventas agregadas de cada punto de acopio en el rango. */
+    /** CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias agregadas de cada punto de acopio en el rango. */
     @GetMapping("/puntos")
     public ReportePuntos puntos(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
                                 @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {

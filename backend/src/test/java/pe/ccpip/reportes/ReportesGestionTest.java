@@ -16,7 +16,7 @@ import pe.ccpip.support.IntegrationTest;
 
 /**
  * Reportes de gestion del superadministrador (SA-05, SA-10). CCPIP-122 (RF-86): productores con mayores
- * ventas; CCPIP-355 (RF-245): ventas de los puntos de acopio.
+ * ventas; CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias de los puntos de acopio.
  *
  * <p>Los datos son de agosto y septiembre de 2023, meses que ninguna otra prueba usa, y la transaccion se
  * deshace al terminar.
@@ -89,6 +89,33 @@ class ReportesGestionTest extends IntegrationTest {
     }
 
     @Test
+    void lasDenunciasSumanEnCadaPuntoDondeEstaLaOferta() throws Exception {
+        lote(aceite, LIMA, "RG-L1");
+        lote(aceite, CUSCO, "RG-C1");
+        lote(harina, LIMA, "RG-L2");
+        // Sobre el aceite (esta en Lima y Cusco), aun sin resolver
+        denuncia(aceite, null, "RECIBIDA", "2023-09-10 10:00-05");
+        // Sobre productor2@ sin nombrar producto: su harina esta en Lima
+        denuncia(null, "productor2@ccpip.test", "RESUELTA", "2023-09-11 10:00-05");
+        // Fuera del rango
+        denuncia(aceite, null, "DESESTIMADA", "2023-08-11 10:00-05");
+
+        mockMvc.perform(get("/api/admin/reportes/puntos" + SEPTIEMBRE).cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.denuncias.total").value(2))
+                .andExpect(jsonPath("$.denuncias.abiertas").value(1))
+                .andExpect(jsonPath("$.denuncias.resueltas").value(1))
+                .andExpect(jsonPath("$.denuncias.desestimadas").value(0))
+                .andExpect(jsonPath("$.puntos[?(@.punto == '" + LIMA + "')].denuncias").value(2))
+                .andExpect(jsonPath("$.puntos[?(@.punto == '" + LIMA + "')].denunciasAbiertas").value(1))
+                .andExpect(jsonPath("$.puntos[?(@.punto == '" + CUSCO + "')].denuncias").value(1))
+                .andExpect(jsonPath("$.puntos[?(@.punto == '" + CUSCO + "')].denunciasAbiertas").value(1))
+                // Sin el detalle de la denuncia ni quien la hizo
+                .andExpect(jsonPath("$..descripcion").doesNotExist())
+                .andExpect(jsonPath("$..denunciante").doesNotExist());
+    }
+
+    @Test
     void sinVentasElRankingQuedaVacio() throws Exception {
         mockMvc.perform(get("/api/admin/reportes/productores?desde=2023-08-01&hasta=2023-08-02").cookie(loginAs(SUPER)))
                 .andExpect(status().isOk())
@@ -143,5 +170,22 @@ class ReportesGestionTest extends IntegrationTest {
                 INSERT INTO item_pedido (pedido_id, producto_id, productor_id, cantidad, precio_unitario, subtotal, tarifa)
                 SELECT ?, id, productor_id, ?, ?, ?, ? FROM producto WHERE id = ?
                 RETURNING id""", Long.class, pedidoId, cantidad, monto, monto, tarifa, productoId);
+    }
+
+    private void lote(long productoId, String punto, String codigo) {
+        jdbc.update("""
+                INSERT INTO lote (producto_id, ubicacion_id, codigo, cantidad_inicial, cantidad_actual)
+                SELECT ?, id, ?, 10, 10 FROM ubicacion WHERE nombre = ?""", productoId, codigo, punto);
+    }
+
+    /** Una denuncia sobre un producto o, si {@code productoId} es nulo, sobre el productor de {@code correo}. */
+    private void denuncia(Long productoId, String correoProductor, String estado, String cuando) {
+        jdbc.update("""
+                INSERT INTO denuncia (denunciante_id, productor_id, producto_id, motivo, descripcion, estado, creada_en)
+                SELECT (SELECT id FROM usuario WHERE correo = 'consumidor@ccpip.test'),
+                       coalesce((SELECT productor_id FROM producto WHERE id = ?),
+                                (SELECT p.id FROM productor p JOIN usuario u ON u.id = p.usuario_id WHERE u.correo = ?)),
+                       ?, 'CALIDAD', 'Prueba de reporte', ?, ?::timestamptz""",
+                productoId, correoProductor, productoId, estado, cuando);
     }
 }

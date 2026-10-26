@@ -3,7 +3,9 @@ package pe.ccpip.reportes.gestion;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -12,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import pe.ccpip.comun.RangoFechas;
 import pe.ccpip.reportes.ReportesModelos.Desglose;
+import pe.ccpip.reportes.gestion.GestionModelos.Denuncias;
 import pe.ccpip.reportes.gestion.GestionModelos.ProductorVentas;
 import pe.ccpip.reportes.gestion.GestionModelos.PuntoReporte;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteProductores;
@@ -31,6 +34,9 @@ public class ReportesGestionService {
     static final String VENDIDO = """
             pe.confirmado_en IS NOT NULL AND pe.estado <> 'CANCELADO'
             AND (pe.confirmado_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta""";
+
+    /** Una denuncia {@code d} recibida en el rango (fecha de Lima). */
+    static final String DENUNCIA_EN_RANGO = "(d.creada_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta";
 
     /** Lo vendido de las lineas {@code i} separado en B2C (tarifa minorista) y B2B (mayorista). */
     static final String POR_TARIFA = """
@@ -79,6 +85,7 @@ public class ReportesGestionService {
     /**
      * CCPIP-355 (RF-245): lo vendido desde cada punto de acopio en el rango, con su desglose B2C y B2B y sus
      * pedidos. Los puntos activos sin ventas aparecen en cero; uno inactivo, solo si vendio en el rango.
+     * CCPIP-356 (RF-246): las denuncias recibidas en el rango sobre las ofertas que estan en cada punto.
      */
     @Transactional(readOnly = true)
     public ReportePuntos puntos(LocalDate desde, LocalDate hasta) {
@@ -96,12 +103,35 @@ public class ReportesGestionService {
                         rs.getLong("pedidos"), desglose(rs.getBigDecimal("b2c"), rs.getBigDecimal("b2b"))));
         Desglose totales = desglose(ventas.stream().map(v -> v.ventas().b2c()).reduce(BigDecimal.ZERO, BigDecimal::add),
                 ventas.stream().map(v -> v.ventas().b2b()).reduce(BigDecimal.ZERO, BigDecimal::add));
+        // CCPIP-356: una denuncia suma en cada punto donde esta la oferta denunciada
+        Map<Long, long[]> denunciasPorPunto = new HashMap<>();
+        jdbc.query("""
+                SELECT l.ubicacion_id, count(DISTINCT d.id) AS total,
+                       count(DISTINCT d.id) FILTER (WHERE d.estado IN ('RECIBIDA', 'EN_REVISION')) AS abiertas
+                FROM denuncia d
+                JOIN producto pr ON pr.id = d.producto_id OR (d.producto_id IS NULL AND pr.productor_id = d.productor_id)
+                JOIN lote l ON l.producto_id = pr.id
+                WHERE %s
+                GROUP BY l.ubicacion_id""".formatted(DENUNCIA_EN_RANGO), parametros(rango), rs -> {
+            denunciasPorPunto.put(rs.getLong("ubicacion_id"), new long[] {rs.getLong("total"), rs.getLong("abiertas")});
+        });
+        Denuncias denuncias = jdbc.queryForObject("""
+                SELECT count(*) AS total,
+                       count(*) FILTER (WHERE d.estado IN ('RECIBIDA', 'EN_REVISION')) AS abiertas,
+                       count(*) FILTER (WHERE d.estado = 'RESUELTA') AS resueltas,
+                       count(*) FILTER (WHERE d.estado = 'DESESTIMADA') AS desestimadas
+                FROM denuncia d WHERE %s""".formatted(DENUNCIA_EN_RANGO), parametros(rango),
+                (rs, row) -> new Denuncias(rs.getLong("total"), rs.getLong("abiertas"), rs.getLong("resueltas"),
+                        rs.getLong("desestimadas")));
         List<PuntoReporte> puntos = ventas.stream()
-                .map(v -> new PuntoReporte(v.id(), v.nombre(), v.departamento(), v.pedidos(), v.ventas().b2c(),
-                        v.ventas().b2b(), v.ventas().total(), porcentaje(v.ventas().total(), totales.total())))
+                .map(v -> {
+                    long[] d = denunciasPorPunto.getOrDefault(v.id(), new long[2]);
+                    return new PuntoReporte(v.id(), v.nombre(), v.departamento(), v.pedidos(), v.ventas().b2c(),
+                            v.ventas().b2b(), v.ventas().total(), porcentaje(v.ventas().total(), totales.total()), d[0], d[1]);
+                })
                 .toList();
         return new ReportePuntos(rango.desde(), rango.hasta(), totales, ventas.stream().mapToLong(PuntoVentas::pedidos).sum(),
-                puntos);
+                denuncias, puntos);
     }
 
     private record PuntoVentas(long id, String nombre, String departamento, long pedidos, Desglose ventas) {

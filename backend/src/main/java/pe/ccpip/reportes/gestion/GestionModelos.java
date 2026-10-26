@@ -36,16 +36,26 @@ public final class GestionModelos {
      * CCPIP-355: lo vendido desde un punto de acopio en el rango (los pedidos salen de un punto). Solo cifras
      * agregadas: sin stock editable ni pedidos individuales. {@code participacion} es su porcentaje de las
      * ventas de la plataforma.
+     *
+     * <p>CCPIP-356: {@code denuncias} recibidas en el rango sobre ofertas que estan en el punto (el producto
+     * denunciado, o cualquier producto del productor si la denuncia no nombra uno, tiene lotes ahi);
+     * {@code denunciasAbiertas}, las que aun no se resuelven (recibidas o en revision).
      */
     public record PuntoReporte(long puntoId, String punto, String departamento, long pedidos, BigDecimal b2c,
-                               BigDecimal b2b, BigDecimal total, BigDecimal participacion) {
+                               BigDecimal b2b, BigDecimal total, BigDecimal participacion, long denuncias,
+                               long denunciasAbiertas) {
+    }
+
+    /** CCPIP-356: denuncias de la plataforma recibidas en el rango, por estado. */
+    public record Denuncias(long total, long abiertas, long resueltas, long desestimadas) {
     }
 
     /**
-     * CCPIP-355 (RF-245): ventas de cada punto de acopio en el rango, de mayor a menor. Incluye los puntos
-     * activos sin ventas, en cero.
+     * CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias de cada punto de acopio en el rango, de mayor a
+     * menor venta. Incluye los puntos activos sin ventas, en cero. {@code denuncias} son las de toda la
+     * plataforma: una denuncia suma en cada punto donde esta la oferta, asi que los puntos pueden sumar mas.
      */
-    public record ReportePuntos(LocalDate desde, LocalDate hasta, Desglose totales, long pedidos,
+    public record ReportePuntos(LocalDate desde, LocalDate hasta, Desglose totales, long pedidos, Denuncias denuncias,
                                 List<PuntoReporte> puntos) {
     }
 }
