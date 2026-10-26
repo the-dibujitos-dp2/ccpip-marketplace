@@ -11,7 +11,7 @@ import pe.ccpip.aviso.Correo;
 
 /**
  * Notifica al productor cada decision humana sobre su venta (CCPIP-37, CCPIP-297, CCPIP-39,
- * CCPIP-291, CCPIP-330, CCPIP-85, CCPIP-322) y sobre la publicacion de sus ofertas (CCPIP-331). El canal es el acordado el 30/09 (Figma, CCPIP-103): correo, y el aviso en
+ * CCPIP-291, CCPIP-330, CCPIP-85, CCPIP-322) y sobre la publicacion de sus ofertas (CCPIP-331, CCPIP-332). El canal es el acordado el 30/09 (Figma, CCPIP-103): correo, y el aviso en
  * la plataforma, que son el estado y el motivo que el productor ve en sus pantallas.
  *
  * <p>Se llama despues de que la decision quedo guardada: si el correo falla, la decision no se deshace
@@ -26,7 +26,8 @@ public class AvisoAutorizacion {
      * promete que los productos vuelven a la venta. PUBLICACION_*: la moderacion de una oferta.
      */
     public enum Tipo { APROBADA, RECHAZADA, REVOCADA, HABILITAR_TIENDA, REVOCAR_VENTA, RESTITUIR_VENTA, BLOQUEAR_VENTA, DESBLOQUEAR_VENTA,
-        RESTITUIR_VENTA_SIGUE_BLOQUEADA, DESBLOQUEAR_VENTA_SIGUE_REVOCADA, PUBLICACION_APROBADA }
+        RESTITUIR_VENTA_SIGUE_BLOQUEADA, DESBLOQUEAR_VENTA_SIGUE_REVOCADA, PUBLICACION_APROBADA,
+        PUBLICACION_RECHAZADA }
 
     private record Destinatario(long usuarioId, String correo, String nombre, boolean ingles) {
     }
@@ -58,7 +59,8 @@ public class AvisoAutorizacion {
                     "Levantamos el bloqueo de tu organización", "Ya no tienes un bloqueo de ventas. Sin embargo, tus productos "
                             + "todavía no se pueden comprar, porque la autorización de venta de tu organización sigue revocada. "
                             + "Te avisaremos cuando la Cámara la restituya.",
-                    "Publicamos tu oferta %s", "Ya está en el catálogo de Mercado CCPIP."));
+                    "Publicamos tu oferta %s", "Ya está en el catálogo de Mercado CCPIP.",
+                    "No publicamos tu oferta %s", "Puedes corregirla desde Mis productos y volver a enviarla a revisión."));
 
     // El motivo lo escribe el subadministrador en espanol: se envia tal cual
     private static final Idioma EN = new Idioma("Hello", "Reason",
@@ -80,7 +82,8 @@ public class AvisoAutorizacion {
                     "We lifted your organization's block", "Your sales are no longer blocked. However, your products cannot "
                             + "be purchased yet, because your organization's sale authorization is still revoked. "
                             + "We will let you know when the Chamber restores it.",
-                    "We published your offer %s", "It is now in the Mercado CCPIP catalog."));
+                    "We published your offer %s", "It is now in the Mercado CCPIP catalog.",
+                    "We did not publish your offer %s", "You can fix it from My products and send it for review again."));
 
     private final JdbcTemplate jdbc;
     private final Avisos avisos;

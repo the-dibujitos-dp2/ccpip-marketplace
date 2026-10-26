@@ -22,7 +22,7 @@ import pe.ccpip.moderacion.ModeracionModelos.NuevaDecision;
 
 /**
  * Moderacion de la publicacion de ofertas: el subadministrador revisa lo que los productores piden
- * publicar (CCPIP-46) y la aprueba con motivo (CCPIP-331). Es una accion de gobierno del sub
+ * publicar (CCPIP-46) y la aprueba (CCPIP-331) o la rechaza (CCPIP-332), siempre con motivo. Es una accion de gobierno del sub
  * administrador, como las autorizaciones: el superadministrador recibe 403 (RNF-04). Cada decision se
  * avisa al productor una vez guardada.
  */
@@ -56,6 +56,14 @@ public class ModeracionController {
     public Expediente aprobar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                               @PathVariable long id, @Valid @RequestBody NuevaDecision decision) {
         return avisar(service.aprobar(id, s.userId(), decision.motivo()), AvisoAutorizacion.Tipo.PUBLICACION_APROBADA,
+                decision);
+    }
+
+    /** CCPIP-332: rechazar con motivo; la oferta vuelve a su estado anterior y el productor ve el motivo. */
+    @PostMapping("/{id}/rechazar")
+    public Expediente rechazar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                               @PathVariable long id, @Valid @RequestBody NuevaDecision decision) {
+        return avisar(service.rechazar(id, s.userId(), decision.motivo()), AvisoAutorizacion.Tipo.PUBLICACION_RECHAZADA,
                 decision);
     }
 

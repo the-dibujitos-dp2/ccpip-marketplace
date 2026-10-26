@@ -194,6 +194,32 @@ describe('CCPIP-46 Moderación de publicaciones', () => {
     expect(llamadas(fetchMock, `GET ${EXPEDIENTE}`)).toHaveLength(2)
   })
 
+  it('CCPIP-332: rechaza con motivo aunque la oferta no se pueda aprobar', async () => {
+    const rechazada = {
+      ...copia(EXP), estado: 'RECHAZADA', puedeDecidir: false, puedeAprobar: false,
+      historial: [{ ...EXP.historial[0], estado: 'RECHAZADA', motivo: 'Las fotos no muestran el producto', decididaPor: 'Lucía Paredes', decididaEn: '2026-10-26T15:00:00Z' }],
+    }
+    const fetchMock = comoSub({
+      [`GET ${EXPEDIENTE}`]: () => [200, { ...copia(EXP), puedeAprobar: false, faltan: ['Un lote vigente con stock en un punto de acopio'] }],
+      [`POST ${EXPEDIENTE}/rechazar`]: () => [200, rechazada],
+    })
+    const user = userEvent.setup()
+    abrirEn('/admin/moderacion/7')
+    const d = await decision()
+    expect(d.getByRole('button', { name: 'Aprobar publicación' })).toBeDisabled()
+    await user.type(d.getByLabelText('Motivo de la decisión'), 'Las fotos no muestran el producto')
+    await user.click(d.getByRole('button', { name: 'Rechazar publicación' }))
+    const dialogo = within(screen.getByRole('dialog'))
+    expect(dialogo.getByRole('heading', { name: 'Rechazar la publicación de Miel de abeja melipona 250 g' })).toBeInTheDocument()
+    expect(dialogo.getByText(/La oferta vuelve a Asoc\. Nii Joi, que verá este motivo/)).toBeInTheDocument()
+    await user.click(dialogo.getByRole('button', { name: 'Rechazar publicación' }))
+
+    expect(await screen.findByText('Rechazaste la publicación. El productor verá tu motivo.')).toBeInTheDocument()
+    const [[, opciones]] = llamadas(fetchMock, `POST ${EXPEDIENTE}/rechazar`)
+    expect(JSON.parse(opciones.body)).toEqual({ motivo: 'Las fotos no muestran el producto' })
+    expect((await decision()).getByText('Esta publicación se rechazó.')).toBeInTheDocument()
+  })
+
   it('el superadministrador no modera', async () => {
     servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_SUPER], 'GET /api/admin/tablero': () => [200, copia(DATOS.tableroAdmin)] })
     abrirEn('/admin/moderacion')

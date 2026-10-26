@@ -422,6 +422,7 @@
         "borrador": "Borrador",
         "despublicado": "Despublicado",
         "enRevision": "En revisión",
+        "rechazada": "Publicación rechazada",
         "porVencer": "Lote por vencer",
         "sinStock": "Sin stock en venta",
         "stockBajo": "Stock bajo",
@@ -488,6 +489,8 @@
       "errorFotosTexto": "Recarga la página para verlas.",
       "enCatalogo": "Tu producto está en el catálogo. Los lotes nuevos se suman a lo que está en venta.",
       "enRevision": "La Cámara está revisando tu producto. Aparecerá en el catálogo cuando lo apruebe; mientras tanto puedes editarlo y registrar lotes.",
+      "rechazada": "La Cámara no publicó esta oferta",
+      "rechazadaTexto": "Motivo: «{{motivo}}». Corrígela y vuelve a enviarla a revisión.",
       "todoListo": "Todo listo: precio, línea y un lote en venta. Al publicar, la Cámara lo revisa antes de mostrarlo en el catálogo y en tu tienda.",
       "publicando": "Enviando a revisión…",
       "falta": "Para publicar todavía falta:",
@@ -3089,9 +3092,11 @@
       "motivoAyuda": "Obligatorio. El productor lo verá.",
       "motivoRequerido": "Escribe el motivo de la decisión",
       "aprobar": "Aprobar publicación",
+      "rechazar": "Rechazar publicación",
       "noAprobable": "Para aprobar, la oferta debe cumplir todo lo de la lista.",
       "hecho": {
-        "aprobar": "Aprobaste la publicación. La oferta ya está en el catálogo."
+        "aprobar": "Aprobaste la publicación. La oferta ya está en el catálogo.",
+        "rechazar": "Rechazaste la publicación. El productor verá tu motivo."
       },
       "errorDecision": "No pudimos registrar la decisión",
       "resuelta": {
@@ -3105,6 +3110,11 @@
         "titulo": "Aprobar la publicación de {{producto}}",
         "confirmar": "Aprobar",
         "texto": "La oferta pasa al catálogo y {{organizacion}} recibe tu motivo. La decisión queda registrada y no se edita."
+      },
+      "rechazar": {
+        "titulo": "Rechazar la publicación de {{producto}}",
+        "confirmar": "Rechazar publicación",
+        "texto": "La oferta vuelve a {{organizacion}}, que verá este motivo y podrá corregirla y enviarla otra vez. La decisión queda registrada y no se edita."
       }
     }
   },
@@ -3875,6 +3885,7 @@
       "AUTORIZACION_REVOCADA": "Revocó autorización",
       "RENOVACION_SOLICITADA": "Pidió renovación",
       "PUBLICACION_APROBADA": "Aprobó publicación",
+      "PUBLICACION_RECHAZADA": "Rechazó publicación",
       "HABILITAR_TIENDA": "Habilitó tienda",
       "REVOCAR_VENTA": "Revocó venta",
       "RESTITUIR_VENTA": "Restituyó venta",

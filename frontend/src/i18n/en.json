@@ -422,6 +422,7 @@
         "borrador": "Draft",
         "despublicado": "Unpublished",
         "enRevision": "Under review",
+        "rechazada": "Publication rejected",
         "porVencer": "Batch expiring",
         "sinStock": "No stock for sale",
         "stockBajo": "Low stock",
@@ -488,6 +489,8 @@
       "errorFotosTexto": "Reload the page to see them.",
       "enCatalogo": "Your product is in the catalog. New batches add to what's for sale.",
       "enRevision": "The Chamber is reviewing your product. It will appear in the catalog once approved; meanwhile you can edit it and register batches.",
+      "rechazada": "The Chamber did not publish this offer",
+      "rechazadaTexto": "Reason: “{{motivo}}”. Fix it and send it for review again.",
       "todoListo": "All set: price, line and a batch for sale. When you publish it, the Chamber reviews it before showing it in the catalog and your store.",
       "publicando": "Sending for review…",
       "falta": "Still missing before you can publish:",
@@ -3089,9 +3092,11 @@
       "motivoAyuda": "Required. The producer will see it.",
       "motivoRequerido": "Write the reason for the decision",
       "aprobar": "Approve publication",
+      "rechazar": "Reject publication",
       "noAprobable": "To approve, the offer must meet everything on the list.",
       "hecho": {
-        "aprobar": "You approved the publication. The offer is now in the catalog."
+        "aprobar": "You approved the publication. The offer is now in the catalog.",
+        "rechazar": "You rejected the publication. The producer will see your reason."
       },
       "errorDecision": "We could not record the decision",
       "resuelta": {
@@ -3105,6 +3110,11 @@
         "titulo": "Approve the publication of {{producto}}",
         "confirmar": "Approve",
         "texto": "The offer goes into the catalog and {{organizacion}} receives your reason. The decision is recorded and cannot be edited."
+      },
+      "rechazar": {
+        "titulo": "Reject the publication of {{producto}}",
+        "confirmar": "Reject publication",
+        "texto": "The offer goes back to {{organizacion}}, who will see this reason and can fix it and send it again. The decision is recorded and cannot be edited."
       }
     }
   },
@@ -3875,6 +3885,7 @@
       "AUTORIZACION_REVOCADA": "Revoked authorization",
       "RENOVACION_SOLICITADA": "Requested renewal",
       "PUBLICACION_APROBADA": "Approved publication",
+      "PUBLICACION_RECHAZADA": "Rejected publication",
       "HABILITAR_TIENDA": "Enabled store",
       "REVOCAR_VENTA": "Revoked sale",
       "RESTITUIR_VENTA": "Restored sale",

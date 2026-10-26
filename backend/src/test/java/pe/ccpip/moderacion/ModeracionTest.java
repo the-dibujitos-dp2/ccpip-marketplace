@@ -195,6 +195,54 @@ class ModeracionTest extends IntegrationTest {
         assertThat(jdbc.queryForObject("SELECT decision FROM moderacion_publicacion WHERE id = ?", String.class, solicitud)).isNull();
     }
 
+    // ---------- CCPIP-332: rechazar ----------
+
+    @Test
+    void rechazarDevuelveLaOfertaASuEstadoYElProductorVeElMotivo() throws Exception {
+        long solicitud = publicar();
+        decidir(solicitud, "rechazar", "Las fotos no muestran el producto que se vende.")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("RECHAZADA"))
+                .andExpect(jsonPath("$.puedeDecidir").value(false))
+                .andExpect(jsonPath("$.historial[0].motivo").value("Las fotos no muestran el producto que se vende."));
+
+        // Venia de un retiro: vuelve a despublicada, fuera del catalogo, con el motivo a la vista
+        mockMvc.perform(get("/api/productor/productos/{id}", oferta).cookie(productor))
+                .andExpect(jsonPath("$.estado").value("RETIRADO"))
+                .andExpect(jsonPath("$.moderacion.estado").value("RECHAZADA"))
+                .andExpect(jsonPath("$.moderacion.motivo").value("Las fotos no muestran el producto que se vende."));
+        mockMvc.perform(get("/api/productor/productos").param("estado", "RETIRADO").cookie(productor))
+                .andExpect(jsonPath("$.items[?(@.id == %d)].alerta".formatted(oferta)).value("PUBLICACION_RECHAZADA"));
+        mockMvc.perform(get("/api/productos/{id}", oferta)).andExpect(status().isNotFound());
+        assertThat(jdbc.queryForObject("SELECT accion FROM producto_auditoria WHERE producto_id = ? ORDER BY id DESC LIMIT 1",
+                String.class, oferta)).isEqualTo("MODERACION");
+        assertThat(correos.ultimoPara(PRODUCTOR).orElseThrow().texto()).contains("Motivo: Las fotos no muestran el producto que se vende.");
+        mockMvc.perform(get("/api/admin/mi-historial").param("tipo", "MODERACION").cookie(subAdmin))
+                .andExpect(jsonPath("$.acciones[?(@.clave == 'MP-%d')].accion".formatted(solicitud)).value("PUBLICACION_RECHAZADA"));
+        decidir(solicitud, "rechazar", "Otra vez").andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("MODERACION_YA_RESUELTA"));
+
+        // Corregida, la vuelve a enviar: es otra solicitud, y la rechazada queda en su historial
+        long otra = publicar();
+        assertThat(otra).isNotEqualTo(solicitud);
+        mockMvc.perform(get("/api/admin/moderacion/{id}", otra).cookie(subAdmin))
+                .andExpect(jsonPath("$.historial.length()").value(2))
+                .andExpect(jsonPath("$.historial[1].estado").value("RECHAZADA"));
+        mockMvc.perform(get("/api/productor/productos/{id}", oferta).cookie(productor))
+                .andExpect(jsonPath("$.moderacion.estado").value("PENDIENTE"));
+    }
+
+    @Test
+    void unBorradorRechazadoVuelveABorradorYSeRechazaAunqueNoEsteAutorizado() throws Exception {
+        long borrador = productoConLote("Miel de abeja melipona MOD borrador", "BORRADOR", "PUNTO_ACOPIO", EN_UN_ANIO);
+        oferta = borrador;
+        long solicitud = publicar();
+        jdbc.update("UPDATE autorizacion_producto SET estado = 'REVOCADA' WHERE producto_id = ?", borrador);
+        decidir(solicitud, "rechazar", "  ").andExpect(status().isBadRequest());
+        decidir(solicitud, "rechazar", "La autorización de venta fue revocada.").andExpect(status().isOk());
+        assertThat(jdbc.queryForObject("SELECT estado FROM producto WHERE id = ?", String.class, borrador)).isEqualTo("BORRADOR");
+    }
+
     @Test
     void soloElSubadministradorModera() throws Exception {
         long solicitud = publicar();

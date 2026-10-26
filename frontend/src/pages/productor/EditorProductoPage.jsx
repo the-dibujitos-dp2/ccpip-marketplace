@@ -136,6 +136,10 @@ export default function EditorProductoPage({ path, id, search }) {
       </div>
 
       {alerta && paso !== 2 && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
+      {rechazada(producto) && (
+        <Alerta tono="error" titulo={t('productor.editor.rechazada')}
+          descripcion={t('productor.editor.rechazadaTexto', { motivo: producto.moderacion.motivo })} />
+      )}
 
       {paso === 0 && (
         <PasoDatos
@@ -222,3 +226,7 @@ function tituloPublicar(estado, t) {
   if (estado === 'EN_MODERACION') return t('productor.productos.badge.enRevision')
   return t('productor.productos.publicar')
 }
+
+/** CCPIP-332: la Camara no publico la oferta. Se ve hasta que el productor la vuelve a enviar. */
+const rechazada = (producto) =>
+  producto?.moderacion?.estado === 'RECHAZADA' && (producto.estado === 'BORRADOR' || producto.estado === 'RETIRADO')

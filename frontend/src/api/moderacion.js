@@ -11,3 +11,7 @@ export const expedienteModeracion = async (id) => apiFetch(`/api/admin/moderacio
 /** CCPIP-331: aprobar con motivo; la oferta pasa al catalogo. Devuelve el expediente actualizado. */
 export const aprobarModeracion = async (id, motivo) =>
   apiFetch(`/api/admin/moderacion/${idRuta(id)}/aprobar`, { method: 'POST', body: { motivo } })
+
+/** CCPIP-332: rechazar con motivo; la oferta vuelve a su estado anterior. Devuelve el expediente actualizado. */
+export const rechazarModeracion = async (id, motivo) =>
+  apiFetch(`/api/admin/moderacion/${idRuta(id)}/rechazar`, { method: 'POST', body: { motivo } })

@@ -27,6 +27,8 @@ import './ProductosPage.css'
 const ESTADOS = ['PUBLICADO', 'EN_MODERACION', 'BORRADOR', 'RETIRADO']
 
 function badge(fila, t) {
+  // CCPIP-332: la Camara no publico la oferta; el motivo se ve al editarla
+  if (fila.alerta === 'PUBLICACION_RECHAZADA') return <Badge tono="error">{t('productor.productos.badge.rechazada')}</Badge>
   if (fila.estado === 'BORRADOR') return <Badge tono="neutro">{t('productor.productos.badge.borrador')}</Badge>
   if (fila.estado === 'RETIRADO') return <Badge tono="neutro">{t('productor.productos.badge.despublicado')}</Badge>
   if (fila.estado === 'EN_MODERACION') return <Badge tono="info">{t('productor.productos.badge.enRevision')}</Badge>

@@ -76,7 +76,9 @@ public class ProductosService {
                        EXISTS (SELECT 1 FROM lote x JOIN ubicacion u ON u.id = x.ubicacion_id
                                WHERE x.producto_id = p.id AND x.cantidad_actual > 0 AND u.tipo = 'PUNTO_ACOPIO'
                                  AND x.fecha_vencimiento BETWEEN (now() AT TIME ZONE 'America/Lima')::date
-                                     AND (now() AT TIME ZONE 'America/Lima')::date + ?) AS por_vencer
+                                     AND (now() AT TIME ZONE 'America/Lima')::date + ?) AS por_vencer,
+                       coalesce((SELECT m.decision = 'RECHAZADA' FROM moderacion_publicacion m WHERE m.producto_id = p.id
+                                 ORDER BY m.solicitada_en DESC, m.id DESC LIMIT 1), false) AS rechazada
                 FROM producto p
                 LEFT JOIN linea_producto l ON l.id = p.linea_id
                 WHERE p.productor_id = ? AND p.estado = ?
@@ -325,7 +327,10 @@ public class ProductosService {
         BigDecimal enVenta = rs.getBigDecimal("en_venta");
         Estado estado = Estado.valueOf(rs.getString("estado"));
         String alerta = null;
-        if (rs.getBoolean("por_vencer")) {
+        // CCPIP-332: la Camara no publico la oferta; el motivo esta en el editor
+        if (rs.getBoolean("rechazada") && (estado == Estado.BORRADOR || estado == Estado.RETIRADO)) {
+            alerta = "PUBLICACION_RECHAZADA";
+        } else if (rs.getBoolean("por_vencer")) {
             alerta = "LOTE_POR_VENCER";
         } else if (enVenta.signum() == 0) {
             alerta = "SIN_STOCK";

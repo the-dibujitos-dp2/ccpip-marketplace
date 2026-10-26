@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next'
 import iconoCandado from '../../assets/icons/candado.svg'
 import iconoCheck from '../../assets/icons/check-circulo.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
+import iconoProhibido from '../../assets/icons/prohibido.svg'
 import iconoReloj from '../../assets/icons/reloj.svg'
-import { aprobarModeracion, expedienteModeracion } from '../../api/moderacion.js'
+import { aprobarModeracion, expedienteModeracion, rechazarModeracion } from '../../api/moderacion.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
@@ -19,7 +20,7 @@ import '../productor/productor.css'
 import './admin.css'
 
 const TONO_ESTADO = { PENDIENTE: 'info', APROBADA: 'exito', RECHAZADA: 'error' }
-const ENVIAR = { aprobar: aprobarModeracion }
+const ENVIAR = { aprobar: aprobarModeracion, rechazar: rechazarModeracion }
 // La solicitud ya se decidio, o la oferta dejo de cumplir: se vuelve a cargar para mostrar por que
 const RECARGAR_SI = ['MODERACION_YA_RESUELTA', 'OFERTA_NO_APROBABLE']
 
@@ -27,7 +28,8 @@ const RECARGAR_SI = ['MODERACION_YA_RESUELTA', 'OFERTA_NO_APROBABLE']
  * CCPIP-46 (RF-21): el expediente de una oferta que el productor pide publicar. El sub administrador ve
  * la oferta como se publicaria, su autorizacion de venta con las evidencias vigentes (que no se decide
  * aqui) y las solicitudes anteriores. Aprueba con motivo (CCPIP-331) si la oferta cumple todo lo de la
- * lista. No hay pantalla en Figma: sigue el formato de S-02.
+ * lista, o la rechaza con motivo (CCPIP-332), que el productor ve. No hay pantalla en Figma: sigue el
+ * formato de S-02.
  */
 export default function ExpedienteModeracionPage({ path, id }) {
   const { t } = useTranslation()
@@ -144,6 +146,10 @@ export default function ExpedienteModeracionPage({ path, id }) {
               <Boton tamano="M" icono={iconoEscudo} anchoCompleto onClick={() => decision.pedirConfirmacion('aprobar')}
                 disabled={!exp.puedeAprobar || decision.decidiendo}>
                 {t('moderacion.expediente.aprobar')}
+              </Boton>
+              <Boton tipo="destructivo" tamano="M" icono={iconoProhibido} anchoCompleto onClick={() => decision.pedirConfirmacion('rechazar')}
+                disabled={decision.decidiendo}>
+                {t('moderacion.expediente.rechazar')}
               </Boton>
             </>
           ) : (

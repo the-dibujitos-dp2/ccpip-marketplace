@@ -43,6 +43,7 @@ import pe.ccpip.productor.ProductosService;
  *       solicitudes.</li>
  *   <li>CCPIP-331 (RF-221): aprobar con motivo una oferta autorizada para la venta y completa; pasa al
  *       catalogo.</li>
+ *   <li>CCPIP-332 (RF-222): rechazarla con motivo; vuelve a su estado anterior y el productor ve el motivo.</li>
  * </ul>
  * La revision no sustituye la evaluacion documental de la autorizacion (CCPIP-174): solo la muestra.
  */
@@ -128,6 +129,21 @@ public class ModeracionService {
                 WHERE id = ? AND estado = 'EN_MODERACION'""", c.productoId());
         decidir(c, usuarioId, Estado.APROBADA, texto,
                 "RETIRADO".equals(c.estadoAnterior()) ? Accion.REPUBLICAR : Accion.PUBLICAR);
+        return expediente(id);
+    }
+
+    /**
+     * CCPIP-332 (RF-222): la oferta no se publica y vuelve al estado que tenia (borrador o despublicada), donde
+     * el productor ve el motivo, la corrige y puede volver a enviarla. No exige nada de la oferta.
+     */
+    @Transactional
+    public Expediente rechazar(long id, long usuarioId, String motivo) {
+        String texto = RevisionService.motivoRequerido(motivo);
+        Cabecera c = cabecera(id, true);
+        exigirPendiente(c);
+        jdbc.update("UPDATE producto SET estado = ? WHERE id = ? AND estado = 'EN_MODERACION'",
+                c.estadoAnterior(), c.productoId());
+        decidir(c, usuarioId, Estado.RECHAZADA, texto, Accion.MODERACION);
         return expediente(id);
     }
 

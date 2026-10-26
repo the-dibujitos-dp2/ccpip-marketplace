@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
@@ -190,6 +190,29 @@ describe('PW-03 Mis productos (CCPIP-160)', () => {
     expect(within(fila).getByText('En revisión')).toBeInTheDocument()
     await user.click(within(fila).getByRole('button', { name: /Más acciones para/ }))
     expect(screen.queryByRole('menuitem', { name: /publicar/i })).not.toBeInTheDocument()
+  })
+
+  it('CCPIP-332: una publicación rechazada se marca y al editarla se ve el motivo', async () => {
+    const retirados = {
+      items: [{ ...DATOS.productosProductor.items[0], estado: 'RETIRADO', alerta: 'PUBLICACION_RECHAZADA' }],
+      conteo: { PUBLICADO: 3, EN_MODERACION: 0, BORRADOR: 0, RETIRADO: 1 },
+    }
+    const motivo = 'Las fotos no muestran el producto que se vende.'
+    productor({
+      'GET /api/productor/productos': () => [200, copia(retirados)],
+      'GET /api/productor/productos/9': () => [200, {
+        ...copia(DATOS.edicion), estado: 'RETIRADO',
+        moderacion: { estado: 'RECHAZADA', motivo, solicitadaEn: '2026-10-25T15:00:00Z', decididaEn: '2026-10-26T15:00:00Z' },
+      }],
+    })
+    abrirEn('/productor/productos?estado=RETIRADO')
+    const fila = (await screen.findByRole('list', { name: 'Productos' })).querySelector('li')
+    expect(within(fila).getByText('Publicación rechazada')).toBeInTheDocument()
+
+    cleanup()
+    abrirEn('/productor/productos/9')
+    expect(await screen.findByText('La Cámara no publicó esta oferta')).toBeInTheDocument()
+    expect(screen.getByText(`Motivo: «${motivo}». Corrígela y vuelve a enviarla a revisión.`)).toBeInTheDocument()
   })
 
   it('cada pestana tiene su estado vacio y la busqueda sin resultados lo dice', async () => {
