@@ -11,7 +11,11 @@
     "und": "{{cantidad}} units",
     "cancelar": "Cancel",
     "confirmar": "Confirm",
-    "cerrarAviso": "Close notice"
+    "cerrarAviso": "Close notice",
+    "descargas": {
+      "cargando": "Updating the report; you can download it as soon as it finishes.",
+      "pendiente": "To download, the report must show the selected filters: complete the period or try again."
+    }
   },
   "app": {
     "sesionExpirada": {

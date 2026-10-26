@@ -5,6 +5,7 @@ import { consultarReporteAcopio, urlReporteAcopio } from '../../api/acopio.js'
 import { opcion, useReporte } from '../../api/useReporte.js'
 import Alerta from '../../components/Alerta.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import DescargasReporte from '../../components/DescargasReporte.jsx'
 import Icono from '../../components/Icono.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
@@ -45,14 +46,10 @@ export default function ReportesPage({ path }) {
   const { t } = useTranslation()
   const claves = Object.keys(REPORTES)
   const [reporte, setReporte] = useState(claves[0])
-  const { filtro, setFiltro, datos, error, cargando, cargar: consultar } =
+  const { filtro, datos, error, cargando, vigente, cargar: consultar, aplicar: aplicarEn } =
     useReporte(consultarReporteAcopio, aFiltro, claves[0], FILTRO_VACIO)
 
-  function aplicar(nuevo) {
-    setFiltro(nuevo)
-    if (nuevo.desde && nuevo.hasta) consultar(reporte, nuevo)
-  }
-
+  const aplicar = (nuevo) => aplicarEn(reporte, nuevo)
   const cambiar = (campo) => (e) => aplicar({ ...filtro, [campo]: e.target.value })
 
   function elegirReporte(clave) {
@@ -101,12 +98,12 @@ export default function ReportesPage({ path }) {
           opciones={(datos?.productos ?? []).map((p) => ({ valor: String(p.id), etiqueta: p.nombre }))}
         />
         {datos && (
-          <DescargasReporte className="reportes-acopio__exportar" formatos={FORMATOS}
-            etiqueta={(f) => t(`acopio.reportes.exportar.${f}`)} url={(f, idioma) => urlReporteAcopio(f, datos, idioma)} />
+          <DescargasReporte className="reportes-acopio__exportar" formatos={FORMATOS} disponible={vigente} cargando={cargando}
+            etiqueta={(f) => t(`acopio.reportes.exportar.${f}`)} url={(f, idioma) => urlReporteAcopio(f, datos.aplicado, idioma)} />
         )}
       </div>
       {error && <Alerta tono="error" titulo={t('acopio.reportes.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
-      {cargando && !datos && <p className="caption">{t('comun.cargando')}</p>}
+      {cargando && !datos && <Cargando />}
       {Reporte && <Reporte datos={datos} />}
     </LayoutAcopio>
   )

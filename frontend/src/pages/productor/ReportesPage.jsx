@@ -41,7 +41,7 @@ const FILTRO_VACIO = { desde: '', hasta: '', agrupacion: '', producto: '', modal
 const consultarConModalidad = (clave, valores) =>
   consultarReporteProductor(clave, valores && { ...valores, modalidad: CON_MODALIDAD.includes(clave) ? valores.modalidad : '' })
 
-/** El rango, la agrupacion y el producto que aplico el servidor; la modalidad elegida se conserva. */
+/** El rango, la agrupacion y el producto que aplico el servidor; la modalidad, la que se envio. */
 const aFiltro = (r, f) => ({ ...f, desde: r.desde, hasta: r.hasta, agrupacion: r.agrupacion, producto: opcion(r.producto) })
 
 /**
@@ -54,14 +54,10 @@ const aFiltro = (r, f) => ({ ...f, desde: r.desde, hasta: r.hasta, agrupacion: r
 export default function ReportesPage({ path }) {
   const { t } = useTranslation()
   const [metrica, setMetrica] = useState(METRICAS[0])
-  const { filtro, setFiltro, datos, error, cargando, cargar: consultar } =
+  const { filtro, datos, error, cargando, vigente, cargar: consultar, aplicar } =
     useReporte(consultarConModalidad, aFiltro, METRICAS[0], FILTRO_VACIO)
 
-  const cambiar = (campo) => (e) => {
-    const nuevo = { ...filtro, [campo]: e.target.value }
-    setFiltro(nuevo)
-    if (nuevo.desde && nuevo.hasta) consultar(metrica, nuevo)
-  }
+  const cambiar = (campo) => (e) => aplicar(metrica, { ...filtro, [campo]: e.target.value })
 
   function elegirMetrica(clave) {
     setMetrica(clave)
@@ -113,11 +109,9 @@ export default function ReportesPage({ path }) {
           />
         )}
         {datos && (
-          <DescargasReporte className="reportes-productor__exportar" formatos={FORMATOS}
+          <DescargasReporte className="reportes-productor__exportar" formatos={FORMATOS} disponible={vigente} cargando={cargando}
             etiqueta={(f) => t(`productor.reportes.exportar.${f}`)}
-            url={(f, idioma) => urlReporteProductor(f, {
-              desde: datos.desde, hasta: datos.hasta, agrupacion: datos.agrupacion, producto: datos.producto, modalidad: filtro.modalidad,
-            }, idioma)} />
+            url={(f, idioma) => urlReporteProductor(f, datos.aplicado, idioma)} />
         )}
       </div>
       {error && <Alerta tono="error" titulo={t('productor.reportes.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}

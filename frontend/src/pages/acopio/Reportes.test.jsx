@@ -278,3 +278,78 @@ describe('A-06 Reportes del punto de acopio', () => {
     expect(screen.getByRole('link', { name: 'Download Excel' }).getAttribute('href')).toContain('/xlsx?')
   })
 })
+
+/** Una respuesta que el servidor demora hasta que la prueba la suelta. */
+function retenida(respuesta) {
+  let soltar
+  const promesa = new Promise((resolve) => { soltar = () => resolve(respuesta) })
+  return { ruta: () => promesa, soltar }
+}
+
+describe('A-06 Las descargas siguen los filtros que se ven', () => {
+  const pdf = () => screen.getByRole('button', { name: 'Descargar PDF' })
+
+  it('con una fecha vacia no consulta y desactiva las descargas hasta completar el rango', async () => {
+    const fetchMock = acopio({
+      [`GET ${BASE}/entradas?desde=2026-02-01&hasta=2026-03-18&agrupacion=MES`]: () => [200, { ...copia(ENTRADAS), desde: '2026-02-01' }],
+    })
+    abrirEn('/acopio/reportes')
+    await screen.findByRole('link', { name: 'Descargar PDF' })
+
+    fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '' } })
+    expect(pdf()).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Descargar Excel' })).toBeDisabled()
+    expect(pdf()).toHaveAccessibleDescription(/el reporte debe mostrar los filtros elegidos/)
+    expect(screen.queryByRole('link', { name: 'Descargar PDF' })).not.toBeInTheDocument()
+    expect(fetchMock.mock.calls.filter(([url]) => url.startsWith(`${BASE}/entradas?`))).toHaveLength(0)
+
+    fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '2026-02-01' } })
+    expect(await screen.findByRole('link', { name: 'Descargar PDF' }))
+      .toHaveAttribute('href', `${BASE}/pdf?desde=2026-02-01&hasta=2026-03-18&agrupacion=MES&lang=es`)
+  })
+
+  it('mientras se consulta un filtro nuevo no se descarga el anterior', async () => {
+    const respuesta = retenida([200, { ...copia(ENTRADAS), productor: 5 }])
+    acopio({ [`GET ${BASE}/entradas?${RANGO}&productor=5`]: respuesta.ruta })
+    abrirEn('/acopio/reportes')
+    await screen.findByRole('link', { name: 'Descargar PDF' })
+
+    fireEvent.change(screen.getByLabelText('Productor'), { target: { value: '5' } })
+    expect(await screen.findByRole('button', { name: 'Descargar PDF' })).toBeDisabled()
+    expect(pdf()).toHaveAccessibleDescription(/Actualizando el reporte/)
+
+    respuesta.soltar()
+    expect(await screen.findByRole('link', { name: 'Descargar PDF' })).toHaveAttribute('href', `${BASE}/pdf?${RANGO}&productor=5&lang=es`)
+  })
+
+  it('si la consulta falla, no descarga lo que se veia antes', async () => {
+    acopio({
+      [`GET ${BASE}/entradas?desde=2025-01-01&hasta=2026-03-18&agrupacion=MES`]: () => [422, { code: 'RANGO_MUY_LARGO', error: 'Consulta como máximo un año a la vez.' }],
+    })
+    abrirEn('/acopio/reportes')
+    await screen.findByRole('link', { name: 'Descargar PDF' })
+
+    fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '2025-01-01' } })
+    expect(await screen.findByText('No pudimos cargar el reporte')).toBeInTheDocument()
+    expect(pdf()).toBeDisabled()
+    expect(pdf()).toHaveAccessibleDescription(/vuelve a intentarlo/)
+  })
+
+  it('una respuesta que llega tarde no reemplaza a la de la ultima consulta', async () => {
+    const lenta = retenida([200, { ...copia(ENTRADAS), productor: 3 }])
+    acopio({
+      [`GET ${BASE}/entradas?${RANGO}&productor=3`]: lenta.ruta,
+      [`GET ${BASE}/entradas?${RANGO}&productor=5`]: () => [200, { ...copia(ENTRADAS), productor: 5 }],
+    })
+    abrirEn('/acopio/reportes')
+    await screen.findByRole('link', { name: 'Descargar PDF' })
+
+    fireEvent.change(screen.getByLabelText('Productor'), { target: { value: '3' } })
+    fireEvent.change(screen.getByLabelText('Productor'), { target: { value: '5' } })
+    await screen.findByRole('link', { name: 'Descargar PDF' })
+    lenta.soltar()
+    await new Promise((r) => setTimeout(r, 20))
+    expect(screen.getByLabelText('Productor')).toHaveValue('5')
+    expect(screen.getByRole('link', { name: 'Descargar PDF' })).toHaveAttribute('href', `${BASE}/pdf?${RANGO}&productor=5&lang=es`)
+  })
+})

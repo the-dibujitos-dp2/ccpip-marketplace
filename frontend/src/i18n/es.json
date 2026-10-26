@@ -11,7 +11,11 @@
     "und": "{{cantidad}} und",
     "cancelar": "Cancelar",
     "confirmar": "Confirmar",
-    "cerrarAviso": "Cerrar aviso"
+    "cerrarAviso": "Cerrar aviso",
+    "descargas": {
+      "cargando": "Actualizando el reporte; podrás descargarlo en cuanto termine.",
+      "pendiente": "Para descargar, el reporte debe mostrar los filtros elegidos: completa el período o vuelve a intentarlo."
+    }
   },
   "app": {
     "sesionExpirada": {
