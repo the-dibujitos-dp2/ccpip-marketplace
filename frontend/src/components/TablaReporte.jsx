@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { capital, fecha, mesAnio } from '../formato.js'
 import EstadoVacio from './EstadoVacio.jsx'
 import TarjetaKpi from './TarjetaKpi.jsx'
 import './TablaReporte.css'
@@ -40,6 +41,16 @@ export default function TablaReporte({ id, titulo, columnas, filas, clave, vacio
       {nota && <p className="caption">{nota}</p>}
     </section>
   )
+}
+
+/**
+ * Nombre de un periodo de reporte: el mes, la semana desde su lunes (recortada al rango, con el texto
+ * `semana`) o el dia.
+ */
+export function nombrePeriodo(p, agrupacion, t, semana) {
+  if (agrupacion === 'MES') return capital(mesAnio(p.inicio))
+  if (agrupacion === 'SEMANA') return t(semana, { inicio: fecha(p.inicio), fin: fecha(p.fin) })
+  return fecha(p.inicio)
 }
 
 /**

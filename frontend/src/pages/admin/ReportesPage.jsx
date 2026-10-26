@@ -9,15 +9,16 @@ import Alerta from '../../components/Alerta.jsx'
 import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
-import { Barra } from '../../components/TablaReporte.jsx'
+import { Barra, nombrePeriodo } from '../../components/TablaReporte.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { fecha, mesAnio, capital, precio } from '../../formato.js'
+import { fecha, precio } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
 import './admin.css'
 import './ReportesPage.css'
 import Calificaciones from './reportes/Calificaciones.jsx'
+import Indicadores from './reportes/Indicadores.jsx'
 import OrigenDestino from './reportes/OrigenDestino.jsx'
 import Productores from './reportes/Productores.jsx'
 import Puntos from './reportes/Puntos.jsx'
@@ -26,7 +27,7 @@ import Puntos from './reportes/Puntos.jsx'
 const METRICAS = ['ventas', 'comisiones', 'ingresos']
 
 /** Reportes de gestion (SA-10), despues de las metricas: cada uno es /api/admin/reportes/{clave}. */
-const GESTION = { productores: Productores, puntos: Puntos, calificaciones: Calificaciones, 'origen-destino': OrigenDestino }
+const GESTION = { indicadores: Indicadores, productores: Productores, puntos: Puntos, calificaciones: Calificaciones, 'origen-destino': OrigenDestino }
 
 const PESTANAS = [...METRICAS, ...Object.keys(GESTION)]
 
@@ -42,14 +43,17 @@ const aFiltro = (r, anterior) => ({
   linea: 'linea' in r ? (r.linea ?? '') : anterior.linea,
 })
 
-/** Solo las metricas por periodo se agrupan. */
-const seAgrupa = (clave) => METRICAS.includes(clave)
+const esMetrica = (clave) => METRICAS.includes(clave)
+
+/** Las metricas y los indicadores tienen su serie por periodo: se agrupan. */
+const seAgrupa = (clave) => esMetrica(clave) || clave === 'indicadores'
 
 /**
  * SA-05 y SA-10 Reportes de la plataforma (superadministrador). Solo cifras agregadas: el servidor no envia
  * compradores (SA-08).
  * - CCPIP-345 (RF-235), CCPIP-346 (RF-236) y CCPIP-93 (RF-71): ventas, comisiones e ingresos acumulados por
  *   periodo con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista)
+ * - CCPIP-348 (RF-238): indicadores de ventas frente al periodo anterior
  * - CCPIP-122 (RF-86): productores que mas venden
  * - CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias por punto de acopio
  * - CCPIP-123 (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y productores, por linea
@@ -80,7 +84,7 @@ export default function ReportesPage({ path }) {
         etiqueta={t('admin.reportes.titulo')}
         valor={pestana}
         onCambiar={elegir}
-        opciones={PESTANAS.map((p) => ({ valor: p, etiqueta: t(seAgrupa(p) ? `admin.reportes.metrica.${p}.pestana` : `admin.reportes.${p}.pestana`) }))}
+        opciones={PESTANAS.map((p) => ({ valor: p, etiqueta: t(esMetrica(p) ? `admin.reportes.metrica.${p}.pestana` : `admin.reportes.${p}.pestana`) }))}
       />
       <div className="reportes__filtros">
         <Campo etiqueta={t('admin.reportes.desde')} type="date" value={filtro.desde} max={filtro.hasta || undefined} onChange={cambiar('desde')} />
@@ -113,13 +117,6 @@ export default function ReportesPage({ path }) {
   )
 }
 
-/** Nombre del periodo: el mes, la semana desde su lunes o el dia. */
-function nombrePeriodo(p, agrupacion, t) {
-  if (agrupacion === 'MES') return capital(mesAnio(p.inicio))
-  if (agrupacion === 'SEMANA') return t('admin.reportes.semana', { inicio: fecha(p.inicio), fin: fecha(p.fin) })
-  return fecha(p.inicio)
-}
-
 function Resultado({ datos }) {
   const { t } = useTranslation()
   const { totales, periodos, agrupacion } = datos
@@ -147,7 +144,7 @@ function Resultado({ datos }) {
           </div>
           {periodos.map((p) => (
             <div key={p.inicio} className="tabla__fila" role="row">
-              <span className="tabla__celda reportes__periodo label-m" role="cell">{nombrePeriodo(p, agrupacion, t)}</span>
+              <span className="tabla__celda reportes__periodo label-m" role="cell">{nombrePeriodo(p, agrupacion, t, 'admin.reportes.semana')}</span>
               <span className="tabla__celda tabla__celda--flex" role="cell">
                 <Barra partes={[Number(p.b2c), Number(p.b2b)]} mayor={mayor} />
               </span>

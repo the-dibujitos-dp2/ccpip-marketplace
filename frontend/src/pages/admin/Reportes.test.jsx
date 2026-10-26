@@ -365,3 +365,58 @@ describe('CCPIP-80 Origen y destino de las ventas (SA-10)', () => {
     expect(llamadas(fetchMock, `GET /api/admin/reportes/origen-destino?${RANGO}`)).toHaveLength(1)
   })
 })
+
+const indicador = (valor, anterior, variacion) => ({ valor, anterior, variacion })
+
+const INDICADORES = {
+  desde: '2026-01-01',
+  hasta: '2026-03-18',
+  agrupacion: 'MES',
+  anteriorDesde: '2025-10-16',
+  anteriorHasta: '2025-12-31',
+  ventas: {
+    total: indicador(2200, 2000, 10),
+    pedidos: indicador(5, 8, -37.5),
+    ticketPromedio: indicador(440, 250, 76),
+    desglose: { b2c: 1300, b2b: 900, total: 2200 },
+  },
+  productores: { activos: 12, conVentas: indicador(2, 0, null), nuevos: indicador(3, 3, 0) },
+  productos: {
+    publicados: 40,
+    nuevos: indicador(6, 4, 50),
+    conVentas: indicador(4, 5, -20),
+    porLinea: [{ codigo: 'CAFE', nombre: 'Café', publicados: 25 }, { codigo: 'MIEL', nombre: 'Miel y derivados', publicados: 0 }],
+  },
+  actividad: {
+    compradores: indicador(4, 2, 100),
+    registros: indicador(7, 10, -30),
+    calificaciones: indicador(10, 10, 0),
+    denuncias: indicador(3, 1, 200),
+  },
+  periodos: [
+    { inicio: '2026-01-01', fin: '2026-01-31', ventas: 500, pedidos: 1, productoresConVentas: 1, productosNuevos: 2, compradores: 1 },
+    { inicio: '2026-02-01', fin: '2026-02-28', ventas: 0, pedidos: 0, productoresConVentas: 0, productosNuevos: 0, compradores: 0 },
+    { inicio: '2026-03-01', fin: '2026-03-18', ventas: 1700, pedidos: 4, productoresConVentas: 2, productosNuevos: 4, compradores: 3 },
+  ],
+}
+
+describe('CCPIP-348 Indicadores de ventas (SA-10)', () => {
+  it('compara las ventas con el periodo anterior y las muestra por periodo', async () => {
+    const fetchMock = comoSuper({ [`GET /api/admin/reportes/indicadores?${RANGO}&agrupacion=MES`]: () => [200, copia(INDICADORES)] })
+    await abrirPestana('Indicadores')
+
+    const ventas = await screen.findByRole('region', { name: 'Ventas totales' })
+    expect(ventas).toHaveTextContent('S/ 2,200.00')
+    expect(ventas).toHaveTextContent('+10% frente al período anterior')
+    expect(screen.getByRole('region', { name: 'Pedidos' })).toHaveTextContent('-37.5% frente al período anterior')
+    expect(screen.getByRole('region', { name: 'Ticket promedio' })).toHaveTextContent('S/ 440.00')
+    expect(screen.getByText(/del 16 oct 2025 al 31 dic 2025/)).toBeInTheDocument()
+    // Los indicadores se agrupan como las metricas
+    expect(screen.getByLabelText('Agrupar por')).toHaveValue('MES')
+
+    const filas = within(screen.getByRole('table', { name: 'Indicadores por período' })).getAllByRole('row')
+    expect(filas).toHaveLength(4)
+    expect(within(filas[3]).getByText('S/ 1,700.00')).toBeInTheDocument()
+    expect(llamadas(fetchMock, `GET /api/admin/reportes/indicadores?${RANGO}&agrupacion=MES`)).toHaveLength(1)
+  })
+})

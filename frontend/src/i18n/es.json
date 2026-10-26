@@ -1452,7 +1452,9 @@
         "productos": "Productos",
         "destino": "Destino",
         "envios": "Envíos",
-        "recojos": "Recojos"
+        "recojos": "Recojos",
+        "ventas": "Ventas",
+        "barraVentas": "Ventas del período"
       },
       "metrica": {
         "ventas": {
@@ -1473,6 +1475,24 @@
           "tabla": "Ingresos por periodo",
           "nota": "Lo cobrado a los compradores: los pagos aprobados, por la fecha en que se aprobaron (hora de Lima). Un pago anulado y devuelto no es un ingreso."
         }
+      },
+      "indicadores": {
+        "pestana": "Indicadores",
+        "frente": "Del {{desde}} al {{hasta}}, frente al período anterior de igual duración (del {{anteriorDesde}} al {{anteriorHasta}}).",
+        "variacion": "{{valor}} frente al período anterior",
+        "sinAnterior": "Sin cifras del período anterior",
+        "ventas": {
+          "titulo": "Ventas",
+          "total": "Ventas totales",
+          "pedidos": "Pedidos",
+          "ticket": "Ticket promedio",
+          "b2c": "B2C (minorista)",
+          "b2cDetalle": "Vendido a precio minorista",
+          "b2b": "B2B (mayorista)",
+          "b2bDetalle": "Vendido a precio mayorista"
+        },
+        "porPeriodo": "Indicadores por período",
+        "nota": "Pedidos pagados y no cancelados, por la fecha en que se confirmaron (hora de Lima). El ticket promedio es lo vendido por pedido."
       },
       "productores": {
         "pestana": "Productores",

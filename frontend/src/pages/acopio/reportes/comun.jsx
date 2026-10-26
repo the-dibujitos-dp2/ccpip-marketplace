@@ -1,15 +1,8 @@
 import { useTranslation } from 'react-i18next'
-import TablaBase, { fabricaColumnas } from '../../../components/TablaReporte.jsx'
-import { capital, fecha, mesAnio, precio, unidades } from '../../../formato.js'
+import TablaBase, { fabricaColumnas, nombrePeriodo } from '../../../components/TablaReporte.jsx'
+import { precio, unidades } from '../../../formato.js'
 
 export { Barra, Kpis } from '../../../components/TablaReporte.jsx'
-
-/** Nombre del periodo: el mes, la semana desde su lunes (recortada al rango) o el dia. */
-export function nombrePeriodo(p, agrupacion, t) {
-  if (agrupacion === 'MES') return capital(mesAnio(p.inicio))
-  if (agrupacion === 'SEMANA') return t('acopio.reportes.semana', { inicio: fecha(p.inicio), fin: fecha(p.fin) })
-  return fecha(p.inicio)
-}
 
 /**
  * Las columnas que comparten los cuatro reportes: el periodo, el producto con su productor y las cifras
@@ -18,7 +11,7 @@ export function nombrePeriodo(p, agrupacion, t) {
 export function columnas(t, agrupacion) {
   const cifra = fabricaColumnas(t, 'acopio.reportes.col')
   return {
-    periodo: { clave: 'periodo', etiqueta: t('acopio.reportes.col.periodo'), periodo: true, valor: (p) => nombrePeriodo(p, agrupacion, t) },
+    periodo: { clave: 'periodo', etiqueta: t('acopio.reportes.col.periodo'), periodo: true, valor: (p) => nombrePeriodo(p, agrupacion, t, 'acopio.reportes.semana') },
     producto: [
       { clave: 'producto', etiqueta: t('acopio.reportes.col.producto'), texto: true, fuerte: true, valor: (p) => p.producto },
       { clave: 'productor', etiqueta: t('acopio.reportes.col.productor'), texto: true, valor: (p) => p.productor },

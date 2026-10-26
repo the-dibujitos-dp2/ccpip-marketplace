@@ -1452,7 +1452,9 @@
         "productos": "Products",
         "destino": "Destination",
         "envios": "Deliveries",
-        "recojos": "Pickups"
+        "recojos": "Pickups",
+        "ventas": "Sales",
+        "barraVentas": "Sales in the period"
       },
       "metrica": {
         "ventas": {
@@ -1473,6 +1475,24 @@
           "tabla": "Revenue by period",
           "nota": "What buyers paid: approved payments, by the date they were approved (Lima time). A voided, refunded payment is not revenue."
         }
+      },
+      "indicadores": {
+        "pestana": "Indicators",
+        "frente": "From {{desde}} to {{hasta}}, compared with the previous period of the same length ({{anteriorDesde}} to {{anteriorHasta}}).",
+        "variacion": "{{valor}} vs. the previous period",
+        "sinAnterior": "No figures for the previous period",
+        "ventas": {
+          "titulo": "Sales",
+          "total": "Total sales",
+          "pedidos": "Orders",
+          "ticket": "Average ticket",
+          "b2c": "B2C (retail)",
+          "b2cDetalle": "Sold at retail price",
+          "b2b": "B2B (wholesale)",
+          "b2bDetalle": "Sold at wholesale price"
+        },
+        "porPeriodo": "Indicators by period",
+        "nota": "Paid, non-cancelled orders, by the date they were confirmed (Lima time). The average ticket is sales per order."
       },
       "productores": {
         "pestana": "Producers",

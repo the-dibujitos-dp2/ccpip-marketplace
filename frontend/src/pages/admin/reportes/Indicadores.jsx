@@ -1,0 +1,68 @@
+import { useTranslation } from 'react-i18next'
+import iconoComunidad from '../../../assets/icons/comunidad.svg'
+import iconoGrafico from '../../../assets/icons/grafico.svg'
+import iconoPaquete from '../../../assets/icons/paquete.svg'
+import iconoTienda from '../../../assets/icons/tienda.svg'
+import { Barra, Kpis, nombrePeriodo } from '../../../components/TablaReporte.jsx'
+import { fecha, precio, unidades } from '../../../formato.js'
+import { columnas, TablaReporte } from './comun.jsx'
+
+const TEXTOS = 'admin.reportes.indicadores'
+
+/**
+ * Detalle de una tarjeta frente al periodo anterior: el cambio con su signo, en verde si mejora y en rojo
+ * si empeora (`inverso` cuando subir es malo). Sin anterior (cero) no hay variacion.
+ */
+function variacion({ variacion: cambio }, inverso = false) {
+  if (cambio == null) return { detalle: 'sinAnterior' }
+  const valor = Number(cambio)
+  const signo = valor > 0 ? '+' : ''
+  const mejora = inverso ? valor < 0 : valor > 0
+  let tono = 'neutro'
+  if (valor !== 0) tono = mejora ? 'exito' : 'error'
+  return { detalle: 'variacion', vars: { valor: `${signo}${unidades(valor)}%` }, tono }
+}
+
+/** Un grupo de tarjetas con su titulo `{TEXTOS}.{id}.titulo`. */
+function Grupo({ id, tarjetas }) {
+  const { t } = useTranslation()
+  return (
+    <section className="productor__seccion" aria-labelledby={`indicadores-${id}`}>
+      <h2 id={`indicadores-${id}`} className="heading-h3">{t(`${TEXTOS}.${id}.titulo`)}</h2>
+      <Kpis textos={TEXTOS} tarjetas={tarjetas.map((k) => ({ ...k, clave: `${id}.${k.clave}` }))} />
+    </section>
+  )
+}
+
+/**
+ * Indicadores agregados de la plataforma en el rango, cada uno frente al periodo anterior de igual
+ * duracion, y su serie por dia, semana o mes. Solo cifras agregadas: ningun comprador.
+ * - CCPIP-348 (RF-238): ventas, pedidos y ticket promedio, con el desglose B2C y B2B
+ */
+export default function Indicadores({ datos }) {
+  const { t } = useTranslation()
+  const { cantidad, importe } = columnas(t)
+  const { ventas } = datos
+  const mayor = Math.max(...datos.periodos.map((p) => Number(p.ventas)), 0)
+  return (
+    <>
+      <p className="caption">{t(`${TEXTOS}.frente`, {
+        desde: fecha(datos.desde), hasta: fecha(datos.hasta), anteriorDesde: fecha(datos.anteriorDesde), anteriorHasta: fecha(datos.anteriorHasta),
+      })}</p>
+      <Grupo id="ventas" tarjetas={[
+        { clave: 'total', valor: precio(ventas.total.valor), icono: iconoGrafico, ...variacion(ventas.total) },
+        { clave: 'pedidos', valor: unidades(ventas.pedidos.valor), icono: iconoPaquete, ...variacion(ventas.pedidos) },
+        { clave: 'ticket', valor: precio(ventas.ticketPromedio.valor), icono: iconoGrafico, ...variacion(ventas.ticketPromedio) },
+        { clave: 'b2c', valor: precio(ventas.desglose.b2c), icono: iconoTienda },
+        { clave: 'b2b', valor: precio(ventas.desglose.b2b), icono: iconoComunidad },
+      ]} />
+      <TablaReporte id="indicadores-periodos" titulo={t(`${TEXTOS}.porPeriodo`)} filas={datos.periodos} clave={(p) => p.inicio}
+        nota={t(`${TEXTOS}.nota`)}
+        columnas={[
+          { clave: 'periodo', etiqueta: t('admin.reportes.col.periodo'), periodo: true, valor: (p) => nombrePeriodo(p, datos.agrupacion, t, 'admin.reportes.semana') },
+          { clave: 'barra', etiqueta: t('admin.reportes.col.barraVentas'), barra: true, valor: (p) => <Barra partes={[Number(p.ventas)]} mayor={mayor} /> },
+          importe('ventas'), cantidad('pedidos'),
+        ]} />
+    </>
+  )
+}
