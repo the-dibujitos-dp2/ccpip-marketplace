@@ -1,5 +1,6 @@
 package pe.ccpip.distribucion;
 
+import java.util.List;
 import java.util.Locale;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,8 +20,12 @@ import pe.ccpip.auth.model.Rol;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.distribucion.DistribucionModelos.Disponibles;
 import pe.ccpip.distribucion.DistribucionModelos.EntregaAsumida;
+import pe.ccpip.distribucion.DistribucionModelos.EntregaDelDistribuidor;
 
-/** CCPIP-107 y CCPIP-108 (DW-01): los pedidos que el distribuidor puede asumir, y asumirlos. */
+/**
+ * CCPIP-107 y CCPIP-108 (DW-01): los pedidos que el distribuidor puede asumir, y asumirlos. CCPIP-317 (DW-02): los que
+ * ya tiene asignados.
+ */
 @RolesPermitidos(Rol.DISTRIBUIDOR)
 @RestController
 @RequestMapping("/api/distribuidor/pedidos")
@@ -42,6 +47,15 @@ public class DistribucionController {
                                    @RequestParam(required = false) String cursor,
                                    @RequestParam(defaultValue = "20") @Min(1) @Max(50) int limite) {
         return distribucion.disponibles(punto, cursor, limite);
+    }
+
+    /**
+     * CCPIP-317 (RF-199): las entregas asignadas al distribuidor de la sesion, con origen, destino y estado: las que
+     * estan en curso y las que entrego hoy. Nunca las de otro distribuidor.
+     */
+    @GetMapping
+    public List<EntregaDelDistribuidor> asignadas(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s) {
+        return distribucion.asignadas(s.userId());
     }
 
     /**
