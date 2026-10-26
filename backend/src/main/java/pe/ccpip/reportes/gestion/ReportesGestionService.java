@@ -20,16 +20,20 @@ import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.comun.RangoFechas;
 import pe.ccpip.reportes.ReportesModelos.Desglose;
 import pe.ccpip.reportes.gestion.GestionModelos.Denuncias;
+import pe.ccpip.reportes.gestion.GestionModelos.Destino;
 import pe.ccpip.reportes.gestion.GestionModelos.Estrellas;
+import pe.ccpip.reportes.gestion.GestionModelos.Flujo;
 import pe.ccpip.reportes.gestion.GestionModelos.Linea;
 import pe.ccpip.reportes.gestion.GestionModelos.ProductoCalificado;
 import pe.ccpip.reportes.gestion.GestionModelos.ProductorCalificado;
 import pe.ccpip.reportes.gestion.GestionModelos.ProductorVentas;
 import pe.ccpip.reportes.gestion.GestionModelos.PuntoReporte;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteCalificaciones;
+import pe.ccpip.reportes.gestion.GestionModelos.ReporteOrigenDestino;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteProductores;
 import pe.ccpip.reportes.gestion.GestionModelos.ReportePuntos;
 import pe.ccpip.reportes.gestion.GestionModelos.ResumenCalificaciones;
+import pe.ccpip.reportes.gestion.GestionModelos.Ruta;
 import pe.ccpip.reportes.gestion.GestionModelos.Tendencia;
 import pe.ccpip.valoracion.MinimoCalificacionesService;
 
@@ -305,6 +309,67 @@ public class ReportesGestionService {
         long dias = ChronoUnit.DAYS.between(rango.desde(), rango.hasta());
         LocalDate hasta = rango.desde().minusDays(1);
         return new RangoFechas(hasta.minusDays(dias), hasta);
+    }
+
+    /**
+     * CCPIP-80 (RF-66): de donde salen y a donde van las ventas del rango. Origen: el punto de acopio que despacha
+     * y el productor con su pueblo. Destino: el departamento de la direccion de entrega en un envio, o el del
+     * punto en un recojo. Los nombres de departamento se comparan sin tildes (el catalogo territorial las usa y
+     * los puntos no siempre).
+     */
+    @Transactional(readOnly = true)
+    public ReporteOrigenDestino origenDestino(LocalDate desde, LocalDate hasta) {
+        RangoFechas rango = rango(desde, hasta);
+        MapSqlParameterSource p = parametros(rango);
+        String lineas = """
+                WITH lineas AS (
+                    SELECT pe.id AS pedido_id, pe.modalidad, u.nombre AS punto, u.departamento AS punto_departamento,
+                           CASE WHEN pe.modalidad = 'ENVIO' THEN ug.departamento ELSE u.departamento END AS destino,
+                           po.id AS productor_id, coalesce(po.nombre_tienda, po.comunidad) AS productor, po.pueblo,
+                           i.subtotal
+                    FROM pedido pe
+                    JOIN item_pedido i ON i.pedido_id = pe.id
+                    JOIN productor po ON po.id = i.productor_id
+                    JOIN ubicacion u ON u.id = pe.ubicacion_origen_id
+                    LEFT JOIN entrega e ON e.pedido_id = pe.id
+                    LEFT JOIN ubigeo ug ON ug.codigo = e.ubigeo
+                    WHERE %s
+                )
+                """.formatted(VENDIDO);
+        String destino = "translate(upper(destino), 'ÁÉÍÓÚ', 'AEIOU')";
+        long pedidos = jdbc.queryForObject(lineas + "SELECT count(DISTINCT pedido_id) FROM lineas", p, Long.class);
+        List<Flujo> porPunto = jdbc.query(lineas + """
+                SELECT punto AS nombre, punto_departamento AS detalle, count(DISTINCT pedido_id) AS pedidos, sum(subtotal) AS total
+                FROM lineas GROUP BY punto, punto_departamento ORDER BY total DESC, nombre""", p, (rs, row) -> flujo(rs));
+        BigDecimal total = porPunto.stream().map(Flujo::total).reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<Flujo> porProductor = jdbc.query(lineas + """
+                SELECT productor AS nombre, pueblo AS detalle, count(DISTINCT pedido_id) AS pedidos, sum(subtotal) AS total
+                FROM lineas GROUP BY productor_id, productor, pueblo ORDER BY total DESC, nombre""", p, (rs, row) -> flujo(rs));
+        List<Destino> porDestino = jdbc.query(lineas + """
+                SELECT max(destino) AS departamento, count(DISTINCT pedido_id) AS pedidos,
+                       count(DISTINCT pedido_id) FILTER (WHERE modalidad = 'ENVIO') AS envios,
+                       count(DISTINCT pedido_id) FILTER (WHERE modalidad <> 'ENVIO') AS recojos, sum(subtotal) AS total
+                FROM lineas GROUP BY %s ORDER BY total DESC, departamento NULLS LAST""".formatted(destino), p,
+                (rs, row) -> new Destino(rs.getString("departamento"), rs.getLong("pedidos"), rs.getLong("envios"),
+                        rs.getLong("recojos"), rs.getBigDecimal("total"), porcentaje(rs.getBigDecimal("total"), total)));
+        List<Ruta> rutas = jdbc.query(lineas + """
+                SELECT punto, max(destino) AS destino, count(DISTINCT pedido_id) AS pedidos, sum(subtotal) AS total
+                FROM lineas GROUP BY punto, %s ORDER BY total DESC, punto, destino NULLS LAST""".formatted(destino), p,
+                (rs, row) -> new Ruta(rs.getString("punto"), rs.getString("destino"), rs.getLong("pedidos"),
+                        rs.getBigDecimal("total")));
+        return new ReporteOrigenDestino(rango.desde(), rango.hasta(), pedidos, total, conParticipacion(porPunto, total),
+                conParticipacion(porProductor, total), porDestino, rutas);
+    }
+
+    private static Flujo flujo(java.sql.ResultSet rs) throws java.sql.SQLException {
+        return new Flujo(rs.getString("nombre"), rs.getString("detalle"), rs.getLong("pedidos"), rs.getBigDecimal("total"),
+                null);
+    }
+
+    private static List<Flujo> conParticipacion(List<Flujo> flujos, BigDecimal total) {
+        return flujos.stream()
+                .map(f -> new Flujo(f.nombre(), f.detalle(), f.pedidos(), f.total(), porcentaje(f.total(), total)))
+                .toList();
     }
 
     /** Las ventas de la plataforma en el rango y cuantos productores vendieron. */

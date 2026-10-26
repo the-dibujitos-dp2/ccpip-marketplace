@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteCalificaciones;
+import pe.ccpip.reportes.gestion.GestionModelos.ReporteOrigenDestino;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteProductores;
 import pe.ccpip.reportes.gestion.GestionModelos.ReportePuntos;
 
@@ -53,5 +54,12 @@ public class ReportesGestionController {
                                                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
                                                @RequestParam(required = false) String linea) {
         return service.calificaciones(desde, hasta, linea);
+    }
+
+    /** CCPIP-80 (RF-66): origen (punto y productor) y destino (departamento) de las ventas del rango. */
+    @GetMapping("/origen-destino")
+    public ReporteOrigenDestino origenDestino(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
+        return service.origenDestino(desde, hasta);
     }
 }

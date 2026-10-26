@@ -19,7 +19,8 @@ import pe.ccpip.support.IntegrationTest;
 /**
  * Reportes de gestion del superadministrador (SA-05, SA-10). CCPIP-122 (RF-86): productores con mayores
  * ventas; CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias de los puntos de acopio; CCPIP-123
- * (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y de productores.
+ * (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y de productores; CCPIP-80 (RF-66): origen y
+ * destino de las ventas.
  *
  * <p>Los datos son de agosto y septiembre de 2023, meses que ninguna otra prueba usa, y la transaccion se
  * deshace al terminar.
@@ -182,6 +183,43 @@ class ReportesGestionTest extends IntegrationTest {
     }
 
     @Test
+    void elOrigenYElDestinoDeLasVentas() throws Exception {
+        ventasDePrueba();
+        // El envio de la harina va a Cusco
+        jdbc.update("""
+                INSERT INTO entrega (pedido_id, ubigeo, direccion, contacto_nombre, contacto_celular)
+                SELECT id, '080101', 'Av. de prueba 123', 'Contacto de prueba', '987654321' FROM pedido WHERE numero = 'RG-3'""");
+
+        mockMvc.perform(get("/api/admin/reportes/origen-destino" + SEPTIEMBRE).cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pedidos").value(3))
+                .andExpect(jsonPath("$.total").value(180.00))
+                .andExpect(jsonPath("$.porPunto[0].nombre").value(CUSCO))
+                .andExpect(jsonPath("$.porPunto[0].detalle").value("Cusco"))
+                .andExpect(jsonPath("$.porPunto[1].nombre").value(LIMA))
+                .andExpect(jsonPath("$.porPunto[1].pedidos").value(2))
+                .andExpect(jsonPath("$.porPunto[1].participacion").value(44.4))
+                .andExpect(jsonPath("$.porProductor[0].total").value(130.00))
+                .andExpect(jsonPath("$.porProductor[0].detalle").exists())
+                // Cusco recibe el recojo de Cusco y el envio desde Lima
+                .andExpect(jsonPath("$.porDestino[0].departamento").value("Cusco"))
+                .andExpect(jsonPath("$.porDestino[0].pedidos").value(2))
+                .andExpect(jsonPath("$.porDestino[0].envios").value(1))
+                .andExpect(jsonPath("$.porDestino[0].recojos").value(1))
+                .andExpect(jsonPath("$.porDestino[0].total").value(150.00))
+                .andExpect(jsonPath("$.porDestino[0].participacion").value(83.3))
+                .andExpect(jsonPath("$.porDestino[1].departamento").value("Lima"))
+                .andExpect(jsonPath("$.rutas.length()").value(3))
+                .andExpect(jsonPath("$.rutas[1].punto").value(LIMA))
+                .andExpect(jsonPath("$.rutas[1].destino").value("Cusco"))
+                .andExpect(jsonPath("$.rutas[1].total").value(50.00))
+                // Ninguna direccion ni comprador
+                .andExpect(jsonPath("$..direccion").doesNotExist())
+                .andExpect(jsonPath("$..contacto_nombre").doesNotExist())
+                .andExpect(jsonPath("$..correo").doesNotExist());
+    }
+
+    @Test
     void sinVentasElRankingQuedaVacio() throws Exception {
         mockMvc.perform(get("/api/admin/reportes/productores?desde=2023-08-01&hasta=2023-08-02").cookie(loginAs(SUPER)))
                 .andExpect(status().isOk())
@@ -203,6 +241,7 @@ class ReportesGestionTest extends IntegrationTest {
         mockMvc.perform(get("/api/admin/reportes/productores").cookie(loginAs(correo))).andExpect(status().isForbidden());
         mockMvc.perform(get("/api/admin/reportes/puntos").cookie(loginAs(correo))).andExpect(status().isForbidden());
         mockMvc.perform(get("/api/admin/reportes/calificaciones").cookie(loginAs(correo))).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/admin/reportes/origen-destino").cookie(loginAs(correo))).andExpect(status().isForbidden());
     }
 
     @Test

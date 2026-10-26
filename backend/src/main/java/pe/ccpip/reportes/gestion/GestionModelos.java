@@ -106,4 +106,33 @@ public final class GestionModelos {
                                         List<ProductoCalificado> productos, List<ProductorCalificado> productores,
                                         List<Linea> lineas) {
     }
+
+    /**
+     * CCPIP-80: lo vendido desde un origen (un punto de acopio o un productor con su pueblo) o hacia un destino.
+     * {@code detalle} acompana al nombre (el departamento del punto o el pueblo del productor);
+     * {@code participacion} es el porcentaje de las ventas del rango.
+     */
+    public record Flujo(String nombre, String detalle, long pedidos, BigDecimal total, BigDecimal participacion) {
+    }
+
+    /**
+     * CCPIP-80: lo vendido hacia un departamento: el de la direccion de entrega en un envio o el del punto donde
+     * se recoge. {@code departamento} es nulo si un envio no tiene direccion registrada.
+     */
+    public record Destino(String departamento, long pedidos, long envios, long recojos, BigDecimal total,
+                          BigDecimal participacion) {
+    }
+
+    /** CCPIP-80: lo vendido desde un punto de acopio hacia un departamento. */
+    public record Ruta(String punto, String destino, long pedidos, BigDecimal total) {
+    }
+
+    /**
+     * CCPIP-80 (RF-66): origen y destino de las ventas del rango, de mayor a menor. Solo agregados por punto,
+     * productor y departamento: ninguna direccion ni comprador.
+     */
+    public record ReporteOrigenDestino(LocalDate desde, LocalDate hasta, long pedidos, BigDecimal total,
+                                       List<Flujo> porPunto, List<Flujo> porProductor, List<Destino> porDestino,
+                                       List<Ruta> rutas) {
+    }
 }
