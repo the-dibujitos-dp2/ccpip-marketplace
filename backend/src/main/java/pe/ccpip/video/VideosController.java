@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,8 +33,8 @@ import pe.ccpip.productor.ProductorActual;
 import pe.ccpip.video.VideosService.Video;
 
 /**
- * Videos de la tienda: el productor los sube (CCPIP-118), los consulta (CCPIP-390) y los reemplaza (CCPIP-391);
- * cualquiera ve los aprobados.
+ * Videos de la tienda: el productor los sube (CCPIP-118), los consulta (CCPIP-390), los reemplaza (CCPIP-391) y
+ * los retira (CCPIP-392); cualquiera ve los aprobados.
  */
 @RestController
 public class VideosController {
@@ -133,5 +134,14 @@ public class VideosController {
                                             @RequestParam MultipartFile archivo) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(service.reemplazar(productorActual.id(sesion), sesion.userId(), id, titulo, archivo));
+    }
+
+    /** CCPIP-392: retiro logico de un video propio; deja de verse pero no se borra. */
+    @RolesPermitidos(Rol.PRODUCTOR)
+    @DeleteMapping("/api/productor/videos/{id}")
+    public ResponseEntity<Void> retirar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession sesion,
+                                        @PathVariable long id) {
+        service.retirarPropio(productorActual.id(sesion), sesion.userId(), id);
+        return ResponseEntity.noContent().build();
     }
 }

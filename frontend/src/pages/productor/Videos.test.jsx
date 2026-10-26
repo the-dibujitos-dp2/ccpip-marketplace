@@ -180,6 +180,33 @@ describe('CCPIP-118 Videos de la tienda', () => {
     expect(v.getByText('No pudimos reemplazar el video')).toBeInTheDocument()
   })
 
+  it('CCPIP-392: retira un video con confirmación; deja de verse pero no se borra', async () => {
+    const publicado = { ...copia(VIDEO), id: 1, titulo: 'Cosecha de cacao', estado: 'PUBLICADO', motivo: 'Bien', decididoEn: '2026-10-26T16:00:00Z' }
+    let lista = [publicado]
+    const fetchMock = productor({
+      'GET /api/productor/videos': () => [200, copia(lista)],
+      'DELETE /api/productor/videos/1': () => {
+        lista = []
+        return [204, null]
+      },
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/tienda')
+    const v = await videos()
+    await user.click(await v.findByRole('button', { name: 'Retirar el video Cosecha de cacao' }))
+    const dialogo = within(screen.getByRole('dialog'))
+    expect(dialogo.getByRole('heading', { name: 'Retirar «Cosecha de cacao»' })).toBeInTheDocument()
+    expect(dialogo.getByText(/Dejará de verse en tu tienda. No se borra/)).toBeInTheDocument()
+    await user.click(dialogo.getByRole('button', { name: 'Cancelar' }))
+    expect(llamadas(fetchMock, 'DELETE /api/productor/videos/1')).toHaveLength(0)
+
+    await user.click(v.getByRole('button', { name: 'Retirar el video Cosecha de cacao' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Retirar video' }))
+    expect(await v.findByText('Video retirado')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'DELETE /api/productor/videos/1')).toHaveLength(1)
+    expect(await v.findByText('Aún no subiste videos.')).toBeInTheDocument()
+  })
+
   it('la tienda pública muestra los videos aprobados', async () => {
     servidor({
       ...PUBLICAS,

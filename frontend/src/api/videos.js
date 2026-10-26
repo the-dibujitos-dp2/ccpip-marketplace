@@ -19,8 +19,12 @@ export async function subirVideo(archivo, titulo) {
 /** CCPIP-390: los videos vigentes de su tienda, con su estado y el motivo si se rechazaron. */
 export const misVideos = () => apiFetch('/api/productor/videos')
 
-/** Ocupa un lugar en la tienda: no esta rechazado ni es un reemplazo en revision (CCPIP-391). */
-export const ocupaLugar = (v) => v.estado !== 'RECHAZADO' && !(v.reemplazaA && v.estado === 'EN_REVISION')
+/**
+ * Ocupa un lugar en la tienda: no esta rechazado ni es un reemplazo en revision de un video que sigue en la
+ * lista (CCPIP-391). `lista` son los videos vigentes.
+ */
+export const ocupaLugar = (v, lista) =>
+  v.estado !== 'RECHAZADO' && !(v.reemplazaA && v.estado === 'EN_REVISION' && lista.some((o) => o.id === v.reemplazaA))
 
 /** CCPIP-391: otro video en lugar de uno propio; el nuevo pasa por la revision. `titulo` es opcional. */
 export async function reemplazarVideo(id, archivo, titulo) {
@@ -29,3 +33,6 @@ export async function reemplazarVideo(id, archivo, titulo) {
   datos.append('archivo', archivo)
   return enviarArchivo(`/api/productor/videos/${idRuta(id)}/reemplazo`, datos)
 }
+
+/** CCPIP-392: retiro logico; deja de verse en la tienda, pero no se borra. */
+export const retirarVideo = (id) => apiFetch(`/api/productor/videos/${idRuta(id)}`, { method: 'DELETE' })

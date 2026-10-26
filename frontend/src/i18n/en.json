@@ -788,7 +788,18 @@
       "reemplazoEnviado": "Replacement sent for review",
       "reemplazoPublicado": "Your store keeps showing the current video until the Chamber approves the new one.",
       "reemplazoTexto": "The previous video was withdrawn. You will see the new one in your store once the Chamber approves it.",
-      "noReemplazo": "We could not replace the video"
+      "noReemplazo": "We could not replace the video",
+      "retirar": "Withdraw",
+      "retirarDe": "Withdraw the video {{titulo}}",
+      "retirado": "Video withdrawn",
+      "retiradoTexto": "It is no longer shown in your store. It stays in the record: it is not deleted.",
+      "noRetiro": "We could not withdraw the video",
+      "dialogo": {
+        "titulo": "Withdraw “{{titulo}}”",
+        "confirmar": "Withdraw video",
+        "publicado": "It will no longer be shown in your store. It is not deleted: it stays in the record, and you can upload another one at any time.",
+        "texto": "It will no longer be reviewed or shown in your store. It is not deleted: it stays in the record."
+      }
     },
     "cuenta": {
       "titulo": "Bank account",

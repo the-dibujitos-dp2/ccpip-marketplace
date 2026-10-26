@@ -33,6 +33,7 @@ import pe.ccpip.imagenes.ImagenStorage;
  *   <li>CCPIP-118 (RF-10): subir un video a la galeria de su tienda.</li>
  *   <li>CCPIP-390 (RF-282): consultar los videos de su propia tienda, con su revision.</li>
  *   <li>CCPIP-391 (RF-283): reemplazar un video por otro, que tambien pasa por la revision.</li>
+ *   <li>CCPIP-392 (RF-284): retirar un video de forma logica, con autor y fecha.</li>
  * </ul>
  * El archivo va al mismo bucket que las imagenes, en {@code productores/<productor>/videos/}, y se sirve por
  * partes (Range) para que el navegador pueda adelantarlo sin descargarlo entero.
@@ -60,9 +61,13 @@ public class VideosService {
     public record Archivo(String clave, String contentType, boolean publico) {
     }
 
-    /** Ocupan un lugar los que no estan retirados ni rechazados; un reemplazo en revision no ocupa otro. */
+    /**
+     * Ocupan un lugar los que no estan retirados ni rechazados; un reemplazo en revision no ocupa otro mientras el
+     * video que reemplaza siga vigente.
+     */
     static final String OCUPAN_LUGAR = """
-            retirado_en IS NULL AND estado <> 'RECHAZADO' AND NOT (reemplaza_a IS NOT NULL AND estado = 'EN_REVISION')""";
+            retirado_en IS NULL AND estado <> 'RECHAZADO' AND NOT (estado = 'EN_REVISION' AND EXISTS (
+                SELECT 1 FROM video_tienda r WHERE r.id = video_tienda.reemplaza_a AND r.retirado_en IS NULL))""";
 
     private final JdbcTemplate jdbc;
     private final ImagenStorage storage;
@@ -114,6 +119,21 @@ public class VideosService {
         long nuevo = guardar(productorId, usuarioId, texto, archivo, anterior.reemplazaA());
         jdbc.update("UPDATE video_tienda SET reemplazado_por = ? WHERE id = ?", nuevo, id);
         return buscar(nuevo).orElseThrow();
+    }
+
+    /**
+     * CCPIP-392: retira un video propio y vigente. Deja de verse en la tienda (y de esperar la revision, si la
+     * esperaba), pero no se borra: queda quien lo retiro y cuando, y el archivo sigue en el bucket.
+     */
+    @Transactional
+    public void retirarPropio(long productorId, long usuarioId, long id) {
+        bloquearProductor(productorId);
+        int retirados = jdbc.update("""
+                UPDATE video_tienda SET retirado_por = ?, retirado_en = now()
+                WHERE id = ? AND productor_id = ? AND retirado_en IS NULL""", usuarioId, id, productorId);
+        if (retirados == 0) {
+            throw noEncontrado();
+        }
     }
 
     /** Retira un video vigente; {@code reemplazadoPor} es el que toma su lugar, si lo hay (CCPIP-391). */

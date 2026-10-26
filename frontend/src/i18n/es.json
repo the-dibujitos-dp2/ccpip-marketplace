@@ -788,7 +788,18 @@
       "reemplazoEnviado": "Reemplazo enviado a revisión",
       "reemplazoPublicado": "Tu tienda sigue mostrando el video actual hasta que la Cámara apruebe el nuevo.",
       "reemplazoTexto": "El video anterior quedó retirado. Lo verás en tu tienda cuando la Cámara apruebe el nuevo.",
-      "noReemplazo": "No pudimos reemplazar el video"
+      "noReemplazo": "No pudimos reemplazar el video",
+      "retirar": "Retirar",
+      "retirarDe": "Retirar el video {{titulo}}",
+      "retirado": "Video retirado",
+      "retiradoTexto": "Ya no se ve en tu tienda. Queda en el historial: no se borra.",
+      "noRetiro": "No pudimos retirar el video",
+      "dialogo": {
+        "titulo": "Retirar «{{titulo}}»",
+        "confirmar": "Retirar video",
+        "publicado": "Dejará de verse en tu tienda. No se borra: queda en el historial, y puedes subir otro cuando quieras.",
+        "texto": "Ya no se revisará ni se verá en tu tienda. No se borra: queda en el historial."
+      }
     },
     "cuenta": {
       "titulo": "Cuenta bancaria",

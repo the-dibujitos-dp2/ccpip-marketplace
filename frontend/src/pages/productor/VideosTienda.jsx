@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoSubir from '../../assets/icons/subir.svg'
-import { MAX_MB, MAX_MINUTOS, MAX_VIDEOS, misVideos, ocupaLugar, reemplazarVideo, subirVideo, TIPOS_VIDEO } from '../../api/videos.js'
+import { MAX_MB, MAX_MINUTOS, MAX_VIDEOS, misVideos, ocupaLugar, reemplazarVideo, retirarVideo, subirVideo, TIPOS_VIDEO } from '../../api/videos.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
+import Dialogo from '../../components/Dialogo.jsx'
 import Icono from '../../components/Icono.jsx'
 import { duracion } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
@@ -41,6 +42,7 @@ const megas = (bytes) => (bytes / (1024 * 1024)).toLocaleString(undefined, { max
  * Figma: sigue el formato de la galeria. Si la subida se corta, el archivo elegido se conserva para reintentar.
  * CCPIP-390 (RF-282): ve sus videos con el estado de su revision y, si se rechazaron, el motivo.
  * CCPIP-391 (RF-283): reemplaza un video por otro; el que se ve en la tienda sigue ahi hasta que se aprueba el nuevo.
+ * CCPIP-392 (RF-284): retira un video, con confirmacion; deja de verse pero no se borra.
  */
 export default function VideosTienda() {
   const { t } = useTranslation()
@@ -52,6 +54,8 @@ export default function VideosTienda() {
   const [videos, setVideos] = useState(null)
   const [errorLista, setErrorLista] = useState(false)
   const [reemplazando, setReemplazando] = useState(null)
+  const [retirando, setRetirando] = useState(null)
+  const [ocupado, setOcupado] = useState(false)
 
   const cargar = useCallback(async () => {
     try {
@@ -107,7 +111,21 @@ export default function VideosTienda() {
     }
   }
 
-  const lleno = (videos ?? []).filter(ocupaLugar).length >= MAX_VIDEOS
+  async function retirar() {
+    setOcupado(true)
+    try {
+      await retirarVideo(retirando.id)
+      setAviso({ tono: 'exito', titulo: t('productor.videos.retirado'), descripcion: t('productor.videos.retiradoTexto') })
+      await cargar()
+    } catch (err) {
+      setAviso({ tono: 'error', titulo: mensajeError(err, 'productor.videos.noRetiro') })
+    } finally {
+      setOcupado(false)
+      setRetirando(null)
+    }
+  }
+
+  const lleno = (videos ?? []).filter((v) => ocupaLugar(v, videos)).length >= MAX_VIDEOS
   const conReemplazo = new Set((videos ?? []).filter((v) => v.reemplazaA && v.estado === 'EN_REVISION').map((v) => v.reemplazaA))
   const tituloDe = (id) => videos?.find((v) => v.id === id)?.titulo
   return (
@@ -149,6 +167,9 @@ export default function VideosTienda() {
                       onChange={(e) => { const nuevo = e.target.files?.[0]; e.target.value = ''; if (nuevo) void reemplazar(v, nuevo) }} />
                   </label>
                 )}
+                <Boton tipo="terciario" tamano="S" onClick={() => setRetirando(v)} aria-label={t('productor.videos.retirarDe', { titulo: v.titulo })}>
+                  {t('productor.videos.retirar')}
+                </Boton>
               </div>
             </li>
           ))}
@@ -177,6 +198,18 @@ export default function VideosTienda() {
           </Boton>
         </form>
       )}
+
+      <Dialogo
+        abierto={retirando !== null}
+        titulo={retirando ? t('productor.videos.dialogo.titulo', { titulo: retirando.titulo }) : ''}
+        confirmar={t('productor.videos.dialogo.confirmar')}
+        tipoConfirmar="destructivo"
+        ocupado={ocupado}
+        onCancelar={() => setRetirando(null)}
+        onConfirmar={retirar}
+      >
+        <p>{t(retirando?.estado === 'PUBLICADO' ? 'productor.videos.dialogo.publicado' : 'productor.videos.dialogo.texto')}</p>
+      </Dialogo>
     </section>
   )
 }

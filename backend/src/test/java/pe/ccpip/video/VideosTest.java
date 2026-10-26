@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -217,6 +218,55 @@ class VideosTest extends IntegrationTest {
                         .cookie(loginAs("productor_nuevo@ccpip.test")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("VIDEO_NO_ENCONTRADO"));
+    }
+
+    // ---------- CCPIP-392: retirar ----------
+
+    @Test
+    void retirarUnVideoLoSacaDeLaTiendaSinBorrarlo() throws Exception {
+        long video = id(subir("Cosecha de cacao", "cosecha.mp4", "video/mp4"));
+        decidir(video, "aprobar", "Muestra el trabajo de la comunidad.").andExpect(status().isOk());
+
+        mockMvc.perform(delete("/api/productor/videos/{id}", video).cookie(productor)).andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/tiendas/{id}", tienda)).andExpect(jsonPath("$.videos[*].id").value(not(hasItem((int) video))));
+        mockMvc.perform(get("/api/videos/{id}", video)).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/productor/videos").cookie(productor))
+                .andExpect(jsonPath("$[*].id").value(not(hasItem((int) video))));
+        // Queda con su autor y fecha; el retiro no se deshace ni se repite
+        Map<String, Object> fila = jdbc.queryForMap("""
+                SELECT v.retirado_en, u.correo FROM video_tienda v JOIN usuario u ON u.id = v.retirado_por WHERE v.id = ?""", video);
+        assertThat(fila.get("retirado_en")).isNotNull();
+        assertThat(fila).containsEntry("correo", PRODUCTOR);
+        mockMvc.perform(delete("/api/productor/videos/{id}", video).cookie(productor))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("VIDEO_NO_ENCONTRADO"));
+        assertRechazaLaBase(() -> jdbc.update("UPDATE video_tienda SET retirado_en = NULL, retirado_por = NULL WHERE id = ?", video),
+                "Un video retirado no vuelve");
+        assertRechazaLaBase(() -> jdbc.update("DELETE FROM video_tienda WHERE id = ?", video), "Un video no se borra");
+    }
+
+    @Test
+    void unVideoRetiradoMientrasEsperabaSaleDeLaBandejaYLiberaSuLugar() throws Exception {
+        for (int i = 0; i < VideosService.MAX_VIDEOS; i++) {
+            subir("Video " + i, "cosecha.mp4", "video/mp4").andExpect(status().isCreated());
+        }
+        long ultimo = jdbc.queryForObject("SELECT max(id) FROM video_tienda WHERE productor_id = ?", Long.class, tienda);
+        mockMvc.perform(delete("/api/productor/videos/{id}", ultimo).cookie(productor)).andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/admin/moderacion/videos").cookie(subAdmin))
+                .andExpect(jsonPath("$.solicitudes[*].id").value(not(hasItem((int) ultimo))));
+        mockMvc.perform(get("/api/admin/moderacion/videos/{id}", ultimo).cookie(subAdmin))
+                .andExpect(jsonPath("$.puedeDecidir").value(false));
+        decidir(ultimo, "aprobar", "Tarde").andExpect(status().isConflict());
+        subir("Otro", "cosecha.mp4", "video/mp4").andExpect(status().isCreated());
+    }
+
+    @Test
+    void soloSuProductorRetiraUnVideo() throws Exception {
+        long video = id(subir("Cosecha de cacao", "cosecha.mp4", "video/mp4"));
+        mockMvc.perform(delete("/api/productor/videos/{id}", video).cookie(loginAs("productor_nuevo@ccpip.test")))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(delete("/api/productor/videos/{id}", video).cookie(subAdmin)).andExpect(status().isForbidden());
+        assertThat(jdbc.queryForObject("SELECT retirado_en IS NULL FROM video_tienda WHERE id = ?", Boolean.class, video)).isTrue();
     }
 
     // ---------- CCPIP-118: la revision del subadministrador ----------
