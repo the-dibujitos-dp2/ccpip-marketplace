@@ -25,6 +25,13 @@ const rutaReporteAdmin = (reporte, sufijo, filtros, idioma) =>
 export const consultarReporte = (reporte, filtros) =>
   apiFetch(rutaReporteAdmin(reporte, `/${encodeURIComponent(reporte)}`, filtros))
 
+/**
+ * Enlace de descarga de un reporte de gestion (la pestaña que se ve) con sus filtros, en PDF o Excel
+ * (`formato` pdf o xlsx); la cookie de sesion viaja sola.
+ */
+export const urlReporteGestion = (reporte, formato, filtros, idioma) =>
+  rutaReporteAdmin(reporte, `/${encodeURIComponent(reporte)}/${formato}`, filtros, idioma)
+
 /** CCPIP-354 (RF-244): existencias agregadas de los puntos de acopio. Solo superadministrador, solo lectura. */
 export const existenciasAgregadas = () => apiFetch('/api/admin/reportes/existencias')
 

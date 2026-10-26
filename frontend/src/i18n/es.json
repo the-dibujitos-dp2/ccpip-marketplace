@@ -1413,6 +1413,10 @@
       "agrupacion": "Agrupar por",
       "linea": "Línea",
       "todas": "Todas",
+      "exportar": {
+        "pdf": "Descargar PDF",
+        "xlsx": "Descargar Excel"
+      },
       "por": {
         "DIA": "Día",
         "SEMANA": "Semana",

@@ -470,3 +470,29 @@ describe('CCPIP-94 Indicadores de actividad (SA-10)', () => {
     expect(within(filas[0]).getByRole('columnheader', { name: 'Compradores' })).toBeInTheDocument()
   })
 })
+
+describe('Exportar los reportes de gestion (SA-10)', () => {
+  it('las metricas por periodo no se descargan', async () => {
+    comoSuper()
+    abrirEn('/admin/reportes')
+    await screen.findByRole('table', { name: 'Ventas por periodo' })
+    expect(screen.queryByRole('link', { name: 'Descargar PDF' })).not.toBeInTheDocument()
+  })
+
+  it('descarga la pestaña que se ve con sus filtros, en PDF o Excel', async () => {
+    comoSuper({
+      [`GET /api/admin/reportes/indicadores?${RANGO}&agrupacion=MES`]: () => [200, copia(INDICADORES)],
+      [`GET /api/admin/reportes/calificaciones?${RANGO}`]: () => [200, { ...copia(CALIFICACIONES), linea: 'CAFE' }],
+    })
+    const user = await abrirPestana('Indicadores')
+    await screen.findByRole('table', { name: 'Indicadores por período' })
+    expect(screen.getByRole('link', { name: 'Descargar PDF' }))
+      .toHaveAttribute('href', `/api/admin/reportes/indicadores/pdf?${RANGO}&agrupacion=MES&lang=es`)
+
+    await user.click(screen.getByRole('tab', { name: 'Calificaciones' }))
+    await screen.findByRole('table', { name: 'Calificaciones por producto' })
+    // La agrupacion no aplica a las calificaciones; la linea si
+    expect(screen.getByRole('link', { name: 'Descargar Excel' }))
+      .toHaveAttribute('href', `/api/admin/reportes/calificaciones/xlsx?${RANGO}&linea=CAFE&lang=es`)
+  })
+})

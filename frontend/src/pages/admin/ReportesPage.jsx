@@ -3,11 +3,12 @@ import { useTranslation } from 'react-i18next'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoGrafico from '../../assets/icons/grafico.svg'
 import iconoTienda from '../../assets/icons/tienda.svg'
-import { consultarReporte } from '../../api/admin.js'
+import { consultarReporte, urlReporteGestion } from '../../api/admin.js'
 import { useReporte } from '../../api/useReporte.js'
 import Alerta from '../../components/Alerta.jsx'
 import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
+import DescargasReporte from '../../components/DescargasReporte.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import { Barra, nombrePeriodo } from '../../components/TablaReporte.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
@@ -32,6 +33,9 @@ const GESTION = { indicadores: Indicadores, productores: Productores, puntos: Pu
 const PESTANAS = [...METRICAS, ...Object.keys(GESTION)]
 
 const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
+
+/** Formatos de exportacion de un reporte de gestion: la pestaña que se ve, con sus filtros. */
+const FORMATOS = ['pdf', 'xlsx']
 
 const FILTRO_VACIO = { desde: '', hasta: '', agrupacion: '', linea: '' }
 
@@ -59,6 +63,7 @@ const seAgrupa = (clave) => esMetrica(clave) || clave === 'indicadores'
  * - CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias por punto de acopio
  * - CCPIP-123 (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y productores, por linea
  * - CCPIP-80 (RF-66): origen y destino de las ventas
+ * - Los reportes de gestion se descargan en PDF o Excel: la pestaña que se ve, con sus filtros
  */
 export default function ReportesPage({ path }) {
   const { t } = useTranslation()
@@ -108,6 +113,10 @@ export default function ReportesPage({ path }) {
             onChange={cambiar('linea')}
             opciones={(datos?.lineas ?? []).map((l) => ({ valor: l.codigo, etiqueta: l.nombre }))}
           />
+        )}
+        {Gestion && (
+          <DescargasReporte className="reportes__exportar" formatos={FORMATOS} etiqueta={(f) => t(`admin.reportes.exportar.${f}`)}
+            url={(f, idioma) => urlReporteGestion(datos.clave, f, datos, idioma)} />
         )}
       </div>
       {error && <Alerta tono="error" titulo={t('admin.reportes.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}

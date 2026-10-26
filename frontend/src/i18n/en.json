@@ -1413,6 +1413,10 @@
       "agrupacion": "Group by",
       "linea": "Product line",
       "todas": "All",
+      "exportar": {
+        "pdf": "Download PDF",
+        "xlsx": "Download Excel"
+      },
       "por": {
         "DIA": "Day",
         "SEMANA": "Week",

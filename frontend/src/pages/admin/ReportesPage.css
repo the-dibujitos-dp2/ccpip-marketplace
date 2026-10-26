@@ -1,8 +1,10 @@
 /* SA-05 Reportes de la plataforma (CCPIP-345) */
-.reportes__filtros { display: flex; flex-wrap: wrap; gap: 16px; }
+.reportes__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
+.reportes__exportar { display: flex; gap: 8px; margin-left: auto; }
 .reportes__filtros .campo { width: 200px; }
 .reportes__periodo { flex: 0 0 190px; }
 
 @media (max-width: 720px) {
   .reportes__filtros .campo { width: 100%; }
+  .reportes__exportar { margin-left: 0; }
 }
