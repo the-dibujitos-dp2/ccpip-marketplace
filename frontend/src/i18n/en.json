@@ -2500,7 +2500,14 @@
     "vacio": "You haven't saved any addresses yet",
     "vacioTexto": "When you buy with home delivery you can save the address for next time.",
     "sinAlias": "Delivery address",
-    "referencia": "Reference: {{referencia}}"
+    "referencia": "Reference: {{referencia}}",
+    "retirar": "Remove address",
+    "retirarAria": "Remove delivery address",
+    "confirmarTitulo": "Remove address",
+    "confirmarTexto": "Remove {{direccion}} from your saved addresses? It will remain on previous orders.",
+    "retirando": "Removing…",
+    "retirada": "Address removed",
+    "errorRetirar": "We couldn't remove the address. Try again."
   },
   "misDatos": {
     "titulo": "Personal details",

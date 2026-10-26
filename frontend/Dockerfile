@@ -22,7 +22,7 @@ FROM caddy:2-alpine
 COPY --from=caddy /caddy /usr/bin/caddy
 # El binario oficial trae cap_net_bind_service; al reemplazarlo hay que volver a darsela
 # Pin brotli-libs to Alpine's fixed CVE-2026-111497 release and remove APK indexes from the runtime image.
-RUN apk add --no-cache libcap brotli-libs=1.2.1-r0 \
+RUN apk add --no-cache libcap brotli-libs=1.2.1-r0 curl=8.23.0-r0 libcurl=8.23.0-r0 \
     && setcap cap_net_bind_service=+ep /usr/bin/caddy \
     && apk del libcap \
     && rm -rf /var/cache/apk/*

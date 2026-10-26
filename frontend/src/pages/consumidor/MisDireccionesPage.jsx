@@ -1,7 +1,9 @@
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listarDirecciones } from '../../api/cuenta.js'
+import { listarDirecciones, retirarDireccion } from '../../api/cuenta.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Boton from '../../components/Boton.jsx'
+import Dialogo from '../../components/Dialogo.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { RUTAS } from '../../router.js'
@@ -17,6 +19,35 @@ import './MisDireccionesPage.css'
 export default function MisDireccionesPage() {
   const { t } = useTranslation()
   const { datos: direcciones, error, recargar } = useConsulta(listarDirecciones)
+  const [seleccionada, setSeleccionada] = useState(null)
+  const [retirando, setRetirando] = useState(false)
+  const [errorRetiro, setErrorRetiro] = useState(false)
+  const [aviso, setAviso] = useState('')
+  const envioActivo = useRef(false)
+
+  async function confirmarRetiro() {
+    if (!seleccionada || envioActivo.current) return
+    envioActivo.current = true
+    setRetirando(true)
+    setErrorRetiro(false)
+    try {
+      await retirarDireccion(seleccionada.id)
+      setSeleccionada(null)
+      setAviso(t('misDirecciones.retirada'))
+      recargar()
+    } catch {
+      setErrorRetiro(true)
+    } finally {
+      envioActivo.current = false
+      setRetirando(false)
+    }
+  }
+
+  function abrirRetiro(direccion) {
+    setAviso('')
+    setErrorRetiro(false)
+    setSeleccionada(direccion)
+  }
 
   return (
     <LayoutTienda>
@@ -45,12 +76,27 @@ export default function MisDireccionesPage() {
                     <p className="mis-direcciones__direccion">{d.direccion}</p>
                     <p className="mis-direcciones__zona">{`${d.distrito} · ${d.provincia} · ${d.departamento}`}</p>
                     {d.referencia && <p className="mis-direcciones__referencia">{t('misDirecciones.referencia', { referencia: d.referencia })}</p>}
+                    <Boton tipo="destructivo" tamano="S" onClick={() => abrirRetiro(d)} aria-label={t('misDirecciones.retirarAria')}>{t('misDirecciones.retirar')}</Boton>
                   </li>
                 ))}
               </ul>
             )}
+            {aviso && <p className="mis-direcciones__aviso" role="status">{aviso}</p>}
           </section>
         </div>
+        <Dialogo
+          abierto={Boolean(seleccionada)}
+          titulo={t('misDirecciones.confirmarTitulo')}
+          confirmar={retirando ? t('misDirecciones.retirando') : t('misDirecciones.retirar')}
+          tipoConfirmar="destructivo"
+          cancelar={t('comun.cancelar')}
+          ocupado={retirando}
+          onConfirmar={confirmarRetiro}
+          onCancelar={() => { if (!retirando) setSeleccionada(null) }}
+        >
+          {seleccionada && <p>{t('misDirecciones.confirmarTexto', { direccion: seleccionada.direccion })}</p>}
+          {errorRetiro && <p role="alert">{t('misDirecciones.errorRetirar')}</p>}
+        </Dialogo>
       </main>
     </LayoutTienda>
   )
