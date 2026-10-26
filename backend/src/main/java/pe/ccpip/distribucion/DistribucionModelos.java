@@ -5,7 +5,7 @@ import java.util.List;
 
 import pe.ccpip.entrega.EntregaModelos.Distrito;
 
-/** Respuestas de la distribucion de pedidos a domicilio al distribuidor (CCPIP-107, CCPIP-108). */
+/** Respuestas de la distribucion de pedidos a domicilio al distribuidor (CCPIP-107, CCPIP-108, CCPIP-109). */
 public final class DistribucionModelos {
 
     private DistribucionModelos() {
@@ -38,10 +38,12 @@ public final class DistribucionModelos {
     }
 
     /**
-     * CCPIP-108: la entrega que el distribuidor acaba de asumir, con el punto donde recogerla y el distrito de
-     * destino. La direccion exacta y el contacto de quien recibe llegan con CCPIP-110; {@code asignadaEn} es cuando
-     * la asumio.
+     * Una entrega del distribuidor: la que acaba de asumir (CCPIP-108) o de retirar del punto (CCPIP-109), con el
+     * punto donde recogerla y el distrito de destino. {@code estado} es el de la entrega (ASIGNADA, RETIRADA...);
+     * {@code asignadaEn}, cuando la asumio, y {@code retiradaEn}, cuando la retiro (nulo hasta entonces). La direccion
+     * exacta y el contacto de quien recibe llegan con CCPIP-110.
      */
-    public record EntregaAsumida(String numero, Origen origen, Distrito destino, Instant asignadaEn) {
+    public record EntregaDelDistribuidor(String numero, Origen origen, Distrito destino, String estado,
+                                         Instant asignadaEn, Instant retiradaEn) {
     }
 }
