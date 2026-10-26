@@ -329,6 +329,12 @@ con la clave de la variante que toma el lugar de la original, igual que un reemp
 original queda retirada y `reemplazada_por` apunta a la nueva; `imagen_resultante` la enlaza.
 Rechazarla no toca la original.
 
+Pedir la mejora, aceptarla y rechazarla bloquean primero la fila de la foto en `imagen` (`FOR UPDATE`),
+asi las solicitudes simultaneas sobre una misma foto se ordenan: dos pedidos de mejora a la vez reciben la
+misma propuesta (antes el segundo chocaba con el indice unico y respondia 500), y de dos decisiones a la vez
+solo cuenta la primera; la otra encuentra la foto ya reemplazada o la mejora ya decidida y responde 404. Las
+decisiones solo cambian una mejora que siga PENDIENTE.
+
 ### producto_historia (CCPIP-48, 49)
 Las cuatro respuestas del productor (`quienes`, `como`, `significado`, `cuidado`), el texto
 que propuso la IA (`texto_propuesto`) y el aprobado (`texto_final`), con `asistida`,
@@ -1331,8 +1337,8 @@ nombra "Listo para despacho".
 ## Direcciones de entrega guardadas (CCPIP-65)
 
 Migracion `V202610231400`. El comprador guarda sus direcciones de entrega habituales (RF-46) para no escribirlas
-en cada compra. Sigue la tabla `direccion_guardada` del modelo de datos del proyecto; consultarlas (CCPIP-393),
-modificarlas (CCPIP-394) y retirarlas (CCPIP-395) llegan con sus historias.
+en cada compra. Sigue la tabla `direccion_guardada` del modelo de datos del proyecto. Consultarlas (CCPIP-393) y
+retirarlas (CCPIP-395) usan la misma tabla; modificarlas llega con CCPIP-394.
 
 ```mermaid
 erDiagram
@@ -1354,13 +1360,16 @@ erDiagram
 
 | Endpoint | Rol | Descripcion |
 |---|---|---|
+| `GET /api/cuenta/direcciones` | CONSUMIDOR | CCPIP-393: las direcciones activas del comprador, la ultima que guardo primero, cada una con su distrito, provincia y departamento. Sin direcciones, una lista vacia |
 | `POST /api/cuenta/direcciones` | CONSUMIDOR | Guarda una direccion del comprador. `201` con la direccion y su distrito, provincia y departamento |
+| `DELETE /api/cuenta/direcciones/{id}` | CONSUMIDOR | CCPIP-395: retira una direccion activa propia (`activa = false`, sin borrarla). `204`; una ajena, inexistente o ya retirada responde `404 DIRECCION_NO_ENCONTRADA` |
 
 **Reglas.** Solo datos propios: el comprador sale de la sesion. Solo destinos admitidos: un distrito que no esta
 en el catalogo responde `422 DESTINO_NO_ADMITIDO`. La direccion se pide completa, como en el pedido a domicilio
 (`422 DIRECCION_INVALIDA`). La misma direccion en el mismo distrito no se guarda dos veces para un comprador
 (`409 DIRECCION_YA_GUARDADA`, sin distinguir mayusculas); otro comprador si puede guardarla. Los pedidos copian su
-destino en `entrega` y no dependen de esta tabla.
+destino en `entrega` y no dependen de esta tabla. La consulta solo devuelve las direcciones propias y activas: las de
+otros compradores y las retiradas no aparecen (RNF-05).
 
 ## Aceptar y editar el borrador de descripcion de la IA (CCPIP-49)
 
@@ -1446,7 +1455,31 @@ sin importar el filtro, para poder cambiar de punto.
 **Que se muestra.** `origen` es el punto de acopio (nombre, distrito y direccion); `destino` llega hasta el distrito
 (ubigeo, departamento, provincia y distrito); `disponibleDesde` es cuando quedo `LISTO_PARA_DESPACHO` segun
 `pedido_estado_historial`, y `esperaMinutos`, lo que lleva esperando. La direccion exacta y el contacto de quien
-recibe **no se muestran** hasta asumir la entrega (CCPIP-108 y CCPIP-110), y el comprador no se muestra nunca (RNF-05).
+recibe **no se muestran** en la cola: los consulta quien asumio la entrega (CCPIP-110), y el comprador no se muestra nunca (RNF-05).
 
 El endpoint nuevo **no estaba detallado en el contrato de la API del Drive** salvo su ruta y descripcion; los campos
 de la respuesta son los de esta seccion.
+
+## Asumir la entrega de un pedido disponible (CCPIP-108)
+
+Sin migracion: usa las columnas de `entrega` que ya existen (`distribuidor_id`, `estado` `ASIGNADA` y `asignada_en`,
+migracion `V202610231000`). El distribuidor asume la entrega de un pedido de la cola de disponibles (RF-55) y pasa a
+ser suya. Consultar sus asignados (CCPIP-317), el destino exacto y el contacto (CCPIP-110), y retirarlo (CCPIP-109)
+llegan con sus historias.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `POST /api/distribuidor/pedidos/{numero}/asumir` | DISTRIBUIDOR | Asume la entrega del pedido: queda `ASIGNADA` al distribuidor de la sesion. Responde el numero, el punto de origen, el distrito de destino y `asignadaEn` |
+
+**Asignacion exclusiva.** La entrega se bloquea con `FOR UPDATE` antes de decidir, asi dos distribuidores que la
+piden a la vez se ordenan: el primero la obtiene y el segundo recibe `409 PEDIDO_YA_ASUMIDO`. Si quien ya la asumio
+la vuelve a pedir (un doble clic o un reintento), no cambia nada y recibe la misma asignacion con la misma fecha.
+
+**Quien es elegible.** El mismo criterio de la cola (CCPIP-107): pedido `ENVIO` en `LISTO_PARA_DESPACHO`, entrega
+`DISPONIBLE` y sin distribuidor, de un punto de acopio activo. Cualquier otro caso responde `409 PEDIDO_NO_DISPONIBLE`
+sin cambiar nada. Un pedido para recojo o un numero que no existe responde `404 PEDIDO_NO_ENCONTRADO`: para el
+distribuidor no hay entrega (RNF-05).
+
+**Lo que no cambia.** El pedido sigue `LISTO_PARA_DESPACHO` hasta que el distribuidor lo retire del punto (CCPIP-109),
+y no se mueve inventario: el descuento ocurrio al confirmar la compra (CCPIP-158). La respuesta no trae la direccion
+exacta ni el contacto de quien recibe (CCPIP-110), ni nunca al comprador.

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoCaja from '../../assets/icons/caja.svg'
 import iconoCampana from '../../assets/icons/campana.svg'
+import iconoGrafico from '../../assets/icons/grafico.svg'
 import iconoMerma from '../../assets/icons/merma.svg'
 import iconoMovimientos from '../../assets/icons/movimientos.svg'
 import { RUTAS } from '../../router.js'
@@ -9,7 +10,7 @@ import { useSesion } from '../../sesion.js'
 import LayoutPanel from './LayoutPanel.jsx'
 
 /**
- * Solo los modulos que el punto ya puede usar: el tablero (A-01), merma, reportes, etc.
+ * Solo los modulos que el punto ya puede usar: el tablero (A-01) y lo que falte
  * llegan con sus historias. Mientras tanto, su inicio sigue siendo /inicio.
  */
 const NAV = [
@@ -20,6 +21,8 @@ const NAV = [
   { to: RUTAS.acopioTransferencias, clave: 'transferencias', icono: iconoMovimientos, activo: (p) => p.startsWith(RUTAS.acopioTransferencias) },
   // A-04 (CCPIP-76, CCPIP-75): la merma del punto
   { to: RUTAS.acopioMerma, clave: 'merma', icono: iconoMerma, activo: (p) => p.startsWith(RUTAS.acopioMerma) },
+  // A-06 (CCPIP-117 y siguientes): entradas, salidas, ventas e inventario del punto por periodo
+  { to: RUTAS.acopioReportes, clave: 'reportes', icono: iconoGrafico, activo: (p) => p.startsWith(RUTAS.acopioReportes) },
   // A-08: alertas del punto y su configuracion
   { to: RUTAS.acopioAlertas, clave: 'alertas', icono: iconoCampana, activo: (p) => p.startsWith(RUTAS.acopioAlertas) },
 ]

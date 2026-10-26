@@ -6,6 +6,7 @@ import Alerta from '../../components/Alerta.jsx'
 import BadgeDenuncia from '../../components/BadgeDenuncia.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import { diaMes, fecha } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
@@ -36,6 +37,7 @@ export default function DenunciasPage({ path }) {
     <PaginaProductor path={path} seccion={t('productor.nav.denuncias')} titulo={t('denunciasProductor.titulo')}>
       <Alerta tono="info" titulo={t('denunciasProductor.anonimas')} descripcion={t('denunciasProductor.anonimasTexto')} />
       {error && <Alerta tono="error" titulo={t('denunciasProductor.error')} descripcion={t('comun.errorConexion')} />}
+      {!datos && !error && <Cargando />}
       {r && r.total > 0 && (
         <p className="body-m">{t('denunciasProductor.resumen', { total: r.total, abiertas: r.abiertas, sinResponder: r.sinResponder })}</p>
       )}

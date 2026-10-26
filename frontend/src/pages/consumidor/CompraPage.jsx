@@ -10,6 +10,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
 import OpcionTarjeta from '../../components/OpcionTarjeta.jsx'
@@ -335,7 +336,7 @@ export default function CompraPage() {
             )}
           </EstadoVacio>
         )}
-        {!bloqueo && (!carrito || !puntos) && <p className="visually-hidden">{t('compra.preparando')}</p>}
+        {!bloqueo && (!carrito || !puntos) && <Cargando texto={t('compra.preparando')} />}
         {!bloqueo && puntos?.length === 0 && (
           <EstadoVacio
             titulo={t('compra.sinPunto')}

@@ -8,6 +8,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
@@ -94,7 +95,7 @@ export default function FichaProductorPage({ path, id }) {
   if (!ficha) {
     return (
       <LayoutAdmin path={path} migas={migas} titulo={t('productores.ficha')}>
-        {error ? <Alerta tono="error" titulo={mensajeError(error, 'productores.errorFicha')} /> : <p className="caption">{t('comun.cargando')}</p>}
+        {error ? <Alerta tono="error" titulo={mensajeError(error, 'productores.errorFicha')} /> : <Cargando />}
         <Boton tipo="secundario" tamano="M" to={RUTAS.adminProductores}>{t('productores.volver')}</Boton>
       </LayoutAdmin>
     )

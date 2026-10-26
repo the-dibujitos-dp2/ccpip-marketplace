@@ -236,3 +236,30 @@ describe('Reportes del productor', () => {
     expect(screen.getByRole('link', { name: 'Download Excel' }).getAttribute('href')).toContain('/xlsx?')
   })
 })
+
+describe('Reportes del productor: las descargas siguen los filtros que se ven', () => {
+  it('la modalidad editada no se mezcla con el rango anterior mientras se consulta', async () => {
+    let soltar
+    const ruta = 'GET /api/productor/reportes/ventas?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES&modalidad=MAYORISTA'
+    productor({ [ruta]: () => new Promise((resolve) => { soltar = () => resolve([200, { ...copia(VENTAS), modalidad: 'MAYORISTA' }]) }) })
+    abrirEn('/productor/reportes')
+    await screen.findByRole('link', { name: 'Descargar PDF' })
+
+    fireEvent.change(screen.getByLabelText('Modalidad'), { target: { value: 'MAYORISTA' } })
+    expect(await screen.findByRole('button', { name: 'Descargar PDF' })).toBeDisabled()
+    expect(screen.queryByRole('link', { name: 'Descargar PDF' })).not.toBeInTheDocument()
+
+    soltar()
+    expect(await screen.findByRole('link', { name: 'Descargar PDF' })).toHaveAttribute('href',
+      '/api/productor/reportes/pdf?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES&modalidad=MAYORISTA&lang=es')
+  })
+
+  it('con una fecha vacia no descarga el rango anterior', async () => {
+    productor()
+    abrirEn('/productor/reportes')
+    await screen.findByRole('link', { name: 'Descargar PDF' })
+    fireEvent.change(screen.getByLabelText('Hasta'), { target: { value: '' } })
+    expect(screen.getByRole('button', { name: 'Descargar Excel' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Descargar Excel' })).toHaveAccessibleDescription(/completa el período/)
+  })
+})

@@ -6,6 +6,7 @@ import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import DetalleTransferencia, { EstadoTransferencia, nombreLugar } from '../../components/DetalleTransferencia.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
@@ -93,6 +94,8 @@ export default function TransferenciasPage({ path, search = '' }) {
           <Boton tamano="M" tipo="secundario" onClick={recargar}>{t('carrito.reintentar')}</Boton>
         </EstadoVacio>
       )}
+
+      {!datos && !error && <Cargando />}
 
       {!error && datos?.items.length === 0 && (
         <EstadoVacio

@@ -1,8 +1,11 @@
 package pe.ccpip.entrega;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -19,7 +22,7 @@ import pe.ccpip.auth.model.Rol;
 import pe.ccpip.entrega.EntregaModelos.DireccionGuardada;
 import pe.ccpip.entrega.EntregaModelos.NuevaDireccion;
 
-/** CCPIP-65: las direcciones de entrega habituales del comprador de la sesion. */
+/** CCPIP-65, CCPIP-393 y CCPIP-395: las direcciones de entrega habituales del comprador de la sesion. */
 @RolesPermitidos(Rol.CONSUMIDOR)
 @RestController
 @RequestMapping("/api/cuenta/direcciones")
@@ -29,6 +32,12 @@ public class DireccionesGuardadasController {
 
     public DireccionesGuardadasController(DireccionesGuardadasService service) {
         this.service = service;
+    }
+
+    /** CCPIP-393: sus direcciones activas, la ultima que guardo primero. */
+    @GetMapping
+    public List<DireccionGuardada> listar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s) {
+        return service.listar(s.userId());
     }
 
     @PostMapping

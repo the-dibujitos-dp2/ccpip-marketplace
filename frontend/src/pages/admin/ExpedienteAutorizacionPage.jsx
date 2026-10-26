@@ -17,6 +17,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import Icono from '../../components/Icono.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
@@ -112,7 +113,7 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
   if (!exp) {
     return (
       <LayoutAdmin path={path} migas={migas} titulo={t('autorizaciones.expediente.titulo')}>
-        {error ? <Alerta tono="error" titulo={mensajeError(error, 'autorizaciones.expediente.error')} /> : <p className="caption">{t('comun.cargando')}</p>}
+        {error ? <Alerta tono="error" titulo={mensajeError(error, 'autorizaciones.expediente.error')} /> : <Cargando />}
         <Boton tipo="secundario" tamano="M" to={RUTAS.adminAutorizaciones}>{t('autorizaciones.volver')}</Boton>
       </LayoutAdmin>
     )

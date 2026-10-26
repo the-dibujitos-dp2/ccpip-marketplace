@@ -1,0 +1,31 @@
+/* CCPIP-413: un aro que gira junto al texto, centrado donde ira el contenido */
+.cargando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 24px auto;
+  padding: 24px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.cargando__giro {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--color-border-default);
+  border-top-color: var(--color-border-brand);
+  border-radius: var(--radius-pill);
+  animation: cargando-girar 0.8s linear infinite;
+}
+
+@keyframes cargando-girar {
+  to { transform: rotate(360deg); }
+}
+
+/* Sin movimiento, el aro queda quieto: el texto ya dice que se esta cargando */
+@media (prefers-reduced-motion: reduce) {
+  .cargando__giro { animation: none; }
+}

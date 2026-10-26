@@ -5,6 +5,7 @@ import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
 import { fechaCorta, fechaHora, precio, unidades } from '../../formato.js'
@@ -105,6 +106,8 @@ export default function PedidosPage({ path }) {
           <Boton tamano="M" tipo="secundario" onClick={recargar}>{t('carrito.reintentar')}</Boton>
         </EstadoVacio>
       )}
+
+      {!datos && !error && <Cargando />}
 
       {!error && datos?.items.length === 0 && (
         <EstadoVacio titulo={t('acopio.pedidos.vacio')} descripcion={t('acopio.pedidos.vacioTexto')} />

@@ -5,6 +5,7 @@ import { listarPedidos } from '../../api/productor.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
@@ -47,6 +48,7 @@ export default function PedidosPage({ path }) {
       />
 
       {error && <Alerta tono="error" titulo={t('productor.pedidos.error')} descripcion={t('comun.errorConexion')} />}
+      {!datos && !error && <Cargando />}
 
       {datos && items.length === 0 && (
         <EstadoVacio titulo={t(`productor.pedidos.vacio.${estado}`)} descripcion={t('productor.pedidos.vacioTexto')} />

@@ -6,6 +6,7 @@ import iconoTienda from '../../assets/icons/tienda.svg'
 import { consultarReporte } from '../../api/admin.js'
 import Alerta from '../../components/Alerta.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
@@ -84,7 +85,7 @@ export default function ReportesPage({ path }) {
         />
       </div>
       {error && <Alerta tono="error" titulo={t('admin.reportes.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
-      {cargando && !datos && <p className="caption">{t('comun.cargando')}</p>}
+      {cargando && !datos && <Cargando />}
       {datos && <Resultado datos={datos} />}
     </LayoutAdmin>
   )

@@ -5,6 +5,7 @@ import { consultarPedido } from '../../api/compra.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
 import Pasos from '../../components/Pasos.jsx'
@@ -62,7 +63,7 @@ export default function PedidoPage({ id }) {
             </Boton>
           </EstadoVacio>
         )}
-        {!error && !pedido && <p className="visually-hidden">{t('pedido.cargando')}</p>}
+        {!error && !pedido && <Cargando texto={t('pedido.cargando')} />}
         {pedido && <Detalle pedido={pedido} />}
       </main>
     </LayoutTienda>

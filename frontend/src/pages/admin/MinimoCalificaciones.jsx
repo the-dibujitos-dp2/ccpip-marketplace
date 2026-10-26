@@ -4,6 +4,7 @@ import { configurarMinimoCalificaciones, obtenerMinimoCalificaciones } from '../
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import { fechaHoraLarga } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 
@@ -53,6 +54,8 @@ export default function MinimoCalificaciones() {
       </header>
       <p className="body-s parametros__texto">{t('minimoCalificaciones.intro')}</p>
       {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
+      {/* CCPIP-413: la tarjeta no queda vacia mientras llega el minimo vigente */}
+      {!minimo && !alerta && <Cargando />}
       {minimo && (
         <>
           <form className="parametros__formulario" onSubmit={guardar} noValidate>

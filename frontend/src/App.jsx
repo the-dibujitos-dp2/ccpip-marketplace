@@ -34,6 +34,7 @@ import TransferenciasPuntoPage from './pages/acopio/TransferenciasPage.jsx'
 import AlertasPuntoPage from './pages/acopio/AlertasPage.jsx'
 import MermaPuntoPage from './pages/acopio/MermaPage.jsx'
 import PedidosDisponiblesPage from './pages/distribuidor/PedidosDisponiblesPage.jsx'
+import ReportesPuntoPage from './pages/acopio/ReportesPage.jsx'
 import BuscarPage from './pages/consumidor/BuscarPage.jsx'
 import CarritoPage from './pages/consumidor/CarritoPage.jsx'
 import CompraPage from './pages/consumidor/CompraPage.jsx'
@@ -66,6 +67,7 @@ import MermaProductorPage from './pages/productor/MermaPage.jsx'
 import ReportesProductorPage from './pages/productor/ReportesPage.jsx'
 import { navigate, RUTAS, rutaInterna, useLocation } from './router.js'
 import { SesionContexto } from './sesion.js'
+import Cargando from './components/Cargando.jsx'
 
 const RUTA_PRODUCTO = /^\/productos\/(\d+)$/
 const RUTA_TIENDA = /^\/tiendas\/(\d+)$/
@@ -234,7 +236,7 @@ export default function App() {
   const actualizarUsuario = useCallback((cambios) => setSesion((s) => (s ? { ...s, user: { ...s.user, ...cambios } } : s)), [])
   const contexto = useMemo(() => ({ user, cerrarSesion: handleCerrarSesion, cerrando, actualizarUsuario }), [user, handleCerrarSesion, cerrando, actualizarUsuario])
 
-  if (cargando) return <p className="visually-hidden">{t('comun.cargando')}</p>
+  if (cargando) return <Cargando />
 
   let pagina
   if (path === RUTAS.ingresar || path === RUTAS.registro) {
@@ -336,6 +338,7 @@ export default function App() {
     else if (path === RUTAS.acopioTransferencias) pagina = <TransferenciasPuntoPage path={path} />
     else if (path === RUTAS.acopioAlertas) pagina = <AlertasPuntoPage path={path} />
     else if (path === RUTAS.acopioMerma) pagina = <MermaPuntoPage path={path} />
+    else if (path === RUTAS.acopioReportes) pagina = <ReportesPuntoPage path={path} />
     else {
       navigate(RUTAS.acopioPedidos, { replace: true })
       pagina = null

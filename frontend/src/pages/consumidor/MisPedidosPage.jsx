@@ -4,6 +4,7 @@ import { listarMisPedidos } from '../../api/compra.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import SeguimientoPedido, { conSeguimiento, fechaDe } from '../../components/SeguimientoPedido.jsx'
@@ -64,7 +65,7 @@ export default function MisPedidosPage() {
                 <Boton tamano="M" onClick={cargar}>{t('carrito.reintentar')}</Boton>
               </EstadoVacio>
             )}
-            {!error && !pedidos && <p className="visually-hidden">{t('comun.cargando')}</p>}
+            {!error && !pedidos && <Cargando />}
             {pedidos?.length === 0 && (
               <EstadoVacio titulo={t('misPedidos.vacio')} descripcion={t('misPedidos.vacioTexto')}>
                 <Boton tamano="M" to={RUTAS.buscar}>{t('misPedidos.explorar')}</Boton>

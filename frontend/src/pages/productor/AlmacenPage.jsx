@@ -7,6 +7,7 @@ import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import DialogoMerma from '../../components/DialogoMerma.jsx'
 import DialogoMovimiento, { AvisoRegistrado } from '../../components/DialogoMovimiento.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
@@ -70,6 +71,7 @@ export default function AlmacenPage({ path }) {
   return (
     <PaginaProductor path={path} seccion={t('productor.nav.almacen')} titulo={t('productor.almacen.titulo')}>
       {error && <Alerta tono="error" titulo={t('productor.almacen.error')} descripcion={t('comun.errorConexion')} />}
+      {!datos && !error && <Cargando />}
 
       {datos && (
         <>

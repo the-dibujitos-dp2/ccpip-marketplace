@@ -1,0 +1,9 @@
+/* Descargas de un reporte: los botones y, si no estan disponibles, el aviso de por que debajo */
+.descargas-reporte { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+/* El aviso toma el ancho de los botones: no ensancha el grupo ni lo empuja a otra fila */
+.descargas-reporte__aviso { flex-basis: 100%; contain: inline-size; text-align: right; }
+
+@media (max-width: 720px) {
+  .descargas-reporte { justify-content: flex-start; }
+  .descargas-reporte__aviso { text-align: left; }
+}

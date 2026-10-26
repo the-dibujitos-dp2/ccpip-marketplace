@@ -5,6 +5,7 @@ import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import { nombreCausa } from '../../components/DialogoMerma.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import { diaMes, unidades } from '../../formato.js'
@@ -55,6 +56,7 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
           <Boton tamano="M" tipo="secundario" onClick={recargar}>{t('carrito.reintentar')}</Boton>
         </EstadoVacio>
       )}
+      {!datos && !error && <Cargando />}
       {!error && datos?.items.length === 0 && <EstadoVacio titulo={t('merma.lista.vacio')} descripcion={t(filtrosAplicados ? 'merma.lista.filtros.vacio' : 'merma.lista.vacioTexto')} />}
 
       {!error && datos?.items.length > 0 && (
