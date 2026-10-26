@@ -1,6 +1,9 @@
 package pe.ccpip.entrega;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -13,10 +16,21 @@ import pe.ccpip.entrega.EntregaModelos.NuevaDireccion;
 /**
  * CCPIP-65 (RF-46): el comprador guarda sus direcciones de entrega habituales. Solo datos propios: el
  * comprador sale de la sesion y nunca de la peticion (RNF-05). Solo destinos admitidos: el distrito debe estar
- * en el catalogo territorial. Consultar, modificar y retirar llegan con CCPIP-393, 394 y 395.
+ * en el catalogo territorial. CCPIP-393: el comprador consulta las suyas; CCPIP-395: las retira. Modificarlas
+ * llega con CCPIP-394.
  */
 @Service
 public class DireccionesGuardadasService {
+
+    /** Una direccion guardada con su distrito, provincia y departamento; se completa con el filtro que corresponda. */
+    private static final String DIRECCIONES = """
+            SELECT d.id, d.alias, d.ubigeo, g.departamento, g.provincia, g.distrito, d.direccion, d.referencia
+            FROM direccion_guardada d JOIN ubigeo g ON g.codigo = d.ubigeo
+            """;
+
+    private static final RowMapper<DireccionGuardada> DIRECCION = (rs, row) -> new DireccionGuardada(rs.getLong("id"),
+            rs.getString("alias"), rs.getString("ubigeo"), rs.getString("departamento"), rs.getString("provincia"),
+            rs.getString("distrito"), rs.getString("direccion"), rs.getString("referencia"));
 
     private final NamedParameterJdbcTemplate jdbc;
 
@@ -47,13 +61,17 @@ public class DireccionesGuardadasService {
         long id = jdbc.queryForObject("""
                 INSERT INTO direccion_guardada (usuario_id, alias, ubigeo, direccion, referencia)
                 VALUES (:usuario, :alias, :ubigeo, :direccion, :referencia) RETURNING id""", p, Long.class);
-        return jdbc.queryForObject("""
-                SELECT d.id, d.alias, d.ubigeo, g.departamento, g.provincia, g.distrito, d.direccion, d.referencia
-                FROM direccion_guardada d JOIN ubigeo g ON g.codigo = d.ubigeo WHERE d.id = :id""",
-                new MapSqlParameterSource("id", id),
-                (rs, row) -> new DireccionGuardada(rs.getLong("id"), rs.getString("alias"), rs.getString("ubigeo"),
-                        rs.getString("departamento"), rs.getString("provincia"), rs.getString("distrito"),
-                        rs.getString("direccion"), rs.getString("referencia")));
+        return jdbc.queryForObject(DIRECCIONES + "WHERE d.id = :id", new MapSqlParameterSource("id", id), DIRECCION);
+    }
+
+    /**
+     * CCPIP-393: las direcciones activas del comprador de la sesion, la ultima que guardo primero. Las de otros
+     * compradores y las retiradas (CCPIP-395) no aparecen (RNF-05).
+     */
+    @Transactional(readOnly = true)
+    public List<DireccionGuardada> listar(long usuarioId) {
+        return jdbc.query(DIRECCIONES + "WHERE d.usuario_id = :usuario AND d.activa ORDER BY d.creado_en DESC, d.id DESC",
+                new MapSqlParameterSource("usuario", usuarioId), DIRECCION);
     }
 
     private static String vacioANulo(String texto) {
