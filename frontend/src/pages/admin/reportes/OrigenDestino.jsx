@@ -20,9 +20,9 @@ export default function OrigenDestino({ datos }) {
   const { t } = useTranslation()
   const { texto, cantidad, importe, porcentaje } = columnas(t)
   const sinDireccion = t(`${TEXTOS}.sinDireccion`)
-  const departamento = (clave) => texto(clave, { valor: (f) => f[clave] ?? sinDireccion })
+  const departamento = (clave, opciones) => texto(clave, { valor: (f) => f[clave] ?? sinDireccion, ...opciones })
   const origen = (nombre, detalle) => [
-    texto(nombre, { fuerte: true, valor: (f) => f.nombre }), texto(detalle, { valor: (f) => f.detalle }),
+    texto(nombre, { fuerte: true, valor: (f) => f.nombre }), texto(detalle, { corto: true, valor: (f) => f.detalle }),
     cantidad('pedidos'), importe('total'), porcentaje('participacion'),
   ]
   const claveOrigen = (f) => `${f.nombre}|${f.detalle}`
@@ -48,7 +48,7 @@ export default function OrigenDestino({ datos }) {
         ]} />
       <TablaReporte id="reportes-rutas" titulo={t(`${TEXTOS}.rutas`)} filas={datos.rutas}
         clave={(f) => `${f.punto}|${f.destino}`} vacio={t(`${TEXTOS}.vacio`)} nota={t(`${TEXTOS}.nota`)}
-        columnas={[texto('punto', { fuerte: true }), departamento('destino'), cantidad('pedidos'), importe('total')]} />
+        columnas={[texto('punto', { fuerte: true }), departamento('destino', { corto: true }), cantidad('pedidos'), importe('total')]} />
     </>
   )
 }

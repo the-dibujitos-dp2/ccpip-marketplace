@@ -1,6 +1,7 @@
 /* Tablas de reporte (A-06, SA-05, SA-10): periodo de ancho fijo, textos que se estiran y cifras a la derecha */
 .tabla-reporte__periodo { flex: 0 0 190px; }
 .tabla-reporte__texto { flex: 1 0 180px; min-width: 180px; }
+.tabla-reporte__texto--corto { flex-basis: 110px; min-width: 110px; }
 .tabla-reporte__num { flex: 0 0 110px; text-align: right; font-variant-numeric: tabular-nums; }
 /* Tablas sin barra: las cifras parten mas angostas y se reparten el ancho disponible */
 .tabla-reporte__num--estrecha { flex: 1 0 92px; }

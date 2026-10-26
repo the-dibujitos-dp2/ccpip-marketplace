@@ -28,7 +28,7 @@ export default function Productores({ datos }) {
       <TablaReporte id="reportes-productores" titulo={t(`${TEXTOS}.tabla`)} filas={datos.productores}
         clave={(p) => p.productorId} vacio={t(`${TEXTOS}.vacio`)} nota={t(`${TEXTOS}.nota`, { limite: datos.limite })}
         columnas={[
-          texto('productor', { fuerte: true }), texto('pueblo'), cantidad('pedidos'), cantidad('unidades'),
+          texto('productor', { fuerte: true }), texto('pueblo', { corto: true }), cantidad('pedidos'), cantidad('unidades'),
           importe('b2c'), importe('b2b'), importe('total'), parte('participacion'),
         ]} />
     </>

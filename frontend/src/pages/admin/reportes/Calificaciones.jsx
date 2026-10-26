@@ -56,7 +56,7 @@ export default function Calificaciones({ datos }) {
       <TablaReporte id="reportes-calificaciones-productores" titulo={t(`${TEXTOS}.productores`)} filas={datos.productores}
         clave={(p) => p.productorId} vacio={t(`${TEXTOS}.vacioProductores`)} nota={t(`${TEXTOS}.notaProductores`)}
         columnas={[
-          texto('productor', { fuerte: true }), texto('pueblo'), promedio, cantidad('resenas'), cantidad('productos'),
+          texto('productor', { fuerte: true }), texto('pueblo', { corto: true }), promedio, cantidad('resenas'), cantidad('productos'),
           cantidad('denuncias'), tendencia,
         ]} />
     </>

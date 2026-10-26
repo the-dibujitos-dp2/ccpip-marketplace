@@ -6,14 +6,15 @@ import './TablaReporte.css'
 
 /**
  * Una tabla de reporte (punto de acopio, superadministrador). `columnas`: [{ clave, etiqueta, valor(fila),
- * periodo, texto, fuerte, barra }]. El periodo tiene ancho fijo; las columnas de texto (producto, productor)
- * se estiran; las de cifras van a la derecha. `barra` es una columna decorativa con la barra apilada de la
- * fila (las cifras estan en la fila). Sin filas muestra el estado vacio `vacio` con `vacioTexto`.
+ * periodo, texto, corto, fuerte, barra }]. El periodo tiene ancho fijo; las columnas de texto (producto,
+ * productor) se estiran, desde menos si son `corto` (un departamento, un pueblo); las de cifras van a la
+ * derecha. `barra` es una columna decorativa con la barra apilada de la fila (las cifras estan en la fila).
+ * Sin filas muestra el estado vacio `vacio` con `vacioTexto`.
  */
 export default function TablaReporte({ id, titulo, columnas, filas, clave, vacio, vacioTexto, nota, estrecha }) {
   const clase = (c) => {
     if (c.periodo) return 'tabla__celda tabla-reporte__periodo'
-    if (c.texto) return 'tabla__celda tabla-reporte__texto'
+    if (c.texto) return `tabla__celda tabla-reporte__texto${c.corto ? ' tabla-reporte__texto--corto' : ''}`
     if (c.barra) return 'tabla__celda tabla__celda--flex tabla-reporte__barra-celda'
     return `tabla__celda tabla-reporte__num${estrecha ? ' tabla-reporte__num--estrecha' : ''}`
   }

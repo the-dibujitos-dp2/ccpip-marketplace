@@ -32,7 +32,7 @@ export default function Puntos({ datos }) {
       <TablaReporte id="reportes-puntos" titulo={t(`${TEXTOS}.tabla`)} filas={datos.puntos} clave={(p) => p.puntoId}
         vacio={t(`${TEXTOS}.vacio`)} nota={`${t(`${TEXTOS}.nota`)} ${t(`${TEXTOS}.notaDenuncias`)}`}
         columnas={[
-          texto('punto', { fuerte: true }), texto('departamento'), cantidad('pedidos'),
+          texto('punto', { fuerte: true }), texto('departamento', { corto: true }), cantidad('pedidos'),
           importe('b2c'), importe('b2b'), importe('total'), porcentaje('participacion'),
           cantidad('denuncias'), cantidad('denunciasAbiertas'),
         ]} />

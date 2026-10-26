@@ -27,13 +27,18 @@ function variacion({ variacion: cambio }, inverso = false) {
   return { detalle: 'variacion', vars: { valor: `${signo}${unidades(valor)}%` }, tono }
 }
 
-/** Un grupo de tarjetas con su titulo `{TEXTOS}.{id}.titulo`. */
-function Grupo({ id, tarjetas }) {
+/**
+ * Un grupo de tarjetas con su titulo `{TEXTOS}.{id}.titulo`. `desglose` es una segunda fila (B2C y B2B), para
+ * que las tarjetas no se partan de forma dispareja.
+ */
+function Grupo({ id, tarjetas, desglose }) {
   const { t } = useTranslation()
+  const conClave = (fila) => fila.map((k) => ({ ...k, clave: `${id}.${k.clave}` }))
   return (
     <section className="productor__seccion" aria-labelledby={`indicadores-${id}`}>
       <h2 id={`indicadores-${id}`} className="heading-h3">{t(`${TEXTOS}.${id}.titulo`)}</h2>
-      <Kpis textos={TEXTOS} tarjetas={tarjetas.map((k) => ({ ...k, clave: `${id}.${k.clave}` }))} />
+      <Kpis textos={TEXTOS} tarjetas={conClave(tarjetas)} />
+      {desglose && <Kpis textos={TEXTOS} tarjetas={conClave(desglose)} />}
     </section>
   )
 }
@@ -60,6 +65,7 @@ export default function Indicadores({ datos }) {
         { clave: 'total', valor: precio(ventas.total.valor), icono: iconoGrafico, ...variacion(ventas.total) },
         { clave: 'pedidos', valor: unidades(ventas.pedidos.valor), icono: iconoPaquete, ...variacion(ventas.pedidos) },
         { clave: 'ticket', valor: precio(ventas.ticketPromedio.valor), icono: iconoGrafico, ...variacion(ventas.ticketPromedio) },
+      ]} desglose={[
         { clave: 'b2c', valor: precio(ventas.desglose.b2c), icono: iconoTienda },
         { clave: 'b2b', valor: precio(ventas.desglose.b2b), icono: iconoComunidad },
       ]} />
