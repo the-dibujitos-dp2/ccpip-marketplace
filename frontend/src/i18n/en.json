@@ -1455,7 +1455,10 @@
         "recojos": "Pickups",
         "ventas": "Sales",
         "barraVentas": "Sales in the period",
-        "productoresConVentas": "Producers with sales"
+        "productoresConVentas": "Producers with sales",
+        "productosNuevos": "New products",
+        "linea": "Product line",
+        "publicados": "Published"
       },
       "metrica": {
         "ventas": {
@@ -1498,6 +1501,15 @@
           "activosDetalle": "Enabled on the platform today",
           "conVentas": "Producers with sales",
           "nuevos": "New producers"
+        },
+        "productos": {
+          "titulo": "Products",
+          "publicados": "Published products",
+          "publicadosDetalle": "On sale today",
+          "nuevos": "New products",
+          "conVentas": "Products with sales",
+          "porLinea": "Published products by line",
+          "sinLineas": "There are no active product lines"
         },
         "porPeriodo": "Indicators by period",
         "nota": "Paid, non-cancelled orders, by the date they were confirmed (Lima time). The average ticket is sales per order."

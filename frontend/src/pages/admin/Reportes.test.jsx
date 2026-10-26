@@ -435,3 +435,20 @@ describe('CCPIP-349 Indicadores de productores (SA-10)', () => {
     expect(within(tabla).getByRole('columnheader', { name: 'Productores con ventas' })).toBeInTheDocument()
   })
 })
+
+describe('CCPIP-350 Indicadores de productos (SA-10)', () => {
+  it('muestra los productos publicados, nuevos y con ventas, y los publicados por linea', async () => {
+    comoSuper({ [`GET /api/admin/reportes/indicadores?${RANGO}&agrupacion=MES`]: () => [200, copia(INDICADORES)] })
+    await abrirPestana('Indicadores')
+
+    const productos = await screen.findByRole('region', { name: 'Productos' })
+    expect(within(productos).getByRole('region', { name: 'Productos publicados' })).toHaveTextContent('40')
+    expect(within(productos).getByRole('region', { name: 'Productos nuevos' })).toHaveTextContent('+50% frente al período anterior')
+    expect(within(productos).getByRole('region', { name: 'Productos con ventas' })).toHaveTextContent('-20% frente al período anterior')
+    const lineas = within(screen.getByRole('table', { name: 'Productos publicados por línea' })).getAllByRole('row')
+    expect(lineas).toHaveLength(3)
+    // Una linea sin productos tambien aparece
+    expect(within(lineas[2]).getByText('Miel y derivados')).toBeInTheDocument()
+    expect(within(lineas[2]).getByText('0')).toBeInTheDocument()
+  })
+})

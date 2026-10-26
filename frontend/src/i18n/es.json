@@ -1455,7 +1455,10 @@
         "recojos": "Recojos",
         "ventas": "Ventas",
         "barraVentas": "Ventas del período",
-        "productoresConVentas": "Productores con ventas"
+        "productoresConVentas": "Productores con ventas",
+        "productosNuevos": "Productos nuevos",
+        "linea": "Línea",
+        "publicados": "Publicados"
       },
       "metrica": {
         "ventas": {
@@ -1498,6 +1501,15 @@
           "activosDetalle": "Habilitados hoy en la plataforma",
           "conVentas": "Productores con ventas",
           "nuevos": "Productores nuevos"
+        },
+        "productos": {
+          "titulo": "Productos",
+          "publicados": "Productos publicados",
+          "publicadosDetalle": "A la venta hoy",
+          "nuevos": "Productos nuevos",
+          "conVentas": "Productos con ventas",
+          "porLinea": "Productos publicados por línea",
+          "sinLineas": "No hay líneas de producto activas"
         },
         "porPeriodo": "Indicadores por período",
         "nota": "Pedidos pagados y no cancelados, por la fecha en que se confirmaron (hora de Lima). El ticket promedio es lo vendido por pedido."
