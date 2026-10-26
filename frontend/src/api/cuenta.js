@@ -1,4 +1,4 @@
-// CW-13 "Mis datos" del consumidor (CCPIP-400, CCPIP-113). El servidor toma la cuenta de la sesion.
+// CW-13 "Mi cuenta" del consumidor: sus datos (CCPIP-400, CCPIP-113) y sus direcciones (CCPIP-65, CCPIP-393). El servidor toma la cuenta de la sesion.
 import { apiFetch } from './http.js'
 
 /** { nombres, apellidos, correo, correoConfirmado, celular }. Sin genero ni fecha de nacimiento. */
@@ -13,3 +13,9 @@ export const guardarMisDatos = (datos) => apiFetch('/api/cuenta/datos', { method
  * provincia y departamento.
  */
 export const guardarDireccionHabitual = (direccion) => apiFetch('/api/cuenta/direcciones', { method: 'POST', body: direccion })
+
+/**
+ * CCPIP-393: las direcciones activas del comprador, la ultima que guardo primero: [{ id, alias, ubigeo, departamento,
+ * provincia, distrito, direccion, referencia }]. Solo las propias; las retiradas no llegan.
+ */
+export const listarDirecciones = () => apiFetch('/api/cuenta/direcciones')

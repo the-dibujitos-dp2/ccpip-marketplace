@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import iconoCaja from '../../assets/icons/caja.svg'
+import iconoCamion from '../../assets/icons/camion.svg'
 import iconoSalir from '../../assets/icons/salir.svg'
 import iconoUsuario from '../../assets/icons/usuario.svg'
 import Avatar from '../../components/Avatar.jsx'
@@ -9,10 +10,12 @@ import { RUTAS } from '../../router.js'
 import { useSesion } from '../../sesion.js'
 import './MisPedidosPage.css'
 
-/** Solo lo que ya existe del menu de CW-09/CW-13: ubicaciones, intereses, puntos y favoritos llegan con sus historias. */
+/** Solo lo que ya existe del menu de CW-09/CW-13: intereses, puntos y favoritos llegan con sus historias. */
 const SECCIONES = [
   { clave: 'pedidos', to: RUTAS.misPedidos, icono: iconoCaja, texto: 'misPedidos.titulo' },
   { clave: 'datos', to: RUTAS.misDatos, icono: iconoUsuario, texto: 'misDatos.titulo' },
+  // CCPIP-393: las direcciones de entrega guardadas
+  { clave: 'direcciones', to: RUTAS.misDirecciones, icono: iconoCamion, texto: 'misDirecciones.titulo' },
 ]
 
 /** El menu lateral de "Mi cuenta" del consumidor. `activo`: la seccion abierta. */
