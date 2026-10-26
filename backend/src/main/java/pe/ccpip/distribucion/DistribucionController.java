@@ -1,6 +1,11 @@
 package pe.ccpip.distribucion;
 
+import java.util.Locale;
+
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -8,10 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import pe.ccpip.auth.access.RolesPermitidos;
+import pe.ccpip.auth.filter.SessionAuthFilter;
+import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
+import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.distribucion.DistribucionModelos.Disponibles;
+import pe.ccpip.distribucion.DistribucionModelos.EntregaAsumida;
 
-/** CCPIP-107 (DW-01): los pedidos que el distribuidor puede asumir. */
+/** CCPIP-107 y CCPIP-108 (DW-01): los pedidos que el distribuidor puede asumir, y asumirlos. */
 @RolesPermitidos(Rol.DISTRIBUIDOR)
 @RestController
 @RequestMapping("/api/distribuidor/pedidos")
@@ -33,5 +42,23 @@ public class DistribucionController {
                                    @RequestParam(required = false) String cursor,
                                    @RequestParam(defaultValue = "20") @Min(1) @Max(50) int limite) {
         return distribucion.disponibles(punto, cursor, limite);
+    }
+
+    /**
+     * CCPIP-108 (RF-55): el distribuidor asume la entrega de un pedido disponible. La asignacion es exclusiva: si
+     * dos la piden a la vez, solo uno la obtiene y el otro recibe 409 {@code PEDIDO_YA_ASUMIDO}.
+     */
+    @PostMapping("/{numero}/asumir")
+    public EntregaAsumida asumir(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                 @PathVariable String numero) {
+        return distribucion.asumir(s.userId(), numeroValido(numero));
+    }
+
+    /** Un numero de pedido solo tiene letras, digitos y guiones (p. ej. MC-00148); se busca sin distinguir mayusculas. */
+    private static String numeroValido(String numero) {
+        if (!numero.matches("[A-Za-z0-9-]{1,20}")) {
+            throw ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "El pedido no existe o no se entrega a domicilio.");
+        }
+        return numero.toUpperCase(Locale.ROOT);
     }
 }

@@ -1446,7 +1446,31 @@ sin importar el filtro, para poder cambiar de punto.
 **Que se muestra.** `origen` es el punto de acopio (nombre, distrito y direccion); `destino` llega hasta el distrito
 (ubigeo, departamento, provincia y distrito); `disponibleDesde` es cuando quedo `LISTO_PARA_DESPACHO` segun
 `pedido_estado_historial`, y `esperaMinutos`, lo que lleva esperando. La direccion exacta y el contacto de quien
-recibe **no se muestran** hasta asumir la entrega (CCPIP-108 y CCPIP-110), y el comprador no se muestra nunca (RNF-05).
+recibe **no se muestran** en la cola: los consulta quien asumio la entrega (CCPIP-110), y el comprador no se muestra nunca (RNF-05).
 
 El endpoint nuevo **no estaba detallado en el contrato de la API del Drive** salvo su ruta y descripcion; los campos
 de la respuesta son los de esta seccion.
+
+## Asumir la entrega de un pedido disponible (CCPIP-108)
+
+Sin migracion: usa las columnas de `entrega` que ya existen (`distribuidor_id`, `estado` `ASIGNADA` y `asignada_en`,
+migracion `V202610231000`). El distribuidor asume la entrega de un pedido de la cola de disponibles (RF-55) y pasa a
+ser suya. Consultar sus asignados (CCPIP-317), el destino exacto y el contacto (CCPIP-110), y retirarlo (CCPIP-109)
+llegan con sus historias.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `POST /api/distribuidor/pedidos/{numero}/asumir` | DISTRIBUIDOR | Asume la entrega del pedido: queda `ASIGNADA` al distribuidor de la sesion. Responde el numero, el punto de origen, el distrito de destino y `asignadaEn` |
+
+**Asignacion exclusiva.** La entrega se bloquea con `FOR UPDATE` antes de decidir, asi dos distribuidores que la
+piden a la vez se ordenan: el primero la obtiene y el segundo recibe `409 PEDIDO_YA_ASUMIDO`. Si quien ya la asumio
+la vuelve a pedir (un doble clic o un reintento), no cambia nada y recibe la misma asignacion con la misma fecha.
+
+**Quien es elegible.** El mismo criterio de la cola (CCPIP-107): pedido `ENVIO` en `LISTO_PARA_DESPACHO`, entrega
+`DISPONIBLE` y sin distribuidor, de un punto de acopio activo. Cualquier otro caso responde `409 PEDIDO_NO_DISPONIBLE`
+sin cambiar nada. Un pedido para recojo o un numero que no existe responde `404 PEDIDO_NO_ENCONTRADO`: para el
+distribuidor no hay entrega (RNF-05).
+
+**Lo que no cambia.** El pedido sigue `LISTO_PARA_DESPACHO` hasta que el distribuidor lo retire del punto (CCPIP-109),
+y no se mueve inventario: el descuento ocurrio al confirmar la compra (CCPIP-158). La respuesta no trae la direccion
+exacta ni el contacto de quien recibe (CCPIP-110), ni nunca al comprador.
