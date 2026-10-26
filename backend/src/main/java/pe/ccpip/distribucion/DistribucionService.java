@@ -26,7 +26,8 @@ import pe.ccpip.entrega.EntregaModelos.Distrito;
  * CCPIP-107 (RF-54): los pedidos preparados que un distribuidor puede asumir. Es elegible el pedido a domicilio
  * LISTO_PARA_DESPACHO cuya entrega sigue DISPONIBLE, sin distribuidor, y que sale de un punto de acopio activo;
  * lo que ya asumio alguien deja de aparecer. CCPIP-108: el distribuidor lo asume y la entrega pasa a ser suya;
- * CCPIP-109: la retira del punto de acopio. Llevarla y entregarla llegan con CCPIP-318 y CCPIP-319.
+ * CCPIP-317: consulta las que tiene asignadas; CCPIP-109: la retira del punto de acopio. Llevarla y entregarla
+ * llegan con CCPIP-318 y CCPIP-319.
  *
  * <p>La cola se recorre por paginas con un cursor (el ultimo pedido visto: desde cuando esta disponible y su id),
  * no por posicion: asi un pedido que otro distribuidor asume mientras se recorre no hace saltar ni repetir a los demas.
@@ -93,6 +94,35 @@ public class DistribucionService {
             siguiente = new Cursor(desdes.get(limite - 1), ids.get(limite - 1)).escribir();
         }
         return new Disponibles(items, siguiente, total, puntos);
+    }
+
+    /**
+     * CCPIP-317 (RF-199): las entregas asignadas al distribuidor, y solo las suyas (RNF-05). Primero las que estan en
+     * curso (asumidas, retiradas o en camino), la que asumio antes primero; despues las que entrego hoy, hora de Lima,
+     * la ultima primero. Cada una conserva su origen, su distrito de destino y su estado.
+     */
+    @Transactional(readOnly = true)
+    public List<EntregaDelDistribuidor> asignadas(long distribuidorId) {
+        return jdbc.query("""
+                SELECT pe.numero, u.id AS punto_id, u.nombre AS punto, u.distrito AS punto_distrito, u.direccion AS punto_direccion,
+                       g.codigo, g.departamento, g.provincia, g.distrito, e.estado, e.asignada_en, e.retirada_en
+                FROM entrega e
+                JOIN pedido pe ON pe.id = e.pedido_id
+                JOIN ubigeo g ON g.codigo = e.ubigeo
+                JOIN ubicacion u ON u.id = pe.ubicacion_origen_id
+                WHERE e.distribuidor_id = :distribuidor
+                  AND (e.estado <> 'ENTREGADA'
+                       OR (e.entregada_en AT TIME ZONE 'America/Lima')::date = (now() AT TIME ZONE 'America/Lima')::date)
+                ORDER BY e.estado = 'ENTREGADA',
+                         CASE WHEN e.estado = 'ENTREGADA' THEN -extract(epoch FROM e.entregada_en) END,
+                         e.asignada_en, e.id""", new MapSqlParameterSource("distribuidor", distribuidorId),
+                (rs, row) -> new EntregaDelDistribuidor(rs.getString("numero"),
+                        new Origen(rs.getLong("punto_id"), rs.getString("punto"), rs.getString("punto_distrito"),
+                                rs.getString("punto_direccion")),
+                        new Distrito(rs.getString("codigo"), rs.getString("departamento"), rs.getString("provincia"),
+                                rs.getString("distrito")),
+                        rs.getString("estado"), rs.getObject("asignada_en", Timestamp.class).toInstant(),
+                        instante(rs.getObject("retirada_en", Timestamp.class))));
     }
 
     /** La entrega de un pedido a domicilio, ya bloqueada, con lo que hace falta para decidir si se puede asumir o retirar. */

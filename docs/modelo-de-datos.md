@@ -1508,3 +1508,26 @@ se agrega fila a `pedido_estado_historial`.
 
 **Sin segunda disminucion de stock.** El retiro no mueve inventario ni toca los lotes: el descuento ocurrio una sola
 vez al confirmar la compra (CCPIP-158).
+
+## Consultar las entregas asignadas al distribuidor (CCPIP-317)
+
+Sin migracion: lee las columnas de `entrega` (`distribuidor_id`, `estado`, `asignada_en`, `retirada_en` y
+`entregada_en`, migracion `V202610231000`). El distribuidor consulta los pedidos que tiene asignados (RF-199): los que
+asumio en la cola de disponibles (CCPIP-108) y aun no termina.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `GET /api/distribuidor/pedidos` | DISTRIBUIDOR | Las entregas asignadas al distribuidor de la sesion: cada una con `numero`, `origen` (el punto de acopio), `destino` (hasta el distrito), `estado` de la entrega, `asignadaEn` y `retiradaEn` (nulo hasta que la retire) |
+
+**Cuales se listan.** Solo las de `entrega.distribuidor_id` igual al distribuidor de la sesion; las de otro
+distribuidor y las que nadie asumio no aparecen (RNF-05). Primero las que estan en curso (`ASIGNADA`, `RETIRADA` o
+`EN_CAMINO`), la que asumio antes primero; despues las `ENTREGADA` de hoy, hora de Lima, la ultima primero.
+Retirarla (CCPIP-109), llevarla (CCPIP-318) y entregarla (CCPIP-319) cambian el `estado` con sus historias.
+
+**Las entregadas de dias anteriores no se listan.** CCPIP-317 no fija cuanto historial mostrar; se sigue el Figma:
+Mis entregas (DW-03) muestra las en curso y "Entregados hoy", y las anteriores son del Historial de entregas
+(DW-04), que aun no tiene historia. Decidido por el responsable de la historia al revisar #213.
+
+**Que se muestra.** Lo mismo que al asumirla, mas el estado y la fecha del retiro. La direccion exacta y el contacto de
+quien recibe llegan con CCPIP-110, y el comprador no se muestra nunca. Sin paginacion: son solo las entregas en curso
+del distribuidor.
