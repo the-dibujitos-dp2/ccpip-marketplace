@@ -1411,12 +1411,19 @@
       "desde": "From",
       "hasta": "To",
       "agrupacion": "Group by",
+      "linea": "Product line",
+      "todas": "All",
+      "exportar": {
+        "pdf": "Download PDF",
+        "xlsx": "Download Excel"
+      },
       "por": {
         "DIA": "Day",
         "SEMANA": "Week",
         "MES": "Month"
       },
       "error": "We couldn't load the report",
+      "vacioTexto": "Try another period.",
       "rango": "From {{desde}} to {{hasta}}",
       "b2c": "B2C (retail)",
       "b2cDetalle": "Sold at retail price",
@@ -1429,7 +1436,34 @@
         "b2c": "B2C",
         "b2b": "B2B",
         "total": "Total",
-        "acumulado": "Cumulative"
+        "acumulado": "Cumulative",
+        "productor": "Producer",
+        "pueblo": "Indigenous people",
+        "pedidos": "Orders",
+        "unidades": "Units",
+        "participacion": "Share",
+        "punto": "Collection point",
+        "departamento": "Department",
+        "denuncias": "Reports",
+        "denunciasAbiertas": "Open",
+        "producto": "Product",
+        "promedio": "Average",
+        "resenas": "Reviews",
+        "tendencia": "Trend",
+        "estrellas": "Rating",
+        "distribucion": "Distribution",
+        "cantidad": "Count",
+        "productos": "Products",
+        "destino": "Destination",
+        "envios": "Deliveries",
+        "recojos": "Pickups",
+        "ventas": "Sales",
+        "barraVentas": "Sales in the period",
+        "productoresConVentas": "Producers with sales",
+        "productosNuevos": "New products",
+        "linea": "Product line",
+        "publicados": "Published",
+        "compradores": "Buyers"
       },
       "metrica": {
         "ventas": {
@@ -1450,6 +1484,117 @@
           "tabla": "Revenue by period",
           "nota": "What buyers paid: approved payments, by the date they were approved (Lima time). A voided, refunded payment is not revenue."
         }
+      },
+      "indicadores": {
+        "pestana": "Indicators",
+        "frente": "From {{desde}} to {{hasta}}, compared with the previous period of the same length ({{anteriorDesde}} to {{anteriorHasta}}).",
+        "variacion": "{{valor}} vs. the previous period",
+        "sinAnterior": "No figures for the previous period",
+        "ventas": {
+          "titulo": "Sales",
+          "total": "Total sales",
+          "pedidos": "Orders",
+          "ticket": "Average ticket",
+          "b2c": "B2C (retail)",
+          "b2cDetalle": "Sold at retail price",
+          "b2b": "B2B (wholesale)",
+          "b2bDetalle": "Sold at wholesale price"
+        },
+        "productores": {
+          "titulo": "Producers",
+          "activos": "Active producers",
+          "activosDetalle": "Enabled on the platform today",
+          "conVentas": "Producers with sales",
+          "nuevos": "New producers"
+        },
+        "productos": {
+          "titulo": "Products",
+          "publicados": "Published products",
+          "publicadosDetalle": "On sale today",
+          "nuevos": "New products",
+          "conVentas": "Products with sales",
+          "porLinea": "Published products by line",
+          "sinLineas": "There are no active product lines"
+        },
+        "actividad": {
+          "titulo": "Activity",
+          "compradores": "Buyers",
+          "registros": "New accounts",
+          "calificaciones": "Ratings",
+          "denuncias": "Reports"
+        },
+        "porPeriodo": "Indicators by period",
+        "nota": "Paid, non-cancelled orders, by the date they were confirmed (Lima time). The average ticket is sales per order. Buyers: how many accounts bought, without saying who; new accounts: buyers who signed up."
+      },
+      "productores": {
+        "pestana": "Producers",
+        "ventas": "Platform sales",
+        "ventasDetalle": "From {{desde}} to {{hasta}}",
+        "conVentas": "Producers with sales",
+        "conVentasDetalle": "The top {{limite}} sellers are listed",
+        "lider": "Largest share",
+        "liderDetalle": "{{productor}}",
+        "sinLider": "No sales in this period",
+        "tabla": "Top-selling producers",
+        "vacio": "No producer sold in this period",
+        "nota": "Up to {{limite}} producers, from highest to lowest sales. Paid, non-cancelled orders, by the date they were confirmed (Lima time); the share is their percentage of platform sales."
+      },
+      "puntos": {
+        "pestana": "Collection points",
+        "ventas": "Platform sales",
+        "ventasDetalle": "From {{desde}} to {{hasta}}",
+        "pedidos": "Orders",
+        "pedidosDetalle": "Paid and not cancelled",
+        "conVentas": "Points with sales",
+        "conVentasDetalle": "Out of {{total}} active points",
+        "denuncias": "Reports received",
+        "denunciasDetalle": "{{abiertas}} open · {{resueltas}} resolved · {{desestimadas}} dismissed",
+        "tabla": "Sales by collection point",
+        "vacio": "There are no active collection points",
+        "nota": "Each order ships from a collection point. Paid, non-cancelled orders, by the date they were confirmed (Lima time); an active point with no sales shows as zero.",
+        "notaDenuncias": "Reports are those received in the range about offers stocked at the point (the reported product, or any of the producer's products if the report names none); a report counts at every point that stocks the offer. Open: received or under review."
+      },
+      "calificaciones": {
+        "pestana": "Ratings",
+        "promedio": "Average rating",
+        "promedioDetalle": "Out of 5 stars",
+        "sinPromedio": "At least {{minimo}} ratings are needed",
+        "resenas": "Reviews",
+        "resenasDetalle": "From {{desde}} to {{hasta}}",
+        "enCaida": "Products falling",
+        "enCaidaDetalle": "Compared with {{desde}} to {{hasta}}",
+        "distribucion": "Rating distribution",
+        "estrellas_one": "{{count}} star",
+        "estrellas_other": "{{count}} stars",
+        "productos": "Ratings by product",
+        "vacioProductos": "No product was rated in this period",
+        "tendencia": {
+          "SUBE": "Rising",
+          "ESTABLE": "Stable",
+          "BAJA": "Falling"
+        },
+        "nota": "Ratings received in the range. The average is shown from {{minimo}} ratings. The trend compares with the previous period of the same length ({{desde}} to {{hasta}}): rising or falling if the average changes by 0.3 stars or more; no trend if either period is below the minimum. Reports: those received in the range about the product.",
+        "productores": "Ratings by producer",
+        "vacioProductores": "No producer was rated in this period",
+        "notaProductores": "Across all of the producer's rated offers in the range; products is how many were rated. Reports: those received in the range about the producer or their products."
+      },
+      "origen-destino": {
+        "pestana": "Origin and destination",
+        "ventas": "Platform sales",
+        "ventasDetalle": "From {{desde}} to {{hasta}}",
+        "pedidos": "Orders",
+        "pedidosDetalle": "Paid and not cancelled",
+        "destinos": "Destination departments",
+        "destinosDetalle": "Where orders were delivered or picked up",
+        "envios": "Home deliveries",
+        "enviosDetalle": "{{recojos}} pickups at a collection point",
+        "porPunto": "Origin by collection point",
+        "porProductor": "Origin by producer",
+        "porDestino": "Destination by department",
+        "rutas": "From collection point to department",
+        "sinDireccion": "No address on record",
+        "vacio": "There were no sales in this period",
+        "nota": "Each order ships from a collection point. The destination is the department of the delivery address for a home delivery, or of the point where it is picked up. Aggregated figures only: no addresses or buyers."
       }
     },
     "parametros": {

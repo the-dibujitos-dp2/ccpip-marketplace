@@ -1,117 +1,143 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoGrafico from '../../assets/icons/grafico.svg'
 import iconoTienda from '../../assets/icons/tienda.svg'
-import { consultarReporte } from '../../api/admin.js'
+import { consultarReporte, urlReporteGestion } from '../../api/admin.js'
+import { useReporte } from '../../api/useReporte.js'
 import Alerta from '../../components/Alerta.jsx'
 import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
+import DescargasReporte from '../../components/DescargasReporte.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
-import TarjetaKpi from '../../components/TarjetaKpi.jsx'
+import { Barra, Kpis, nombrePeriodo } from '../../components/TablaReporte.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { fecha, mesAnio, capital, precio } from '../../formato.js'
+import { precio } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
 import './admin.css'
 import './ReportesPage.css'
+import Calificaciones from './reportes/Calificaciones.jsx'
+import { rango } from './reportes/comun.jsx'
+import Indicadores from './reportes/Indicadores.jsx'
+import OrigenDestino from './reportes/OrigenDestino.jsx'
+import Productores from './reportes/Productores.jsx'
+import Puntos from './reportes/Puntos.jsx'
 
 /** Metricas de SA-05, en el orden de las pestanas. Cada una es un endpoint /api/admin/reportes/{clave}. */
 const METRICAS = ['ventas', 'comisiones', 'ingresos']
 
+/** Reportes de gestion (SA-10), despues de las metricas: cada uno es /api/admin/reportes/{clave}. */
+const GESTION = { indicadores: Indicadores, productores: Productores, puntos: Puntos, calificaciones: Calificaciones, 'origen-destino': OrigenDestino }
+
+const PESTANAS = [...METRICAS, ...Object.keys(GESTION)]
+
 const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
 
+/** Formatos de exportacion de un reporte de gestion: la pestaña que se ve, con sus filtros. */
+const FORMATOS = ['pdf', 'xlsx']
+
+const FILTRO_VACIO = { desde: '', hasta: '', agrupacion: '', linea: '' }
+
+/** Los filtros que aplico el servidor; un reporte sin agrupacion (o sin linea) conserva la elegida. */
+const aFiltro = (r, anterior) => ({
+  desde: r.desde,
+  hasta: r.hasta,
+  agrupacion: r.agrupacion ?? anterior.agrupacion,
+  linea: 'linea' in r ? (r.linea ?? '') : anterior.linea,
+})
+
+const esMetrica = (clave) => METRICAS.includes(clave)
+
+/** Las metricas y los indicadores tienen su serie por periodo: se agrupan. */
+const seAgrupa = (clave) => esMetrica(clave) || clave === 'indicadores'
+
 /**
- * SA-05 Reportes de la plataforma (superadministrador). CCPIP-345 (RF-235), CCPIP-346 (RF-236) y CCPIP-93
- * (RF-71): ventas, comisiones e ingresos acumulados por periodo con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista). Solo cifras agregadas: el
- * servidor no envia compradores ni el detalle de cada productor (SA-08).
+ * SA-05 y SA-10 Reportes de la plataforma (superadministrador). Solo cifras agregadas: el servidor no envia
+ * compradores (SA-08).
+ * - CCPIP-345 (RF-235), CCPIP-346 (RF-236) y CCPIP-93 (RF-71): ventas, comisiones e ingresos acumulados por
+ *   periodo con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista)
+ * - CCPIP-348 (RF-238), CCPIP-349 (RF-239), CCPIP-350 (RF-240) y CCPIP-94 (RF-81): indicadores de ventas,
+ *   productores, productos y actividad frente al periodo anterior
+ * - CCPIP-122 (RF-86): productores que mas venden
+ * - CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias por punto de acopio
+ * - CCPIP-123 (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y productores, por linea
+ * - CCPIP-80 (RF-66): origen y destino de las ventas
+ * - Los reportes de gestion se descargan en PDF o Excel: la pestaña que se ve, con sus filtros
  */
 export default function ReportesPage({ path }) {
   const { t } = useTranslation()
-  const [metrica, setMetrica] = useState(METRICAS[0])
-  const [filtro, setFiltro] = useState({ desde: '', hasta: '', agrupacion: '' })
-  const [datos, setDatos] = useState(null)
-  const [error, setError] = useState(null)
-  const [cargando, setCargando] = useState(true)
+  const [pestana, setPestana] = useState(PESTANAS[0])
+  const { filtro, datos, error, cargando, vigente, cargar, aplicar } =
+    useReporte(consultarReporte, aFiltro, PESTANAS[0], FILTRO_VACIO)
 
-  const consultar = useCallback(async (clave, valores) => {
-    setCargando(true)
-    setError(null)
-    try {
-      const respuesta = await consultarReporte(clave, valores)
-      setDatos(respuesta)
-      setFiltro({ desde: respuesta.desde, hasta: respuesta.hasta, agrupacion: respuesta.agrupacion })
-    } catch (e) {
-      setError(e)
-    } finally {
-      setCargando(false)
-    }
-  }, [])
+  const cambiar = (campo) => (e) => aplicar(pestana, { ...filtro, [campo]: e.target.value })
 
-  useEffect(() => {
-    consultar(METRICAS[0])
-  }, [consultar])
-
-  const cambiar = (campo) => (e) => {
-    const nuevo = { ...filtro, [campo]: e.target.value }
-    setFiltro(nuevo)
-    if (nuevo.desde && nuevo.hasta && nuevo.agrupacion) consultar(metrica, nuevo)
+  function elegir(clave) {
+    setPestana(clave)
+    cargar(clave, filtro.desde && filtro.hasta ? filtro : undefined)
   }
 
-  function elegirMetrica(clave) {
-    setMetrica(clave)
-    consultar(clave, filtro.desde && filtro.hasta ? filtro : undefined)
-  }
+  // Lo que se ve sigue al reporte que respondio el servidor, no a la pestana que se acaba de pulsar
+  const Gestion = datos ? GESTION[datos.clave] : null
 
   return (
     <LayoutAdmin path={path} migas={t('admin.nav.reportes')} titulo={t('admin.reportes.titulo')}>
-      {METRICAS.length > 1 && (
-        <Pestanas
-          etiqueta={t('admin.reportes.titulo')}
-          valor={metrica}
-          onCambiar={elegirMetrica}
-          opciones={METRICAS.map((m) => ({ valor: m, etiqueta: t(`admin.reportes.metrica.${m}.pestana`) }))}
-        />
-      )}
+      <Pestanas
+        etiqueta={t('admin.reportes.titulo')}
+        valor={pestana}
+        onCambiar={elegir}
+        opciones={PESTANAS.map((p) => ({ valor: p, etiqueta: t(esMetrica(p) ? `admin.reportes.metrica.${p}.pestana` : `admin.reportes.${p}.pestana`) }))}
+      />
       <div className="reportes__filtros">
         <Campo etiqueta={t('admin.reportes.desde')} type="date" value={filtro.desde} max={filtro.hasta || undefined} onChange={cambiar('desde')} />
         <Campo etiqueta={t('admin.reportes.hasta')} type="date" value={filtro.hasta} min={filtro.desde || undefined} onChange={cambiar('hasta')} />
-        <Campo
-          etiqueta={t('admin.reportes.agrupacion')}
-          tipo="selector"
-          value={filtro.agrupacion}
-          onChange={cambiar('agrupacion')}
-          opciones={AGRUPACIONES.map((a) => ({ valor: a, etiqueta: t(`admin.reportes.por.${a}`) }))}
-        />
+        {seAgrupa(pestana) && (
+          <Campo
+            etiqueta={t('admin.reportes.agrupacion')}
+            tipo="selector"
+            value={filtro.agrupacion}
+            onChange={cambiar('agrupacion')}
+            opciones={AGRUPACIONES.map((a) => ({ valor: a, etiqueta: t(`admin.reportes.por.${a}`) }))}
+          />
+        )}
+        {pestana === 'calificaciones' && (
+          <Campo
+            etiqueta={t('admin.reportes.linea')}
+            tipo="selector"
+            placeholder={t('admin.reportes.todas')}
+            value={filtro.linea}
+            onChange={cambiar('linea')}
+            opciones={(datos?.lineas ?? []).map((l) => ({ valor: l.codigo, etiqueta: l.nombre }))}
+          />
+        )}
+        {Gestion && (
+          <DescargasReporte className="reportes__exportar" formatos={FORMATOS} disponible={vigente} cargando={cargando}
+            etiqueta={(f) => t(`admin.reportes.exportar.${f}`)} url={(f, idioma) => urlReporteGestion(datos.clave, f, datos.aplicado, idioma)} />
+        )}
       </div>
       {error && <Alerta tono="error" titulo={t('admin.reportes.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
       {cargando && !datos && <Cargando />}
-      {datos && <Resultado datos={datos} />}
+      {Gestion && <Gestion datos={datos} />}
+      {datos && !Gestion && <Resultado datos={datos} />}
     </LayoutAdmin>
   )
-}
-
-/** Nombre del periodo: el mes, la semana desde su lunes o el dia. */
-function nombrePeriodo(p, agrupacion, t) {
-  if (agrupacion === 'MES') return capital(mesAnio(p.inicio))
-  if (agrupacion === 'SEMANA') return t('admin.reportes.semana', { inicio: fecha(p.inicio), fin: fecha(p.fin) })
-  return fecha(p.inicio)
 }
 
 function Resultado({ datos }) {
   const { t } = useTranslation()
   const { totales, periodos, agrupacion } = datos
   // Los textos siguen a la metrica que respondio el servidor, no a la pestana que se acaba de pulsar
-  const clave = `admin.reportes.metrica.${datos.metrica.toLowerCase()}`
+  const metrica = `metrica.${datos.metrica.toLowerCase()}`
+  const clave = `admin.reportes.${metrica}`
   const mayor = Math.max(...periodos.map((p) => Number(p.total)), 0)
   return (
     <>
-      <div className="productor__kpis">
-        <TarjetaKpi titulo={t(`${clave}.total`)} valor={precio(totales.total)} tono="neutro" icono={iconoGrafico}
-          detalle={t('admin.reportes.rango', { desde: fecha(datos.desde), hasta: fecha(datos.hasta) })} />
-        <TarjetaKpi titulo={t('admin.reportes.b2c')} valor={precio(totales.b2c)} icono={iconoTienda} detalle={t('admin.reportes.b2cDetalle')} tono="neutro" />
-        <TarjetaKpi titulo={t('admin.reportes.b2b')} valor={precio(totales.b2b)} icono={iconoComunidad} detalle={t('admin.reportes.b2bDetalle')} tono="neutro" />
-      </div>
+      <Kpis textos="admin.reportes" tarjetas={[
+        { clave: `${metrica}.total`, valor: precio(totales.total), icono: iconoGrafico, detalle: 'rango', vars: rango(datos) },
+        { clave: 'b2c', valor: precio(totales.b2c), icono: iconoTienda },
+        { clave: 'b2b', valor: precio(totales.b2b), icono: iconoComunidad },
+      ]} />
       <section className="productor__seccion" aria-labelledby="reportes-tabla">
         <h2 id="reportes-tabla" className="heading-h3">{t(`${clave}.tabla`)}</h2>
         <div className="tabla" role="table" aria-labelledby="reportes-tabla">
@@ -125,9 +151,9 @@ function Resultado({ datos }) {
           </div>
           {periodos.map((p) => (
             <div key={p.inicio} className="tabla__fila" role="row">
-              <span className="tabla__celda reportes__periodo label-m" role="cell">{nombrePeriodo(p, agrupacion, t)}</span>
+              <span className="tabla__celda reportes__periodo label-m" role="cell">{nombrePeriodo(p, agrupacion, t, 'admin.reportes.semana')}</span>
               <span className="tabla__celda tabla__celda--flex" role="cell">
-                <Barra b2c={Number(p.b2c)} b2b={Number(p.b2b)} mayor={mayor} />
+                <Barra partes={[Number(p.b2c), Number(p.b2b)]} mayor={mayor} />
               </span>
               <span className="tabla__celda admin__num" role="cell">{precio(p.b2c)}</span>
               <span className="tabla__celda admin__num" role="cell">{precio(p.b2b)}</span>
@@ -139,16 +165,5 @@ function Resultado({ datos }) {
         <p className="caption">{t(`${clave}.nota`)}</p>
       </section>
     </>
-  )
-}
-
-/** Barra apilada B2C y B2B del periodo, a escala del periodo mayor. Decorativa: las cifras estan en la fila. */
-function Barra({ b2c, b2b, mayor }) {
-  if (!mayor) return null
-  return (
-    <span className="reportes__barra" aria-hidden="true">
-      <span className="reportes__barra-b2c" style={{ width: `${(b2c / mayor) * 100}%` }} />
-      <span className="reportes__barra-b2b" style={{ width: `${(b2b / mayor) * 100}%` }} />
-    </span>
   )
 }
