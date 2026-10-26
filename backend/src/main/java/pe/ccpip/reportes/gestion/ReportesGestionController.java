@@ -3,14 +3,22 @@ package pe.ccpip.reportes.gestion;
 import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.model.Rol;
+import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.comun.Idioma;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
+import pe.ccpip.reportes.exportar.Descarga;
+import pe.ccpip.reportes.exportar.DocumentoReporte;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteCalificaciones;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteIndicadores;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteOrigenDestino;
@@ -25,6 +33,7 @@ import pe.ccpip.reportes.gestion.GestionModelos.ReportePuntos;
 @RestController
 @RequestMapping("/api/admin/reportes")
 public class ReportesGestionController {
+
 
     private final ReportesGestionService service;
 
@@ -75,5 +84,27 @@ public class ReportesGestionController {
                                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
                                           @RequestParam(required = false) Agrupacion agrupacion) {
         return service.indicadores(desde, hasta, agrupacion);
+    }
+
+    /**
+     * La pestaña que se ve en PDF o Excel, con sus filtros: {@code reporte} es productores, puntos,
+     * calificaciones, origen-destino o indicadores; {@code formato}, pdf o xlsx. {@code lang} (o
+     * Accept-Language) elige el idioma de los textos.
+     */
+    @GetMapping("/{reporte}/{formato}")
+    public ResponseEntity<byte[]> exportar(@PathVariable String reporte, @PathVariable String formato,
+                                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+                                           @RequestParam(required = false) Agrupacion agrupacion,
+                                           @RequestParam(required = false) String linea,
+                                           @RequestParam(required = false) String lang,
+                                           @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage) {
+        if (!formato.equals("pdf") && !formato.equals("xlsx")) {
+            throw ErrorNegocio.noEncontrado("FORMATO_NO_ENCONTRADO", "Solo se exporta en PDF o Excel.");
+        }
+        Idioma idioma = Descarga.idioma(lang, acceptLanguage);
+        DocumentoReporte documento = service.documento(reporte, desde, hasta, agrupacion, linea, idioma);
+        return formato.equals("pdf") ? Descarga.pdf(documento, "reporte-" + reporte, idioma)
+                : Descarga.xlsx(documento, "reporte-" + reporte, idioma);
     }
 }

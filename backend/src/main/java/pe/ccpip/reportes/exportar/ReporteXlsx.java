@@ -107,7 +107,8 @@ public final class ReporteXlsx {
         anchos[0] = 36;
         for (int i = 1; i < anchos.length; i++) {
             int columna = i;
-            boolean texto = s.filas().stream().anyMatch(f -> columna < f.size() && f.get(columna) instanceof String);
+            boolean texto = s.filas().stream().anyMatch(f -> columna < f.size() && f.get(columna) instanceof String t
+                    && !DocumentoReporte.SIN_DATO.equals(t));
             anchos[i] = texto ? 36 : 16;
         }
         return hoja.xml(anchos);

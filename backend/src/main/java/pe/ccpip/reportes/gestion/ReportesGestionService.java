@@ -20,10 +20,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.comun.Idioma;
 import pe.ccpip.comun.RangoFechas;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.ReportesModelos.Desglose;
 import pe.ccpip.reportes.Tramos;
+import pe.ccpip.reportes.exportar.DocumentoReporte;
 import pe.ccpip.reportes.gestion.GestionModelos.Denuncias;
 import pe.ccpip.reportes.gestion.GestionModelos.Destino;
 import pe.ccpip.reportes.gestion.GestionModelos.Estrellas;
@@ -509,6 +511,29 @@ public class ReportesGestionService {
             case DIA -> "day";
             case SEMANA -> "week";
             case MES -> "month";
+        };
+    }
+
+    /**
+     * La pestaña {@code reporte} lista para exportar en PDF o Excel, con los mismos filtros que la pantalla
+     * ({@code agrupacion} solo cuenta en los indicadores y {@code linea} en las calificaciones).
+     */
+    @Transactional(readOnly = true)
+    public DocumentoReporte documento(String reporte, LocalDate desde, LocalDate hasta, Agrupacion agrupacion, String linea,
+                                      Idioma idioma) {
+        boolean en = idioma == Idioma.EN;
+        return switch (reporte) {
+            case "productores" -> ContenidoGestion.productores(productores(desde, hasta), en);
+            case "puntos" -> ContenidoGestion.puntos(puntos(desde, hasta), en);
+            case "calificaciones" -> {
+                ReporteCalificaciones r = calificaciones(desde, hasta, linea);
+                String nombre = r.linea() == null ? null
+                        : r.lineas().stream().filter(l -> l.codigo().equals(r.linea())).map(Linea::nombre).findFirst().orElse(null);
+                yield ContenidoGestion.calificaciones(r, nombre, en);
+            }
+            case "origen-destino" -> ContenidoGestion.origenDestino(origenDestino(desde, hasta), en);
+            case "indicadores" -> ContenidoGestion.indicadores(indicadores(desde, hasta, agrupacion), en);
+            default -> throw ErrorNegocio.noEncontrado("REPORTE_NO_ENCONTRADO", "El reporte no existe.");
         };
     }
 

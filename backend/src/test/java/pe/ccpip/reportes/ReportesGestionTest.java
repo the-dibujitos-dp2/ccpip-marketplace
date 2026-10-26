@@ -1,11 +1,21 @@
 package pe.ccpip.reportes;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,7 +31,7 @@ import pe.ccpip.support.IntegrationTest;
  * ventas; CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias de los puntos de acopio; CCPIP-123
  * (RF-87) y CCPIP-352 (RF-242): calificaciones de productos y de productores; CCPIP-80 (RF-66): origen y
  * destino de las ventas; indicadores agregados de la plataforma (CCPIP-348 ventas,
- * CCPIP-349 productores, CCPIP-350 productos, CCPIP-94 actividad).
+ * CCPIP-349 productores, CCPIP-350 productos, CCPIP-94 actividad). Cada pestaña se exporta en PDF y Excel.
  *
  * <p>Los datos son de agosto y septiembre de 2023, meses que ninguna otra prueba usa, y la transaccion se
  * deshace al terminar.
@@ -332,6 +342,66 @@ class ReportesGestionTest extends IntegrationTest {
     }
 
     @Test
+    void cadaPestanaSeExportaEnPdfConSusFiltros() throws Exception {
+        ventasDePrueba();
+        calificacionesDePrueba();
+        Cookie sesion = loginAs(SUPER);
+
+        byte[] pdf = mockMvc.perform(get("/api/admin/reportes/calificaciones/pdf" + SEPTIEMBRE + "&linea=SUPERFRUTOS").cookie(sesion))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/pdf"))
+                .andExpect(header().string("Content-Language", "es"))
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(header().string("Content-Disposition",
+                        Matchers.containsString("attachment; filename=\"reporte-calificaciones.pdf\"")))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertThat(texto(pdf)).contains("Calificaciones", "Período: 01/09/2023 al 30/09/2023", "Línea: Superfrutos",
+                "Promedio: 4", "RG Aceite", "4.5 2 1 Sube", "RG Harina", "El promedio se muestra desde 2 calificaciones")
+                .doesNotContain("Prueba de reporte");
+
+        byte[] productores = mockMvc.perform(get("/api/admin/reportes/productores/pdf" + SEPTIEMBRE + "&lang=en").cookie(sesion))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Language", "en"))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertThat(texto(productores)).contains("Top-selling producers", "Platform sales: S/ 180.00", "72.2");
+
+        for (String reporte : new String[] {"puntos", "origen-destino", "indicadores"}) {
+            assertThat(texto(mockMvc.perform(get("/api/admin/reportes/" + reporte + "/pdf" + SEPTIEMBRE).cookie(sesion))
+                    .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray()))
+                    .contains("Período: 01/09/2023 al 30/09/2023");
+        }
+    }
+
+    @Test
+    void cadaPestanaSeExportaEnExcelConLasCifrasComoNumeros() throws Exception {
+        ventasDePrueba();
+
+        byte[] xlsx = mockMvc.perform(get("/api/admin/reportes/indicadores/xlsx" + SEPTIEMBRE).cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .andExpect(header().string("Content-Disposition",
+                        Matchers.containsString("attachment; filename=\"reporte-indicadores.xlsx\"")))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertThat(entrada(xlsx, "xl/workbook.xml")).contains("name=\"Indicadores de la plataforma\"", "name=\"Ventas\"",
+                "name=\"Actividad\"", "name=\"Por período\"");
+        // Hoja 2, ventas: lo vendido es un numero, no texto
+        assertThat(entrada(xlsx, "xl/worksheets/sheet2.xml")).contains("Ticket promedio", "<v>180.00</v>", "<v>60.00</v>");
+    }
+
+    @Test
+    void unReporteOFormatoQueNoExisteNoSeExporta() throws Exception {
+        Cookie sesion = loginAs(SUPER);
+        mockMvc.perform(get("/api/admin/reportes/otro/pdf").cookie(sesion))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("REPORTE_NO_ENCONTRADO"));
+        mockMvc.perform(get("/api/admin/reportes/productores/csv").cookie(sesion))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("FORMATO_NO_ENCONTRADO"));
+        mockMvc.perform(get("/api/admin/reportes/productores/pdf").cookie(loginAs("sub_admin@ccpip.test")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void sinVentasElRankingQuedaVacio() throws Exception {
         mockMvc.perform(get("/api/admin/reportes/productores?desde=2023-08-01&hasta=2023-08-02").cookie(loginAs(SUPER)))
                 .andExpect(status().isOk())
@@ -432,5 +502,23 @@ class ReportesGestionTest extends IntegrationTest {
                 INSERT INTO calificacion (item_pedido_id, pedido_id, producto_id, productor_id, usuario_id, estrellas, calificado_en)
                 SELECT i.id, i.pedido_id, i.producto_id, i.productor_id, pe.usuario_id, ?, ?::timestamptz
                 FROM item_pedido i JOIN pedido pe ON pe.id = i.pedido_id WHERE i.id = ?""", estrellas, cuando, item);
+    }
+
+    private static String texto(byte[] pdf) throws Exception {
+        try (PDDocument documento = Loader.loadPDF(pdf)) {
+            return new PDFTextStripper().getText(documento);
+        }
+    }
+
+    /** El contenido de una parte del XLSX, que es un ZIP. */
+    private static String entrada(byte[] xlsx, String nombre) throws Exception {
+        try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(xlsx))) {
+            for (ZipEntry e = zip.getNextEntry(); e != null; e = zip.getNextEntry()) {
+                if (e.getName().equals(nombre)) {
+                    return new String(zip.readAllBytes(), StandardCharsets.UTF_8);
+                }
+            }
+        }
+        throw new AssertionError("El XLSX no trae " + nombre);
     }
 }

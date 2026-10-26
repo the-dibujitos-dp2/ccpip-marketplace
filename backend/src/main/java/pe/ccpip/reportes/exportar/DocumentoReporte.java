@@ -32,6 +32,12 @@ public record DocumentoReporte(String titulo, List<String> filtros, List<Seccion
         }
     }
 
+    /**
+     * Una celda sin dato en una columna de cifras (un promedio bajo el minimo, una variacion sin periodo
+     * anterior): queda vacia y la columna sigue siendo de cifras.
+     */
+    public static final String SIN_DATO = "";
+
     /** Una cifra lista para mostrar: cantidades sin ceros de sobra, importes con dos decimales. */
     public static String cifra(BigDecimal valor, boolean moneda) {
         java.text.DecimalFormat formato = new java.text.DecimalFormat(moneda ? "#,##0.00" : "#,##0.###",
