@@ -329,6 +329,12 @@ con la clave de la variante que toma el lugar de la original, igual que un reemp
 original queda retirada y `reemplazada_por` apunta a la nueva; `imagen_resultante` la enlaza.
 Rechazarla no toca la original.
 
+Pedir la mejora, aceptarla y rechazarla bloquean primero la fila de la foto en `imagen` (`FOR UPDATE`),
+asi las solicitudes simultaneas sobre una misma foto se ordenan: dos pedidos de mejora a la vez reciben la
+misma propuesta (antes el segundo chocaba con el indice unico y respondia 500), y de dos decisiones a la vez
+solo cuenta la primera; la otra encuentra la foto ya reemplazada o la mejora ya decidida y responde 404. Las
+decisiones solo cambian una mejora que siga PENDIENTE.
+
 ### producto_historia (CCPIP-48, 49)
 Las cuatro respuestas del productor (`quienes`, `como`, `significado`, `cuidado`), el texto
 que propuso la IA (`texto_propuesto`) y el aprobado (`texto_final`), con `asistida`,
