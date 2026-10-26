@@ -1,5 +1,7 @@
 package pe.ccpip.entrega;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -91,13 +93,19 @@ public class EntregaService {
     public Optional<Entrega> delPedido(long pedidoId) {
         return jdbc.query("""
                 SELECT e.ubigeo, g.departamento, g.provincia, g.distrito, e.direccion, e.referencia,
-                       e.contacto_nombre, e.contacto_celular, e.estado
+                       e.contacto_nombre, e.contacto_celular, e.estado, e.asignada_en, e.retirada_en
                 FROM entrega e JOIN ubigeo g ON g.codigo = e.ubigeo
                 WHERE e.pedido_id = :pedido""", new MapSqlParameterSource("pedido", pedidoId),
                 (rs, row) -> new Entrega(rs.getString("ubigeo"), rs.getString("departamento"), rs.getString("provincia"),
                         rs.getString("distrito"), rs.getString("direccion"), rs.getString("referencia"),
-                        rs.getString("contacto_nombre"), rs.getString("contacto_celular"), rs.getString("estado")))
+                        rs.getString("contacto_nombre"), rs.getString("contacto_celular"), rs.getString("estado"),
+                        instante(rs.getObject("asignada_en", Timestamp.class)),
+                        instante(rs.getObject("retirada_en", Timestamp.class))))
                 .stream().findFirst();
+    }
+
+    static Instant instante(Timestamp t) {
+        return t == null ? null : t.toInstant();
     }
 
     private static Distrito distrito(java.sql.ResultSet rs) throws java.sql.SQLException {

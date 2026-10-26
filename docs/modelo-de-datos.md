@@ -1464,12 +1464,12 @@ de la respuesta son los de esta seccion.
 
 Sin migracion: usa las columnas de `entrega` que ya existen (`distribuidor_id`, `estado` `ASIGNADA` y `asignada_en`,
 migracion `V202610231000`). El distribuidor asume la entrega de un pedido de la cola de disponibles (RF-55) y pasa a
-ser suya. Consultar sus asignados (CCPIP-317), el destino exacto y el contacto (CCPIP-110), y retirarlo (CCPIP-109)
-llegan con sus historias.
+ser suya. Consultar sus asignados (CCPIP-317) y el destino exacto y el contacto (CCPIP-110) llegan con sus historias;
+retirarlo, con CCPIP-109 (seccion siguiente).
 
 | Endpoint | Rol | Descripcion |
 |---|---|---|
-| `POST /api/distribuidor/pedidos/{numero}/asumir` | DISTRIBUIDOR | Asume la entrega del pedido: queda `ASIGNADA` al distribuidor de la sesion. Responde el numero, el punto de origen, el distrito de destino y `asignadaEn` |
+| `POST /api/distribuidor/pedidos/{numero}/asumir` | DISTRIBUIDOR | Asume la entrega del pedido: queda `ASIGNADA` al distribuidor de la sesion. Responde el numero, el punto de origen, el distrito de destino, el `estado` de la entrega, `asignadaEn` y `retiradaEn` (nulo hasta que la retire) |
 
 **Asignacion exclusiva.** La entrega se bloquea con `FOR UPDATE` antes de decidir, asi dos distribuidores que la
 piden a la vez se ordenan: el primero la obtiene y el segundo recibe `409 PEDIDO_YA_ASUMIDO`. Si quien ya la asumio
@@ -1480,9 +1480,34 @@ la vuelve a pedir (un doble clic o un reintento), no cambia nada y recibe la mis
 sin cambiar nada. Un pedido para recojo o un numero que no existe responde `404 PEDIDO_NO_ENCONTRADO`: para el
 distribuidor no hay entrega (RNF-05).
 
-**Lo que no cambia.** El pedido sigue `LISTO_PARA_DESPACHO` hasta que el distribuidor lo retire del punto (CCPIP-109),
+**Lo que no cambia.** El pedido sigue `LISTO_PARA_DESPACHO` hasta que el distribuidor lo lleve (CCPIP-318),
 y no se mueve inventario: el descuento ocurrio al confirmar la compra (CCPIP-158). La respuesta no trae la direccion
 exacta ni el contacto de quien recibe (CCPIP-110), ni nunca al comprador.
+
+## Retirar del punto de acopio el pedido asumido (CCPIP-109)
+
+Sin migracion: usa el estado `RETIRADA` y la columna `retirada_en` de `entrega` (migracion `V202610231000`). El
+distribuidor registra que retiro del punto de acopio la entrega que asumio (RF-56); el punto y el comprador lo ven.
+Llevarlo (CCPIP-318) y entregarlo (CCPIP-319) llegan con sus historias.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `POST /api/distribuidor/pedidos/{numero}/retirar` | DISTRIBUIDOR | Registra el retiro: la entrega queda `RETIRADA` con la fecha en `retirada_en`. Responde lo mismo que asumir, con `estado` `RETIRADA` y `retiradaEn` |
+| `GET /api/acopio/pedidos` | ADMIN_PUNTO | Cada pedido `ENVIO` trae ahora `reparto`: el `estado` de la entrega, el `distribuidor` que la asumio (su nombre), `asignadaEn` y `retiradaEn`. Los pedidos para recojo no lo traen |
+| `GET /api/pedidos/{id}` | Comprador | La `entrega` trae ahora `asignadaEn` y `retiradaEn` (nulos hasta entonces). No nombra al distribuidor |
+
+**Quien puede retirarla.** Solo el distribuidor que la asumio; si no es suya, o nadie la asumio, responde
+`409 PEDIDO_NO_ASIGNADO`. Solo mientras la entrega siga `ASIGNADA` y el pedido `LISTO_PARA_DESPACHO`: un pedido
+cancelado o una entrega que ya va en camino responde `409 PEDIDO_NO_RETIRABLE` sin cambiar nada. Repetir el retiro (un
+doble clic o un reintento) no cambia nada y responde el mismo retiro con la misma fecha. La entrega se bloquea con
+`FOR UPDATE`, como al asumirla. Un pedido para recojo o un numero que no existe responde `404 PEDIDO_NO_ENCONTRADO`.
+
+**Trazabilidad.** El retiro queda en la entrega: quien la asumio (`distribuidor_id`), cuando (`asignada_en`) y cuando
+la retiro (`retirada_en`). El pedido no cambia de estado (sigue `LISTO_PARA_DESPACHO` hasta CCPIP-318), asi que no
+se agrega fila a `pedido_estado_historial`.
+
+**Sin segunda disminucion de stock.** El retiro no mueve inventario ni toca los lotes: el descuento ocurrio una sola
+vez al confirmar la compra (CCPIP-158).
 
 ## Consultar las entregas asignadas al distribuidor (CCPIP-317)
 
@@ -1496,9 +1521,12 @@ asumio en la cola de disponibles (CCPIP-108) y aun no termina.
 
 **Cuales se listan.** Solo las de `entrega.distribuidor_id` igual al distribuidor de la sesion; las de otro
 distribuidor y las que nadie asumio no aparecen (RNF-05). Primero las que estan en curso (`ASIGNADA`, `RETIRADA` o
-`EN_CAMINO`), la que asumio antes primero; despues las `ENTREGADA` de hoy, hora de Lima, la ultima primero. Las
-entregadas de dias anteriores ya no se listan. Retirarla (CCPIP-109), llevarla (CCPIP-318) y entregarla (CCPIP-319)
-cambian el `estado` con sus historias.
+`EN_CAMINO`), la que asumio antes primero; despues las `ENTREGADA` de hoy, hora de Lima, la ultima primero.
+Retirarla (CCPIP-109), llevarla (CCPIP-318) y entregarla (CCPIP-319) cambian el `estado` con sus historias.
+
+**Las entregadas de dias anteriores no se listan.** CCPIP-317 no fija cuanto historial mostrar; se sigue el Figma:
+Mis entregas (DW-03) muestra las en curso y "Entregados hoy", y las anteriores son del Historial de entregas
+(DW-04), que aun no tiene historia. Decidido por el responsable de la historia al revisar #213.
 
 **Que se muestra.** Lo mismo que al asumirla, mas el estado y la fecha del retiro. La direccion exacta y el contacto de
 quien recibe llegan con CCPIP-110, y el comprador no se muestra nunca. Sin paginacion: son solo las entregas en curso
