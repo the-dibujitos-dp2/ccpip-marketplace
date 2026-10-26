@@ -770,7 +770,17 @@
       "enviado": "Video enviado a revisión",
       "enviadoTexto": "Lo verás en tu tienda cuando la Cámara lo apruebe. Te avisaremos por correo.",
       "noSubio": "No pudimos subir el video",
-      "seCorto": "Se cortó la conexión. Tu video sigue elegido: inténtalo otra vez."
+      "seCorto": "Se cortó la conexión. Tu video sigue elegido: inténtalo otra vez.",
+      "lista": "Videos de tu tienda",
+      "vacio": "Aún no subiste videos.",
+      "errorLista": "No pudimos cargar tus videos",
+      "estado": {
+        "EN_REVISION": "En revisión",
+        "PUBLICADO": "Se ve en tu tienda",
+        "RECHAZADO": "No publicado"
+      },
+      "motivo": "Motivo de la Cámara: «{{motivo}}»",
+      "lleno": "Tu tienda ya tiene {{max}} videos. Retira uno para subir otro."
     },
     "cuenta": {
       "titulo": "Cuenta bancaria",

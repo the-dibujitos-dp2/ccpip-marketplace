@@ -31,6 +31,7 @@ import pe.ccpip.imagenes.ImagenStorage;
  * tienda publica, como las ofertas (CCPIP-46).
  * <ul>
  *   <li>CCPIP-118 (RF-10): subir un video a la galeria de su tienda.</li>
+ *   <li>CCPIP-390 (RF-282): consultar los videos de su propia tienda, con su revision.</li>
  * </ul>
  * El archivo va al mismo bucket que las imagenes, en {@code productores/<productor>/videos/}, y se sirve por
  * partes (Range) para que el navegador pueda adelantarlo sin descargarlo entero.
@@ -82,6 +83,15 @@ public class VideosService {
                     "Tu tienda puede tener hasta " + MAX_VIDEOS + " videos. Retira uno para agregar otro.");
         }
         return buscar(guardar(productorId, usuarioId, texto, archivo, null)).orElseThrow();
+    }
+
+    /**
+     * CCPIP-390: los videos vigentes (no retirados) de la tienda del productor, con su estado y el motivo de la
+     * revision. Solo los suyos: el productor sale de la sesion (RNF-05).
+     */
+    public List<Video> propios(long productorId) {
+        return jdbc.query("SELECT * FROM video_tienda WHERE productor_id = ? AND retirado_en IS NULL ORDER BY subido_en, id",
+                VideosService::mapear, productorId);
     }
 
     /** CCPIP-118: los videos aprobados y vigentes de una tienda, para su pagina publica. */

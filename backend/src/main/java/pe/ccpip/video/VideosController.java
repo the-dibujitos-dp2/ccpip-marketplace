@@ -3,6 +3,7 @@ package pe.ccpip.video;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,7 +31,7 @@ import pe.ccpip.imagenes.ImagenStorage;
 import pe.ccpip.productor.ProductorActual;
 import pe.ccpip.video.VideosService.Video;
 
-/** Videos de la tienda: el productor los sube (CCPIP-118) y cualquiera ve los aprobados. */
+/** Videos de la tienda: el productor los sube (CCPIP-118) y los consulta (CCPIP-390); cualquiera ve los aprobados. */
 @RestController
 public class VideosController {
 
@@ -103,6 +104,13 @@ public class VideosController {
             return new long[0];
         }
         return new long[] {desde, Math.min(hasta, desde + PARTE - 1)};
+    }
+
+    /** CCPIP-390: los videos de su propia tienda, con su estado y el motivo si se rechazaron. */
+    @RolesPermitidos(Rol.PRODUCTOR)
+    @GetMapping("/api/productor/videos")
+    public List<Video> propios(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession sesion) {
+        return service.propios(productorActual.id(sesion));
     }
 
     /** CCPIP-118: sube un video propio; queda en revision del subadministrador. */

@@ -15,6 +15,7 @@ const productor = (rutas = {}) =>
     'GET /api/auth/me': [200, SESION_PRODUCTOR],
     'GET /api/productor/tienda': () => [200, copia(DATOS.tiendaProductor)],
     'GET /api/productor/tienda/traducciones/en': [200, { idioma: 'en', automaticaDisponible: true, campos: [] }],
+    'GET /api/productor/videos': [200, []],
     ...rutas,
   })
 
@@ -29,11 +30,19 @@ const videos = async () => within(await screen.findByRole('region', { name: 'Vid
 
 describe('CCPIP-118 Videos de la tienda', () => {
   it('sube un video propio, que queda en revisión', async () => {
-    const fetchMock = productor({ 'POST /api/productor/videos': () => [201, copia(VIDEO)] })
+    let subido = false
+    const fetchMock = productor({
+      'GET /api/productor/videos': () => [200, subido ? [copia(VIDEO)] : []],
+      'POST /api/productor/videos': () => {
+        subido = true
+        return [201, copia(VIDEO)]
+      },
+    })
     const user = userEvent.setup()
     abrirEn('/productor/tienda')
     const v = await videos()
     expect(v.getByText(/Hasta 5 videos · MP4 o WebM · 50 MB y 3 min/)).toBeInTheDocument()
+    expect(await v.findByText('Aún no subiste videos.')).toBeInTheDocument()
 
     // Sin titulo ni archivo no se envia
     await user.click(v.getByRole('button', { name: 'Subir video' }))
@@ -51,6 +60,40 @@ describe('CCPIP-118 Videos de la tienda', () => {
     expect(opciones.body.get('titulo')).toBe('Cosecha de cacao')
     expect(opciones.body.get('archivo').name).toBe('cosecha.mp4')
     expect(v.getByLabelText('Título del video')).toHaveValue('')
+    // CCPIP-390: aparece en su lista, en revision
+    const item = within(await v.findByRole('list', { name: 'Videos de tu tienda' })).getByRole('listitem')
+    expect(within(item).getByText('En revisión')).toBeInTheDocument()
+    expect(within(item).getByText('1:36 · MP4 · 1 MB')).toBeInTheDocument()
+  })
+
+  it('CCPIP-390: ve sus videos con su revisión y el motivo si se rechazaron', async () => {
+    productor({
+      'GET /api/productor/videos': () => [200, [
+        { ...copia(VIDEO), id: 1, titulo: 'Cosecha de cacao', estado: 'PUBLICADO', motivo: 'Muestra su trabajo', decididoEn: '2026-10-26T16:00:00Z' },
+        { ...copia(VIDEO), id: 2, titulo: 'Telar', formato: 'WEBM', estado: 'RECHAZADO', motivo: 'Se ve el logo de otra marca.', decididoEn: '2026-10-26T16:00:00Z' },
+      ]],
+    })
+    abrirEn('/productor/tienda')
+    const items = within(await (await videos()).findByRole('list', { name: 'Videos de tu tienda' })).getAllByRole('listitem')
+    expect(within(items[0]).getByText('Se ve en tu tienda')).toBeInTheDocument()
+    expect(within(items[0]).queryByText(/Motivo de la Cámara/)).not.toBeInTheDocument()
+    expect(within(items[0]).getByLabelText('Cosecha de cacao')).toHaveAttribute('src', '/api/videos/4')
+    expect(within(items[1]).getByText('No publicado')).toBeInTheDocument()
+    expect(within(items[1]).getByText('Motivo de la Cámara: «Se ve el logo de otra marca.»')).toBeInTheDocument()
+  })
+
+  it('CCPIP-390: con cinco videos no ofrece subir otro', async () => {
+    productor({ 'GET /api/productor/videos': () => [200, [1, 2, 3, 4, 5].map((id) => ({ ...copia(VIDEO), id, estado: 'PUBLICADO' }))] })
+    abrirEn('/productor/tienda')
+    const v = await videos()
+    expect(await v.findByText('Tu tienda ya tiene 5 videos. Retira uno para subir otro.')).toBeInTheDocument()
+    expect(v.queryByRole('button', { name: 'Subir video' })).not.toBeInTheDocument()
+  })
+
+  it('CCPIP-390: si no puede cargar sus videos, lo dice', async () => {
+    productor({ 'GET /api/productor/videos': new TypeError('Failed to fetch') })
+    abrirEn('/productor/tienda')
+    expect(await (await videos()).findByText('No pudimos cargar tus videos')).toBeInTheDocument()
   })
 
   it('no envía lo que no es MP4 o WebM ni pesa más de 50 MB', async () => {

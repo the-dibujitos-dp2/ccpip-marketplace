@@ -7,7 +7,7 @@ import { bandejaModeracion, bandejaVideos } from '../../api/moderacion.js'
 import Badge from '../../components/Badge.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { diaMes } from '../../formato.js'
+import { diaMes, duracion } from '../../formato.js'
 import { navigate, RUTAS } from '../../router.js'
 import '../productor/productor.css'
 import './admin.css'
@@ -39,9 +39,6 @@ function QueRevisar({ videos }) {
     </nav>
   )
 }
-
-/** Duracion de un video en m:ss. */
-export const duracion = (segundos) => `${Math.floor(segundos / 60)}:${String(Math.round(segundos % 60)).padStart(2, '0')}`
 
 /**
  * CCPIP-46 (RF-21): las ofertas que los productores piden publicar y, con `videos`, los videos que suben a su

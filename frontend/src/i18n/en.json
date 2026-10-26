@@ -770,7 +770,17 @@
       "enviado": "Video sent for review",
       "enviadoTexto": "You will see it in your store once the Chamber approves it. We will let you know by email.",
       "noSubio": "We could not upload the video",
-      "seCorto": "The connection dropped. Your video is still selected: try again."
+      "seCorto": "The connection dropped. Your video is still selected: try again.",
+      "lista": "Your store videos",
+      "vacio": "You have not uploaded any videos yet.",
+      "errorLista": "We could not load your videos",
+      "estado": {
+        "EN_REVISION": "In review",
+        "PUBLICADO": "Shown in your store",
+        "RECHAZADO": "Not published"
+      },
+      "motivo": "The Chamber's reason: “{{motivo}}”",
+      "lleno": "Your store already has {{max}} videos. Withdraw one to upload another."
     },
     "cuenta": {
       "titulo": "Bank account",

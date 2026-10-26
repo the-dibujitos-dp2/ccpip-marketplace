@@ -127,6 +127,30 @@ class VideosTest extends IntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    // ---------- CCPIP-390: consultar los propios ----------
+
+    @Test
+    void elProductorConsultaSusVideosConSuRevision() throws Exception {
+        long enRevision = id(subir("Cosecha de cacao", "cosecha.mp4", "video/mp4"));
+        long rechazado = id(subir("Telar de cintura", "telar.webm", "video/webm"));
+        decidir(rechazado, "rechazar", "Se ve el logo de otra marca.").andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/productor/videos").cookie(productor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value((int) enRevision))
+                .andExpect(jsonPath("$[0].estado").value("EN_REVISION"))
+                .andExpect(jsonPath("$[1].estado").value("RECHAZADO"))
+                .andExpect(jsonPath("$[1].motivo").value("Se ve el logo de otra marca."))
+                .andExpect(jsonPath("$[1].formato").value("WEBM"));
+        // Otro productor no ve los de esta tienda, y sin sesion no hay lista
+        mockMvc.perform(get("/api/productor/videos").cookie(loginAs("productor_nuevo@ccpip.test")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].id").value(not(hasItem((int) enRevision))));
+        mockMvc.perform(get("/api/productor/videos")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/productor/videos").cookie(subAdmin)).andExpect(status().isForbidden());
+    }
+
     // ---------- CCPIP-118: la revision del subadministrador ----------
 
     @Test
