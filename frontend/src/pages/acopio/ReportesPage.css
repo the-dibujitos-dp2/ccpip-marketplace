@@ -8,16 +8,6 @@
 .reportes-acopio__filtros .reportes-acopio__selector { width: 200px; }
 .reportes-acopio__exportar { display: flex; gap: 8px; margin-left: auto; }
 
-.reportes-acopio__periodo { flex: 0 0 190px; }
-.reportes-acopio__texto { flex: 1 0 180px; min-width: 180px; }
-.reportes-acopio__num { flex: 0 0 110px; text-align: right; font-variant-numeric: tabular-nums; }
-/* Tablas por periodo sin barra: las cifras parten mas angostas y se reparten el ancho disponible */
-.reportes-acopio__num--estrecha { flex: 1 0 92px; }
-.reportes-acopio__barra-celda { min-width: 120px; flex-basis: 120px; }
-.reportes-acopio__barra { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--color-bg-surface-alt); }
-.reportes-acopio__barra-0 { background: var(--color-bg-brand); }
-.reportes-acopio__barra-1 { background: var(--color-bg-accent); }
-
 @media (max-width: 720px) {
   .reportes-acopio__filtros .campo,
   .reportes-acopio__filtros .reportes-acopio__selector { width: 100%; }

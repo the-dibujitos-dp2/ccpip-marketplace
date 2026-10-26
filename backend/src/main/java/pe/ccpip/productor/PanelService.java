@@ -16,8 +16,9 @@ public class PanelService {
     public record LotePorVencer(long productoId, String producto, String codigo, String ubicacion, LocalDate vence) {
     }
 
+    /** {@code diasAviso}: anticipacion con la que un lote pasa a por vencer, la de "Configurar alertas". */
     public record Panel(String tienda, boolean tiendaPublicada, LocalDate verificadoEn, int publicados, int borradores,
-                        int retirados, BigDecimal stockEnVenta, List<LotePorVencer> lotesPorVencer,
+                        int retirados, BigDecimal stockEnVenta, int diasAviso, List<LotePorVencer> lotesPorVencer,
                         List<TiendaService.ProductoOpcion> publicadosSinStock) {
     }
 
@@ -30,6 +31,7 @@ public class PanelService {
     }
 
     public Panel obtener(long productorId) {
+        int dias = preferencias.diasVencimientoProductor(productorId);
         List<LotePorVencer> porVencer = jdbc.query("""
                 SELECT p.id, p.nombre, l.codigo, u.nombre AS ubicacion, l.fecha_vencimiento
                 FROM lote l JOIN producto p ON p.id = l.producto_id JOIN ubicacion u ON u.id = l.ubicacion_id
@@ -39,7 +41,7 @@ public class PanelService {
                 ORDER BY l.fecha_vencimiento""",
                 (rs, row) -> new LotePorVencer(rs.getLong("id"), rs.getString("nombre"), rs.getString("codigo"),
                         rs.getString("ubicacion"), rs.getObject("fecha_vencimiento", LocalDate.class)),
-                productorId, preferencias.diasVencimientoProductor(productorId));
+                productorId, dias);
         List<TiendaService.ProductoOpcion> sinStock = jdbc.query("""
                 SELECT p.id, p.nombre FROM producto p
                 WHERE p.productor_id = ? AND p.estado = 'PUBLICADO' AND %s = 0
@@ -60,7 +62,7 @@ public class PanelService {
                 GROUP BY pr.id""",
                 (rs, row) -> new Panel(rs.getString("tienda"), rs.getBoolean("tienda_publicada"),
                         rs.getObject("verificado_en", LocalDate.class), rs.getInt("publicados"), rs.getInt("borradores"),
-                        rs.getInt("retirados"), rs.getBigDecimal("en_venta"), porVencer, sinStock),
+                        rs.getInt("retirados"), rs.getBigDecimal("en_venta"), dias, porVencer, sinStock),
                 productorId);
     }
 }
