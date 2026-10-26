@@ -1,6 +1,6 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../App.jsx'
 import i18n from '../../i18n/index.js'
 import { copia, DATOS, llamadas, PUBLICAS, servidor, SESION_ACOPIO, SESION_PRODUCTOR } from '../../test/servidor.js'
@@ -53,7 +53,10 @@ function productor(rutas = {}) {
 const cuerpo = (fetchMock, clave) => JSON.parse(llamadas(fetchMock, clave)[0][1].body)
 
 describe('PW-21 Alertas del productor (CCPIP-79, 145, 293, 337, 366, 367)', () => {
-  afterEach(() => i18n.changeLanguage('es'))
+  afterEach(() => {
+    vi.useRealTimers()
+    return i18n.changeLanguage('es')
+  })
 
   it('está en el menú y muestra cada alerta con producto, motivo y fecha', async () => {
     productor()
@@ -115,6 +118,22 @@ describe('PW-21 Alertas del productor (CCPIP-79, 145, 293, 337, 366, 367)', () =
     expect(screen.queryByRole('button', { name: 'Marcar todas como leídas' })).not.toBeInTheDocument()
   })
 
+  // CCPIP-425: la bandeja abierta se mantiene al dia, sin esperar la revision periodica ni recargar
+  it('muestra una alerta nueva sin recargar la página', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    let bandeja = { sinLeer: 0, alertas: [] }
+    const fetchMock = productor({ 'GET /api/productor/alertas': () => [200, copia(bandeja)] })
+    abrirEn('/productor/alertas')
+    expect(await screen.findByText('No tienes alertas')).toBeInTheDocument()
+
+    bandeja = { sinLeer: 1, alertas: [BANDEJA.alertas[0]] }
+    await act(() => vi.advanceTimersByTimeAsync(15_000))
+
+    expect(await screen.findByText('Lote por vencer: Harina de aguaje')).toBeInTheDocument()
+    expect(screen.queryByText('No tienes alertas')).not.toBeInTheDocument()
+    expect(llamadas(fetchMock, 'GET /api/productor/alertas')).toHaveLength(2)
+  })
+
   it('sin alertas lo explica', async () => {
     productor({ 'GET /api/productor/alertas': [200, { sinLeer: 0, alertas: [] }] })
     abrirEn('/productor/alertas')
@@ -158,6 +177,8 @@ describe('PW-21 Alertas del productor (CCPIP-79, 145, 293, 337, 366, 367)', () =
       diasVencimiento: 45, diasEstancado: 30, tipos: TODOS.filter((t) => t !== 'PEDIDO_NUEVO'), correo: false,
     })
     expect(within(form).queryByText('Valores provisionales de la Cámara hasta que guardes los tuyos.')).not.toBeInTheDocument()
+    // CCPIP-425: otra anticipacion abre o cierra alertas, asi que la bandeja se vuelve a pedir
+    await waitFor(() => expect(llamadas(fetchMock, 'GET /api/productor/alertas')).toHaveLength(2))
   })
 
   it('en inglés', async () => {

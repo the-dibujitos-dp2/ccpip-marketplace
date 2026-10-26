@@ -73,6 +73,8 @@ describe('PW-01 Panel', () => {
     const panel = {
       ...copia(DATOS.panelProductor),
       tiendaPublicada: false,
+      // CCPIP-425: la anticipacion que el productor guardo en "Configurar alertas", no 15 fijos
+      diasAviso: 7,
       lotesPorVencer: [{ producto: 'Camu camu', codigo: 'L-0009', ubicacion: 'Centro Nacional Lima', vence: '2026-10-10' }],
       publicadosSinStock: [{ id: 8, nombre: 'Aceite de aguaje 250 ml' }],
     }
@@ -80,11 +82,11 @@ describe('PW-01 Panel', () => {
     productor({ 'GET /api/productor/panel': [200, panel] })
     abrirEn('/productor')
     expect(await screen.findByText('Publica tu tienda para empezar a vender')).toBeInTheDocument()
-    expect(screen.getByText('1 lote vence pronto (según tu alerta de 15 días)')).toBeInTheDocument()
+    expect(screen.getByText('1 lote vence pronto (según tu alerta de 7 días)')).toBeInTheDocument()
     // CCPIP-426: el indicador de lotes por vencer, en el amarillo de advertencia
     const porVencer = screen.getByRole('region', { name: 'Lotes por vencer' })
     expect(porVencer).toHaveClass('tarjeta-kpi--aviso')
-    expect(within(porVencer).getByText('En los próximos 15 días')).toHaveClass('tarjeta-kpi__detalle--aviso')
+    expect(within(porVencer).getByText('En los próximos 7 días')).toHaveClass('tarjeta-kpi__detalle--aviso')
     expect(screen.getByRole('link', { name: 'Registrar lote para reponer' })).toHaveAttribute('href', '/productor/lotes?producto=8')
     await user.click(screen.getAllByRole('button', { name: 'Cerrar aviso' })[0])
     expect(screen.queryByText(/vence pronto/)).not.toBeInTheDocument()

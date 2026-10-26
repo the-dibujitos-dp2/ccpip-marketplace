@@ -27,6 +27,8 @@ import pe.ccpip.productor.ProductosService;
 /**
  * Genera las alertas de PW-21 y A-08 con una revision periodica, como el aviso de oferta disponible
  * (CCPIP-273): cubre todas las causas sin engancharse en los flujos de venta, transferencia o merma.
+ * Para que se vean en tiempo real (CCPIP-425), la bandeja y "Configurar alertas" las ponen al dia
+ * con {@link #actualizar()} antes de responder; los correos salen con la revision periodica.
  *
  * <ul>
  *   <li>Idempotente: hay una sola alerta abierta por hecho y destino (indices unicos parciales).</li>
@@ -65,7 +67,13 @@ public class RevisionAlertas {
 
     private static final String CORREO = "CASE WHEN coalesce(pa.correo, true) THEN 'PENDIENTE' ELSE 'NO_APLICA' END";
 
+    /** Una revision a la vez: la periodica y las de cada consulta no se pisan al resolver ni al generar. */
+    private static final String UNA_A_LA_VEZ = "SELECT pg_advisory_xact_lock(hashtext('ccpip.alertas'))";
+
     public record Resultado(int nuevas, int resueltas, int correos) {
+    }
+
+    public record Cambios(int nuevas, int resueltas) {
     }
 
     private record Destino(Long productorId, Long ubicacionId) {
@@ -95,7 +103,7 @@ public class RevisionAlertas {
         this.urlApp = urlApp.endsWith("/") ? urlApp.substring(0, urlApp.length() - 1) : urlApp;
     }
 
-    @Scheduled(fixedDelayString = "${ccpip.alertas.revision:PT15M}",
+    @Scheduled(fixedDelayString = "${ccpip.alertas.revision:PT1M}",
             initialDelayString = "${ccpip.alertas.revision-inicial:PT2M}")
     public void revisarProgramado() {
         try {
@@ -109,12 +117,18 @@ public class RevisionAlertas {
     }
 
     public Resultado revisar() {
-        int[] cambios = tx.execute(s -> {
+        Cambios cambios = actualizar();
+        return new Resultado(cambios.nuevas(), cambios.resueltas(), enviarCorreos());
+    }
+
+    /** Resuelve y genera las alertas en la plataforma, sin enviar correos. Idempotente. */
+    public Cambios actualizar() {
+        return tx.execute(s -> {
+            jdbc.getJdbcOperations().execute(UNA_A_LA_VEZ);
             MapSqlParameterSource p = preferencias.provisionales(new MapSqlParameterSource("ventana", ventanaSegundos));
             int resueltas = resolver(p);
-            return new int[] {generar(p), resueltas};
+            return new Cambios(generar(p), resueltas);
         });
-        return new Resultado(cambios[0], cambios[1], enviarCorreos());
     }
 
     /** Cierra las alertas cuya condicion ya no se cumple. Va antes de generar para que puedan renacer. */

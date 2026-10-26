@@ -27,17 +27,23 @@ import pe.ccpip.productor.ProductorActual;
 /**
  * Alertas del productor (PW-21) y del punto de acopio (A-08). Cada uno ve y configura solo lo suyo:
  * el productor, desde su sesion; el administrador, los puntos que tiene asignados (RNF-05).
+ *
+ * <p>CCPIP-425: la bandeja y el guardado de la configuracion ponen al dia las alertas antes de
+ * responder, asi un hecho nuevo o una anticipacion distinta se ven sin esperar la revision periodica.
  */
 @RestController
 public class AlertasController {
 
     private final AlertasService alertas;
     private final PreferenciasAlerta preferencias;
+    private final RevisionAlertas revision;
     private final ProductorActual productorActual;
 
-    public AlertasController(AlertasService alertas, PreferenciasAlerta preferencias, ProductorActual productorActual) {
+    public AlertasController(AlertasService alertas, PreferenciasAlerta preferencias, RevisionAlertas revision,
+                             ProductorActual productorActual) {
         this.alertas = alertas;
         this.preferencias = preferencias;
+        this.revision = revision;
         this.productorActual = productorActual;
     }
 
@@ -47,6 +53,7 @@ public class AlertasController {
     @GetMapping("/api/productor/alertas")
     public Bandeja productor(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                              @RequestParam(required = false) Tipo tipo) {
+        revision.actualizar();
         return alertas.deProductor(productorActual.id(s), tipo);
     }
 
@@ -77,7 +84,9 @@ public class AlertasController {
     @PutMapping("/api/productor/alertas/preferencias")
     public Preferencias guardarProductor(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                          @Valid @RequestBody NuevasPreferencias nuevas) {
-        return preferencias.guardarProductor(productorActual.id(s), s.userId(), nuevas);
+        Preferencias guardadas = preferencias.guardarProductor(productorActual.id(s), s.userId(), nuevas);
+        revision.actualizar();
+        return guardadas;
     }
 
     // ---------- Punto de acopio, A-08 ----------
@@ -86,6 +95,7 @@ public class AlertasController {
     @GetMapping("/api/acopio/alertas")
     public Bandeja punto(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                          @RequestParam(required = false) Tipo tipo) {
+        revision.actualizar();
         return alertas.dePuntos(s.userId(), tipo);
     }
 
@@ -115,6 +125,8 @@ public class AlertasController {
     @PutMapping("/api/acopio/alertas/preferencias/{ubicacionId}")
     public PreferenciasPunto guardarPunto(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                           @PathVariable long ubicacionId, @Valid @RequestBody NuevasPreferencias nuevas) {
-        return preferencias.guardarPunto(s.userId(), ubicacionId, nuevas);
+        PreferenciasPunto guardadas = preferencias.guardarPunto(s.userId(), ubicacionId, nuevas);
+        revision.actualizar();
+        return guardadas;
     }
 }
