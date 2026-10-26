@@ -42,6 +42,7 @@ class ReportesGestionTest extends IntegrationTest {
     private static final String SUPER = "sudo@ccpip.test";
     private static final String LIMA = "Centro Nacional Lima";
     private static final String CUSCO = "Centro Regional Cusco";
+    private static final String PUNTO_NUEVO = "RG Punto de prueba";
     private static final String SEPTIEMBRE = "?desde=2023-09-01&hasta=2023-09-30";
 
     private long aceite;
@@ -106,10 +107,12 @@ class ReportesGestionTest extends IntegrationTest {
 
     @Test
     void lasDenunciasSumanEnCadaPuntoDondeEstaLaOferta() throws Exception {
+        // Un punto nuevo: solo tiene lo que crea esta prueba, aunque otras dejen lotes en los puntos de la semilla
+        jdbc.update("INSERT INTO ubicacion (tipo, nombre, departamento) VALUES ('PUNTO_ACOPIO', ?, 'Arequipa')", PUNTO_NUEVO);
         lote(aceite, LIMA, "RG-L1");
-        lote(aceite, CUSCO, "RG-C1");
+        lote(aceite, PUNTO_NUEVO, "RG-N1");
         lote(harina, LIMA, "RG-L2");
-        // Sobre el aceite (esta en Lima y Cusco), aun sin resolver
+        // Sobre el aceite (esta en Lima y en el punto nuevo), aun sin resolver
         denuncia(aceite, null, "RECIBIDA", "2023-09-10 10:00-05");
         // Sobre productor2@ sin nombrar producto: su harina esta en Lima
         denuncia(null, "productor2@ccpip.test", "RESUELTA", "2023-09-11 10:00-05");
@@ -124,8 +127,8 @@ class ReportesGestionTest extends IntegrationTest {
                 .andExpect(jsonPath("$.denuncias.desestimadas").value(0))
                 .andExpect(jsonPath("$.puntos[?(@.punto == '" + LIMA + "')].denuncias").value(2))
                 .andExpect(jsonPath("$.puntos[?(@.punto == '" + LIMA + "')].denunciasAbiertas").value(1))
-                .andExpect(jsonPath("$.puntos[?(@.punto == '" + CUSCO + "')].denuncias").value(1))
-                .andExpect(jsonPath("$.puntos[?(@.punto == '" + CUSCO + "')].denunciasAbiertas").value(1))
+                .andExpect(jsonPath("$.puntos[?(@.punto == '" + PUNTO_NUEVO + "')].denuncias").value(1))
+                .andExpect(jsonPath("$.puntos[?(@.punto == '" + PUNTO_NUEVO + "')].denunciasAbiertas").value(1))
                 // Sin el detalle de la denuncia ni quien la hizo
                 .andExpect(jsonPath("$..descripcion").doesNotExist())
                 .andExpect(jsonPath("$..denunciante").doesNotExist());
