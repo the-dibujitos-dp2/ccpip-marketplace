@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.reportes.gestion.GestionModelos.ReporteProductores;
+import pe.ccpip.reportes.gestion.GestionModelos.ReportePuntos;
 
 /**
  * Reportes de gestion (SA-05, SA-10): solo el superadministrador, y solo lectura. Son agregados de la
@@ -32,5 +33,12 @@ public class ReportesGestionController {
     public ReporteProductores productores(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
                                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
         return service.productores(desde, hasta);
+    }
+
+    /** CCPIP-355 (RF-245): ventas agregadas de cada punto de acopio en el rango. */
+    @GetMapping("/puntos")
+    public ReportePuntos puntos(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
+        return service.puntos(desde, hasta);
     }
 }

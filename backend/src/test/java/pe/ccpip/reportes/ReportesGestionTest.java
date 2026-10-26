@@ -16,7 +16,7 @@ import pe.ccpip.support.IntegrationTest;
 
 /**
  * Reportes de gestion del superadministrador (SA-05, SA-10). CCPIP-122 (RF-86): productores con mayores
- * ventas.
+ * ventas; CCPIP-355 (RF-245): ventas de los puntos de acopio.
  *
  * <p>Los datos son de agosto y septiembre de 2023, meses que ninguna otra prueba usa, y la transaccion se
  * deshace al terminar.
@@ -66,6 +66,29 @@ class ReportesGestionTest extends IntegrationTest {
     }
 
     @Test
+    void lasVentasDeCadaPuntoDeAcopio() throws Exception {
+        ventasDePrueba();
+
+        mockMvc.perform(get("/api/admin/reportes/puntos" + SEPTIEMBRE).cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totales.total").value(180.00))
+                .andExpect(jsonPath("$.pedidos").value(3))
+                // Cusco vendio mas: va primero
+                .andExpect(jsonPath("$.puntos[0].punto").value(CUSCO))
+                .andExpect(jsonPath("$.puntos[0].pedidos").value(1))
+                .andExpect(jsonPath("$.puntos[0].b2b").value(100.00))
+                .andExpect(jsonPath("$.puntos[0].participacion").value(55.6))
+                .andExpect(jsonPath("$.puntos[1].punto").value(LIMA))
+                .andExpect(jsonPath("$.puntos[1].pedidos").value(2))
+                .andExpect(jsonPath("$.puntos[1].b2c").value(80.00))
+                .andExpect(jsonPath("$.puntos[1].b2b").value(0))
+                .andExpect(jsonPath("$.puntos[1].participacion").value(44.4))
+                .andExpect(jsonPath("$.puntos[1].departamento").exists())
+                .andExpect(jsonPath("$..stock").doesNotExist())
+                .andExpect(jsonPath("$..numero").doesNotExist());
+    }
+
+    @Test
     void sinVentasElRankingQuedaVacio() throws Exception {
         mockMvc.perform(get("/api/admin/reportes/productores?desde=2023-08-01&hasta=2023-08-02").cookie(loginAs(SUPER)))
                 .andExpect(status().isOk())
@@ -85,6 +108,7 @@ class ReportesGestionTest extends IntegrationTest {
     @ValueSource(strings = {"consumidor@ccpip.test", "productor@ccpip.test", "admin_acopio@ccpip.test", "sub_admin@ccpip.test"})
     void losReportesDeGestionSonDelSuperadministrador(String correo) throws Exception {
         mockMvc.perform(get("/api/admin/reportes/productores").cookie(loginAs(correo))).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/admin/reportes/puntos").cookie(loginAs(correo))).andExpect(status().isForbidden());
     }
 
     @Test

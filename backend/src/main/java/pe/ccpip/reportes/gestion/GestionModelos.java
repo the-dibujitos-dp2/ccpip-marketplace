@@ -31,4 +31,21 @@ public final class GestionModelos {
     public record ReporteProductores(LocalDate desde, LocalDate hasta, Desglose totales, long productoresConVentas,
                                      int limite, List<ProductorVentas> productores) {
     }
+
+    /**
+     * CCPIP-355: lo vendido desde un punto de acopio en el rango (los pedidos salen de un punto). Solo cifras
+     * agregadas: sin stock editable ni pedidos individuales. {@code participacion} es su porcentaje de las
+     * ventas de la plataforma.
+     */
+    public record PuntoReporte(long puntoId, String punto, String departamento, long pedidos, BigDecimal b2c,
+                               BigDecimal b2b, BigDecimal total, BigDecimal participacion) {
+    }
+
+    /**
+     * CCPIP-355 (RF-245): ventas de cada punto de acopio en el rango, de mayor a menor. Incluye los puntos
+     * activos sin ventas, en cero.
+     */
+    public record ReportePuntos(LocalDate desde, LocalDate hasta, Desglose totales, long pedidos,
+                                List<PuntoReporte> puntos) {
+    }
 }
