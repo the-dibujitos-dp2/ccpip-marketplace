@@ -2500,7 +2500,14 @@
     "vacio": "Aún no guardaste direcciones",
     "vacioTexto": "Al comprar con entrega a domicilio puedes guardar la dirección para la próxima vez.",
     "sinAlias": "Dirección de entrega",
-    "referencia": "Referencia: {{referencia}}"
+    "referencia": "Referencia: {{referencia}}",
+    "retirar": "Retirar dirección",
+    "retirarAria": "Retirar dirección de entrega",
+    "confirmarTitulo": "Retirar dirección",
+    "confirmarTexto": "¿Quieres retirar {{direccion}} de tus direcciones guardadas? No se quitará de los pedidos anteriores.",
+    "retirando": "Retirando…",
+    "retirada": "Dirección retirada",
+    "errorRetirar": "No pudimos retirar la dirección. Inténtalo de nuevo."
   },
   "misDatos": {
     "titulo": "Datos personales",
