@@ -1437,7 +1437,9 @@
         "unidades": "Units",
         "participacion": "Share",
         "punto": "Collection point",
-        "departamento": "Department"
+        "departamento": "Department",
+        "denuncias": "Reports",
+        "denunciasAbiertas": "Open"
       },
       "metrica": {
         "ventas": {
@@ -1480,9 +1482,12 @@
         "pedidosDetalle": "Paid and not cancelled",
         "conVentas": "Points with sales",
         "conVentasDetalle": "Out of {{total}} active points",
+        "denuncias": "Reports received",
+        "denunciasDetalle": "{{abiertas}} open · {{resueltas}} resolved · {{desestimadas}} dismissed",
         "tabla": "Sales by collection point",
         "vacio": "There are no active collection points",
-        "nota": "Each order ships from a collection point. Paid, non-cancelled orders, by the date they were confirmed (Lima time); an active point with no sales shows as zero."
+        "nota": "Each order ships from a collection point. Paid, non-cancelled orders, by the date they were confirmed (Lima time); an active point with no sales shows as zero.",
+        "notaDenuncias": "Reports are those received in the range about offers stocked at the point (the reported product, or any of the producer's products if the report names none); a report counts at every point that stocks the offer. Open: received or under review."
       }
     },
     "parametros": {

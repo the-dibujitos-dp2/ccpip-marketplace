@@ -44,7 +44,7 @@ const seAgrupa = (clave) => METRICAS.includes(clave)
  * - CCPIP-345 (RF-235), CCPIP-346 (RF-236) y CCPIP-93 (RF-71): ventas, comisiones e ingresos acumulados por
  *   periodo con su desglose B2C (tarifa minorista) y B2B (tarifa mayorista)
  * - CCPIP-122 (RF-86): productores que mas venden
- * - CCPIP-355 (RF-245): ventas por punto de acopio
+ * - CCPIP-355 (RF-245) y CCPIP-356 (RF-246): ventas y denuncias por punto de acopio
  */
 export default function ReportesPage({ path }) {
   const { t } = useTranslation()

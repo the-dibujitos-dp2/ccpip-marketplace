@@ -1437,7 +1437,9 @@
         "unidades": "Unidades",
         "participacion": "Participación",
         "punto": "Punto de acopio",
-        "departamento": "Departamento"
+        "departamento": "Departamento",
+        "denuncias": "Denuncias",
+        "denunciasAbiertas": "Abiertas"
       },
       "metrica": {
         "ventas": {
@@ -1480,9 +1482,12 @@
         "pedidosDetalle": "Pagados y no cancelados",
         "conVentas": "Puntos con ventas",
         "conVentasDetalle": "De {{total}} puntos activos",
+        "denuncias": "Denuncias recibidas",
+        "denunciasDetalle": "{{abiertas}} abiertas · {{resueltas}} resueltas · {{desestimadas}} desestimadas",
         "tabla": "Ventas por punto de acopio",
         "vacio": "No hay puntos de acopio activos",
-        "nota": "Cada pedido sale de un punto de acopio. Pedidos pagados y no cancelados, por la fecha en que se confirmaron (hora de Lima); un punto activo sin ventas aparece en cero."
+        "nota": "Cada pedido sale de un punto de acopio. Pedidos pagados y no cancelados, por la fecha en que se confirmaron (hora de Lima); un punto activo sin ventas aparece en cero.",
+        "notaDenuncias": "Las denuncias son las recibidas en el rango sobre ofertas que están en el punto (el producto denunciado, o cualquiera del productor si la denuncia no nombra uno); una denuncia suma en cada punto donde está la oferta. Abiertas: recibidas o en revisión."
       }
     },
     "parametros": {

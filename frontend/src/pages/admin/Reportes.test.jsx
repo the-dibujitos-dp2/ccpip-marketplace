@@ -211,3 +211,19 @@ describe('CCPIP-355 Ventas por punto de acopio (SA-10)', () => {
     expect(llamadas(fetchMock, `GET /api/admin/reportes/puntos?${RANGO}`)).toHaveLength(1)
   })
 })
+
+describe('CCPIP-356 Denuncias por punto de acopio (SA-10)', () => {
+  it('muestra las denuncias de la plataforma y las de cada punto donde esta la oferta', async () => {
+    comoSuper({ [`GET /api/admin/reportes/puntos?${RANGO}`]: () => [200, copia(PUNTOS)] })
+    await abrirPestana('Puntos de acopio')
+
+    const denuncias = await screen.findByRole('region', { name: 'Denuncias recibidas' })
+    expect(denuncias).toHaveTextContent('3')
+    expect(denuncias).toHaveTextContent('1 abiertas · 1 resueltas · 1 desestimadas')
+    const tabla = screen.getByRole('table', { name: 'Ventas por punto de acopio' })
+    expect(within(tabla).getByRole('columnheader', { name: 'Abiertas' })).toBeInTheDocument()
+    const satipo = within(tabla).getAllByRole('row')[1]
+    expect(within(satipo).getByText('2')).toBeInTheDocument()
+    expect(screen.getByText(/una denuncia suma en cada punto/)).toBeInTheDocument()
+  })
+})
