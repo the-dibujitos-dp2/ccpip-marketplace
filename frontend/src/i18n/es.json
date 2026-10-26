@@ -11,7 +11,11 @@
     "und": "{{cantidad}} und",
     "cancelar": "Cancelar",
     "confirmar": "Confirmar",
-    "cerrarAviso": "Cerrar aviso"
+    "cerrarAviso": "Cerrar aviso",
+    "descargas": {
+      "cargando": "Actualizando el reporte; podrás descargarlo en cuanto termine.",
+      "pendiente": "Para descargar, el reporte debe mostrar los filtros elegidos: completa el período o vuelve a intentarlo."
+    }
   },
   "app": {
     "sesionExpirada": {
@@ -954,7 +958,8 @@
       "inventario": "Inventario",
       "transferencias": "Transferencias",
       "alertas": "Alertas",
-      "merma": "Merma"
+      "merma": "Merma",
+      "reportes": "Reportes"
     },
     "pedidos": {
       "vence": "vence {{fecha}}",
@@ -1107,6 +1112,106 @@
       "errorRecibir": "No pudimos registrar la recepción",
       "errorCargar": "No pudimos cargar las transferencias",
       "errorDetalle": "No pudimos cargar el detalle"
+    },
+    "reportes": {
+      "reporteDe": "Reporte de",
+      "periodo": "Período",
+      "por": {
+        "DIA": "Diario",
+        "SEMANA": "Semanal",
+        "MES": "Mensual"
+      },
+      "desde": "Desde",
+      "hasta": "Hasta",
+      "productor": "Productor",
+      "producto": "Producto",
+      "todos": "Todos",
+      "error": "No pudimos cargar el reporte",
+      "semana": "{{inicio}} al {{fin}}",
+      "vacioTexto": "Prueba con otro período, productor o producto.",
+      "exportar": {
+        "pdf": "Descargar PDF",
+        "xlsx": "Descargar Excel"
+      },
+      "col": {
+        "periodo": "Período",
+        "producto": "Producto",
+        "productor": "Productor",
+        "total": "Total",
+        "acumulado": "Acumulado",
+        "barraEntradas": "Recepción y transferencias",
+        "recepcion": "Recepción",
+        "transferencias": "Transferencias",
+        "ventasEntregadas": "Venta entregada",
+        "ventasPorEntregar": "Venta pendiente",
+        "devoluciones": "Devoluciones",
+        "merma": "Merma",
+        "ventas": "Ventas",
+        "pedidos": "Pedidos",
+        "pedidosAtendidos": "Atendidos",
+        "pedidosPorEntregar": "Por entregar",
+        "unidades": "Unidades",
+        "b2c": "B2C",
+        "b2b": "B2B",
+        "saldoInicial": "Saldo inicial",
+        "entradas": "Entradas",
+        "salidas": "Salidas",
+        "saldoFinal": "Saldo final"
+      },
+      "entradas": {
+        "pestana": "Entradas",
+        "total": "Unidades recibidas",
+        "totalDetalle": "{{recepcion}} por recepción · {{transferencias}} por transferencia",
+        "porLlegar": "Por llegar",
+        "porLlegarDetalle_one": "{{count}} transferencia pedida aún no llega",
+        "porLlegarDetalle_other": "{{count}} transferencias pedidas aún no llegan",
+        "porPeriodo": "Entradas por período",
+        "porProducto": "Entradas por producto",
+        "vacio": "No hubo entradas en este período",
+        "nota": "Cada entrada en los lotes de su punto, por la fecha en que se registró (hora de Lima): la recepción de un productor y lo recibido de otro punto por transferencia. Por llegar son las transferencias hacia su punto pedidas en el período que aún no se reciben."
+      },
+      "salidas": {
+        "pestana": "Salidas",
+        "total": "Unidades que salieron",
+        "totalDetalle": "{{transferencias}} transferidas · {{devoluciones}} devueltas · {{merma}} de merma",
+        "entregadas": "Ventas entregadas",
+        "entregadasDetalle": "Pedidos ya entregados al comprador",
+        "porEntregar": "Ventas por entregar",
+        "porEntregarDetalle": "Pagadas, aún en el punto esperando entrega",
+        "porPeriodo": "Salidas por período",
+        "porProducto": "Salidas por producto",
+        "vacio": "No hubo salidas en este período",
+        "nota": "Cada salida de los lotes de su punto, por la fecha en que se registró (hora de Lima). Una venta descuenta el stock al confirmarse el pago; se cuenta como pendiente mientras el pedido no se entrega. Devoluciones son los retiros del productor; las transferencias, lo enviado a otro punto."
+      },
+      "ventas": {
+        "pestana": "Ventas",
+        "total": "Total vendido",
+        "totalDetalle": "{{unidades}} unidades · B2C {{b2c}} · B2B {{b2b}}",
+        "atendidos": "Pedidos atendidos",
+        "atendidosDetalle_one": "De {{count}} pedido pagado",
+        "atendidosDetalle_other": "De {{count}} pedidos pagados",
+        "porEntregar": "Pedidos por entregar",
+        "porEntregarDetalle": "Pagados, aún sin entregar",
+        "porPeriodo": "Ventas por período",
+        "porProducto": "Ventas por producto",
+        "vacio": "No hubo ventas en este período",
+        "nota": "Pedidos pagados y no cancelados que salen de su punto, por la fecha en que se confirmó el pago (hora de Lima). Un pedido está atendido cuando se entregó; mientras tanto, está por entregar. Una venta es B2B si se hizo a precio mayorista."
+      },
+      "inventario": {
+        "pestana": "Inventario",
+        "saldoInicial": "Saldo inicial",
+        "alInicio": "Al inicio del período",
+        "movimiento": "Variación",
+        "movimientoDetalle": "{{entradas}} entradas · {{salidas}} salidas",
+        "saldoFinal": "Saldo final",
+        "alFinal": "Al cierre del período",
+        "porEntregar": "Vendido aún en el punto",
+        "porEntregarDetalle": "Existencia física: {{cantidad}}",
+        "porPeriodo": "Inventario por período",
+        "porProducto": "Inventario por producto",
+        "vacio": "No hubo existencias en este período",
+        "nota": "Sale de los movimientos de los lotes de su punto: saldo final = saldo inicial + entradas − salidas. Aquí las transferencias sí cuentan, porque cambian lo que hay en el punto. Lo vendido aún por entregar ya salió del saldo, pero sigue en el almacén hasta que se entrega."
+      }
     }
   },
   "admin": {

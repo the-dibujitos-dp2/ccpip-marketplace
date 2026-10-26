@@ -34,6 +34,7 @@ import TransferenciasPuntoPage from './pages/acopio/TransferenciasPage.jsx'
 import AlertasPuntoPage from './pages/acopio/AlertasPage.jsx'
 import MermaPuntoPage from './pages/acopio/MermaPage.jsx'
 import PedidosDisponiblesPage from './pages/distribuidor/PedidosDisponiblesPage.jsx'
+import ReportesPuntoPage from './pages/acopio/ReportesPage.jsx'
 import BuscarPage from './pages/consumidor/BuscarPage.jsx'
 import CarritoPage from './pages/consumidor/CarritoPage.jsx'
 import CompraPage from './pages/consumidor/CompraPage.jsx'
@@ -337,6 +338,7 @@ export default function App() {
     else if (path === RUTAS.acopioTransferencias) pagina = <TransferenciasPuntoPage path={path} />
     else if (path === RUTAS.acopioAlertas) pagina = <AlertasPuntoPage path={path} />
     else if (path === RUTAS.acopioMerma) pagina = <MermaPuntoPage path={path} />
+    else if (path === RUTAS.acopioReportes) pagina = <ReportesPuntoPage path={path} />
     else {
       navigate(RUTAS.acopioPedidos, { replace: true })
       pagina = null

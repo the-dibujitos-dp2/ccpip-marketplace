@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoCaja from '../../assets/icons/caja.svg'
@@ -8,9 +8,11 @@ import iconoMerma from '../../assets/icons/merma.svg'
 import iconoMovimientos from '../../assets/icons/movimientos.svg'
 import iconoTienda from '../../assets/icons/tienda.svg'
 import { consultarReporteProductor, urlReporteProductor } from '../../api/productor.js'
+import { opcion, useReporte } from '../../api/useReporte.js'
 import Alerta from '../../components/Alerta.jsx'
 import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
+import DescargasReporte from '../../components/DescargasReporte.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
@@ -33,6 +35,15 @@ const CON_MODALIDAD = ['ventas']
 /** Formatos de exportacion: el reporte completo de lo que se esta viendo. */
 const FORMATOS = ['pdf', 'xlsx']
 
+const FILTRO_VACIO = { desde: '', hasta: '', agrupacion: '', producto: '', modalidad: '' }
+
+/** La modalidad de compra solo viaja a las pestañas que la usan. */
+const consultarConModalidad = (clave, valores) =>
+  consultarReporteProductor(clave, valores && { ...valores, modalidad: CON_MODALIDAD.includes(clave) ? valores.modalidad : '' })
+
+/** El rango, la agrupacion y el producto que aplico el servidor; la modalidad, la que se envio. */
+const aFiltro = (r, f) => ({ ...f, desde: r.desde, hasta: r.hasta, agrupacion: r.agrupacion, producto: opcion(r.producto) })
+
 /**
  * Reportes del productor: estadisticas de sus productos por periodo, con el formato de los reportes de la
  * plataforma (SA-05). CCPIP-114 (RF-25): ventas; CCPIP-333 (RF-223): produccion;
@@ -41,43 +52,12 @@ const FORMATOS = ['pdf', 'xlsx']
  * dato de los compradores; la pantalla solo muestra lo calculado.
  */
 export default function ReportesPage({ path }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [metrica, setMetrica] = useState(METRICAS[0])
-  const [filtro, setFiltro] = useState({ desde: '', hasta: '', agrupacion: '', producto: '', modalidad: '' })
-  const [datos, setDatos] = useState(null)
-  const [error, setError] = useState(null)
-  const [cargando, setCargando] = useState(true)
+  const { filtro, datos, error, cargando, vigente, cargar: consultar, aplicar } =
+    useReporte(consultarConModalidad, aFiltro, METRICAS[0], FILTRO_VACIO)
 
-  const consultar = useCallback(async (clave, valores) => {
-    setCargando(true)
-    setError(null)
-    try {
-      const enviar = valores && { ...valores, modalidad: CON_MODALIDAD.includes(clave) ? valores.modalidad : '' }
-      const respuesta = await consultarReporteProductor(clave, enviar)
-      setDatos({ ...respuesta, clave })
-      setFiltro((f) => ({
-        ...f,
-        desde: respuesta.desde,
-        hasta: respuesta.hasta,
-        agrupacion: respuesta.agrupacion,
-        producto: respuesta.producto == null ? '' : String(respuesta.producto),
-      }))
-    } catch (e) {
-      setError(e)
-    } finally {
-      setCargando(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    consultar(METRICAS[0])
-  }, [consultar])
-
-  const cambiar = (campo) => (e) => {
-    const nuevo = { ...filtro, [campo]: e.target.value }
-    setFiltro(nuevo)
-    if (nuevo.desde && nuevo.hasta) consultar(metrica, nuevo)
-  }
+  const cambiar = (campo) => (e) => aplicar(metrica, { ...filtro, [campo]: e.target.value })
 
   function elegirMetrica(clave) {
     setMetrica(clave)
@@ -129,16 +109,9 @@ export default function ReportesPage({ path }) {
           />
         )}
         {datos && (
-          <div className="reportes-productor__exportar">
-            {FORMATOS.map((f) => (
-              <a key={f} className="boton boton--secundario boton--M" download
-                href={urlReporteProductor(f, {
-                  desde: datos.desde, hasta: datos.hasta, agrupacion: datos.agrupacion, producto: datos.producto, modalidad: filtro.modalidad,
-                }, i18n.resolvedLanguage === 'en' ? 'en' : 'es')}>
-                {t(`productor.reportes.exportar.${f}`)}
-              </a>
-            ))}
-          </div>
+          <DescargasReporte className="reportes-productor__exportar" formatos={FORMATOS} disponible={vigente} cargando={cargando}
+            etiqueta={(f) => t(`productor.reportes.exportar.${f}`)}
+            url={(f, idioma) => urlReporteProductor(f, datos.aplicado, idioma)} />
         )}
       </div>
       {error && <Alerta tono="error" titulo={t('productor.reportes.error')} descripcion={mensajeError(error, 'comun.errorConexion')} />}
