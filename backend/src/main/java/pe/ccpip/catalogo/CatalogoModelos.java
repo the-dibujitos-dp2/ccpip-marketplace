@@ -61,13 +61,18 @@ public final class CatalogoModelos {
     /**
      * {@code comprable} es falso cuando el productor no tiene cuenta bancaria activa o autorizacion
      * vigente para el producto (CCPIP-269): la ficha se ve igual, pero en "Venta pausada" (CW-03c).
+     * {@code materiaPrima}: el productor la marco como materia prima, no producto terminado.
+     * {@code relacionados}: de su misma linea y su misma clase (materia prima o terminado).
+     * {@code porMateriaPrima} (CCPIP-55): de la otra clase y con alguna linea en comun; para un producto
+     * terminado, las materias primas de su linea, y para una materia prima, lo terminado de su linea.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record ProductoDetalle(long id, String nombre, String descripcion, String contenido, Codigo unidad,
                                   Codigo linea, List<Codigo> lineas, String modalidad, BigDecimal precio,
                                   BigDecimal precioMayorista, Integer cantidadMinimaMayorista, boolean disponible,
                                   boolean comprable, List<Imagen> imagenes, TiendaResumen tienda, HistoriaPublica historia, Cosecha cosecha,
-                                  List<ProductoResumen> relacionados, Map<String, CampoTraducido> traducciones, ProductoMaestro maestro) {
+                                  boolean materiaPrima, List<ProductoResumen> relacionados, List<ProductoResumen> porMateriaPrima,
+                                  Map<String, CampoTraducido> traducciones, ProductoMaestro maestro) {
     }
 
     /**
@@ -113,8 +118,8 @@ public final class CatalogoModelos {
     public record GaleriaItem(String id, String categoria, String url, String miniatura) {
     }
 
-    public record Inicio(List<TiendaTarjeta> tiendas, List<Faceta> lineas, List<ProductoResumen> destacados,
-                         List<ProductoResumen> novedades) {
+    /** CW-01. Las novedades y los mas vendidos se piden aparte, por periodo (CCPIP-338, CCPIP-339). */
+    public record Inicio(List<TiendaTarjeta> tiendas, List<Faceta> lineas, List<ProductoResumen> destacados) {
     }
 
     public record LineaCatalogo(String codigo, String nombre, boolean requiereVencimiento, String unidadSugerida) {
@@ -125,8 +130,8 @@ public final class CatalogoModelos {
     }
 
     /**
-     * CCPIP-339 (RF-229): periodos que el visitante puede elegir para ver los mas vendidos. Todos terminan
-     * hoy (fecha de Lima).
+     * CCPIP-339 (RF-229) y CCPIP-338 (RF-228): periodos que el visitante puede elegir para ver los mas
+     * vendidos y lo publicado recientemente. Todos terminan hoy (fecha de Lima).
      */
     public enum PeriodoVentas { ULTIMOS_30_DIAS, ULTIMOS_3_MESES, ESTE_ANIO }
 
@@ -136,5 +141,12 @@ public final class CatalogoModelos {
      * productor (SA-08). Si nada se vendio en el periodo la lista va vacia; no se rellena.
      */
     public record MasVendidos(PeriodoVentas periodo, LocalDate desde, LocalDate hasta, List<ProductoResumen> productos) {
+    }
+
+    /**
+     * CCPIP-338: los productos publicados en el periodo y en venta, del mas reciente al mas antiguo, cada uno
+     * con su productor. Si nada se publico en el periodo la lista va vacia; no se rellena con lo anterior.
+     */
+    public record Novedades(PeriodoVentas periodo, LocalDate desde, LocalDate hasta, List<ProductoResumen> productos) {
     }
 }
