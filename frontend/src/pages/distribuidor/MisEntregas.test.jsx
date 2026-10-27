@@ -22,6 +22,7 @@ const entrega = (numero, distrito, ubigeo, estado, extra = {}) => ({
 
 const MIS_ENTREGAS = 'GET /api/distribuidor/pedidos'
 const retirar = (numero) => `POST /api/distribuidor/pedidos/${numero}/retirar`
+const enCamino = (numero) => `POST /api/distribuidor/pedidos/${numero}/en-camino`
 
 /**
  * El servidor del reparto con estado: lista las entregas del distribuidor y retirar una la deja RETIRADA.
@@ -31,6 +32,10 @@ function reparto(entregas, respuestas = {}) {
   const mias = entregas.map((e) => ({ ...e }))
   const rutas = { [MIS_ENTREGAS]: () => [200, mias.map((e) => ({ ...e }))] }
   mias.forEach((e) => {
+    rutas[enCamino(e.numero)] = () => {
+      Object.assign(e, { estado: 'EN_CAMINO' })
+      return [200, { ...e }]
+    }
     rutas[retirar(e.numero)] = () => {
       const respuesta = respuestas[e.numero]
       if (respuesta) return typeof respuesta === 'function' ? respuesta() : respuesta
@@ -116,6 +121,25 @@ describe('DW-03 Mis entregas (CCPIP-317)', () => {
     expect(await screen.findByText('No pudimos cargar tus entregas')).toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Reintentar' }))
     expect(await screen.findByRole('heading', { name: 'MC-00139 · San Isidro' })).toBeInTheDocument()
+  })
+})
+
+describe('CCPIP-318 registrar en camino', () => {
+  it('registra el avance desde RETIRADA, refresca badge y pasos; durante la petición bloquea acciones', async () => {
+    let soltar
+    const rutas = reparto([entrega('MC-00318', 'Lince', '150116', 'RETIRADA', { retiradaEn: '2026-10-25T16:00:00Z' })])
+    const enCaminoBien = rutas[enCamino('MC-00318')]
+    rutas[enCamino('MC-00318')] = () => new Promise((resolver) => { soltar = () => resolver(enCaminoBien()) })
+    const fetchMock = servidor(comoDistribuidor(rutas))
+    const usuario = userEvent.setup()
+    abrirEn('/distribuidor/entregas')
+    const card = await screen.findByRole('article', { name: /^MC-00318 ·/ })
+    const boton = within(card).getByRole('button', { name: 'Registrar en camino' })
+    await usuario.click(boton)
+    expect(within(card).getByRole('button', { name: 'Registrando…' })).toBeDisabled()
+    expect(llamadas(fetchMock, enCamino('MC-00318'))).toHaveLength(1)
+    soltar()
+    expect(await screen.findByText('Registraste que el pedido MC-00318 está en camino.')).toBeInTheDocument()
   })
 })
 

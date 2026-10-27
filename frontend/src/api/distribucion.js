@@ -39,3 +39,7 @@ export const listarMisEntregas = () => apiFetch('/api/distribuidor/pedidos')
  */
 export const retirarEntrega = (numero) =>
   apiFetch(`/api/distribuidor/pedidos/${encodeURIComponent(numero)}/retirar`, { method: 'POST' })
+
+/** Registra el inicio del traslado desde RETIRADA; el servidor devuelve la entrega EN_CAMINO. */
+export const registrarEnCamino = (numero) =>
+  apiFetch(`/api/distribuidor/pedidos/${encodeURIComponent(numero)}/en-camino`, { method: 'POST' })

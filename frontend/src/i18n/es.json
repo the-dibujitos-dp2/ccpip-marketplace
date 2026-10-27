@@ -1047,7 +1047,12 @@
         "pedido": "Pedido",
         "destino": "Destino",
         "estado": "Estado"
-      }
+      },
+      "registrarEnCamino": "Registrar en camino",
+      "registrandoEnCamino": "Registrando…",
+      "enCaminoRegistrado": "Registraste que el pedido {{numero}} está en camino.",
+      "errorEnCamino": "No pudimos registrar que el pedido {{numero}} está en camino",
+      "estadoEN_CAMINO": "En camino"
     }
   },
   "acopio": {
@@ -3972,7 +3977,10 @@
         "ubicacion": "Ubicación",
         "aplicar": "Aplicar filtros",
         "vacio": "No hay merma para los filtros seleccionados.",
-        "exportar": { "pdf": "Descargar PDF", "xlsx": "Descargar Excel" }
+        "exportar": {
+          "pdf": "Descargar PDF",
+          "xlsx": "Descargar Excel"
+        }
       },
       "col": {
         "fecha": "Fecha",
