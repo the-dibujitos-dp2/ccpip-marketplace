@@ -106,7 +106,7 @@ export function FormularioLote({ productoId, requiereVencimiento, onRegistrado, 
             : t('productor.lote.ayudaAcopio')
         }
       />
-      <Boton type="submit" anchoCompleto icono={iconoCheck} disabled={enviando}>
+      <Boton type="submit" anchoCompleto icono={iconoCheck} cargando={enviando}>
         {enviando ? t('productor.lote.registrando') : t('productor.panel.registrarLote')}
       </Boton>
     </form>

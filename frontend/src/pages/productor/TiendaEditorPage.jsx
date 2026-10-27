@@ -46,6 +46,8 @@ export default function TiendaEditorPage({ path }) {
   const [errores, setErrores] = useState({})
   const [alerta, setAlerta] = useState(null)
   const [ocupado, setOcupado] = useState(false)
+  // CCPIP-413: publicar tambien guarda; asi el aro va en Publicar y no en Guardar
+  const [publicando, setPublicando] = useState(false)
   const [filtro, setFiltro] = useState('TODO')
   const [categoria, setCategoria] = useState('COMUNIDAD')
   const [eligiendo, setEligiendo] = useState(false)
@@ -94,7 +96,8 @@ export default function TiendaEditorPage({ path }) {
   }
 
   async function publicar() {
-    if (!(await guardar())) return
+    setPublicando(true)
+    if (!(await guardar())) return setPublicando(false)
     setOcupado(true)
     try {
       aplicar(await publicarTienda())
@@ -104,6 +107,7 @@ export default function TiendaEditorPage({ path }) {
       setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.editor.errorPublicar'), descripcion: err.body?.detalles?.map(traducirFaltante).join(' · ') })
     } finally {
       setOcupado(false)
+      setPublicando(false)
     }
   }
 
@@ -165,12 +169,12 @@ export default function TiendaEditorPage({ path }) {
           {tienda.publicada ? (
             <>
               <Boton tipo="secundario" tamano="M" icono={iconoOjo} to={`/tiendas/${tienda.id}`}>{t('productor.tienda.verPublicada')}</Boton>
-              <Boton tamano="M" onClick={guardar} disabled={ocupado}>{t('productor.datos.guardarCambios')}</Boton>
+              <Boton tamano="M" onClick={guardar} cargando={ocupado}>{t('productor.datos.guardarCambios')}</Boton>
             </>
           ) : (
             <>
-              <Boton tipo="secundario" tamano="M" onClick={guardar} disabled={ocupado}>{t('productor.datos.guardarBorrador')}</Boton>
-              <Boton tamano="M" onClick={publicar} disabled={ocupado || tienda.habilitada === false}>{t('productor.tienda.publicar')}</Boton>
+              <Boton tipo="secundario" tamano="M" onClick={guardar} disabled={ocupado} cargando={ocupado && !publicando}>{t('productor.datos.guardarBorrador')}</Boton>
+              <Boton tamano="M" onClick={publicar} disabled={ocupado || tienda.habilitada === false} cargando={publicando}>{t('productor.tienda.publicar')}</Boton>
             </>
           )}
         </div>

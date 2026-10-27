@@ -58,6 +58,23 @@ describe('Acceso al panel del productor', () => {
     await user.click(await screen.findByRole('button', { name: 'Cerrar sesión' }))
     expect(await screen.findByText('Cerraste sesión')).toBeInTheDocument()
   })
+
+  it('mientras cierra sesion, el boton de la barra lateral muestra el aro de carga (CCPIP-413)', async () => {
+    let responder
+    productor({ 'POST /api/auth/logout': () => new Promise((r) => { responder = r }) })
+    const user = userEvent.setup()
+    abrirEn('/productor')
+    const salir = await screen.findByRole('button', { name: 'Cerrar sesión' })
+    expect(salir.querySelector('.boton__giro')).toBeNull()
+    await user.click(salir)
+
+    expect(salir).toBeDisabled()
+    expect(salir).toHaveAttribute('aria-busy', 'true')
+    expect(salir.querySelector('.boton__giro')).not.toBeNull()
+    expect(salir.querySelector('.icono')).toBeNull()
+    responder([204])
+    expect(await screen.findByText('Cerraste sesión')).toBeInTheDocument()
+  })
 })
 
 describe('PW-01 Panel', () => {

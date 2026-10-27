@@ -96,7 +96,7 @@ export default function MisDatosPage() {
                     inputMode="tel" maxLength={20} autoComplete="tel" ayuda={t('misDatos.celularAyuda')} />
                 </div>
                 <div className="mis-datos__acciones">
-                  <Boton type="submit" tamano="M" disabled={guardando}>
+                  <Boton type="submit" tamano="M" cargando={guardando}>
                     {guardando ? t('misDatos.guardando') : t('misDatos.guardar')}
                   </Boton>
                 </div>

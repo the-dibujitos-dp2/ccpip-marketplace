@@ -88,7 +88,8 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
   const [d, setD] = useState(() => datosIniciales(producto))
   const [errores, setErrores] = useState({})
   const [alerta, setAlerta] = useState(null)
-  const [guardando, setGuardando] = useState(false)
+  // 'datos' o 'siguiente': cual de los dos botones guarda (CCPIP-413: el aro va solo en el pulsado)
+  const [guardando, setGuardando] = useState(null)
   const [subidas, setSubidas] = useState([])
   const [aRetirar, setARetirar] = useState(null)
   const [retirando, setRetirando] = useState(false)
@@ -135,7 +136,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
       setAlerta({ tono: 'error', titulo: t('productor.datos.revisa'), descripcion: Object.values(e).join(' · ') })
       return
     }
-    setGuardando(true)
+    setGuardando(siguiente ? 'siguiente' : 'datos')
     setAlerta(null)
     try {
       await onGuardar(aCuerpo(d))
@@ -149,7 +150,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
       setErrores(i18n.resolvedLanguage === 'es' ? campos : Object.fromEntries(Object.keys(campos).map((c) => [c, mensajeError(err)])))
       setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.errorGuardar'), descripcion: err.body?.detalles?.map(traducirFaltante).join(' · ') })
     } finally {
-      setGuardando(false)
+      setGuardando(null)
     }
   }
 
@@ -298,13 +299,13 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
 
   // CCPIP-280: descartar el borrador lo registra. Mientras responde no se puede decidir otra vez
   async function descartarDescripcion() {
-    setIa({ ...ia, ocupado: true })
+    setIa({ ...ia, ocupado: 'descartar' })
     try {
       await rechazarBorrador(ia.productoId, 'DESCRIPCION')
     } catch (err) {
       // 409: ya no estaba pendiente (se decidio en otra pestana); igual se descarta
       if (err.status !== 409) {
-        setIa({ ...ia, ocupado: false })
+        setIa({ ...ia, ocupado: null })
         setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.ia.errorDescartar') })
         return
       }
@@ -314,12 +315,13 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
 
   // CCPIP-49: aceptarlo guarda la version sugerida, con quien y cuando; la final es la que el productor guarde
   async function aceptarDescripcion(editar) {
-    setIa({ ...ia, ocupado: true })
+    // CCPIP-413: 'editar' o 'aceptar', para que el aro vaya solo en el boton pulsado
+    setIa({ ...ia, ocupado: editar ? 'editar' : 'aceptar' })
     try {
       await aceptarBorradorDescripcion(ia.productoId)
     } catch (err) {
       // 409: ya no estaba pendiente; mejor pedir otro que usar un texto cuya aceptacion no quedo registrada
-      setIa(err.status === 409 ? { estado: 'inicial' } : { ...ia, ocupado: false })
+      setIa(err.status === 409 ? { estado: 'inicial' } : { ...ia, ocupado: null })
       setAlerta({ tono: 'error', titulo: err.status === 409 ? t('productor.datos.ia.yaNoPendiente') : mensajeError(err, 'productor.datos.ia.errorAceptar') })
       return
     }
@@ -449,16 +451,16 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
               <p className="body-s editor__ia-texto">{ia.texto}</p>
               <p className="caption">{t('productor.datos.ia.editalo')}</p>
               <div className="editor__ia-acciones">
-                <Boton tipo="secundario" tamano="S" disabled={ia.ocupado} onClick={() => void aceptarDescripcion(true)}>
+                <Boton tipo="secundario" tamano="S" disabled={Boolean(ia.ocupado)} cargando={ia.ocupado === 'editar'} onClick={() => void aceptarDescripcion(true)}>
                   {t('productor.editor.editar')}
                 </Boton>
-                <Boton tipo="terciario" tamano="S" disabled={ia.ocupado} onClick={sugerir}>
+                <Boton tipo="terciario" tamano="S" disabled={Boolean(ia.ocupado)} onClick={sugerir}>
                   {t('productor.datos.ia.generarOtra')}
                 </Boton>
-                <Boton tipo="terciario" tamano="S" disabled={ia.ocupado} onClick={() => void descartarDescripcion()}>
+                <Boton tipo="terciario" tamano="S" disabled={Boolean(ia.ocupado)} cargando={ia.ocupado === 'descartar'} onClick={() => void descartarDescripcion()}>
                   {t('productor.datos.ia.descartar')}
                 </Boton>
-                <Boton tamano="S" disabled={ia.ocupado} onClick={() => void aceptarDescripcion(false)}>
+                <Boton tamano="S" disabled={Boolean(ia.ocupado)} cargando={ia.ocupado === 'aceptar'} onClick={() => void aceptarDescripcion(false)}>
                   {t('productor.datos.ia.aceptar')}
                 </Boton>
               </div>
@@ -518,10 +520,10 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
         </label>
 
         <div className="editor__botones">
-          <Boton tipo="secundario" onClick={() => guardar(false)} disabled={guardando}>
+          <Boton tipo="secundario" onClick={() => guardar(false)} disabled={guardando !== null} cargando={guardando === 'datos'}>
             {publicado || enRevision ? t('productor.datos.guardarCambios') : t('productor.datos.guardarBorrador')}
           </Boton>
-          <Boton onClick={() => guardar(true)} disabled={guardando}>
+          <Boton onClick={() => guardar(true)} disabled={guardando !== null} cargando={guardando === 'siguiente'}>
             {t('productor.datos.siguienteHistoria')}
           </Boton>
         </div>

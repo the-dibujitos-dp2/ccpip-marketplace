@@ -252,7 +252,7 @@ function Formulario({ estado, f, set, errores, enviando, onSubmit, onLimpiar }) 
         <Boton tipo="terciario" tamano="M" onClick={onLimpiar} disabled={enviando}>
           {t('comun.cancelar')}
         </Boton>
-        <Boton type="submit" tamano="M" disabled={enviando}>
+        <Boton type="submit" tamano="M" cargando={enviando}>
           {t(desdeHoy ? 'admin.comision.aplicarHoy' : 'admin.comision.programar')}
         </Boton>
       </div>

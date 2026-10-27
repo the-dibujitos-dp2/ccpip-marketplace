@@ -70,7 +70,7 @@ export default function NuevaCuentaPage({ path }) {
           <Boton tipo="terciario" tamano="M" to={RUTAS.adminCuentas} disabled={enviando}>
             {t('comun.cancelar')}
           </Boton>
-          <Boton type="submit" tamano="M" disabled={enviando}>
+          <Boton type="submit" tamano="M" cargando={enviando}>
             {t('cuentas.crear')}
           </Boton>
         </div>

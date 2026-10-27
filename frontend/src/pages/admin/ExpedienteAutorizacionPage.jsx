@@ -202,7 +202,7 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
 
           {exp.puedeDecidir ? (
             <>
-              <Boton tipo="secundario" tamano="M" icono={iconoIa} anchoCompleto onClick={analizar} disabled={analizando}>
+              <Boton tipo="secundario" tamano="M" icono={iconoIa} anchoCompleto onClick={analizar} cargando={analizando}>
                 {analizando ? t('autorizaciones.analisis.analizando') : completado ? t('autorizaciones.analisis.otraVez') : t('autorizaciones.analisis.pedir')}
               </Boton>
               <CampoMotivo decision={decision} etiqueta={t('autorizaciones.expediente.motivo')} ayuda={t('autorizaciones.expediente.motivoAyuda')} />

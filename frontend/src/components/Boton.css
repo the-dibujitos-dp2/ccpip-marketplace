@@ -27,11 +27,31 @@
 }
 .boton--terciario { background: transparent; color: var(--color-text-brand); }
 
-.boton:disabled {
+.boton:disabled:not(.boton--cargando) {
   background: var(--color-bg-disabled);
   color: var(--color-text-disabled);
   border-color: transparent;
   cursor: not-allowed;
+}
+
+/* CCPIP-413: mientras espera conserva su color, con un aro que gira en lugar del icono */
+.boton--cargando { cursor: progress; }
+.boton__giro {
+  flex: none;
+  box-sizing: border-box;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--radius-pill);
+  animation: boton-girar 0.8s linear infinite;
+}
+
+@keyframes boton-girar {
+  to { transform: rotate(360deg); }
+}
+
+/* Sin movimiento, el aro queda quieto: el texto del boton ya dice que esta trabajando */
+@media (prefers-reduced-motion: reduce) {
+  .boton__giro { animation: none; }
 }
 
 .boton--primario:not(:disabled):hover { background: #12482d; }

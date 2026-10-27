@@ -65,7 +65,7 @@ export default function MinimoCalificaciones() {
                 setValor(e.target.value)
                 setError(null)
               }} />
-            <Boton type="submit" tamano="M" disabled={enviando}>{t('minimoCalificaciones.guardar')}</Boton>
+            <Boton type="submit" tamano="M" cargando={enviando}>{t('minimoCalificaciones.guardar')}</Boton>
           </form>
           <p className="caption parametros__estado">
             {minimo.provisional

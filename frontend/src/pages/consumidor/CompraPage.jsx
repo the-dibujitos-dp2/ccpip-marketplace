@@ -518,7 +518,7 @@ export default function CompraPage() {
                   <Alerta {...aviso} onCerrar={() => setAviso(null)} />
                 </div>
               )}
-              <Boton tipo="acento" anchoCompleto type="submit" disabled={enviando}>
+              <Boton tipo="acento" anchoCompleto type="submit" cargando={enviando}>
                 {enviando ? t('compra.procesando') : t('compra.pagar', { monto: precio(carrito.total) })}
               </Boton>
               <p className="caption compra__nota">{t('compra.notaStock')}</p>

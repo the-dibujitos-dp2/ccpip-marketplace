@@ -192,7 +192,7 @@ export default function EditorProductoPage({ path, id, search }) {
               {(producto.estado === 'BORRADOR' || producto.estado === 'RETIRADO') && (producto.publicable.listo ? (
                 <>
                   <p className="body-s">{t('productor.editor.todoListo')}</p>
-                  <Boton onClick={publicar} disabled={publicando}>
+                  <Boton onClick={publicar} cargando={publicando}>
                     {publicando ? t('productor.editor.publicando') : producto.estado === 'RETIRADO' ? t('productor.productos.volverPublicar') : t('productor.panel.publicarProducto')}
                   </Boton>
                 </>

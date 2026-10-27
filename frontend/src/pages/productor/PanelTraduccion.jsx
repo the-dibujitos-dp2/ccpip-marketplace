@@ -122,11 +122,11 @@ export default function PanelTraduccion({ productoId, destino = 'en' }) {
       )}
 
       <div className="panel-traduccion__acciones">
-        <Boton tipo="secundario" tamano="M" onClick={traducir} disabled={!estado.automaticaDisponible || estado.campos.length === 0 || ocupado != null}>
+        <Boton tipo="secundario" tamano="M" onClick={traducir} disabled={!estado.automaticaDisponible || estado.campos.length === 0 || ocupado != null} cargando={ocupado === 'traducir'}>
           {ocupado === 'traducir' ? t('traduccion.panel.traduciendo') : t(`traduccion.traducirAl.${destino}`)}
         </Boton>
         {pendientes.length > 0 && (
-          <Boton tamano="M" onClick={publicar} disabled={ocupado != null}>
+          <Boton tamano="M" onClick={publicar} disabled={ocupado != null} cargando={ocupado === 'publicar'}>
             {ocupado === 'publicar' ? t('traduccion.panel.publicando') : t('traduccion.panel.publicar')}
           </Boton>
         )}

@@ -111,7 +111,7 @@ export default function VerificarCorreoPage({ search, onVerificado }) {
               onChange={(e) => setPedido((p) => ({ ...p, correo: e.target.value }))}
               error={pedido.error}
             />
-            <Boton type="submit" anchoCompleto disabled={pedido.enviando}>
+            <Boton type="submit" anchoCompleto cargando={pedido.enviando}>
               {pedido.enviando ? t('verificarCorreo.enviando') : t('verificarCorreo.pedirNuevo')}
             </Boton>
           </form>

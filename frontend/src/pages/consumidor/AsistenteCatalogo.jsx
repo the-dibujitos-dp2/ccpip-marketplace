@@ -59,7 +59,7 @@ export default function AsistenteCatalogo({ onVerEnBusqueda }) {
           onChange={(e) => setPregunta(e.target.value)}
           className="asistente__campo"
         />
-        <Boton tamano="M" type="submit" disabled={consultando}>
+        <Boton tamano="M" type="submit" cargando={consultando}>
           {consultando ? t('asistente.consultando') : t('asistente.preguntar')}
         </Boton>
       </form>

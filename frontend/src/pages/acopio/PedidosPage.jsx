@@ -174,7 +174,7 @@ function TarjetaPedido({ pedido, accion, ocupado, onMarcar, onRecojo }) {
           tipo="secundario"
           tamano="M"
           anchoCompleto
-          disabled={ocupado}
+          cargando={ocupado}
           aria-label={t(`acopio.pedidos.${boton.etiqueta}`, { numero: pedido.numero })}
           onClick={() => onMarcar(pedido.numero, accionTarjeta)}
         >
