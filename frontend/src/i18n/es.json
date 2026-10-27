@@ -1087,7 +1087,8 @@
         "EN_PREPARACION": "En preparación",
         "LISTO_PARA_RECOJO": "Listo para recojo",
         "LISTO_PARA_DESPACHO": "Listo para despacho",
-        "ENTREGADO": "Entregado hoy"
+        "ENTREGADO": "Entregado hoy",
+        "EN_CAMINO": "En camino"
       },
       "columnaConteo": "{{titulo}} ({{total}})",
       "columnaVacia": {
@@ -1095,7 +1096,8 @@
         "EN_PREPARACION": "No hay pedidos en preparación.",
         "LISTO_PARA_RECOJO": "Ningún pedido espera a su comprador.",
         "LISTO_PARA_DESPACHO": "Ningún pedido espera a un distribuidor.",
-        "ENTREGADO": "Aún no se entregó ningún pedido hoy."
+        "ENTREGADO": "Aún no se entregó ningún pedido hoy.",
+        "EN_CAMINO": "No hay pedidos en camino."
       },
       "productosDe": "Productos del pedido {{numero}}",
       "lotesDe": "Lotes de {{producto}}",
@@ -1106,7 +1108,8 @@
         "EN_PREPARACION": "En preparación",
         "LISTO_PARA_RECOJO": "Listo",
         "LISTO_PARA_DESPACHO": "Listo para despacho",
-        "ENTREGADO": "Entregado"
+        "ENTREGADO": "Entregado",
+        "EN_CAMINO": "En camino desde"
       },
       "marcarEtiqueta": "Marcar el pedido {{numero}} como listo para recojo",
       "despachoEtiqueta": "Registrar la salida del pedido {{numero}} para despacho",

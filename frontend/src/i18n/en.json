@@ -1087,7 +1087,8 @@
         "EN_PREPARACION": "Being prepared",
         "LISTO_PARA_RECOJO": "Ready for pickup",
         "LISTO_PARA_DESPACHO": "Ready for dispatch",
-        "ENTREGADO": "Delivered today"
+        "ENTREGADO": "Delivered today",
+        "EN_CAMINO": "On the way"
       },
       "columnaConteo": "{{titulo}} ({{total}})",
       "columnaVacia": {
@@ -1095,7 +1096,8 @@
         "EN_PREPARACION": "No orders are being prepared.",
         "LISTO_PARA_RECOJO": "No orders are waiting for their buyer.",
         "LISTO_PARA_DESPACHO": "No orders are waiting for a distributor.",
-        "ENTREGADO": "No orders delivered today yet."
+        "ENTREGADO": "No orders delivered today yet.",
+        "EN_CAMINO": "No orders on the way."
       },
       "productosDe": "Products in order {{numero}}",
       "lotesDe": "Batches of {{producto}}",
@@ -1106,7 +1108,8 @@
         "EN_PREPARACION": "Being prepared",
         "LISTO_PARA_RECOJO": "Ready",
         "LISTO_PARA_DESPACHO": "Ready for dispatch",
-        "ENTREGADO": "Delivered"
+        "ENTREGADO": "Delivered",
+        "EN_CAMINO": "On the way since"
       },
       "marcarEtiqueta": "Mark order {{numero}} as ready for pickup",
       "despachoEtiqueta": "Record the dispatch of order {{numero}}",
