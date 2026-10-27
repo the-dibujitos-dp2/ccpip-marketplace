@@ -177,6 +177,7 @@ export default function ProductosPage({ path, search }) {
                       <span className="productos__menu-lista" role="menu">
                         <Enlace role="menuitem" to={`${RUTAS.productorLotes}?producto=${f.id}`}>{t('productor.panel.registrarLote')}</Enlace>
                         <Enlace role="menuitem" to={`${RUTAS.productorProductos}/${f.id}/evidencias`}>{t('productor.productos.evidencias')}</Enlace>
+                        <Enlace role="menuitem" to={`${RUTAS.productorProductos}/${f.id}/premios`}>{t('productor.productos.premios')}</Enlace>
                         {f.estado === 'PUBLICADO' && (
                           <>
                             <Enlace role="menuitem" to={`/productos/${f.id}`}>{t('productor.productos.verEnTienda')}</Enlace>

@@ -54,6 +54,7 @@ export const RUTAS = {
   adminModeracion: '/admin/moderacion',
   adminModeracionVideos: '/admin/moderacion/videos',
   adminProductores: '/admin/productores',
+  adminCertificados: '/admin/certificados',
   adminDenuncias: '/admin/denuncias',
   adminMiHistorial: '/admin/mi-historial',
   adminCatalogo: '/admin/catalogo',
