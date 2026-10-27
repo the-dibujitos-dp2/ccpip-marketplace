@@ -20,6 +20,7 @@ import pe.ccpip.entrega.EntregaModelos.Linea;
 import pe.ccpip.entrega.EntregaModelos.LoteAsignado;
 import pe.ccpip.entrega.EntregaModelos.PedidoPunto;
 import pe.ccpip.entrega.EntregaModelos.PedidosPunto;
+import pe.ccpip.entrega.EntregaModelos.Reparto;
 
 /**
  * Pedidos del punto de acopio, para recoger o para despachar a domicilio (Figma A-05, ADR-17). Cada administrador opera solo
@@ -241,6 +242,17 @@ public class PedidosPuntoService {
                             .add(new Cambio(rs.getString("estado"), rs.getObject("registrado_en", Timestamp.class).toInstant(),
                                     rs.getString("responsable")));
                 });
+        // CCPIP-109: el reparto de los pedidos a domicilio, con quien lo asumio y cuando lo retiro
+        Map<Long, Reparto> repartos = new HashMap<>();
+        jdbc.query("""
+                SELECT e.pedido_id, e.estado, u.nombre AS distribuidor, e.asignada_en, e.retirada_en
+                FROM entrega e LEFT JOIN usuario u ON u.id = e.distribuidor_id
+                WHERE e.pedido_id IN (:ids)""", p,
+                rs -> {
+                    repartos.put(rs.getLong("pedido_id"), new Reparto(rs.getString("estado"), rs.getString("distribuidor"),
+                            EntregaService.instante(rs.getObject("asignada_en", Timestamp.class)),
+                            EntregaService.instante(rs.getObject("retirada_en", Timestamp.class))));
+                });
         Map<Long, PedidoPunto> porId = new HashMap<>();
         jdbc.query("SELECT id, numero, estado, confirmado_en, actualizado_en, total, recogido_por, modalidad FROM pedido WHERE id IN (:ids)", p,
                 rs -> {
@@ -249,7 +261,7 @@ public class PedidosPuntoService {
                             rs.getObject("confirmado_en", Timestamp.class).toInstant(),
                             rs.getObject("actualizado_en", Timestamp.class).toInstant(), rs.getBigDecimal("total"),
                             lineas.getOrDefault(id, List.of()), historial.getOrDefault(id, List.of()), rs.getString("recogido_por"),
-                            rs.getString("modalidad")));
+                            rs.getString("modalidad"), repartos.get(id)));
                 });
         return ids.stream().map(porId::get).toList();
     }
