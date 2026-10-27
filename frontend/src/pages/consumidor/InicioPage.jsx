@@ -4,7 +4,7 @@ import iconoArbol from '../../assets/icons/arbol.svg'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoEscudo from '../../assets/icons/sello-completo.svg'
 import iconoSinQuimicos from '../../assets/icons/sin-quimicos.svg'
-import { obtenerInicio, obtenerMasVendidos } from '../../api/catalogo.js'
+import { obtenerInicio, obtenerMasVendidos, obtenerNovedades } from '../../api/catalogo.js'
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
@@ -25,7 +25,7 @@ const VALORES = [
   { icono: iconoEscudo, clave: 'verificado' },
 ]
 
-/** CCPIP-339: periodos que el visitante puede elegir para los mas vendidos. */
+/** CCPIP-339 y CCPIP-338: periodos que el visitante puede elegir para los mas vendidos y las novedades. */
 const PERIODOS = ['ULTIMOS_30_DIAS', 'ULTIMOS_3_MESES', 'ESTE_ANIO']
 
 /** CW-01: inicio de la tienda web. */
@@ -40,7 +40,7 @@ export default function InicioPage() {
     obtenerInicio().then(setDatos).catch(() => setError(true))
   }, [])
 
-  const productos = datos ? (pestana === 'destacados' ? datos.destacados : datos.novedades) : []
+  const destacados = datos?.destacados ?? []
 
   return (
     <LayoutTienda>
@@ -138,16 +138,44 @@ export default function InicioPage() {
                 { valor: 'masVendidos', etiqueta: t('inicio.descubrir.masVendidos') },
               ]}
             />
-            {pestana === 'masVendidos' ? (
-              <MasVendidos periodo={periodo} onPeriodo={setPeriodo} idioma={i18n.resolvedLanguage} />
-            ) : (
-              <ul className="grilla-productos" aria-label={t(`inicio.descubrir.${pestana}`)}>
-                {productos.map((p) => (
-                  <li key={p.id}>
-                    <TarjetaProducto producto={p} />
-                  </li>
-                ))}
-              </ul>
+            {pestana === 'destacados' && (
+              <>
+                {destacados.length === 0 && <p className="body-m">{t('inicio.descubrir.sinDestacados')}</p>}
+                {destacados.length > 0 && (
+                  <ul className="grilla-productos" aria-label={t('inicio.descubrir.destacados')}>
+                    {destacados.map((p) => (
+                      <li key={p.id}>
+                        <TarjetaProducto producto={p} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {/* CCPIP-57: la regla de los destacados, a la vista */}
+                <p className="caption">{t('inicio.descubrir.notaDestacados')}</p>
+              </>
+            )}
+            {pestana === 'novedades' && (
+              <PorPeriodo
+                obtener={obtenerNovedades}
+                etiqueta={t('inicio.descubrir.novedades')}
+                vacio={t('inicio.descubrir.sinNovedades')}
+                nota={t('inicio.descubrir.notaNovedades')}
+                periodo={periodo}
+                onPeriodo={setPeriodo}
+                idioma={i18n.resolvedLanguage}
+              />
+            )}
+            {pestana === 'masVendidos' && (
+              <PorPeriodo
+                obtener={obtenerMasVendidos}
+                etiqueta={t('inicio.descubrir.masVendidos')}
+                vacio={t('inicio.descubrir.sinVentas')}
+                nota={t('inicio.descubrir.notaMasVendidos')}
+                conPuesto
+                periodo={periodo}
+                onPeriodo={setPeriodo}
+                idioma={i18n.resolvedLanguage}
+              />
             )}
           </section>
         )}
@@ -167,10 +195,11 @@ export default function InicioPage() {
 }
 
 /**
- * CCPIP-339 (RF-229): los productos mas vendidos del periodo con su productor. Solo el puesto, sin
- * unidades ni montos; si nada se vendio, lo dice en vez de rellenar con otros productos.
+ * Productos del periodo elegido, con su productor, que se consultan solo al abrir su pestaña.
+ * CCPIP-339 (RF-229): los mas vendidos, con el puesto y sin unidades ni montos. CCPIP-338 (RF-228): lo
+ * publicado recientemente. Si el periodo no tiene productos lo dice en vez de rellenar con otros.
  */
-function MasVendidos({ periodo, onPeriodo, idioma }) {
+function PorPeriodo({ obtener, etiqueta, vacio, nota, conPuesto = false, periodo, onPeriodo, idioma }) {
   const { t } = useTranslation()
   const [respuesta, setRespuesta] = useState(null)
   const [error, setError] = useState(false)
@@ -178,11 +207,11 @@ function MasVendidos({ periodo, onPeriodo, idioma }) {
   useEffect(() => {
     let vigente = true
     setError(false)
-    obtenerMasVendidos(periodo)
+    obtener(periodo)
       .then((r) => { if (vigente) setRespuesta(r) })
       .catch(() => { if (vigente) setError(true) })
     return () => { vigente = false }
-  }, [periodo, idioma])
+  }, [obtener, periodo, idioma])
 
   const actual = respuesta?.periodo === periodo ? respuesta : null
   return (
@@ -198,17 +227,17 @@ function MasVendidos({ periodo, onPeriodo, idioma }) {
       />
       {error && <Alerta tono="error" titulo={t('inicio.error')} descripcion={t('comun.errorConexion')} />}
       {!error && !actual && <Cargando />}
-      {actual && actual.productos.length === 0 && <p className="body-m">{t('inicio.descubrir.sinVentas')}</p>}
+      {actual && actual.productos.length === 0 && <p className="body-m">{vacio}</p>}
       {actual && actual.productos.length > 0 && (
-        <ul className="grilla-productos" aria-label={t('inicio.descubrir.masVendidos')}>
+        <ul className="grilla-productos" aria-label={etiqueta}>
           {actual.productos.map((p, i) => (
             <li key={p.id}>
-              <TarjetaProducto producto={p} puesto={i + 1} />
+              <TarjetaProducto producto={p} puesto={conPuesto ? i + 1 : undefined} />
             </li>
           ))}
         </ul>
       )}
-      <p className="caption">{t('inicio.descubrir.notaMasVendidos')}</p>
+      <p className="caption">{nota}</p>
     </div>
   )
 }

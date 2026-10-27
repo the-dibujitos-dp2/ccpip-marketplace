@@ -28,6 +28,8 @@ export const obtenerPremios = async (id) => apiFetch(`/api/productos/${idRuta(id
 export const obtenerInicio = () => apiFetch('/api/inicio', publico)
 /** CCPIP-339: los mas vendidos del periodo (ULTIMOS_30_DIAS, ULTIMOS_3_MESES o ESTE_ANIO), en orden de puesto. */
 export const obtenerMasVendidos = (periodo) => apiFetch(`/api/mas-vendidos?periodo=${encodeURIComponent(periodo)}`, publico)
+/** CCPIP-338: lo publicado en el periodo y en venta, del mas reciente al mas antiguo. */
+export const obtenerNovedades = (periodo) => apiFetch(`/api/novedades?periodo=${encodeURIComponent(periodo)}`, publico)
 export const listarTiendas = () => apiFetch('/api/tiendas', publico)
 export const obtenerTienda = async (id) => apiFetch(`/api/tiendas/${idRuta(id)}`, publico)
 export const obtenerCatalogos = () => apiFetch('/api/catalogos', publico)

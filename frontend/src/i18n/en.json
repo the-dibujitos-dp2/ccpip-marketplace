@@ -1892,7 +1892,11 @@
         "ESTE_ANIO": "This year"
       },
       "sinVentas": "No sales in this period yet. Try a longer one.",
-      "notaMasVendidos": "Based on units sold in paid, non-cancelled purchases in the period."
+      "notaMasVendidos": "Based on units sold in paid, non-cancelled purchases in the period.",
+      "sinDestacados": "The communities haven't featured any products on sale yet.",
+      "notaDestacados": "Each community picks up to 4 products to feature in its shop. Here you see one per community, among those on sale.",
+      "sinNovedades": "No products were published in this period. Try a longer one.",
+      "notaNovedades": "Products on sale by the date they were published, newest first."
     },
     "mayorista": {
       "titulo": "Buying in volume for your store, café or for export?",
@@ -2322,6 +2326,12 @@
       "precioUnidad": "Price per unit"
     },
     "tambienDe": "More {{linea}}",
+    "materiaPrima": {
+      "materias": "Raw materials: {{linea}}",
+      "textoMaterias": "Products in the same line that their producers offer as raw materials.",
+      "terminados": "Finished {{linea}} products",
+      "textoTerminados": "Finished products in the same line as this raw material."
+    },
     "otrasOfertas": {
       "titulo": "Other producers of {{producto}}",
       "texto": "Each offer comes from a different producer. If one is sold out, your “I'm interested” only reaches that producer.",
