@@ -136,12 +136,48 @@ describe('CCPIP-318 registrar en camino', () => {
     const card = await screen.findByRole('article', { name: /^MC-00318 ·/ })
     const boton = within(card).getByRole('button', { name: 'Registrar en camino' })
     await usuario.click(boton)
-    expect(within(card).getByRole('button', { name: 'Registrando…' })).toBeDisabled()
+    const registrando = within(card).getByRole('button', { name: 'Registrando…' })
+    expect(registrando).toBeDisabled()
+    expect(registrando).toHaveAttribute('aria-busy', 'true')
+    expect(registrando.querySelector('.boton__giro')).toBeInTheDocument()
+    expect(within(card).queryByRole('button', { name: 'Retiré el pedido' })).not.toBeInTheDocument()
     expect(llamadas(fetchMock, enCamino('MC-00318'))).toHaveLength(1)
     soltar()
     expect(await screen.findByText('Registraste que el pedido MC-00318 está en camino.')).toBeInTheDocument()
   })
 })
+
+  it.each([409, 503])('si registrar en camino responde %s, conserva estado y permite reintentar', async (status) => {
+    let intentos = 0
+    const rutas = reparto([entrega('MC-00319', 'Lince', '150116', 'RETIRADA', { retiradaEn: '2026-10-25T16:00:00Z' })])
+    const bien = rutas[enCamino('MC-00319')]
+    rutas[enCamino('MC-00319')] = () => (++intentos === 1 ? [status, { error: 'falló actualización' }] : bien())
+    const fetchMock = servidor(comoDistribuidor(rutas))
+    const usuario = userEvent.setup()
+    abrirEn('/distribuidor/entregas')
+    const card = await screen.findByRole('article', { name: /^MC-00319 ·/ })
+    await usuario.click(within(card).getByRole('button', { name: 'Registrar en camino' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos registrar que el pedido MC-00319 está en camino')
+    expect(within(card).getByText('Recogido', { selector: '.badge-estado' })).toBeInTheDocument()
+    expect(within(card).getByRole('button', { name: 'Registrar en camino' })).toBeEnabled()
+    expect(llamadas(fetchMock, enCamino('MC-00319'))).toHaveLength(1)
+    await usuario.click(within(card).getByRole('button', { name: 'Registrar en camino' }))
+    expect(await screen.findByText('Registraste que el pedido MC-00319 está en camino.')).toBeInTheDocument()
+    expect(llamadas(fetchMock, enCamino('MC-00319'))).toHaveLength(2)
+  })
+
+  it.each(['ASIGNADA', 'EN_CAMINO', 'ENTREGADA'])('no ofrece registrar en camino para estado %s', async (estado) => {
+    servidor(comoDistribuidor(reparto([entrega('MC-00320', 'Lince', '150116', estado)])))
+    abrirEn('/distribuidor/entregas')
+    if (estado === 'ENTREGADA') {
+      const tabla = await screen.findByRole('table', { name: 'Entregados hoy' })
+      expect(within(tabla).getByRole('rowheader', { name: 'MC-00320' })).toBeInTheDocument()
+      expect(within(tabla).queryByRole('button', { name: /Registrar en camino/ })).not.toBeInTheDocument()
+    } else {
+      const card = await screen.findByRole('article', { name: /^MC-00320 ·/ })
+      expect(within(card).queryByRole('button', { name: /Registrar en camino/ })).not.toBeInTheDocument()
+    }
+  })
 
 describe('DW-03 Retirar el pedido del punto de acopio (CCPIP-109)', () => {
   it('"Retiré el pedido" registra el retiro: la entrega queda recogida, con su fecha', async () => {

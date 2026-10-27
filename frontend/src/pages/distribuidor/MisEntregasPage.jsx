@@ -64,15 +64,14 @@ export default function MisEntregasPage({ path }) {
   async function avanzarEnCamino(numero) {
     setEnCaminoActualizando(numero)
     setAviso(null)
-    let exito = false
     try {
       await registrarEnCamino(numero)
-      exito = true
       setAviso({ tono: 'exito', titulo: t('distribuidor.entregas.enCaminoRegistrado', { numero }) })
     } catch (e) {
-      if (e.status !== 401) setAviso({ tono: e.status === 409 ? 'aviso' : 'error', titulo: t('distribuidor.entregas.errorEnCamino', { numero }), descripcion: mensajeError(e) })
+      if (e.status === 401) return
+      setAviso({ tono: e.status === 409 ? 'aviso' : 'error', titulo: t('distribuidor.entregas.errorEnCamino', { numero }), descripcion: mensajeError(e) })
     } finally { setEnCaminoActualizando(null) }
-    if (exito || true) recargar()
+    recargar()
   }
 
   const titulo = t('distribuidor.entregas.titulo')
@@ -133,7 +132,7 @@ export default function MisEntregasPage({ path }) {
                   )}
                   {e.estado === 'RETIRADA' && (
                     <div className="mis-entregas__acciones">
-                      <Boton tamano="M" disabled={retirando !== null || enCaminoActualizando !== null} aria-busy={enCaminoActualizando === e.numero} onClick={() => void avanzarEnCamino(e.numero)}>{enCaminoActualizando === e.numero ? t('distribuidor.entregas.registrandoEnCamino') : t('distribuidor.entregas.registrarEnCamino')}</Boton>
+                      <Boton tamano="M" cargando={enCaminoActualizando === e.numero} disabled={retirando !== null || enCaminoActualizando !== null} onClick={() => void avanzarEnCamino(e.numero)}>{enCaminoActualizando === e.numero ? t('distribuidor.entregas.registrandoEnCamino') : t('distribuidor.entregas.registrarEnCamino')}</Boton>
                     </div>
                   )}
                 </article>
