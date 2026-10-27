@@ -329,6 +329,26 @@ export default function ProductoPage({ id }) {
           </div>
         )}
 
+        {/* CCPIP-55: de un terminado, las materias primas de su linea; de una materia prima, lo terminado */}
+        {producto.porMateriaPrima?.length > 0 && (
+          <section className="seccion" aria-labelledby="titulo-materia-prima">
+            <h2 id="titulo-materia-prima" className="seccion__titulo">
+              {t(producto.materiaPrima ? 'producto.materiaPrima.terminados' : 'producto.materiaPrima.materias',
+                { linea: producto.linea?.nombre?.toLowerCase() })}
+            </h2>
+            <p className="body-s">
+              {t(producto.materiaPrima ? 'producto.materiaPrima.textoTerminados' : 'producto.materiaPrima.textoMaterias')}
+            </p>
+            <ul className="grilla-productos">
+              {producto.porMateriaPrima.map((p) => (
+                <li key={p.id}>
+                  <TarjetaProducto producto={p} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {producto.relacionados?.length > 0 && (
           <section className="seccion" aria-labelledby="titulo-relacionados">
             <h2 id="titulo-relacionados" className="seccion__titulo">{t('producto.tambienDe', { linea: producto.linea?.nombre?.toLowerCase() })}</h2>

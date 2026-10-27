@@ -315,6 +315,36 @@ describe('CW-03 Ficha del producto (CCPIP-53, 152)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: DATOS.detalle.nombre })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: /Otros productores de/ })).not.toBeInTheDocument()
   })
+
+  // CCPIP-55 (RF-35): relacionados por materia prima, segun la marca del productor y la linea
+  it('una materia prima muestra lo elaborado de su linea y un terminado, sus materias primas', async () => {
+    const detalle = copia(DATOS.detalle)
+    const pasta = detalle.relacionados[0]
+    const grano = { ...pasta, id: 1, nombre: detalle.nombre }
+    servidor({
+      ...sinSesion,
+      'GET /api/productos/1': [200, { ...detalle, materiaPrima: true, relacionados: [], porMateriaPrima: [pasta] }],
+      'GET /api/productos/4': [200, { ...detalle, id: 4, nombre: pasta.nombre, materiaPrima: false, relacionados: [], porMateriaPrima: [grano] }],
+    })
+    abrirEn('/productos/1')
+    const elaborados = await screen.findByRole('region', { name: 'Elaborados de cacao y chocolates' })
+    expect(within(elaborados).getByRole('link', { name: new RegExp(pasta.nombre) })).toHaveAttribute('href', '/productos/4')
+    expect(screen.queryByRole('region', { name: /Materia prima de/ })).not.toBeInTheDocument()
+
+    act(() => {
+      window.history.pushState(null, '', '/productos/4')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
+    const materias = await screen.findByRole('region', { name: 'Materia prima de cacao y chocolates' })
+    expect(within(materias).getByText(detalle.nombre)).toBeInTheDocument()
+  })
+
+  it('sin productos por materia prima no muestra la seccion', async () => {
+    servidor({ ...sinSesion, 'GET /api/productos/1': [200, { ...copia(DATOS.detalle), materiaPrima: false, porMateriaPrima: [] }] })
+    abrirEn('/productos/1')
+    expect(await screen.findByRole('heading', { level: 1, name: DATOS.detalle.nombre })).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: /Materia prima de|Elaborados de/ })).not.toBeInTheDocument()
+  })
 })
 
 describe('CW-04 Tienda de la comunidad (CCPIP-56, 154)', () => {

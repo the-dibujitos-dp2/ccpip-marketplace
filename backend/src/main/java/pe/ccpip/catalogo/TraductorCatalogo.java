@@ -63,6 +63,7 @@ public class TraductorCatalogo {
         p.lineas().forEach(l -> c.codigo(Entidad.LINEA, l));
         c.codigo(Entidad.UNIDAD, p.unidad());
         p.relacionados().forEach(c::resumen);
+        p.porMateriaPrima().forEach(c::resumen);
         c.maestro(p.maestro());
         Textos t = cargar(c, idioma);
         String id = String.valueOf(p.id());
@@ -74,8 +75,9 @@ public class TraductorCatalogo {
                 t.codigo(Entidad.UNIDAD, p.unidad()), t.codigo(Entidad.LINEA, p.linea()),
                 p.lineas().stream().map(l -> t.codigo(Entidad.LINEA, l)).toList(), p.modalidad(), p.precio(),
                 p.precioMayorista(), p.cantidadMinimaMayorista(), p.disponible(), p.comprable(), p.imagenes(),
-                t.tienda(p.tienda()), historia, p.cosecha(),
-                p.relacionados().stream().map(t::resumen).toList(), campos.isEmpty() ? null : campos,
+                t.tienda(p.tienda()), historia, p.cosecha(), p.materiaPrima(),
+                p.relacionados().stream().map(t::resumen).toList(), p.porMateriaPrima().stream().map(t::resumen).toList(),
+                campos.isEmpty() ? null : campos,
                 t.maestro(p.maestro()));
     }
 

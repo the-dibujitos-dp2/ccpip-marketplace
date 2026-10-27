@@ -2303,6 +2303,12 @@
       "precioUnidad": "Precio por unidad"
     },
     "tambienDe": "También de {{linea}}",
+    "materiaPrima": {
+      "materias": "Materia prima de {{linea}}",
+      "textoMaterias": "Productos de la misma línea que sus productores ofrecen como materia prima.",
+      "terminados": "Elaborados de {{linea}}",
+      "textoTerminados": "Productos terminados de la misma línea que esta materia prima."
+    },
     "otrasOfertas": {
       "titulo": "Otros productores de {{producto}}",
       "texto": "Cada oferta es de un productor distinto. Si una está agotada, tu “Me interesa” llega solo a ese productor.",

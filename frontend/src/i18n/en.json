@@ -2303,6 +2303,12 @@
       "precioUnidad": "Price per unit"
     },
     "tambienDe": "More {{linea}}",
+    "materiaPrima": {
+      "materias": "Raw materials: {{linea}}",
+      "textoMaterias": "Products in the same line that their producers offer as raw materials.",
+      "terminados": "Finished {{linea}} products",
+      "textoTerminados": "Finished products in the same line as this raw material."
+    },
     "otrasOfertas": {
       "titulo": "Other producers of {{producto}}",
       "texto": "Each offer comes from a different producer. If one is sold out, your “I'm interested” only reaches that producer.",

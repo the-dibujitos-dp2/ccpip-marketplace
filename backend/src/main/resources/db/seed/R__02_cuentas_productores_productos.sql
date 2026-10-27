@@ -125,6 +125,12 @@ WHERE NOT EXISTS (
 -- Los productos sembrados ya estan publicados y en su linea
 UPDATE producto SET publicado_en = creado_en WHERE estado = 'PUBLICADO' AND publicado_en IS NULL;
 
+-- CCPIP-55: el cacao en grano es materia prima; la pasta de cacao, producto terminado de la misma linea.
+-- Solo si el productor no edito la oferta desde la plataforma.
+UPDATE producto SET es_materia_prima = true
+WHERE nombre IN ('Cacao en grano fermentado 1 kg', 'Cacao fino de aroma 1 kg')
+  AND actualizado_por IS NULL AND NOT es_materia_prima;
+
 INSERT INTO producto_linea (producto_id, linea_id)
 SELECT id, linea_id FROM producto WHERE linea_id IS NOT NULL
 ON CONFLICT DO NOTHING;

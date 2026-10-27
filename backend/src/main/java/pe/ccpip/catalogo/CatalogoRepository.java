@@ -165,16 +165,19 @@ public class CatalogoRepository {
     public Optional<ProductoDetalle> detalle(long id) {
         MapSqlParameterSource p = new MapSqlParameterSource("id", id);
         return jdbc.query("""
-                SELECT %s, p.descripcion, p.cantidad_minima_mayorista, p.producto_maestro_id, %s AS comprable
+                SELECT %s, p.descripcion, p.cantidad_minima_mayorista, p.producto_maestro_id, p.es_materia_prima,
+                       %s AS comprable
                 %s AND p.id = :id""".formatted(COLUMNAS, HABILITADA, VISIBLE), p,
                 (rs, row) -> {
                     ProductoResumen r = resumen(rs, row);
                     Long maestro = (Long) rs.getObject("producto_maestro_id");
+                    boolean materiaPrima = rs.getBoolean("es_materia_prima");
                     return new ProductoDetalle(r.id(), r.nombre(), rs.getString("descripcion"), r.contenido(), r.unidad(),
                             r.linea(), lineas(r.id()), r.modalidad(), r.precio(), r.precioMayorista(),
                             (Integer) rs.getObject("cantidad_minima_mayorista"), r.disponible(),
                             rs.getBoolean("comprable"), imagenes(r.id()),
-                            r.tienda(), historia(r.id()), cosecha(r.id()), relacionados(r), null,
+                            r.tienda(), historia(r.id()), cosecha(r.id()), materiaPrima, relacionados(r, materiaPrima),
+                            porMateriaPrima(r.id(), materiaPrima), null,
                             maestro == null ? null : maestro(maestro).orElse(null));
                 }).stream().findFirst();
     }
@@ -322,15 +325,37 @@ public class CatalogoRepository {
         return fila.isEmpty() ? null : fila.get(0);
     }
 
-    private List<ProductoResumen> relacionados(ProductoResumen r) {
+    /**
+     * "Tambien de" su linea: de la misma clase que el producto (materia prima o terminado), para no repetir
+     * lo que ya muestra la seccion de materia prima (CCPIP-55).
+     */
+    private List<ProductoResumen> relacionados(ProductoResumen r, boolean materiaPrima) {
         if (r.linea() == null) {
             return List.of();
         }
-        MapSqlParameterSource p = new MapSqlParameterSource().addValue("id", r.id()).addValue("linea", r.linea().codigo());
+        MapSqlParameterSource p = new MapSqlParameterSource().addValue("id", r.id()).addValue("linea", r.linea().codigo())
+                .addValue("materiaPrima", materiaPrima);
         return jdbc.query("SELECT " + COLUMNAS + VISIBLE + """
-                 AND p.id <> :id AND EXISTS (SELECT 1 FROM producto_linea pl JOIN linea_producto x ON x.id = pl.linea_id
-                                             WHERE pl.producto_id = p.id AND x.codigo = :linea)
+                 AND p.id <> :id AND p.es_materia_prima = :materiaPrima
+                 AND EXISTS (SELECT 1 FROM producto_linea pl JOIN linea_producto x ON x.id = pl.linea_id
+                             WHERE pl.producto_id = p.id AND x.codigo = :linea)
                 ORDER BY (%s > 0) DESC, p.publicado_en DESC NULLS LAST LIMIT 4""".formatted(EN_VENTA),
+                p, CatalogoRepository::resumen);
+    }
+
+    /**
+     * CCPIP-55 (RF-35): productos relacionados por materia prima. Para un producto terminado, las materias
+     * primas que comparten alguna de sus lineas; para una materia prima, lo terminado de esas lineas. Solo
+     * ofertas reales y visibles del catalogo, primero las que estan en venta. Se basa en lo que el productor
+     * declaro (la marca "es materia prima" y sus lineas): no afirma que un producto este hecho con otro.
+     */
+    private List<ProductoResumen> porMateriaPrima(long id, boolean materiaPrima) {
+        MapSqlParameterSource p = new MapSqlParameterSource().addValue("id", id).addValue("otra", !materiaPrima);
+        return jdbc.query("SELECT " + COLUMNAS + VISIBLE + """
+                 AND p.id <> :id AND p.es_materia_prima = :otra
+                 AND EXISTS (SELECT 1 FROM producto_linea pl JOIN producto_linea mia ON mia.linea_id = pl.linea_id
+                             WHERE pl.producto_id = p.id AND mia.producto_id = :id)
+                ORDER BY (%s > 0) DESC, p.publicado_en DESC NULLS LAST, p.id DESC LIMIT 4""".formatted(EN_VENTA),
                 p, CatalogoRepository::resumen);
     }
 

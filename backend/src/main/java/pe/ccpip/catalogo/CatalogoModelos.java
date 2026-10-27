@@ -61,13 +61,18 @@ public final class CatalogoModelos {
     /**
      * {@code comprable} es falso cuando el productor no tiene cuenta bancaria activa o autorizacion
      * vigente para el producto (CCPIP-269): la ficha se ve igual, pero en "Venta pausada" (CW-03c).
+     * {@code materiaPrima}: el productor la marco como materia prima, no producto terminado.
+     * {@code relacionados}: de su misma linea y su misma clase (materia prima o terminado).
+     * {@code porMateriaPrima} (CCPIP-55): de la otra clase y con alguna linea en comun; para un producto
+     * terminado, las materias primas de su linea, y para una materia prima, lo terminado de su linea.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record ProductoDetalle(long id, String nombre, String descripcion, String contenido, Codigo unidad,
                                   Codigo linea, List<Codigo> lineas, String modalidad, BigDecimal precio,
                                   BigDecimal precioMayorista, Integer cantidadMinimaMayorista, boolean disponible,
                                   boolean comprable, List<Imagen> imagenes, TiendaResumen tienda, HistoriaPublica historia, Cosecha cosecha,
-                                  List<ProductoResumen> relacionados, Map<String, CampoTraducido> traducciones, ProductoMaestro maestro) {
+                                  boolean materiaPrima, List<ProductoResumen> relacionados, List<ProductoResumen> porMateriaPrima,
+                                  Map<String, CampoTraducido> traducciones, ProductoMaestro maestro) {
     }
 
     /**
