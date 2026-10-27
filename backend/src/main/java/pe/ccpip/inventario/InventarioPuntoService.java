@@ -9,13 +9,16 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import pe.ccpip.comun.Busqueda;
 import pe.ccpip.comun.PuntosDeAcopio;
 import pe.ccpip.inventario.InventarioModelos.EstadoLote;
 import pe.ccpip.inventario.InventarioModelos.FiltroEstado;
 import pe.ccpip.inventario.InventarioModelos.InventarioPunto;
 import pe.ccpip.inventario.InventarioModelos.LoteOpcion;
 import pe.ccpip.inventario.InventarioModelos.LotePunto;
+import pe.ccpip.inventario.InventarioModelos.OrdenLotes;
 import pe.ccpip.inventario.InventarioModelos.Productor;
+import pe.ccpip.inventario.InventarioModelos.RangoStock;
 import pe.ccpip.inventario.InventarioModelos.ResumenPunto;
 import pe.ccpip.alerta.PreferenciasAlerta;
 
@@ -70,16 +73,21 @@ public class InventarioPuntoService {
 
     /**
      * {@code q} busca en el nombre del producto o el codigo del lote, sin distinguir mayusculas ni
-     * tildes. El resumen cubre todos los lotes filtrados, no solo la pagina.
+     * tildes. El resumen cubre todos los lotes filtrados, no solo la pagina. CCPIP-417: {@code rango}
+     * acota el saldo de cada lote y {@code orden} ordena por producto o por vencimiento.
      */
     @Transactional(readOnly = true)
-    public InventarioPunto listar(long usuarioId, String q, Long productorId, FiltroEstado estado, int pagina) {
+    public InventarioPunto listar(long usuarioId, String q, Long productorId, FiltroEstado estado, RangoStock rango,
+                                  OrdenLotes orden, int pagina) {
+        MovimientosService.exigirNoNegativos("El stock no puede ser negativo.", rango.minimo(), rango.maximo());
+        MovimientosService.exigirRango(rango.minimo(), rango.maximo(), "El stock mínimo debe ser menor o igual al máximo.");
         String ubicacion = puntos.nombres(usuarioId);
 
         MapSqlParameterSource p = preferencias.provisionales(new MapSqlParameterSource("usuario", usuarioId));
         StringBuilder donde = new StringBuilder(DESDE);
-        if (q != null && !q.isBlank()) {
-            p.addValue("patron", "%" + q.trim().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%");
+        String patron = Busqueda.patron(q);
+        if (patron != null) {
+            p.addValue("patron", patron);
             donde.append("""
                       AND (lower(inmutable_unaccent(p.nombre)) LIKE lower(inmutable_unaccent(:patron)) ESCAPE '\\'
                            OR lower(l.codigo) LIKE lower(:patron) ESCAPE '\\')
@@ -94,6 +102,14 @@ public class InventarioPuntoService {
             case AGOTADOS -> donde.append("  AND l.cantidad_actual = 0\n");
             case POR_VENCER -> donde.append("  AND l.cantidad_actual > 0 AND NOT " + VENCIDO + " AND " + POR_VENCER + "\n");
             case TODOS -> { }
+        }
+        if (rango.minimo() != null) {
+            p.addValue("stockMin", rango.minimo());
+            donde.append("  AND l.cantidad_actual >= :stockMin\n");
+        }
+        if (rango.maximo() != null) {
+            p.addValue("stockMax", rango.maximo());
+            donde.append("  AND l.cantidad_actual <= :stockMax\n");
         }
 
         ResumenPunto resumen = jdbc.queryForObject("""
@@ -121,8 +137,8 @@ public class InventarioPuntoService {
                         WHERE m.lote_id = l.id AND m.ubicacion_id = l.ubicacion_id
                           AND m.tipo IN ('SALIDA', 'SALIDA_VENTA', 'TRANSFERENCIA_SALIDA', 'MERMA')) AS salidas
                 """.formatted(VENCIDO, POR_VENCER, PRODUCTOR) + donde + """
-                ORDER BY p.nombre, p.id, l.fecha_vencimiento NULLS LAST, l.codigo
-                LIMIT :limite OFFSET :desde""", p,
+                ORDER BY %s
+                LIMIT :limite OFFSET :desde""".formatted(orden.sql()), p,
                 (rs, row) -> {
                     BigDecimal stock = rs.getBigDecimal("cantidad_actual");
                     EstadoLote e = estado(stock, rs.getBoolean("vencido"), rs.getBoolean("por_vencer"));

@@ -97,6 +97,31 @@ describe('PW-21 Alertas del productor (CCPIP-79, 145, 293, 337, 366, 367)', () =
     expect(items[0]).toHaveTextContent('Aceite de sacha inchi')
   })
 
+  it('busca por producto, lote o punto, se combina con el tipo y limpiar vuelve a todas (CCPIP-417)', async () => {
+    productor()
+    const user = userEvent.setup()
+    abrirEn('/productor/alertas')
+    const filtros = await screen.findByRole('group', { name: 'Filtrar alertas' })
+    // El encabezado del productor tiene su propio buscador
+    const buscador = () => screen.getByRole('searchbox', { name: 'Buscar por producto, lote o punto' })
+
+    // "aguaje" esta en el producto de una alerta y entre los productos de la transferencia
+    await user.type(buscador(), 'AGUAJE')
+    expect(within(screen.getByRole('list')).getAllByRole('listitem')).toHaveLength(2)
+    await user.clear(buscador())
+    await user.type(buscador(), 'l-0231')
+    expect(within(screen.getByRole('list')).getAllByRole('listitem')).toHaveLength(1)
+
+    await user.click(within(filtros).getByRole('button', { name: 'Interés' }))
+    expect(screen.queryByRole('list')).not.toBeInTheDocument()
+    expect(screen.getByText('Nada coincide con la búsqueda y los filtros')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+    expect(within(screen.getByRole('list')).getAllByRole('listitem')).toHaveLength(4)
+    expect(within(filtros).getByRole('button', { name: 'Todas (4)', pressed: true })).toBeInTheDocument()
+    expect(buscador()).toHaveValue('')
+  })
+
   it('abrir una alerta la marca leída y lleva a donde se resuelve', async () => {
     const fetchMock = productor({ 'GET /api/productor/inventario': new Error('sin red') })
     const user = userEvent.setup()

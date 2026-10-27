@@ -104,8 +104,12 @@ public final class MermaModelos {
     public record OpcionesMerma(List<Opcion> causas, List<Opcion> productos, List<Opcion> productores) {
     }
 
-    /** Filtros textuales del reporte. No transportan ids de producto, lote ni ubicación: el alcance sale de la sesión. */
-    public record FiltroReporteMerma(LocalDate desde, LocalDate hasta, String lote, String producto, String ubicacion) {
+    /**
+     * Filtros textuales del reporte. No transportan ids de producto, lote ni ubicación: el alcance sale de la sesión.
+     * {@code productor} busca en el nombre del productor del lote (CCPIP-417); el productor no lo usa en su merma.
+     */
+    public record FiltroReporteMerma(LocalDate desde, LocalDate hasta, String lote, String producto, String ubicacion,
+                                     String productor) {
     }
 
     /** Todas las filas autorizadas para una exportación de merma. */

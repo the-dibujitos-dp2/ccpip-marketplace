@@ -330,6 +330,35 @@ class MermaTest extends IntegrationTest {
     }
 
     @Test
+    void elPuntoFiltraLaMermaPorElNombreDelProductorComoPorLoteYProducto() throws Exception {
+        long lima = ubicacion("Centro Nacional Lima");
+        long deUno = lote(productoDe("Aguaje productor uno", PRODUCTOR), "L-PR1", lima, "5", HOY.plusDays(60));
+        long deDos = lote(productoDe("Cacao productor dos", "productor2@ccpip.test"), "L-PR2", lima, "5", HOY.plusDays(60));
+        Cookie admin = loginAs(ADMIN);
+        marcar(admin, ACOPIO, cuerpo(deUno, "1", causa("Daño"), null, true)).andExpect(status().isCreated());
+        marcar(admin, ACOPIO, cuerpo(deDos, "1", causa("Daño"), null, true)).andExpect(status().isCreated());
+        String dos = jdbc.queryForObject("SELECT coalesce(nombre_tienda, comunidad) FROM productor WHERE id = ?", String.class,
+                productorDe("productor2@ccpip.test"));
+
+        // CCPIP-417: parte del nombre, sin distinguir mayusculas, y combinado con los demas textos
+        mockMvc.perform(get(ACOPIO).cookie(admin).param("productor", dos.substring(0, 5).toUpperCase()).param("lote", "L-PR"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].lote").value("L-PR2"))
+                .andExpect(jsonPath("$.items[0].productor").value(dos));
+        mockMvc.perform(get(ACOPIO).cookie(admin).param("productor", "Nadie se llama asi"))
+                .andExpect(jsonPath("$.total").value(0));
+        // Un numero sigue siendo el id del productor (CCPIP-422)
+        mockMvc.perform(get(ACOPIO).cookie(admin).param("productor", String.valueOf(productorDe("productor2@ccpip.test")))
+                        .param("producto", "Cacao productor dos"))
+                .andExpect(jsonPath("$.items[*].lote").value(hasItem("L-PR2")));
+        // La descarga respeta el mismo filtro
+        byte[] excel = mockMvc.perform(get(REPORTE_ACOPIO + "/xlsx").cookie(admin).param("productor", dos).param("lote", "L-PR"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+        assertThat(descomprimir(excel)).contains("L-PR2").doesNotContain("L-PR1");
+    }
+
+    @Test
     void elReporteMantieneElAislamientoPorRolYUbicacionAunqueSeFiltreUnaUbicacionAjena() throws Exception {
         long propio = lote(producto("Producto propio reporte"), "REP-LIMA", ubicacion("Centro Nacional Lima"), "5", HOY.plusDays(60));
         long ajenoProducto = productoConLote("Producto ajeno reporte " + UUID.randomUUID(), "PUBLICADO", null, null, "productor2@ccpip.test");

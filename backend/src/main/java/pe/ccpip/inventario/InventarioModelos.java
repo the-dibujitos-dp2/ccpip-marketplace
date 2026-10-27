@@ -56,6 +56,15 @@ public final class InventarioModelos {
                               int totalPaginas) {
     }
 
+    /**
+     * Los filtros de A-03; cualquiera puede ser nulo. {@code pedido} es el numero exacto de un pedido;
+     * {@code q} busca en el producto, el lote y el numero de pedido (CCPIP-417). {@code desde} y
+     * {@code hasta} son dias de Lima, inclusive; las cantidades, tambien inclusive.
+     */
+    public record FiltroMovimientos(Grupo grupo, String pedido, String q, LocalDate desde, LocalDate hasta,
+                                    BigDecimal cantidadMin, BigDecimal cantidadMax) {
+    }
+
     // ---------- Movimientos manuales (CCPIP-121, CCPIP-287, CCPIP-283) ----------
 
     /** Donde se registra el movimiento: define quien puede y con que motivos. */
@@ -122,6 +131,31 @@ public final class InventarioModelos {
     /** Filtro "Estado del lote" de A-02. ACTIVOS: con saldo. */
     /** POR_VENCER (CCPIP-145): con saldo, vigentes y dentro de la anticipacion del punto. */
     public enum FiltroEstado { ACTIVOS, POR_VENCER, AGOTADOS, TODOS }
+
+    /**
+     * CCPIP-417: el orden de A-02. PRODUCTO agrupa los lotes de cada producto (el de siempre);
+     * VENCE_ULTIMO pone primero el vencimiento mas lejano y VENCE_PRIMERO, el mas cercano. Lo que no
+     * vence va al final.
+     */
+    public enum OrdenLotes {
+        PRODUCTO("p.nombre, p.id, l.fecha_vencimiento NULLS LAST, l.codigo"),
+        VENCE_ULTIMO("l.fecha_vencimiento DESC NULLS LAST, p.nombre, l.codigo"),
+        VENCE_PRIMERO("l.fecha_vencimiento ASC NULLS LAST, p.nombre, l.codigo");
+
+        private final String sql;
+
+        OrdenLotes(String sql) {
+            this.sql = sql;
+        }
+
+        public String sql() {
+            return sql;
+        }
+    }
+
+    /** CCPIP-417: el saldo de cada lote, inclusive; cualquiera de los dos puede ser nulo. */
+    public record RangoStock(BigDecimal minimo, BigDecimal maximo) {
+    }
 
     /**
      * Una fila de A-02: un lote de un punto del administrador. {@code entradas} y {@code salidas}

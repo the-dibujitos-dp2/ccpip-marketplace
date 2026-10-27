@@ -1,43 +1,19 @@
-/* A-05: una columna por estado del pedido, con sus tarjetas */
-.pedidos__columnas {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(260px, 1fr));
-  gap: 16px;
-  align-items: start;
-  overflow-x: auto;
-}
+/* A-05 · CCPIP-419: una tabla por estado del pedido; cada fila, un pedido con sus lineas y lotes */
+.pedidos__fila { align-items: flex-start; }
 
-.pedidos__columna {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 14px;
-  border-radius: var(--radius-l);
-  background: var(--color-bg-surface-alt);
-}
+.pedidos__col-numero { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; width: 130px; }
+.pedidos__col-estado { display: flex; flex-direction: column; gap: 4px; width: 210px; }
+.pedidos__col-total { width: 90px; color: var(--color-text-primary); font-variant-numeric: tabular-nums; }
+.pedidos__col-accion { display: flex; flex-direction: column; gap: 8px; width: 200px; }
 
 .pedidos__lista,
 .pedidos__lineas,
 .pedidos__lotes { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
-.pedidos__lista { gap: 12px; }
 .pedidos__lineas { gap: 6px; }
 /* Los lotes de cada linea, apenas sangrados bajo ella */
 .pedidos__lotes { margin: 2px 0 0 4px; padding-left: 10px; border-left: 2px solid var(--color-border-default); color: var(--color-text-tertiary); }
-
-.pedidos__tarjeta {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-m);
-  background: var(--color-bg-surface);
-}
 
 .pedidos__numero { margin: 0; font-weight: 600; font-size: 16px; line-height: 24px; color: var(--color-text-primary); }
 .pedidos__pie { margin: 0; }
 
 .pedidos__recogio { margin: 0; font-weight: 600; color: var(--color-text-primary); }
-
-/* CCPIP-59: la marca de pedido a domicilio ocupa lo que su texto, no todo el ancho de la tarjeta */
-.pedidos__tarjeta .badge-estado { align-self: flex-start; }

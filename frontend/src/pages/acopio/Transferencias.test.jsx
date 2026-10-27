@@ -154,3 +154,33 @@ describe('CCPIP-278 Transferencias del punto de acopio (A-03)', () => {
     expect(screen.getByText('Tu cuenta aún no tiene un punto de acopio asignado.')).toBeInTheDocument()
   })
 })
+
+describe('Buscar y filtrar las transferencias del punto (CCPIP-417)', () => {
+  const codigos = (nombre) => within(screen.getByRole('list', { name: nombre })).getAllByText(/^TR-\d{4}$/).map((c) => c.textContent)
+
+  it('busca por código o producto y filtra por sentido y estado en ambas listas; limpiar vuelve a todo', async () => {
+    acopio()
+    const user = userEvent.setup()
+    abrirEn('/acopio/transferencias')
+    await screen.findByRole('list', { name: 'Todas las transferencias' })
+    expect(codigos('Todas las transferencias')).toEqual(['TR-0029', 'TR-0028', 'TR-0020'])
+
+    await user.type(screen.getByRole('searchbox', { name: 'Buscar por código, productor, producto u origen y destino' }), 'tr-0028')
+    expect(codigos('Todas las transferencias')).toEqual(['TR-0028'])
+    // La que esta por recibir no coincide: esa lista lo dice en vez de quedar en blanco
+    expect(screen.queryByRole('list', { name: 'Transferencias por recibir' })).not.toBeInTheDocument()
+    expect(screen.getByText('Nada coincide con la búsqueda y los filtros')).toBeInTheDocument()
+
+    await user.clear(screen.getByRole('searchbox'))
+    await user.type(screen.getByRole('searchbox'), 'SACHA INCHI')
+    await user.selectOptions(screen.getByLabelText('Sentido'), 'Entrante')
+    await user.selectOptions(screen.getByLabelText('Estado'), 'RECIBIDA')
+    expect(codigos('Todas las transferencias')).toEqual(['TR-0020'])
+
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+    expect(codigos('Todas las transferencias')).toEqual(['TR-0029', 'TR-0028', 'TR-0020'])
+    expect(codigos('Transferencias por recibir')).toEqual(['TR-0029'])
+    expect(screen.getByRole('searchbox')).toHaveValue('')
+    expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).not.toBeInTheDocument()
+  })
+})

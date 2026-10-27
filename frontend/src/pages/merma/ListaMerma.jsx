@@ -7,11 +7,14 @@ import Campo from '../../components/Campo.jsx'
 import { nombreCausa } from '../../components/DialogoMerma.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
+import LimpiarFiltros from '../../components/LimpiarFiltros.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import { diaMes, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
 import './ListaMerma.css'
+
+const SIN_FILTROS = { desde: '', hasta: '', lote: '', producto: '', ubicacion: '', productor: '' }
 
 /**
  * La merma registrada (Figma A-04): manual (CCPIP-76) y automatica por vencimiento (CCPIP-75), la
@@ -22,7 +25,7 @@ import './ListaMerma.css'
 export default function ListaMerma({ consultar, exportar, conUbicacion = false, conProductor = false, ir, irTexto, onDatos }) {
   const { t, i18n } = useTranslation()
   const [pagina, setPagina] = useState(0)
-  const [escritos, setEscritos] = useState({ desde: '', hasta: '', lote: '', producto: '', ubicacion: '' })
+  const [escritos, setEscritos] = useState(SIN_FILTROS)
   const [filtros, setFiltros] = useState(escritos)
   const [filtrosAplicados, setFiltrosAplicados] = useState(false)
   const cargar = useCallback(() => consultar(pagina, filtros).then((d) => { onDatos?.(d); return d }), [consultar, pagina, filtros, onDatos])
@@ -30,6 +33,8 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
   const titulo = t('merma.lista.titulo')
   const cambiar = (campo) => (e) => setEscritos((actual) => ({ ...actual, [campo]: e.target.value }))
   const aplicar = () => { setPagina(0); setFiltros(escritos); setFiltrosAplicados(true) }
+  // CCPIP-417: vuelve a toda la merma, sin filtros
+  const limpiar = () => { setPagina(0); setEscritos(SIN_FILTROS); setFiltros(SIN_FILTROS); setFiltrosAplicados(false) }
 
   return (
     <>
@@ -43,7 +48,10 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
         <Campo etiqueta={t('merma.lista.filtros.lote')} value={escritos.lote} onChange={cambiar('lote')} />
         <Campo etiqueta={t('merma.lista.filtros.producto')} value={escritos.producto} onChange={cambiar('producto')} />
         <Campo etiqueta={t('merma.lista.filtros.ubicacion')} value={escritos.ubicacion} onChange={cambiar('ubicacion')} />
+        {/* CCPIP-417: el punto filtra tambien por productor; el productor solo ve su propia merma */}
+        {conProductor && <Campo etiqueta={t('merma.lista.filtros.productor')} value={escritos.productor} onChange={cambiar('productor')} />}
         <Boton tamano="M" onClick={aplicar}>{t('merma.lista.filtros.aplicar')}</Boton>
+        <LimpiarFiltros activos={filtrosAplicados || Object.values(escritos).some(Boolean)} onLimpiar={limpiar} />
         {exportar && ['pdf', 'xlsx'].map((formato) => (
           <a key={formato} className="boton boton--secundario boton--M" href={exportar(formato, filtros)} download>
             {t(`merma.lista.filtros.exportar.${formato}`)}

@@ -269,6 +269,55 @@ describe('CCPIP-78 Reportes de merma', () => {
     expect(screen.getByRole('link', { name: 'Descargar Excel' })).toHaveAttribute('href', '/api/acopio/merma/xlsx?desde=2026-11-01&hasta=2026-11-30&lote=REP-01&producto=Harina&ubicacion=Centro+Nacional+Lima&lang=es')
   })
 
+  it('limpiar filtros vacía los campos y vuelve a toda la merma (CCPIP-417)', async () => {
+    const fetchMock = acopio({
+      'GET /api/acopio/merma': [200, { ubicacion: 'Centro Nacional Lima', pagina: 0, tamano: 20, total: 1, totalPaginas: 1, items: [merma()] }],
+      'GET /api/acopio/merma?pagina=0&lote=VACIO': [200, { ubicacion: 'Centro Nacional Lima', pagina: 0, tamano: 20, total: 0, totalPaginas: 0, items: [] }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/acopio/merma')
+    await screen.findByRole('table', { name: 'Merma registrada' })
+    expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).not.toBeInTheDocument()
+
+    await user.type(screen.getByLabelText('Lote'), 'VACIO')
+    await user.click(screen.getByRole('button', { name: 'Aplicar filtros' }))
+    expect(await screen.findByText('No hay merma para los filtros seleccionados.')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+    expect(await screen.findByRole('table', { name: 'Merma registrada' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Lote')).toHaveValue('')
+    expect(llamadas(fetchMock, 'GET /api/acopio/merma?pagina=0')).toHaveLength(2)
+  })
+
+  it('el punto filtra también por el nombre del productor, en la lista y en las descargas (CCPIP-417)', async () => {
+    const fetchMock = acopio({
+      'GET /api/acopio/merma': [200, { ubicacion: 'Centro Nacional Lima', pagina: 0, tamano: 20, total: 1, totalPaginas: 1, items: [merma()] }],
+      'GET /api/acopio/merma?pagina=0&lote=L-02&productor=Nii+Joi': [200, { ubicacion: 'Centro Nacional Lima', pagina: 0, tamano: 20, total: 0, totalPaginas: 0, items: [] }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/acopio/merma')
+    await screen.findByRole('table', { name: 'Merma registrada' })
+
+    await user.type(screen.getByLabelText('Lote'), 'L-02')
+    await user.type(screen.getByLabelText('Productor'), 'Nii Joi')
+    await user.click(screen.getByRole('button', { name: 'Aplicar filtros' }))
+    expect(await screen.findByText('No hay merma para los filtros seleccionados.')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'GET /api/acopio/merma?pagina=0&lote=L-02&productor=Nii+Joi')).toHaveLength(1)
+    expect(screen.getByRole('link', { name: 'Descargar Excel' })).toHaveAttribute('href', '/api/acopio/merma/xlsx?lote=L-02&productor=Nii+Joi&lang=es')
+  })
+
+  it('en la merma del productor no hay filtro de productor: solo ve la suya', async () => {
+    servidor({
+      ...PUBLICAS,
+      'GET /api/auth/me': [200, SESION_PRODUCTOR],
+      'GET /api/productor/merma': [200, { pagina: 0, tamano: 20, total: 1, totalPaginas: 1, items: [merma()] }],
+    })
+    abrirEn('/productor/merma')
+    await screen.findByRole('table', { name: 'Merma registrada' })
+    expect(screen.getByLabelText('Lote')).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: 'Productor' })).not.toBeInTheDocument()
+  })
+
   it('el productor realmente envía su filtro de ubicación y recibe el estado filtrado', async () => {
     const fetchMock = servidor({
       ...PUBLICAS,

@@ -2,11 +2,21 @@
 import { apiFetch } from './http.js'
 import { rutaReporte } from './rutaReporte.js'
 
-/** CCPIP-158 (A-03): `tipo` es la pestana (ENTRADAS, SALIDAS o AJUSTES); `pedido`, un numero exacto. */
-export function consultarMovimientos({ tipo, pedido, pagina = 0 } = {}) {
-  const p = new URLSearchParams({ pagina: String(pagina) })
-  if (tipo) p.set('tipo', tipo)
-  if (pedido?.trim()) p.set('pedido', pedido.trim())
+/** Agrega a la consulta los filtros que tienen valor, en el orden dado. */
+function conFiltros(p, filtros) {
+  for (const [clave, valor] of Object.entries(filtros)) {
+    const texto = String(valor ?? '').trim()
+    if (texto) p.set(clave, texto)
+  }
+  return p
+}
+
+/**
+ * CCPIP-158 (A-03): `tipo` es la pestana (ENTRADAS, SALIDAS o AJUSTES). CCPIP-417: `q` busca en el producto,
+ * el lote y el numero de pedido; `desde` y `hasta` (AAAA-MM-DD) y `cantidadMin` y `cantidadMax` acotan, inclusive.
+ */
+export function consultarMovimientos({ tipo, q, desde, hasta, cantidadMin, cantidadMax, pagina = 0 } = {}) {
+  const p = conFiltros(new URLSearchParams({ pagina: String(pagina) }), { tipo, q, desde, hasta, cantidadMin, cantidadMax })
   return apiFetch(`/api/acopio/movimientos?${p}`)
 }
 
@@ -36,13 +46,18 @@ export const registrarRecojo = (numero, datos) =>
 /**
  * CCPIP-162 (A-02): los lotes de sus puntos por producto, productor y estado. `estado`: ACTIVOS (por
  * defecto), POR_VENCER (CCPIP-145, segun la anticipacion del punto), AGOTADOS o TODOS; `productor`, un
- * id; `q`, producto o codigo de lote.
+ * id; `q`, producto o codigo de lote. CCPIP-417: `stockMin` y `stockMax` acotan el saldo del lote, inclusive;
+ * `orden`: PRODUCTO (por defecto), VENCE_ULTIMO o VENCE_PRIMERO.
  */
-export function consultarInventario({ q, productor, estado, pagina = 0 } = {}) {
-  const p = new URLSearchParams({ pagina: String(pagina) })
-  if (q?.trim()) p.set('q', q.trim())
-  if (productor) p.set('productor', String(productor))
-  if (estado && estado !== 'ACTIVOS') p.set('estado', estado)
+export function consultarInventario({ q, productor, estado, stockMin, stockMax, orden, pagina = 0 } = {}) {
+  const p = conFiltros(new URLSearchParams({ pagina: String(pagina) }), {
+    q,
+    productor,
+    estado: estado === 'ACTIVOS' ? '' : estado,
+    stockMin,
+    stockMax,
+    orden: orden === 'PRODUCTO' ? '' : orden,
+  })
   return apiFetch(`/api/acopio/inventario?${p}`)
 }
 
