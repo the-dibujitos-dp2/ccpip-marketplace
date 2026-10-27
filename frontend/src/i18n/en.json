@@ -1890,7 +1890,9 @@
         "ESTE_ANIO": "This year"
       },
       "sinVentas": "No sales in this period yet. Try a longer one.",
-      "notaMasVendidos": "Based on units sold in paid, non-cancelled purchases in the period."
+      "notaMasVendidos": "Based on units sold in paid, non-cancelled purchases in the period.",
+      "sinDestacados": "The communities haven't featured any products on sale yet.",
+      "notaDestacados": "Each community picks up to 4 products to feature in its shop. Here you see one per community, among those on sale."
     },
     "mayorista": {
       "titulo": "Buying in volume for your store, café or for export?",

@@ -131,6 +131,14 @@ UPDATE producto SET es_materia_prima = true
 WHERE nombre IN ('Cacao en grano fermentado 1 kg', 'Cacao fino de aroma 1 kg')
   AND actualizado_por IS NULL AND NOT es_materia_prima;
 
+-- CCPIP-57: cada tienda sembrada destaca dos productos, como lo haria su productor desde Mi tienda. Solo
+-- si el productor aun no eligio sus destacados.
+UPDATE producto p SET destacado_tienda = true
+WHERE p.nombre IN ('Aceite de ungurahui 250 ml', 'Textil bordado shipibo', 'Cacao en grano fermentado 1 kg',
+                   'Pasta de cacao 500 g', 'Cafe tostado en grano 500 g', 'Canasta tejida de tamshi')
+  AND p.actualizado_por IS NULL
+  AND NOT EXISTS (SELECT 1 FROM producto x WHERE x.productor_id = p.productor_id AND x.destacado_tienda);
+
 INSERT INTO producto_linea (producto_id, linea_id)
 SELECT id, linea_id FROM producto WHERE linea_id IS NOT NULL
 ON CONFLICT DO NOTHING;

@@ -235,11 +235,19 @@ public class CatalogoRepository {
                 p, CatalogoRepository::resumen);
     }
 
+    /**
+     * CCPIP-57 (RF-37): los productos destacados del inicio y sus productores. La regla aprobada el 26/10:
+     * solo lo que cada productor destaca en su tienda (hasta 4, CCPIP-30), en venta, y uno por productor
+     * para que ninguna comunidad acapare el inicio: el que publico mas recientemente. Entre productores,
+     * primero lo publicado mas recientemente. Si nadie destaco nada la lista va vacia; no se rellena con
+     * productos que nadie eligio.
+     */
     public List<ProductoResumen> destacados(int cuantos) {
         MapSqlParameterSource p = new MapSqlParameterSource("n", cuantos);
-        return jdbc.query("SELECT " + COLUMNAS + VISIBLE + " AND " + EN_VENTA + " > 0"
-                + " ORDER BY p.destacado_tienda DESC, p.publicado_en DESC NULLS LAST, p.id DESC LIMIT :n",
-                p, CatalogoRepository::resumen);
+        return jdbc.query("SELECT * FROM (SELECT DISTINCT ON (pr.id) " + COLUMNAS + ", p.publicado_en " + VISIBLE
+                + " AND p.destacado_tienda AND " + EN_VENTA + " > 0"
+                + " ORDER BY pr.id, p.publicado_en DESC NULLS LAST, p.id DESC) x"
+                + " ORDER BY x.publicado_en DESC NULLS LAST, x.id DESC LIMIT :n", p, CatalogoRepository::resumen);
     }
 
     /**

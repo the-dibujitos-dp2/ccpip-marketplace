@@ -141,13 +141,20 @@ export default function InicioPage() {
             {pestana === 'masVendidos' ? (
               <MasVendidos periodo={periodo} onPeriodo={setPeriodo} idioma={i18n.resolvedLanguage} />
             ) : (
-              <ul className="grilla-productos" aria-label={t(`inicio.descubrir.${pestana}`)}>
-                {productos.map((p) => (
-                  <li key={p.id}>
-                    <TarjetaProducto producto={p} />
-                  </li>
-                ))}
-              </ul>
+              <>
+                {productos.length === 0 && pestana === 'destacados' && <p className="body-m">{t('inicio.descubrir.sinDestacados')}</p>}
+                {productos.length > 0 && (
+                  <ul className="grilla-productos" aria-label={t(`inicio.descubrir.${pestana}`)}>
+                    {productos.map((p) => (
+                      <li key={p.id}>
+                        <TarjetaProducto producto={p} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {/* CCPIP-57: la regla de los destacados, a la vista */}
+                {pestana === 'destacados' && <p className="caption">{t('inicio.descubrir.notaDestacados')}</p>}
+              </>
             )}
           </section>
         )}
