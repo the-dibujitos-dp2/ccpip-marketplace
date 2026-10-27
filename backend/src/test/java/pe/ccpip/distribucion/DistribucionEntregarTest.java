@@ -59,6 +59,54 @@ class DistribucionEntregarTest extends IntegrationTest {
     }
 
     @Test
+    void retryConservaFechaEntregaYFechaDeHistorial() throws Exception {
+        entregar(distribuidor, NUMERO).andExpect(status().isOk());
+        var entregaAntes = jdbc.queryForObject("SELECT entregada_en FROM entrega WHERE pedido_id=?", java.sql.Timestamp.class, pedido);
+        var historialAntes = jdbc.queryForObject("SELECT registrado_en FROM pedido_estado_historial WHERE pedido_id=? AND estado='ENTREGADO'", java.sql.Timestamp.class, pedido);
+        assertThat(entregaAntes).isNotNull();
+        assertThat(historialAntes).isNotNull();
+        entregar(distribuidor, NUMERO).andExpect(status().isOk());
+        assertThat(jdbc.queryForObject("SELECT entregada_en FROM entrega WHERE pedido_id=?", java.sql.Timestamp.class, pedido)).isEqualTo(entregaAntes);
+        assertThat(jdbc.queryForObject("SELECT registrado_en FROM pedido_estado_historial WHERE pedido_id=? AND estado='ENTREGADO'", java.sql.Timestamp.class, pedido)).isEqualTo(historialAntes);
+    }
+
+    @Test
+    void permisosRolesAjenoYEstadosNoValidosNoMutanPedidoNiEntrega() throws Exception {
+        for (String email : new String[]{"productor@ccpip.test", "admin_acopio@ccpip.test", "sub_admin@ccpip.test", "sudo@ccpip.test"}) {
+            var respuesta = entregar(loginAs(email), NUMERO).andReturn().getResponse();
+            assertThat(respuesta.getStatus()).as(email).isIn(403, 409);
+            assertSinCambios();
+        }
+        jdbc.update("UPDATE entrega SET distribuidor_id=NULL WHERE pedido_id=?", pedido);
+        entregar(distribuidor, NUMERO).andExpect(status().isConflict());
+        assertSinCambios();
+        jdbc.update("UPDATE entrega SET distribuidor_id=(SELECT id FROM usuario WHERE correo='distribuidor@ccpip.test'), estado='ASIGNADA' WHERE pedido_id=?", pedido);
+        jdbc.update("UPDATE pedido SET estado='CANCELADO' WHERE id=?", pedido);
+        entregar(distribuidor, NUMERO).andExpect(status().isConflict());
+        assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id=?", String.class, pedido)).isEqualTo("CANCELADO");
+        assertThat(jdbc.queryForObject("SELECT estado FROM entrega WHERE pedido_id=?", String.class, pedido)).isEqualTo("ASIGNADA");
+    }
+
+    @Test
+    void rechazaParDeEstadosDesincronizadoSinMutarNiInventario() throws Exception {
+        BigDecimal existencias = jdbc.queryForObject("SELECT cantidad_actual FROM lote WHERE producto_id=?", BigDecimal.class, producto);
+        jdbc.update("UPDATE pedido SET estado='LISTO_PARA_DESPACHO' WHERE id=?", pedido);
+        entregar(distribuidor, NUMERO).andExpect(status().isConflict());
+        assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id=?", String.class, pedido)).isEqualTo("LISTO_PARA_DESPACHO");
+        assertThat(jdbc.queryForObject("SELECT estado FROM entrega WHERE pedido_id=?", String.class, pedido)).isEqualTo("EN_CAMINO");
+        assertThat(jdbc.queryForObject("SELECT entregada_en FROM entrega WHERE pedido_id=?", java.sql.Timestamp.class, pedido)).isNull();
+        assertThat(jdbc.queryForObject("SELECT cantidad_actual FROM lote WHERE producto_id=?", BigDecimal.class, producto)).isEqualByComparingTo(existencias);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM pedido_estado_historial WHERE pedido_id=? AND estado='ENTREGADO'", Integer.class, pedido)).isZero();
+    }
+
+    private void assertSinCambios() {
+        assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id=?", String.class, pedido)).isEqualTo("EN_CAMINO");
+        assertThat(jdbc.queryForObject("SELECT estado FROM entrega WHERE pedido_id=?", String.class, pedido)).isEqualTo("EN_CAMINO");
+        assertThat(jdbc.queryForObject("SELECT entregada_en FROM entrega WHERE pedido_id=?", java.sql.Timestamp.class, pedido)).isNull();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM pedido_estado_historial WHERE pedido_id=? AND estado='ENTREGADO'", Integer.class, pedido)).isZero();
+    }
+
+    @Test
     void permisosPropiedadEstadosYNumero() throws Exception {
         entregar(null, NUMERO).andExpect(status().isUnauthorized());
         entregar(loginAs("consumidor@ccpip.test"), NUMERO).andExpect(status().isForbidden());
