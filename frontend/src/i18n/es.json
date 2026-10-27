@@ -1053,7 +1053,11 @@
       "registrandoEnCamino": "Registrando…",
       "enCaminoRegistrado": "Registraste que el pedido {{numero}} está en camino.",
       "errorEnCamino": "No pudimos registrar que el pedido {{numero}} está en camino",
-      "estadoEN_CAMINO": "En camino"
+      "estadoEN_CAMINO": "En camino",
+      "registrarEntrega": "Registrar entrega",
+      "registrandoEntrega": "Registrando…",
+      "entregaRegistrada": "Registraste la entrega del pedido {{numero}}.",
+      "errorEntrega": "No pudimos registrar la entrega del pedido {{numero}}"
     }
   },
   "acopio": {

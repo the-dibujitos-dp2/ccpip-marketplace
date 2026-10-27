@@ -1053,7 +1053,11 @@
       "registrandoEnCamino": "Registering…",
       "enCaminoRegistrado": "You registered order {{numero}} as on the way.",
       "errorEnCamino": "Could not register order {{numero}} as on the way",
-      "estadoEN_CAMINO": "On the way"
+      "estadoEN_CAMINO": "On the way",
+      "registrarEntrega": "Register delivery",
+      "registrandoEntrega": "Registering…",
+      "entregaRegistrada": "You registered delivery of order {{numero}}.",
+      "errorEntrega": "Could not register delivery of order {{numero}}"
     }
   },
   "acopio": {

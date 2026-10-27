@@ -258,3 +258,46 @@ describe('DW-03 Retirar el pedido del punto de acopio (CCPIP-109)', () => {
     expect(intentos).toBe(2)
   })
 })
+
+
+describe('CCPIP-319 registrar entrega', () => {
+  it('registra la entrega en camino y la muestra entre las entregadas hoy tras refrescar', async () => {
+    let soltar
+    const datos = [entrega('MC-00319', 'Lince', '150116', 'EN_CAMINO')]
+    const rutas = reparto(datos)
+    rutas[MIS_ENTREGAS] = () => [200, datos.map((e) => ({ ...e }))]
+    const endpoint = 'POST /api/distribuidor/pedidos/MC-00319/entregar'
+    const entregarBien = () => { Object.assign(datos[0], { estado: 'ENTREGADA' }); return [200, { ...datos[0] }] }
+    rutas[endpoint] = () => new Promise((resolver) => { soltar = () => resolver(entregarBien()) })
+    const fetchMock = servidor(comoDistribuidor(rutas))
+    const usuario = userEvent.setup()
+    abrirEn('/distribuidor/entregas')
+    const card = await screen.findByRole('article', { name: /^MC-00319 ·/ })
+    await usuario.click(within(card).getByRole('button', { name: 'Registrar entrega' }))
+    const registrando = within(card).getByRole('button', { name: 'Registrando…' })
+    expect(registrando).toBeDisabled()
+    expect(registrando).toHaveAttribute('aria-busy', 'true')
+    expect(registrando.querySelector('.boton__giro')).toBeInTheDocument()
+    expect(llamadas(fetchMock, endpoint)).toHaveLength(1)
+    soltar()
+    expect(await screen.findByText('Registraste la entrega del pedido MC-00319.')).toBeInTheDocument()
+    const tabla = await screen.findByRole('table', { name: 'Entregados hoy' })
+    expect(within(tabla).getByRole('rowheader', { name: 'MC-00319' })).toBeInTheDocument()
+  })
+
+  it.each([409, 503])('si registrar entrega responde %s, conserva el estado y permite reintentar', async (status) => {
+    let intentos = 0
+    const rutas = reparto([entrega('MC-00319', 'Lince', '150116', 'EN_CAMINO')])
+    const endpoint = 'POST /api/distribuidor/pedidos/MC-00319/entregar'
+    rutas[endpoint] = () => (++intentos === 1 ? [status, { error: 'No se pudo completar' }] : [200, {}])
+    const fetchMock = servidor(comoDistribuidor(rutas))
+    const usuario = userEvent.setup()
+    abrirEn('/distribuidor/entregas')
+    const card = await screen.findByRole('article', { name: /^MC-00319 ·/ })
+    await usuario.click(within(card).getByRole('button', { name: 'Registrar entrega' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos registrar la entrega del pedido MC-00319')
+    expect(within(card).getByText('En camino', { selector: '.badge-estado' })).toBeInTheDocument()
+    expect(within(card).getByRole('button', { name: 'Registrar entrega' })).toBeEnabled()
+    expect(llamadas(fetchMock, endpoint)).toHaveLength(1)
+  })
+})
