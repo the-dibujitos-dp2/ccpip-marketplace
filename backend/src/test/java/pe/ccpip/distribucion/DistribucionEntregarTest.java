@@ -59,6 +59,21 @@ class DistribucionEntregarTest extends IntegrationTest {
     }
 
     @Test
+    void recojoResponde404SinMutarPedidoEntregaEInventario() throws Exception {
+        jdbc.update("UPDATE pedido SET modalidad='RECOJO' WHERE id=?", pedido);
+        var lotesAntes = jdbc.queryForList("SELECT * FROM lote ORDER BY id");
+        var movimientosAntes = jdbc.queryForList("SELECT * FROM movimiento_inventario ORDER BY id");
+        var historialAntes = jdbc.queryForList("SELECT * FROM pedido_estado_historial WHERE pedido_id=? ORDER BY id", pedido);
+        entregar(distribuidor, NUMERO).andExpect(status().isNotFound());
+        assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id=?", String.class, pedido)).isEqualTo("EN_CAMINO");
+        assertThat(jdbc.queryForObject("SELECT modalidad FROM pedido WHERE id=?", String.class, pedido)).isEqualTo("RECOJO");
+        assertThat(jdbc.queryForList("SELECT * FROM lote ORDER BY id")).isEqualTo(lotesAntes);
+        assertThat(jdbc.queryForList("SELECT * FROM movimiento_inventario ORDER BY id")).isEqualTo(movimientosAntes);
+        assertThat(jdbc.queryForList("SELECT * FROM pedido_estado_historial WHERE pedido_id=? ORDER BY id", pedido)).isEqualTo(historialAntes);
+        assertThat(jdbc.queryForObject("SELECT entregada_en FROM entrega WHERE pedido_id=?", java.sql.Timestamp.class, pedido)).isNull();
+    }
+
+    @Test
     void retryConservaFechaEntregaYFechaDeHistorial() throws Exception {
         entregar(distribuidor, NUMERO).andExpect(status().isOk());
         var entregaAntes = jdbc.queryForObject("SELECT entregada_en FROM entrega WHERE pedido_id=?", java.sql.Timestamp.class, pedido);
@@ -74,7 +89,7 @@ class DistribucionEntregarTest extends IntegrationTest {
     void permisosRolesAjenoYEstadosNoValidosNoMutanPedidoNiEntrega() throws Exception {
         for (String email : new String[]{"productor@ccpip.test", "admin_acopio@ccpip.test", "sub_admin@ccpip.test", "sudo@ccpip.test"}) {
             var respuesta = entregar(loginAs(email), NUMERO).andReturn().getResponse();
-            assertThat(respuesta.getStatus()).as(email).isIn(403, 409);
+            assertThat(respuesta.getStatus()).as(email).isEqualTo(403);
             assertSinCambios();
         }
         jdbc.update("UPDATE entrega SET distribuidor_id=NULL WHERE pedido_id=?", pedido);
