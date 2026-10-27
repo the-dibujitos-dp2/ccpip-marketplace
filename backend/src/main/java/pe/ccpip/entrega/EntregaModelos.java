@@ -60,10 +60,22 @@ public final class EntregaModelos {
 
     /**
      * CCPIP-59: la entrega a domicilio de un pedido ENVIO, con el distrito ya resuelto. {@code estado}:
-     * DISPONIBLE hasta que un distribuidor la asuma. No expone al distribuidor.
+     * DISPONIBLE hasta que un distribuidor la asuma, ASIGNADA cuando la asume ({@code asignadaEn}, CCPIP-108) y
+     * RETIRADA cuando la retira del punto ({@code retiradaEn}, CCPIP-109); las fechas son nulas hasta entonces.
+     * No expone al distribuidor.
      */
     public record Entrega(String ubigeo, String departamento, String provincia, String distrito, String direccion,
-                          String referencia, String contactoNombre, String contactoCelular, String estado) {
+                          String referencia, String contactoNombre, String contactoCelular, String estado,
+                          Instant asignadaEn, Instant retiradaEn) {
+    }
+
+    /**
+     * CCPIP-109: como va el reparto de un pedido a domicilio, para el tablero del punto. {@code distribuidor} es quien
+     * lo asumio y {@code asignadaEn}, cuando; {@code retiradaEn}, cuando se lo llevo del punto. Mientras nadie lo
+     * asume solo trae el estado DISPONIBLE.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record Reparto(String estado, String distribuidor, Instant asignadaEn, Instant retiradaEn) {
     }
 
     /**
@@ -94,11 +106,12 @@ public final class EntregaModelos {
      * Un pedido del punto, sin datos del comprador. {@code recogidoPor} es quien se lo llevo (CCPIP-71):
      * el comprador o la persona autorizada; nulo mientras no se entrega. {@code modalidad} es RECOJO o, si lo
      * entrega el punto en el domicilio del comprador, ENVIO (CCPIP-59): ese no se marca listo ni se recoge.
+     * {@code reparto} solo viene en los ENVIO: quien lo asumio y si ya lo retiro (CCPIP-109).
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record PedidoPunto(String numero, String estado, Instant confirmadoEn, Instant actualizadoEn,
                               BigDecimal total, List<Linea> lineas, List<Cambio> historial, String recogidoPor,
-                              String modalidad) {
+                              String modalidad, Reparto reparto) {
     }
 
     /** {@code items}: confirmados, listos para recojo y entregados hoy, en ese orden de columnas. */

@@ -41,6 +41,7 @@ export const RUTAS = {
   acopioReportes: '/acopio/reportes',
   distribuidor: '/distribuidor',
   distribuidorPedidos: '/distribuidor/pedidos',
+  distribuidorEntregas: '/distribuidor/entregas',
   admin: '/admin',
   adminPermisos: '/admin/permisos',
   adminComision: '/admin/comision',

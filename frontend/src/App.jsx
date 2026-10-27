@@ -35,6 +35,7 @@ import PedidosPage from './pages/acopio/PedidosPage.jsx'
 import TransferenciasPuntoPage from './pages/acopio/TransferenciasPage.jsx'
 import AlertasPuntoPage from './pages/acopio/AlertasPage.jsx'
 import MermaPuntoPage from './pages/acopio/MermaPage.jsx'
+import MisEntregasPage from './pages/distribuidor/MisEntregasPage.jsx'
 import PedidosDisponiblesPage from './pages/distribuidor/PedidosDisponiblesPage.jsx'
 import ReportesPuntoPage from './pages/acopio/ReportesPage.jsx'
 import BuscarPage from './pages/consumidor/BuscarPage.jsx'
@@ -351,9 +352,11 @@ export default function App() {
       pagina = null
     }
   } else if (delDistribuidor) {
-    // Por ahora el distribuidor tiene Pedidos disponibles (DW-01, CCPIP-107); lo demas llega con CCPIP-108 a 110
+    // Por ahora el distribuidor tiene Pedidos disponibles (DW-01, CCPIP-107) y Mis entregas (DW-03, CCPIP-317);
+    // el mapa y el historial llegan con CCPIP-110 y CCPIP-319
     if (user.role !== 'DISTRIBUIDOR') pagina = null
     else if (path === RUTAS.distribuidorPedidos) pagina = <PedidosDisponiblesPage path={path} />
+    else if (path === RUTAS.distribuidorEntregas) pagina = <MisEntregasPage path={path} />
     else {
       navigate(RUTAS.distribuidorPedidos, { replace: true })
       pagina = null

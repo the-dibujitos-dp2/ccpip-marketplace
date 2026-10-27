@@ -913,7 +913,8 @@
     "rol": "Distribuidor",
     "migas": "Reparto",
     "nav": {
-      "pedidos": "Pedidos disponibles"
+      "pedidos": "Pedidos disponibles",
+      "entregas": "Mis entregas"
     },
     "pedidos": {
       "titulo": "Pedidos disponibles",
@@ -957,6 +958,45 @@
         "minutos": "{{m}} min",
         "horas": "{{h}} h",
         "dias": "{{d}}d {{h}}h"
+      }
+    },
+    "entregas": {
+      "titulo": "Mis entregas",
+      "cargando": "Cargando tus entregas…",
+      "error": "No pudimos cargar tus entregas",
+      "reintentar": "Reintentar",
+      "actualizar": "Actualizar",
+      "enCurso_one": "{{count}} entrega en curso",
+      "enCurso_other": "{{count}} entregas en curso",
+      "vacio": "No tienes entregas en curso",
+      "vacioTexto": "Toma pedidos preparados en Pedidos disponibles para repartirlos.",
+      "verDisponibles": "Ver pedidos disponibles",
+      "recogerEn": "Recoger en {{punto}}",
+      "destino": "Destino en {{provincia}}, {{departamento}}",
+      "asignadaEn": "Lo tomaste el {{fecha}}",
+      "retiradaEn": "Lo retiraste del punto el {{fecha}}",
+      "retirar": "Retiré el pedido",
+      "retirando": "Registrando…",
+      "retirado": "Registraste el retiro del pedido {{numero}}.",
+      "errorRetirar": "No pudimos registrar el retiro del pedido {{numero}}",
+      "entregadosHoy": "Entregados hoy",
+      "sinEntregadosHoy": "Todavía no entregas pedidos hoy.",
+      "estado": {
+        "ASIGNADA": "Por recoger",
+        "RETIRADA": "Recogido",
+        "EN_CAMINO": "En camino",
+        "ENTREGADA": "Entregado"
+      },
+      "pasos": {
+        "etiqueta": "Avance de la entrega {{numero}}",
+        "recogido": "Recogido",
+        "enCamino": "En camino",
+        "entregado": "Entregado"
+      },
+      "col": {
+        "pedido": "Pedido",
+        "destino": "Destino",
+        "estado": "Estado"
       }
     }
   },
@@ -1934,6 +1974,8 @@
     "PEDIDO_PARA_RECOJO": "Este pedido se recoge en el punto, no se despacha a domicilio.",
     "PEDIDO_YA_ASUMIDO": "Otro distribuidor ya asumió este pedido.",
     "PEDIDO_NO_DISPONIBLE": "Este pedido no está disponible para asumir.",
+    "PEDIDO_NO_ASIGNADO": "Este pedido no está asignado a ti.",
+    "PEDIDO_NO_RETIRABLE": "Este pedido ya no se puede retirar del punto.",
     "PEDIDO_NO_PAGABLE": "Este pedido ya no se puede pagar.",
     "PAGO_EN_CURSO": "Ya hay un pago en curso para este pedido. Espera su resultado antes de reintentar.",
     "CLAVE_REUTILIZADA": "Este intento de pago pertenece a otro pedido.",
@@ -2514,7 +2556,14 @@
     "vacio": "Aún no guardaste direcciones",
     "vacioTexto": "Al comprar con entrega a domicilio puedes guardar la dirección para la próxima vez.",
     "sinAlias": "Dirección de entrega",
-    "referencia": "Referencia: {{referencia}}"
+    "referencia": "Referencia: {{referencia}}",
+    "retirar": "Retirar dirección",
+    "retirarAria": "Retirar dirección de entrega",
+    "confirmarTitulo": "Retirar dirección",
+    "confirmarTexto": "¿Quieres retirar {{direccion}} de tus direcciones guardadas? No se quitará de los pedidos anteriores.",
+    "retirando": "Retirando…",
+    "retirada": "Dirección retirada",
+    "errorRetirar": "No pudimos retirar la dirección. Inténtalo de nuevo."
   },
   "misDatos": {
     "titulo": "Datos personales",

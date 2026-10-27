@@ -1,0 +1,47 @@
+/* DW-03 · Mis entregas (CCPIP-317) y el retiro del pedido en el punto (CCPIP-109) */
+.mis-entregas { display: flex; flex-direction: column; gap: 16px; }
+.mis-entregas__columnas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.mis-entregas__en-curso,
+.mis-entregas__hoy { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.mis-entregas__barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.mis-entregas__subtitulo { margin: 0; font-size: 18px; line-height: 26px; }
+
+.mis-entregas__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-surface);
+}
+.mis-entregas__tarjeta .caption { margin: 0; color: var(--color-text-secondary); }
+.mis-entregas__tarjeta .pasos { flex-wrap: wrap; }
+.mis-entregas__cabecera { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.mis-entregas__cabecera h3 { margin: 0; font-size: 18px; line-height: 26px; }
+.mis-entregas__acciones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
+
+.mis-entregas__nada { margin: 0; color: var(--color-text-secondary); }
+.mis-entregas__tabla {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-surface);
+  overflow: hidden;
+}
+.mis-entregas__tabla th,
+.mis-entregas__tabla td { padding: 14px 16px; text-align: left; font-weight: 400; font-size: 14px; line-height: 20px; }
+.mis-entregas__tabla thead th { background: var(--color-bg-subtle, #f2ebe3); color: var(--color-text-secondary); font-size: 13px; font-weight: 600; }
+.mis-entregas__tabla tbody tr + tr > * { border-top: 1px solid var(--color-border-default); }
+.mis-entregas__numero { font-weight: 600 !important; white-space: nowrap; }
+
+/* Con el menu lateral, las dos columnas solo caben en pantallas anchas: si no, los pasos de la tarjeta se parten */
+@media (max-width: 1199px) {
+  .mis-entregas__columnas { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 520px) {
+  .mis-entregas__tarjeta { padding: 16px; }
+  .mis-entregas__acciones .boton { flex: 1; }
+}
