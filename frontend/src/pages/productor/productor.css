@@ -18,6 +18,11 @@
 .tabla__producto { display: flex; align-items: center; gap: 12px; }
 .tabla__miniatura { width: 44px; height: 44px; flex-shrink: 0; border-radius: var(--radius-m); object-fit: cover; }
 
+/* Barra de busqueda y filtros sobre una lista (A-02, CCPIP-417): el buscador se estira y los selectores no */
+.barra-filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
+.barra-filtros > :first-child { flex: 1 1 260px; }
+.barra-filtros .campo { flex: 0 1 200px; }
+
 /* PW-01 · Interes en productos agotados (CCPIP-106) */
 .panel__fila { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 20px; }
 .panel__sin-stock { flex: 2 1 420px; min-width: 0; }

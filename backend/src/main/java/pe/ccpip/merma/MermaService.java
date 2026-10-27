@@ -294,7 +294,7 @@ public class MermaService {
         String donde = donde(alcance, p, filtros);
         Long total = jdbc.queryForObject("""
                 SELECT count(*) FROM merma m JOIN lote l ON l.id = m.lote_id JOIN producto p ON p.id = l.producto_id
-                JOIN ubicacion u ON u.id = l.ubicacion_id""" + donde,
+                JOIN productor pr ON pr.id = p.productor_id JOIN ubicacion u ON u.id = l.ubicacion_id""" + donde,
                 p, Long.class);
         long cuantos = total == null ? 0 : total;
         p.addValue("limite", TAMANO).addValue("desde", (long) pagina * TAMANO);
@@ -324,6 +324,7 @@ public class MermaService {
         texto(donde, p, "l.codigo", "loteReporte", f.lote());
         texto(donde, p, "p.nombre", "productoReporte", f.producto());
         texto(donde, p, "u.nombre", "ubicacionReporte", f.ubicacion());
+        texto(donde, p, "coalesce(pr.nombre_tienda, pr.comunidad)", "productorReporte", f.productor());
         return donde.toString();
     }
 
@@ -336,14 +337,15 @@ public class MermaService {
 
     private static FiltroReporteMerma limpiar(FiltroReporteMerma f) {
         if (f == null) {
-            return new FiltroReporteMerma(null, null, null, null, null);
+            return new FiltroReporteMerma(null, null, null, null, null, null);
         }
         LocalDate desde = f.desde();
         LocalDate hasta = f.hasta();
         if (desde != null && hasta != null && desde.isAfter(hasta)) {
             throw ErrorNegocio.invalido("RANGO_INVALIDO", "La fecha inicial debe ser anterior o igual a la final.");
         }
-        return new FiltroReporteMerma(desde, hasta, recortar(f.lote()), recortar(f.producto()), recortar(f.ubicacion()));
+        return new FiltroReporteMerma(desde, hasta, recortar(f.lote()), recortar(f.producto()), recortar(f.ubicacion()),
+                recortar(f.productor()));
     }
 
     private static String recortar(String valor) {

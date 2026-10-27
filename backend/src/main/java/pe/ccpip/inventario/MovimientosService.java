@@ -1,5 +1,6 @@
 package pe.ccpip.inventario;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -12,8 +13,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import pe.ccpip.comun.Busqueda;
+import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.comun.PuntosDeAcopio;
-import pe.ccpip.inventario.InventarioModelos.Grupo;
+import pe.ccpip.inventario.InventarioModelos.FiltroMovimientos;
 import pe.ccpip.inventario.InventarioModelos.Movimiento;
 import pe.ccpip.inventario.InventarioModelos.Movimientos;
 
@@ -50,20 +53,50 @@ public class MovimientosService {
         this.puntos = puntos;
     }
 
-    /** Lo mas reciente primero. {@code pedido} filtra por numero exacto, sin distinguir mayusculas. */
+    /**
+     * Lo mas reciente primero. {@code pedido} filtra por numero exacto, sin distinguir mayusculas;
+     * {@code q} busca en el producto (sin tildes, RNF-22), el lote y el numero de pedido (CCPIP-417).
+     */
     @Transactional(readOnly = true)
-    public Movimientos listar(long usuarioId, Grupo grupo, String pedido, int pagina) {
+    public Movimientos listar(long usuarioId, FiltroMovimientos f, int pagina) {
+        exigirRango(f.desde(), f.hasta(), "La fecha inicial debe ser anterior o igual a la final.");
+        exigirNoNegativos("La cantidad no puede ser negativa.", f.cantidadMin(), f.cantidadMax());
+        exigirRango(f.cantidadMin(), f.cantidadMax(), "La cantidad mínima debe ser menor o igual a la máxima.");
         String ubicacion = puntos.nombres(usuarioId);
 
         MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId);
         List<String> filtros = new ArrayList<>();
-        if (grupo != null) {
-            p.addValue("tipos", grupo.tipos());
+        if (f.grupo() != null) {
+            p.addValue("tipos", f.grupo().tipos());
             filtros.add(" AND m.tipo IN (:tipos)");
         }
-        if (pedido != null && !pedido.isBlank()) {
-            p.addValue("pedido", pedido.trim().toUpperCase(Locale.ROOT));
+        if (f.pedido() != null && !f.pedido().isBlank()) {
+            p.addValue("pedido", f.pedido().trim().toUpperCase(Locale.ROOT));
             filtros.add(" AND upper(pe.numero) = :pedido");
+        }
+        String patron = Busqueda.patron(f.q());
+        if (patron != null) {
+            p.addValue("patron", patron);
+            filtros.add("""
+                     AND (lower(inmutable_unaccent(p.nombre)) LIKE lower(inmutable_unaccent(:patron)) ESCAPE '\\'
+                          OR lower(coalesce(l.codigo, '')) LIKE lower(:patron) ESCAPE '\\'
+                          OR lower(coalesce(pe.numero, '')) LIKE lower(:patron) ESCAPE '\\')""");
+        }
+        if (f.desde() != null) {
+            p.addValue("fechaDesde", f.desde());
+            filtros.add(" AND (m.registrado_en AT TIME ZONE 'America/Lima')::date >= :fechaDesde");
+        }
+        if (f.hasta() != null) {
+            p.addValue("fechaHasta", f.hasta());
+            filtros.add(" AND (m.registrado_en AT TIME ZONE 'America/Lima')::date <= :fechaHasta");
+        }
+        if (f.cantidadMin() != null) {
+            p.addValue("cantidadMin", f.cantidadMin());
+            filtros.add(" AND m.cantidad >= :cantidadMin");
+        }
+        if (f.cantidadMax() != null) {
+            p.addValue("cantidadMax", f.cantidadMax());
+            filtros.add(" AND m.cantidad <= :cantidadMax");
         }
         String donde = DESDE + String.join("", filtros);
 
@@ -85,6 +118,22 @@ public class MovimientosService {
                 LEFT JOIN pedido pe ON pe.id = m.pedido_id
                 LEFT JOIN usuario u ON u.id = m.usuario_id
                 WHERE m.id = :id""", new MapSqlParameterSource("id", id), MovimientosService::movimiento).get(0);
+    }
+
+    /** CCPIP-417: un rango de filtro (fechas, cantidades, stock) con el inicio despues del fin no tiene sentido. */
+    static <T extends Comparable<T>> void exigirRango(T desde, T hasta, String mensaje) {
+        if (desde != null && hasta != null && desde.compareTo(hasta) > 0) {
+            throw ErrorNegocio.invalido("RANGO_INVALIDO", mensaje);
+        }
+    }
+
+    /** CCPIP-417: los limites de cantidad o de stock de un filtro no son negativos. */
+    static void exigirNoNegativos(String mensaje, BigDecimal... limites) {
+        for (BigDecimal limite : limites) {
+            if (limite != null && limite.signum() < 0) {
+                throw ErrorNegocio.invalido("VALOR_INVALIDO", mensaje);
+            }
+        }
     }
 
     private static Movimiento movimiento(ResultSet rs, int row) throws SQLException {

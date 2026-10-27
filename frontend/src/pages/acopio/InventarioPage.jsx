@@ -11,33 +11,42 @@ import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import DialogoMerma from '../../components/DialogoMerma.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
+import LimpiarFiltros from '../../components/LimpiarFiltros.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
 import { fechaCorta, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
+import { useDiferido } from '../../useDiferido.js'
 import '../productor/productor.css'
 import './InventarioPage.css'
 import { useMovimientoPunto } from './useMovimientoPunto.jsx'
 
 const TONO = { DISPONIBLE: 'exito', POR_VENCER: 'aviso', VENCIDO: 'error', AGOTADO: 'neutro' }
 const ESTADOS = ['ACTIVOS', 'POR_VENCER', 'AGOTADOS', 'TODOS']
-
+const ORDENES = ['PRODUCTO', 'VENCE_ULTIMO', 'VENCE_PRIMERO']
+const SIN_ESCRITOS = { texto: '', stockMin: '', stockMax: '' }
 
 /**
  * A-02 · CCPIP-162 (RF-131): inventario de los puntos del administrador por producto, productor,
  * lote y estado. El servidor filtra por sus puntos (RNF-05) y calcula los totales una vez por lote;
  * lo vencido no es vendible. Desde aqui se registran entradas (CCPIP-121) y salidas (CCPIP-287).
  * "Marcar como merma" (CCPIP-76, A-04 y A-07) tambien parte del lote; las transferencias llegan con su historia.
+ * CCPIP-417: busca mientras se escribe, filtra por rango de stock y ordena por vencimiento.
  */
 export default function InventarioPage({ path }) {
   const { t } = useTranslation()
-  const [texto, setTexto] = useState('')
-  const [q, setQ] = useState('')
+  const [escritos, setEscritos] = useState(SIN_ESCRITOS)
   const [productor, setProductor] = useState('')
   const [estado, setEstado] = useState('ACTIVOS')
+  const [orden, setOrden] = useState('PRODUCTO')
   const [pagina, setPagina] = useState(0)
   const [avisoVisible, setAvisoVisible] = useState(true)
-  const consultar = useCallback(() => consultarInventario({ q, productor, estado, pagina }), [q, productor, estado, pagina])
+  // Lo escrito (busqueda y stock) se consulta cuando se deja de escribir, no con cada tecla
+  const aplicados = useDiferido(escritos)
+  const consultar = useCallback(
+    () => consultarInventario({ q: aplicados.texto, productor, estado, stockMin: aplicados.stockMin, stockMax: aplicados.stockMax, orden, pagina }),
+    [aplicados, productor, estado, orden, pagina],
+  )
   const { datos, error, recargar } = useConsulta(consultar)
   const movimiento = useMovimientoPunto(recargar)
   // CCPIP-76 (A-04, A-07): marcar como merma desde el lote
@@ -50,23 +59,32 @@ export default function InventarioPage({ path }) {
     recargar()
   }
 
-  function buscar(e) {
-    e.preventDefault()
-    setQ(texto.trim())
+  const escribir = (campo) => (e) => {
+    setEscritos((actual) => ({ ...actual, [campo]: e.target.value }))
     setPagina(0)
   }
 
+  // CCPIP-417: vuelve a los lotes activos de todos los productores, sin busqueda y en el orden de siempre
+  function limpiar() {
+    setEscritos(SIN_ESCRITOS)
+    setProductor('')
+    setEstado('ACTIVOS')
+    setOrden('PRODUCTO')
+    setPagina(0)
+  }
+  const filtrando = Object.values(escritos).some((v) => v.trim()) || Boolean(productor) || estado !== 'ACTIVOS' || orden !== 'PRODUCTO'
+
   return (
     <LayoutAcopio path={path} punto={datos?.ubicacion} titulo={t('acopio.nav.inventario')}>
-      <div className="inventario__filtros">
+      <div className="barra-filtros">
         <Buscador
           id="buscar-inventario"
           etiqueta={t('acopio.inventario.buscar')}
           placeholder={t('acopio.inventario.buscar')}
           maxLength={100}
-          value={texto}
-          onChange={(e) => setTexto(e.target.value)}
-          onBuscar={buscar}
+          value={escritos.texto}
+          onChange={escribir('texto')}
+          onBuscar={(e) => e.preventDefault()}
         />
         <Campo
           tipo="selector"
@@ -84,6 +102,17 @@ export default function InventarioPage({ path }) {
           onChange={(e) => { setEstado(e.target.value || 'ACTIVOS'); setPagina(0) }}
           opciones={ESTADOS.filter((e) => e !== 'ACTIVOS').map((e) => ({ valor: e, etiqueta: t(`acopio.inventario.estado.${e}`) }))}
         />
+        <Campo etiqueta={t('acopio.inventario.stockMin')} type="number" min="0" step="any" inputMode="decimal" value={escritos.stockMin} onChange={escribir('stockMin')} />
+        <Campo etiqueta={t('acopio.inventario.stockMax')} type="number" min={escritos.stockMin || '0'} step="any" inputMode="decimal" value={escritos.stockMax} onChange={escribir('stockMax')} />
+        <Campo
+          tipo="selector"
+          etiqueta={t('acopio.inventario.orden')}
+          placeholder={false}
+          value={orden}
+          onChange={(e) => { setOrden(e.target.value); setPagina(0) }}
+          opciones={ORDENES.map((o) => ({ valor: o, etiqueta: t(`acopio.inventario.ordenOpcion.${o}`) }))}
+        />
+        <LimpiarFiltros activos={filtrando} onLimpiar={limpiar} />
         <Boton tamano="M" onClick={() => movimiento.abrir()}>{t('movimiento.titulo')}</Boton>
       </div>
 

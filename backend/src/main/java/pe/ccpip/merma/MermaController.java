@@ -70,12 +70,14 @@ public class MermaController {
                                 @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
                                 @RequestParam(required = false) String lote, @RequestParam(required = false) String producto,
                                 @RequestParam(required = false) String ubicacion, @RequestParam(required = false) Long causa,
-                                @RequestParam(required = false) Long productor) {
+                                @RequestParam(required = false) String productor) {
+        // Como producto, productor llega como id (CCPIP-422) o como texto que se busca en su nombre (CCPIP-417)
         Long productoId = entero(producto);
-        if (causa != null || productor != null || productoId != null) {
-            return merma.dePuntos(s.userId(), pagina, new FiltroMerma(causa, productoId, productor, desde, hasta));
+        Long productorId = entero(productor);
+        if (causa != null || productorId != null || productoId != null) {
+            return merma.dePuntos(s.userId(), pagina, new FiltroMerma(causa, productoId, productorId, desde, hasta));
         }
-        return merma.dePuntos(s.userId(), pagina, filtros(desde, hasta, lote, producto, ubicacion));
+        return merma.dePuntos(s.userId(), pagina, filtros(desde, hasta, lote, producto, ubicacion, productor));
     }
 
     @RolesPermitidos(Rol.ADMIN_PUNTO)
@@ -84,10 +86,11 @@ public class MermaController {
                                                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
                                                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
                                                @RequestParam(required = false) String lote, @RequestParam(required = false) String producto,
-                                               @RequestParam(required = false) String ubicacion, @RequestParam(required = false) String lang,
+                                               @RequestParam(required = false) String ubicacion, @RequestParam(required = false) String productor,
+                                               @RequestParam(required = false) String lang,
                                                @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage) {
         Idioma idioma = idioma(lang, acceptLanguage);
-        ReporteMerma reporte = merma.reporteDePuntos(s.userId(), filtros(desde, hasta, lote, producto, ubicacion), idioma);
+        ReporteMerma reporte = merma.reporteDePuntos(s.userId(), filtros(desde, hasta, lote, producto, ubicacion, productor), idioma);
         return descarga(MermaPdf.generar(reporte), MediaType.APPLICATION_PDF, "reporte-merma-acopio.pdf", idioma);
     }
 
@@ -97,10 +100,11 @@ public class MermaController {
                                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
                                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
                                                  @RequestParam(required = false) String lote, @RequestParam(required = false) String producto,
-                                                 @RequestParam(required = false) String ubicacion, @RequestParam(required = false) String lang,
+                                                 @RequestParam(required = false) String ubicacion, @RequestParam(required = false) String productor,
+                                                 @RequestParam(required = false) String lang,
                                                  @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage) {
         Idioma idioma = idioma(lang, acceptLanguage);
-        ReporteMerma reporte = merma.reporteDePuntos(s.userId(), filtros(desde, hasta, lote, producto, ubicacion), idioma);
+        ReporteMerma reporte = merma.reporteDePuntos(s.userId(), filtros(desde, hasta, lote, producto, ubicacion, productor), idioma);
         return descarga(MermaExcel.generar(reporte), XLSX, "reporte-merma-acopio.xlsx", idioma);
     }
 
@@ -120,7 +124,7 @@ public class MermaController {
                                    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
                                    @RequestParam(required = false) String lote, @RequestParam(required = false) String producto,
                                    @RequestParam(required = false) String ubicacion) {
-        return merma.deProductor(productorActual.id(s), s.userId(), pagina, filtros(desde, hasta, lote, producto, ubicacion));
+        return merma.deProductor(productorActual.id(s), s.userId(), pagina, filtros(desde, hasta, lote, producto, ubicacion, null));
     }
 
     @RolesPermitidos(Rol.PRODUCTOR)
@@ -132,7 +136,7 @@ public class MermaController {
                                                   @RequestParam(required = false) String ubicacion, @RequestParam(required = false) String lang,
                                                   @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage) {
         Idioma idioma = idioma(lang, acceptLanguage);
-        ReporteMerma reporte = merma.reporteDeProductor(productorActual.id(s), s.userId(), filtros(desde, hasta, lote, producto, ubicacion), idioma);
+        ReporteMerma reporte = merma.reporteDeProductor(productorActual.id(s), s.userId(), filtros(desde, hasta, lote, producto, ubicacion, null), idioma);
         return descarga(MermaPdf.generar(reporte), MediaType.APPLICATION_PDF, "reporte-merma-productor.pdf", idioma);
     }
 
@@ -145,7 +149,7 @@ public class MermaController {
                                                     @RequestParam(required = false) String ubicacion, @RequestParam(required = false) String lang,
                                                     @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage) {
         Idioma idioma = idioma(lang, acceptLanguage);
-        ReporteMerma reporte = merma.reporteDeProductor(productorActual.id(s), s.userId(), filtros(desde, hasta, lote, producto, ubicacion), idioma);
+        ReporteMerma reporte = merma.reporteDeProductor(productorActual.id(s), s.userId(), filtros(desde, hasta, lote, producto, ubicacion, null), idioma);
         return descarga(MermaExcel.generar(reporte), XLSX, "reporte-merma-productor.xlsx", idioma);
     }
 
@@ -160,8 +164,9 @@ public class MermaController {
         return ResponseEntity.status(r.repetida() ? HttpStatus.OK : HttpStatus.CREATED).body(r);
     }
 
-    private static FiltroReporteMerma filtros(LocalDate desde, LocalDate hasta, String lote, String producto, String ubicacion) {
-        return new FiltroReporteMerma(desde, hasta, lote, producto, ubicacion);
+    private static FiltroReporteMerma filtros(LocalDate desde, LocalDate hasta, String lote, String producto, String ubicacion,
+                                              String productor) {
+        return new FiltroReporteMerma(desde, hasta, lote, producto, ubicacion, productor);
     }
 
     /** The legacy point-list product filter uses an id; report text remains a text filter. */

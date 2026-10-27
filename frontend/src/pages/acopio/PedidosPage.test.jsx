@@ -52,6 +52,52 @@ describe('A-05 Pedidos del punto de acopio en una tabla por estado (CCPIP-419)',
   })
 })
 
+describe('A-05 Buscar y filtrar los pedidos del punto (CCPIP-417)', () => {
+  it('busca sin distinguir mayúsculas ni tildes y los conteos de las pestañas son los de lo encontrado', async () => {
+    servidor(comoAcopio())
+    const user = userEvent.setup()
+    abrirEn('/acopio/pedidos')
+    await panel('Confirmado')
+
+    await user.type(screen.getByRole('searchbox', { name: 'Buscar por pedido, producto, comunidad o quien recogió' }), 'CAFÉ')
+    expect(nombresPestanas()).toEqual(['Confirmado (0)', 'Listo para recojo (0)', 'Entregado hoy (1)'])
+    expect((await panel('Confirmado')).getByText('Nada coincide con la búsqueda y los filtros')).toBeInTheDocument()
+    expect((await abrirPestana(user, 'Entregado hoy')).getByText('MC-00131')).toBeInTheDocument()
+
+    // Tambien por comunidad, numero de pedido o quien lo recogio
+    await user.clear(screen.getByRole('searchbox'))
+    await user.type(screen.getByRole('searchbox'), 'yarina')
+    expect(nombresPestanas()).toEqual(['Confirmado (0)', 'Listo para recojo (1)', 'Entregado hoy (0)'])
+    await user.clear(screen.getByRole('searchbox'))
+    await user.type(screen.getByRole('searchbox'), 'rosa ancon')
+    expect(nombresPestanas()).toEqual(['Confirmado (0)', 'Listo para recojo (0)', 'Entregado hoy (1)'])
+  })
+
+  it('combina la búsqueda con la modalidad y limpia ambos de una vez', async () => {
+    const datos = copia(DATOS.pedidos)
+    datos.items[0].modalidad = 'ENVIO'
+    servidor(comoAcopio({ [LISTAR]: [200, datos] }))
+    const user = userEvent.setup()
+    abrirEn('/acopio/pedidos')
+    await panel('Confirmado')
+    // Sin filtros no hay nada que limpiar
+    expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).not.toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('Modalidad'), 'A domicilio')
+    expect(nombresPestanas()).toEqual(['Confirmado (1)', 'Listo para recojo (0)', 'Entregado hoy (0)'])
+    expect((await panel('Confirmado')).getByText('MC-00155')).toBeInTheDocument()
+
+    await user.type(screen.getByRole('searchbox'), 'cacao')
+    expect(nombresPestanas()).toEqual(['Confirmado (0)', 'Listo para recojo (0)', 'Entregado hoy (0)'])
+
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+    expect(nombresPestanas()).toEqual(['Confirmado (1)', 'Listo para recojo (1)', 'Entregado hoy (1)'])
+    expect(screen.getByRole('searchbox')).toHaveValue('')
+    expect(screen.getByLabelText('Modalidad')).toHaveValue('')
+    expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).not.toBeInTheDocument()
+  })
+})
+
 describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
   it('muestra EN_CAMINO en una pestaña de solo lectura con fecha y responsable del historial', async () => {
     const datos = copia(DATOS.pedidos)

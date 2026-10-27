@@ -12,6 +12,9 @@
     "cancelar": "Cancelar",
     "confirmar": "Confirmar",
     "cerrarAviso": "Cerrar aviso",
+    "limpiarFiltros": "Limpiar filtros",
+    "sinCoincidencias": "Nada coincide con la búsqueda y los filtros",
+    "sinCoincidenciasTexto": "Prueba con otras palabras o limpia los filtros.",
     "descargas": {
       "cargando": "Actualizando el reporte; podrás descargarlo en cuanto termine.",
       "pendiente": "Para descargar, el reporte debe mostrar los filtros elegidos: completa el período o vuelve a intentarlo."
@@ -1093,6 +1096,13 @@
       "columnaConteo": "{{titulo}} ({{total}})",
       "estados": "Pedidos por estado",
       "lista": "Pedidos del estado elegido",
+      "buscar": "Buscar por pedido, producto, comunidad o quien recogió",
+      "modalidad": "Modalidad",
+      "todasModalidades": "Todas",
+      "modalidadOpcion": {
+        "RECOJO": "Recojo en el punto",
+        "ENVIO": "A domicilio"
+      },
       "col": {
         "pedido": "Pedido",
         "productos": "Productos y lotes",
@@ -1148,11 +1158,13 @@
         "AJUSTES": "Ajustes"
       },
       "tipoEtiqueta": "Tipo de movimiento",
-      "numeroPedido": "Número de pedido",
-      "buscarPedido": "Buscar por N.º de pedido",
+      "buscar": "Buscar producto, lote o N.º de pedido",
+      "desde": "Desde",
+      "hasta": "Hasta",
+      "cantidadMin": "Cantidad mínima",
+      "cantidadMax": "Cantidad máxima",
+      "unDia": "Para ver un solo día, elige la misma fecha en Desde y Hasta.",
       "errorCargar": "No pudimos cargar los movimientos",
-      "delPedido": "Movimientos del pedido {{numero}}",
-      "sinMovimientosPedido": "Ese pedido no tiene movimientos en tu punto.",
       "vacio": "Aún no hay movimientos",
       "vacioTexto": "Aquí verás las entradas, las ventas y los ajustes de tu punto.",
       "col": {
@@ -1178,6 +1190,14 @@
       "productor": "Productor",
       "todos": "Todos",
       "estadoLote": "Estado del lote",
+      "stockMin": "Stock mínimo",
+      "stockMax": "Stock máximo",
+      "orden": "Ordenar por",
+      "ordenOpcion": {
+        "PRODUCTO": "Producto",
+        "VENCE_ULTIMO": "Vencimiento: más lejano primero",
+        "VENCE_PRIMERO": "Vencimiento: más cercano primero"
+      },
       "estado": {
         "ACTIVOS": "Activos",
         "AGOTADOS": "Agotados",
@@ -1221,6 +1241,10 @@
         "ENTRANTE": "Entrante",
         "SALIENTE": "Saliente"
       },
+      "buscar": "Buscar por código, productor, producto u origen y destino",
+      "filtroSentido": "Sentido",
+      "filtroEstado": "Estado",
+      "todos": "Todos",
       "recibir": "Registrar recepción",
       "recibirEtiqueta": "Registrar la recepción de {{codigo}}",
       "confirmarTitulo": "¿Registrar la recepción de {{codigo}}?",
@@ -3967,6 +3991,7 @@
     "titulo": "Alertas",
     "bandeja": "Bandeja de alertas",
     "filtrar": "Filtrar alertas",
+    "buscar": "Buscar por producto, lote o punto",
     "todas": "Todas ({{total}})",
     "filtro": {
       "POR_VENCER": "Vencimientos",
@@ -4110,6 +4135,7 @@
         "lote": "Lote",
         "producto": "Producto",
         "ubicacion": "Ubicación",
+        "productor": "Productor",
         "aplicar": "Aplicar filtros",
         "vacio": "No hay merma para los filtros seleccionados.",
         "exportar": {

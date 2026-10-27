@@ -101,3 +101,17 @@ export function duracion(segundos) {
   const total = Math.round(Number(segundos) || 0)
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
 }
+
+/** Texto para comparar en una busqueda: sin mayusculas, tildes ni espacios de mas. */
+function paraBuscar(texto) {
+  return String(texto ?? '').normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim()
+}
+
+/**
+ * CCPIP-417: si alguno de los textos contiene lo buscado, sin distinguir mayusculas ni tildes (como la
+ * busqueda del servidor, RNF-22). Sin nada buscado, todo coincide.
+ */
+export function coincide(buscado, ...textos) {
+  const b = paraBuscar(buscado)
+  return !b || textos.some((x) => paraBuscar(x).includes(b))
+}

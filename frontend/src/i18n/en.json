@@ -12,6 +12,9 @@
     "cancelar": "Cancel",
     "confirmar": "Confirm",
     "cerrarAviso": "Close notice",
+    "limpiarFiltros": "Clear filters",
+    "sinCoincidencias": "Nothing matches the search and filters",
+    "sinCoincidenciasTexto": "Try other words or clear the filters.",
     "descargas": {
       "cargando": "Updating the report; you can download it as soon as it finishes.",
       "pendiente": "To download, the report must show the selected filters: complete the period or try again."
@@ -1093,6 +1096,13 @@
       "columnaConteo": "{{titulo}} ({{total}})",
       "estados": "Orders by status",
       "lista": "Orders in the selected status",
+      "buscar": "Search by order, product, community or who picked it up",
+      "modalidad": "Delivery method",
+      "todasModalidades": "All",
+      "modalidadOpcion": {
+        "RECOJO": "Pickup at the point",
+        "ENVIO": "Home delivery"
+      },
       "col": {
         "pedido": "Order",
         "productos": "Products and batches",
@@ -1148,11 +1158,13 @@
         "AJUSTES": "Adjustments"
       },
       "tipoEtiqueta": "Movement type",
-      "numeroPedido": "Order number",
-      "buscarPedido": "Search by order no.",
+      "buscar": "Search product, batch or order no.",
+      "desde": "From",
+      "hasta": "To",
+      "cantidadMin": "Minimum quantity",
+      "cantidadMax": "Maximum quantity",
+      "unDia": "To see a single day, choose the same date in From and To.",
       "errorCargar": "We couldn't load the movements",
-      "delPedido": "Movements for order {{numero}}",
-      "sinMovimientosPedido": "That order has no movements at your point.",
       "vacio": "No movements yet",
       "vacioTexto": "Here you'll see incoming stock, sales and adjustments at your point.",
       "col": {
@@ -1178,6 +1190,14 @@
       "productor": "Producer",
       "todos": "All",
       "estadoLote": "Batch status",
+      "stockMin": "Minimum stock",
+      "stockMax": "Maximum stock",
+      "orden": "Sort by",
+      "ordenOpcion": {
+        "PRODUCTO": "Product",
+        "VENCE_ULTIMO": "Expiry: latest first",
+        "VENCE_PRIMERO": "Expiry: soonest first"
+      },
       "estado": {
         "ACTIVOS": "Active",
         "AGOTADOS": "Sold out",
@@ -1221,6 +1241,10 @@
         "ENTRANTE": "Incoming",
         "SALIENTE": "Outgoing"
       },
+      "buscar": "Search by code, producer, product, origin or destination",
+      "filtroSentido": "Direction",
+      "filtroEstado": "Status",
+      "todos": "All",
       "recibir": "Record receipt",
       "recibirEtiqueta": "Record the receipt of {{codigo}}",
       "confirmarTitulo": "Record the receipt of {{codigo}}?",
@@ -3967,6 +3991,7 @@
     "titulo": "Alerts",
     "bandeja": "Alerts inbox",
     "filtrar": "Filter alerts",
+    "buscar": "Search by product, batch or point",
     "todas": "All ({{total}})",
     "filtro": {
       "POR_VENCER": "Expiry",
@@ -4110,6 +4135,7 @@
         "lote": "Batch",
         "producto": "Product",
         "ubicacion": "Location",
+        "productor": "Producer",
         "aplicar": "Apply filters",
         "vacio": "There is no shrinkage for the selected filters.",
         "exportar": {
