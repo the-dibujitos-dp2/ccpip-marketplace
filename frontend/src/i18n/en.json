@@ -1060,7 +1060,23 @@
       "registrarEntrega": "Register delivery",
       "registrandoEntrega": "Registering…",
       "entregaRegistrada": "You registered delivery of order {{numero}}.",
-      "errorEntrega": "Could not register delivery of order {{numero}}"
+      "errorEntrega": "Could not register delivery of order {{numero}}",
+      "ubicaciones": {
+        "accion": "View locations",
+        "titulo": "Locations for order {{numero}}",
+        "cerrar": "Close",
+        "cargando": "Loading locations…",
+        "error": "Could not load locations",
+        "reintentar": "Try again",
+        "origen": "Origin",
+        "punto": "Collection point",
+        "direccion": "Address",
+        "distrito": "District",
+        "destino": "Destination",
+        "provincia": "Province",
+        "departamento": "Department",
+        "referencia": "Reference"
+      }
     }
   },
   "acopio": {

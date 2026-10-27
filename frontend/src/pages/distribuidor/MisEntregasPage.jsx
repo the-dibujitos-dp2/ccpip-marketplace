@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoCaja from '../../assets/icons/caja.svg'
 import iconoCheck from '../../assets/icons/check.svg'
-import { listarMisEntregas, registrarEnCamino, registrarEntrega, retirarEntrega } from '../../api/distribucion.js'
+import { consultarUbicaciones, listarMisEntregas, registrarEnCamino, registrarEntrega, retirarEntrega } from '../../api/distribucion.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -15,6 +15,18 @@ import { fechaHora } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { navigate, RUTAS } from '../../router.js'
 import './MisEntregasPage.css'
+
+function DialogoUbicaciones({ numero, onCerrar }) {
+  const { t } = useTranslation()
+  const [datos, setDatos] = useState(null)
+  const [error, setError] = useState(null)
+  const [cargando, setCargando] = useState(true)
+  const cerrarRef = useRef(null)
+  async function cargar() { setCargando(true); setError(null); setDatos(null); try { setDatos(await consultarUbicaciones(numero)) } catch (e) { setError(e) } finally { setCargando(false) } }
+  useEffect(() => { let vivo = true; consultarUbicaciones(numero).then((d) => vivo && setDatos(d)).catch((e) => vivo && setError(e)).finally(() => vivo && setCargando(false)); const previo=document.activeElement; cerrarRef.current?.focus(); const escape=(e)=>{if(e.key==='Escape')onCerrar()}; document.addEventListener('keydown',escape); return ()=>{vivo=false;document.removeEventListener('keydown',escape);previo?.focus?.()} }, [numero])
+  const campo=(label,value)=>(value ? <p><strong>{label}</strong><br />{value}</p> : null)
+  return <div className="ubicaciones__fondo" onMouseDown={(e)=>{if(e.target===e.currentTarget)onCerrar()}}><section className="ubicaciones" role={error?'alertdialog':'dialog'} aria-modal="true" aria-labelledby="ubicaciones-titulo" aria-busy={cargando}><h2 id="ubicaciones-titulo">{t('distribuidor.entregas.ubicaciones.titulo',{numero})}</h2><button ref={cerrarRef} type="button" className="ubicaciones__cerrar" onClick={onCerrar}>{t('distribuidor.entregas.ubicaciones.cerrar')}</button>{cargando&&<Cargando texto={t('distribuidor.entregas.ubicaciones.cargando')}/ >}{error&&<div role="alert"><p>{t('distribuidor.entregas.ubicaciones.error')}</p><p>{mensajeError(error)}</p><Boton tamano="S" onClick={cargar}>{t('distribuidor.entregas.ubicaciones.reintentar')}</Boton></div>}{datos&&<><h3>{t('distribuidor.entregas.ubicaciones.origen')}</h3>{campo(t('distribuidor.entregas.ubicaciones.punto'),datos.origen.nombre)}{campo(t('distribuidor.entregas.ubicaciones.direccion'),datos.origen.direccion)}{campo(t('distribuidor.entregas.ubicaciones.distrito'),datos.origen.distrito)}<h3>{t('distribuidor.entregas.ubicaciones.destino')}</h3>{campo(t('distribuidor.entregas.ubicaciones.direccion'),datos.destino.direccion)}{campo(t('distribuidor.entregas.ubicaciones.distrito'),datos.destino.territorio.distrito)}{campo(t('distribuidor.entregas.ubicaciones.provincia'),datos.destino.territorio.provincia)}{campo(t('distribuidor.entregas.ubicaciones.departamento'),datos.destino.territorio.departamento)}{campo(t('distribuidor.entregas.ubicaciones.referencia'),datos.destino.referencia)}</>}</section></div>
+}
 
 /** Color del estado de la entrega: siempre con su texto (Badge). */
 const TONOS = { ASIGNADA: 'marca', RETIRADA: 'acento', EN_CAMINO: 'info', ENTREGADA: 'exito' }
@@ -39,6 +51,7 @@ export default function MisEntregasPage({ path }) {
   const [enCaminoActualizando, setEnCaminoActualizando] = useState(null)
   const [entregaActualizando, setEntregaActualizando] = useState(null)
   const [aviso, setAviso] = useState(null)
+  const [ubicaciones, setUbicaciones] = useState(null)
 
   const enCurso = datos?.filter((e) => e.estado !== 'ENTREGADA') ?? []
   const entregadas = datos?.filter((e) => e.estado === 'ENTREGADA') ?? []
@@ -91,6 +104,7 @@ export default function MisEntregasPage({ path }) {
   const titulo = t('distribuidor.entregas.titulo')
   return (
     <LayoutDistribuidor path={path} titulo={titulo}>
+      {ubicaciones && <DialogoUbicaciones key={ubicaciones} numero={ubicaciones} onCerrar={() => setUbicaciones(null)} />}
       <section className="mis-entregas" aria-busy={!datos && !error}>
         {aviso && <Alerta {...aviso} onCerrar={() => setAviso(null)} />}
         {error && (
@@ -126,6 +140,7 @@ export default function MisEntregasPage({ path }) {
                     {[e.origen.direccion, e.origen.distrito].filter(Boolean).join(', ')}
                   </p>
                   <p className="caption">{t('distribuidor.entregas.destino', { provincia: e.destino.provincia, departamento: e.destino.departamento })}</p>
+                  <div className="mis-entregas__acciones"><Boton tamano="S" tipo="secundario" onClick={() => setUbicaciones(e.numero)}>{t('distribuidor.entregas.ubicaciones.accion')}</Boton></div>
                   <Pasos pasos={pasos} actual={PASO[e.estado] ?? 0} etiqueta={t('distribuidor.entregas.pasos.etiqueta', { numero: e.numero })} />
                   <p className="caption">
                     {e.retiradaEn
