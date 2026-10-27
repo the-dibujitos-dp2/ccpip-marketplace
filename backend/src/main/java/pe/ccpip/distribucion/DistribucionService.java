@@ -235,7 +235,7 @@ public class DistribucionService {
                 JOIN entrega e ON e.pedido_id = pe.id
                 JOIN ubicacion u ON u.id = pe.ubicacion_origen_id
                 WHERE upper(pe.numero) = :numero AND pe.modalidad = 'ENVIO'
-                FOR UPDATE OF e""", new MapSqlParameterSource("numero", numero),
+                FOR UPDATE OF pe, e""", new MapSqlParameterSource("numero", numero),
                 (rs, row) -> new Bloqueada(rs.getLong("id"), rs.getString("estado_pedido"), rs.getString("estado_entrega"),
                         rs.getObject("distribuidor_id", Long.class), rs.getBoolean("activo")))
                 .stream().findFirst()

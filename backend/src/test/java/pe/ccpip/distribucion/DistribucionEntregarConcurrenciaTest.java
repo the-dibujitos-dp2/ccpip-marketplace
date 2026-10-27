@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.RepeatedTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -67,7 +67,7 @@ class DistribucionEntregarConcurrenciaTest extends IntegrationTest {
         });
     }
 
-    @Test
+    @RepeatedTest(20)
     void dosEntregasConcurrentesDelPropietarioConfirmanUnaSolaTransicionSinEfectosDeStock() throws Exception {
         List<Map<String, Object>> lotesAntes = jdbc.queryForList("SELECT * FROM lote WHERE producto_id=? ORDER BY id", producto);
         List<Map<String, Object>> movimientosAntes = jdbc.queryForList("SELECT * FROM movimiento_inventario ORDER BY id");
