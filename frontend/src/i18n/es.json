@@ -1091,6 +1091,15 @@
         "EN_CAMINO": "En camino"
       },
       "columnaConteo": "{{titulo}} ({{total}})",
+      "estados": "Pedidos por estado",
+      "lista": "Pedidos del estado elegido",
+      "col": {
+        "pedido": "Pedido",
+        "productos": "Productos y lotes",
+        "estado": "Último cambio",
+        "total": "Total",
+        "accion": "Acción"
+      },
       "columnaVacia": {
         "CONFIRMADO": "No hay pedidos por preparar.",
         "EN_PREPARACION": "No hay pedidos en preparación.",

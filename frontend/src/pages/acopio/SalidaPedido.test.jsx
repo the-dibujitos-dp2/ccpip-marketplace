@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
-import { copia, DATOS, llamadas, PUBLICAS, servidor, SESION, SESION_ACOPIO } from '../../test/servidor.js'
+import { abrirPestana, copia, DATOS, llamadas, panel, PUBLICAS, servidor, SESION, SESION_ACOPIO } from '../../test/servidor.js'
 
 function abrirEn(ruta) {
   window.history.replaceState(null, '', ruta)
@@ -39,7 +39,10 @@ const comoAcopio = (rutas = {}) => ({
   ...rutas,
 })
 
-const columna = (nombre) => screen.getByRole('region', { name: nombre })
+/** El boton de salida esta en la pestana "En preparacion", que se abre primero. */
+async function registrarSalida(user) {
+  await user.click((await abrirPestana(user, 'En preparación')).getByRole('button', { name: BOTON }))
+}
 
 describe('A-05 Salida de un pedido a domicilio (CCPIP-320)', () => {
   it('registra la salida por API y pasa el pedido a "Listo para despacho", donde espera a un distribuidor', async () => {
@@ -47,23 +50,24 @@ describe('A-05 Salida de un pedido a domicilio (CCPIP-320)', () => {
     const user = userEvent.setup()
     abrirEn('/acopio/pedidos')
 
-    const vacia = within(await screen.findByRole('region', { name: 'Listo para despacho' }))
-    expect(vacia.getByRole('heading', { name: 'Listo para despacho (0)' })).toBeInTheDocument()
-    expect(vacia.getByText('Ningún pedido espera a un distribuidor.')).toBeInTheDocument()
+    // Sin pedidos listos para despacho, esa pestana intermedia no aparece
+    await screen.findByRole('tab', { name: 'En preparación (1)' })
+    expect(screen.queryByRole('tab', { name: /^Listo para despacho/ })).not.toBeInTheDocument()
 
-    await user.click(within(columna('En preparación')).getByRole('button', { name: BOTON }))
+    await registrarSalida(user)
 
     expect(await screen.findByText('El pedido MC-00155 está listo para despacho')).toBeInTheDocument()
     expect(llamadas(fetchMock, DESPACHO)).toHaveLength(1)
-    const despacho = within(columna('Listo para despacho'))
-    expect(despacho.getByRole('heading', { name: 'Listo para despacho (1)' })).toBeInTheDocument()
+    expect((await panel('En preparación')).getByText('No hay pedidos en preparación.')).toBeInTheDocument()
+    const despacho = await abrirPestana(user, 'Listo para despacho')
+    expect(screen.getByRole('tab', { name: 'Listo para despacho (1)' })).toBeInTheDocument()
     expect(despacho.getByText('MC-00155')).toBeInTheDocument()
     expect(despacho.getByText('A domicilio')).toBeInTheDocument()
-    expect(despacho.getByText(`Listo para despacho 13/10 11:10 · ${ADMIN} · S/ 96.00`)).toBeInTheDocument()
+    expect(despacho.getByText(`Listo para despacho 13/10 11:10 · ${ADMIN}`)).toBeInTheDocument()
+    expect(despacho.getByText('S/ 96.00')).toBeInTheDocument()
     expect(despacho.getByText('Espera a que un distribuidor lo retire.')).toBeInTheDocument()
     // Ya no tiene acciones en el punto: ni recojo ni otra salida
     expect(despacho.queryByRole('button')).not.toBeInTheDocument()
-    expect(within(columna('En preparación')).getByRole('heading', { name: 'En preparación (0)' })).toBeInTheDocument()
     // Solo se cambio ese pedido: la lista no se volvio a pedir
     expect(llamadas(fetchMock, LISTAR)).toHaveLength(1)
   })
@@ -76,20 +80,20 @@ describe('A-05 Salida de un pedido a domicilio (CCPIP-320)', () => {
     }))
     const user = userEvent.setup()
     abrirEn('/acopio/pedidos')
-    await user.click(await screen.findByRole('button', { name: BOTON }))
+    await registrarSalida(user)
 
     const alerta = await screen.findByRole('alert')
     expect(alerta).toHaveTextContent('No pudimos registrar la salida del pedido')
     expect(alerta).toHaveTextContent('Este pedido ya está listo para despacho.')
-    await waitFor(() => expect(within(columna('Listo para despacho')).getByText('MC-00155')).toBeInTheDocument())
-    expect(lecturas).toBe(2)
+    await waitFor(() => expect(lecturas).toBe(2))
+    expect((await abrirPestana(user, 'Listo para despacho')).getByText('MC-00155')).toBeInTheDocument()
   })
 
   it('un pedido para recojo rechazado por el servidor se explica con su mensaje', async () => {
     servidor(comoAcopio({ [DESPACHO]: [409, { code: 'PEDIDO_PARA_RECOJO' }] }))
     const user = userEvent.setup()
     abrirEn('/acopio/pedidos')
-    await user.click(await screen.findByRole('button', { name: BOTON }))
+    await registrarSalida(user)
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Este pedido se recoge en el punto, no se despacha a domicilio.')
   })
@@ -101,7 +105,7 @@ describe('A-05 Salida de un pedido a domicilio (CCPIP-320)', () => {
     }))
     const user = userEvent.setup()
     abrirEn('/acopio/pedidos')
-    await user.click(await screen.findByRole('button', { name: BOTON }))
+    await registrarSalida(user)
 
     const boton = screen.getByRole('button', { name: BOTON })
     expect(boton).toBeDisabled()
