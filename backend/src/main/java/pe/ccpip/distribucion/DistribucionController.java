@@ -20,6 +20,7 @@ import pe.ccpip.auth.model.Rol;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.distribucion.DistribucionModelos.Disponibles;
 import pe.ccpip.distribucion.DistribucionModelos.EntregaDelDistribuidor;
+import pe.ccpip.distribucion.DistribucionUbicacionesModelos.UbicacionesPedido;
 
 /**
  * CCPIP-107, CCPIP-108, CCPIP-317 y CCPIP-109 (DW-01 a DW-03): los pedidos que el distribuidor puede asumir,
@@ -55,6 +56,13 @@ public class DistribucionController {
     @GetMapping
     public List<EntregaDelDistribuidor> asignadas(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s) {
         return distribucion.asignadas(s.userId());
+    }
+
+    /** CCPIP-110 (RF-57): ubicaciones registradas de un pedido propio a domicilio, sin contactos ni rutas. */
+    @GetMapping("/{numero}/ubicaciones")
+    public UbicacionesPedido ubicaciones(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                         @PathVariable String numero) {
+        return distribucion.ubicaciones(s.userId(), numeroValido(numero));
     }
 
     /**
