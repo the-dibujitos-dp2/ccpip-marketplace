@@ -1,11 +1,28 @@
 import { describe, expect, it } from 'vitest'
-import { capital, diaMes, fecha, fechaCorta, fechaHoraLarga, mesAnio, mesAnterior, precio, primeraOracion, unidades } from './formato'
+import { capital, coincide, diaMes, fecha, fechaCorta, fechaHoraLarga, mesAnio, mesAnterior, precio, primeraOracion, unidades } from './formato'
 import i18n from './i18n/index.js'
 
 // Intl separa la moneda con un espacio no separable (U+00A0): se normaliza para comparar
 const normal = (texto) => texto.replace(/ /g, ' ')
 
 describe('formato', () => {
+  describe('coincide (CCPIP-417)', () => {
+    it('sin nada buscado, todo coincide', () => {
+      expect(coincide('', 'Cacao')).toBe(true)
+      expect(coincide('   ', undefined)).toBe(true)
+    })
+
+    it('ignora mayúsculas, tildes y espacios de más, en cualquiera de los textos', () => {
+      expect(coincide('  CAFÉ ', 'MC-00131', 'Cafe tostado en grano 500 g')).toBe(true)
+      expect(coincide('rio ene', 'Coop. Río Ene')).toBe(true)
+      expect(coincide('ñandu', 'Ñandú')).toBe(true)
+    })
+
+    it('no coincide si ningún texto lo contiene, y tolera textos vacíos', () => {
+      expect(coincide('aguaje', 'Cacao', null, undefined)).toBe(false)
+    })
+  })
+
   describe('precio', () => {
     it('da formato de soles con dos decimales', () => {
       expect(normal(precio(46))).toBe('S/ 46.00')

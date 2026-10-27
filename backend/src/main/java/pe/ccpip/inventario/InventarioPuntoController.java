@@ -1,5 +1,6 @@
 package pe.ccpip.inventario;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.validation.annotation.Validated;
@@ -18,6 +19,8 @@ import pe.ccpip.auth.model.Rol;
 import pe.ccpip.inventario.InventarioModelos.FiltroEstado;
 import pe.ccpip.inventario.InventarioModelos.InventarioPunto;
 import pe.ccpip.inventario.InventarioModelos.LoteOpcion;
+import pe.ccpip.inventario.InventarioModelos.OrdenLotes;
+import pe.ccpip.inventario.InventarioModelos.RangoStock;
 
 /**
  * Inventario del punto de acopio (Figma A-02, CCPIP-162). Solo el administrador de punto y solo de
@@ -35,14 +38,21 @@ public class InventarioPuntoController {
         this.inventario = inventario;
     }
 
-    /** Lotes por producto, productor y estado. {@code estado}: ACTIVOS (por defecto), AGOTADOS o TODOS. */
+    /**
+     * Lotes por producto, productor y estado. {@code estado}: ACTIVOS (por defecto), AGOTADOS o TODOS.
+     * CCPIP-417: {@code stockMin} y {@code stockMax} acotan el saldo del lote; {@code orden}: PRODUCTO
+     * (por defecto), VENCE_ULTIMO o VENCE_PRIMERO.
+     */
     @GetMapping
     public InventarioPunto listar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                   @RequestParam(required = false) @Size(max = 100) String q,
                                   @RequestParam(required = false) Long productor,
                                   @RequestParam(defaultValue = "ACTIVOS") FiltroEstado estado,
+                                  @RequestParam(required = false) BigDecimal stockMin,
+                                  @RequestParam(required = false) BigDecimal stockMax,
+                                  @RequestParam(defaultValue = "PRODUCTO") OrdenLotes orden,
                                   @RequestParam(defaultValue = "0") @Min(0) int pagina) {
-        return inventario.listar(s.userId(), q, productor, estado, pagina);
+        return inventario.listar(s.userId(), q, productor, estado, new RangoStock(stockMin, stockMax), orden, pagina);
     }
 
     /** CCPIP-121 y CCPIP-287: los lotes que el formulario de entrada y salida ofrece. */

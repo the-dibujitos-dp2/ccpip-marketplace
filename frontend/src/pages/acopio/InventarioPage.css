@@ -1,7 +1,3 @@
-/* A-02: buscador, productor y estado del lote, con "Registrar movimiento" al final */
-.inventario__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
-.inventario__filtros > :first-child { flex: 1 1 260px; }
-.inventario__filtros .campo { flex: 0 1 200px; }
 .inventario__resumen { margin: 0; color: var(--color-text-secondary); }
 .inventario__pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 

@@ -1,7 +1,10 @@
 package pe.ccpip.inventario;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Locale;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -22,6 +25,7 @@ import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.inventario.InventarioModelos.DatosMovimiento;
+import pe.ccpip.inventario.InventarioModelos.FiltroMovimientos;
 import pe.ccpip.inventario.InventarioModelos.Grupo;
 import pe.ccpip.inventario.InventarioModelos.MovimientoRegistrado;
 import pe.ccpip.inventario.InventarioModelos.Movimientos;
@@ -46,12 +50,19 @@ public class MovimientosController {
 
     /**
      * CCPIP-158: incluye el movimiento SALIDA_VENTA que genero cada compra confirmada, con su numero
-     * de pedido. {@code tipo} es la pestana: ENTRADAS, SALIDAS o AJUSTES; sin el, todos.
+     * de pedido. {@code tipo} es la pestana: ENTRADAS, SALIDAS o AJUSTES; sin el, todos. CCPIP-417:
+     * {@code q} busca en el producto, el lote y el pedido; {@code desde} y {@code hasta} acotan el dia
+     * (uno solo con ambos iguales) y {@code cantidadMin} y {@code cantidadMax}, la cantidad.
      */
     @GetMapping
     public Movimientos listar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                               @RequestParam(required = false) String tipo,
                               @RequestParam(required = false) @Size(max = 20) String pedido,
+                              @RequestParam(required = false) @Size(max = 100) String q,
+                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+                              @RequestParam(required = false) BigDecimal cantidadMin,
+                              @RequestParam(required = false) BigDecimal cantidadMax,
                               @RequestParam(defaultValue = "0") @Min(0) int pagina) {
         Grupo grupo = null;
         if (tipo != null && !tipo.isBlank()) {
@@ -61,7 +72,7 @@ public class MovimientosController {
                 throw ErrorNegocio.invalido("TIPO_INVALIDO", "Tipo de movimiento desconocido.");
             }
         }
-        return movimientos.listar(s.userId(), grupo, pedido, pagina);
+        return movimientos.listar(s.userId(), new FiltroMovimientos(grupo, pedido, q, desde, hasta, cantidadMin, cantidadMax), pagina);
     }
 
     /**

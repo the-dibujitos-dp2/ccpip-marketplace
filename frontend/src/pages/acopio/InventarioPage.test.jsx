@@ -115,6 +115,50 @@ describe('A-02 Inventario del punto de acopio (CCPIP-162)', () => {
     expect(llamadas(fetchMock, `GET ${RUTA}?pagina=0&estado=AGOTADOS`)).toHaveLength(1)
   })
 
+  it('limpiar filtros vuelve a los lotes activos de todos los productores, sin búsqueda (CCPIP-417)', async () => {
+    const vacio = { ...copia(INVENTARIO), items: [], total: 0, totalPaginas: 0 }
+    const fetchMock = servidor(comoAcopio({
+      [`GET ${RUTA}?pagina=0&estado=AGOTADOS`]: [200, vacio],
+      [`GET ${RUTA}?pagina=0&q=l-02&estado=AGOTADOS`]: [200, vacio],
+    }))
+    const user = userEvent.setup()
+    abrirEn('/acopio/inventario')
+    await screen.findByText('L-0231')
+    expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).not.toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('Estado del lote'), 'AGOTADOS')
+    await user.type(screen.getByRole('searchbox', { name: 'Buscar producto o lote…' }), 'l-02{Enter}')
+    await waitFor(() => expect(llamadas(fetchMock, `GET ${RUTA}?pagina=0&q=l-02&estado=AGOTADOS`)).toHaveLength(1))
+
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+    expect(await screen.findByText('L-0231')).toBeInTheDocument()
+    expect(llamadas(fetchMock, `GET ${RUTA}?pagina=0`)).toHaveLength(2)
+    expect(screen.getByRole('searchbox', { name: 'Buscar producto o lote…' })).toHaveValue('')
+    expect(screen.getByLabelText('Estado del lote')).toHaveValue('')
+  })
+
+  it('busca mientras se escribe, filtra por rango de stock y ordena por vencimiento (CCPIP-417)', async () => {
+    const FILTRADO = `GET ${RUTA}?pagina=0&q=sacha&stockMin=10&stockMax=50&orden=VENCE_ULTIMO`
+    const fetchMock = servidor(comoAcopio({ [`GET ${RUTA}`]: () => [200, copia(INVENTARIO)] }))
+    const user = userEvent.setup()
+    abrirEn('/acopio/inventario')
+    await screen.findByText('L-0231')
+    expect(screen.getByLabelText('Ordenar por')).toHaveDisplayValue('Producto')
+
+    await user.type(screen.getByRole('searchbox', { name: 'Buscar producto o lote…' }), 'sacha')
+    await user.type(screen.getByLabelText('Stock mínimo'), '10')
+    await user.type(screen.getByLabelText('Stock máximo'), '50')
+    await user.selectOptions(screen.getByLabelText('Ordenar por'), 'Vencimiento: más lejano primero')
+    await waitFor(() => expect(llamadas(fetchMock, FILTRADO)).toHaveLength(1))
+    // Sin Enter y sin una consulta por letra
+    expect(fetchMock.mock.calls.filter(([url]) => /q=s(&|$)/.test(url))).toHaveLength(0)
+
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+    expect(screen.getByLabelText('Ordenar por')).toHaveDisplayValue('Producto')
+    expect(screen.getByLabelText('Stock mínimo')).toHaveValue(null)
+    await waitFor(() => expect(llamadas(fetchMock, `GET ${RUTA}?pagina=0`)).toHaveLength(2))
+  })
+
   it('registra una entrada desde la fila del lote, con motivo y saldo resultante (CCPIP-121)', async () => {
     const fetchMock = servidor(comoAcopio({
       'POST /api/acopio/movimientos': [201, registrado('ENTRADA', 'L-0247', 15, 75, 'RECEPCION')],

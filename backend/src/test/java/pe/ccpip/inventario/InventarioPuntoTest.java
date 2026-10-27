@@ -1,7 +1,11 @@
 package pe.ccpip.inventario;
 
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -122,6 +126,37 @@ class InventarioPuntoTest extends IntegrationTest {
                 .andExpect(jsonPath("$.items[0].estado").value("DISPONIBLE"));
         inventario(admin, "q", "100%").andExpect(jsonPath("$.total").value(0));
         inventario(admin, "estado", "VENDIBLES").andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void filtraPorRangoDeStockYOrdenaPorVencimiento() throws Exception {
+        lote(aceite, "A-1", JUNIN, "30", HOY.plusDays(200));
+        lote(aceite, "A-2", JUNIN, "4", HOY.plusDays(5));
+        lote(cacao, "B-1", JUNIN, "12", HOY.plusDays(90));
+        lote(cacao, "B-2", JUNIN, "7", null);
+        Cookie admin = loginAs("admin_junin@ccpip.test");
+
+        // CCPIP-417: el saldo de cada lote entre los limites, inclusive; el resumen es el de lo filtrado
+        inventario(admin, "stockMin", "7", "stockMax", "12")
+                .andExpect(jsonPath("$.total").value(2))
+                .andExpect(jsonPath("$.resumen.stock").value(19.0))
+                .andExpect(jsonPath("$.items[*].codigo", everyItem(anyOf(is("B-1"), is("B-2")))));
+        inventario(admin, "stockMin", "30").andExpect(jsonPath("$.total").value(1));
+        inventario(admin, "stockMax", "4").andExpect(jsonPath("$.items[0].codigo").value("A-2"));
+
+        // El vencimiento mas lejano primero, o el mas cercano; lo que no vence siempre al final
+        inventario(admin, "orden", "VENCE_ULTIMO")
+                .andExpect(jsonPath("$.items[*].codigo").value(contains("A-1", "B-1", "A-2", "B-2")));
+        inventario(admin, "orden", "VENCE_PRIMERO")
+                .andExpect(jsonPath("$.items[*].codigo").value(contains("A-2", "B-1", "A-1", "B-2")));
+
+        inventario(admin, "stockMin", "10", "stockMax", "1")
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("RANGO_INVALIDO"));
+        inventario(admin, "stockMin", "-1")
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("VALOR_INVALIDO"));
+        inventario(admin, "orden", "PRECIO").andExpect(status().isBadRequest());
     }
 
     @Test

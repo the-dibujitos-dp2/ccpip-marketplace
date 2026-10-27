@@ -12,15 +12,18 @@ import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Buscador from '../../components/Buscador.jsx'
 import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
-import { fechaCorta, fechaHora, unidades } from '../../formato.js'
+import LimpiarFiltros, { SinCoincidencias } from '../../components/LimpiarFiltros.jsx'
+import { coincide, fechaCorta, fechaHora, unidades } from '../../formato.js'
 import { erroresPorCampo, mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import '../../components/Chips.css'
+import '../productor/productor.css'
 import './PanelAlertas.css'
 
 /** Orden de los filtros y de los tipos en "Que quiero recibir". El servidor dice cuales tiene el rol. */
@@ -66,12 +69,16 @@ function destino(alerta, rol) {
 export default function PanelAlertas({ rol, onPuntos }) {
   const { t } = useTranslation()
   const [filtro, setFiltro] = useState('TODAS')
+  const [texto, setTexto] = useState('')
   const consultar = useCallback(() => listarAlertas(rol), [rol])
   const { datos, setDatos, error, recargar } = useConsulta(consultar, { cadaMs: ACTUALIZAR_CADA_MS })
 
   const alertas = datos?.alertas ?? []
   const tiposConAlertas = TIPOS.filter((tipo) => alertas.some((a) => a.tipo === tipo))
-  const visibles = filtro === 'TODAS' ? alertas : alertas.filter((a) => a.tipo === filtro)
+  // CCPIP-417: el tipo elegido y lo buscado se combinan
+  const visibles = alertas.filter((a) => (filtro === 'TODAS' || a.tipo === filtro)
+    && coincide(texto, a.producto, a.lote, a.ubicacion, a.referencia, ...(a.productos ?? [])))
+  const filtrando = Boolean(texto.trim() || filtro !== 'TODAS')
 
   function leida(id) {
     setDatos((d) => ({
@@ -115,10 +122,25 @@ export default function PanelAlertas({ rol, onPuntos }) {
             )}
           </div>
         )}
+        {datos && alertas.length > 0 && (
+          <div className="barra-filtros">
+            <Buscador
+              id={`buscar-alerta-${rol}`}
+              etiqueta={t('alertas.buscar')}
+              placeholder={t('alertas.buscar')}
+              maxLength={100}
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              onBuscar={(e) => e.preventDefault()}
+            />
+            <LimpiarFiltros activos={filtrando} onLimpiar={() => { setTexto(''); setFiltro('TODAS') }} />
+          </div>
+        )}
 
         {error && <Alerta tono="error" titulo={t('alertas.errorCargar')} descripcion={t('comun.errorConexion')} />}
         {!datos && !error && <Cargando />}
         {datos && alertas.length === 0 && <EstadoVacio titulo={t('alertas.vacio')} descripcion={t(`alertas.vacioTexto.${rol}`)} />}
+        {alertas.length > 0 && visibles.length === 0 && <SinCoincidencias />}
 
         {visibles.length > 0 && (
           <ul className="alertas__lista">

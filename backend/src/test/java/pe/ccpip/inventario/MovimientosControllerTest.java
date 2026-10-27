@@ -98,6 +98,47 @@ class MovimientosControllerTest extends IntegrationTest {
     }
 
     @Test
+    void buscaPorProductoLoteOPedidoYFiltraPorFechaYCantidad() throws Exception {
+        Cookie admin = loginAs("admin_acopio@ccpip.test");
+        LocalDate hoy = LocalDate.now(ZoneId.of("America/Lima"));
+
+        // CCPIP-417: q busca en el producto sin mayusculas ni tildes, en el lote y en parte del pedido
+        listar(admin, "q", "SÁCHA inchi tostado")
+                .andExpect(jsonPath("$.items[*].producto", everyItem(is("Sacha inchi tostado"))))
+                .andExpect(jsonPath("$.items[*].pedido", hasItem("MC-T0148")));
+        listar(admin, "q", "t0148")
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].pedido").value("MC-T0148"));
+        listar(admin, "q", "l-t" + producto).andExpect(jsonPath("$.items[*].lote", everyItem(is("L-T" + producto))));
+        listar(admin, "q", "100%_").andExpect(jsonPath("$.total").value(0));
+
+        // Un dia (desde y hasta iguales) o un rango; la venta fue hoy
+        listar(admin, "pedido", "MC-T0148", "desde", hoy.toString(), "hasta", hoy.toString()).andExpect(jsonPath("$.total").value(1));
+        listar(admin, "pedido", "MC-T0148", "hasta", hoy.minusDays(1).toString()).andExpect(jsonPath("$.total").value(0));
+        listar(admin, "pedido", "MC-T0148", "desde", hoy.plusDays(1).toString()).andExpect(jsonPath("$.total").value(0));
+
+        // La venta fue de 2 unidades; los limites son inclusive
+        listar(admin, "pedido", "MC-T0148", "cantidadMin", "2", "cantidadMax", "2").andExpect(jsonPath("$.total").value(1));
+        listar(admin, "pedido", "MC-T0148", "cantidadMin", "2.5").andExpect(jsonPath("$.total").value(0));
+        listar(admin, "pedido", "MC-T0148", "cantidadMax", "1").andExpect(jsonPath("$.total").value(0));
+    }
+
+    @Test
+    void rechazaRangosAlReves() throws Exception {
+        Cookie admin = loginAs("admin_acopio@ccpip.test");
+        LocalDate hoy = LocalDate.now(ZoneId.of("America/Lima"));
+        listar(admin, "desde", hoy.toString(), "hasta", hoy.minusDays(1).toString())
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("RANGO_INVALIDO"));
+        listar(admin, "cantidadMin", "5", "cantidadMax", "1")
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("RANGO_INVALIDO"));
+        listar(admin, "cantidadMin", "-1")
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("VALOR_INVALIDO"));
+    }
+
+    @Test
     void elAdministradorDeOtroPuntoNoVeEsaVenta() throws Exception {
         jdbc.update("""
                 INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)

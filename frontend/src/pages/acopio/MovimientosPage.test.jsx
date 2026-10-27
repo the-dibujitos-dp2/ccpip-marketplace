@@ -75,32 +75,73 @@ describe('A-03 Movimientos del punto de acopio (CCPIP-158)', () => {
     expect(await screen.findByText('Aún no hay movimientos')).toBeInTheDocument()
   })
 
-  it('busca el movimiento que genero un pedido por su numero', async () => {
+  it('busca mientras se escribe por producto, lote o pedido, sin consultar con cada tecla (CCPIP-417)', async () => {
     const delPedido = conVenta()
     delPedido.items = delPedido.items.slice(0, 1)
     delPedido.total = 1
-    servidor(comoAcopio({
-      [`GET ${RUTA}?pagina=0`]: [200, copia(DATOS.movimientos)],
-      [`GET ${RUTA}?pagina=0&pedido=mc-00148`]: [200, delPedido],
-      [`GET ${RUTA}?pagina=0&pedido=MC-99999`]: [200, { ...delPedido, items: [], total: 0, totalPaginas: 0 }],
+    const fetchMock = servidor(comoAcopio({
+      [`GET ${RUTA}?pagina=0`]: () => [200, copia(DATOS.movimientos)],
+      [`GET ${RUTA}?pagina=0&q=mc-00148`]: [200, delPedido],
+      [`GET ${RUTA}?pagina=0&q=nada`]: [200, { ...delPedido, items: [], total: 0, totalPaginas: 0 }],
     }))
     const user = userEvent.setup()
     abrirEn('/acopio/movimientos')
     await screen.findByText('Camu camu en polvo 150 g')
 
-    await user.type(screen.getByLabelText('Número de pedido'), ' mc-00148 {Enter}')
-    expect(await screen.findByText('Movimientos del pedido MC-00148')).toBeInTheDocument()
-    expect(screen.getByText('Cafe tostado en grano 500 g · L-0010 · MC-00148')).toBeInTheDocument()
+    // Sin Enter: la lista cambia sola cuando se deja de escribir
+    await user.type(screen.getByRole('searchbox', { name: 'Buscar producto, lote o N.º de pedido' }), 'mc-00148')
+    expect(await screen.findByText('Cafe tostado en grano 500 g · L-0010 · MC-00148')).toBeInTheDocument()
     expect(screen.queryByText('Camu camu en polvo 150 g')).not.toBeInTheDocument()
+    // Una sola consulta con todo lo escrito, no una por letra
+    expect(fetchMock.mock.calls.filter(([url]) => url.includes('q='))).toHaveLength(1)
 
-    await user.clear(screen.getByLabelText('Número de pedido'))
-    await user.type(screen.getByLabelText('Número de pedido'), 'MC-99999{Enter}')
-    expect(await screen.findByText('Ese pedido no tiene movimientos en tu punto.')).toBeInTheDocument()
+    await user.clear(screen.getByRole('searchbox'))
+    await user.type(screen.getByRole('searchbox'), 'nada')
+    expect(await screen.findByText('Nada coincide con la búsqueda y los filtros')).toBeInTheDocument()
+  })
 
-    // Cerrar el aviso quita el filtro
-    await user.click(screen.getByRole('button', { name: 'Cerrar aviso' }))
-    expect(await screen.findByText('Camu camu en polvo 150 g')).toBeInTheDocument()
-    expect(screen.getByLabelText('Número de pedido')).toHaveValue('')
+  it('filtra por un rango de fechas y de cantidad, combinado con el tipo, y limpiar vuelve a todo (CCPIP-417)', async () => {
+    const soloVenta = conVenta()
+    soloVenta.items = soloVenta.items.slice(0, 1)
+    const FILTRADO = `GET ${RUTA}?pagina=0&tipo=SALIDAS&q=cafe&desde=2026-11-01&hasta=2026-11-30&cantidadMin=1&cantidadMax=5`
+    const fetchMock = servidor(comoAcopio({
+      [`GET ${RUTA}?pagina=0`]: () => [200, conVenta()],
+      [`GET ${RUTA}`]: [200, soloVenta],
+    }))
+    const user = userEvent.setup()
+    abrirEn('/acopio/movimientos')
+    await screen.findByText('Cafe tostado en grano 500 g · L-0010 · MC-00148')
+    expect(screen.getByText('Para ver un solo día, elige la misma fecha en Desde y Hasta.')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('tab', { name: 'Salidas' }))
+    await user.type(screen.getByRole('searchbox'), 'cafe')
+    await user.type(screen.getByLabelText('Desde'), '2026-11-01')
+    await user.type(screen.getByLabelText('Hasta'), '2026-11-30')
+    await user.type(screen.getByLabelText('Cantidad mínima'), '1')
+    await user.type(screen.getByLabelText('Cantidad máxima'), '5')
+    await waitFor(() => expect(llamadas(fetchMock, FILTRADO)).toHaveLength(1))
+
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+    expect(screen.getByRole('tab', { name: 'Todos' })).toHaveAttribute('aria-selected', 'true')
+    for (const campo of ['Desde', 'Hasta', 'Cantidad mínima', 'Cantidad máxima']) {
+      expect(screen.getByLabelText(campo)).toHaveValue(campo.startsWith('Cantidad') ? null : '')
+    }
+    expect(screen.getByRole('searchbox')).toHaveValue('')
+    await waitFor(() => expect(llamadas(fetchMock, `GET ${RUTA}?pagina=0`)).toHaveLength(2))
+    expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).not.toBeInTheDocument()
+  })
+
+  it('un rango al revés lo explica el servidor', async () => {
+    servidor(comoAcopio({
+      [`GET ${RUTA}?pagina=0`]: () => [200, conVenta()],
+      [`GET ${RUTA}?pagina=0&cantidadMin=5&cantidadMax=1`]: [422, { code: 'RANGO_INVALIDO', error: 'La cantidad mínima debe ser menor o igual a la máxima.' }],
+    }))
+    const user = userEvent.setup()
+    abrirEn('/acopio/movimientos')
+    await screen.findByText('Cafe tostado en grano 500 g · L-0010 · MC-00148')
+    await user.type(screen.getByLabelText('Cantidad mínima'), '5')
+    await user.type(screen.getByLabelText('Cantidad máxima'), '1')
+    expect(await screen.findByText('La cantidad mínima debe ser menor o igual a la máxima.')).toBeInTheDocument()
   })
 
   it('si falla lo dice y permite reintentar', async () => {

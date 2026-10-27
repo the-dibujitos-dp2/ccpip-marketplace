@@ -9,7 +9,8 @@ export const listarCausas = () => apiFetch('/api/merma/causas')
 function rutaReporte(base, sufijo = '', pagina = null, filtros = {}) {
   const p = new URLSearchParams()
   if (pagina != null) p.set('pagina', String(pagina))
-  for (const campo of ['desde', 'hasta', 'lote', 'producto', 'ubicacion']) {
+  // CCPIP-417: el productor se busca por su nombre, como el lote y el producto
+  for (const campo of ['desde', 'hasta', 'lote', 'producto', 'ubicacion', 'productor']) {
     if (filtros[campo]?.trim()) p.set(campo, filtros[campo].trim())
   }
   // Una descarga por enlace no permite añadir Accept-Language; el único idioma admitido viaja explícitamente como `lang`.

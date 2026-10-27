@@ -5,11 +5,14 @@ import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Buscador from '../../components/Buscador.jsx'
+import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
+import LimpiarFiltros, { SinCoincidencias } from '../../components/LimpiarFiltros.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
-import { fechaCorta, fechaHora, precio, unidades } from '../../formato.js'
+import { coincide, fechaCorta, fechaHora, precio, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import DialogoRecojo from './DialogoRecojo.jsx'
@@ -24,6 +27,11 @@ const FIJAS = ['CONFIRMADO', 'LISTO_PARA_RECOJO', 'ENTREGADO']
 
 /** El cambio de estado que el punto registra desde cada pestana. */
 const ACCION = { CONFIRMADO: 'PREPARACION', EN_PREPARACION: 'LISTO', LISTO_PARA_RECOJO: 'RECOJO' }
+
+const MODALIDADES = ['RECOJO', 'ENVIO']
+
+/** CCPIP-417: lo que encuentra la busqueda de un pedido: su numero, sus productos y comunidades, y quien lo recogio. */
+const textosPedido = (p) => [p.numero, p.recogidoPor, ...p.lineas.flatMap((l) => [l.producto, l.comunidad])]
 
 /** Cada cambio de estado que el punto registra con un boton: a que API llama y como lo dice (textos de acopio.pedidos). */
 const ACCIONES = {
@@ -56,17 +64,21 @@ function textoLote(lote) {
  * CCPIP-74: cada linea muestra los lotes asignados, el que vence antes primero, para saber que
  * entregar. CCPIP-71: el pedido listo se entrega con "Registrar recojo", que pide y valida en el
  * servidor quien recoge y su celular. CCPIP-419: los pedidos se ven en una tabla, con una pestana por
- * estado.
+ * estado. CCPIP-417: se buscan por texto y se filtran por modalidad; los conteos de las pestanas son los
+ * de lo encontrado.
  */
 export default function PedidosPage({ path }) {
   const { t } = useTranslation()
   const { datos, setDatos, error, recargar } = useConsulta(listarPedidos)
   const [estado, setEstado] = useState('CONFIRMADO')
+  const [texto, setTexto] = useState('')
+  const [modalidad, setModalidad] = useState('')
   const [aviso, setAviso] = useState(null)
   const [marcando, setMarcando] = useState(null)
   const [recojo, setRecojo] = useState(null)
 
-  const items = datos?.items ?? []
+  const filtrando = Boolean(texto.trim() || modalidad)
+  const items = (datos?.items ?? []).filter((p) => (!modalidad || p.modalidad === modalidad) && coincide(texto, ...textosPedido(p)))
   const delEstado = (e) => items.filter((p) => p.estado === e)
   const titulo = (e) => t(`acopio.pedidos.columna.${e}`)
   const pestanas = ESTADOS.filter((e) => FIJAS.includes(e) || e === estado || delEstado(e).length > 0)
@@ -120,12 +132,32 @@ export default function PedidosPage({ path }) {
 
       {!datos && !error && <Cargando />}
 
-      {!error && datos && items.length === 0 && (
+      {!error && datos?.items.length === 0 && (
         <EstadoVacio titulo={t('acopio.pedidos.vacio')} descripcion={t('acopio.pedidos.vacioTexto')} />
       )}
 
-      {!error && items.length > 0 && (
+      {!error && datos?.items.length > 0 && (
         <>
+          <div className="barra-filtros">
+            <Buscador
+              id="buscar-pedido-punto"
+              etiqueta={t('acopio.pedidos.buscar')}
+              placeholder={t('acopio.pedidos.buscar')}
+              maxLength={100}
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              onBuscar={(e) => e.preventDefault()}
+            />
+            <Campo
+              tipo="selector"
+              etiqueta={t('acopio.pedidos.modalidad')}
+              placeholder={t('acopio.pedidos.todasModalidades')}
+              value={modalidad}
+              onChange={(e) => setModalidad(e.target.value)}
+              opciones={MODALIDADES.map((m) => ({ valor: m, etiqueta: t(`acopio.pedidos.modalidadOpcion.${m}`) }))}
+            />
+            <LimpiarFiltros activos={filtrando} onLimpiar={() => { setTexto(''); setModalidad('') }} />
+          </div>
           <Pestanas
             etiqueta={t('acopio.pedidos.estados')}
             valor={estado}
@@ -133,9 +165,8 @@ export default function PedidosPage({ path }) {
             opciones={pestanas.map((e) => ({ valor: e, etiqueta: t('acopio.pedidos.columnaConteo', { titulo: titulo(e), total: delEstado(e).length }) }))}
           />
           <section role="tabpanel" aria-label={titulo(estado)}>
-            {visibles.length === 0 ? (
-              <EstadoVacio titulo={t(`acopio.pedidos.columnaVacia.${estado}`)} />
-            ) : (
+            {visibles.length === 0 && (filtrando ? <SinCoincidencias /> : <EstadoVacio titulo={t(`acopio.pedidos.columnaVacia.${estado}`)} />)}
+            {visibles.length > 0 && (
               <TablaPedidos pedidos={visibles} accion={ACCION[estado]} marcando={marcando} onMarcar={marcar} onRecojo={setRecojo} />
             )}
           </section>
