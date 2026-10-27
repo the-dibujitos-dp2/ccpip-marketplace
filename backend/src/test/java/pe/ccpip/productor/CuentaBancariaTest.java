@@ -31,7 +31,7 @@ class CuentaBancariaTest extends IntegrationTest {
 
     private static Map<String, Object> datos() {
         Map<String, Object> d = new LinkedHashMap<>();
-        d.put("titular", "Comunidad Kukama de Nauta");
+        d.put("titular", "Comunidad Kukama Kukamiria de Nauta");
         d.put("documento", "20609876543");
         d.put("banco", "Banco de la Nación");
         d.put("tipoCuenta", "AHORROS");
@@ -69,7 +69,7 @@ class CuentaBancariaTest extends IntegrationTest {
                 .andExpect(jsonPath("$.cvv").doesNotExist())
                 .andExpect(jsonPath("$.vencimiento").doesNotExist());
         mockMvc.perform(get(RUTA).cookie(nuevo))
-                .andExpect(jsonPath("$.titular").value("Comunidad Kukama de Nauta"))
+                .andExpect(jsonPath("$.titular").value("Comunidad Kukama Kukamiria de Nauta"))
                 .andExpect(jsonPath("$.banco").value("Banco de la Nación"));
         // Una sola cuenta por productor: la siguiente vez se actualiza
         enviar(post(RUTA), nuevo, datos()).andExpect(status().isConflict())

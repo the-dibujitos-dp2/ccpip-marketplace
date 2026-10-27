@@ -53,7 +53,7 @@ class PedidosPuntoControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.numero").value("MC-T0159"))
                 .andExpect(jsonPath("$.estado").value("LISTO_PARA_RECOJO"))
                 .andExpect(jsonPath("$.lineas[0].producto").value("Sacha inchi tostado"))
-                .andExpect(jsonPath("$.lineas[0].comunidad").value("Asoc. Nii Joi"))
+                .andExpect(jsonPath("$.lineas[0].comunidad").value("Bordadoras de San Francisco"))
                 .andExpect(jsonPath("$.lineas[0].cantidad").value(2))
                 .andExpect(jsonPath("$.historial[0].estado").value("CONFIRMADO"))
                 // La confirmacion la hizo el comprador: no se nombra al punto (RNF-05)

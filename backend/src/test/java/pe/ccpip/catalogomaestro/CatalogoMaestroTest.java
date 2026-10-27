@@ -327,8 +327,8 @@ class CatalogoMaestroTest extends IntegrationTest {
         Cookie sesion = loginAs(SUPER);
         mockMvc.perform(get(PRODUCTOS).cookie(sesion))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.contadores.activos").value(10))
-                .andExpect(jsonPath("$.productos.length()").value(10))
+                .andExpect(jsonPath("$.contadores.activos").value(14))
+                .andExpect(jsonPath("$.productos.length()").value(14))
                 .andExpect(jsonPath("$.productos[0].linea.codigo").value("CACAO"))
                 .andExpect(jsonPath("$.productos[0].codigo").value("CACAO-GRANO"))
                 .andExpect(jsonPath("$.productos[0].nombre").value("Cacao en grano fermentado"))
