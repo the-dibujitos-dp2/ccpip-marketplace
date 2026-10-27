@@ -282,7 +282,7 @@ class MovimientosManualesTest extends IntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.saldoLote").value(20.0))
                 .andExpect(jsonPath("$.movimiento.motivo").value("PRODUCCION"))
-                .andExpect(jsonPath("$.movimiento.registradoPor").value("Comunidad Shipibo"));
+                .andExpect(jsonPath("$.movimiento.registradoPor").value("Comunidad Shipibo-Konibo"));
         registrar(productor, ALMACEN, cuerpo("SALIDA", lote, "5", "RETIRO_PRODUCTOR", null))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.saldoLote").value(15.0));

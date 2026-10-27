@@ -593,7 +593,7 @@ erDiagram
 `producto.producto_maestro_id` (nula) liga cada oferta a su maestro. Una oferta creada por el
 productor nace sin maestro hasta que la Camara la asocie; crear, modificar y desactivar maestros
 desde la plataforma es CCPIP-312, 313 y 314. Por ahora los maestros entran sembrados en `R__02`,
-que agrega una segunda oferta de cacao en grano (Coop. Río Ene) junto a la de C.N. Yarina.
+que agrega una segunda oferta de cacao en grano (Asháninka de Pampa Michi) junto a la de Cacaoteros de Umukai.
 
 **Cada oferta conserva lo suyo.** Nombre, presentacion, precio, historia, existencias y estado
 de venta siguen en la oferta, no en el maestro. `GET /api/maestros/{id}` devuelve el maestro con

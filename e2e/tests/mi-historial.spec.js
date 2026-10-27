@@ -46,16 +46,16 @@ test.describe('Mi historial del sub administrador (CCPIP-126)', () => {
 
     // El otro sub administrador bloquea y desbloquea a un productor
     await ingresar(page, OTRO, CLAVE_OTRO)
-    const rioEne = await productor(page, 'Coop. Río Ene')
-    expect((await api(page, 'POST', `/api/admin/productores/${rioEne}/bloquear`, { motivo: BLOQUEO_AJENO })).status).toBe(200)
-    expect((await api(page, 'POST', `/api/admin/productores/${rioEne}/desbloquear`, { motivo: BLOQUEO_AJENO })).status).toBe(200)
+    const pampaMichi = await productor(page, 'Asháninka de Pampa Michi')
+    expect((await api(page, 'POST', `/api/admin/productores/${pampaMichi}/bloquear`, { motivo: BLOQUEO_AJENO })).status).toBe(200)
+    expect((await api(page, 'POST', `/api/admin/productores/${pampaMichi}/desbloquear`, { motivo: BLOQUEO_AJENO })).status).toBe(200)
     await salir(page)
 
     // El sub administrador de prueba hace sus propias acciones
     await ingresar(page, SUB)
-    const yarina = await productor(page, 'C.N. Yarina')
-    expect((await api(page, 'POST', `/api/admin/productores/${yarina}/bloquear`, { motivo: BLOQUEO_PROPIO })).status).toBe(200)
-    expect((await api(page, 'POST', `/api/admin/productores/${yarina}/desbloquear`, { motivo: DESBLOQUEO_PROPIO })).status).toBe(200)
+    const umukai = await productor(page, 'Cacaoteros de Umukai')
+    expect((await api(page, 'POST', `/api/admin/productores/${umukai}/bloquear`, { motivo: BLOQUEO_PROPIO })).status).toBe(200)
+    expect((await api(page, 'POST', `/api/admin/productores/${umukai}/desbloquear`, { motivo: DESBLOQUEO_PROPIO })).status).toBe(200)
 
     // Llega por el menu y ve sus acciones, no las del otro
     const errores = vigilarConsola(page)
@@ -63,7 +63,7 @@ test.describe('Mi historial del sub administrador (CCPIP-126)', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Mi historial' })).toBeVisible()
     const bloqueo = fila(page, BLOQUEO_PROPIO)
     await expect(bloqueo.getByText('Bloqueó productor')).toBeVisible()
-    await expect(bloqueo.getByRole('link', { name: 'C.N. Yarina' })).toHaveAttribute('href', `/admin/productores/${yarina}`)
+    await expect(bloqueo.getByRole('link', { name: 'Cacaoteros de Umukai' })).toHaveAttribute('href', `/admin/productores/${umukai}`)
     await expect(fila(page, DESBLOQUEO_PROPIO).getByText('Desbloqueó productor')).toBeVisible()
     await expect(page.getByText(BLOQUEO_AJENO)).toHaveCount(0)
     await expect(page.getByText('Registro inalterable. Las correcciones se registran como nuevas acciones.')).toBeVisible()
@@ -83,9 +83,9 @@ test.describe('Mi historial del sub administrador (CCPIP-126)', () => {
     await expect(fila(page, BLOQUEO_PROPIO)).toBeVisible()
 
     // "Sobre" lleva a la ficha del productor
-    await fila(page, BLOQUEO_PROPIO).getByRole('link', { name: 'C.N. Yarina' }).click()
-    await expect(page).toHaveURL(new RegExp(`/admin/productores/${yarina}$`))
-    await expect(page.getByRole('heading', { level: 1, name: 'C.N. Yarina' })).toBeVisible()
+    await fila(page, BLOQUEO_PROPIO).getByRole('link', { name: 'Cacaoteros de Umukai' }).click()
+    await expect(page).toHaveURL(new RegExp(`/admin/productores/${umukai}$`))
+    await expect(page.getByRole('heading', { level: 1, name: 'Cacaoteros de Umukai' })).toBeVisible()
     expect(errores).toEqual([])
     await salir(page)
 
