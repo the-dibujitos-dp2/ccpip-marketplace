@@ -356,8 +356,10 @@ class CatalogoControllerTest extends IntegrationTest {
         mockMvc.perform(get("/api/inicio"))
                 .andExpect(jsonPath("$.tiendas.length()").value(3))
                 .andExpect(jsonPath("$.lineas[0].codigo").value("CACAO"))
-                .andExpect(jsonPath("$.destacados.length()").value(8))
-                .andExpect(jsonPath("$.novedades.length()").value(8));
+                // CCPIP-57: uno por productor de los que cada tienda destaco (R__02 destaca en las tres)
+                .andExpect(jsonPath("$.destacados.length()").value(3))
+                // CCPIP-338: las novedades se piden aparte, por periodo
+                .andExpect(jsonPath("$.novedades").doesNotExist());
     }
 
     @Test

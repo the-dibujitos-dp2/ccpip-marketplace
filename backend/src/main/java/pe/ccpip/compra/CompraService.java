@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ import pe.ccpip.carrito.CarritoService;
 import pe.ccpip.carrito.Tarifas.Tarifa;
 import pe.ccpip.comision.ComisionModelos.ComisionPedido;
 import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.compra.CompraModelos.AdvertenciaPerecible;
 import pe.ccpip.compra.CompraModelos.DistritoConPuntos;
 import pe.ccpip.compra.CompraModelos.EventoPedido;
 import pe.ccpip.compra.CompraModelos.IntentoPago;
@@ -84,6 +87,43 @@ public class CompraService {
                     .puntos().add(elegibles.get(c.puntoId()));
         }
         return List.copyOf(porDistrito.values());
+    }
+
+    /**
+     * CCPIP-295 (RF-155): las advertencias de perecibilidad del carrito para el punto del que saldria el
+     * pedido (el de recojo o el que entrega a domicilio). Por cada producto con lotes que vencen, el
+     * vencimiento del lote mas proximo a vencer en ese punto: es el primero que se descuenta al pagar
+     * (FEFO, {@code DescuentoExistenciasService}). Lo que no vence (artesania, textiles) no se advierte.
+     *
+     * <p>Se basa solo en datos registrados: no estima el tiempo de entrega ni bloquea la compra. La unica
+     * restriccion por destino es la aprobada, la cobertura del punto (CCPIP-59). Un punto que ya no tiene
+     * todo el carrito responde 409, como al confirmar.
+     */
+    @Transactional
+    public List<AdvertenciaPerecible> advertencias(long usuarioId, long puntoId) {
+        List<Item> items = comprables(usuarioId);
+        if (puntos(items, puntoId).isEmpty()) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "PUNTO_SIN_EXISTENCIAS",
+                    "Este punto de acopio ya no tiene existencias para todo tu carrito. Elige otro punto.");
+        }
+        MapSqlParameterSource p = new MapSqlParameterSource("punto", puntoId)
+                .addValue("productos", items.stream().map(Item::productoId).toList());
+        record Vence(LocalDate fecha, long dias) {
+        }
+        Map<Long, Vence> porProducto = new HashMap<>();
+        jdbc.query("""
+                SELECT l.producto_id, min(l.fecha_vencimiento) AS vence, min(l.fecha_vencimiento) - %1$s AS dias
+                FROM lote l
+                WHERE l.ubicacion_id = :punto AND l.producto_id IN (:productos) AND l.cantidad_actual > 0
+                  AND l.fecha_vencimiento IS NOT NULL AND l.fecha_vencimiento >= %1$s
+                GROUP BY l.producto_id""".formatted(HOY), p,
+                (RowCallbackHandler) rs -> porProducto.put(rs.getLong("producto_id"),
+                        new Vence(rs.getObject("vence", LocalDate.class), rs.getLong("dias"))));
+        // En el orden del carrito, con el nombre que el comprador ve en el
+        return items.stream().filter(i -> porProducto.containsKey(i.productoId())).map(i -> {
+            Vence v = porProducto.get(i.productoId());
+            return new AdvertenciaPerecible(i.productoId(), i.nombre(), v.fecha(), v.dias());
+        }).toList();
     }
 
     /**

@@ -94,6 +94,12 @@
 .autorizaciones__fecha { flex: 0 0 80px; }
 .autorizaciones__accion { flex: 0 0 110px; display: flex; justify-content: flex-end; }
 .autorizaciones__linea { display: block; color: var(--color-text-secondary); }
+
+/* CCPIP-184: vigencia de certificados */
+.certificados__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.certificados__filtros .certificados__horizonte { flex: 0 0 200px; width: 200px; }
+.certificados__vence { flex: 0 0 170px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.certificados__renovacion { flex: 0 0 190px; }
 .tabla__celda--flex .label-m { display: block; }
 
 .expediente { display: grid; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; gap: 24px; }

@@ -165,16 +165,19 @@ public class CatalogoRepository {
     public Optional<ProductoDetalle> detalle(long id) {
         MapSqlParameterSource p = new MapSqlParameterSource("id", id);
         return jdbc.query("""
-                SELECT %s, p.descripcion, p.cantidad_minima_mayorista, p.producto_maestro_id, %s AS comprable
+                SELECT %s, p.descripcion, p.cantidad_minima_mayorista, p.producto_maestro_id, p.es_materia_prima,
+                       %s AS comprable
                 %s AND p.id = :id""".formatted(COLUMNAS, HABILITADA, VISIBLE), p,
                 (rs, row) -> {
                     ProductoResumen r = resumen(rs, row);
                     Long maestro = (Long) rs.getObject("producto_maestro_id");
+                    boolean materiaPrima = rs.getBoolean("es_materia_prima");
                     return new ProductoDetalle(r.id(), r.nombre(), rs.getString("descripcion"), r.contenido(), r.unidad(),
                             r.linea(), lineas(r.id()), r.modalidad(), r.precio(), r.precioMayorista(),
                             (Integer) rs.getObject("cantidad_minima_mayorista"), r.disponible(),
                             rs.getBoolean("comprable"), imagenes(r.id()),
-                            r.tienda(), historia(r.id()), cosecha(r.id()), relacionados(r), null,
+                            r.tienda(), historia(r.id()), cosecha(r.id()), materiaPrima, relacionados(r, materiaPrima),
+                            porMateriaPrima(r.id(), materiaPrima), null,
                             maestro == null ? null : maestro(maestro).orElse(null));
                 }).stream().findFirst();
     }
@@ -232,11 +235,19 @@ public class CatalogoRepository {
                 p, CatalogoRepository::resumen);
     }
 
+    /**
+     * CCPIP-57 (RF-37): los productos destacados del inicio y sus productores. La regla aprobada el 26/10:
+     * solo lo que cada productor destaca en su tienda (hasta 4, CCPIP-30), en venta, y uno por productor
+     * para que ninguna comunidad acapare el inicio: el que publico mas recientemente. Entre productores,
+     * primero lo publicado mas recientemente. Si nadie destaco nada la lista va vacia; no se rellena con
+     * productos que nadie eligio.
+     */
     public List<ProductoResumen> destacados(int cuantos) {
         MapSqlParameterSource p = new MapSqlParameterSource("n", cuantos);
-        return jdbc.query("SELECT " + COLUMNAS + VISIBLE + " AND " + EN_VENTA + " > 0"
-                + " ORDER BY p.destacado_tienda DESC, p.publicado_en DESC NULLS LAST, p.id DESC LIMIT :n",
-                p, CatalogoRepository::resumen);
+        return jdbc.query("SELECT * FROM (SELECT DISTINCT ON (pr.id) " + COLUMNAS + ", p.publicado_en " + VISIBLE
+                + " AND p.destacado_tienda AND " + EN_VENTA + " > 0"
+                + " ORDER BY pr.id, p.publicado_en DESC NULLS LAST, p.id DESC) x"
+                + " ORDER BY x.publicado_en DESC NULLS LAST, x.id DESC LIMIT :n", p, CatalogoRepository::resumen);
     }
 
     /**
@@ -266,10 +277,16 @@ public class CatalogoRepository {
                 + " ORDER BY x.unidades_vendidas DESC, x.pedidos_venta DESC, x.nombre, x.id LIMIT :n", p, CatalogoRepository::resumen);
     }
 
-    public List<ProductoResumen> novedades(int cuantos) {
-        MapSqlParameterSource p = new MapSqlParameterSource("n", cuantos);
+    /**
+     * CCPIP-338 (RF-228): los productos visibles publicados entre :desde y :hasta (fechas de Lima) que estan en
+     * venta, del mas reciente al mas antiguo. La fecha es la de su publicacion (al aprobarla la moderacion,
+     * CCPIP-46); retirar y volver a publicar no la renueva.
+     */
+    public List<ProductoResumen> novedades(LocalDate desde, LocalDate hasta, int cuantos) {
+        MapSqlParameterSource p = new MapSqlParameterSource("n", cuantos).addValue("desde", desde).addValue("hasta", hasta);
         return jdbc.query("SELECT " + COLUMNAS + VISIBLE + " AND " + EN_VENTA + " > 0"
-                + " ORDER BY p.publicado_en DESC NULLS LAST, p.id DESC LIMIT :n", p, CatalogoRepository::resumen);
+                + " AND (p.publicado_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta"
+                + " ORDER BY p.publicado_en DESC, p.id DESC LIMIT :n", p, CatalogoRepository::resumen);
     }
 
     // ---------- Partes de la ficha ----------
@@ -322,15 +339,37 @@ public class CatalogoRepository {
         return fila.isEmpty() ? null : fila.get(0);
     }
 
-    private List<ProductoResumen> relacionados(ProductoResumen r) {
+    /**
+     * "Tambien de" su linea: de la misma clase que el producto (materia prima o terminado), para no repetir
+     * lo que ya muestra la seccion de materia prima (CCPIP-55).
+     */
+    private List<ProductoResumen> relacionados(ProductoResumen r, boolean materiaPrima) {
         if (r.linea() == null) {
             return List.of();
         }
-        MapSqlParameterSource p = new MapSqlParameterSource().addValue("id", r.id()).addValue("linea", r.linea().codigo());
+        MapSqlParameterSource p = new MapSqlParameterSource().addValue("id", r.id()).addValue("linea", r.linea().codigo())
+                .addValue("materiaPrima", materiaPrima);
         return jdbc.query("SELECT " + COLUMNAS + VISIBLE + """
-                 AND p.id <> :id AND EXISTS (SELECT 1 FROM producto_linea pl JOIN linea_producto x ON x.id = pl.linea_id
-                                             WHERE pl.producto_id = p.id AND x.codigo = :linea)
+                 AND p.id <> :id AND p.es_materia_prima = :materiaPrima
+                 AND EXISTS (SELECT 1 FROM producto_linea pl JOIN linea_producto x ON x.id = pl.linea_id
+                             WHERE pl.producto_id = p.id AND x.codigo = :linea)
                 ORDER BY (%s > 0) DESC, p.publicado_en DESC NULLS LAST LIMIT 4""".formatted(EN_VENTA),
+                p, CatalogoRepository::resumen);
+    }
+
+    /**
+     * CCPIP-55 (RF-35): productos relacionados por materia prima. Para un producto terminado, las materias
+     * primas que comparten alguna de sus lineas; para una materia prima, lo terminado de esas lineas. Solo
+     * ofertas reales y visibles del catalogo, primero las que estan en venta. Se basa en lo que el productor
+     * declaro (la marca "es materia prima" y sus lineas): no afirma que un producto este hecho con otro.
+     */
+    private List<ProductoResumen> porMateriaPrima(long id, boolean materiaPrima) {
+        MapSqlParameterSource p = new MapSqlParameterSource().addValue("id", id).addValue("otra", !materiaPrima);
+        return jdbc.query("SELECT " + COLUMNAS + VISIBLE + """
+                 AND p.id <> :id AND p.es_materia_prima = :otra
+                 AND EXISTS (SELECT 1 FROM producto_linea pl JOIN producto_linea mia ON mia.linea_id = pl.linea_id
+                             WHERE pl.producto_id = p.id AND mia.producto_id = :id)
+                ORDER BY (%s > 0) DESC, p.publicado_en DESC NULLS LAST, p.id DESC LIMIT 4""".formatted(EN_VENTA),
                 p, CatalogoRepository::resumen);
     }
 

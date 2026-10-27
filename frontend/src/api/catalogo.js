@@ -23,9 +23,13 @@ export function buscarProductos({ q, lineas = [], regiones = [], modalidad, tien
 export const obtenerProducto = async (id) => apiFetch(`/api/productos/${idRuta(id)}`, publico)
 /** CCPIP-365: evidencias publicas de certificacion del producto (sin archivos). */
 export const obtenerCertificacion = async (id) => apiFetch(`/api/productos/${idRuta(id)}/certificacion`, publico)
+/** CCPIP-169: los premios del producto, declarados por su productor con evidencia, sin el archivo. */
+export const obtenerPremios = async (id) => apiFetch(`/api/productos/${idRuta(id)}/premios`, publico)
 export const obtenerInicio = () => apiFetch('/api/inicio', publico)
 /** CCPIP-339: los mas vendidos del periodo (ULTIMOS_30_DIAS, ULTIMOS_3_MESES o ESTE_ANIO), en orden de puesto. */
 export const obtenerMasVendidos = (periodo) => apiFetch(`/api/mas-vendidos?periodo=${encodeURIComponent(periodo)}`, publico)
+/** CCPIP-338: lo publicado en el periodo y en venta, del mas reciente al mas antiguo. */
+export const obtenerNovedades = (periodo) => apiFetch(`/api/novedades?periodo=${encodeURIComponent(periodo)}`, publico)
 export const listarTiendas = () => apiFetch('/api/tiendas', publico)
 export const obtenerTienda = async (id) => apiFetch(`/api/tiendas/${idRuta(id)}`, publico)
 export const obtenerCatalogos = () => apiFetch('/api/catalogos', publico)
