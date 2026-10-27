@@ -903,7 +903,8 @@
     "rol": "Distributor",
     "migas": "Delivery",
     "nav": {
-      "pedidos": "Available orders"
+      "pedidos": "Available orders",
+      "entregas": "My deliveries"
     },
     "pedidos": {
       "titulo": "Available orders",
@@ -947,6 +948,45 @@
         "minutos": "{{m}} min",
         "horas": "{{h}} h",
         "dias": "{{d}}d {{h}}h"
+      }
+    },
+    "entregas": {
+      "titulo": "My deliveries",
+      "cargando": "Loading your deliveries…",
+      "error": "We could not load your deliveries",
+      "reintentar": "Try again",
+      "actualizar": "Refresh",
+      "enCurso_one": "{{count}} delivery in progress",
+      "enCurso_other": "{{count}} deliveries in progress",
+      "vacio": "You have no deliveries in progress",
+      "vacioTexto": "Take prepared orders in Available orders to deliver them.",
+      "verDisponibles": "See available orders",
+      "recogerEn": "Pick up at {{punto}}",
+      "destino": "Destination in {{provincia}}, {{departamento}}",
+      "asignadaEn": "You took it on {{fecha}}",
+      "retiradaEn": "You picked it up from the point on {{fecha}}",
+      "retirar": "I picked up the order",
+      "retirando": "Saving…",
+      "retirado": "You recorded the pickup of order {{numero}}.",
+      "errorRetirar": "We could not record the pickup of order {{numero}}",
+      "entregadosHoy": "Delivered today",
+      "sinEntregadosHoy": "You have not delivered any orders today.",
+      "estado": {
+        "ASIGNADA": "To pick up",
+        "RETIRADA": "Picked up",
+        "EN_CAMINO": "On the way",
+        "ENTREGADA": "Delivered"
+      },
+      "pasos": {
+        "etiqueta": "Progress of delivery {{numero}}",
+        "recogido": "Picked up",
+        "enCamino": "On the way",
+        "entregado": "Delivered"
+      },
+      "col": {
+        "pedido": "Order",
+        "destino": "Destination",
+        "estado": "Status"
       }
     }
   },
@@ -1923,6 +1963,8 @@
     "PEDIDO_PARA_RECOJO": "This order is picked up at the point; it is not dispatched for home delivery.",
     "PEDIDO_YA_ASUMIDO": "Another distributor already took this order.",
     "PEDIDO_NO_DISPONIBLE": "This order is not available to take.",
+    "PEDIDO_NO_ASIGNADO": "This order is not assigned to you.",
+    "PEDIDO_NO_RETIRABLE": "This order can no longer be picked up from the point.",
     "PEDIDO_NO_PAGABLE": "This order can no longer be paid.",
     "PAGO_EN_CURSO": "There's already a payment in progress for this order. Wait for its result before trying again.",
     "CLAVE_REUTILIZADA": "This payment attempt belongs to another order.",

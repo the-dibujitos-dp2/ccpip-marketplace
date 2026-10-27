@@ -93,8 +93,9 @@ describe('DW-01 Pedidos disponibles del distribuidor (CCPIP-107)', () => {
     servidor(comoDistribuidor())
     abrirEn('/distribuidor/pedidos')
     const menu = within(await screen.findByRole('navigation', { name: 'Distribuidor' }))
-    expect(menu.getAllByRole('link')).toHaveLength(1)
+    expect(menu.getAllByRole('link').map((l) => l.textContent)).toEqual(['Pedidos disponibles', 'Mis entregas'])
     expect(menu.getByRole('link', { name: 'Pedidos disponibles' })).toHaveAttribute('aria-current', 'page')
+    expect(menu.getByRole('link', { name: 'Mis entregas' })).toHaveAttribute('href', '/distribuidor/entregas')
   })
 
   it('se filtra por punto de acopio y se vuelve a ver todos', async () => {

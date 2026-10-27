@@ -1,4 +1,4 @@
-// Distribucion de pedidos a domicilio: lo que ve y hace el distribuidor (CCPIP-107, CCPIP-108).
+// Distribucion de pedidos a domicilio: lo que ve y hace el distribuidor (CCPIP-107, CCPIP-108, CCPIP-317, CCPIP-109).
 import { apiFetch } from './http.js'
 
 /**
@@ -24,3 +24,18 @@ export function listarPedidosDisponibles({ punto, cursor, limite } = {}) {
  */
 export const asumirEntrega = (numero) =>
   apiFetch(`/api/distribuidor/pedidos/${encodeURIComponent(numero)}/asumir`, { method: 'POST' })
+
+/**
+ * CCPIP-317: las entregas asignadas al distribuidor, solo las suyas: [{ numero, origen, destino, estado, asignadaEn,
+ * retiradaEn }]. `estado` es el de la entrega (ASIGNADA, RETIRADA, EN_CAMINO o ENTREGADA); primero las que estan en
+ * curso, la que tomo antes primero, y despues las que entrego hoy.
+ */
+export const listarMisEntregas = () => apiFetch('/api/distribuidor/pedidos')
+
+/**
+ * CCPIP-109: registra que retiro del punto de acopio la entrega que tomo; devuelve la entrega con estado RETIRADA y
+ * retiradaEn. Si no es suya responde 409 PEDIDO_NO_ASIGNADO; si ya no se puede retirar, 409 PEDIDO_NO_RETIRABLE.
+ * Repetirlo no cambia nada.
+ */
+export const retirarEntrega = (numero) =>
+  apiFetch(`/api/distribuidor/pedidos/${encodeURIComponent(numero)}/retirar`, { method: 'POST' })
