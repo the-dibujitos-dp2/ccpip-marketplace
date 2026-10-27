@@ -44,6 +44,7 @@ async function autorizarProducto(page, id) {
   expect(aprobada.status).toBe(200)
   expect(aprobada.cuerpo.estado).toBe('APROBADA')
   expect(aprobada.cuerpo.vigenteHasta).toBe(enDias(365))
+  await aprobarPublicacionPendiente(page, id)
 
   expect((await api(page, 'POST', '/api/auth/logout')).status).toBe(204)
   await ingresar(page, 'productor_nuevo@ccpip.test')
@@ -51,6 +52,27 @@ async function autorizarProducto(page, id) {
   expect(autorizacion.estado).toBe('APROBADA')
   expect(autorizacion.vigenteHasta).toBe(enDias(365))
   expect(autorizacion.cubreLineas).toBe(true)
+}
+
+/** CCPIP-331: con la sesion del subadministrador, aprueba la publicacion pendiente del producto. */
+async function aprobarPublicacionPendiente(page, id) {
+  const solicitud = (await api(page, 'GET', '/api/admin/moderacion')).cuerpo.solicitudes
+    .find((s) => s.productoId === Number(id))
+  expect(solicitud).toBeDefined()
+  const aprobada = await api(page, 'POST', `/api/admin/moderacion/${solicitud.id}/aprobar`, {
+    motivo: 'Oferta completa y autorizada para la venta',
+  })
+  expect(aprobada.status).toBe(200)
+  expect(aprobada.cuerpo.estado).toBe('APROBADA')
+}
+
+/** CCPIP-46 y CCPIP-331: la Cámara revisa y aprueba la publicación que pidió el productor. */
+async function moderarPublicacion(page, id) {
+  expect((await api(page, 'POST', '/api/auth/logout')).status).toBe(204)
+  await ingresar(page, 'sub_admin@ccpip.test')
+  await aprobarPublicacionPendiente(page, id)
+  expect((await api(page, 'POST', '/api/auth/logout')).status).toBe(204)
+  await ingresar(page, 'productor_nuevo@ccpip.test')
 }
 
 test.describe('Productor: arma su tienda y publica su producto', () => {
@@ -192,14 +214,21 @@ test.describe('Productor: arma su tienda y publica su producto', () => {
     await expect(page.getByRole('list', { name: 'Lotes de este producto' }).getByText('L-0001')).toBeVisible()
     await sinViolaciones(page)
 
+    // CCPIP-46: publicar pide la revision de la Camara; mientras tanto no esta en el catalogo
     await page.getByRole('button', { name: 'Publicar producto' }).click()
-    await expect(page).toHaveURL(/\/productor\/productos\?publicado=1/)
-    await expect(page.getByText('Producto publicado')).toBeVisible()
+    await expect(page).toHaveURL(/\/productor\/productos\?estado=EN_MODERACION&enviado=1/)
+    await expect(page.getByText('Enviado a revisión')).toBeVisible()
     const fila = page.getByRole('list', { name: 'Productos' }).getByRole('listitem').filter({ hasText: PRODUCTO })
     await expect(fila).toContainText('60 und')
     await expect(fila).toContainText('Minorista y mayorista')
-    await expect(fila).toContainText('Publicado')
+    await expect(fila).toContainText('En revisión')
+    // Por fuera de la pagina: un 404 pedido desde ella saldria como error en la consola que se vigila
+    expect((await page.request.get(`/api/productos/${productoId}`)).status()).toBe(404)
+    // La Camara autoriza la venta y aprueba la publicacion (CCPIP-331)
     await autorizarProducto(page, productoId)
+    await page.goto('/productor/productos')
+    await expect(page.getByRole('list', { name: 'Productos' }).getByRole('listitem').filter({ hasText: PRODUCTO }))
+      .toContainText('Publicado')
     await sinViolaciones(page)
     expect(errores).toEqual([])
   })
@@ -288,7 +317,10 @@ test.describe('Edicion y estado del producto (CCPIP-47, 160)', () => {
     await page.getByRole('tab', { name: /Despublicados \(1\)/ }).click()
     await page.getByRole('button', { name: `Más acciones para ${PRODUCTO}` }).click()
     await page.getByRole('menuitem', { name: 'Volver a publicar' }).click()
-    await expect(page.getByText('Producto publicado')).toBeVisible()
+    await expect(page.getByText('Enviado a revisión')).toBeVisible()
+    // La republicacion tambien pasa por la Camara (CCPIP-46)
+    expect((await page.request.get(`/api/productos/${productoId}`)).status()).toBe(404)
+    await moderarPublicacion(page, productoId)
 
     await page.goto(`/productos/${productoId}`)
     await expect(page.getByRole('heading', { level: 1, name: PRODUCTO })).toBeVisible()

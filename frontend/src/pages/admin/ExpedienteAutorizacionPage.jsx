@@ -16,23 +16,21 @@ import {
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
-import Campo from '../../components/Campo.jsx'
-import Cargando from '../../components/Cargando.jsx'
-import Dialogo from '../../components/Dialogo.jsx'
 import Icono from '../../components/Icono.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { fechaCorta, fechaHora } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
-import { BadgeVigencia } from '../productor/EvidenciasPage.jsx'
 import { BadgeAnalisis } from './AutorizacionesPage.jsx'
 import RenovacionesCertificado from './RenovacionesCertificado.jsx'
+import { CampoMotivo, DialogoDecision, FilaEvidencia, SinExpediente, useDecision } from './revision.jsx'
 import '../productor/productor.css'
 import './admin.css'
 
 const TONO_ESTADO = { SOLICITADA: 'info', APROBADA: 'exito', RECHAZADA: 'error', REVOCADA: 'error' }
 const TONO_HALLAZGO = { CONFORME: 'exito', INCONSISTENCIA: 'aviso', FALTANTE: 'error' }
 const ENVIAR = { aprobar: aprobarAutorizacion, rechazar: rechazarAutorizacion, revocar: revocarAutorizacion }
+const RECARGAR_SI = ['SOLICITUD_YA_RESUELTA', 'AUTORIZACION_NO_APROBADA']
 
 /**
  * S-02 adaptada: expediente de la solicitud de autorizacion de un producto. El sub administrador revisa
@@ -44,13 +42,8 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
   const { t } = useTranslation()
   const [exp, setExp] = useState(null)
   const [error, setError] = useState(null)
-  const [aviso, setAviso] = useState(null)
   const [analizando, setAnalizando] = useState(false)
   const [sinServicio, setSinServicio] = useState(false)
-  const [motivo, setMotivo] = useState('')
-  const [errorMotivo, setErrorMotivo] = useState(null)
-  const [confirmar, setConfirmar] = useState(null) // 'aprobar' | 'rechazar' | 'revocar'
-  const [decidiendo, setDecidiendo] = useState(false)
 
   const cargar = useCallback(async () => {
     try {
@@ -64,6 +57,12 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
   useEffect(() => {
     cargar()
   }, [cargar])
+
+  const decision = useDecision({
+    textos: 'autorizaciones',
+    id, enviar: ENVIAR, alDecidir: setExp, recargar: cargar, recargarSi: RECARGAR_SI,
+  })
+  const { aviso, setAviso, decidiendo, pedirConfirmacion } = decision
 
   async function analizar() {
     setAnalizando(true)
@@ -85,39 +84,8 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
     }
   }
 
-  function pedirConfirmacion(accion) {
-    if (!motivo.trim()) {
-      setErrorMotivo(t('autorizaciones.expediente.motivoRequerido'))
-      return
-    }
-    setErrorMotivo(null)
-    setConfirmar(accion)
-  }
-
-  async function decidir() {
-    setDecidiendo(true)
-    try {
-      setExp(await ENVIAR[confirmar](id, motivo.trim()))
-      setAviso({ tono: 'exito', titulo: t(`autorizaciones.expediente.hecho.${confirmar}`) })
-      setMotivo('')
-    } catch (e) {
-      setAviso({ tono: 'error', titulo: mensajeError(e, 'autorizaciones.expediente.errorDecision') })
-      if (e.code === 'SOLICITUD_YA_RESUELTA' || e.code === 'AUTORIZACION_NO_APROBADA') await cargar()
-    } finally {
-      setDecidiendo(false)
-      setConfirmar(null)
-    }
-  }
-
   const migas = `${t('admin.nav.autorizaciones')}${exp ? ` / ${exp.producto}` : ''}`
-  if (!exp) {
-    return (
-      <LayoutAdmin path={path} migas={migas} titulo={t('autorizaciones.expediente.titulo')}>
-        {error ? <Alerta tono="error" titulo={mensajeError(error, 'autorizaciones.expediente.error')} /> : <Cargando />}
-        <Boton tipo="secundario" tamano="M" to={RUTAS.adminAutorizaciones}>{t('autorizaciones.volver')}</Boton>
-      </LayoutAdmin>
-    )
-  }
+  if (!exp) return <SinExpediente path={path} migas={migas} textos="autorizaciones" error={error} volverA={RUTAS.adminAutorizaciones} />
 
   const analisis = exp.analisis
   const completado = analisis?.estado === 'COMPLETADO'
@@ -150,18 +118,8 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
             <ul className="expediente__evidencias">
               {exp.evidencias.map((e) => (
                 <li key={e.id} className="expediente__evidencia">
-                  <div className="expediente__evidencia-fila">
-                    <span className="expediente__evidencia-datos">
-                      <span className="label-m">{e.titulo}</span>
-                      <span className="caption">
-                        {[t(`evidencias.tipo.${e.tipo}`), e.emisor, e.vigenteDesde && t('autorizaciones.expediente.desde', { fecha: fechaCorta(e.vigenteDesde) }), e.formato].filter(Boolean).join(' · ')}
-                      </span>
-                    </span>
-                    <BadgeVigencia evidencia={e} />
-                    <a className="evidencias__ver" href={e.url} target="_blank" rel="noopener noreferrer" aria-label={t('evidencias.verDe', { titulo: e.titulo })}>
-                      {t('evidencias.ver')}
-                    </a>
-                  </div>
+                  <FilaEvidencia evidencia={e} detalle={[t(`evidencias.tipo.${e.tipo}`), e.emisor,
+                    e.vigenteDesde && t('autorizaciones.expediente.desde', { fecha: fechaCorta(e.vigenteDesde) }), e.formato]} />
                   {hallazgosDe(e.id).map((h, i) => (
                     <div key={i} className="expediente__sugerencia">
                       <Icono src={iconoIa} tamano={16} />
@@ -244,18 +202,10 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
 
           {exp.puedeDecidir ? (
             <>
-              <Boton tipo="secundario" tamano="M" icono={iconoIa} anchoCompleto onClick={analizar} disabled={analizando}>
+              <Boton tipo="secundario" tamano="M" icono={iconoIa} anchoCompleto onClick={analizar} cargando={analizando}>
                 {analizando ? t('autorizaciones.analisis.analizando') : completado ? t('autorizaciones.analisis.otraVez') : t('autorizaciones.analisis.pedir')}
               </Boton>
-              <Campo
-                tipo="area"
-                etiqueta={t('autorizaciones.expediente.motivo')}
-                ayuda={t('autorizaciones.expediente.motivoAyuda')}
-                error={errorMotivo}
-                value={motivo}
-                maxLength={500}
-                onChange={(e) => setMotivo(e.target.value)}
-              />
+              <CampoMotivo decision={decision} etiqueta={t('autorizaciones.expediente.motivo')} ayuda={t('autorizaciones.expediente.motivoAyuda')} />
               {exp.certificadosVigentes === 0 && <p className="caption">{t('autorizaciones.expediente.sinCertificado')}</p>}
               <Boton tamano="M" icono={iconoEscudo} anchoCompleto onClick={() => pedirConfirmacion('aprobar')} disabled={exp.certificadosVigentes === 0 || decidiendo}>
                 {t('autorizaciones.expediente.aprobar')}
@@ -273,15 +223,7 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
           )}
           {exp.puedeRevocar && (
             <>
-              <Campo
-                tipo="area"
-                etiqueta={t('autorizaciones.expediente.motivoRevocacion')}
-                ayuda={t('autorizaciones.expediente.revocarAyuda')}
-                error={errorMotivo}
-                value={motivo}
-                maxLength={500}
-                onChange={(e) => setMotivo(e.target.value)}
-              />
+              <CampoMotivo decision={decision} etiqueta={t('autorizaciones.expediente.motivoRevocacion')} ayuda={t('autorizaciones.expediente.revocarAyuda')} />
               <Boton tipo="destructivo" tamano="M" icono={iconoProhibido} anchoCompleto onClick={() => pedirConfirmacion('revocar')} disabled={decidiendo}>
                 {t('autorizaciones.expediente.revocar')}
               </Boton>
@@ -290,18 +232,7 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
         </aside>
       </div>
 
-      <Dialogo
-        abierto={confirmar !== null}
-        titulo={confirmar ? t(`autorizaciones.dialogo.${confirmar}.titulo`, { producto: exp.producto }) : ''}
-        confirmar={confirmar ? t(`autorizaciones.dialogo.${confirmar}.confirmar`) : undefined}
-        tipoConfirmar={confirmar === 'aprobar' ? 'primario' : 'destructivo'}
-        ocupado={decidiendo}
-        onCancelar={() => setConfirmar(null)}
-        onConfirmar={decidir}
-      >
-        <p>{t('autorizaciones.dialogo.motivo', { motivo: motivo.trim() })}</p>
-        <p>{confirmar && t(`autorizaciones.dialogo.${confirmar}.texto`, { organizacion: exp.productor.organizacion })}</p>
-      </Dialogo>
+      <DialogoDecision decision={decision} producto={exp.producto} organizacion={exp.productor.organizacion} />
     </LayoutAdmin>
   )
 }

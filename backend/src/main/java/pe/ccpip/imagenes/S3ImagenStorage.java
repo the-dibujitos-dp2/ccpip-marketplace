@@ -1,7 +1,10 @@
 package pe.ccpip.imagenes;
 
+import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.Optional;
+import java.util.OptionalLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,5 +104,24 @@ public class S3ImagenStorage implements ImagenStorage {
     @Override
     public void eliminar(String clave) {
         s3.deleteObject(b -> b.bucket(bucket).key(clave));
+    }
+
+    @Override
+    public void guardar(String clave, Path archivo, String contentType) {
+        s3.putObject(b -> b.bucket(bucket).key(clave).contentType(contentType), RequestBody.fromFile(archivo));
+    }
+
+    @Override
+    public OptionalLong tamano(String clave) {
+        try {
+            return OptionalLong.of(s3.headObject(b -> b.bucket(bucket).key(clave)).contentLength());
+        } catch (NoSuchKeyException e) {
+            return OptionalLong.empty();
+        }
+    }
+
+    @Override
+    public InputStream leerRango(String clave, long desde, long hasta) {
+        return s3.getObject(b -> b.bucket(bucket).key(clave).range("bytes=" + desde + "-" + hasta));
     }
 }

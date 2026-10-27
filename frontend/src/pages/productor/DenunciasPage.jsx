@@ -101,7 +101,7 @@ function Denuncia({ denuncia: d, onRespondida }) {
             ayuda={t('denunciasProductor.responderAyuda')} onChange={(e) => setTexto(e.target.value)} />
           {error && <Alerta tono="error" titulo={error} />}
           <div className="calificar__acciones">
-            <Boton type="submit" tamano="S" disabled={enviando}>{enviando ? t('calificaciones.enviando') : t('denunciasProductor.enviarRespuesta')}</Boton>
+            <Boton type="submit" tamano="S" cargando={enviando}>{enviando ? t('calificaciones.enviando') : t('denunciasProductor.enviarRespuesta')}</Boton>
           </div>
         </form>
       )}

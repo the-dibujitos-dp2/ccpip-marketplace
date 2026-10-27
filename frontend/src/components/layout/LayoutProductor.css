@@ -80,6 +80,8 @@
 }
 
 .layout-productor__salir:hover { background: var(--color-bg-surface-alt); }
+/* CCPIP-413: mientras cierra la sesion, el aro de carga en lugar del icono */
+.layout-productor__salir[aria-busy='true'] { cursor: progress; }
 
 .layout-productor__principal { display: flex; flex: 1; min-width: 0; flex-direction: column; }
 

@@ -16,12 +16,15 @@ import DenunciasAdminPage from './pages/admin/DenunciasPage.jsx'
 import ParametrosPage from './pages/admin/ParametrosPage.jsx'
 import ReportesPage from './pages/admin/ReportesPage.jsx'
 import MiHistorialPage from './pages/admin/MiHistorialPage.jsx'
+import ModeracionPage from './pages/admin/ModeracionPage.jsx'
 import DetalleCuentaPage from './pages/admin/DetalleCuentaPage.jsx'
 import ExistenciasPage from './pages/admin/ExistenciasPage.jsx'
 import CuentasPage from './pages/admin/CuentasPage.jsx'
 import NuevaCuentaPage from './pages/admin/NuevaCuentaPage.jsx'
 import MotivosMermaPage from './pages/admin/MotivosMermaPage.jsx'
 import ExpedienteAutorizacionPage from './pages/admin/ExpedienteAutorizacionPage.jsx'
+import ExpedienteModeracionPage from './pages/admin/ExpedienteModeracionPage.jsx'
+import ExpedienteVideoPage from './pages/admin/ExpedienteVideoPage.jsx'
 import FichaProductorPage from './pages/admin/FichaProductorPage.jsx'
 import ProductoresPage from './pages/admin/ProductoresPage.jsx'
 import ExpedienteDenunciasPage from './pages/admin/ExpedienteDenunciasPage.jsx'
@@ -33,6 +36,7 @@ import PedidosPage from './pages/acopio/PedidosPage.jsx'
 import TransferenciasPuntoPage from './pages/acopio/TransferenciasPage.jsx'
 import AlertasPuntoPage from './pages/acopio/AlertasPage.jsx'
 import MermaPuntoPage from './pages/acopio/MermaPage.jsx'
+import MisEntregasPage from './pages/distribuidor/MisEntregasPage.jsx'
 import PedidosDisponiblesPage from './pages/distribuidor/PedidosDisponiblesPage.jsx'
 import ReportesPuntoPage from './pages/acopio/ReportesPage.jsx'
 import BuscarPage from './pages/consumidor/BuscarPage.jsx'
@@ -76,18 +80,21 @@ const RUTA_EDITOR = /^\/productor\/productos\/(\d+|nuevo)$/
 const RUTA_PEDIDO = /^\/pedidos\/(\d+)$/
 const RUTA_EVIDENCIAS = /^\/productor\/productos\/(\d+)\/evidencias$/
 const RUTA_EXPEDIENTE = /^\/admin\/autorizaciones\/(\d+)$/
+const RUTA_MODERACION = /^\/admin\/moderacion\/(\d+)$/
+const RUTA_VIDEO = /^\/admin\/moderacion\/videos\/(\d+)$/
 const RUTA_FICHA_PRODUCTOR = /^\/admin\/productores\/(\d+)$/
 const RUTA_DENUNCIAS_PRODUCTOR = /^\/admin\/denuncias\/productores\/(\d+)$/
 const RUTA_CUENTA = /^\/admin\/cuentas\/(\d+)$/
 
 /**
- * Rutas del modulo del sub administrador: autorizaciones de productos (S-01, S-02) y su expediente, y
- * los productores con los productos que pueden vender (CCPIP-292, CCPIP-291, CCPIP-330) y el
- * historial de sus propias acciones (CCPIP-126).
+ * Rutas del modulo del sub administrador: autorizaciones de productos (S-01, S-02) y su expediente, la
+ * moderacion de publicaciones y videos (CCPIP-46, CCPIP-118), los productores con los productos que pueden vender (CCPIP-292,
+ * CCPIP-291, CCPIP-330) y el historial de sus propias acciones (CCPIP-126).
  */
 const delModuloSub = (path) =>
   path === RUTAS.adminAutorizaciones || RUTA_EXPEDIENTE.test(path) || path === RUTAS.adminProductores || RUTA_FICHA_PRODUCTOR.test(path)
-  || path === RUTAS.adminMiHistorial
+  || path === RUTAS.adminMiHistorial || path === RUTAS.adminModeracion || RUTA_MODERACION.test(path)
+  || path === RUTAS.adminModeracionVideos || RUTA_VIDEO.test(path)
 
 /** CCPIP-84: denuncias contra productores; el sub administrador las gestiona y el super las consulta. */
 const deDenuncias = (path) => path === RUTAS.adminDenuncias || RUTA_DENUNCIAS_PRODUCTOR.test(path)
@@ -286,6 +293,10 @@ export default function App() {
     else if (path === RUTAS.adminCatalogo) pagina = <CatalogoMaestroPage path={path} search={search} />
     else if (path === RUTAS.adminExistencias) pagina = <ExistenciasPage path={path} />
     else if (RUTA_EXPEDIENTE.test(path)) pagina = <ExpedienteAutorizacionPage path={RUTAS.adminAutorizaciones} id={path.match(RUTA_EXPEDIENTE)[1]} />
+    else if (path === RUTAS.adminModeracion) pagina = <ModeracionPage path={path} />
+    else if (RUTA_MODERACION.test(path)) pagina = <ExpedienteModeracionPage path={RUTAS.adminModeracion} id={path.match(RUTA_MODERACION)[1]} />
+    else if (path === RUTAS.adminModeracionVideos) pagina = <ModeracionPage path={RUTAS.adminModeracion} videos />
+    else if (RUTA_VIDEO.test(path)) pagina = <ExpedienteVideoPage path={RUTAS.adminModeracion} id={path.match(RUTA_VIDEO)[1]} />
     else if (path === RUTAS.adminProductores) pagina = <ProductoresPage path={path} />
     else if (RUTA_FICHA_PRODUCTOR.test(path)) pagina = <FichaProductorPage path={RUTAS.adminProductores} id={path.match(RUTA_FICHA_PRODUCTOR)[1]} />
     else if (path === RUTAS.adminDenuncias) pagina = <DenunciasAdminPage path={path} />
@@ -346,9 +357,11 @@ export default function App() {
       pagina = null
     }
   } else if (delDistribuidor) {
-    // Por ahora el distribuidor tiene Pedidos disponibles (DW-01, CCPIP-107); lo demas llega con CCPIP-108 a 110
+    // Por ahora el distribuidor tiene Pedidos disponibles (DW-01, CCPIP-107) y Mis entregas (DW-03, CCPIP-317);
+    // el mapa y el historial llegan con CCPIP-110 y CCPIP-319
     if (user.role !== 'DISTRIBUIDOR') pagina = null
     else if (path === RUTAS.distribuidorPedidos) pagina = <PedidosDisponiblesPage path={path} />
+    else if (path === RUTAS.distribuidorEntregas) pagina = <MisEntregasPage path={path} />
     else {
       navigate(RUTAS.distribuidorPedidos, { replace: true })
       pagina = null

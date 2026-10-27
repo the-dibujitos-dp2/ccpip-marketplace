@@ -150,6 +150,23 @@ export default function TiendaPage({ id }) {
             )}
           </div>
 
+          {/* CCPIP-118: videos de la comunidad, aprobados por la Camara */}
+          {tienda.videos?.length > 0 && (
+            <section className="tienda-publica__videos-seccion" aria-labelledby="titulo-videos">
+              <h2 id="titulo-videos" className="heading-h4">{t('tienda.videos')}</h2>
+              <ul className="tienda-publica__videos">
+                {tienda.videos.map((v) => (
+                  <li key={v.id}>
+                    <figure>
+                      <video src={v.url} controls preload="metadata" aria-label={v.titulo} />
+                      <figcaption className="label-m">{v.titulo}</figcaption>
+                    </figure>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {tienda.lineas?.length > 0 && (
             <Pestanas
               etiqueta={t('tienda.porLinea')}

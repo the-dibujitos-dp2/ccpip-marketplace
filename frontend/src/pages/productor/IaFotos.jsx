@@ -7,6 +7,7 @@ import iconoIa from '../../assets/icons/ia.svg'
 import iconoInfo from '../../assets/icons/info.svg'
 import { listarValidaciones, validarImagen } from '../../api/productor.js'
 import Dialogo from '../../components/Dialogo.jsx'
+import Giro from '../../components/Giro.jsx'
 import Icono from '../../components/Icono.jsx'
 
 /** El proveedor simulado no es IA real: la interfaz lo dice en vez de afirmar un resultado. */
@@ -131,8 +132,9 @@ export function AvisosFotos({ imagenes, porFoto, nombreLinea, lineaActual, onVal
                   </button>
                 )}
                 {!analizando && (
-                  <button type="button" className="editor__ia-enlace" disabled={mejorando !== null} onClick={() => void onMejorar(img)}>
-                    <Icono src={iconoIa} tamano={16} />
+                  <button type="button" className="editor__ia-enlace" disabled={mejorando !== null} aria-busy={mejorando === img.id || undefined} onClick={() => void onMejorar(img)}>
+                    {/* CCPIP-413: el aro de carga en la foto que se esta mejorando */}
+                    {mejorando === img.id ? <Giro tamano={16} /> : <Icono src={iconoIa} tamano={16} />}
                     {mejorando === img.id ? t('productor.datos.mejora.preparando') : t('productor.datos.mejora.mejorar')}
                   </button>
                 )}

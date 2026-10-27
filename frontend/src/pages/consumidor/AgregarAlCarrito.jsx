@@ -104,7 +104,7 @@ export default function AgregarAlCarrito({ producto, cantidad, onCantidad, modo 
           invalido={Boolean(error)}
           describedBy={error ? idError : undefined}
         />
-        <Boton tipo="primario" tamano="L" type="submit" icono={iconoBolsa} disabled={enviando || bloqueado} className="agregar-carrito__boton">
+        <Boton tipo="primario" tamano="L" type="submit" icono={iconoBolsa} disabled={bloqueado} cargando={enviando} className="agregar-carrito__boton">
           {textoBoton}
         </Boton>
       </div>
@@ -120,7 +120,7 @@ export default function AgregarAlCarrito({ producto, cantidad, onCantidad, modo 
               </p>
             </div>
             <SelectorCantidad valor={cantidad} onCambiar={cambiar} min={minimo} invalido={Boolean(error)} etiqueta={t('carrito.agregar.cantidad')} />
-            <Boton tipo="primario" tamano="L" type="submit" icono={iconoBolsa} disabled={enviando || bloqueado} className="barra-compra__boton">
+            <Boton tipo="primario" tamano="L" type="submit" icono={iconoBolsa} disabled={bloqueado} cargando={enviando} className="barra-compra__boton">
               {textoBoton}
             </Boton>
           </div>

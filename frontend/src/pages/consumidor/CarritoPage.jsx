@@ -11,6 +11,7 @@ import Boton from '../../components/Boton.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
+import Giro from '../../components/Giro.jsx'
 import Icono from '../../components/Icono.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import MinimoMayorista from '../../components/MinimoMayorista.jsx'
@@ -412,7 +413,10 @@ function cosecha(iso) {
   return mesAnio(iso).replace(' de ', ' ')
 }
 
-/** CCPIP-156: basurero de la fila (Figma CW-05). Se desactiva mientras se quita para no repetir el pedido. */
+/**
+ * CCPIP-156: basurero de la fila (Figma CW-05). Se desactiva mientras se quita para no repetir el pedido, con el aro de
+ * carga en lugar del basurero (CCPIP-413).
+ */
 function BotonQuitar({ item, onQuitar }) {
   const { t } = useTranslation()
   const [quitando, setQuitando] = useState(false)
@@ -430,10 +434,11 @@ function BotonQuitar({ item, onQuitar }) {
       className="carrito__quitar"
       onClick={() => void quitar()}
       disabled={quitando}
+      aria-busy={quitando || undefined}
       aria-label={t('carrito.quitar', { nombre: item.nombre })}
       title={t('carrito.quitarTitulo')}
     >
-      <Icono src={iconoBasurero} tamano={20} />
+      {quitando ? <Giro tamano={20} /> : <Icono src={iconoBasurero} tamano={20} />}
     </button>
   )
 }

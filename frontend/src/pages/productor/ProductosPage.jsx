@@ -23,11 +23,15 @@ import PaginaProductor from './PaginaProductor.jsx'
 import './productor.css'
 import './ProductosPage.css'
 
-const ESTADOS = ['PUBLICADO', 'BORRADOR', 'RETIRADO']
+/** CCPIP-46: EN_MODERACION es lo que pidio publicar y espera la revision de la Camara. */
+const ESTADOS = ['PUBLICADO', 'EN_MODERACION', 'BORRADOR', 'RETIRADO']
 
 function badge(fila, t) {
+  // CCPIP-332: la Camara no publico la oferta; el motivo se ve al editarla
+  if (fila.alerta === 'PUBLICACION_RECHAZADA') return <Badge tono="error">{t('productor.productos.badge.rechazada')}</Badge>
   if (fila.estado === 'BORRADOR') return <Badge tono="neutro">{t('productor.productos.badge.borrador')}</Badge>
   if (fila.estado === 'RETIRADO') return <Badge tono="neutro">{t('productor.productos.badge.despublicado')}</Badge>
+  if (fila.estado === 'EN_MODERACION') return <Badge tono="info">{t('productor.productos.badge.enRevision')}</Badge>
   if (fila.alerta === 'LOTE_POR_VENCER') return <Badge tono="aviso">{t('productor.productos.badge.porVencer')}</Badge>
   if (fila.alerta === 'SIN_STOCK') return <Badge tono="error">{t('productor.productos.badge.sinStock')}</Badge>
   if (fila.alerta === 'STOCK_BAJO') return <Badge tono="error">{t('productor.productos.badge.stockBajo')}</Badge>
@@ -50,7 +54,7 @@ export default function ProductosPage({ path, search }) {
   const [menu, setMenu] = useState(null)
   const [confirmar, setConfirmar] = useState(null)
   const [ocupado, setOcupado] = useState(false)
-  const [aviso, setAviso] = useState(inicial.get('publicado') ? { tono: 'exito', titulo: t('productor.productos.publicado'), descripcion: t('productor.productos.publicadoTexto') } : null)
+  const [aviso, setAviso] = useState(inicial.get('enviado') ? { tono: 'exito', titulo: t('productor.productos.enviado'), descripcion: t('productor.productos.enviadoTexto') } : null)
   const menuRef = useRef(null)
 
   function cargar(e = estado, termino = q) {
@@ -85,7 +89,7 @@ export default function ProductosPage({ path, search }) {
       setAviso(
         accion === 'retirar'
           ? { tono: 'exito', titulo: t('productor.productos.despublicado'), descripcion: t('productor.productos.despublicadoTexto') }
-          : { tono: 'exito', titulo: t('productor.productos.publicado'), descripcion: t('productor.productos.publicadoTexto') },
+          : { tono: 'exito', titulo: t('productor.productos.enviado'), descripcion: t('productor.productos.enviadoTexto') },
       )
       await cargar()
     } catch (e) {
@@ -179,7 +183,7 @@ export default function ProductosPage({ path, search }) {
                             <button type="button" role="menuitem" onClick={() => { setMenu(null); setConfirmar(f) }}>{t('productor.productos.despublicar')}</button>
                           </>
                         )}
-                        {f.estado !== 'PUBLICADO' && (
+                        {(f.estado === 'BORRADOR' || f.estado === 'RETIRADO') && (
                           <button type="button" role="menuitem" onClick={() => { setMenu(null); void cambiarEstado(f, 'publicar') }}>
                             {f.estado === 'RETIRADO' ? t('productor.productos.volverPublicar') : t('productor.productos.publicar')}
                           </button>

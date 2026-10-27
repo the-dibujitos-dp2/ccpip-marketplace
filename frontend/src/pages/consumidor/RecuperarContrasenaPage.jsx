@@ -65,7 +65,7 @@ export default function RecuperarContrasenaPage({ correoInicial = '' }) {
                 onChange={(e) => setCorreo(e.target.value)}
                 error={error}
               />
-              <Boton type="submit" anchoCompleto disabled={enviando}>
+              <Boton type="submit" anchoCompleto cargando={enviando}>
                 {enviando ? t('verificarCorreo.enviando') : t('recuperar.enviar')}
               </Boton>
             </form>

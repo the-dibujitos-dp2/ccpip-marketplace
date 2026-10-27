@@ -95,3 +95,9 @@ export function primeraOracion(texto) {
   const corte = texto.search(/[.!?](\s|$)/)
   return corte > 0 && corte < 160 ? texto.slice(0, corte + 1) : `${texto.slice(0, 140).trim()}…`
 }
+
+/** Duracion de un video en m:ss (CCPIP-118). */
+export function duracion(segundos) {
+  const total = Math.round(Number(segundos) || 0)
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
+}

@@ -217,7 +217,7 @@ export default function CuentaBancariaPage({ path }) {
             )}
 
             <div className="cuenta-bancaria__acciones">
-              <Boton type="submit" tamano="L" disabled={ocupado}>
+              <Boton type="submit" tamano="L" cargando={ocupado}>
                 {cuenta === null ? t('productor.cuenta.registrarBoton') : desactivada ? t('productor.cuenta.reactivarBoton') : t('productor.cuenta.guardarBoton')}
               </Boton>
             </div>

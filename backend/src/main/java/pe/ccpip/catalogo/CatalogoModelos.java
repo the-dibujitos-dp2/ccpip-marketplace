@@ -7,6 +7,8 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import pe.ccpip.video.VideosService.VideoPublico;
+
 /**
  * Respuestas publicas del catalogo (CW-01 a CW-04). Nunca exponen codigos de lote ni
  * cantidades de stock: solo si hay o no disponibilidad (CCPIP-53, CCPIP-41).
@@ -103,8 +105,8 @@ public final class CatalogoModelos {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record TiendaDetalle(long id, String nombre, String descripcion, String historia, String cita, String pueblo,
                                 String comunidad, String region, String localidad, Integer socios, boolean origenVerificado,
-                                Integer desde, String portada, List<GaleriaItem> galeria, List<Faceta> lineas,
-                                List<ProductoResumen> productos, List<Long> destacados,
+                                Integer desde, String portada, List<GaleriaItem> galeria, List<VideoPublico> videos,
+                                List<Faceta> lineas, List<ProductoResumen> productos, List<Long> destacados,
                                 Map<String, CampoTraducido> traducciones) {
     }
 

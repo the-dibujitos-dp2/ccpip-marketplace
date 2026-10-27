@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import iconoSalir from '../../assets/icons/salir.svg'
 import Avatar from '../Avatar.jsx'
 import Enlace from '../Enlace.jsx'
+import Giro from '../Giro.jsx'
 import Icono from '../Icono.jsx'
 import Logotipo from '../Logotipo.jsx'
 import SelectorIdioma from '../SelectorIdioma.jsx'
@@ -42,8 +43,8 @@ export default function LayoutPanel({ path, rol, nav, user, subtitulo, migas, ti
               <span className="label-m">{user.fullName}</span>
               <span className="caption">{subtitulo ?? user.roleName}</span>
             </span>
-            <button type="button" className="layout-productor__salir" onClick={onCerrarSesion} disabled={cerrando} aria-label={t('panel.cerrarSesion')}>
-              <Icono src={iconoSalir} tamano={20} />
+            <button type="button" className="layout-productor__salir" onClick={onCerrarSesion} disabled={cerrando} aria-busy={cerrando || undefined} aria-label={t('panel.cerrarSesion')}>
+              {cerrando ? <Giro tamano={20} /> : <Icono src={iconoSalir} tamano={20} />}
             </button>
           </div>
         </div>

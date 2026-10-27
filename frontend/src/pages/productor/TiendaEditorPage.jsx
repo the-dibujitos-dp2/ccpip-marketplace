@@ -18,6 +18,7 @@ import { mensajeError, traducirFaltante } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import PaginaProductor from './PaginaProductor.jsx'
 import PanelTraduccion from './PanelTraduccion.jsx'
+import VideosTienda from './VideosTienda.jsx'
 import './productor.css'
 import './TiendaEditorPage.css'
 
@@ -46,6 +47,8 @@ export default function TiendaEditorPage({ path }) {
   const [errores, setErrores] = useState({})
   const [alerta, setAlerta] = useState(null)
   const [ocupado, setOcupado] = useState(false)
+  // CCPIP-413: publicar tambien guarda; asi el aro va en Publicar y no en Guardar
+  const [publicando, setPublicando] = useState(false)
   const [filtro, setFiltro] = useState('TODO')
   const [categoria, setCategoria] = useState('COMUNIDAD')
   const [eligiendo, setEligiendo] = useState(false)
@@ -94,7 +97,8 @@ export default function TiendaEditorPage({ path }) {
   }
 
   async function publicar() {
-    if (!(await guardar())) return
+    setPublicando(true)
+    if (!(await guardar())) return setPublicando(false)
     setOcupado(true)
     try {
       aplicar(await publicarTienda())
@@ -104,6 +108,7 @@ export default function TiendaEditorPage({ path }) {
       setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.editor.errorPublicar'), descripcion: err.body?.detalles?.map(traducirFaltante).join(' · ') })
     } finally {
       setOcupado(false)
+      setPublicando(false)
     }
   }
 
@@ -165,12 +170,12 @@ export default function TiendaEditorPage({ path }) {
           {tienda.publicada ? (
             <>
               <Boton tipo="secundario" tamano="M" icono={iconoOjo} to={`/tiendas/${tienda.id}`}>{t('productor.tienda.verPublicada')}</Boton>
-              <Boton tamano="M" onClick={guardar} disabled={ocupado}>{t('productor.datos.guardarCambios')}</Boton>
+              <Boton tamano="M" onClick={guardar} cargando={ocupado}>{t('productor.datos.guardarCambios')}</Boton>
             </>
           ) : (
             <>
-              <Boton tipo="secundario" tamano="M" onClick={guardar} disabled={ocupado}>{t('productor.datos.guardarBorrador')}</Boton>
-              <Boton tamano="M" onClick={publicar} disabled={ocupado || tienda.habilitada === false}>{t('productor.tienda.publicar')}</Boton>
+              <Boton tipo="secundario" tamano="M" onClick={guardar} disabled={ocupado} cargando={ocupado && !publicando}>{t('productor.datos.guardarBorrador')}</Boton>
+              <Boton tamano="M" onClick={publicar} disabled={ocupado || tienda.habilitada === false} cargando={publicando}>{t('productor.tienda.publicar')}</Boton>
             </>
           )}
         </div>
@@ -291,6 +296,9 @@ export default function TiendaEditorPage({ path }) {
           <p className="caption">{t('productor.tienda.senal')}</p>
         </section>
       </div>
+
+      {/* CCPIP-118: videos de la tienda, revisados por la Camara antes de verse */}
+      <VideosTienda />
 
       {/* CCPIP-147: traducir la tienda; se recarga al guardar por si cambio el original (CCPIP-373) */}
       <PanelTraduccion key={[tienda.nombreTienda, tienda.descripcionCorta, tienda.historia, tienda.cita].join('|')} />

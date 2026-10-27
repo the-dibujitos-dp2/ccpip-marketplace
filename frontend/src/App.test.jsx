@@ -167,6 +167,26 @@ describe('Cierre de sesion manual (CCPIP-27)', () => {
     expect(window.location.pathname).toBe('/ingresar')
   })
 
+  it('mientras cierra, el menu lo dice con el aro de carga (CCPIP-413)', async () => {
+    let responder
+    servidor({
+      ...PUBLICAS,
+      'GET /api/auth/me': [200, SESION_ACOPIO],
+      'GET /api/panel/acopio': [200, PANEL],
+      'POST /api/auth/logout': () => new Promise((r) => { responder = r }),
+    })
+    const user = userEvent.setup()
+    abrirEn('/inicio')
+    await cerrarSesion(user)
+
+    const cerrando = await screen.findByRole('menuitem', { name: 'Cerrando…' })
+    expect(cerrando).toBeDisabled()
+    expect(cerrando).toHaveAttribute('aria-busy', 'true')
+    expect(cerrando.querySelector('.boton__giro')).not.toBeNull()
+    responder([204])
+    expect(await screen.findByText('Cerraste sesión')).toBeInTheDocument()
+  })
+
   it('aunque falle la red, la pantalla se cierra', async () => {
     servidor({
       ...PUBLICAS,

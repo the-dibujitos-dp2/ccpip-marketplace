@@ -63,7 +63,7 @@ export default function RevisaTuCorreo({ correo, enviado, esperaInicial = ESPERA
 
       <Boton anchoCompleto onClick={onIngresar}>{t('revisaCorreo.yaVerifique')}</Boton>
       <div className="revisa__acciones">
-        <Boton tipo="secundario" tamano="M" onClick={reenviar} disabled={reenviando || espera > 0}>
+        <Boton tipo="secundario" tamano="M" onClick={reenviar} disabled={espera > 0} cargando={reenviando}>
           {textoReenviar}
         </Boton>
         <Boton tipo="terciario" tamano="M" onClick={onCambiarCorreo}>{t('revisaCorreo.cambiarCorreo')}</Boton>

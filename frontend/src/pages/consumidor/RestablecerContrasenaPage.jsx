@@ -84,7 +84,7 @@ export default function RestablecerContrasenaPage({ search, onRestablecida }) {
             onChange={(e) => setRepetida(e.target.value)}
             error={errores.repetida}
           />
-          <Boton type="submit" anchoCompleto disabled={enviando}>
+          <Boton type="submit" anchoCompleto cargando={enviando}>
             {enviando ? t('recuperar.guardando') : t('recuperar.guardar')}
           </Boton>
         </form>

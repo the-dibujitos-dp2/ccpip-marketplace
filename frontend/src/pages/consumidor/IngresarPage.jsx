@@ -138,7 +138,7 @@ export default function IngresarPage({ modo = 'ingresar', search = '', correoIni
           <Enlace to={RUTAS.recuperarContrasena} className="enlace-marca ingresar__olvido" onClick={() => onCorreoConocido?.(email.trim())}>
             {t('recuperar.olvidaste')}
           </Enlace>
-          <Boton type="submit" anchoCompleto disabled={enviando}>
+          <Boton type="submit" anchoCompleto cargando={enviando}>
             {enviando ? t('ingresar.ingresando') : t('ingresar.iniciarSesion')}
           </Boton>
         </form>

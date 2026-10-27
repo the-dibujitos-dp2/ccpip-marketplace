@@ -112,7 +112,7 @@ export function FormularioCalificacion({ pedidoId, itemId, onCalificada }) {
         onChange={(e) => setComentario(e.target.value)} ayuda={t('calificaciones.comentarioAyuda')} />
       {error && <Alerta tono="error" titulo={error} />}
       <div className="calificar__acciones">
-        <Boton type="submit" tamano="S" disabled={enviando}>
+        <Boton type="submit" tamano="S" cargando={enviando}>
           {enviando ? t('calificaciones.enviando') : t('calificaciones.enviar')}
         </Boton>
       </div>

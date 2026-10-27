@@ -8,6 +8,7 @@ import { obtenerCatalogos } from '../../api/catalogo.js'
 import { navigate, RUTAS } from '../../router.js'
 import BarraConfianza from '../BarraConfianza.jsx'
 import Enlace from '../Enlace.jsx'
+import Giro from '../Giro.jsx'
 import Icono from '../Icono.jsx'
 import Logotipo from '../Logotipo.jsx'
 import './CabeceraTienda.css'
@@ -97,7 +98,8 @@ export default function CabeceraTienda({ user, onCerrarSesion, cerrando, termino
                   <Enlace to={panel} role="menuitem" onClick={() => setMenu(false)}>
                     {user.role === 'PRODUCTOR' ? t('cabecera.panelProductor') : t('cabecera.miCuenta')}
                   </Enlace>
-                  <button type="button" role="menuitem" onClick={onCerrarSesion} disabled={cerrando}>
+                  <button type="button" role="menuitem" onClick={onCerrarSesion} disabled={cerrando} aria-busy={cerrando || undefined}>
+                    {cerrando && <Giro tamano={16} />}
                     {cerrando ? t('cabecera.cerrando') : t('cabecera.cerrarSesion')}
                   </button>
                 </div>

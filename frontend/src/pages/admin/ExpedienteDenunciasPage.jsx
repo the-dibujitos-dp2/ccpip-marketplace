@@ -142,7 +142,7 @@ function CambiarEstado({ denuncia, onActualizada }) {
         ayuda={t('denunciasAdmin.notaAyuda')} onChange={(e) => setNota(e.target.value)} />
       {error && <Alerta tono="error" titulo={error} />}
       <div className="calificar__acciones">
-        <Boton type="submit" tamano="S" disabled={enviando}>{t('denunciasAdmin.guardar')}</Boton>
+        <Boton type="submit" tamano="S" cargando={enviando}>{t('denunciasAdmin.guardar')}</Boton>
       </div>
     </form>
   )

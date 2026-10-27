@@ -23,6 +23,11 @@
 .tienda-publica__galeria { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
 .tienda-publica__galeria img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-l); }
 
+.tienda-publica__videos-seccion { display: flex; flex-direction: column; gap: 14px; }
+.tienda-publica__videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.tienda-publica__videos figure { display: flex; flex-direction: column; gap: 8px; margin: 0; }
+.tienda-publica__videos video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-l); background: var(--color-bg-inverse); }
+
 .tienda-publica__destacados { display: flex; align-items: center; gap: 8px; margin-bottom: -12px; color: var(--color-text-secondary); }
 .tienda-publica__destacados .icono { color: var(--color-text-accent); }
 

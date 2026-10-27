@@ -134,13 +134,15 @@ class ProductorFlujoTest extends IntegrationTest {
         mockMvc.perform(post("/api/productor/productos/{id}/publicar", id).cookie(nuevo))
                 .andExpect(status().isUnprocessableEntity());
 
-        // Paso 3, primer lote en un punto de acopio: ahora si se publica
+        // Paso 3, primer lote en un punto de acopio: ahora si se pide publicar, y la Camara lo revisa (CCPIP-46)
         registrarLote(id, "L-0002", acopioLima, "60").andExpect(status().isCreated())
                 .andExpect(jsonPath("$.enVenta").value(60))
                 .andExpect(jsonPath("$.items[?(@.codigo == 'L-0002')].estado").value(hasItem("VENDE_PRIMERO")));
         mockMvc.perform(post("/api/productor/productos/{id}/publicar", id).cookie(nuevo))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.estado").value("PUBLICADO"));
+                .andExpect(jsonPath("$.estado").value("EN_MODERACION"));
+        mockMvc.perform(get("/api/productos/{id}", id)).andExpect(status().isNotFound());
+        aprobarPublicacion(id);
 
         // El stock queda explicado por movimientos de entrada ligados al lote (RNF-15)
         assertThat(jdbc.queryForObject("SELECT sum(cantidad) FROM stock WHERE producto_id = ?", Integer.class, id)).isEqualTo(90);
@@ -206,11 +208,14 @@ class ProductorFlujoTest extends IntegrationTest {
                 .andExpect(jsonPath("$.items[*].id").value(hasItem((int) id)))
                 .andExpect(jsonPath("$.conteo.RETIRADO").value(1));
 
+        // Volver a publicar tambien pasa por la revision de la Camara (CCPIP-46)
         mockMvc.perform(post("/api/productor/productos/{id}/publicar", id).cookie(nuevo))
-                .andExpect(jsonPath("$.estado").value("PUBLICADO"));
+                .andExpect(jsonPath("$.estado").value("EN_MODERACION"));
+        mockMvc.perform(get("/api/productos/{id}", id)).andExpect(status().isNotFound());
+        aprobarPublicacion(id);
         mockMvc.perform(get("/api/productos/{id}", id)).andExpect(status().isOk());
         assertThat(jdbc.queryForList("SELECT accion FROM producto_auditoria WHERE producto_id = ? ORDER BY id",
-                String.class, id)).containsSubsequence("CREAR", "PUBLICAR", "RETIRAR", "REPUBLICAR");
+                String.class, id)).containsSubsequence("CREAR", "MODERACION", "RETIRAR", "MODERACION");
     }
 
     @Test
@@ -686,6 +691,7 @@ class ProductorFlujoTest extends IntegrationTest {
         long id = crearProducto(datosAceite());
         registrarLote(id, "L-0001", acopioLima, "60").andExpect(status().isCreated());
         mockMvc.perform(post("/api/productor/productos/{id}/publicar", id).cookie(nuevo)).andExpect(status().isOk());
+        aprobarPublicacion(id);
         return id;
     }
 

@@ -179,7 +179,7 @@ export default function RegistroFormulario({ inicial = REGISTRO_VACIO, onRegistr
             </p>
           )}
         </div>
-        <Boton type="submit" anchoCompleto disabled={enviando}>
+        <Boton type="submit" anchoCompleto cargando={enviando}>
           {enviando ? t('registro.creando') : t('registro.crearCuenta')}
         </Boton>
       </form>

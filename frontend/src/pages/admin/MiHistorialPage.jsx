@@ -17,20 +17,22 @@ import '../productor/productor.css'
 import './admin.css'
 import './MiHistorialPage.css'
 
-const TIPOS = ['AUTORIZACIONES', 'PRODUCTORES', 'DENUNCIAS', 'CUENTAS']
+const TIPOS = ['AUTORIZACIONES', 'MODERACION', 'PRODUCTORES', 'DENUNCIAS', 'CUENTAS']
 
 /** Color de la insignia de cada accion; lo que no esta aqui va en neutro. */
 const TONO = {
   AUTORIZACION_APROBADA: 'exito', HABILITAR_TIENDA: 'exito', RESTITUIR_VENTA: 'exito', DESBLOQUEAR_VENTA: 'exito',
-  DENUNCIA_RESUELTA: 'exito', CUENTA_REACTIVAR: 'exito',
+  DENUNCIA_RESUELTA: 'exito', CUENTA_REACTIVAR: 'exito', PUBLICACION_APROBADA: 'exito', VIDEO_PUBLICADO: 'exito',
   AUTORIZACION_RECHAZADA: 'error', AUTORIZACION_REVOCADA: 'error', REVOCAR_VENTA: 'error', BLOQUEAR_VENTA: 'error',
-  CUENTA_SUSPENDER: 'error',
+  CUENTA_SUSPENDER: 'error', PUBLICACION_RECHAZADA: 'error', VIDEO_RECHAZADO: 'error',
   RENOVACION_SOLICITADA: 'aviso', DENUNCIA_EN_REVISION: 'aviso',
 }
 
 /** Pantalla a la que lleva "Sobre". */
 const DESTINO = {
   AUTORIZACION: (id) => `${RUTAS.adminAutorizaciones}/${id}`,
+  MODERACION: (id) => `${RUTAS.adminModeracion}/${id}`,
+  VIDEO: (id) => `${RUTAS.adminModeracionVideos}/${id}`,
   PRODUCTOR: (id) => `${RUTAS.adminProductores}/${id}`,
   DENUNCIAS: (id) => `${RUTAS.adminDenuncias}/productores/${id}`,
   CUENTA: (id) => `${RUTAS.adminCuentas}/${id}`,
