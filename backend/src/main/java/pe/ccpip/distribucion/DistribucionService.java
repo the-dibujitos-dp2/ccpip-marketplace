@@ -204,8 +204,28 @@ public class DistribucionService {
         return entregaDe(entrega.pedidoId());
     }
 
+    /** CCPIP-319: confirma la entrega final propia con fecha existente e historial del distribuidor. */
+    @Transactional
+    public EntregaDelDistribuidor entregar(long distribuidorId, String numero) {
+        Bloqueada entrega = bloquear(numero);
+        if (entrega.distribuidorId() == null || entrega.distribuidorId() != distribuidorId) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "PEDIDO_NO_ASIGNADO", "Este pedido no está asignado a ti.");
+        }
+        if ("ENTREGADA".equals(entrega.estadoEntrega()) && "ENTREGADO".equals(entrega.estadoPedido())) {
+            return entregaDe(entrega.pedidoId());
+        }
+        if (!"EN_CAMINO".equals(entrega.estadoEntrega()) || !"EN_CAMINO".equals(entrega.estadoPedido())) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "PEDIDO_NO_ENTREGABLE", "Este pedido aún no está en camino.");
+        }
+        jdbc.update("UPDATE pedido SET estado='ENTREGADO', actualizado_en=now() WHERE id=:pedido", new MapSqlParameterSource("pedido", entrega.pedidoId()));
+        jdbc.update("UPDATE entrega SET estado='ENTREGADA', entregada_en=now() WHERE pedido_id=:pedido", new MapSqlParameterSource("pedido", entrega.pedidoId()));
+        jdbc.update("INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (:pedido, 'ENTREGADO', :usuario)",
+                new MapSqlParameterSource("pedido", entrega.pedidoId()).addValue("usuario", distribuidorId));
+        return entregaDe(entrega.pedidoId());
+    }
+
     /**
-     * Bloquea la entrega de un pedido a domicilio hasta el final de la transaccion. Un pedido para recojo, o un numero
+     * Bloquea la entrega de un pedido a domicilio hasta el final de la transaccion.
      * que no existe, es un 404: para el distribuidor no hay entrega (RNF-05).
      */
     private Bloqueada bloquear(String numero) {
