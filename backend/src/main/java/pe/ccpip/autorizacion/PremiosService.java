@@ -17,7 +17,9 @@ import pe.ccpip.autorizacion.EvidenciasService.Archivo;
 import pe.ccpip.autorizacion.PremiosModelos.LoteOpcion;
 import pe.ccpip.autorizacion.PremiosModelos.NuevoPremio;
 import pe.ccpip.autorizacion.PremiosModelos.Premio;
+import pe.ccpip.autorizacion.PremiosModelos.PremioPublico;
 import pe.ccpip.autorizacion.PremiosModelos.PremiosProducto;
+import pe.ccpip.catalogo.CatalogoRepository;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.imagenes.ImagenStorage;
 import pe.ccpip.productor.Auditoria;
@@ -28,8 +30,10 @@ import pe.ccpip.productor.Auditoria.Accion;
  * con la entidad que lo otorgo, la fecha, la vigencia y el archivo que lo respalda (PDF, JPG o PNG). Todo
  * se filtra por el productor de la sesion (RNF-05) y el archivo va al bucket privado (RNF-08).
  *
- * <p>Acuerdo del 26/10: el premio es publico al registrarlo, como declarado por el productor con evidencia;
- * no pasa por una revision de la Camara.
+ * <p>CCPIP-169 (RF-138): el visitante ve los premios de un producto visible del catalogo con su emisor,
+ * fecha y vigencia. Nunca el archivo ni el codigo del lote. Todo premio publico tiene su archivo de
+ * respaldo, y se presenta como declarado por el productor: no como aprobado por la Camara (acuerdo del
+ * 26/10).
  */
 @Service
 public class PremiosService {
@@ -113,6 +117,28 @@ public class PremiosService {
                         (rs, row) -> new Ref(rs.getString(1), rs.getString(2), rs.getString(3)), premioId, productorId)
                 .stream().findFirst()
                 .flatMap(ref -> storage.leer(ref.clave()).map(bytes -> new Archivo(ref.nombre(), ref.contentType(), bytes)));
+    }
+
+    /**
+     * CCPIP-169: los premios sin retirar de un producto visible, primero los vigentes y luego los mas
+     * recientes. Un producto que no esta en el catalogo responde 404, como su ficha.
+     */
+    @Transactional(readOnly = true)
+    public List<PremioPublico> publicos(long productoId) {
+        Integer visible = jdbc.queryForObject("SELECT count(*) " + CatalogoRepository.VISIBLE + " AND p.id = ?",
+                Integer.class, productoId);
+        if (visible == null || visible == 0) {
+            throw ErrorNegocio.noEncontrado("PRODUCTO_NO_ENCONTRADO", "El producto no existe o ya no está disponible");
+        }
+        return jdbc.query("""
+                SELECT pp.titulo, pp.emisor, pp.otorgado_en, pp.vigente_hasta, %s AS vigente, l.fecha_produccion
+                FROM premio_producto pp JOIN lote l ON l.id = pp.lote_id
+                WHERE pp.producto_id = ? AND pp.retirado_en IS NULL
+                ORDER BY vigente DESC, pp.otorgado_en DESC, pp.id DESC""".formatted(VIGENTE),
+                (rs, row) -> new PremioPublico(rs.getString("titulo"), rs.getString("emisor"),
+                        rs.getObject("otorgado_en", LocalDate.class), rs.getObject("vigente_hasta", LocalDate.class),
+                        rs.getBoolean("vigente"), rs.getObject("fecha_produccion", LocalDate.class)),
+                productoId);
     }
 
     // ---------- Partes ----------

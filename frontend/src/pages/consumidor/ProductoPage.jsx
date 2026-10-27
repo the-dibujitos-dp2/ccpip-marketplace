@@ -21,6 +21,7 @@ import { resolverTarifa } from '../../tarifa.js'
 import AgregarAlCarrito from './AgregarAlCarrito.jsx'
 import CalificacionesProducto from './CalificacionesProducto.jsx'
 import CertificacionProducto from './CertificacionProducto.jsx'
+import PremiosProducto from './PremiosProducto.jsx'
 import MeInteresa from './MeInteresa.jsx'
 import OfertasMaestro from './OfertasMaestro.jsx'
 import './ProductoPage.css'
@@ -304,6 +305,9 @@ export default function ProductoPage({ id }) {
 
         {/* CCPIP-406: las calificaciones van justo despues de las certificaciones, tambien en movil */}
         <CalificacionesProducto producto={producto} />
+
+        {/* CCPIP-169: los premios declarados por el productor, despues de lo que certifica la Camara y las calificaciones */}
+        <PremiosProducto productoId={id} />
 
         {/* Figma CW-03 "Volumen y otras ofertas": la compra por volumen y, al lado, los demas productores (CCPIP-42) */}
         {(conMayorista || otrasOfertas.length > 0) && (

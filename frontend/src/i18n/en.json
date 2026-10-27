@@ -2302,6 +2302,14 @@
       },
       "nota": "Only the issuer, dates and validity of the evidence that supported the approval are published. The producer's files and private documents are not shown."
     },
+    "premios": {
+      "titulo": "Awards",
+      "emisor": "Issuer:",
+      "otorgado": "Date:",
+      "lote": "Batch:",
+      "cosechaDel": "produced on {{fecha}}",
+      "nota": "Awards declared by the producer, each with a supporting document that is not published. The Chamber does not certify them."
+    },
     "verificando": "The Chamber is still verifying this community's origin.",
     "sobreCosecha": "About this harvest",
     "consumirAntes": "Best before",

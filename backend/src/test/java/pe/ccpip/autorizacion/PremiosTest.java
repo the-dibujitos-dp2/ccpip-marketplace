@@ -23,8 +23,8 @@ import pe.ccpip.support.IntegrationTest;
 
 /**
  * CCPIP-43 (RF-29): el productor registra un premio vinculado a un producto propio y a uno de sus lotes,
- * con emisor, fecha, vigencia y su archivo de respaldo. Transaccional: lo que arma la prueba no llega a las
- * demas.
+ * con emisor, fecha, vigencia y su archivo de respaldo. CCPIP-169 (RF-138): el visitante ve los premios del
+ * producto sin el archivo. Transaccional: lo que arma la prueba no llega a las demas.
  */
 @Transactional
 class PremiosTest extends IntegrationTest {
@@ -32,6 +32,7 @@ class PremiosTest extends IntegrationTest {
     private static final byte[] PDF = "%PDF-1.4\n1 0 obj << >> endobj\n%%EOF\n".getBytes(StandardCharsets.US_ASCII);
     private static final LocalDate HOY = LocalDate.now(ZoneId.of("America/Lima"));
     private static final String PREMIOS = "/api/productor/productos/{id}/premios";
+    private static final String PUBLICOS = "/api/productos/{id}/premios";
 
     private Cookie productor;
     private long miel;
@@ -150,6 +151,7 @@ class PremiosTest extends IntegrationTest {
         long premio = idDe(registrar(productor, miel, PDF, "a.pdf", "Medalla", "Emisor", HOY, null, lote));
         mockMvc.perform(delete(PREMIOS + "/{premio}", miel, premio).cookie(productor)).andExpect(status().isNoContent());
         mockMvc.perform(get(PREMIOS, miel).cookie(productor)).andExpect(jsonPath("$.premios.length()").value(0));
+        mockMvc.perform(get(PUBLICOS, miel)).andExpect(jsonPath("$.length()").value(0));
         mockMvc.perform(delete(PREMIOS + "/{premio}", miel, premio).cookie(productor))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("PREMIO_NO_ENCONTRADO"));
@@ -157,6 +159,39 @@ class PremiosTest extends IntegrationTest {
         assertThat(jdbc.queryForObject("SELECT count(*) FROM premio_producto WHERE id = ?", Integer.class, premio)).isEqualTo(1);
     }
 
+    // --- CCPIP-169: lo que ve el visitante ---
+
+    @Test
+    void elVisitanteVeEmisorFechaYVigenciaSinArchivoNiCodigoDeLote() throws Exception {
+        registrar(productor, miel, PDF, "vencido.pdf", "Premio vencido", "Feria Regional", HOY.minusYears(2), HOY.minusYears(1), lote);
+        registrar(productor, miel, PDF, "oro.pdf", "Medalla de oro", "Salón del Cacao", HOY.minusMonths(1), HOY.plusYears(1), lote);
+
+        mockMvc.perform(get(PUBLICOS, miel))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                // Primero lo vigente
+                .andExpect(jsonPath("$[0].titulo").value("Medalla de oro"))
+                .andExpect(jsonPath("$[0].emisor").value("Salón del Cacao"))
+                .andExpect(jsonPath("$[0].otorgadoEn").value(HOY.minusMonths(1).toString()))
+                .andExpect(jsonPath("$[0].vigente").value(true))
+                .andExpect(jsonPath("$[0].cosecha").exists())
+                .andExpect(jsonPath("$[1].titulo").value("Premio vencido"))
+                .andExpect(jsonPath("$[1].vigente").value(false))
+                // Nada privado: ni archivo, ni su nombre, ni el codigo del lote
+                .andExpect(jsonPath("$..url").doesNotExist())
+                .andExpect(jsonPath("$..nombreArchivo").doesNotExist())
+                .andExpect(jsonPath("$..codigo").doesNotExist())
+                .andExpect(jsonPath("$..lote").doesNotExist());
+    }
+
+    @Test
+    void unProductoFueraDelCatalogoNoMuestraPremios() throws Exception {
+        registrar(productor, miel, PDF, "a.pdf", "Medalla", "Emisor", HOY, null, lote);
+        jdbc.update("UPDATE producto SET estado = 'RETIRADO' WHERE id = ?", miel);
+        mockMvc.perform(get(PUBLICOS, miel))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("PRODUCTO_NO_ENCONTRADO"));
+    }
 
     // --- Apoyo ---
 

@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-/** CCPIP-43: premios de un producto y su lote. */
+/** CCPIP-43 y CCPIP-169: premios de un producto y su lote. */
 public final class PremiosModelos {
 
     private PremiosModelos() {
@@ -32,5 +32,14 @@ public final class PremiosModelos {
     }
 
     public record NuevoPremio(String titulo, String emisor, LocalDate otorgadoEn, LocalDate vigenteHasta, Long loteId) {
+    }
+
+    /**
+     * CCPIP-169: lo que un visitante ve de un premio. Sin archivo, nombre de archivo ni codigo de lote:
+     * del lote, solo la fecha de su cosecha o produccion.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record PremioPublico(String titulo, String emisor, LocalDate otorgadoEn, LocalDate vigenteHasta,
+                                boolean vigente, LocalDate cosecha) {
     }
 }

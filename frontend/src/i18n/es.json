@@ -2302,6 +2302,14 @@
       },
       "nota": "Se publican solo el emisor, las fechas y la vigencia de las evidencias que sustentaron la aprobación. Los archivos y los documentos privados del productor no se muestran."
     },
+    "premios": {
+      "titulo": "Premios",
+      "emisor": "Emisor:",
+      "otorgado": "Fecha:",
+      "lote": "Lote:",
+      "cosechaDel": "producido el {{fecha}}",
+      "nota": "Premios declarados por el productor, cada uno con un documento de respaldo que no se publica. La Cámara no los certifica."
+    },
     "verificando": "La Cámara aún está verificando el origen de esta comunidad.",
     "sobreCosecha": "Sobre esta cosecha",
     "consumirAntes": "Consumir antes de",

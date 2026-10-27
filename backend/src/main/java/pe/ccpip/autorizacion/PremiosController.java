@@ -2,6 +2,7 @@ package pe.ccpip.autorizacion;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -16,16 +17,21 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import pe.ccpip.auth.access.Publico;
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.filter.SessionAuthFilter;
 import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.autorizacion.PremiosModelos.NuevoPremio;
 import pe.ccpip.autorizacion.PremiosModelos.Premio;
+import pe.ccpip.autorizacion.PremiosModelos.PremioPublico;
 import pe.ccpip.autorizacion.PremiosModelos.PremiosProducto;
 import pe.ccpip.productor.ProductorActual;
 
-/** CCPIP-43 (RF-29): el productor registra, consulta y retira los premios de sus productos. */
+/**
+ * CCPIP-43 (RF-29): el productor registra, consulta y retira los premios de sus productos. CCPIP-169
+ * (RF-138): cualquiera ve los premios de un producto del catalogo, sin su archivo.
+ */
 @RestController
 public class PremiosController {
 
@@ -75,5 +81,11 @@ public class PremiosController {
     public ResponseEntity<byte[]> archivo(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                           @PathVariable long premioId) {
         return EvidenciasController.servir(service.archivoPropio(actual.id(s), premioId));
+    }
+
+    @Publico
+    @GetMapping("/api/productos/{productoId}/premios")
+    public List<PremioPublico> publicos(@PathVariable long productoId) {
+        return service.publicos(productoId);
     }
 }
