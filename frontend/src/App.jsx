@@ -59,6 +59,7 @@ import DenunciasProductorPage from './pages/productor/DenunciasPage.jsx'
 import AlmacenPage from './pages/productor/AlmacenPage.jsx'
 import EditorProductoPage from './pages/productor/EditorProductoPage.jsx'
 import EvidenciasPage from './pages/productor/EvidenciasPage.jsx'
+import PremiosPage from './pages/productor/PremiosPage.jsx'
 import LiquidacionesPage from './pages/productor/LiquidacionesPage.jsx'
 import LotesPage from './pages/productor/LotesPage.jsx'
 import PanelPage from './pages/productor/PanelPage.jsx'
@@ -79,6 +80,7 @@ const RUTA_TIENDA = /^\/tiendas\/(\d+)$/
 const RUTA_EDITOR = /^\/productor\/productos\/(\d+|nuevo)$/
 const RUTA_PEDIDO = /^\/pedidos\/(\d+)$/
 const RUTA_EVIDENCIAS = /^\/productor\/productos\/(\d+)\/evidencias$/
+const RUTA_PREMIOS = /^\/productor\/productos\/(\d+)\/premios$/
 const RUTA_EXPEDIENTE = /^\/admin\/autorizaciones\/(\d+)$/
 const RUTA_MODERACION = /^\/admin\/moderacion\/(\d+)$/
 const RUTA_VIDEO = /^\/admin\/moderacion\/videos\/(\d+)$/
@@ -327,6 +329,7 @@ export default function App() {
     else if (path === RUTAS.productorReportes) pagina = <ReportesProductorPage path={path} />
     else if (path === RUTAS.productorTransferenciaNueva) pagina = <NuevaTransferenciaPage />
     else if (RUTA_EVIDENCIAS.test(path)) pagina = <EvidenciasPage path={RUTAS.productorProductos} productoId={path.match(RUTA_EVIDENCIAS)[1]} />
+    else if (RUTA_PREMIOS.test(path)) pagina = <PremiosPage key={path} productoId={path.match(RUTA_PREMIOS)[1]} />
     else if (editor) {
       // Sin key por producto: al subir la primera foto el borrador nace y la URL pasa de /nuevo a
       // /:id; si el editor se montara de nuevo, perderia las fotos que se estan subiendo

@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Auditoria {
 
     /** EVIDENCIA y AUTORIZACION: certificados del producto y la decision sobre ellos (CCPIP-36, 174, 284). */
-    public enum Accion { CREAR, EDITAR, PUBLICAR, RETIRAR, REPUBLICAR, HISTORIA, LOTE, IMAGEN, EVIDENCIA, AUTORIZACION, MODERACION }
+    public enum Accion { CREAR, EDITAR, PUBLICAR, RETIRAR, REPUBLICAR, HISTORIA, LOTE, IMAGEN, EVIDENCIA, AUTORIZACION, MODERACION, PREMIO }
 
     private final JdbcTemplate jdbc;
     private final ObjectMapper json;

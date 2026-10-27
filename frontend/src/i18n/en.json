@@ -469,7 +469,8 @@
       "nota": "You only see your own products. “For sale” is the stock at collection points; what's in your warehouse is sold after you transfer it.",
       "confirmarTitulo": "Unpublish this product?",
       "confirmarTexto": "will no longer appear in the catalog or in your store. It isn't deleted: it stays in orders and history, and you can publish it again whenever you want.",
-      "evidencias": "Certificates and evidence"
+      "evidencias": "Certificates and evidence",
+      "premios": "Awards"
     },
     "editor": {
       "nombreAntesFotos": "Enter the product name before adding photos",
@@ -2065,6 +2066,14 @@
     "EVIDENCIA_EN_USO": "This evidence supports the product's current authorization and cannot be removed.",
     "EVIDENCIA_NO_ENCONTRADA": "The evidence doesn't exist.",
     "LIMITE_DE_EVIDENCIAS": "You reached the maximum number of items. Remove one to add another.",
+    "PREMIO_TITULO_REQUERIDO": "Enter the award name.",
+    "PREMIO_EMISOR_REQUERIDO": "Enter the organization that granted the award.",
+    "PREMIO_FECHA_REQUERIDA": "Enter when the award was granted.",
+    "PREMIO_FECHA_FUTURA": "The award date can't be later than today.",
+    "PREMIO_LOTE_REQUERIDO": "Choose the batch the award belongs to.",
+    "PREMIO_LOTE_AJENO": "Choose a batch of this product.",
+    "LIMITE_DE_PREMIOS": "You reached the maximum number of awards. Withdraw one to record another.",
+    "PREMIO_NO_ENCONTRADO": "The award doesn't exist.",
     "VIGENCIA_REQUERIDA": "State until when the certificate is valid.",
     "VIGENCIA_INVALIDA": "The validity ends before it starts.",
     "SIN_CERTIFICADO_VIGENTE": "To approve, the product needs at least one valid certificate of its own.",
@@ -2952,6 +2961,46 @@
       "titulo_other": "The Chamber asks you to renew {{count}} certificates",
       "detalle": "“{{certificado}}” by {{plazo}}. Reason: {{motivo}}",
       "venta": "Your product remains on sale. If the certificate expires without renewal, its sale is paused until a new one is approved."
+    }
+  },
+  "premios": {
+    "titulo": "Product awards",
+    "intro": "Record the awards {{producto}} received, each with the batch it belongs to and the file that backs it.",
+    "registrados": "Recorded awards",
+    "cuantos_one": "{{count}} award",
+    "cuantos_other": "{{count}} awards",
+    "ninguno": "You haven't recorded any awards for this product yet.",
+    "otorgado": "awarded on {{fecha}}",
+    "lote": "Batch {{codigo}} (produced on {{fecha}})",
+    "sinLotes": "To record an award, first register a batch of this product.",
+    "agregar": "Record award",
+    "limite": "You reached the maximum of {{maximo}} awards. Withdraw one to record another.",
+    "registrado": "You recorded “{{titulo}}”.",
+    "retirado": "You withdrew “{{titulo}}”. It no longer shows on the product page.",
+    "error": "We couldn't load the awards.",
+    "errorRegistrar": "We couldn't record the award. Please try again.",
+    "errorRetirar": "We couldn't withdraw the award. Please try again.",
+    "retirarDe": "Withdraw {{titulo}}",
+    "retirarTitulo": "Withdraw this award?",
+    "retirarTexto": "“{{titulo}}” will no longer show on the product page. It stays in your history.",
+    "como": {
+      "titulo": "How it is shown",
+      "publico": "The product page shows the award name, who granted it, the date and how long it is valid, as declared by you with evidence.",
+      "privado": "The supporting file is private: only you can see it."
+    },
+    "form": {
+      "titulo": "Award name",
+      "emisor": "Granting organization",
+      "lote": "Awarded batch",
+      "otorgado": "Date awarded",
+      "archivo": "Supporting file",
+      "registrar": "Record award",
+      "errorTitulo": "Enter the award name.",
+      "errorEmisor": "Enter the organization that granted the award.",
+      "errorFecha": "Enter when the award was granted.",
+      "errorFutura": "The date can't be later than today.",
+      "errorOrden": "The validity ends before the award was granted.",
+      "errorLote": "Choose the batch the award belongs to."
     }
   },
   "autorizaciones": {
