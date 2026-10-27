@@ -64,6 +64,16 @@ describe('CCPIP-110 ubicaciones', () => {
     expect(await screen.findByRole('dialog', { name: 'Ubicaciones del pedido MC-11002' })).toHaveTextContent('Puerta azul')
     expect(llamadas(fetchMock, 'GET /api/distribuidor/pedidos/MC-11001/ubicaciones')).toHaveLength(2)
   })
+
+  it('permite consultar las ubicaciones de una entrega propia ya entregada', async () => {
+    const rutas = reparto([entrega('MC-11003', 'Lince', '150116', 'ENTREGADA')])
+    rutas['GET /api/distribuidor/pedidos/MC-11003/ubicaciones'] = [200, { numero: 'MC-11003', origen: { id: 1, nombre: 'Punto Uno', distrito: 'Lima', direccion: 'Calle Uno' }, destino: { territorio: { ubigeo: '150116', departamento: 'Lima', provincia: 'Lima', distrito: 'Lince' }, direccion: 'Jr. Destino', referencia: null } }]
+    const fetchMock = servidor(comoDistribuidor(rutas)); const user = userEvent.setup(); abrirEn('/distribuidor/entregas')
+    const tabla = await screen.findByRole('table', { name: 'Entregados hoy' })
+    await user.click(within(tabla).getByRole('button', { name: 'Ver ubicaciones' }))
+    expect(await screen.findByRole('dialog', { name: 'Ubicaciones del pedido MC-11003' })).toHaveTextContent('Jr. Destino')
+    expect(llamadas(fetchMock, 'GET /api/distribuidor/pedidos/MC-11003/ubicaciones')).toHaveLength(1)
+  })
 })
 
 describe('DW-03 Mis entregas (CCPIP-317)', () => {

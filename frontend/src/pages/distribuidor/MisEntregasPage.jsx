@@ -22,10 +22,11 @@ function DialogoUbicaciones({ numero, onCerrar }) {
   const [error, setError] = useState(null)
   const [cargando, setCargando] = useState(true)
   const cerrarRef = useRef(null)
+  const dialogoRef = useRef(null)
   async function cargar() { setCargando(true); setError(null); setDatos(null); try { setDatos(await consultarUbicaciones(numero)) } catch (e) { setError(e) } finally { setCargando(false) } }
-  useEffect(() => { let vivo = true; consultarUbicaciones(numero).then((d) => vivo && setDatos(d)).catch((e) => vivo && setError(e)).finally(() => vivo && setCargando(false)); const previo=document.activeElement; cerrarRef.current?.focus(); const escape=(e)=>{if(e.key==='Escape')onCerrar()}; document.addEventListener('keydown',escape); return ()=>{vivo=false;document.removeEventListener('keydown',escape);previo?.focus?.()} }, [numero])
+  useEffect(() => { let vivo = true; consultarUbicaciones(numero).then((d) => vivo && setDatos(d)).catch((e) => vivo && setError(e)).finally(() => vivo && setCargando(false)); const previo=document.activeElement; const dialogo=dialogoRef.current; if (dialogo && !dialogo.open) { if (typeof dialogo.showModal === 'function') dialogo.showModal(); else dialogo.setAttribute('open', '') }; cerrarRef.current?.focus(); return ()=>{vivo=false;if(dialogo?.open){if(typeof dialogo.close==='function')dialogo.close();else dialogo.removeAttribute('open')}previo?.focus?.()} }, [numero])
   const campo=(label,value)=>(value ? <p><strong>{label}</strong><br />{value}</p> : null)
-  return <div className="ubicaciones__fondo" onMouseDown={(e)=>{if(e.target===e.currentTarget)onCerrar()}}><section className="ubicaciones" role={error?'alertdialog':'dialog'} aria-modal="true" aria-labelledby="ubicaciones-titulo" aria-busy={cargando}><h2 id="ubicaciones-titulo">{t('distribuidor.entregas.ubicaciones.titulo',{numero})}</h2><button ref={cerrarRef} type="button" className="ubicaciones__cerrar" onClick={onCerrar}>{t('distribuidor.entregas.ubicaciones.cerrar')}</button>{cargando&&<Cargando texto={t('distribuidor.entregas.ubicaciones.cargando')}/ >}{error&&<div role="alert"><p>{t('distribuidor.entregas.ubicaciones.error')}</p><p>{mensajeError(error)}</p><Boton tamano="S" onClick={cargar}>{t('distribuidor.entregas.ubicaciones.reintentar')}</Boton></div>}{datos&&<><h3>{t('distribuidor.entregas.ubicaciones.origen')}</h3>{campo(t('distribuidor.entregas.ubicaciones.punto'),datos.origen.nombre)}{campo(t('distribuidor.entregas.ubicaciones.direccion'),datos.origen.direccion)}{campo(t('distribuidor.entregas.ubicaciones.distrito'),datos.origen.distrito)}<h3>{t('distribuidor.entregas.ubicaciones.destino')}</h3>{campo(t('distribuidor.entregas.ubicaciones.direccion'),datos.destino.direccion)}{campo(t('distribuidor.entregas.ubicaciones.distrito'),datos.destino.territorio.distrito)}{campo(t('distribuidor.entregas.ubicaciones.provincia'),datos.destino.territorio.provincia)}{campo(t('distribuidor.entregas.ubicaciones.departamento'),datos.destino.territorio.departamento)}{campo(t('distribuidor.entregas.ubicaciones.referencia'),datos.destino.referencia)}</>}</section></div>
+  return <dialog ref={dialogoRef} className="ubicaciones" role={error?'alertdialog':'dialog'} aria-labelledby="ubicaciones-titulo" aria-busy={cargando} onCancel={(e)=>{e.preventDefault();onCerrar()}} onClick={(e)=>{if(e.target===e.currentTarget)onCerrar()}}><h2 id="ubicaciones-titulo">{t('distribuidor.entregas.ubicaciones.titulo',{numero})}</h2><button ref={cerrarRef} type="button" className="ubicaciones__cerrar" onClick={onCerrar}>{t('distribuidor.entregas.ubicaciones.cerrar')}</button>{cargando&&<Cargando texto={t('distribuidor.entregas.ubicaciones.cargando')}/ >}{error&&<div role="alert"><p>{t('distribuidor.entregas.ubicaciones.error')}</p><p>{mensajeError(error)}</p><Boton tamano="S" onClick={cargar}>{t('distribuidor.entregas.ubicaciones.reintentar')}</Boton></div>}{datos&&<><h3>{t('distribuidor.entregas.ubicaciones.origen')}</h3>{campo(t('distribuidor.entregas.ubicaciones.punto'),datos.origen.nombre)}{campo(t('distribuidor.entregas.ubicaciones.direccion'),datos.origen.direccion)}{campo(t('distribuidor.entregas.ubicaciones.distrito'),datos.origen.distrito)}<h3>{t('distribuidor.entregas.ubicaciones.destino')}</h3>{campo(t('distribuidor.entregas.ubicaciones.direccion'),datos.destino.direccion)}{campo(t('distribuidor.entregas.ubicaciones.distrito'),datos.destino.territorio.distrito)}{campo(t('distribuidor.entregas.ubicaciones.provincia'),datos.destino.territorio.provincia)}{campo(t('distribuidor.entregas.ubicaciones.departamento'),datos.destino.territorio.departamento)}{campo(t('distribuidor.entregas.ubicaciones.referencia'),datos.destino.referencia)}</>}</dialog>
 }
 
 /** Color del estado de la entrega: siempre con su texto (Badge). */
@@ -185,6 +186,7 @@ export default function MisEntregasPage({ path }) {
                       <th scope="col">{t('distribuidor.entregas.col.pedido')}</th>
                       <th scope="col">{t('distribuidor.entregas.col.destino')}</th>
                       <th scope="col">{t('distribuidor.entregas.col.estado')}</th>
+                      <th scope="col">{t('distribuidor.entregas.ubicaciones.accion')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -193,6 +195,7 @@ export default function MisEntregasPage({ path }) {
                         <th scope="row" className="mis-entregas__numero">{e.numero}</th>
                         <td>{e.destino.distrito}</td>
                         <td><Badge tono={TONOS[e.estado]}>{t(`distribuidor.entregas.estado.${e.estado}`)}</Badge></td>
+                        <td><Boton tamano="S" tipo="secundario" onClick={() => setUbicaciones(e.numero)}>{t('distribuidor.entregas.ubicaciones.accion')}</Boton></td>
                       </tr>
                     ))}
                   </tbody>
