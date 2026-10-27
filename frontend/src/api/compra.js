@@ -11,6 +11,12 @@ export const consultarPuntosRecojo = () => apiFetch('/api/compra/puntos')
 export const consultarDistritosEntrega = () => apiFetch('/api/compra/distritos')
 
 /**
+ * CCPIP-295: los productos perecibles del carrito si sale del punto elegido, con hasta cuando se consumen:
+ * [{ productoId, nombre, consumirAntesDe, diasRestantes }]. Lo que no vence no aparece.
+ */
+export const consultarAdvertencias = (puntoId) => apiFetch(`/api/compra/advertencias?punto=${idRuta(puntoId)}`)
+
+/**
  * Crea el pedido en espera de pago. No descuenta stock hasta que el pago se aprueba. Con `entrega`
  * (CCPIP-59) es a domicilio: { ubigeo, direccion, referencia, contactoNombre, contactoCelular }; sin
  * ella es recojo, con persona autorizada y celular de contacto.

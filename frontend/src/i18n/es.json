@@ -2450,6 +2450,14 @@
     "sinPuntoTexto": "Por ahora ningún punto tiene existencias para todos tus productos juntos. Ajusta las cantidades o quita alguno.",
     "puntoTitulo": "1. Punto de recojo",
     "puntoAyuda": "Recoges tu pedido sin costo en un punto de acopio de la Cámara.",
+    "perecibles": {
+      "titulo": "Productos perecibles de tu compra",
+      "producto": "{{nombre}}: consumir antes del {{fecha}}",
+      "hoy": "vence hoy",
+      "dias_one": "falta {{count}} día",
+      "dias_other": "faltan {{count}} días",
+      "nota": "Es la fecha del lote más próximo a vencer en este punto, que es el primero que se despacha. No incluye el tiempo de entrega: revisa la fecha al recibir tu pedido."
+    },
     "eligeDonde": "Elige dónde recoger",
     "quienTitulo": "2. ¿Quién recoge?",
     "otraPersona": "Otra persona recogerá el pedido",

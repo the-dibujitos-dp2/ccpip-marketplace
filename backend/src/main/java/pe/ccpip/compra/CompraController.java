@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,6 +23,7 @@ import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.filter.SessionAuthFilter;
 import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
+import pe.ccpip.compra.CompraModelos.AdvertenciaPerecible;
 import pe.ccpip.compra.CompraModelos.DistritoConPuntos;
 import pe.ccpip.compra.CompraModelos.IntentoPago;
 import pe.ccpip.compra.CompraModelos.Pedido;
@@ -104,6 +106,13 @@ public class CompraController {
     @GetMapping("/api/compra/distritos")
     public List<DistritoConPuntos> distritos(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s) {
         return compra.distritosConEntrega(s.userId());
+    }
+
+    /** CCPIP-295: advertencias de perecibilidad del carrito si sale del punto elegido. */
+    @GetMapping("/api/compra/advertencias")
+    public List<AdvertenciaPerecible> advertencias(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                                   @RequestParam long punto) {
+        return compra.advertencias(s.userId(), punto);
     }
 
     /** CCPIP-112 (CW-09): las compras del comprador con su estado e historial. Solo las propias. */

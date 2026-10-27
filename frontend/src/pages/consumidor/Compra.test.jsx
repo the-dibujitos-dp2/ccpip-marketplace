@@ -264,3 +264,28 @@ describe('CW-05 Entrega y pago (CCPIP-157, CCPIP-62) y confirmación (CCPIP-64)'
     await waitFor(() => expect(screen.getByText('No encontramos ese pedido')).toBeInTheDocument())
   })
 })
+
+describe('CCPIP-295 Advertencias de perecibilidad al elegir el punto', () => {
+  const ADVERTENCIAS = '/api/compra/advertencias?punto=1'
+
+  it('muestra hasta cuándo se consume lo perecible que saldría del punto elegido, sin estimar la entrega', async () => {
+    const fetchMock = servidor(rutas({
+      [`GET ${ADVERTENCIAS}`]: [200, [{ productoId: 5, nombre: 'Cacao en grano fermentado 1 kg', consumirAntesDe: '2026-11-15', diasRestantes: 20 }]],
+    }))
+    abrirEn('/compra')
+    const aviso = within(await screen.findByRole('status', { name: 'Productos perecibles de tu compra' }))
+    expect(aviso.getByText(/Cacao en grano fermentado 1 kg: consumir antes del 15 nov 2026/)).toBeInTheDocument()
+    expect(aviso.getByText('faltan 20 días')).toBeInTheDocument()
+    expect(aviso.getByText(/No incluye el tiempo de entrega/)).toBeInTheDocument()
+    expect(llamadas(fetchMock, `GET ${ADVERTENCIAS}`)).toHaveLength(1)
+    // No impide pagar
+    expect(screen.getByRole('button', { name: PAGAR })).toBeEnabled()
+  })
+
+  it('sin perecibles, o si la consulta falla, no muestra el aviso', async () => {
+    servidor(rutas({ [`GET ${ADVERTENCIAS}`]: [200, []] }))
+    abrirEn('/compra')
+    expect(await screen.findByRole('button', { name: PAGAR })).toBeInTheDocument()
+    expect(screen.queryByRole('status', { name: 'Productos perecibles de tu compra' })).not.toBeInTheDocument()
+  })
+})
