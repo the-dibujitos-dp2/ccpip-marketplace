@@ -212,17 +212,19 @@ class PedidosPuntoControllerTest extends IntegrationTest {
         long listo = pedidoConfirmado("MC-T0162", LIMA, producto, 1);
         long entregadoHoy = pedidoConfirmado("MC-T0163", LIMA, producto, 1);
         long entregadoAntes = pedidoConfirmado("MC-T0164", LIMA, producto, 1);
+        long enCamino = pedidoConfirmado("MC-T0166", LIMA, producto, 1);
         jdbc.update("UPDATE pedido SET estado = 'EN_PREPARACION' WHERE id = ?", preparando);
         jdbc.update("UPDATE pedido SET estado = 'LISTO_PARA_RECOJO' WHERE id = ?", listo);
         jdbc.update("UPDATE pedido SET estado = 'ENTREGADO' WHERE id = ?", entregadoHoy);
         jdbc.update("UPDATE pedido SET estado = 'ENTREGADO', actualizado_en = now() - interval '2 days' WHERE id = ?",
                 entregadoAntes);
+        jdbc.update("UPDATE pedido SET estado = 'EN_CAMINO' WHERE id = ?", enCamino);
 
         listar(admin)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ubicacion").value(LIMA))
                 // Confirmados, en preparacion, listos, luego entregados hoy; lo anterior ya no se muestra
-                .andExpect(jsonPath("$.items[*].numero").value(org.hamcrest.Matchers.contains("MC-T0159", "MC-T0165", "MC-T0162", "MC-T0163")))
+                .andExpect(jsonPath("$.items[*].numero").value(org.hamcrest.Matchers.contains("MC-T0159", "MC-T0165", "MC-T0162", "MC-T0163", "MC-T0166")))
                 .andExpect(jsonPath("$.items[0].estado").value("CONFIRMADO"))
                 .andExpect(jsonPath("$.items[0].total").value(40))
                 .andExpect(content().string(not(containsString("consumidor@ccpip.test"))));

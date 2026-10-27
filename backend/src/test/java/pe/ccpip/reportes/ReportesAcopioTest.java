@@ -169,6 +169,23 @@ class ReportesAcopioTest extends IntegrationTest {
     }
 
     @Test
+    void lasVentasEnCaminoDeEnvioSiguenPorEntregarEnReporteYFiltro() throws Exception {
+        long loteLima = lote(aceite, LIMA, "RA-CAMINO", "20", "2024-06-05 10:00-05");
+        venta(loteLima, "RA-ENVIO-CAMINO", "EN_CAMINO", "3", "2024-06-05 10:00-05");
+        jdbc.update("UPDATE pedido SET modalidad='ENVIO' WHERE numero='RA-ENVIO-CAMINO'");
+        jdbc.update("INSERT INTO entrega (pedido_id, ubigeo, direccion, contacto_nombre, contacto_celular) SELECT id, '150122', 'Calle 1', 'Contacto', '999888777' FROM pedido WHERE numero='RA-ENVIO-CAMINO'");
+
+        mockMvc.perform(get(VENTAS + "?desde=2024-06-01&hasta=2024-06-30&producto=" + aceite).cookie(loginAs(ADMIN)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.periodos[0].pedidosPorEntregar").value(1))
+                .andExpect(jsonPath("$.totales.pedidosPorEntregar").value(1))
+                .andExpect(jsonPath("$.totales.unidades").value(3));
+        mockMvc.perform(get(INVENTARIO + "?desde=2024-06-01&hasta=2024-06-30&producto=" + aceite).cookie(loginAs(ADMIN)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totales.porEntregar").value(3));
+    }
+
+    @Test
     void elInventarioExplicaCadaSaldoYCuentaLoVendidoQueSigueEnElPunto() throws Exception {
         salidasDePrueba();
         Cookie sesion = loginAs(ADMIN);

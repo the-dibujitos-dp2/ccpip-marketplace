@@ -56,7 +56,7 @@ public class ReportesAcopioService {
      * Estados de un pedido pagado que aun no se entrega: su salida por venta ya se registro (al confirmarse
      * la compra, CCPIP-62), pero las unidades siguen fisicamente en el punto.
      */
-    static final String POR_ENTREGAR = "('CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO', 'LISTO_PARA_DESPACHO')";
+    static final String POR_ENTREGAR = "('CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO', 'LISTO_PARA_DESPACHO', 'EN_CAMINO')";
 
     /** Nombre del productor {@code po}: su tienda o, si aun no tiene, su comunidad. */
     static final String NOMBRE_PRODUCTOR = "coalesce(po.nombre_tienda, po.comunidad)";
