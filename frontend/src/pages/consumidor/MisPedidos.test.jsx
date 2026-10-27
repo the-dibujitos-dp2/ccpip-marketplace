@@ -36,6 +36,15 @@ function etapas(numero) {
 }
 
 describe('CW-09 Mis pedidos (CCPIP-112, CCPIP-70, CCPIP-340)', () => {
+  it('mantiene EN_CAMINO en curso y muestra su etiqueta localizada', async () => {
+    const enCamino = { ...DATOS.misPedidos[1], id: 318, numero: 'CCP-000318', estado: 'EN_CAMINO' }
+    servidor(comoComprador({ 'GET /api/pedidos': [200, [enCamino]] }))
+    abrirEn('/cuenta/pedidos')
+    expect(await screen.findByRole('tab', { name: 'En curso (1)', selected: true })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Historial (0)' })).toBeInTheDocument()
+    expect(within(screen.getByRole('article', { name: 'Pedido CCP-000318' })).getByText('En camino')).toHaveClass('badge-estado--info')
+  })
+
   it('en curso muestra cada pedido con su estado, resumen pagado y en qué etapa está', async () => {
     servidor(comoComprador())
     abrirEn('/cuenta/pedidos')

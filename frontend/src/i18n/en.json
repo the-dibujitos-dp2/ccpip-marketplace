@@ -1511,6 +1511,7 @@
         "EN_PREPARACION": "Being prepared",
         "LISTO_PARA_RECOJO": "Ready for pickup",
         "LISTO_PARA_DESPACHO": "Ready for dispatch",
+        "EN_CAMINO": "On the way",
         "ENTREGADO": "Delivered"
       }
     },
@@ -2632,6 +2633,7 @@
       "PENDIENTE_PAGO": "Awaiting payment",
       "CONFIRMADO": "Payment confirmed",
       "EN_PREPARACION": "Being prepared",
+      "EN_CAMINO": "On the way",
       "LISTO_PARA_RECOJO": "Ready at collection point",
       "LISTO_PARA_DESPACHO": "Ready for dispatch",
       "ENTREGADO": "Delivered",

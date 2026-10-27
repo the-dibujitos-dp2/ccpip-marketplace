@@ -1511,6 +1511,7 @@
         "EN_PREPARACION": "En preparación",
         "LISTO_PARA_RECOJO": "Listo para recojo",
         "LISTO_PARA_DESPACHO": "Listo para despacho",
+        "EN_CAMINO": "En camino",
         "ENTREGADO": "Entregado"
       }
     },
@@ -2632,6 +2633,7 @@
       "PENDIENTE_PAGO": "Espera pago",
       "CONFIRMADO": "Pago confirmado",
       "EN_PREPARACION": "En preparación",
+      "EN_CAMINO": "En camino",
       "LISTO_PARA_RECOJO": "Disponible en acopio",
       "LISTO_PARA_DESPACHO": "Listo para despacho",
       "ENTREGADO": "Entregado",

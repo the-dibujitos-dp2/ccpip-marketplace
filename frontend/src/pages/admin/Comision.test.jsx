@@ -242,6 +242,15 @@ describe('Comisión por pedido (CCPIP-91)', () => {
     expect(within(screen.getByLabelText('Estado')).getByRole('option', { name: 'Listo para despacho' })).toBeInTheDocument()
   })
 
+  it('filtra por pedidos en camino y solicita el estado correcto (CCPIP-318)', async () => {
+    const fetchMock = servidor(comoSuper())
+    abrirEn('/admin/comisiones')
+    await screen.findByRole('table', { name: 'Pedidos confirmados' })
+    expect(within(screen.getByLabelText('Estado')).getByRole('option', { name: 'En camino' })).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Estado'), { target: { value: 'EN_CAMINO' } })
+    await waitFor(() => expect(llamadas(fetchMock, `GET ${PEDIDOS}?estado=EN_CAMINO`)).toHaveLength(1))
+  })
+
   it('filtra por productor y por estado, y al limpiar vuelve a la lista completa (CCPIP-431)', async () => {
     const fetchMock = servidor(comoSuper())
     abrirEn('/admin/comisiones')
