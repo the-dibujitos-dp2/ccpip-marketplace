@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
-import { copia, DATOS, llamadas, PUBLICAS, servidor, SESION, SESION_ACOPIO } from '../../test/servidor.js'
+import { abrirPestana, copia, DATOS, llamadas, panel, PUBLICAS, servidor, SESION, SESION_ACOPIO } from '../../test/servidor.js'
 
 function abrirEn(ruta) {
   window.history.replaceState(null, '', ruta)
@@ -615,7 +615,7 @@ describe('A-05 Tablero del punto con un pedido a domicilio (CCPIP-59)', () => {
   it('lo marca como a domicilio y deja registrar su preparación', async () => {
     servidor(comoAcopio(tablero('CONFIRMADO')))
     abrirEn('/acopio/pedidos')
-    const confirmado = within(await screen.findByRole('region', { name: 'Confirmado' }))
+    const confirmado = await panel('Confirmado')
     expect(confirmado.getByText('A domicilio')).toBeInTheDocument()
     expect(confirmado.getByRole('button', { name: 'Registrar la preparación del pedido MC-00155' })).toBeEnabled()
   })
@@ -623,7 +623,7 @@ describe('A-05 Tablero del punto con un pedido a domicilio (CCPIP-59)', () => {
   it('en preparación no ofrece marcarlo listo para recojo, sino registrar su salida (CCPIP-320)', async () => {
     servidor(comoAcopio(tablero('EN_PREPARACION')))
     abrirEn('/acopio/pedidos')
-    const preparacion = within(await screen.findByRole('region', { name: 'En preparación' }))
+    const preparacion = await abrirPestana(userEvent.setup(), 'En preparación')
     expect(preparacion.getByText('A domicilio')).toBeInTheDocument()
     expect(preparacion.queryByRole('button', { name: /listo para recojo/ })).not.toBeInTheDocument()
     expect(preparacion.getByRole('button', { name: 'Registrar la salida del pedido MC-00155 para despacho' })).toBeEnabled()
@@ -635,7 +635,7 @@ describe('A-05 Tablero del punto con un pedido a domicilio (CCPIP-59)', () => {
     datos.items[0].modalidad = 'RECOJO'
     servidor(comoAcopio(datos))
     abrirEn('/acopio/pedidos')
-    const preparacion = within(await screen.findByRole('region', { name: 'En preparación' }))
+    const preparacion = await abrirPestana(userEvent.setup(), 'En preparación')
     expect(preparacion.queryByText('A domicilio')).not.toBeInTheDocument()
     expect(preparacion.getByRole('button', { name: 'Marcar el pedido MC-00155 como listo para recojo' })).toBeEnabled()
   })

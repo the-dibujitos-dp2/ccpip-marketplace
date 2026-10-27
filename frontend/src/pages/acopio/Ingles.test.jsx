@@ -1,9 +1,9 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
 import i18n from '../../i18n/index.js'
-import { copia, DATOS, PUBLICAS, servidor, SESION_ACOPIO } from '../../test/servidor.js'
+import { abrirPestana, copia, DATOS, panel, PUBLICAS, servidor, SESION_ACOPIO } from '../../test/servidor.js'
 
 // CCPIP-98: el panel del punto de acopio en ingles, sin restos en espanol
 function abrirEn(ruta) {
@@ -24,14 +24,14 @@ describe('Punto de acopio en inglés (CCPIP-98)', () => {
     await i18n.changeLanguage('en')
   })
 
-  it('los pedidos salen por columna con sus acciones en inglés', async () => {
+  it('los pedidos salen en pestañas por estado, con su tabla y acciones en inglés', async () => {
     servidor(comoAcopio())
     abrirEn('/acopio/pedidos')
     expect(await screen.findByRole('heading', { level: 1, name: 'Orders' })).toBeInTheDocument()
-    const confirmados = within(await screen.findByRole('region', { name: 'Confirmed' }))
+    const confirmados = await panel('Confirmed')
     expect(confirmados.getByRole('button', { name: /^Record the preparation of order .+$/ })).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: 'Being prepared' })).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: 'Ready for pickup' })).toBeInTheDocument()
+    expect(screen.getAllByRole('tab').map((p) => p.textContent)).toEqual(['Confirmed (1)', 'Ready for pickup (1)', 'Delivered today (1)'])
+    expect(screen.getByRole('list', { name: 'Orders in the selected status' })).toBeInTheDocument()
     expect(screen.queryByText(/Listo para recojo/)).not.toBeInTheDocument()
   })
 
@@ -44,7 +44,7 @@ describe('Punto de acopio en inglés (CCPIP-98)', () => {
     )
     const user = userEvent.setup()
     abrirEn('/acopio/pedidos')
-    await user.click(await screen.findByRole('button', { name: `Record pickup for order ${listo.numero}` }))
+    await user.click((await abrirPestana(user, 'Ready for pickup')).getByRole('button', { name: `Record pickup for order ${listo.numero}` }))
     await user.type(screen.getByLabelText('Name of the person picking up'), 'Ana Quispe')
     await user.type(screen.getByLabelText('Contact mobile number'), '987654321')
     await user.click(screen.getByRole('button', { name: 'Record pickup' }))

@@ -1091,6 +1091,15 @@
         "EN_CAMINO": "On the way"
       },
       "columnaConteo": "{{titulo}} ({{total}})",
+      "estados": "Orders by status",
+      "lista": "Orders in the selected status",
+      "col": {
+        "pedido": "Order",
+        "productos": "Products and batches",
+        "estado": "Last change",
+        "total": "Total",
+        "accion": "Action"
+      },
       "columnaVacia": {
         "CONFIRMADO": "No orders to prepare.",
         "EN_PREPARACION": "No orders are being prepared.",

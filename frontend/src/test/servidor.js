@@ -1,3 +1,4 @@
+import { screen, within } from '@testing-library/react'
 import { vi } from 'vitest'
 // Respuestas reales del backend (stack de e2e), para que las simulaciones no se desvien del contrato
 import catalogos from './fixtures/catalogos.json'
@@ -100,6 +101,15 @@ export function servidor(rutas) {
 
 export function llamadas(fetchMock, clave) {
   return fetchMock.mock.calls.filter(([url, o = {}]) => `${o.method || 'GET'} ${url}` === clave)
+}
+
+/** El panel de la pestana abierta, que se llama como ella sin su conteo. */
+export const panel = async (nombre) => within(await screen.findByRole('tabpanel', { name: nombre }))
+
+/** Abre la pestana "{nombre} ({conteo})", como las de los pedidos del punto (CCPIP-419), y devuelve su panel. */
+export async function abrirPestana(user, nombre) {
+  await user.click(await screen.findByRole('tab', { name: new RegExp(`^${nombre} \\(\\d+\\)$`) }))
+  return panel(nombre)
 }
 
 export const PRODUCTOR = { id: 1, comunidad: 'Comunidad Shipibo Konibo', region: 'Ucayali', origenVerificado: true }
