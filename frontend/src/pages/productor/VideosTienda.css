@@ -1,0 +1,17 @@
+/* CCPIP-118: videos de la tienda en Mi tienda; mismo lenguaje que la galeria */
+.videos-tienda { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; }
+.videos-tienda__formulario { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; gap: 12px; }
+.videos-tienda__archivo { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.videos-tienda__elegir { cursor: pointer; }
+.videos-tienda__elegir:focus-within { outline: 2px solid var(--color-border-focus); outline-offset: 2px; }
+
+@media (max-width: 720px) {
+  .videos-tienda__formulario { grid-template-columns: 1fr; align-items: stretch; }
+}
+
+/* CCPIP-390: sus videos con el estado de su revision */
+.videos-tienda__lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.videos-tienda__item { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); }
+.videos-tienda__item video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-m); background: var(--color-bg-inverse); }
+.videos-tienda__datos { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.videos-tienda__acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }

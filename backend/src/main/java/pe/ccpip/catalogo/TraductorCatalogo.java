@@ -131,7 +131,7 @@ public class TraductorCatalogo {
                 t.de(campos, "historia", Entidad.COMUNIDAD, id, "historia", d.historia()),
                 t.de(campos, "cita", Entidad.COMUNIDAD, id, "cita", d.cita()),
                 d.pueblo(), d.comunidad(), d.region(), d.localidad(), d.socios(), d.origenVerificado(), d.desde(),
-                d.portada(), d.galeria(), t.facetas(Entidad.LINEA, d.lineas()),
+                d.portada(), d.galeria(), d.videos(), t.facetas(Entidad.LINEA, d.lineas()),
                 d.productos().stream().map(t::resumen).toList(), d.destacados(), campos.isEmpty() ? null : campos);
     }
 

@@ -12,9 +12,9 @@ import pe.ccpip.autorizacion.AutorizacionModelos.Productor;
 import pe.ccpip.imagenes.ImagenService.Imagen;
 
 /**
- * Moderacion de la publicacion de ofertas (CCPIP-46, CCPIP-331, CCPIP-332). La autorizacion de venta del
- * producto (CCPIP-174, CCPIP-284) es otro proceso: aqui solo se muestra, para que la publicacion de una
- * oferta no autorizada no se apruebe.
+ * Moderacion de la publicacion de ofertas (CCPIP-46, CCPIP-331, CCPIP-332) y de los videos de las tiendas
+ * (CCPIP-118). La autorizacion de venta del producto (CCPIP-174, CCPIP-284) es otro proceso: aqui solo se
+ * muestra, para que la publicacion de una oferta no autorizada no se apruebe.
  */
 public final class ModeracionModelos {
 
@@ -73,5 +73,26 @@ public final class ModeracionModelos {
     /** Toda decision lleva motivo, que el productor ve (CCPIP-331, CCPIP-332). */
     public record NuevaDecision(
             @NotBlank(message = "Escribe el motivo de la decisión") @Size(max = 500, message = "El motivo admite hasta 500 caracteres") String motivo) {
+    }
+
+    // ---------- Videos de la tienda (CCPIP-118) ----------
+
+    /** Un video en la bandeja. {@code reemplazo}: reemplaza a uno que ya se ve en la tienda (CCPIP-391). */
+    public record FilaVideo(long id, Estado estado, String titulo, BigDecimal duracionSegundos, long productorId,
+                            String organizacion, String pueblo, String region, boolean reemplazo, Instant subidoEn,
+                            Instant decididoEn) {
+    }
+
+    public record BandejaVideos(Contadores contadores, List<FilaVideo> solicitudes) {
+    }
+
+    public record VideoResumen(long id, String titulo, BigDecimal duracionSegundos, String url) {
+    }
+
+    /** CCPIP-118: el video para revisar, con el que reemplaza, si es un reemplazo (CCPIP-391). */
+    public record ExpedienteVideo(long id, Estado estado, String titulo, String formato, long bytes,
+                                  BigDecimal duracionSegundos, String url, Instant subidoEn, String subidoPor,
+                                  Productor productor, VideoResumen reemplaza, String motivo, String decididoPor,
+                                  Instant decididoEn, boolean puedeDecidir) {
     }
 }

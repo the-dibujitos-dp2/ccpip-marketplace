@@ -16,13 +16,16 @@ import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.autorizacion.AvisoAutorizacion;
 import pe.ccpip.moderacion.ModeracionModelos.Bandeja;
+import pe.ccpip.moderacion.ModeracionModelos.BandejaVideos;
 import pe.ccpip.moderacion.ModeracionModelos.Estado;
 import pe.ccpip.moderacion.ModeracionModelos.Expediente;
+import pe.ccpip.moderacion.ModeracionModelos.ExpedienteVideo;
 import pe.ccpip.moderacion.ModeracionModelos.NuevaDecision;
 
 /**
  * Moderacion de la publicacion de ofertas: el subadministrador revisa lo que los productores piden
- * publicar (CCPIP-46) y la aprueba (CCPIP-331) o la rechaza (CCPIP-332), siempre con motivo. Es una accion de gobierno del sub
+ * publicar (CCPIP-46) y la aprueba (CCPIP-331) o la rechaza (CCPIP-332), siempre con motivo. Los videos de
+ * las tiendas pasan por la misma revision (CCPIP-118). Es una accion de gobierno del sub
  * administrador, como las autorizaciones: el superadministrador recibe 403 (RNF-04). Cada decision se
  * avisa al productor una vez guardada.
  */
@@ -32,10 +35,12 @@ import pe.ccpip.moderacion.ModeracionModelos.NuevaDecision;
 public class ModeracionController {
 
     private final ModeracionService service;
+    private final ModeracionVideosService videos;
     private final AvisoAutorizacion aviso;
 
-    public ModeracionController(ModeracionService service, AvisoAutorizacion aviso) {
+    public ModeracionController(ModeracionService service, ModeracionVideosService videos, AvisoAutorizacion aviso) {
         this.service = service;
+        this.videos = videos;
         this.aviso = aviso;
     }
 
@@ -71,5 +76,31 @@ public class ModeracionController {
     private Expediente avisar(Expediente exp, AvisoAutorizacion.Tipo tipo, NuevaDecision decision) {
         aviso.notificar(exp.productor().id(), tipo, exp.oferta().nombre(), decision.motivo().strip(), exp.id());
         return exp;
+    }
+
+    // ---------- Videos de la tienda (CCPIP-118) ----------
+
+    /** Los videos PENDIENTE (por defecto), APROBADA o RECHAZADA. */
+    @GetMapping("/videos")
+    public BandejaVideos videos(@RequestParam(defaultValue = "PENDIENTE") Estado estado) {
+        return videos.bandeja(estado);
+    }
+
+    @GetMapping("/videos/{id}")
+    public ExpedienteVideo video(@PathVariable long id) {
+        return videos.expediente(id);
+    }
+
+    /** Aprobar o rechazar un video, con motivo; el productor recibe el aviso. */
+    @PostMapping("/videos/{id}/{accion:aprobar|rechazar}")
+    public ExpedienteVideo decidirVideo(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                        @PathVariable long id, @PathVariable String accion,
+                                        @Valid @RequestBody NuevaDecision decision) {
+        boolean aprobar = "aprobar".equals(accion);
+        ExpedienteVideo v = aprobar ? videos.aprobar(id, s.userId(), decision.motivo())
+                : videos.rechazar(id, s.userId(), decision.motivo());
+        aviso.notificar(v.productor().id(), aprobar ? AvisoAutorizacion.Tipo.VIDEO_APROBADO : AvisoAutorizacion.Tipo.VIDEO_RECHAZADO,
+                v.titulo(), decision.motivo().strip(), v.id());
+        return v;
     }
 }

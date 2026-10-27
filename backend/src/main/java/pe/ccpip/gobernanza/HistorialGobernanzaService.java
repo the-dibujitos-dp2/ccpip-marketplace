@@ -17,7 +17,7 @@ import pe.ccpip.gobernanza.GobernanzaModelos.Tipo;
 /**
  * Historial de acciones de gobernanza (CCPIP-126, RF-85; Figma S-05). Junta, con UNION ALL, lo que cada
  * modulo ya registra con su autor: decisiones sobre autorizaciones (CCPIP-174, 284, 39), solicitudes de
- * renovacion (CCPIP-321), moderacion de publicaciones (CCPIP-331, 332), decisiones sobre el productor (CCPIP-291, 330, 85, 322), cambios de estado de
+ * renovacion (CCPIP-321), moderacion de publicaciones (CCPIP-331, 332) y de videos (CCPIP-118), decisiones sobre el productor (CCPIP-291, 330, 85, 322), cambios de estado de
  * denuncias (CCPIP-84) y suspension o reactivacion de cuentas (CCPIP-124).
  *
  * <p>Solo lee: no hay tabla propia ni copia, asi que nada de esto se puede alterar desde aqui, y una
@@ -50,6 +50,12 @@ public class HistorialGobernanzaService {
             JOIN producto p ON p.id = m.producto_id
             JOIN productor pr ON pr.id = m.productor_id
             WHERE m.decision IS NOT NULL
+            UNION ALL
+            SELECT 'MV-' || v.id, v.decidido_en, v.decidido_por, 'MODERACION', 'VIDEO_' || v.estado,
+                   coalesce(pr.nombre_tienda, pr.comunidad), v.titulo, 'VIDEO', v.id, v.motivo
+            FROM video_tienda v
+            JOIN productor pr ON pr.id = v.productor_id
+            WHERE v.decidido_en IS NOT NULL
             UNION ALL
             SELECT 'PD-' || d.id, d.decidido_en, d.decidido_por, 'PRODUCTORES', d.decision,
                    coalesce(pr.nombre_tienda, pr.comunidad), NULL, 'PRODUCTOR', pr.id, d.motivo

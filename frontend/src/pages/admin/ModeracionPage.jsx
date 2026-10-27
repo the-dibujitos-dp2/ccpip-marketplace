@@ -3,12 +3,12 @@ import { useTranslation } from 'react-i18next'
 import iconoCheck from '../../assets/icons/check-circulo.svg'
 import iconoProhibido from '../../assets/icons/prohibido.svg'
 import iconoReloj from '../../assets/icons/reloj.svg'
-import { bandejaModeracion } from '../../api/moderacion.js'
+import { bandejaModeracion, bandejaVideos } from '../../api/moderacion.js'
 import Badge from '../../components/Badge.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { diaMes } from '../../formato.js'
-import { RUTAS } from '../../router.js'
+import { diaMes, duracion } from '../../formato.js'
+import { navigate, RUTAS } from '../../router.js'
 import '../productor/productor.css'
 import './admin.css'
 import { CeldaRevisar, CeldasSolicitud, PestanasEstado, TablaBandeja } from './revision.jsx'
@@ -25,11 +25,27 @@ export function BadgeAutorizacion({ estado, vigente }) {
   return <Badge tono="aviso">{t(`moderacion.autorizacion.estado.${estado}`, { defaultValue: estado })}</Badge>
 }
 
+/** Que se revisa: las ofertas (CCPIP-46) o los videos de las tiendas (CCPIP-118). */
+function QueRevisar({ videos }) {
+  const { t } = useTranslation()
+  return (
+    <nav className="moderacion__que" aria-label={t('moderacion.que.etiqueta')}>
+      {[[false, RUTAS.adminModeracion, 'ofertas'], [true, RUTAS.adminModeracionVideos, 'videos']].map(([esVideos, ruta, clave]) => (
+        <a key={clave} href={ruta} className={`chip${videos === esVideos ? ' chip--activo' : ''}`} aria-current={videos === esVideos ? 'page' : undefined}
+          onClick={(e) => { e.preventDefault(); navigate(ruta) }}>
+          {t(`moderacion.que.${clave}`)}
+        </a>
+      ))}
+    </nav>
+  )
+}
+
 /**
- * CCPIP-46 (RF-21): las ofertas que los productores piden publicar. Pendientes primero las mas antiguas;
- * las decididas, de la mas reciente a la mas antigua. No hay pantalla en Figma: sigue el formato de S-01.
+ * CCPIP-46 (RF-21): las ofertas que los productores piden publicar y, con `videos`, los videos que suben a su
+ * tienda (CCPIP-118). Pendientes primero los mas antiguos; los decididos, del mas reciente al mas antiguo. No
+ * hay pantalla en Figma: sigue el formato de S-01.
  */
-export default function ModeracionPage({ path }) {
+export default function ModeracionPage({ path, videos = false }) {
   const { t } = useTranslation()
   const [estado, setEstado] = useState('PENDIENTE')
   const [datos, setDatos] = useState(null)
@@ -39,11 +55,11 @@ export default function ModeracionPage({ path }) {
     setError(null)
     setDatos(null)
     try {
-      setDatos(await bandejaModeracion(e))
+      setDatos(await (videos ? bandejaVideos : bandejaModeracion)(e))
     } catch (err) {
       setError(err)
     }
-  }, [])
+  }, [videos])
 
   useEffect(() => {
     cargar(estado)
@@ -53,6 +69,7 @@ export default function ModeracionPage({ path }) {
   const pendiente = estado === 'PENDIENTE'
   return (
     <LayoutAdmin path={path} migas={t('admin.nav.moderacion')} titulo={t('moderacion.titulo')}>
+      <QueRevisar videos={videos} />
       {c && (
         <div className="productor__kpis">
           {[
@@ -65,23 +82,43 @@ export default function ModeracionPage({ path }) {
         </div>
       )}
       <PestanasEstado textos="moderacion" estados={ESTADOS} valor={estado} onCambiar={setEstado} />
-      <TablaBandeja textos="moderacion" estado={estado} datos={datos} error={error} columnas={[
-        { clase: 'tabla__celda--flex', texto: t('moderacion.col.oferta') },
-        { clase: 'autorizaciones__organizacion', texto: t('moderacion.col.organizacion') },
-        { clase: 'moderacion__autorizacion', texto: t('moderacion.col.autorizacion') },
-        { clase: 'moderacion__tipo', texto: t('moderacion.col.tipo') },
-        { clase: 'autorizaciones__fecha', texto: pendiente ? t('moderacion.col.enviada') : t('moderacion.col.decidida') },
-        { clase: 'autorizaciones__accion', texto: <span className="visually-hidden">{t('moderacion.col.accion')}</span> },
-      ]} fila={(s) => (
-        <div key={s.id} className="tabla__fila" role="row">
-          <CeldasSolicitud solicitud={s} />
-          <span className="tabla__celda moderacion__autorizacion" role="cell"><BadgeAutorizacion estado={s.autorizacion} vigente={s.autorizada} /></span>
-          <span className="tabla__celda moderacion__tipo" role="cell">{s.republicacion ? t('moderacion.tipo.republicacion') : t('moderacion.tipo.nueva')}</span>
-          <span className="tabla__celda autorizaciones__fecha" role="cell">{diaMes(pendiente ? s.solicitadaEn : s.decididaEn)}</span>
-          <CeldaRevisar textos="moderacion" solicitud={s} pendiente={pendiente} to={`${RUTAS.adminModeracion}/${s.id}`} />
-        </div>
-      )} />
-      <p className="productor__nota">{t('moderacion.nota')}</p>
+      {videos ? (
+        <TablaBandeja textos="moderacion" estado={estado} datos={datos} error={error} columnas={[
+          { clase: 'tabla__celda--flex', texto: t('moderacion.col.video') },
+          { clase: 'autorizaciones__organizacion', texto: t('moderacion.col.organizacion') },
+          { clase: 'moderacion__tipo', texto: t('moderacion.col.tipo') },
+          { clase: 'autorizaciones__fecha', texto: pendiente ? t('moderacion.col.enviada') : t('moderacion.col.decidida') },
+          { clase: 'autorizaciones__accion', texto: <span className="visually-hidden">{t('moderacion.col.accion')}</span> },
+        ]} fila={(v) => {
+          const s = { ...v, producto: v.titulo, linea: duracion(v.duracionSegundos) }
+          return (
+            <div key={v.id} className="tabla__fila" role="row">
+              <CeldasSolicitud solicitud={s} />
+              <span className="tabla__celda moderacion__tipo" role="cell">{v.reemplazo ? t('moderacion.tipo.reemplazo') : t('moderacion.tipo.nuevo')}</span>
+              <span className="tabla__celda autorizaciones__fecha" role="cell">{diaMes(pendiente ? v.subidoEn : v.decididoEn)}</span>
+              <CeldaRevisar textos="moderacion" solicitud={s} pendiente={pendiente} to={`${RUTAS.adminModeracionVideos}/${v.id}`} />
+            </div>
+          )
+        }} />
+      ) : (
+        <TablaBandeja textos="moderacion" estado={estado} datos={datos} error={error} columnas={[
+          { clase: 'tabla__celda--flex', texto: t('moderacion.col.oferta') },
+          { clase: 'autorizaciones__organizacion', texto: t('moderacion.col.organizacion') },
+          { clase: 'moderacion__autorizacion', texto: t('moderacion.col.autorizacion') },
+          { clase: 'moderacion__tipo', texto: t('moderacion.col.tipo') },
+          { clase: 'autorizaciones__fecha', texto: pendiente ? t('moderacion.col.enviada') : t('moderacion.col.decidida') },
+          { clase: 'autorizaciones__accion', texto: <span className="visually-hidden">{t('moderacion.col.accion')}</span> },
+        ]} fila={(s) => (
+          <div key={s.id} className="tabla__fila" role="row">
+            <CeldasSolicitud solicitud={s} />
+            <span className="tabla__celda moderacion__autorizacion" role="cell"><BadgeAutorizacion estado={s.autorizacion} vigente={s.autorizada} /></span>
+            <span className="tabla__celda moderacion__tipo" role="cell">{s.republicacion ? t('moderacion.tipo.republicacion') : t('moderacion.tipo.nueva')}</span>
+            <span className="tabla__celda autorizaciones__fecha" role="cell">{diaMes(pendiente ? s.solicitadaEn : s.decididaEn)}</span>
+            <CeldaRevisar textos="moderacion" solicitud={s} pendiente={pendiente} to={`${RUTAS.adminModeracion}/${s.id}`} />
+          </div>
+        )} />
+      )}
+      <p className="productor__nota">{t(videos ? 'moderacion.notaVideos' : 'moderacion.nota')}</p>
     </LayoutAdmin>
   )
 }

@@ -15,6 +15,7 @@ import pe.ccpip.catalogo.CatalogoModelos.ProductoResumen;
 import pe.ccpip.catalogo.CatalogoModelos.TiendaDetalle;
 import pe.ccpip.catalogo.CatalogoModelos.TiendaTarjeta;
 import pe.ccpip.imagenes.ImagenService;
+import pe.ccpip.video.VideosService;
 
 /** Tiendas publicadas de las comunidades (CCPIP-153, CCPIP-154, CCPIP-56). */
 @Repository
@@ -31,10 +32,12 @@ public class TiendasRepository {
 
     private final NamedParameterJdbcTemplate jdbc;
     private final CatalogoRepository catalogo;
+    private final VideosService videos;
 
-    public TiendasRepository(NamedParameterJdbcTemplate jdbc, CatalogoRepository catalogo) {
+    public TiendasRepository(NamedParameterJdbcTemplate jdbc, CatalogoRepository catalogo, VideosService videos) {
         this.jdbc = jdbc;
         this.catalogo = catalogo;
+        this.videos = videos;
     }
 
     public List<TiendaTarjeta> listar(Integer limite) {
@@ -70,8 +73,8 @@ public class TiendasRepository {
                             rs.getString("pueblo"), rs.getString("comunidad"), rs.getString("region"),
                             rs.getString("localidad"), (Integer) rs.getObject("socios"), rs.getBoolean("origen_verificado"),
                             desde == null ? null : desde.getYear(),
-                            portada == null ? null : ImagenService.url((UUID) portada), galeria(id), lineas(id),
-                            productos, destacados(id), null);
+                            portada == null ? null : ImagenService.url((UUID) portada), galeria(id),
+                            videos.publicados(id), lineas(id), productos, destacados(id), null);
                 }).stream().findFirst();
     }
 

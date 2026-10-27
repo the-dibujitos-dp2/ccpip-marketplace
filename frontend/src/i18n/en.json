@@ -751,6 +751,56 @@
       "sinHabilitar": "Your store is not enabled yet",
       "sinHabilitarTexto": "You can build and save it. The Chamber enables it and we will email you so you can publish it."
     },
+    "videos": {
+      "titulo": "Videos",
+      "limites": "Up to {{max}} videos · MP4 or WebM · {{mb}} MB and {{minutos}} min at most",
+      "revision": "Upload your own videos of your community, your crops or your workshop. The Chamber reviews each one before showing it in your store.",
+      "nombre": "Video title",
+      "nombreEjemplo": "E.g.: Cacao harvest in Pichanaki",
+      "elegir": "Choose video",
+      "cambiar": "Change video",
+      "ninguno": "You have not chosen a video yet",
+      "elegido": "{{nombre}} · {{mb}} MB",
+      "subir": "Upload video",
+      "subiendo": "Uploading… this may take a few minutes",
+      "tituloRequerido": "Write a title for the video",
+      "archivoRequerido": "Choose a video",
+      "tipoInvalido": "Choose an MP4 or WebM video",
+      "muyPesado": "The video is larger than {{max}} MB",
+      "enviado": "Video sent for review",
+      "enviadoTexto": "You will see it in your store once the Chamber approves it. We will let you know by email.",
+      "noSubio": "We could not upload the video",
+      "seCorto": "The connection dropped. Your video is still selected: try again.",
+      "lista": "Your store videos",
+      "vacio": "You have not uploaded any videos yet.",
+      "errorLista": "We could not load your videos",
+      "estado": {
+        "EN_REVISION": "In review",
+        "PUBLICADO": "Shown in your store",
+        "RECHAZADO": "Not published"
+      },
+      "motivo": "The Chamber's reason: “{{motivo}}”",
+      "lleno": "Your store already has {{max}} videos. Withdraw one to upload another.",
+      "reemplazar": "Replace",
+      "reemplazarDe": "Replace the video {{titulo}}",
+      "reemplazaA": "Replaces “{{titulo}}”",
+      "conReemplazo": "Its replacement is in review",
+      "reemplazoEnviado": "Replacement sent for review",
+      "reemplazoPublicado": "Your store keeps showing the current video until the Chamber approves the new one.",
+      "reemplazoTexto": "The previous video was withdrawn. You will see the new one in your store once the Chamber approves it.",
+      "noReemplazo": "We could not replace the video",
+      "retirar": "Withdraw",
+      "retirarDe": "Withdraw the video {{titulo}}",
+      "retirado": "Video withdrawn",
+      "retiradoTexto": "It is no longer shown in your store. It stays in the record: it is not deleted.",
+      "noRetiro": "We could not withdraw the video",
+      "dialogo": {
+        "titulo": "Withdraw “{{titulo}}”",
+        "confirmar": "Withdraw video",
+        "publicado": "It will no longer be shown in your store. It is not deleted: it stays in the record, and you can upload another one at any time.",
+        "texto": "It will no longer be reviewed or shown in your store. It is not deleted: it stays in the record."
+      }
+    },
     "cuenta": {
       "titulo": "Bank account",
       "registrar": "Register your bank account",
@@ -1870,6 +1920,7 @@
     "compartir": "Share",
     "historia": "Our story",
     "galeria": "Gallery",
+    "videos": "Videos",
     "foto": "Photo of {{nombre}}",
     "porLinea": "Products by line",
     "todos": "All ({{total}})",
@@ -1916,7 +1967,7 @@
   "errores": {
     "generico": "Something went wrong. Please try again.",
     "AGOTADO": "This product is out of stock for now.",
-    "ARCHIVO_MUY_PESADO": "The file is larger than 10 MB. Choose a lighter photo.",
+    "ARCHIVO_MUY_PESADO": "The file is too large: photos can be up to 10 MB and videos up to 50 MB.",
     "ARCHIVO_VACIO": "The file is empty.",
     "CATEGORIA_INVALIDA": "Choose the photo's category.",
     "CELULAR_INVALIDO": "Enter a 9-digit mobile number starting with 9.",
@@ -2076,7 +2127,17 @@
     "DETALLE_REQUERIDO": "Describe the cause of the shrinkage.",
     "MOTIVO_REPETIDO": "A cause with that name already exists.",
     "MOTIVO_DEL_SISTEMA": "Automatic shrinkage from expiry uses this cause: it cannot be deactivated.",
-    "MOTIVO_NO_ENCONTRADO": "The shrinkage cause does not exist."
+    "MOTIVO_NO_ENCONTRADO": "The shrinkage cause does not exist.",
+    "VIDEO_NO_RECONOCIDO": "We did not recognize the video. Upload an MP4 or WebM file.",
+    "VIDEO_SIN_DURACION": "We could not read the video's length. Save it again as MP4 and try again.",
+    "VIDEO_MUY_LARGO": "The video is longer than 3 minutes. Trim it and try again.",
+    "VIDEO_MUY_PESADO": "The video is larger than 50 MB. Trim it or lower its quality and try again.",
+    "LIMITE_DE_VIDEOS": "Your store can have up to 5 videos. Withdraw one to add another.",
+    "TITULO_REQUERIDO": "Write a title for the video.",
+    "TITULO_MUY_LARGO": "The title can be up to 120 characters.",
+    "VIDEO_YA_RESUELTO": "This video is no longer pending review.",
+    "VIDEO_NO_ENCONTRADO": "The video does not exist.",
+    "REEMPLAZO_EN_REVISION": "This video already has a replacement in review. Wait for the Chamber's decision or withdraw it."
   },
   "buscar": {
     "comunidad": "Community",
@@ -3055,9 +3116,15 @@
   },
   "moderacion": {
     "titulo": "Publication moderation",
+    "que": {
+      "etiqueta": "What to review",
+      "ofertas": "Offers",
+      "videos": "Store videos"
+    },
     "error": "We couldn't load the requests",
     "volver": "Back to moderation",
     "nota": "Publishing or republishing an offer goes through this review. Approving it requires the product to have a valid sale authorization, which is decided in Authorizations.",
+    "notaVideos": "Videos that producers upload to their store go through this review before being shown. A replacement is not shown until you approve it.",
     "pestanasEtiqueta": "Request status",
     "pestana": {
       "PENDIENTE": "Pending",
@@ -3078,6 +3145,7 @@
     },
     "col": {
       "oferta": "Offer",
+      "video": "Video",
       "organizacion": "Organization",
       "autorizacion": "Sale authorization",
       "tipo": "Type",
@@ -3097,7 +3165,9 @@
     },
     "tipo": {
       "nueva": "New",
-      "republicacion": "Republication"
+      "republicacion": "Republication",
+      "nuevo": "New",
+      "reemplazo": "Replacement"
     },
     "estado": {
       "PENDIENTE": "Pending",
@@ -3164,6 +3234,44 @@
         "titulo": "Reject the publication of {{producto}}",
         "confirmar": "Reject publication",
         "texto": "The offer goes back to {{organizacion}}, who will see this reason and can fix it and send it again. The decision is recorded and cannot be edited."
+      }
+    },
+    "video": {
+      "megas": "{{mb}} MB",
+      "enviado": "The video",
+      "anterior": "The video it replaces",
+      "anteriorTexto": "The store currently shows “{{titulo}}”. If you approve, this one replaces it.",
+      "criterio": "Check that the video belongs to the community, shows its work or products and has no third-party or inappropriate content.",
+      "aprobar": "Approve video",
+      "rechazar": "Reject video",
+      "resuelto": {
+        "APROBADA": "This video was already approved.",
+        "RECHAZADA": "This video was rejected."
+      },
+      "retirado": "The producer withdrew this video.",
+      "volver": "Back to videos",
+      "expediente": {
+        "titulo": "Store video",
+        "error": "We could not load the video",
+        "motivoRequerido": "Write the reason for the decision",
+        "hecho": {
+          "aprobar": "You approved the video. It is now shown in the store.",
+          "rechazar": "You rejected the video. The producer will see your reason."
+        },
+        "errorDecision": "We could not record the decision"
+      },
+      "dialogo": {
+        "motivo": "Reason: “{{motivo}}”",
+        "aprobar": {
+          "titulo": "Approve the video {{producto}}",
+          "confirmar": "Approve",
+          "texto": "The video will be shown in the store of {{organizacion}}, who receives your reason. The decision is recorded and cannot be edited."
+        },
+        "rechazar": {
+          "titulo": "Reject the video {{producto}}",
+          "confirmar": "Reject video",
+          "texto": "{{organizacion}} will see this reason and can upload another video. The decision is recorded and cannot be edited."
+        }
       }
     }
   },
@@ -3935,6 +4043,8 @@
       "RENOVACION_SOLICITADA": "Requested renewal",
       "PUBLICACION_APROBADA": "Approved publication",
       "PUBLICACION_RECHAZADA": "Rejected publication",
+      "VIDEO_PUBLICADO": "Approved video",
+      "VIDEO_RECHAZADO": "Rejected video",
       "HABILITAR_TIENDA": "Enabled store",
       "REVOCAR_VENTA": "Revoked sale",
       "RESTITUIR_VENTA": "Restored sale",

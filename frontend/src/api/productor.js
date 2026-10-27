@@ -129,7 +129,8 @@ export const aceptarMejora = async (imagenId) => apiFetch(`${base}/imagenes/${id
 /** CCPIP-281: conservar la original. */
 export const rechazarMejora = async (imagenId) => apiFetch(`${base}/imagenes/${idRuta(imagenId)}/mejora/rechazar`, { method: 'POST' })
 
-async function enviarArchivo(url, datos) {
+/** Sube un formulario con archivos; la sesion va en la cookie. */
+export async function enviarArchivo(url, datos) {
   const res = await fetch(url, { method: 'POST', body: datos, credentials: 'same-origin' })
   restartIdle()
   const cuerpo = await res.json().catch(() => ({}))

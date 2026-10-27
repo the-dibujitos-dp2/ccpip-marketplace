@@ -225,3 +225,8 @@
 .motivos__formulario p { margin: 0; }
 .motivos__check { display: flex; align-items: center; gap: 10px; font-size: 15px; cursor: pointer; }
 .motivos__check input { width: 18px; height: 18px; margin: 0; accent-color: var(--color-bg-brand); }
+
+/* CCPIP-118: el video que se revisa y, si es un reemplazo, el que se ve hoy en la tienda */
+.moderacion__que { display: flex; flex-wrap: wrap; gap: 8px; }
+.moderacion__video { display: flex; flex-direction: column; gap: 8px; margin: 0; }
+.moderacion__video video { display: block; width: 100%; max-height: 420px; border-radius: var(--radius-l); background: var(--color-bg-inverse); }

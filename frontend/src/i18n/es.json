@@ -751,6 +751,56 @@
       "sinHabilitar": "Tu tienda aún no está habilitada",
       "sinHabilitarTexto": "Puedes armarla y guardarla. La Cámara la habilita y te avisaremos por correo para que la publiques."
     },
+    "videos": {
+      "titulo": "Videos",
+      "limites": "Hasta {{max}} videos · MP4 o WebM · {{mb}} MB y {{minutos}} min como máximo",
+      "revision": "Sube videos propios de tu comunidad, tus cultivos o tu taller. La Cámara revisa cada uno antes de mostrarlo en tu tienda.",
+      "nombre": "Título del video",
+      "nombreEjemplo": "Ej.: Cosecha de cacao en Pichanaki",
+      "elegir": "Elegir video",
+      "cambiar": "Cambiar video",
+      "ninguno": "Aún no elegiste un video",
+      "elegido": "{{nombre}} · {{mb}} MB",
+      "subir": "Subir video",
+      "subiendo": "Subiendo… puede tardar unos minutos",
+      "tituloRequerido": "Escribe un título para el video",
+      "archivoRequerido": "Elige un video",
+      "tipoInvalido": "Elige un video MP4 o WebM",
+      "muyPesado": "El video pesa más de {{max}} MB",
+      "enviado": "Video enviado a revisión",
+      "enviadoTexto": "Lo verás en tu tienda cuando la Cámara lo apruebe. Te avisaremos por correo.",
+      "noSubio": "No pudimos subir el video",
+      "seCorto": "Se cortó la conexión. Tu video sigue elegido: inténtalo otra vez.",
+      "lista": "Videos de tu tienda",
+      "vacio": "Aún no subiste videos.",
+      "errorLista": "No pudimos cargar tus videos",
+      "estado": {
+        "EN_REVISION": "En revisión",
+        "PUBLICADO": "Se ve en tu tienda",
+        "RECHAZADO": "No publicado"
+      },
+      "motivo": "Motivo de la Cámara: «{{motivo}}»",
+      "lleno": "Tu tienda ya tiene {{max}} videos. Retira uno para subir otro.",
+      "reemplazar": "Reemplazar",
+      "reemplazarDe": "Reemplazar el video {{titulo}}",
+      "reemplazaA": "Reemplaza a «{{titulo}}»",
+      "conReemplazo": "Su reemplazo está en revisión",
+      "reemplazoEnviado": "Reemplazo enviado a revisión",
+      "reemplazoPublicado": "Tu tienda sigue mostrando el video actual hasta que la Cámara apruebe el nuevo.",
+      "reemplazoTexto": "El video anterior quedó retirado. Lo verás en tu tienda cuando la Cámara apruebe el nuevo.",
+      "noReemplazo": "No pudimos reemplazar el video",
+      "retirar": "Retirar",
+      "retirarDe": "Retirar el video {{titulo}}",
+      "retirado": "Video retirado",
+      "retiradoTexto": "Ya no se ve en tu tienda. Queda en el historial: no se borra.",
+      "noRetiro": "No pudimos retirar el video",
+      "dialogo": {
+        "titulo": "Retirar «{{titulo}}»",
+        "confirmar": "Retirar video",
+        "publicado": "Dejará de verse en tu tienda. No se borra: queda en el historial, y puedes subir otro cuando quieras.",
+        "texto": "Ya no se revisará ni se verá en tu tienda. No se borra: queda en el historial."
+      }
+    },
     "cuenta": {
       "titulo": "Cuenta bancaria",
       "registrar": "Registra tu cuenta bancaria",
@@ -1870,6 +1920,7 @@
     "compartir": "Compartir",
     "historia": "Nuestra historia",
     "galeria": "Galería",
+    "videos": "Videos",
     "foto": "Foto de {{nombre}}",
     "porLinea": "Productos por línea",
     "todos": "Todos ({{total}})",
@@ -1916,7 +1967,7 @@
   "errores": {
     "generico": "Algo salió mal. Inténtalo otra vez.",
     "AGOTADO": "Este producto está agotado por ahora.",
-    "ARCHIVO_MUY_PESADO": "El archivo pesa más de 10 MB. Elige una foto más liviana.",
+    "ARCHIVO_MUY_PESADO": "El archivo es demasiado pesado: las fotos admiten hasta 10 MB y los videos hasta 50 MB.",
     "ARCHIVO_VACIO": "El archivo está vacío.",
     "CATEGORIA_INVALIDA": "Elige la categoría de la foto.",
     "CELULAR_INVALIDO": "Ingresa un celular de 9 dígitos que empiece con 9.",
@@ -2076,7 +2127,17 @@
     "DETALLE_REQUERIDO": "Describe la causa de la merma.",
     "MOTIVO_REPETIDO": "Ya existe una causa con ese nombre.",
     "MOTIVO_DEL_SISTEMA": "Esta causa la usa la merma automática por vencimiento: no se puede desactivar.",
-    "MOTIVO_NO_ENCONTRADO": "La causa de merma no existe."
+    "MOTIVO_NO_ENCONTRADO": "La causa de merma no existe.",
+    "VIDEO_NO_RECONOCIDO": "No reconocimos el video. Sube un archivo MP4 o WebM.",
+    "VIDEO_SIN_DURACION": "No pudimos leer la duración del video. Guárdalo de nuevo como MP4 e inténtalo otra vez.",
+    "VIDEO_MUY_LARGO": "El video dura más de 3 minutos. Recórtalo e inténtalo otra vez.",
+    "VIDEO_MUY_PESADO": "El video pesa más de 50 MB. Recórtalo o bájale la calidad e inténtalo otra vez.",
+    "LIMITE_DE_VIDEOS": "Tu tienda puede tener hasta 5 videos. Retira uno para agregar otro.",
+    "TITULO_REQUERIDO": "Escribe un título para el video.",
+    "TITULO_MUY_LARGO": "El título admite hasta 120 caracteres.",
+    "VIDEO_YA_RESUELTO": "Este video ya no está pendiente de revisión.",
+    "VIDEO_NO_ENCONTRADO": "El video no existe.",
+    "REEMPLAZO_EN_REVISION": "Este video ya tiene un reemplazo en revisión. Espera la decisión de la Cámara o retíralo."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -3055,9 +3116,15 @@
   },
   "moderacion": {
     "titulo": "Moderación de publicaciones",
+    "que": {
+      "etiqueta": "Qué revisar",
+      "ofertas": "Ofertas",
+      "videos": "Videos de tiendas"
+    },
     "error": "No pudimos cargar las solicitudes",
     "volver": "Volver a la moderación",
     "nota": "Publicar o volver a publicar una oferta pasa por esta revisión. Aprobarla exige que el producto tenga una autorización de venta vigente, que se decide en Autorizaciones.",
+    "notaVideos": "Los videos que los productores suben a su tienda pasan por esta revisión antes de verse. Uno que reemplaza a otro no se ve hasta que lo apruebas.",
     "pestanasEtiqueta": "Estado de las solicitudes",
     "pestana": {
       "PENDIENTE": "Pendientes",
@@ -3078,6 +3145,7 @@
     },
     "col": {
       "oferta": "Oferta",
+      "video": "Video",
       "organizacion": "Organización",
       "autorizacion": "Autorización de venta",
       "tipo": "Tipo",
@@ -3097,7 +3165,9 @@
     },
     "tipo": {
       "nueva": "Nueva",
-      "republicacion": "Republicación"
+      "republicacion": "Republicación",
+      "nuevo": "Nuevo",
+      "reemplazo": "Reemplazo"
     },
     "estado": {
       "PENDIENTE": "Pendiente",
@@ -3164,6 +3234,44 @@
         "titulo": "Rechazar la publicación de {{producto}}",
         "confirmar": "Rechazar publicación",
         "texto": "La oferta vuelve a {{organizacion}}, que verá este motivo y podrá corregirla y enviarla otra vez. La decisión queda registrada y no se edita."
+      }
+    },
+    "video": {
+      "megas": "{{mb}} MB",
+      "enviado": "El video",
+      "anterior": "El video que reemplaza",
+      "anteriorTexto": "Hoy se ve en la tienda «{{titulo}}». Si apruebas, este lo reemplaza.",
+      "criterio": "Revisa que el video sea propio de la comunidad, que muestre su trabajo o sus productos y que no tenga contenido ajeno o inapropiado.",
+      "aprobar": "Aprobar video",
+      "rechazar": "Rechazar video",
+      "resuelto": {
+        "APROBADA": "Este video ya se aprobó.",
+        "RECHAZADA": "Este video se rechazó."
+      },
+      "retirado": "El productor retiró este video.",
+      "volver": "Volver a los videos",
+      "expediente": {
+        "titulo": "Video de la tienda",
+        "error": "No pudimos cargar el video",
+        "motivoRequerido": "Escribe el motivo de la decisión",
+        "hecho": {
+          "aprobar": "Aprobaste el video. Ya se ve en la tienda.",
+          "rechazar": "Rechazaste el video. El productor verá tu motivo."
+        },
+        "errorDecision": "No pudimos registrar la decisión"
+      },
+      "dialogo": {
+        "motivo": "Motivo: «{{motivo}}»",
+        "aprobar": {
+          "titulo": "Aprobar el video {{producto}}",
+          "confirmar": "Aprobar",
+          "texto": "El video se verá en la tienda de {{organizacion}}, que recibe tu motivo. La decisión queda registrada y no se edita."
+        },
+        "rechazar": {
+          "titulo": "Rechazar el video {{producto}}",
+          "confirmar": "Rechazar video",
+          "texto": "{{organizacion}} verá este motivo y podrá subir otro video. La decisión queda registrada y no se edita."
+        }
       }
     }
   },
@@ -3935,6 +4043,8 @@
       "RENOVACION_SOLICITADA": "Pidió renovación",
       "PUBLICACION_APROBADA": "Aprobó publicación",
       "PUBLICACION_RECHAZADA": "Rechazó publicación",
+      "VIDEO_PUBLICADO": "Aprobó video",
+      "VIDEO_RECHAZADO": "Rechazó video",
       "HABILITAR_TIENDA": "Habilitó tienda",
       "REVOCAR_VENTA": "Revocó venta",
       "RESTITUIR_VENTA": "Restituyó venta",
