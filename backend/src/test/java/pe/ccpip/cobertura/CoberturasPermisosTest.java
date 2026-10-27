@@ -7,8 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import jakarta.servlet.ServletException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,8 +50,11 @@ class CoberturasPermisosTest extends IntegrationTest {
     void filtroInvalidoAjenoEInexistenteUsanContratoDeErrores() throws Exception {
         var cookie = loginAs("admin_acopio@ccpip.test");
         snapshot(() -> {
-            assertThat(assertThrows(ServletException.class, () -> mockMvc.perform(get(RUTA).param("punto", "0").cookie(cookie)))
-                    .getCause()).isInstanceOf(jakarta.validation.ConstraintViolationException.class);
+            for (String invalido : List.of("0", "-1")) {
+                mockMvc.perform(get(RUTA).param("punto", invalido).cookie(cookie))
+                        .andExpect(status().isUnprocessableEntity())
+                        .andExpect(jsonPath("$.code").value("PUNTO_INVALIDO"));
+            }
             mockMvc.perform(get(RUTA).param("punto", "not-a-long").cookie(cookie)).andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value("PARAMETRO_INVALIDO"));
             var ajeno = jdbc.queryForObject("SELECT id FROM ubicacion WHERE tipo='PUNTO_ACOPIO' AND id NOT IN (SELECT ubicacion_id FROM usuario_ubicacion WHERE usuario_id=(SELECT id FROM usuario WHERE correo='admin_acopio@ccpip.test')) ORDER BY id LIMIT 1", Long.class);
