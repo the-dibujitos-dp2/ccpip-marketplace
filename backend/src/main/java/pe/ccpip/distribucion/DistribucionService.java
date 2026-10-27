@@ -187,10 +187,7 @@ public class DistribucionService {
     /** CCPIP-318: registra el inicio del viaje y su actor en una sola transacción, bajo el bloqueo de la entrega. */
     @Transactional
     public EntregaDelDistribuidor enCamino(long distribuidorId, String numero) {
-        Bloqueada entrega = bloquear(numero);
-        if (entrega.distribuidorId() == null || entrega.distribuidorId() != distribuidorId) {
-            throw new ErrorNegocio(HttpStatus.CONFLICT, "PEDIDO_NO_ASIGNADO", "Este pedido no está asignado a ti.");
-        }
+        Bloqueada entrega = bloquearPropia(numero, distribuidorId);
         if ("EN_CAMINO".equals(entrega.estadoEntrega()) && "EN_CAMINO".equals(entrega.estadoPedido())) {
             return entregaDe(entrega.pedidoId());
         }
@@ -207,10 +204,7 @@ public class DistribucionService {
     /** CCPIP-319: confirma la entrega final propia con fecha existente e historial del distribuidor. */
     @Transactional
     public EntregaDelDistribuidor entregar(long distribuidorId, String numero) {
-        Bloqueada entrega = bloquear(numero);
-        if (entrega.distribuidorId() == null || entrega.distribuidorId() != distribuidorId) {
-            throw new ErrorNegocio(HttpStatus.CONFLICT, "PEDIDO_NO_ASIGNADO", "Este pedido no está asignado a ti.");
-        }
+        Bloqueada entrega = bloquearPropia(numero, distribuidorId);
         if ("ENTREGADA".equals(entrega.estadoEntrega()) && "ENTREGADO".equals(entrega.estadoPedido())) {
             return entregaDe(entrega.pedidoId());
         }
@@ -222,6 +216,15 @@ public class DistribucionService {
         jdbc.update("INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (:pedido, 'ENTREGADO', :usuario)",
                 new MapSqlParameterSource("pedido", entrega.pedidoId()).addValue("usuario", distribuidorId));
         return entregaDe(entrega.pedidoId());
+    }
+
+    /** Bloquea la entrega y verifica su propietario antes de permitir cualquier reintento idempotente. */
+    private Bloqueada bloquearPropia(String numero, long distribuidorId) {
+        Bloqueada entrega = bloquear(numero);
+        if (entrega.distribuidorId() == null || entrega.distribuidorId() != distribuidorId) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "PEDIDO_NO_ASIGNADO", "Este pedido no está asignado a ti.");
+        }
+        return entrega;
     }
 
     /**
