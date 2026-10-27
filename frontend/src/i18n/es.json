@@ -469,7 +469,8 @@
       "nota": "Solo ves tus propios productos. “En venta” es el stock en puntos de acopio; lo que está en tu almacén se vende después de transferirlo.",
       "confirmarTitulo": "¿Despublicar este producto?",
       "confirmarTexto": "dejará de aparecer en el catálogo y en tu tienda. No se borra: sigue en los pedidos y en el historial, y puedes volver a publicarlo cuando quieras.",
-      "evidencias": "Certificados y evidencias"
+      "evidencias": "Certificados y evidencias",
+      "premios": "Premios"
     },
     "editor": {
       "nombreAntesFotos": "Escribe el nombre del producto antes de agregar fotos",
@@ -1327,6 +1328,7 @@
       "autorizaciones": "Autorizaciones",
       "moderacion": "Moderación",
       "productores": "Productores",
+      "certificados": "Vigencia de certificados",
       "cuentas": "Cuentas",
       "catalogo": "Catálogo maestro",
       "existencias": "Existencias",
@@ -1890,7 +1892,11 @@
         "ESTE_ANIO": "Este año"
       },
       "sinVentas": "Aún no hay ventas en este período. Prueba con uno más largo.",
-      "notaMasVendidos": "Según las unidades vendidas en compras pagadas y no canceladas del período."
+      "notaMasVendidos": "Según las unidades vendidas en compras pagadas y no canceladas del período.",
+      "sinDestacados": "Las comunidades aún no han destacado productos en venta.",
+      "notaDestacados": "Cada comunidad elige hasta 4 productos para destacar en su tienda. Aquí va uno por comunidad, de los que están en venta.",
+      "sinNovedades": "No se publicaron productos en este período. Prueba con uno más largo.",
+      "notaNovedades": "Productos en venta según la fecha en que se publicaron, del más reciente al más antiguo."
     },
     "mayorista": {
       "titulo": "¿Compras por volumen para tu tienda, cafetería o para exportar?",
@@ -2065,6 +2071,15 @@
     "EVIDENCIA_EN_USO": "Esta evidencia sustenta la autorización vigente del producto y no se puede retirar.",
     "EVIDENCIA_NO_ENCONTRADA": "La evidencia no existe.",
     "LIMITE_DE_EVIDENCIAS": "Llegaste al máximo de evidencias. Retira una para agregar otra.",
+    "PREMIO_TITULO_REQUERIDO": "Escribe el nombre del premio.",
+    "PREMIO_EMISOR_REQUERIDO": "Indica la entidad que otorgó el premio.",
+    "PREMIO_FECHA_REQUERIDA": "Indica cuándo se otorgó el premio.",
+    "PREMIO_FECHA_FUTURA": "La fecha del premio no puede ser posterior a hoy.",
+    "PREMIO_LOTE_REQUERIDO": "Elige el lote al que corresponde el premio.",
+    "PREMIO_LOTE_AJENO": "Elige un lote de este producto.",
+    "LIMITE_DE_PREMIOS": "Llegaste al máximo de premios. Retira uno para registrar otro.",
+    "PREMIO_NO_ENCONTRADO": "El premio no existe.",
+    "HORIZONTE_INVALIDO": "Elige 30, 60 o 90 días.",
     "VIGENCIA_REQUERIDA": "Indica hasta cuándo vale el certificado.",
     "VIGENCIA_INVALIDA": "La vigencia termina antes de empezar.",
     "SIN_CERTIFICADO_VIGENTE": "Para aprobar, el producto necesita al menos un certificado vigente propio.",
@@ -2293,6 +2308,14 @@
       },
       "nota": "Se publican solo el emisor, las fechas y la vigencia de las evidencias que sustentaron la aprobación. Los archivos y los documentos privados del productor no se muestran."
     },
+    "premios": {
+      "titulo": "Premios",
+      "emisor": "Emisor:",
+      "otorgado": "Fecha:",
+      "lote": "Lote:",
+      "cosechaDel": "producido el {{fecha}}",
+      "nota": "Premios declarados por el productor, cada uno con un documento de respaldo que no se publica. La Cámara no los certifica."
+    },
     "verificando": "La Cámara aún está verificando el origen de esta comunidad.",
     "sobreCosecha": "Sobre esta cosecha",
     "consumirAntes": "Consumir antes de",
@@ -2303,6 +2326,12 @@
       "precioUnidad": "Precio por unidad"
     },
     "tambienDe": "También de {{linea}}",
+    "materiaPrima": {
+      "materias": "Materia prima de {{linea}}",
+      "textoMaterias": "Productos de la misma línea que sus productores ofrecen como materia prima.",
+      "terminados": "Elaborados de {{linea}}",
+      "textoTerminados": "Productos terminados de la misma línea que esta materia prima."
+    },
     "otrasOfertas": {
       "titulo": "Otros productores de {{producto}}",
       "texto": "Cada oferta es de un productor distinto. Si una está agotada, tu “Me interesa” llega solo a ese productor.",
@@ -2961,6 +2990,90 @@
       "detalle": "«{{certificado}}» antes del {{plazo}}. Motivo: {{motivo}}",
       "venta": "Tu producto sigue a la venta. Si el certificado vence sin renovarse, su venta queda pausada hasta que se apruebe uno nuevo."
     }
+  },
+  "premios": {
+    "titulo": "Premios del producto",
+    "intro": "Registra los premios que recibió {{producto}}, cada uno con el lote al que corresponde y el archivo que lo respalda.",
+    "registrados": "Premios registrados",
+    "cuantos_one": "{{count}} premio",
+    "cuantos_other": "{{count}} premios",
+    "ninguno": "Aún no registraste premios para este producto.",
+    "otorgado": "otorgado el {{fecha}}",
+    "lote": "Lote {{codigo}} (producido el {{fecha}})",
+    "sinLotes": "Para registrar un premio, primero registra un lote de este producto.",
+    "agregar": "Registrar premio",
+    "limite": "Llegaste al máximo de {{maximo}} premios. Retira uno para registrar otro.",
+    "registrado": "Registraste «{{titulo}}».",
+    "retirado": "Retiraste «{{titulo}}». Ya no se muestra en la ficha.",
+    "error": "No pudimos cargar los premios.",
+    "errorRegistrar": "No pudimos registrar el premio. Inténtalo de nuevo.",
+    "errorRetirar": "No pudimos retirar el premio. Inténtalo de nuevo.",
+    "retirarDe": "Retirar {{titulo}}",
+    "retirarTitulo": "¿Retirar este premio?",
+    "retirarTexto": "«{{titulo}}» dejará de mostrarse en la ficha del producto. Se conserva en tu historial.",
+    "como": {
+      "titulo": "Cómo se muestra",
+      "publico": "En la ficha del producto se ven el nombre del premio, quién lo otorgó, la fecha y la vigencia, como declarado por ti con evidencia.",
+      "privado": "El archivo de respaldo es privado: solo lo ves tú."
+    },
+    "form": {
+      "titulo": "Nombre del premio",
+      "emisor": "Entidad que lo otorgó",
+      "lote": "Lote premiado",
+      "otorgado": "Fecha en que se otorgó",
+      "archivo": "Archivo que lo respalda",
+      "registrar": "Registrar premio",
+      "errorTitulo": "Escribe el nombre del premio.",
+      "errorEmisor": "Indica la entidad que otorgó el premio.",
+      "errorFecha": "Indica cuándo se otorgó el premio.",
+      "errorFutura": "La fecha no puede ser posterior a hoy.",
+      "errorOrden": "La vigencia termina antes de que se otorgara el premio.",
+      "errorLote": "Elige el lote al que corresponde el premio."
+    }
+  },
+  "certificados": {
+    "titulo": "Vigencia de certificados",
+    "intro": "Los certificados de los productos autorizados, del que vence primero al último. Revisa a tiempo los vencidos y los que vencen pronto, y pide su renovación desde la solicitud del producto.",
+    "kpi": {
+      "vencidos": "Vencidos",
+      "vencidosDetalle": "La venta del producto queda pausada hasta renovarlos",
+      "porVencer": "Vencen en {{dias}} días",
+      "porVencerDetalle": "Conviene pedir su renovación",
+      "vigentes": "Vigentes",
+      "vigentesDetalle": "Vencen después de {{dias}} días"
+    },
+    "pestanasEtiqueta": "Vigencia de los certificados",
+    "pestana": {
+      "POR_VENCER": "Por vencer",
+      "VENCIDO": "Vencidos",
+      "VIGENTE": "Vigentes"
+    },
+    "vacio": {
+      "POR_VENCER": "Ningún certificado vence en este período.",
+      "VENCIDO": "No hay certificados vencidos.",
+      "VIGENTE": "No hay certificados vigentes después de este período."
+    },
+    "error": "No pudimos cargar los certificados.",
+    "horizonte": "Por vencer en",
+    "dias_one": "{{count}} día",
+    "dias_other": "{{count}} días",
+    "col": {
+      "certificado": "Certificado",
+      "producto": "Producto y organización",
+      "vence": "Vence",
+      "renovacion": "Renovación",
+      "accion": "Acción"
+    },
+    "vencioHace_one": "Venció hace {{count}} día",
+    "vencioHace_other": "Venció hace {{count}} días",
+    "venceHoy": "Vence hoy",
+    "venceEn_one": "Vence en {{count}} día",
+    "venceEn_other": "Vence en {{count}} días",
+    "renovacionPedida": "Pedida, plazo {{fecha}}",
+    "sinRenovacion": "Sin pedir",
+    "revisar": "Ver solicitud",
+    "revisarDe": "Ver la solicitud de {{producto}} ({{titulo}})",
+    "nota": "Esta consulta no cambia la autorización ni la venta. Un certificado vencido pausa la venta del producto hasta que el productor lo renueve; nunca la bloquea para siempre."
   },
   "autorizaciones": {
     "titulo": "Autorizaciones de productos",
