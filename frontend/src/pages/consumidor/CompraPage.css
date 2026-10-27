@@ -16,6 +16,11 @@
 }
 .compra__seccion-titulo { margin: 0; font-weight: 600; font-size: 20px; line-height: 28px; }
 .compra__ayuda { margin: -8px 0 0; color: var(--color-text-secondary); }
+/* CCPIP-295: lo perecible del carrito y hasta cuando se consume, segun el punto elegido */
+.compra__perecibles { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; border-radius: var(--radius-l); background: var(--color-status-info-bg); }
+.compra__perecibles p { margin: 0; }
+.compra__perecibles ul { display: flex; flex-direction: column; gap: 6px; margin: 0; padding-left: 18px; font-size: 14px; }
+.compra__perecibles .caption { color: var(--color-text-secondary); }
 
 /* Cada punto de acopio es una tarjeta con su direccion debajo del nombre */
 .compra__seccion .opcion-tarjeta { min-height: 72px; padding-top: 12px; padding-bottom: 12px; }

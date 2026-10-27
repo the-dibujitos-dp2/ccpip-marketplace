@@ -2,6 +2,7 @@ package pe.ccpip.compra;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 import pe.ccpip.comision.ComisionModelos.ComisionPedido;
@@ -27,6 +28,14 @@ public final class CompraModelos {
      * cubren con existencias para todas sus lineas.
      */
     public record DistritoConPuntos(Distrito distrito, List<PuntoRecojo> puntos) {
+    }
+
+    /**
+     * CCPIP-295 (RF-155): un producto perecible del carrito y hasta cuando se consume lo que saldria del punto
+     * elegido: el vencimiento de su lote mas proximo a vencer, que es el primero que se despacha (FEFO).
+     * {@code diasRestantes}: de hoy (Lima) a esa fecha. No estima cuando llega el pedido.
+     */
+    public record AdvertenciaPerecible(long productoId, String nombre, LocalDate consumirAntesDe, long diasRestantes) {
     }
 
     /** Linea del pedido con el precio copiado al confirmar (RNF-13), nunca el vigente. */

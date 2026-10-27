@@ -2479,6 +2479,14 @@
     "sinPuntoTexto": "Right now no point has stock for all your products together. Adjust the quantities or remove one.",
     "puntoTitulo": "1. Pickup point",
     "puntoAyuda": "Pick up your order free of charge at one of the Chamber's collection points.",
+    "perecibles": {
+      "titulo": "Perishable products in your order",
+      "producto": "{{nombre}}: best before {{fecha}}",
+      "hoy": "expires today",
+      "dias_one": "{{count}} day left",
+      "dias_other": "{{count}} days left",
+      "nota": "This is the date of the batch closest to expiring at this point, which is dispatched first. It doesn't include delivery time: check the date when you receive your order."
+    },
     "eligeDonde": "Choose where to pick up",
     "quienTitulo": "2. Who picks it up?",
     "otraPersona": "Someone else will pick up the order",

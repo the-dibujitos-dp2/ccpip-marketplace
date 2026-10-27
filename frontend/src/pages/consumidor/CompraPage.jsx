@@ -5,7 +5,7 @@ import iconoCamion from '../../assets/icons/camion.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import { consultarCarrito, recargarUnidadesCarrito } from '../../api/carrito.js'
 import { guardarDireccionHabitual, obtenerMisDatos } from '../../api/cuenta.js'
-import { confirmarCompra, consultarDistritosEntrega, consultarPuntosRecojo, pagarPedido } from '../../api/compra.js'
+import { confirmarCompra, consultarAdvertencias, consultarDistritosEntrega, consultarPuntosRecojo, pagarPedido } from '../../api/compra.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
@@ -16,7 +16,7 @@ import Icono from '../../components/Icono.jsx'
 import OpcionTarjeta from '../../components/OpcionTarjeta.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
-import { precio } from '../../formato.js'
+import { fecha, precio } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import { navigate, RUTAS } from '../../router.js'
@@ -405,6 +405,7 @@ export default function CompraPage() {
                 />
                 )}
                 {errores.puntoId && <p className="campo__ayuda campo__ayuda--error">{errores.puntoId}</p>}
+                {form.puntoId && <Perecibles puntoId={form.puntoId} />}
               </section>
 
               <section className="compra__seccion" aria-labelledby="compra-quien">
@@ -527,5 +528,42 @@ export default function CompraPage() {
         )}
       </main>
     </LayoutTienda>
+  )
+}
+
+/**
+ * CCPIP-295 (RF-155): al elegir de donde sale el pedido, hasta cuando se consume lo perecible del carrito,
+ * segun el lote mas proximo a vencer en ese punto (el primero que se despacha). No estima el tiempo de
+ * entrega ni impide la compra; si la consulta falla, la compra sigue sin el aviso.
+ */
+function Perecibles({ puntoId }) {
+  const { t } = useTranslation()
+  const [advertencias, setAdvertencias] = useState(null)
+
+  useEffect(() => {
+    let vigente = true
+    setAdvertencias(null)
+    consultarAdvertencias(puntoId)
+      .then((a) => { if (vigente) setAdvertencias(a) })
+      .catch(() => { if (vigente) setAdvertencias([]) })
+    return () => { vigente = false }
+  }, [puntoId])
+
+  if (!advertencias?.length) return null
+  return (
+    <div className="compra__perecibles" role="status" aria-labelledby="compra-perecibles">
+      <p id="compra-perecibles" className="label-m">{t('compra.perecibles.titulo')}</p>
+      <ul>
+        {advertencias.map((a) => (
+          <li key={a.productoId}>
+            {t('compra.perecibles.producto', { nombre: a.nombre, fecha: fecha(a.consumirAntesDe) })}{' '}
+            <Badge tono="info">
+              {a.diasRestantes === 0 ? t('compra.perecibles.hoy') : t('compra.perecibles.dias', { count: a.diasRestantes })}
+            </Badge>
+          </li>
+        ))}
+      </ul>
+      <p className="caption">{t('compra.perecibles.nota')}</p>
+    </div>
   )
 }
