@@ -41,6 +41,8 @@ const FALTANTES = {
   'La descripción de la tienda': 'descripcionTienda',
   'La historia de tu comunidad': 'historiaComunidad',
   'El pueblo de pertenencia': 'pueblo',
+  // CCPIP-46: lo que revisa el sub administrador antes de aprobar una publicacion
+  'Una autorización de venta vigente para este producto': 'autorizacion',
 }
 
 export function traducirFaltante(texto) {

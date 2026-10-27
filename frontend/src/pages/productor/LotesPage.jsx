@@ -27,7 +27,7 @@ export default function LotesPage({ path, search }) {
 
   useEffect(() => {
     // Todos sus productos, sin importar el estado: tambien se reponen los despublicados
-    Promise.all(['PUBLICADO', 'BORRADOR', 'RETIRADO'].map((estado) => listarProductos({ estado })))
+    Promise.all(['PUBLICADO', 'EN_MODERACION', 'BORRADOR', 'RETIRADO'].map((estado) => listarProductos({ estado })))
       .then((listas) => setProductos(listas.flatMap((l) => l.items)))
       .catch(() => setProductos([]))
   }, [])

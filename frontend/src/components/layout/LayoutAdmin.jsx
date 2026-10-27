@@ -23,6 +23,8 @@ const NAV = [
   { to: RUTAS.admin, clave: 'tablero', icono: iconoTablero, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminPermisos, clave: 'permisos', icono: iconoEscudo, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminAutorizaciones, clave: 'autorizaciones', icono: iconoEscudo, roles: ['SUB_ADMIN'], prefijo: true },
+  // CCPIP-46: lo que los productores piden publicar
+  { to: RUTAS.adminModeracion, clave: 'moderacion', icono: iconoEtiqueta, roles: ['SUB_ADMIN'], prefijo: true },
   { to: RUTAS.adminProductores, clave: 'productores', icono: iconoComunidad, roles: ['SUB_ADMIN'], prefijo: true },
   { to: RUTAS.adminDenuncias, clave: 'denuncias', icono: iconoAviso, roles: ['SUB_ADMIN', 'SUPER_ADMIN'], prefijo: true },
   { to: RUTAS.adminComision, clave: 'comision', icono: iconoPorcentaje, roles: ['SUPER_ADMIN'] },

@@ -317,7 +317,7 @@ describe('Comisión por pedido (CCPIP-91)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Autorizaciones de productos' })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/admin/autorizaciones')
     const nav = within(screen.getByRole('navigation', { name: 'Sub administrador' }))
-    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Autorizaciones', 'Productores', 'Denuncias', 'Comisión por pedido', 'Cuentas', 'Mi historial'])
+    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Autorizaciones', 'Moderación', 'Productores', 'Denuncias', 'Comisión por pedido', 'Cuentas', 'Mi historial'])
     await userEvent.click(nav.getByRole('link', { name: 'Comisión por pedido' }))
     expect(await screen.findByRole('heading', { level: 1, name: 'Comisión por pedido' })).toBeInTheDocument()
   })

@@ -1,6 +1,7 @@
 package pe.ccpip.productor;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,11 @@ public final class ProductoModelos {
     private ProductoModelos() {
     }
 
-    public enum Estado { BORRADOR, PUBLICADO, RETIRADO }
+    /**
+     * EN_MODERACION (CCPIP-46): el productor pidio publicarla y espera la revision del subadministrador; no
+     * esta en el catalogo hasta que la aprueba (CCPIP-331).
+     */
+    public enum Estado { BORRADOR, EN_MODERACION, PUBLICADO, RETIRADO }
 
     public enum Modalidad { MINORISTA, MAYORISTA, AMBAS }
 
@@ -67,6 +72,13 @@ public final class ProductoModelos {
     }
 
     /**
+     * CCPIP-46: la ultima solicitud de publicacion de la oferta. {@code estado}: PENDIENTE, APROBADA o
+     * RECHAZADA; {@code motivo}, el del subadministrador al decidir (CCPIP-331, CCPIP-332).
+     */
+    public record Moderacion(String estado, String motivo, Instant solicitadaEn, Instant decididaEn) {
+    }
+
+    /**
      * {@code descripcionPropuesta} es el borrador de la IA pendiente de decision; {@code descripcionSugerida}, el que el
      * productor acepto (CCPIP-49), que se conserva junto a la version final, {@code descripcion}.
      */
@@ -75,7 +87,7 @@ public final class ProductoModelos {
                                   String unidad, String contenido,
                                   Modalidad modalidad, BigDecimal precio, BigDecimal precioMayorista,
                                   Integer cantidadMinimaMayorista, boolean esMateriaPrima, List<Imagen> imagenes,
-                                  Historia historia, BigDecimal enVenta, Publicable publicable) {
+                                  Historia historia, BigDecimal enVenta, Publicable publicable, Moderacion moderacion) {
     }
 
     public record DatosHistoria(

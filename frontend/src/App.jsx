@@ -16,12 +16,14 @@ import DenunciasAdminPage from './pages/admin/DenunciasPage.jsx'
 import ParametrosPage from './pages/admin/ParametrosPage.jsx'
 import ReportesPage from './pages/admin/ReportesPage.jsx'
 import MiHistorialPage from './pages/admin/MiHistorialPage.jsx'
+import ModeracionPage from './pages/admin/ModeracionPage.jsx'
 import DetalleCuentaPage from './pages/admin/DetalleCuentaPage.jsx'
 import ExistenciasPage from './pages/admin/ExistenciasPage.jsx'
 import CuentasPage from './pages/admin/CuentasPage.jsx'
 import NuevaCuentaPage from './pages/admin/NuevaCuentaPage.jsx'
 import MotivosMermaPage from './pages/admin/MotivosMermaPage.jsx'
 import ExpedienteAutorizacionPage from './pages/admin/ExpedienteAutorizacionPage.jsx'
+import ExpedienteModeracionPage from './pages/admin/ExpedienteModeracionPage.jsx'
 import FichaProductorPage from './pages/admin/FichaProductorPage.jsx'
 import ProductoresPage from './pages/admin/ProductoresPage.jsx'
 import ExpedienteDenunciasPage from './pages/admin/ExpedienteDenunciasPage.jsx'
@@ -77,18 +79,19 @@ const RUTA_EDITOR = /^\/productor\/productos\/(\d+|nuevo)$/
 const RUTA_PEDIDO = /^\/pedidos\/(\d+)$/
 const RUTA_EVIDENCIAS = /^\/productor\/productos\/(\d+)\/evidencias$/
 const RUTA_EXPEDIENTE = /^\/admin\/autorizaciones\/(\d+)$/
+const RUTA_MODERACION = /^\/admin\/moderacion\/(\d+)$/
 const RUTA_FICHA_PRODUCTOR = /^\/admin\/productores\/(\d+)$/
 const RUTA_DENUNCIAS_PRODUCTOR = /^\/admin\/denuncias\/productores\/(\d+)$/
 const RUTA_CUENTA = /^\/admin\/cuentas\/(\d+)$/
 
 /**
- * Rutas del modulo del sub administrador: autorizaciones de productos (S-01, S-02) y su expediente, y
- * los productores con los productos que pueden vender (CCPIP-292, CCPIP-291, CCPIP-330) y el
- * historial de sus propias acciones (CCPIP-126).
+ * Rutas del modulo del sub administrador: autorizaciones de productos (S-01, S-02) y su expediente, la
+ * moderacion de publicaciones (CCPIP-46), los productores con los productos que pueden vender (CCPIP-292,
+ * CCPIP-291, CCPIP-330) y el historial de sus propias acciones (CCPIP-126).
  */
 const delModuloSub = (path) =>
   path === RUTAS.adminAutorizaciones || RUTA_EXPEDIENTE.test(path) || path === RUTAS.adminProductores || RUTA_FICHA_PRODUCTOR.test(path)
-  || path === RUTAS.adminMiHistorial
+  || path === RUTAS.adminMiHistorial || path === RUTAS.adminModeracion || RUTA_MODERACION.test(path)
 
 /** CCPIP-84: denuncias contra productores; el sub administrador las gestiona y el super las consulta. */
 const deDenuncias = (path) => path === RUTAS.adminDenuncias || RUTA_DENUNCIAS_PRODUCTOR.test(path)
@@ -287,6 +290,8 @@ export default function App() {
     else if (path === RUTAS.adminCatalogo) pagina = <CatalogoMaestroPage path={path} search={search} />
     else if (path === RUTAS.adminExistencias) pagina = <ExistenciasPage path={path} />
     else if (RUTA_EXPEDIENTE.test(path)) pagina = <ExpedienteAutorizacionPage path={RUTAS.adminAutorizaciones} id={path.match(RUTA_EXPEDIENTE)[1]} />
+    else if (path === RUTAS.adminModeracion) pagina = <ModeracionPage path={path} />
+    else if (RUTA_MODERACION.test(path)) pagina = <ExpedienteModeracionPage path={RUTAS.adminModeracion} id={path.match(RUTA_MODERACION)[1]} />
     else if (path === RUTAS.adminProductores) pagina = <ProductoresPage path={path} />
     else if (RUTA_FICHA_PRODUCTOR.test(path)) pagina = <FichaProductorPage path={RUTAS.adminProductores} id={path.match(RUTA_FICHA_PRODUCTOR)[1]} />
     else if (path === RUTAS.adminDenuncias) pagina = <DenunciasAdminPage path={path} />
