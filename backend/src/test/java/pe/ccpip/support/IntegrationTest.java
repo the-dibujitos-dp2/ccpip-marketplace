@@ -165,6 +165,27 @@ public abstract class IntegrationTest {
         }
     }
 
+    /**
+     * CCPIP-46: publicar deja la oferta en revision. Aprueba la solicitud pendiente como lo haria un
+     * subadministrador, directo en la base, para las pruebas que no son de la moderacion. Decide un
+     * subadministrador propio de las pruebas: las que no son transaccionales dejan la decision en la base, y
+     * no debe aparecer en el historial de sub_admin@ccpip.test que revisa MiHistorialTest.
+     */
+    protected void aprobarPublicacion(long productoId) {
+        jdbc.update("""
+                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
+                SELECT 'moderador_pruebas@ccpip.test', contrasena_hash, 'Moderador de pruebas', rol_id, true
+                FROM usuario WHERE correo = 'sub_admin@ccpip.test'
+                ON CONFLICT DO NOTHING""");
+        jdbc.update("""
+                UPDATE moderacion_publicacion SET decision = 'APROBADA', motivo = 'Aprobada en la prueba', decidida_en = now(),
+                       decidida_por = (SELECT id FROM usuario WHERE correo = 'moderador_pruebas@ccpip.test')
+                WHERE producto_id = ? AND decision IS NULL""", productoId);
+        jdbc.update("""
+                UPDATE producto SET estado = 'PUBLICADO', publicado_en = coalesce(publicado_en, now())
+                WHERE id = ? AND estado = 'EN_MODERACION'""", productoId);
+    }
+
     /** Inicia sesion y devuelve la cookie para usarla en las siguientes peticiones. */
     protected Cookie loginAs(String email) throws Exception {
         Cookie cookie = mockMvc.perform(login(email, DEMO_PASSWORD))

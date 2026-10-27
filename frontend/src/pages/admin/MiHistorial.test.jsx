@@ -25,6 +25,8 @@ const HISTORIAL = {
       detalle: '21', objeto: 'DENUNCIAS', objetoId: 2, motivo: 'El productor corrigió la oferta.' },
     { clave: 'AD-7', fecha: '2026-10-16T15:12:00Z', tipo: 'AUTORIZACIONES', accion: 'AUTORIZACION_APROBADA', sobre: 'Asoc. Nii Joi',
       detalle: 'Miel de abeja nativa 250 g', objeto: 'AUTORIZACION', objetoId: 31, motivo: 'Evidencia completa' },
+    { clave: 'MP-4', fecha: '2026-10-15T15:00:00Z', tipo: 'MODERACION', accion: 'PUBLICACION_APROBADA', sobre: 'Asoc. Nii Joi',
+      detalle: 'Miel de abeja nativa 250 g', objeto: 'MODERACION', objetoId: 4, motivo: 'Fotos y precios conformes' },
   ],
 }
 
@@ -46,7 +48,7 @@ describe('S-05 Mi historial del sub administrador (CCPIP-126)', () => {
     const nav = within(screen.getByRole('navigation', { name: 'Sub administrador' }))
     expect(nav.getByRole('link', { name: 'Mi historial' })).toHaveAttribute('aria-current', 'page')
 
-    const [cuenta, bloqueo, denuncia, autorizacion] = await filas()
+    const [cuenta, bloqueo, denuncia, autorizacion, publicacion] = await filas()
     expect(within(bloqueo).getByText('Bloqueó productor')).toBeInTheDocument()
     expect(within(bloqueo).getByText('Denuncias reiteradas sin descargo')).toBeInTheDocument()
     expect(within(bloqueo).getByRole('link', { name: 'Asoc. Pukllay' })).toHaveAttribute('href', '/admin/productores/4')
@@ -57,6 +59,9 @@ describe('S-05 Mi historial del sub administrador (CCPIP-126)', () => {
     expect(within(autorizacion).getByRole('link', { name: 'Asoc. Nii Joi' })).toHaveAttribute('href', '/admin/autorizaciones/31')
     expect(within(cuenta).getByRole('link', { name: 'Ana Quispe' })).toHaveAttribute('href', '/admin/cuentas/12')
     expect(within(cuenta).getByText('Suspendió cuenta')).toBeInTheDocument()
+    // CCPIP-331: la moderacion de una publicacion lleva a su solicitud
+    expect(within(publicacion).getByText('Aprobó publicación')).toBeInTheDocument()
+    expect(within(publicacion).getByRole('link', { name: 'Asoc. Nii Joi' })).toHaveAttribute('href', '/admin/moderacion/4')
     // Solo lectura: ninguna fila ofrece editar ni borrar
     expect(screen.queryByRole('button', { name: /editar|eliminar|borrar/i })).not.toBeInTheDocument()
     expect(screen.getByText('Registro inalterable. Las correcciones se registran como nuevas acciones.')).toBeInTheDocument()

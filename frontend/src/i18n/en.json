@@ -421,6 +421,8 @@
       "badge": {
         "borrador": "Draft",
         "despublicado": "Unpublished",
+        "enRevision": "Under review",
+        "rechazada": "Publication rejected",
         "porVencer": "Batch expiring",
         "sinStock": "No stock for sale",
         "stockBajo": "Low stock",
@@ -429,6 +431,8 @@
       "almacen": "Warehouse",
       "publicado": "Product published",
       "publicadoTexto": "It now appears in the catalog and in your store.",
+      "enviado": "Sent for review",
+      "enviadoTexto": "The Chamber will review your product before publishing it in the catalog and your store. We will email you when it decides.",
       "despublicado": "Product unpublished",
       "despublicadoTexto": "It no longer appears in the catalog. You can publish it again whenever you want.",
       "errorEstado": "The status couldn't be changed",
@@ -438,6 +442,7 @@
       "estadoEtiqueta": "Product status",
       "pestana": {
         "PUBLICADO": "Published ({{total}})",
+        "EN_MODERACION": "Under review ({{total}})",
         "BORRADOR": "Drafts ({{total}})",
         "RETIRADO": "Unpublished ({{total}})"
       },
@@ -445,6 +450,7 @@
       "noEncontramos": "We couldn't find “{{q}}”",
       "vacio": {
         "PUBLICADO": "You don't have published products yet",
+        "EN_MODERACION": "You have no products under review",
         "BORRADOR": "You don't have drafts",
         "RETIRADO": "You don't have unpublished products"
       },
@@ -482,8 +488,11 @@
       "errorFotos": "We couldn't update the photos",
       "errorFotosTexto": "Reload the page to see them.",
       "enCatalogo": "Your product is in the catalog. New batches add to what's for sale.",
-      "todoListo": "All set: price, line and a batch for sale. Once published it appears in the catalog and in your store.",
-      "publicando": "Publishing…",
+      "enRevision": "The Chamber is reviewing your product. It will appear in the catalog once approved; meanwhile you can edit it and register batches.",
+      "rechazada": "The Chamber did not publish this offer",
+      "rechazadaTexto": "Reason: “{{motivo}}”. Fix it and send it for review again.",
+      "todoListo": "All set: price, line and a batch for sale. When you publish it, the Chamber reviews it before showing it in the catalog and your store.",
+      "publicando": "Sending for review…",
       "falta": "Still missing before you can publish:",
       "irTienda": "Go to My store",
       "volverProductos": "Back to my products",
@@ -503,6 +512,7 @@
       "revisa": "Check the highlighted fields",
       "cambiosGuardados": "Changes saved",
       "cambiosGuardadosTexto": "They now show in the catalog and in your store.",
+      "cambiosEnRevisionTexto": "The Chamber will see them when reviewing your product.",
       "borradorGuardado": "Draft saved",
       "borradorGuardadoTexto": "You can continue later from My products.",
       "errorGuardar": "We couldn't save",
@@ -903,7 +913,8 @@
     "rol": "Distributor",
     "migas": "Delivery",
     "nav": {
-      "pedidos": "Available orders"
+      "pedidos": "Available orders",
+      "entregas": "My deliveries"
     },
     "pedidos": {
       "titulo": "Available orders",
@@ -947,6 +958,45 @@
         "minutos": "{{m}} min",
         "horas": "{{h}} h",
         "dias": "{{d}}d {{h}}h"
+      }
+    },
+    "entregas": {
+      "titulo": "My deliveries",
+      "cargando": "Loading your deliveries…",
+      "error": "We could not load your deliveries",
+      "reintentar": "Try again",
+      "actualizar": "Refresh",
+      "enCurso_one": "{{count}} delivery in progress",
+      "enCurso_other": "{{count}} deliveries in progress",
+      "vacio": "You have no deliveries in progress",
+      "vacioTexto": "Take prepared orders in Available orders to deliver them.",
+      "verDisponibles": "See available orders",
+      "recogerEn": "Pick up at {{punto}}",
+      "destino": "Destination in {{provincia}}, {{departamento}}",
+      "asignadaEn": "You took it on {{fecha}}",
+      "retiradaEn": "You picked it up from the point on {{fecha}}",
+      "retirar": "I picked up the order",
+      "retirando": "Saving…",
+      "retirado": "You recorded the pickup of order {{numero}}.",
+      "errorRetirar": "We could not record the pickup of order {{numero}}",
+      "entregadosHoy": "Delivered today",
+      "sinEntregadosHoy": "You have not delivered any orders today.",
+      "estado": {
+        "ASIGNADA": "To pick up",
+        "RETIRADA": "Picked up",
+        "EN_CAMINO": "On the way",
+        "ENTREGADA": "Delivered"
+      },
+      "pasos": {
+        "etiqueta": "Progress of delivery {{numero}}",
+        "recogido": "Picked up",
+        "enCamino": "On the way",
+        "entregado": "Delivered"
+      },
+      "col": {
+        "pedido": "Order",
+        "destino": "Destination",
+        "estado": "Status"
       }
     }
   },
@@ -1225,6 +1275,7 @@
       "reportes": "Reports",
       "parametros": "Parameters",
       "autorizaciones": "Authorizations",
+      "moderacion": "Moderation",
       "productores": "Producers",
       "cuentas": "Accounts",
       "catalogo": "Master catalog",
@@ -1923,6 +1974,8 @@
     "PEDIDO_PARA_RECOJO": "This order is picked up at the point; it is not dispatched for home delivery.",
     "PEDIDO_YA_ASUMIDO": "Another distributor already took this order.",
     "PEDIDO_NO_DISPONIBLE": "This order is not available to take.",
+    "PEDIDO_NO_ASIGNADO": "This order is not assigned to you.",
+    "PEDIDO_NO_RETIRABLE": "This order can no longer be picked up from the point.",
     "PEDIDO_NO_PAGABLE": "This order can no longer be paid.",
     "PAGO_EN_CURSO": "There's already a payment in progress for this order. Wait for its result before trying again.",
     "CLAVE_REUTILIZADA": "This payment attempt belongs to another order.",
@@ -1965,6 +2018,8 @@
     "VIGENCIA_INVALIDA": "The validity ends before it starts.",
     "SIN_CERTIFICADO_VIGENTE": "To approve, the product needs at least one valid certificate of its own.",
     "SOLICITUD_YA_RESUELTA": "This request is no longer pending review.",
+    "MODERACION_YA_RESUELTA": "This publication request was already resolved.",
+    "OFERTA_NO_APROBABLE": "The offer cannot be published yet.",
     "SOLICITUD_NO_ENCONTRADA": "The request doesn't exist.",
     "MOTIVO_REQUERIDO": "Enter the reason for the decision.",
     "DESTINO_INVALIDO": "Choose a collection point as the destination.",
@@ -2291,7 +2346,8 @@
     "nombreTienda": "The store name",
     "descripcionTienda": "The store description",
     "historiaComunidad": "Your community's story",
-    "pueblo": "The people you belong to"
+    "pueblo": "The people you belong to",
+    "autorizacion": "A valid sale authorization for this product"
   },
   "compra": {
     "validacion": {
@@ -2995,6 +3051,120 @@
       "error": "We couldn't register the request",
       "registrada": "Renewal request registered",
       "registradaTexto": "We notified the producer by email."
+    }
+  },
+  "moderacion": {
+    "titulo": "Publication moderation",
+    "error": "We couldn't load the requests",
+    "volver": "Back to moderation",
+    "nota": "Publishing or republishing an offer goes through this review. Approving it requires the product to have a valid sale authorization, which is decided in Authorizations.",
+    "pestanasEtiqueta": "Request status",
+    "pestana": {
+      "PENDIENTE": "Pending",
+      "APROBADA": "Approved",
+      "RECHAZADA": "Rejected"
+    },
+    "vacio": {
+      "PENDIENTE": "There are no offers to review",
+      "APROBADA": "No approved publications yet",
+      "RECHAZADA": "There are no rejected publications"
+    },
+    "kpi": {
+      "pendientes": "To review",
+      "pendientesDetalle": "Offers waiting for your review",
+      "aprobadas": "Approved this month",
+      "rechazadas": "Rejected this month",
+      "conMotivo": "Each one with its reason"
+    },
+    "col": {
+      "oferta": "Offer",
+      "organizacion": "Organization",
+      "autorizacion": "Sale authorization",
+      "tipo": "Type",
+      "enviada": "Sent",
+      "decidida": "Decided",
+      "accion": "Action"
+    },
+    "autorizacion": {
+      "vigente": "Authorized",
+      "estado": {
+        "SIN_SOLICITUD": "Not requested",
+        "SOLICITADA": "Under review",
+        "APROBADA": "Not valid",
+        "RECHAZADA": "Rejected",
+        "REVOCADA": "Revoked"
+      }
+    },
+    "tipo": {
+      "nueva": "New",
+      "republicacion": "Republication"
+    },
+    "estado": {
+      "PENDIENTE": "Pending",
+      "APROBADA": "Approved",
+      "RECHAZADA": "Rejected"
+    },
+    "revisar": "Review",
+    "ver": "View",
+    "revisarDe": "Review the publication of {{producto}} from {{organizacion}}",
+    "expediente": {
+      "titulo": "Publication request",
+      "error": "We couldn't load the request",
+      "solicitud": "Request",
+      "enviada": "Sent by {{nombre}} on {{fecha}}",
+      "decididaPor": "By {{nombre}} on {{fecha}}",
+      "oferta": "The offer",
+      "fotos": "Offer photos",
+      "foto": "Photo {{n}} of {{producto}}",
+      "lineas": "Lines",
+      "presentacion": "Presentation",
+      "modalidad": "Sale mode",
+      "precio": "Retail price",
+      "precioMayorista": "Wholesale price",
+      "desde": "{{precio}} from {{cantidad}} units",
+      "enVenta": "For sale (collection points)",
+      "historia": "Product story",
+      "autorizacion": "Sale authorization",
+      "autorizadaHasta": "Approved and valid until {{fecha}}.",
+      "autorizacionTexto": {
+        "vigente": "Approved and valid.",
+        "noVigente": "The product has no valid sale authorization. It is decided in Authorizations, with its evidence."
+      },
+      "verAutorizacion": "View the authorization",
+      "evidencias": "Valid evidence",
+      "historial": "Requests for this offer",
+      "decision": "Decision",
+      "revision": "Before approving",
+      "lista": "Meets what is needed to be published",
+      "noSustituye": "This review doesn't replace the documentary assessment of the sale authorization.",
+      "motivo": "Reason for the decision",
+      "motivoAyuda": "Required. The producer will see it.",
+      "motivoRequerido": "Write the reason for the decision",
+      "aprobar": "Approve publication",
+      "rechazar": "Reject publication",
+      "noAprobable": "To approve, the offer must meet everything on the list.",
+      "hecho": {
+        "aprobar": "You approved the publication. The offer is now in the catalog.",
+        "rechazar": "You rejected the publication. The producer will see your reason."
+      },
+      "errorDecision": "We could not record the decision",
+      "resuelta": {
+        "APROBADA": "This publication was already approved.",
+        "RECHAZADA": "This publication was rejected."
+      }
+    },
+    "dialogo": {
+      "motivo": "Reason: “{{motivo}}”",
+      "aprobar": {
+        "titulo": "Approve the publication of {{producto}}",
+        "confirmar": "Approve",
+        "texto": "The offer goes into the catalog and {{organizacion}} receives your reason. The decision is recorded and cannot be edited."
+      },
+      "rechazar": {
+        "titulo": "Reject the publication of {{producto}}",
+        "confirmar": "Reject publication",
+        "texto": "The offer goes back to {{organizacion}}, who will see this reason and can fix it and send it again. The decision is recorded and cannot be edited."
+      }
     }
   },
   "transferencias": {
@@ -3747,6 +3917,7 @@
     "todas": "All",
     "tipos": {
       "AUTORIZACIONES": "Authorizations",
+      "MODERACION": "Moderation",
       "PRODUCTORES": "Producers",
       "DENUNCIAS": "Reports",
       "CUENTAS": "Accounts"
@@ -3762,6 +3933,8 @@
       "AUTORIZACION_RECHAZADA": "Rejected authorization",
       "AUTORIZACION_REVOCADA": "Revoked authorization",
       "RENOVACION_SOLICITADA": "Requested renewal",
+      "PUBLICACION_APROBADA": "Approved publication",
+      "PUBLICACION_RECHAZADA": "Rejected publication",
       "HABILITAR_TIENDA": "Enabled store",
       "REVOCAR_VENTA": "Revoked sale",
       "RESTITUIR_VENTA": "Restored sale",

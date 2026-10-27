@@ -117,8 +117,10 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
 
   const imagenes = producto?.imagenes ?? []
   const { porFoto, validar } = useValidaciones(producto?.id, imagenes)
-  // Un producto publicado no vuelve a borrador: lo que se guarda se ve al instante (CCPIP-47)
+  // Un producto publicado no vuelve a borrador: lo que se guarda se ve al instante (CCPIP-47). En revision
+  // (CCPIP-46) tampoco es un borrador: los cambios los vera la Camara al revisarlo
   const publicado = producto?.estado === 'PUBLICADO'
+  const enRevision = producto?.estado === 'EN_MODERACION'
   const set = (campo) => (e) => setD({ ...d, [campo]: e?.target ? (e.target.type === 'checkbox' ? e.target.checked : e.target.value) : e })
 
   function elegirLineas(lineas) {
@@ -140,6 +142,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
       await onGuardar(aCuerpo(d))
       if (siguiente) onSiguiente()
       else if (publicado) setAlerta({ tono: 'exito', titulo: t('productor.datos.cambiosGuardados'), descripcion: t('productor.datos.cambiosGuardadosTexto') })
+      else if (enRevision) setAlerta({ tono: 'exito', titulo: t('productor.datos.cambiosGuardados'), descripcion: t('productor.datos.cambiosEnRevisionTexto') })
       else setAlerta({ tono: 'exito', titulo: t('productor.datos.borradorGuardado'), descripcion: t('productor.datos.borradorGuardadoTexto') })
     } catch (err) {
       // Los mensajes por campo llegan en espanol: en ingles se marca el campo con el mensaje del code
@@ -518,7 +521,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
 
         <div className="editor__botones">
           <Boton tipo="secundario" onClick={() => guardar(false)} disabled={guardando !== null} cargando={guardando === 'datos'}>
-            {publicado ? t('productor.datos.guardarCambios') : t('productor.datos.guardarBorrador')}
+            {publicado || enRevision ? t('productor.datos.guardarCambios') : t('productor.datos.guardarBorrador')}
           </Boton>
           <Boton onClick={() => guardar(true)} disabled={guardando !== null} cargando={guardando === 'siguiente'}>
             {t('productor.datos.siguienteHistoria')}

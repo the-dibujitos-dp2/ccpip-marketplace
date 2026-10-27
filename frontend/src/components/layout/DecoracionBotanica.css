@@ -1,0 +1,41 @@
+.decoracion-botanica {
+  position: fixed;
+  inset: 172px 0 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.decoracion-botanica__rama {
+  position: absolute;
+  display: block;
+  width: min(264px, calc((100vw - 1248px) / 2 - 24px));
+  height: auto;
+  opacity: 0.72;
+  object-fit: contain;
+  top: 0;
+}
+
+.decoracion-botanica__rama--izquierda {
+  left: 16px;
+}
+
+.decoracion-botanica__rama--derecha {
+  right: 16px;
+}
+
+.layout-tienda {
+  isolation: isolate;
+}
+
+.layout-tienda > main,
+.layout-tienda > footer {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 1439px) {
+  .decoracion-botanica {
+    display: none;
+  }
+}
