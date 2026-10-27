@@ -31,7 +31,7 @@ class DestacadosTest extends IntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.destacados.length()").value(3))
                 .andExpect(jsonPath("$.destacados[*].tienda.nombre")
-                        .value(org.hamcrest.Matchers.containsInAnyOrder("Asoc. Nii Joi", "C.N. Yarina", "Coop. Río Ene")))
+                        .value(org.hamcrest.Matchers.containsInAnyOrder("Bordadoras de San Francisco", "Cacaoteros de Umukai", "Asháninka de Pampa Michi")))
                 // Nadie destaco la guayusa ni el cafe molido: no se rellena con ellos
                 .andExpect(jsonPath("$.destacados[*].nombre").value(not(hasItem("Infusion de guayusa 80 g"))))
                 .andExpect(jsonPath("$.destacados[*].nombre").value(not(hasItem("Cafe molido 250 g"))));
@@ -52,7 +52,7 @@ class DestacadosTest extends IntegrationTest {
                 .andExpect(jsonPath("$.destacados[*].nombre").value(not(hasItem("Textil bordado shipibo"))))
                 // Lo agotado no se destaca, aunque el productor lo haya marcado; sigue el anterior de su tienda
                 .andExpect(jsonPath("$.destacados[*].id").value(not(hasItem((int) sinStock))))
-                .andExpect(jsonPath("$.destacados[*].tienda.nombre").value(hasItem("C.N. Yarina")))
+                .andExpect(jsonPath("$.destacados[*].tienda.nombre").value(hasItem("Cacaoteros de Umukai")))
                 // Lo reciente que el productor no destaco no entra
                 .andExpect(jsonPath("$.destacados[*].id").value(not(hasItem((int) sinDestacar))));
     }
@@ -65,7 +65,7 @@ class DestacadosTest extends IntegrationTest {
                                       WHERE u.correo = 'productor3@ccpip.test')""");
         mockMvc.perform(get(INICIO))
                 .andExpect(jsonPath("$.destacados.length()").value(2))
-                .andExpect(jsonPath("$.destacados[*].tienda.nombre").value(not(hasItem("Coop. Río Ene"))));
+                .andExpect(jsonPath("$.destacados[*].tienda.nombre").value(not(hasItem("Asháninka de Pampa Michi"))));
 
         jdbc.update("UPDATE producto SET destacado_tienda = false");
         mockMvc.perform(get(INICIO)).andExpect(jsonPath("$.destacados.length()").value(0));
