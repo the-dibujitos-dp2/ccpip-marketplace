@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
+import tableroAdmin from '../../test/fixtures/admin-tablero.json'
 import { llamadas, PUBLICAS, servidor, SESION_SUB, SESION_SUPER } from '../../test/servidor.js'
 
 function abrirEn(ruta) {
@@ -93,7 +94,7 @@ describe('Vigencia de certificados (CCPIP-184)', () => {
   })
 
   it('el superadministrador no entra a la vigencia de certificados', async () => {
-    servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_SUPER], 'GET /api/admin/tablero': [200, {}] })
+    servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_SUPER], 'GET /api/admin/tablero': [200, tableroAdmin] })
     abrirEn('/admin/certificados')
     expect(await screen.findByRole('navigation', { name: /administrador/i })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { level: 1, name: 'Vigencia de certificados' })).not.toBeInTheDocument()

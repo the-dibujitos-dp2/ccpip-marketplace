@@ -53,7 +53,7 @@ public class PedidosPuntoService {
     public PedidosPunto listar(long usuarioId) {
         String ubicacion = puntos.nombres(usuarioId);
         List<Long> ids = jdbc.queryForList("SELECT pe.id " + DEL_PUNTO + """
-                  AND (pe.estado IN ('CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO', 'LISTO_PARA_DESPACHO')
+                  AND (pe.estado IN ('CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO', 'LISTO_PARA_DESPACHO', 'EN_CAMINO')
                        OR pe.estado = 'ENTREGADO' AND (pe.actualizado_en AT TIME ZONE 'America/Lima')::date = %s)
                 ORDER BY CASE pe.estado WHEN 'CONFIRMADO' THEN 0 WHEN 'EN_PREPARACION' THEN 1
                                         WHEN 'LISTO_PARA_RECOJO' THEN 2 WHEN 'LISTO_PARA_DESPACHO' THEN 2 ELSE 3 END,

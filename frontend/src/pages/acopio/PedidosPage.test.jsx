@@ -23,6 +23,20 @@ const comoAcopio = (rutas = {}) => ({
 const columna = (nombre) => screen.getByRole('region', { name: nombre })
 
 describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
+  it('muestra EN_CAMINO en una columna de solo lectura con fecha y responsable del historial', async () => {
+    const datos = copia(DATOS.pedidos)
+    datos.items[0].estado = 'EN_CAMINO'
+    datos.items[0].modalidad = 'ENVIO'
+    datos.items[0].historial.push({ estado: 'EN_CAMINO', registradoEn: '2026-10-13T15:33:58.109980Z', responsable: 'Distribuidor de Prueba' })
+    servidor(comoAcopio({ [LISTAR]: [200, datos] }))
+    abrirEn('/acopio/pedidos')
+
+    const enCamino = within(await screen.findByRole('region', { name: 'En camino' }))
+    expect(enCamino.getByText('MC-00155')).toBeInTheDocument()
+    expect(enCamino.getByText(/En camino .*Distribuidor de Prueba/)).toBeInTheDocument()
+    expect(enCamino.queryByRole('button')).not.toBeInTheDocument()
+  })
+
   it('muestra EN_PREPARACION en su columna y permite continuar a listo para recojo', async () => {
     const datos = copia(DATOS.pedidos)
     datos.items[0].estado = 'EN_PREPARACION'

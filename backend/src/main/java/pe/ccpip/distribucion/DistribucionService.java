@@ -184,6 +184,26 @@ public class DistribucionService {
         return entregaDe(entrega.pedidoId());
     }
 
+    /** CCPIP-318: registra el inicio del viaje y su actor en una sola transacción, bajo el bloqueo de la entrega. */
+    @Transactional
+    public EntregaDelDistribuidor enCamino(long distribuidorId, String numero) {
+        Bloqueada entrega = bloquear(numero);
+        if (entrega.distribuidorId() == null || entrega.distribuidorId() != distribuidorId) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "PEDIDO_NO_ASIGNADO", "Este pedido no está asignado a ti.");
+        }
+        if ("EN_CAMINO".equals(entrega.estadoEntrega()) && "EN_CAMINO".equals(entrega.estadoPedido())) {
+            return entregaDe(entrega.pedidoId());
+        }
+        if (!"RETIRADA".equals(entrega.estadoEntrega()) || !"LISTO_PARA_DESPACHO".equals(entrega.estadoPedido())) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "PEDIDO_NO_INICIADO", "Este pedido no está retirado o ya no permite iniciar el viaje.");
+        }
+        jdbc.update("UPDATE pedido SET estado = 'EN_CAMINO', actualizado_en = now() WHERE id = :pedido", new MapSqlParameterSource("pedido", entrega.pedidoId()));
+        jdbc.update("UPDATE entrega SET estado = 'EN_CAMINO' WHERE pedido_id = :pedido", new MapSqlParameterSource("pedido", entrega.pedidoId()));
+        jdbc.update("INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (:pedido, 'EN_CAMINO', :usuario)",
+                new MapSqlParameterSource("pedido", entrega.pedidoId()).addValue("usuario", distribuidorId));
+        return entregaDe(entrega.pedidoId());
+    }
+
     /**
      * Bloquea la entrega de un pedido a domicilio hasta el final de la transaccion. Un pedido para recojo, o un numero
      * que no existe, es un 404: para el distribuidor no hay entrega (RNF-05).
@@ -252,4 +272,4 @@ public class DistribucionService {
             }
         }
     }
-}
+}

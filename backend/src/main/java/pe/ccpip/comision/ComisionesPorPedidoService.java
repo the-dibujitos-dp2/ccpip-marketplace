@@ -37,7 +37,7 @@ public class ComisionesPorPedidoService {
     static final int TAMANO = 20;
 
     /** Estados que se pueden elegir; un pedido cancelado nunca entra en la consulta. */
-    static final Set<String> ESTADOS = Set.of("CONFIRMADO", "EN_PREPARACION", "LISTO_PARA_RECOJO", "LISTO_PARA_DESPACHO", "ENTREGADO");
+    static final Set<String> ESTADOS = Set.of("CONFIRMADO", "EN_PREPARACION", "LISTO_PARA_RECOJO", "LISTO_PARA_DESPACHO", "EN_CAMINO", "ENTREGADO");
 
     private static final String EN_RANGO = """
             pe.confirmado_en IS NOT NULL AND pe.estado <> 'CANCELADO'

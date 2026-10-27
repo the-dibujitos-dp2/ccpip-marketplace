@@ -78,6 +78,13 @@ public class DistribucionController {
         return distribucion.retirar(s.userId(), numeroValido(numero));
     }
 
+    /** Registra que la entrega propia retirada ya está en camino. */
+    @PostMapping("/{numero}/en-camino")
+    public EntregaDelDistribuidor enCamino(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                           @PathVariable String numero) {
+        return distribucion.enCamino(s.userId(), numeroValido(numero));
+    }
+
     /** Un numero de pedido solo tiene letras, digitos y guiones (p. ej. MC-00148); se busca sin distinguir mayusculas. */
     private static String numeroValido(String numero) {
         if (!numero.matches("[A-Za-z0-9-]{1,20}")) {
@@ -85,4 +92,4 @@ public class DistribucionController {
         }
         return numero.toUpperCase(Locale.ROOT);
     }
-}
+}

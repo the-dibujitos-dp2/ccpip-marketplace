@@ -19,6 +19,7 @@ const COLUMNAS = [
   { estado: 'EN_PREPARACION', accion: 'LISTO' },
   { estado: 'LISTO_PARA_RECOJO', accion: 'RECOJO' },
   { estado: 'LISTO_PARA_DESPACHO' },
+  { estado: 'EN_CAMINO' },
   { estado: 'ENTREGADO' },
 ]
 

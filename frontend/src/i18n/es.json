@@ -1048,7 +1048,12 @@
         "pedido": "Pedido",
         "destino": "Destino",
         "estado": "Estado"
-      }
+      },
+      "registrarEnCamino": "Registrar en camino",
+      "registrandoEnCamino": "Registrando…",
+      "enCaminoRegistrado": "Registraste que el pedido {{numero}} está en camino.",
+      "errorEnCamino": "No pudimos registrar que el pedido {{numero}} está en camino",
+      "estadoEN_CAMINO": "En camino"
     }
   },
   "acopio": {
@@ -1082,7 +1087,8 @@
         "EN_PREPARACION": "En preparación",
         "LISTO_PARA_RECOJO": "Listo para recojo",
         "LISTO_PARA_DESPACHO": "Listo para despacho",
-        "ENTREGADO": "Entregado hoy"
+        "ENTREGADO": "Entregado hoy",
+        "EN_CAMINO": "En camino"
       },
       "columnaConteo": "{{titulo}} ({{total}})",
       "columnaVacia": {
@@ -1090,7 +1096,8 @@
         "EN_PREPARACION": "No hay pedidos en preparación.",
         "LISTO_PARA_RECOJO": "Ningún pedido espera a su comprador.",
         "LISTO_PARA_DESPACHO": "Ningún pedido espera a un distribuidor.",
-        "ENTREGADO": "Aún no se entregó ningún pedido hoy."
+        "ENTREGADO": "Aún no se entregó ningún pedido hoy.",
+        "EN_CAMINO": "No hay pedidos en camino."
       },
       "productosDe": "Productos del pedido {{numero}}",
       "lotesDe": "Lotes de {{producto}}",
@@ -1101,7 +1108,8 @@
         "EN_PREPARACION": "En preparación",
         "LISTO_PARA_RECOJO": "Listo",
         "LISTO_PARA_DESPACHO": "Listo para despacho",
-        "ENTREGADO": "Entregado"
+        "ENTREGADO": "Entregado",
+        "EN_CAMINO": "En camino desde"
       },
       "marcarEtiqueta": "Marcar el pedido {{numero}} como listo para recojo",
       "despachoEtiqueta": "Registrar la salida del pedido {{numero}} para despacho",
@@ -1506,6 +1514,7 @@
         "EN_PREPARACION": "En preparación",
         "LISTO_PARA_RECOJO": "Listo para recojo",
         "LISTO_PARA_DESPACHO": "Listo para despacho",
+        "EN_CAMINO": "En camino",
         "ENTREGADO": "Entregado"
       }
     },
@@ -2627,6 +2636,7 @@
       "PENDIENTE_PAGO": "Espera pago",
       "CONFIRMADO": "Pago confirmado",
       "EN_PREPARACION": "En preparación",
+      "EN_CAMINO": "En camino",
       "LISTO_PARA_RECOJO": "Disponible en acopio",
       "LISTO_PARA_DESPACHO": "Listo para despacho",
       "ENTREGADO": "Entregado",
@@ -4093,7 +4103,10 @@
         "ubicacion": "Ubicación",
         "aplicar": "Aplicar filtros",
         "vacio": "No hay merma para los filtros seleccionados.",
-        "exportar": { "pdf": "Descargar PDF", "xlsx": "Descargar Excel" }
+        "exportar": {
+          "pdf": "Descargar PDF",
+          "xlsx": "Descargar Excel"
+        }
       },
       "col": {
         "fecha": "Fecha",

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoCaja from '../../assets/icons/caja.svg'
 import iconoCheck from '../../assets/icons/check.svg'
-import { listarMisEntregas, retirarEntrega } from '../../api/distribucion.js'
+import { listarMisEntregas, registrarEnCamino, retirarEntrega } from '../../api/distribucion.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -36,6 +36,7 @@ export default function MisEntregasPage({ path }) {
   const { datos, error, recargar } = useConsulta(listarMisEntregas)
   // CCPIP-109: la entrega que se esta retirando, y lo que paso al retirarla
   const [retirando, setRetirando] = useState(null)
+  const [enCaminoActualizando, setEnCaminoActualizando] = useState(null)
   const [aviso, setAviso] = useState(null)
 
   const enCurso = datos?.filter((e) => e.estado !== 'ENTREGADA') ?? []
@@ -57,6 +58,19 @@ export default function MisEntregasPage({ path }) {
     } finally {
       setRetirando(null)
     }
+    recargar()
+  }
+
+  async function avanzarEnCamino(numero) {
+    setEnCaminoActualizando(numero)
+    setAviso(null)
+    try {
+      await registrarEnCamino(numero)
+      setAviso({ tono: 'exito', titulo: t('distribuidor.entregas.enCaminoRegistrado', { numero }) })
+    } catch (e) {
+      if (e.status === 401) return
+      setAviso({ tono: e.status === 409 ? 'aviso' : 'error', titulo: t('distribuidor.entregas.errorEnCamino', { numero }), descripcion: mensajeError(e) })
+    } finally { setEnCaminoActualizando(null) }
     recargar()
   }
 
@@ -109,11 +123,16 @@ export default function MisEntregasPage({ path }) {
                       <Boton
                         tamano="M"
                         icono={iconoCheck}
-                        disabled={retirando !== null}
+                        disabled={retirando !== null || enCaminoActualizando !== null}
                         onClick={() => void retirar(e.numero)}
                       >
                         {retirando === e.numero ? t('distribuidor.entregas.retirando') : t('distribuidor.entregas.retirar')}
                       </Boton>
+                    </div>
+                  )}
+                  {e.estado === 'RETIRADA' && (
+                    <div className="mis-entregas__acciones">
+                      <Boton tamano="M" cargando={enCaminoActualizando === e.numero} disabled={retirando !== null || enCaminoActualizando !== null} onClick={() => void avanzarEnCamino(e.numero)}>{enCaminoActualizando === e.numero ? t('distribuidor.entregas.registrandoEnCamino') : t('distribuidor.entregas.registrarEnCamino')}</Boton>
                     </div>
                   )}
                 </article>

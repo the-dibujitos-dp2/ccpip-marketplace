@@ -1048,7 +1048,12 @@
         "pedido": "Order",
         "destino": "Destination",
         "estado": "Status"
-      }
+      },
+      "registrarEnCamino": "Register as on the way",
+      "registrandoEnCamino": "Registering…",
+      "enCaminoRegistrado": "You registered order {{numero}} as on the way.",
+      "errorEnCamino": "Could not register order {{numero}} as on the way",
+      "estadoEN_CAMINO": "On the way"
     }
   },
   "acopio": {
@@ -1082,7 +1087,8 @@
         "EN_PREPARACION": "Being prepared",
         "LISTO_PARA_RECOJO": "Ready for pickup",
         "LISTO_PARA_DESPACHO": "Ready for dispatch",
-        "ENTREGADO": "Delivered today"
+        "ENTREGADO": "Delivered today",
+        "EN_CAMINO": "On the way"
       },
       "columnaConteo": "{{titulo}} ({{total}})",
       "columnaVacia": {
@@ -1090,7 +1096,8 @@
         "EN_PREPARACION": "No orders are being prepared.",
         "LISTO_PARA_RECOJO": "No orders are waiting for their buyer.",
         "LISTO_PARA_DESPACHO": "No orders are waiting for a distributor.",
-        "ENTREGADO": "No orders delivered today yet."
+        "ENTREGADO": "No orders delivered today yet.",
+        "EN_CAMINO": "No orders on the way."
       },
       "productosDe": "Products in order {{numero}}",
       "lotesDe": "Batches of {{producto}}",
@@ -1101,7 +1108,8 @@
         "EN_PREPARACION": "Being prepared",
         "LISTO_PARA_RECOJO": "Ready",
         "LISTO_PARA_DESPACHO": "Ready for dispatch",
-        "ENTREGADO": "Delivered"
+        "ENTREGADO": "Delivered",
+        "EN_CAMINO": "On the way since"
       },
       "marcarEtiqueta": "Mark order {{numero}} as ready for pickup",
       "despachoEtiqueta": "Record the dispatch of order {{numero}}",
@@ -1506,6 +1514,7 @@
         "EN_PREPARACION": "Being prepared",
         "LISTO_PARA_RECOJO": "Ready for pickup",
         "LISTO_PARA_DESPACHO": "Ready for dispatch",
+        "EN_CAMINO": "On the way",
         "ENTREGADO": "Delivered"
       }
     },
@@ -2627,6 +2636,7 @@
       "PENDIENTE_PAGO": "Awaiting payment",
       "CONFIRMADO": "Payment confirmed",
       "EN_PREPARACION": "Being prepared",
+      "EN_CAMINO": "On the way",
       "LISTO_PARA_RECOJO": "Ready at collection point",
       "LISTO_PARA_DESPACHO": "Ready for dispatch",
       "ENTREGADO": "Delivered",
@@ -4093,7 +4103,10 @@
         "ubicacion": "Location",
         "aplicar": "Apply filters",
         "vacio": "There is no shrinkage for the selected filters.",
-        "exportar": { "pdf": "Download PDF", "xlsx": "Download Excel" }
+        "exportar": {
+          "pdf": "Download PDF",
+          "xlsx": "Download Excel"
+        }
       },
       "col": {
         "fecha": "Date",
