@@ -19,6 +19,7 @@ import pe.ccpip.catalogo.CatalogoModelos.Facetas;
 import pe.ccpip.catalogo.CatalogoModelos.HistoriaPublica;
 import pe.ccpip.catalogo.CatalogoModelos.Inicio;
 import pe.ccpip.catalogo.CatalogoModelos.MasVendidos;
+import pe.ccpip.catalogo.CatalogoModelos.Novedades;
 import pe.ccpip.catalogo.CatalogoModelos.LineaCatalogo;
 import pe.ccpip.catalogo.CatalogoModelos.Oferta;
 import pe.ccpip.catalogo.CatalogoModelos.PartesHistoria;
@@ -148,6 +149,17 @@ public class TraductorCatalogo {
         return new MasVendidos(m.periodo(), m.desde(), m.hasta(), m.productos().stream().map(t::resumen).toList());
     }
 
+    /** CCPIP-338: lo publicado recientemente, con nombres y tiendas en el idioma pedido. */
+    public Novedades novedades(Novedades n, Idioma idioma) {
+        if (idioma == Idioma.ES) {
+            return n;
+        }
+        Claves c = new Claves();
+        n.productos().forEach(c::resumen);
+        Textos t = cargar(c, idioma);
+        return new Novedades(n.periodo(), n.desde(), n.hasta(), n.productos().stream().map(t::resumen).toList());
+    }
+
     public Inicio inicio(Inicio i, Idioma idioma) {
         if (idioma == Idioma.ES) {
             return i;
@@ -156,10 +168,9 @@ public class TraductorCatalogo {
         i.tiendas().forEach(tt -> c.productor(tt.id()));
         i.lineas().forEach(f -> c.clave(Entidad.LINEA, f.codigo()));
         i.destacados().forEach(c::resumen);
-        i.novedades().forEach(c::resumen);
         Textos t = cargar(c, idioma);
         return new Inicio(i.tiendas().stream().map(t::tarjeta).toList(), t.facetas(Entidad.LINEA, i.lineas()),
-                i.destacados().stream().map(t::resumen).toList(), i.novedades().stream().map(t::resumen).toList());
+                i.destacados().stream().map(t::resumen).toList());
     }
 
     public Catalogos catalogos(Catalogos k, Idioma idioma) {

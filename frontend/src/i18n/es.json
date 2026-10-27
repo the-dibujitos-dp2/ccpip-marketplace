@@ -1892,7 +1892,9 @@
       "sinVentas": "Aún no hay ventas en este período. Prueba con uno más largo.",
       "notaMasVendidos": "Según las unidades vendidas en compras pagadas y no canceladas del período.",
       "sinDestacados": "Las comunidades aún no han destacado productos en venta.",
-      "notaDestacados": "Cada comunidad elige hasta 4 productos para destacar en su tienda. Aquí va uno por comunidad, de los que están en venta."
+      "notaDestacados": "Cada comunidad elige hasta 4 productos para destacar en su tienda. Aquí va uno por comunidad, de los que están en venta.",
+      "sinNovedades": "No se publicaron productos en este período. Prueba con uno más largo.",
+      "notaNovedades": "Productos en venta según la fecha en que se publicaron, del más reciente al más antiguo."
     },
     "mayorista": {
       "titulo": "¿Compras por volumen para tu tienda, cafetería o para exportar?",

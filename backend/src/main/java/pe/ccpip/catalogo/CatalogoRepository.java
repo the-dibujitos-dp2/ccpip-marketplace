@@ -277,10 +277,16 @@ public class CatalogoRepository {
                 + " ORDER BY x.unidades_vendidas DESC, x.pedidos_venta DESC, x.nombre, x.id LIMIT :n", p, CatalogoRepository::resumen);
     }
 
-    public List<ProductoResumen> novedades(int cuantos) {
-        MapSqlParameterSource p = new MapSqlParameterSource("n", cuantos);
+    /**
+     * CCPIP-338 (RF-228): los productos visibles publicados entre :desde y :hasta (fechas de Lima) que estan en
+     * venta, del mas reciente al mas antiguo. La fecha es la de su publicacion (al aprobarla la moderacion,
+     * CCPIP-46); retirar y volver a publicar no la renueva.
+     */
+    public List<ProductoResumen> novedades(LocalDate desde, LocalDate hasta, int cuantos) {
+        MapSqlParameterSource p = new MapSqlParameterSource("n", cuantos).addValue("desde", desde).addValue("hasta", hasta);
         return jdbc.query("SELECT " + COLUMNAS + VISIBLE + " AND " + EN_VENTA + " > 0"
-                + " ORDER BY p.publicado_en DESC NULLS LAST, p.id DESC LIMIT :n", p, CatalogoRepository::resumen);
+                + " AND (p.publicado_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta"
+                + " ORDER BY p.publicado_en DESC, p.id DESC LIMIT :n", p, CatalogoRepository::resumen);
     }
 
     // ---------- Partes de la ficha ----------

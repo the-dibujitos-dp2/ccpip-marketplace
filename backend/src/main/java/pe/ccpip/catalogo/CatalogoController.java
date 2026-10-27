@@ -26,6 +26,7 @@ import pe.ccpip.catalogo.CatalogoModelos.Codigo;
 import pe.ccpip.catalogo.CatalogoModelos.Facetas;
 import pe.ccpip.catalogo.CatalogoModelos.Inicio;
 import pe.ccpip.catalogo.CatalogoModelos.MasVendidos;
+import pe.ccpip.catalogo.CatalogoModelos.Novedades;
 import pe.ccpip.catalogo.CatalogoModelos.PeriodoVentas;
 import pe.ccpip.catalogo.CatalogoModelos.LineaCatalogo;
 import pe.ccpip.catalogo.CatalogoModelos.ProductoDetalle;
@@ -49,6 +50,9 @@ public class CatalogoController {
 
     /** CCPIP-339: cuantos mas vendidos muestra el inicio, como Destacados y Novedades. */
     static final int MAS_VENDIDOS = 8;
+
+    /** CCPIP-338: cuantos productos publicados recientemente muestra el inicio. */
+    static final int NOVEDADES = 8;
 
     private static final ZoneId LIMA = ZoneId.of("America/Lima");
 
@@ -155,7 +159,7 @@ public class CatalogoController {
     public Inicio inicio(@RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
                          HttpServletResponse response) {
         Filtro todos = new Filtro(null, List.of(), null, List.of(), null, null, null, true);
-        Inicio inicio = new Inicio(tiendas.listar(3), catalogo.facetaLineas(todos), catalogo.destacados(8), catalogo.novedades(8));
+        Inicio inicio = new Inicio(tiendas.listar(3), catalogo.facetaLineas(todos), catalogo.destacados(8));
         return traductor.inicio(inicio, idioma(acceptLanguage, response));
     }
 
@@ -169,13 +173,33 @@ public class CatalogoController {
                                    HttpServletResponse response) {
         PeriodoVentas elegido = periodo == null ? PeriodoVentas.ULTIMOS_30_DIAS : periodo;
         LocalDate hasta = LocalDate.now(LIMA);
-        LocalDate desde = switch (elegido) {
+        LocalDate desde = desde(elegido, hasta);
+        MasVendidos mas = new MasVendidos(elegido, desde, hasta, catalogo.masVendidos(desde, hasta, MAS_VENDIDOS));
+        return traductor.masVendidos(mas, idioma(acceptLanguage, response));
+    }
+
+    /**
+     * CCPIP-338 (RF-228): los productos publicados recientemente y sus productores, en los ultimos 30 dias
+     * (por defecto), los ultimos 3 meses o el año en curso, hasta hoy. Publico, como el resto del inicio.
+     */
+    @GetMapping("/api/novedades")
+    public Novedades novedades(@RequestParam(required = false) PeriodoVentas periodo,
+                               @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+                               HttpServletResponse response) {
+        PeriodoVentas elegido = periodo == null ? PeriodoVentas.ULTIMOS_30_DIAS : periodo;
+        LocalDate hasta = LocalDate.now(LIMA);
+        LocalDate desde = desde(elegido, hasta);
+        Novedades novedades = new Novedades(elegido, desde, hasta, catalogo.novedades(desde, hasta, NOVEDADES));
+        return traductor.novedades(novedades, idioma(acceptLanguage, response));
+    }
+
+    /** Primer dia (de Lima) del periodo que termina {@code hasta}. */
+    private static LocalDate desde(PeriodoVentas periodo, LocalDate hasta) {
+        return switch (periodo) {
             case ULTIMOS_30_DIAS -> hasta.minusDays(29);
             case ULTIMOS_3_MESES -> hasta.minusMonths(3).plusDays(1);
             case ESTE_ANIO -> hasta.withDayOfYear(1);
         };
-        MasVendidos mas = new MasVendidos(elegido, desde, hasta, catalogo.masVendidos(desde, hasta, MAS_VENDIDOS));
-        return traductor.masVendidos(mas, idioma(acceptLanguage, response));
     }
 
     /** Catalogos cerrados para los formularios (RNF-32). */

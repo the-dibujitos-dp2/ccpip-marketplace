@@ -118,8 +118,8 @@ public final class CatalogoModelos {
     public record GaleriaItem(String id, String categoria, String url, String miniatura) {
     }
 
-    public record Inicio(List<TiendaTarjeta> tiendas, List<Faceta> lineas, List<ProductoResumen> destacados,
-                         List<ProductoResumen> novedades) {
+    /** CW-01. Las novedades y los mas vendidos se piden aparte, por periodo (CCPIP-338, CCPIP-339). */
+    public record Inicio(List<TiendaTarjeta> tiendas, List<Faceta> lineas, List<ProductoResumen> destacados) {
     }
 
     public record LineaCatalogo(String codigo, String nombre, boolean requiereVencimiento, String unidadSugerida) {
@@ -130,8 +130,8 @@ public final class CatalogoModelos {
     }
 
     /**
-     * CCPIP-339 (RF-229): periodos que el visitante puede elegir para ver los mas vendidos. Todos terminan
-     * hoy (fecha de Lima).
+     * CCPIP-339 (RF-229) y CCPIP-338 (RF-228): periodos que el visitante puede elegir para ver los mas
+     * vendidos y lo publicado recientemente. Todos terminan hoy (fecha de Lima).
      */
     public enum PeriodoVentas { ULTIMOS_30_DIAS, ULTIMOS_3_MESES, ESTE_ANIO }
 
@@ -141,5 +141,12 @@ public final class CatalogoModelos {
      * productor (SA-08). Si nada se vendio en el periodo la lista va vacia; no se rellena.
      */
     public record MasVendidos(PeriodoVentas periodo, LocalDate desde, LocalDate hasta, List<ProductoResumen> productos) {
+    }
+
+    /**
+     * CCPIP-338: los productos publicados en el periodo y en venta, del mas reciente al mas antiguo, cada uno
+     * con su productor. Si nada se publico en el periodo la lista va vacia; no se rellena con lo anterior.
+     */
+    public record Novedades(PeriodoVentas periodo, LocalDate desde, LocalDate hasta, List<ProductoResumen> productos) {
     }
 }

@@ -30,13 +30,17 @@ describe('CW-01 Inicio de la tienda', () => {
   })
 
   it('las pestanas cambian entre destacados y novedades', async () => {
-    servidor(sinSesion)
+    const [nuevo] = DATOS.inicio.destacados
+    servidor({
+      ...sinSesion,
+      'GET /api/novedades?periodo=ULTIMOS_30_DIAS': [200, { periodo: 'ULTIMOS_30_DIAS', desde: '2026-09-27', hasta: '2026-10-26', productos: [copia(nuevo)] }],
+    })
     const user = userEvent.setup()
     abrirEn('/')
     const novedades = await screen.findByRole('tab', { name: 'Novedades' })
     await user.click(novedades)
     expect(novedades).toHaveAttribute('aria-selected', 'true')
-    expect(screen.getByText(DATOS.inicio.novedades[0].nombre)).toBeInTheDocument()
+    expect(within(await screen.findByRole('list', { name: 'Novedades' })).getByText(nuevo.nombre)).toBeInTheDocument()
   })
 
   it('si el servidor falla lo dice, sin pantalla en blanco', async () => {

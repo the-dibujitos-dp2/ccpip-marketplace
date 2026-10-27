@@ -357,7 +357,8 @@ class CatalogoControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.lineas[0].codigo").value("CACAO"))
                 // CCPIP-57: uno por productor de los que cada tienda destaco (R__02 destaca en las tres)
                 .andExpect(jsonPath("$.destacados.length()").value(3))
-                .andExpect(jsonPath("$.novedades.length()").value(8));
+                // CCPIP-338: las novedades se piden aparte, por periodo
+                .andExpect(jsonPath("$.novedades").doesNotExist());
     }
 
     @Test
