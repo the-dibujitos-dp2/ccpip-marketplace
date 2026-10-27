@@ -1328,6 +1328,7 @@
       "autorizaciones": "Autorizaciones",
       "moderacion": "Moderación",
       "productores": "Productores",
+      "certificados": "Vigencia de certificados",
       "cuentas": "Cuentas",
       "catalogo": "Catálogo maestro",
       "existencias": "Existencias",
@@ -2074,6 +2075,7 @@
     "PREMIO_LOTE_AJENO": "Elige un lote de este producto.",
     "LIMITE_DE_PREMIOS": "Llegaste al máximo de premios. Retira uno para registrar otro.",
     "PREMIO_NO_ENCONTRADO": "El premio no existe.",
+    "HORIZONTE_INVALIDO": "Elige 30, 60 o 90 días.",
     "VIGENCIA_REQUERIDA": "Indica hasta cuándo vale el certificado.",
     "VIGENCIA_INVALIDA": "La vigencia termina antes de empezar.",
     "SIN_CERTIFICADO_VIGENTE": "Para aprobar, el producto necesita al menos un certificado vigente propio.",
@@ -3010,6 +3012,50 @@
       "errorOrden": "La vigencia termina antes de que se otorgara el premio.",
       "errorLote": "Elige el lote al que corresponde el premio."
     }
+  },
+  "certificados": {
+    "titulo": "Vigencia de certificados",
+    "intro": "Los certificados de los productos autorizados, del que vence primero al último. Revisa a tiempo los vencidos y los que vencen pronto, y pide su renovación desde la solicitud del producto.",
+    "kpi": {
+      "vencidos": "Vencidos",
+      "vencidosDetalle": "La venta del producto queda pausada hasta renovarlos",
+      "porVencer": "Vencen en {{dias}} días",
+      "porVencerDetalle": "Conviene pedir su renovación",
+      "vigentes": "Vigentes",
+      "vigentesDetalle": "Vencen después de {{dias}} días"
+    },
+    "pestanasEtiqueta": "Vigencia de los certificados",
+    "pestana": {
+      "POR_VENCER": "Por vencer",
+      "VENCIDO": "Vencidos",
+      "VIGENTE": "Vigentes"
+    },
+    "vacio": {
+      "POR_VENCER": "Ningún certificado vence en este período.",
+      "VENCIDO": "No hay certificados vencidos.",
+      "VIGENTE": "No hay certificados vigentes después de este período."
+    },
+    "error": "No pudimos cargar los certificados.",
+    "horizonte": "Por vencer en",
+    "dias_one": "{{count}} día",
+    "dias_other": "{{count}} días",
+    "col": {
+      "certificado": "Certificado",
+      "producto": "Producto y organización",
+      "vence": "Vence",
+      "renovacion": "Renovación",
+      "accion": "Acción"
+    },
+    "vencioHace_one": "Venció hace {{count}} día",
+    "vencioHace_other": "Venció hace {{count}} días",
+    "venceHoy": "Vence hoy",
+    "venceEn_one": "Vence en {{count}} día",
+    "venceEn_other": "Vence en {{count}} días",
+    "renovacionPedida": "Pedida, plazo {{fecha}}",
+    "sinRenovacion": "Sin pedir",
+    "revisar": "Ver solicitud",
+    "revisarDe": "Ver la solicitud de {{producto}} ({{titulo}})",
+    "nota": "Esta consulta no cambia la autorización ni la venta. Un certificado vencido pausa la venta del producto hasta que el productor lo renueve; nunca la bloquea para siempre."
   },
   "autorizaciones": {
     "titulo": "Autorizaciones de productos",

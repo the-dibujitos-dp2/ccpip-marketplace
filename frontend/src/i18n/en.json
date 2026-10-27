@@ -1328,6 +1328,7 @@
       "autorizaciones": "Authorizations",
       "moderacion": "Moderation",
       "productores": "Producers",
+      "certificados": "Certificate validity",
       "cuentas": "Accounts",
       "catalogo": "Master catalog",
       "existencias": "Stock",
@@ -2074,6 +2075,7 @@
     "PREMIO_LOTE_AJENO": "Choose a batch of this product.",
     "LIMITE_DE_PREMIOS": "You reached the maximum number of awards. Withdraw one to record another.",
     "PREMIO_NO_ENCONTRADO": "The award doesn't exist.",
+    "HORIZONTE_INVALIDO": "Choose 30, 60 or 90 days.",
     "VIGENCIA_REQUERIDA": "State until when the certificate is valid.",
     "VIGENCIA_INVALIDA": "The validity ends before it starts.",
     "SIN_CERTIFICADO_VIGENTE": "To approve, the product needs at least one valid certificate of its own.",
@@ -3010,6 +3012,50 @@
       "errorOrden": "The validity ends before the award was granted.",
       "errorLote": "Choose the batch the award belongs to."
     }
+  },
+  "certificados": {
+    "titulo": "Certificate validity",
+    "intro": "Certificates of authorized products, from the one that expires first to the last. Review expired and soon-to-expire ones in time and request their renewal from the product's request.",
+    "kpi": {
+      "vencidos": "Expired",
+      "vencidosDetalle": "Sales of the product are paused until they are renewed",
+      "porVencer": "Expire within {{dias}} days",
+      "porVencerDetalle": "Consider requesting their renewal",
+      "vigentes": "Valid",
+      "vigentesDetalle": "Expire after {{dias}} days"
+    },
+    "pestanasEtiqueta": "Certificate validity",
+    "pestana": {
+      "POR_VENCER": "Expiring soon",
+      "VENCIDO": "Expired",
+      "VIGENTE": "Valid"
+    },
+    "vacio": {
+      "POR_VENCER": "No certificate expires in this period.",
+      "VENCIDO": "There are no expired certificates.",
+      "VIGENTE": "No certificates remain valid after this period."
+    },
+    "error": "We couldn't load the certificates.",
+    "horizonte": "Expiring within",
+    "dias_one": "{{count}} day",
+    "dias_other": "{{count}} days",
+    "col": {
+      "certificado": "Certificate",
+      "producto": "Product and organization",
+      "vence": "Expires",
+      "renovacion": "Renewal",
+      "accion": "Action"
+    },
+    "vencioHace_one": "Expired {{count}} day ago",
+    "vencioHace_other": "Expired {{count}} days ago",
+    "venceHoy": "Expires today",
+    "venceEn_one": "Expires in {{count}} day",
+    "venceEn_other": "Expires in {{count}} days",
+    "renovacionPedida": "Requested, due {{fecha}}",
+    "sinRenovacion": "Not requested",
+    "revisar": "View request",
+    "revisarDe": "View the request for {{producto}} ({{titulo}})",
+    "nota": "This view doesn't change the authorization or sales. An expired certificate pauses the product's sales until the producer renews it; it never blocks them for good."
   },
   "autorizaciones": {
     "titulo": "Product authorizations",

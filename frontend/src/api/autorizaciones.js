@@ -40,6 +40,10 @@ export const retirarEvidencia = async (productoId, evidenciaId) =>
 export const bandejaAutorizaciones = (estado = 'SOLICITADA') =>
   apiFetch(`/api/admin/autorizaciones?${new URLSearchParams({ estado })}`)
 
+/** CCPIP-184: certificados de productos autorizados. estado: POR_VENCER, VENCIDO o VIGENTE; dias: 30, 60 o 90. */
+export const vigenciaCertificados = (estado = 'POR_VENCER', dias = 30) =>
+  apiFetch(`/api/admin/certificados?${new URLSearchParams({ estado, dias: String(dias) })}`)
+
 /** S-02: producto, productor, evidencias, ultimo analisis y decisiones. */
 export const expedienteAutorizacion = async (id) => apiFetch(`/api/admin/autorizaciones/${idRuta(id)}`)
 

@@ -27,6 +27,7 @@ import ExpedienteModeracionPage from './pages/admin/ExpedienteModeracionPage.jsx
 import ExpedienteVideoPage from './pages/admin/ExpedienteVideoPage.jsx'
 import FichaProductorPage from './pages/admin/FichaProductorPage.jsx'
 import ProductoresPage from './pages/admin/ProductoresPage.jsx'
+import CertificadosPage from './pages/admin/CertificadosPage.jsx'
 import ExpedienteDenunciasPage from './pages/admin/ExpedienteDenunciasPage.jsx'
 import TableroPage from './pages/admin/TableroPage.jsx'
 import PermisosPage from './pages/admin/PermisosPage.jsx'
@@ -91,12 +92,12 @@ const RUTA_CUENTA = /^\/admin\/cuentas\/(\d+)$/
 /**
  * Rutas del modulo del sub administrador: autorizaciones de productos (S-01, S-02) y su expediente, la
  * moderacion de publicaciones y videos (CCPIP-46, CCPIP-118), los productores con los productos que pueden vender (CCPIP-292,
- * CCPIP-291, CCPIP-330) y el historial de sus propias acciones (CCPIP-126).
+ * CCPIP-291, CCPIP-330), la vigencia de los certificados (CCPIP-184) y el historial de sus propias acciones (CCPIP-126).
  */
 const delModuloSub = (path) =>
   path === RUTAS.adminAutorizaciones || RUTA_EXPEDIENTE.test(path) || path === RUTAS.adminProductores || RUTA_FICHA_PRODUCTOR.test(path)
   || path === RUTAS.adminMiHistorial || path === RUTAS.adminModeracion || RUTA_MODERACION.test(path)
-  || path === RUTAS.adminModeracionVideos || RUTA_VIDEO.test(path)
+  || path === RUTAS.adminModeracionVideos || RUTA_VIDEO.test(path) || path === RUTAS.adminCertificados
 
 /** CCPIP-84: denuncias contra productores; el sub administrador las gestiona y el super las consulta. */
 const deDenuncias = (path) => path === RUTAS.adminDenuncias || RUTA_DENUNCIAS_PRODUCTOR.test(path)
@@ -300,6 +301,7 @@ export default function App() {
     else if (path === RUTAS.adminModeracionVideos) pagina = <ModeracionPage path={RUTAS.adminModeracion} videos />
     else if (RUTA_VIDEO.test(path)) pagina = <ExpedienteVideoPage path={RUTAS.adminModeracion} id={path.match(RUTA_VIDEO)[1]} />
     else if (path === RUTAS.adminProductores) pagina = <ProductoresPage path={path} />
+    else if (path === RUTAS.adminCertificados) pagina = <CertificadosPage path={path} />
     else if (RUTA_FICHA_PRODUCTOR.test(path)) pagina = <FichaProductorPage path={RUTAS.adminProductores} id={path.match(RUTA_FICHA_PRODUCTOR)[1]} />
     else if (path === RUTAS.adminDenuncias) pagina = <DenunciasAdminPage path={path} />
     else if (path === RUTAS.adminMiHistorial) pagina = <MiHistorialPage path={path} />
