@@ -70,7 +70,7 @@ describe('CCPIP-321 Solicitud de renovacion de un certificado', () => {
   it('una autorizacion que no esta aprobada no ofrece pedir renovacion', async () => {
     comoSub({ [`GET ${EXPEDIENTE}`]: () => [200, copia(DATOS.expedienteAdmin)] })
     abrirEn('/admin/autorizaciones/41')
-    await screen.findByRole('region', { name: /Evidencias/ })
+    await screen.findByRole('region', { name: /^Evidencias \(/ })
     expect(screen.queryByRole('region', { name: 'Renovación de certificados' })).not.toBeInTheDocument()
   })
 

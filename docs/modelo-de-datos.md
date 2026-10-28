@@ -535,6 +535,31 @@ sin renovarse rige C5 (Venta pausada, sin revocar), y nunca hay un bloqueo perma
 
 Un trigger impide borrarla y editarla, salvo pasar una vez de `PENDIENTE` a otro estado.
 
+### evidencia_fisica (CCPIP-35, CCPIP-329)
+Migracion `V202610281300`. El subadministrador registra en el expediente S-02 el envio de una evidencia
+fisica (una muestra, un documento original) cuando la evaluacion la requiera
+(`POST /api/admin/autorizaciones/{id}/evidencias-fisicas`, solo con la solicitud `SOLICITADA`, si no
+`409 SOLICITUD_YA_RESUELTA`) y despues su recepcion
+(`POST /api/admin/autorizaciones/{id}/evidencias-fisicas/{fisicaId}/recepcion`, una sola vez:
+`409 EVIDENCIA_FISICA_YA_RECIBIDA`). **Es opcional:** aprobar no exige ninguna y el resultado no decide la
+solicitud, que sigue siendo una decision aparte con motivo.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| autorizacion_id, productor_id, producto_id | bigint | no | Llave compuesta a `autorizacion_producto` |
+| descripcion | varchar(300) | no | Que se envia |
+| referencia | varchar(120) | si | Guia, codigo de seguimiento o quien la lleva |
+| enviada_el | date | no | No futura (`422 FECHA_FUTURA`) |
+| observaciones_envio | varchar(500) | si | |
+| envio_registrado_por, envio_registrado_en | | no | Quien y cuando. Tambien queda en `producto_auditoria` (`EVIDENCIA`) |
+| estado | varchar(10) | no | `ENVIADA` o `RECIBIDA` |
+| recibida_el | date | si | Entre el envio y hoy (`422 RECEPCION_ANTES_DEL_ENVIO`, `422 FECHA_FUTURA`) |
+| resultado | varchar(12) | si | `CONFORME`, `OBSERVADA` o `NO_CONFORME`. Si no es conforme, las observaciones son obligatorias (`422 OBSERVACIONES_REQUERIDAS`) |
+| observaciones_recepcion | varchar(500) | si | |
+| recepcion_registrada_por, recepcion_registrada_en | | si | Obligatorias en `RECIBIDA` |
+
+Un trigger impide borrarla y editarla, salvo pasar una vez de `ENVIADA` a `RECIBIDA` sin tocar el envio.
+
 ### autorizacion_producto (columna nueva)
 | Columna | Tipo | Nula | Descripcion |
 |---|---|---|---|

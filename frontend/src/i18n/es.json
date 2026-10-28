@@ -2230,7 +2230,12 @@
     "TITULO_MUY_LARGO": "El título admite hasta 120 caracteres.",
     "VIDEO_YA_RESUELTO": "Este video ya no está pendiente de revisión.",
     "VIDEO_NO_ENCONTRADO": "El video no existe.",
-    "REEMPLAZO_EN_REVISION": "Este video ya tiene un reemplazo en revisión. Espera la decisión de la Cámara o retíralo."
+    "REEMPLAZO_EN_REVISION": "Este video ya tiene un reemplazo en revisión. Espera la decisión de la Cámara o retíralo.",
+    "FECHA_FUTURA": "La fecha no puede ser posterior a hoy.",
+    "RECEPCION_ANTES_DEL_ENVIO": "La recepción no puede ser anterior al envío.",
+    "OBSERVACIONES_REQUERIDAS": "Explica en las observaciones qué se encontró en la evidencia.",
+    "EVIDENCIA_FISICA_YA_RECIBIDA": "La recepción de esta evidencia física ya se registró.",
+    "EVIDENCIA_FISICA_NO_ENCONTRADA": "La evidencia física no existe en esta solicitud."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -3337,6 +3342,40 @@
       "error": "No pudimos registrar la solicitud",
       "registrada": "Solicitud de renovación registrada",
       "registradaTexto": "Avisamos al productor por correo."
+    },
+    "fisica": {
+      "titulo": "Evidencias físicas",
+      "texto": "Registra el envío de una muestra o un documento original solo cuando la evaluación lo requiera, y después su recepción con el resultado. Es opcional: aprobar no exige ninguna y el resultado no decide la solicitud.",
+      "lista": "Evidencias físicas de esta solicitud",
+      "registrarEnvio": "Registrar envío",
+      "registrarRecepcion": "Registrar recepción",
+      "dialogoEnvio": "Registrar el envío de una evidencia física",
+      "dialogoEnvioTexto": "Queda en el expediente tal como lo registres: no se edita ni se borra.",
+      "dialogoRecepcion": "Registrar la recepción de «{{descripcion}}»",
+      "dialogoRecepcionTexto": "El resultado es un insumo de la revisión: la solicitud se sigue decidiendo aparte, con motivo. La recepción se registra una sola vez.",
+      "descripcion": "Qué se envía",
+      "descripcionAyuda": "Por ejemplo: muestra de 500 g de cacao en grano.",
+      "referencia": "Guía o referencia (opcional)",
+      "fechaEnvio": "Fecha de envío",
+      "fechaRecepcion": "Fecha de recepción",
+      "resultadoEtiqueta": "Resultado",
+      "resultado": {
+        "CONFORME": "Conforme",
+        "OBSERVADA": "Con observaciones",
+        "NO_CONFORME": "No conforme"
+      },
+      "observaciones": "Observaciones (opcional)",
+      "observacionesAyuda": "Obligatorias si el resultado no es conforme.",
+      "enviadaEl": "Enviada el {{fecha}}",
+      "recibidaEl": "Recibida el {{fecha}}",
+      "registradaPor": "Registrada por {{nombre}} el {{fecha}}",
+      "envioRegistrado": "Envío registrado",
+      "recepcionRegistrada": "Recepción registrada",
+      "error": "No pudimos registrar la evidencia física",
+      "errorDescripcion": "Describe la evidencia física que se envía",
+      "errorFecha": "Indica la fecha",
+      "errorResultado": "Elige el resultado de la revisión",
+      "errorObservaciones": "Explica qué se encontró en la evidencia"
     }
   },
   "moderacion": {

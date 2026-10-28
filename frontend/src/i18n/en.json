@@ -2230,7 +2230,12 @@
     "TITULO_MUY_LARGO": "The title can be up to 120 characters.",
     "VIDEO_YA_RESUELTO": "This video is no longer pending review.",
     "VIDEO_NO_ENCONTRADO": "The video does not exist.",
-    "REEMPLAZO_EN_REVISION": "This video already has a replacement in review. Wait for the Chamber's decision or withdraw it."
+    "REEMPLAZO_EN_REVISION": "This video already has a replacement in review. Wait for the Chamber's decision or withdraw it.",
+    "FECHA_FUTURA": "The date cannot be later than today.",
+    "RECEPCION_ANTES_DEL_ENVIO": "The receipt cannot be earlier than the shipment.",
+    "OBSERVACIONES_REQUERIDAS": "Explain in the observations what was found in the evidence.",
+    "EVIDENCIA_FISICA_YA_RECIBIDA": "The receipt of this physical evidence was already recorded.",
+    "EVIDENCIA_FISICA_NO_ENCONTRADA": "This physical evidence does not exist in this request."
   },
   "buscar": {
     "comunidad": "Community",
@@ -3337,6 +3342,40 @@
       "error": "We couldn't register the request",
       "registrada": "Renewal request registered",
       "registradaTexto": "We notified the producer by email."
+    },
+    "fisica": {
+      "titulo": "Physical evidence",
+      "texto": "Record the shipment of a sample or an original document only when the evaluation requires it, and then its receipt with the result. It is optional: approval does not require any, and the result does not decide the request.",
+      "lista": "Physical evidence for this request",
+      "registrarEnvio": "Record shipment",
+      "registrarRecepcion": "Record receipt",
+      "dialogoEnvio": "Record the shipment of physical evidence",
+      "dialogoEnvioTexto": "It stays in the file exactly as you record it: it cannot be edited or deleted.",
+      "dialogoRecepcion": "Record the receipt of “{{descripcion}}”",
+      "dialogoRecepcionTexto": "The result is an input for the review: the request is still decided separately, with a reason. The receipt is recorded only once.",
+      "descripcion": "What is being sent",
+      "descripcionAyuda": "For example: a 500 g sample of cocoa beans.",
+      "referencia": "Waybill or reference (optional)",
+      "fechaEnvio": "Shipment date",
+      "fechaRecepcion": "Receipt date",
+      "resultadoEtiqueta": "Result",
+      "resultado": {
+        "CONFORME": "Compliant",
+        "OBSERVADA": "With observations",
+        "NO_CONFORME": "Non-compliant"
+      },
+      "observaciones": "Observations (optional)",
+      "observacionesAyuda": "Required if the result is not compliant.",
+      "enviadaEl": "Sent on {{fecha}}",
+      "recibidaEl": "Received on {{fecha}}",
+      "registradaPor": "Recorded by {{nombre}} on {{fecha}}",
+      "envioRegistrado": "Shipment recorded",
+      "recepcionRegistrada": "Receipt recorded",
+      "error": "We could not record the physical evidence",
+      "errorDescripcion": "Describe the physical evidence being sent",
+      "errorFecha": "Enter the date",
+      "errorResultado": "Choose the result of the review",
+      "errorObservaciones": "Explain what was found in the evidence"
     }
   },
   "moderacion": {
