@@ -6,7 +6,7 @@ import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import iconoHoja from '../../assets/icons/hoja.svg'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoMas from '../../assets/icons/mas.svg'
-import { listarEvidencias, retirarEvidencia, subirEvidencia } from '../../api/autorizaciones.js'
+import { listarEvidencias, retirarEvidencia, solicitarAutorizacion, subirEvidencia } from '../../api/autorizaciones.js'
 import VinculoCertificadoLote from './VinculoCertificadoLote.jsx'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -72,7 +72,8 @@ function alertaEstado(autorizacion, t) {
 /**
  * CCPIP-36 (RF-13), adaptada de PW-14: el productor adjunta certificados, documentos y evidencias a
  * cada producto cuya autorizacion solicita. Solo el productor y la Camara las ven (RNF-08). Mientras
- * la autorizacion esta vigente, sus evidencias no se cambian.
+ * la autorizacion esta vigente, sus evidencias no se cambian. CCPIP-29: adjuntar la prepara y el
+ * productor la envia a la Camara con "Solicitar autorizacion".
  */
 export default function EvidenciasPage({ path, productoId }) {
   const { t } = useTranslation()
@@ -81,6 +82,7 @@ export default function EvidenciasPage({ path, productoId }) {
   const [aviso, setAviso] = useState(null)
   const [retirar, setRetirar] = useState(null)
   const [ocupado, setOcupado] = useState(false)
+  const [solicitando, setSolicitando] = useState(false)
 
   const cargar = useCallback(async () => {
     try {
@@ -109,6 +111,19 @@ export default function EvidenciasPage({ path, productoId }) {
     }
   }
 
+  // CCPIP-29: recien al solicitarla llega a la revision de la Camara
+  async function solicitar() {
+    setSolicitando(true)
+    try {
+      setDatos(await solicitarAutorizacion(productoId))
+      setAviso({ tono: 'exito', titulo: t('evidencias.solicitar.enviada') })
+    } catch (e) {
+      setAviso({ tono: 'error', titulo: mensajeError(e, 'evidencias.solicitar.error') })
+    } finally {
+      setSolicitando(false)
+    }
+  }
+
   const titulo = t('evidencias.titulo')
   const seccion = `${t('productor.nav.productos')}${datos ? ` / ${datos.producto}` : ''}`
   if (error && !datos) {
@@ -126,6 +141,12 @@ export default function EvidenciasPage({ path, productoId }) {
     <PaginaProductor path={path ?? RUTAS.productorProductos} seccion={seccion} titulo={titulo}>
       <p className="body-m evidencias__intro">{t('evidencias.intro', { producto: datos.producto })}</p>
       <Alerta {...alertaEstado(datos.autorizacion, t)} />
+      {datos.puedeSolicitar && (
+        <div className="evidencias__solicitar">
+          <Boton tamano="M" icono={iconoEscudo} onClick={solicitar} cargando={solicitando}>{t('evidencias.solicitar.boton')}</Boton>
+          <p className="caption">{t('evidencias.solicitar.ayuda')}</p>
+        </div>
+      )}
       <AvisoRenovaciones productoId={productoId} />
       {aviso && <Alerta {...aviso} onCerrar={() => setAviso(null)} />}
       <div className="evidencias">

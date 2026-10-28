@@ -437,10 +437,19 @@ por la migracion `V202610121000` y por las semillas queda con `decision_id` nula
 ### autorizacion_producto (columnas nuevas)
 | Columna | Tipo | Nula | Descripcion |
 |---|---|---|---|
-| solicitada_en | timestamptz | si | Cuando entro (o volvio) a SOLICITADA. Ordena la bandeja |
+| solicitada_en | timestamptz | si | Cuando entro (o volvio) a SOLICITADA. Ordena la bandeja. Nula en BORRADOR (CCPIP-29) |
 | decision_id | bigint | si | La decision que fijo el estado actual. Nula en lo aprobado antes de la bandeja |
 
 Se agrega el unico `(id, productor_id, producto_id)` para la llave compuesta de las evidencias.
+
+**CCPIP-29 (migracion `V202610281400`):** `estado` admite tambien `BORRADOR`. Adjuntar evidencias ya no
+envia la solicitud a revision: la crea (o la devuelve, tras un rechazo, una revocacion o un vencimiento)
+en `BORRADOR`, que el subadministrador no ve en su bandeja ni puede decidir. El productor la envia con
+`POST /api/productor/productos/{productoId}/autorizacion/solicitar`, que exige al menos una evidencia
+vigente (`422 SIN_EVIDENCIAS`), rechaza una en revision (`409 SOLICITUD_EN_REVISION`) o aprobada y vigente
+(`409 AUTORIZACION_VIGENTE`), y queda en `producto_auditoria` (`AUTORIZACION`). Tras un rechazo se puede
+volver a solicitar sin veto permanente (C4). No publica la oferta: alta, autorizacion y publicacion siguen
+separadas (C1).
 
 ### evidencia_producto
 | Columna | Tipo | Nula | Descripcion |
@@ -534,6 +543,31 @@ sin renovarse rige C5 (Venta pausada, sin revocar), y nunca hay un bloqueo perma
 | atendida_en | timestamptz | si | Obligatoria fuera de `PENDIENTE` |
 
 Un trigger impide borrarla y editarla, salvo pasar una vez de `PENDIENTE` a otro estado.
+
+### evidencia_fisica (CCPIP-35, CCPIP-329)
+Migracion `V202610281600`. El subadministrador registra en el expediente S-02 el envio de una evidencia
+fisica (una muestra, un documento original) cuando la evaluacion la requiera
+(`POST /api/admin/autorizaciones/{id}/evidencias-fisicas`, solo con la solicitud `SOLICITADA`, si no
+`409 SOLICITUD_YA_RESUELTA`) y despues su recepcion
+(`POST /api/admin/autorizaciones/{id}/evidencias-fisicas/{fisicaId}/recepcion`, una sola vez:
+`409 EVIDENCIA_FISICA_YA_RECIBIDA`). **Es opcional:** aprobar no exige ninguna y el resultado no decide la
+solicitud, que sigue siendo una decision aparte con motivo.
+
+| Columna | Tipo | Nulo | Nota |
+|---|---|---|---|
+| autorizacion_id, productor_id, producto_id | bigint | no | Llave compuesta a `autorizacion_producto` |
+| descripcion | varchar(300) | no | Que se envia |
+| referencia | varchar(120) | si | Guia, codigo de seguimiento o quien la lleva |
+| enviada_el | date | no | No futura (`422 FECHA_FUTURA`) |
+| observaciones_envio | varchar(500) | si | |
+| envio_registrado_por, envio_registrado_en | | no | Quien y cuando. Tambien queda en `producto_auditoria` (`EVIDENCIA`) |
+| estado | varchar(10) | no | `ENVIADA` o `RECIBIDA` |
+| recibida_el | date | si | Entre el envio y hoy (`422 RECEPCION_ANTES_DEL_ENVIO`, `422 FECHA_FUTURA`) |
+| resultado | varchar(12) | si | `CONFORME`, `OBSERVADA` o `NO_CONFORME`. Si no es conforme, las observaciones son obligatorias (`422 OBSERVACIONES_REQUERIDAS`) |
+| observaciones_recepcion | varchar(500) | si | |
+| recepcion_registrada_por, recepcion_registrada_en | | si | Obligatorias en `RECIBIDA` |
+
+Un trigger impide borrarla y editarla, salvo pasar una vez de `ENVIADA` a `RECIBIDA` sin tocar el envio.
 
 ### autorizacion_producto (columna nueva)
 | Columna | Tipo | Nula | Descripcion |
@@ -1007,7 +1041,7 @@ CCPIP-83 (RF-90): denuncia de un comprador sobre una oferta (`producto_id`) o so
 | Columna | Tipo | Nulo | Nota |
 |---|---|---|---|
 | id | bigserial | no | |
-| denunciante_id | bigint | no | RNF-41: identidad protegida, no sale en ninguna respuesta |
+| denunciante_id | bigint | no | RNF-41: el productor nunca lo ve. CCPIP-432: la administracion ve su nombre en el expediente |
 | productor_id | bigint | no | Denunciado. Con producto, el de esa oferta (llave foranea compuesta) |
 | producto_id | bigint | si | Nulo si se denuncia a la comunidad |
 | motivo | varchar(30) | no | `NO_CORRESPONDE`, `CALIDAD`, `ORIGEN_DUDOSO`, `PRACTICA_INDEBIDA`, `CONTENIDO_INAPROPIADO`, `OTRO` |
@@ -1033,7 +1067,7 @@ Historial y auditoria de cada denuncia. Solo insercion.
 | tipo | varchar(20) | no | `REGISTRADA`, `RESPUESTA`, `CAMBIO_ESTADO` |
 | estado | varchar(20) | no | Estado de la denuncia despues del evento |
 | nota | varchar(1000) | si | Respuesta del productor o nota obligatoria del subadministrador |
-| usuario_id | bigint | no | Quien dio el paso. En `REGISTRADA` es el denunciante y no se expone |
+| usuario_id | bigint | no | Quien dio el paso. En `REGISTRADA` es el denunciante: solo la administracion ve su nombre (CCPIP-432) |
 | rol | varchar(20) | no | `CONSUMIDOR`, `PRODUCTOR` o `SUB_ADMIN` |
 | registrado_en | timestamptz | no | |
 
@@ -1044,8 +1078,9 @@ Que ve cada rol (filtrado en el servidor, RNF-05 y RNF-41):
   dia) y con correos y telefonos de la descripcion ocultos.
 - **Subadministrador (CCPIP-84):** bandeja por productor ordenada por cantidad de denuncias, separada
   del tablero analitico, y el historial con el nombre del subadministrador en cada cambio de estado.
-  Del denunciante solo sabe si recibio algun pedido de ese productor (`compraVerificada`). El
-  superadministrador consulta en modo lectura.
+  CCPIP-432: en cada denuncia ve tambien el nombre de quien denuncio (en la denuncia y en el paso de
+  registro), si recibio algun pedido de ese productor (`compraVerificada`) y las denuncias anteriores sobre
+  el mismo producto o la misma comunidad. El superadministrador consulta lo mismo en modo lectura.
 
 ## Fuera de este modelo
 

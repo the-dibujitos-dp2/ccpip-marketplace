@@ -17,8 +17,11 @@ public final class AutorizacionModelos {
     /** CCPIP-36: tipos de evidencia de RF-13. */
     public enum TipoEvidencia { CERTIFICADO, DOCUMENTO, EVIDENCIA }
 
-    /** Estado de la autorizacion; SIN_SOLICITUD si el productor aun no adjunto nada. */
-    public enum Estado { SIN_SOLICITUD, SOLICITADA, APROBADA, RECHAZADA, REVOCADA }
+    /**
+     * Estado de la autorizacion; SIN_SOLICITUD si el productor aun no adjunto nada. BORRADOR: tiene
+     * evidencias pero el productor aun no la solicito (CCPIP-29); el subadministrador no la revisa.
+     */
+    public enum Estado { SIN_SOLICITUD, BORRADOR, SOLICITADA, APROBADA, RECHAZADA, REVOCADA }
 
     /**
      * Una evidencia identifica su producto, su tipo y su vigencia (RF-13). {@code vencida} se calcula
@@ -37,9 +40,13 @@ public final class AutorizacionModelos {
                                LocalDate vigenteHasta, boolean cubreLineas) {
     }
 
-    /** Vista del productor: la solicitud de su producto y sus evidencias vigentes. */
+    /**
+     * Vista del productor: la solicitud de su producto y sus evidencias vigentes. {@code puedeSolicitar}:
+     * hay evidencias y la solicitud no esta en revision ni autorizada y vigente (CCPIP-29).
+     */
     public record EvidenciasProducto(long productoId, String producto, Autorizacion autorizacion,
-                                     List<Evidencia> evidencias, boolean puedeAdjuntar, int maximo) {
+                                     List<Evidencia> evidencias, boolean puedeAdjuntar, int maximo,
+                                     boolean puedeSolicitar) {
     }
 
     /** CCPIP-336: resultado del vínculo explícito de un certificado existente a un lote. */

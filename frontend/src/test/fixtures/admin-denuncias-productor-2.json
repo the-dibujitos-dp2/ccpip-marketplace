@@ -4,13 +4,13 @@
   "denuncias": [
     { "id": 21, "producto": { "id": 5, "nombre": "Cacao en grano fermentado 1 kg" }, "motivo": "ORIGEN_DUDOSO",
       "descripcion": "No parece cacao de la comunidad. Llámame al [teléfono oculto].", "estado": "RECIBIDA",
-      "creadaEn": "2026-10-15T14:00:00Z", "compraVerificada": true, "siguientes": ["EN_REVISION", "RESUELTA", "DESESTIMADA"],
-      "historial": [{ "tipo": "REGISTRADA", "estado": "RECIBIDA", "rol": "CONSUMIDOR", "registradoEn": "2026-10-15T14:00:00Z" }] },
+      "creadaEn": "2026-10-15T14:00:00Z", "compraVerificada": true, "denunciante": "Rosa Quispe", "siguientes": ["EN_REVISION", "RESUELTA", "DESESTIMADA"],
+      "historial": [{ "tipo": "REGISTRADA", "estado": "RECIBIDA", "rol": "CONSUMIDOR", "responsable": "Rosa Quispe", "registradoEn": "2026-10-15T14:00:00Z" }] },
     { "id": 17, "motivo": "PRACTICA_INDEBIDA", "descripcion": "La comunidad no cumplió lo ofrecido.", "estado": "RESUELTA",
-      "creadaEn": "2026-10-01T14:00:00Z", "compraVerificada": false, "respuestaProductor": "Lo corregimos.",
+      "creadaEn": "2026-10-01T14:00:00Z", "compraVerificada": false, "denunciante": "Carlos Mendoza", "respuestaProductor": "Lo corregimos.",
       "respondidaEn": "2026-10-02T14:00:00Z", "siguientes": [],
       "historial": [
-        { "tipo": "REGISTRADA", "estado": "RECIBIDA", "rol": "CONSUMIDOR", "registradoEn": "2026-10-01T14:00:00Z" },
+        { "tipo": "REGISTRADA", "estado": "RECIBIDA", "rol": "CONSUMIDOR", "responsable": "Carlos Mendoza", "registradoEn": "2026-10-01T14:00:00Z" },
         { "tipo": "RESPUESTA", "estado": "RECIBIDA", "rol": "PRODUCTOR", "responsable": "C.N. Yarina", "nota": "Lo corregimos.", "registradoEn": "2026-10-02T14:00:00Z" },
         { "tipo": "CAMBIO_ESTADO", "estado": "RESUELTA", "rol": "SUB_ADMIN", "responsable": "Lucía Paredes", "nota": "El productor corrigió la oferta.", "registradoEn": "2026-10-03T14:00:00Z" }
       ] }

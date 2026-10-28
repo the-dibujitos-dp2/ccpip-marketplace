@@ -88,7 +88,7 @@ describe('Certificados y evidencias del producto (CCPIP-36)', () => {
     await user.upload(form.getByLabelText('Archivo'), pdf())
     await user.click(form.getByRole('button', { name: 'Subir' }))
 
-    expect(await screen.findByText('Subiste «Registro sanitario». La Cámara la revisará.')).toBeInTheDocument()
+    expect(await screen.findByText('Subiste «Registro sanitario».')).toBeInTheDocument()
     const [[, opciones]] = llamadas(fetchMock, `POST ${RUTA}`)
     const datos = opciones.body
     expect(datos.get('tipo')).toBe('CERTIFICADO')
@@ -150,7 +150,7 @@ describe('Certificados y evidencias del producto (CCPIP-36)', () => {
     productor({ [`GET ${RUTA}`]: [200, rechazada] })
     abrirEn('/productor/productos/9/evidencias')
     expect(await screen.findByText('La Cámara rechazó la solicitud')).toBeInTheDocument()
-    expect(screen.getByText('Motivo: «El certificado no nombra el producto». Adjunta nuevas evidencias para volver a solicitarla.')).toBeInTheDocument()
+    expect(screen.getByText('Motivo: «El certificado no nombra el producto». Corrige tus evidencias si hace falta y vuelve a solicitarla.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Agregar certificado' })).toBeInTheDocument()
   })
 
@@ -201,5 +201,59 @@ describe('Certificados y evidencias del producto (CCPIP-36)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Certificates and evidence' })).toBeInTheDocument()
     expect(await screen.findByText('Under review by the Chamber')).toBeInTheDocument()
     expect(tarjeta('Certificates').getByText('Expired on 30/09/2026')).toBeInTheDocument()
+  })
+})
+
+describe('CCPIP-29 Solicitar la autorizacion de un producto', () => {
+  const SOLICITAR = '/api/productor/productos/9/autorizacion/solicitar'
+  const borrador = () => ({
+    ...copia(DATOS.evidenciasProductor),
+    autorizacion: { ...DATOS.evidenciasProductor.autorizacion, estado: 'BORRADOR', solicitadaEn: null },
+    puedeSolicitar: true,
+  })
+
+  it('con evidencias en preparacion, el productor solicita la autorizacion a la Camara', async () => {
+    const fetchMock = productor({
+      [`GET ${RUTA}`]: () => [200, borrador()],
+      [`POST ${SOLICITAR}`]: () => [200, { ...copia(DATOS.evidenciasProductor), puedeSolicitar: false }],
+    })
+    abrirEn('/productor/productos/9/evidencias')
+    expect(await screen.findByText('Solicitud en preparación')).toBeInTheDocument()
+    expect(screen.getByText(/Solicitarla no publica tu oferta/)).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Solicitar autorización' }))
+
+    expect(await screen.findByText('Enviaste la solicitud a la Cámara')).toBeInTheDocument()
+    expect(screen.getByText('En revisión por la Cámara')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Solicitar autorización' })).not.toBeInTheDocument()
+    expect(llamadas(fetchMock, `POST ${SOLICITAR}`)).toHaveLength(1)
+  })
+
+  it('en revision no ofrece volver a solicitarla', async () => {
+    productor()
+    abrirEn('/productor/productos/9/evidencias')
+    expect(await screen.findByText('En revisión por la Cámara')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Solicitar autorización' })).not.toBeInTheDocument()
+  })
+
+  it('tras un rechazo puede volver a solicitarla', async () => {
+    const rechazada = {
+      ...borrador(),
+      autorizacion: { ...DATOS.evidenciasProductor.autorizacion, estado: 'RECHAZADA', motivo: 'Ilegible' },
+    }
+    productor({ [`GET ${RUTA}`]: () => [200, rechazada] })
+    abrirEn('/productor/productos/9/evidencias')
+    expect(await screen.findByText('Motivo: «Ilegible». Corrige tus evidencias si hace falta y vuelve a solicitarla.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Solicitar autorización' })).toBeInTheDocument()
+  })
+
+  it('si el servidor la rechaza, muestra el motivo', async () => {
+    productor({
+      [`GET ${RUTA}`]: () => [200, borrador()],
+      [`POST ${SOLICITAR}`]: () => [422, { code: 'SIN_EVIDENCIAS', error: 'Adjunta al menos una evidencia del producto antes de solicitar su autorización.' }],
+    })
+    abrirEn('/productor/productos/9/evidencias')
+    await userEvent.click(await screen.findByRole('button', { name: 'Solicitar autorización' }))
+    expect(await screen.findByText('Adjunta al menos una evidencia del producto antes de solicitar su autorización.')).toBeInTheDocument()
   })
 })

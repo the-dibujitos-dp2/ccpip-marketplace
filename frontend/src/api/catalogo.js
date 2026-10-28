@@ -23,6 +23,8 @@ export function buscarProductos({ q, lineas = [], regiones = [], modalidad, tien
 export const obtenerProducto = async (id) => apiFetch(`/api/productos/${idRuta(id)}`, publico)
 /** CCPIP-365: evidencias publicas de certificacion del producto (sin archivos). */
 export const obtenerCertificacion = async (id) => apiFetch(`/api/productos/${idRuta(id)}/certificacion`, publico)
+/** CCPIP-38: los sellos del producto con su respaldo (origen verificado y certificados vigentes). */
+export const obtenerSellos = async (id) => apiFetch(`/api/productos/${idRuta(id)}/sellos`, publico)
 /** CCPIP-169: los premios del producto, declarados por su productor con evidencia, sin el archivo. */
 export const obtenerPremios = async (id) => apiFetch(`/api/productos/${idRuta(id)}/premios`, publico)
 export const obtenerInicio = () => apiFetch('/api/inicio', publico)

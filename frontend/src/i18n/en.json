@@ -15,6 +15,7 @@
     "limpiarFiltros": "Clear filters",
     "sinCoincidencias": "Nothing matches the search and filters",
     "sinCoincidenciasTexto": "Try other words or clear the filters.",
+    "conteo": "{{titulo}} ({{total}})",
     "descargas": {
       "cargando": "Updating the report; you can download it as soon as it finishes.",
       "pendiente": "To download, the report must show the selected filters: complete the period or try again."
@@ -1114,7 +1115,6 @@
         "ENTREGADO": "Delivered today",
         "EN_CAMINO": "On the way"
       },
-      "columnaConteo": "{{titulo}} ({{total}})",
       "estados": "Orders by status",
       "lista": "Orders in the selected status",
       "buscar": "Search by order, product, community or who picked it up",
@@ -1878,9 +1878,16 @@
   "sello": {
     "titulo": "Origin verified by CCPIP",
     "corto": "Verified origin",
-    "ceroDeforestacion": "Zero deforestation",
-    "ceroPesticidas": "Zero pesticides or herbicides",
-    "comunidadIndigena": "Made by an Indigenous community"
+    "origen": {
+      "significado": "The Chamber verified that this product is made by {{comunidad}} ({{region}}), an associated Indigenous community.",
+      "desde": "Verified on {{fecha}}."
+    },
+    "certificados": "Valid certificates reviewed by the Chamber",
+    "certificado": {
+      "respaldo": "Issued by {{emisor}} · valid until {{fecha}}",
+      "vigente": "Valid until {{fecha}}"
+    },
+    "nota": "We only show seals that are backed: the Chamber's origin verification and the valid certificates it reviewed. A condition such as zero deforestation or no pesticides is only stated when a certificate attests to it."
   },
   "modalidad": {
     "MINORISTA": "Retail",
@@ -1935,14 +1942,14 @@
       "conocer": "Meet the communities"
     },
     "valores": {
-      "etiqueta": "What every product guarantees",
+      "etiqueta": "What the Chamber backs",
       "deforestacion": {
         "titulo": "Zero deforestation",
-        "texto": "Products that don't come from cleared land."
+        "texto": "We only state it when a valid certificate attests to it."
       },
       "pesticidas": {
         "titulo": "Zero pesticides",
-        "texto": "No agrochemicals in farming or processing."
+        "texto": "We only state it when a valid certificate attests to it."
       },
       "comunidades": {
         "titulo": "Made by communities",
@@ -1950,7 +1957,7 @@
       },
       "verificado": {
         "titulo": "Verified by the Chamber",
-        "texto": "Physical samples and certificates reviewed."
+        "texto": "Community origin and certificates reviewed by the Chamber."
       }
     },
     "error": "We couldn't load the home page",
@@ -2231,7 +2238,14 @@
     "TITULO_MUY_LARGO": "The title can be up to 120 characters.",
     "VIDEO_YA_RESUELTO": "This video is no longer pending review.",
     "VIDEO_NO_ENCONTRADO": "The video does not exist.",
-    "REEMPLAZO_EN_REVISION": "This video already has a replacement in review. Wait for the Chamber's decision or withdraw it."
+    "REEMPLAZO_EN_REVISION": "This video already has a replacement in review. Wait for the Chamber's decision or withdraw it.",
+    "SIN_EVIDENCIAS": "Attach at least one piece of evidence for the product before requesting its authorization.",
+    "SOLICITUD_EN_REVISION": "The request for this product is already under review by the Chamber.",
+    "FECHA_FUTURA": "The date cannot be later than today.",
+    "RECEPCION_ANTES_DEL_ENVIO": "The receipt cannot be earlier than the shipment.",
+    "OBSERVACIONES_REQUERIDAS": "Explain in the observations what was found in the evidence.",
+    "EVIDENCIA_FISICA_YA_RECIBIDA": "The receipt of this physical evidence was already recorded.",
+    "EVIDENCIA_FISICA_NO_ENCONTRADA": "This physical evidence does not exist in this request."
   },
   "buscar": {
     "comunidad": "Community",
@@ -2395,7 +2409,7 @@
       "cosechaDel": "produced on {{fecha}}",
       "nota": "Awards declared by the producer, each with a supporting document that is not published. The Chamber does not certify them."
     },
-    "verificando": "The Chamber is still verifying this community's origin.",
+    "sinSellos": "This product has no verified origin or valid certificates to show yet. That does not mean it is approved or rejected.",
     "sobreCosecha": "About this harvest",
     "consumirAntes": "Best before",
     "volumen": {
@@ -3006,21 +3020,23 @@
     "error": "We couldn't load the evidence",
     "errorSubir": "We couldn't upload the file",
     "errorRetirar": "We couldn't remove the evidence",
-    "subida": "You uploaded “{{titulo}}”. The Chamber will review it.",
+    "subida": "You uploaded “{{titulo}}”.",
     "retirada": "You removed “{{titulo}}”.",
     "limite": "You reached the maximum of {{maximo}} items. Remove one to add another.",
     "privadas": "Only the Chamber and you can see them.",
     "decisionHumana": "The preliminary AI review only helps the Chamber: a person makes the decision.",
     "estado": {
       "SIN_SOLICITUD": "You haven't requested authorization yet",
-      "SIN_SOLICITUDTexto": "Upload at least one valid certificate for this product to send the request to the Chamber.",
+      "SIN_SOLICITUDTexto": "Upload the evidence for this product and then request authorization from the Chamber.",
+      "BORRADOR": "Request in preparation",
+      "BORRADORTexto": "The Chamber is not reviewing it yet. When your evidence is ready, request the authorization.",
       "SOLICITADA": "Under review by the Chamber",
       "SOLICITADATexto": "You can add or remove evidence while it is reviewed. We'll let you know the decision.",
       "APROBADA": "Authorized to sell",
       "aprobadaHasta": "The authorization is valid until {{fecha}}, when your first certificate expires.",
       "RECHAZADA": "The Chamber rejected the request",
       "REVOCADA": "The authorization was revoked",
-      "conMotivo": "Reason: “{{motivo}}”. Attach new evidence to request it again.",
+      "conMotivo": "Reason: “{{motivo}}”. Correct your evidence if needed and request it again.",
       "lineaNueva": "The authorization does not cover a new line",
       "lineaNuevaTexto": "You added a line the Chamber did not review: the sale is paused. Attach evidence to request a new review."
     },
@@ -3094,6 +3110,12 @@
       "reintentar": "Retry",
       "sinLotes": "This product has no batches in its record.",
       "metadatos": "Issuer: {{emisor}} · Start: {{desde}} · Expiry: {{hasta}}"
+    },
+    "solicitar": {
+      "boton": "Request authorization",
+      "ayuda": "The Chamber will review your evidence and let you know its decision. Requesting it does not publish your offer.",
+      "enviada": "You sent the request to the Chamber",
+      "error": "We could not send the request"
     }
   },
   "premios": {
@@ -3229,6 +3251,7 @@
       "ninguna": "Not analyzed"
     },
     "estado": {
+      "BORRADOR": "In preparation",
       "SOLICITADA": "Under review",
       "APROBADA": "Approved",
       "RECHAZADA": "Rejected",
@@ -3338,6 +3361,40 @@
       "error": "We couldn't register the request",
       "registrada": "Renewal request registered",
       "registradaTexto": "We notified the producer by email."
+    },
+    "fisica": {
+      "titulo": "Physical evidence",
+      "texto": "Record the shipment of a sample or an original document only when the evaluation requires it, and then its receipt with the result. It is optional: approval does not require any, and the result does not decide the request.",
+      "lista": "Physical evidence for this request",
+      "registrarEnvio": "Record shipment",
+      "registrarRecepcion": "Record receipt",
+      "dialogoEnvio": "Record the shipment of physical evidence",
+      "dialogoEnvioTexto": "It stays in the file exactly as you record it: it cannot be edited or deleted.",
+      "dialogoRecepcion": "Record the receipt of “{{descripcion}}”",
+      "dialogoRecepcionTexto": "The result is an input for the review: the request is still decided separately, with a reason. The receipt is recorded only once.",
+      "descripcion": "What is being sent",
+      "descripcionAyuda": "For example: a 500 g sample of cocoa beans.",
+      "referencia": "Waybill or reference (optional)",
+      "fechaEnvio": "Shipment date",
+      "fechaRecepcion": "Receipt date",
+      "resultadoEtiqueta": "Result",
+      "resultado": {
+        "CONFORME": "Compliant",
+        "OBSERVADA": "With observations",
+        "NO_CONFORME": "Non-compliant"
+      },
+      "observaciones": "Observations (optional)",
+      "observacionesAyuda": "Required if the result is not compliant.",
+      "enviadaEl": "Sent on {{fecha}}",
+      "recibidaEl": "Received on {{fecha}}",
+      "registradaPor": "Recorded by {{nombre}} on {{fecha}}",
+      "envioRegistrado": "Shipment recorded",
+      "recepcionRegistrada": "Receipt recorded",
+      "error": "We could not record the physical evidence",
+      "errorDescripcion": "Describe the physical evidence being sent",
+      "errorFecha": "Enter the date",
+      "errorResultado": "Choose the result of the review",
+      "errorObservaciones": "Explain what was found in the evidence"
     }
   },
   "moderacion": {
@@ -3961,7 +4018,13 @@
     "denunciarProducto": "Report this product",
     "ingresaParaDenunciar": "Sign in to report this product",
     "denunciar": "Report",
-    "denunciarDe": "Report {{nombre}}"
+    "denunciarDe": "Report {{nombre}}",
+    "filtros": {
+      "producto": "Product",
+      "todos": "All",
+      "desde": "From",
+      "hasta": "To"
+    }
   },
   "denunciasProductor": {
     "titulo": "Reports received",
@@ -3980,7 +4043,20 @@
     "responder": "Your reply",
     "responderAyuda": "The Chamber and the buyer will see it. You can reply only once.",
     "enviarRespuesta": "Send reply",
-    "cerradaSinRespuesta": "The Chamber closed this report without a reply from you."
+    "cerradaSinRespuesta": "The Chamber closed this report without a reply from you.",
+    "pestanasEtiqueta": "Which reports to see",
+    "pestana": {
+      "abiertas": "Open",
+      "sinResponder": "Not replied",
+      "cerradas": "Closed"
+    },
+    "buscar": "Search by description, product, reason or your reply",
+    "vacioPestana": {
+      "abiertas": "You have no open reports",
+      "sinResponder": "You replied to all your open reports",
+      "cerradas": "You have no closed reports"
+    },
+    "respuestaEnviada": "We sent your reply. The Chamber and the buyer will see it."
   },
   "denunciasAdmin": {
     "titulo": "Reports against producers",
@@ -4005,7 +4081,7 @@
     },
     "verHistorial": "View history",
     "verHistorialDe": "View report history of {{organizacion}}",
-    "notaPie": "Sorted by number of reports. The identity of whoever reports is protected. Analytical reports are on the dashboard.",
+    "notaPie": "Sorted by number of reports. Only the administration sees who reports; the producer does not. Analytical reports are on the dashboard.",
     "volver": "← Back to reports",
     "sinDenuncias": "This community has no reports",
     "resumenProductor": "{{total}} reports · {{abiertas}} open",
@@ -4013,7 +4089,25 @@
     "contraComunidad": "Against the community",
     "denuncia": "Report {{id}}: {{titulo}}",
     "compraVerificada": "Verified purchase",
-    "recibida": "Received on {{fecha}} · {{motivo}}",
+    "detalleDe": "Details of report {{id}}",
+    "detalle": {
+      "denunciado": "Reported",
+      "productoDe": "{{producto}}, by {{organizacion}}",
+      "laComunidad": "The community {{organizacion}}",
+      "denuncio": "Reported by",
+      "fecha": "Date",
+      "motivo": "Reason"
+    },
+    "anteriores": {
+      "producto": "Earlier reports about this product ({{n}})",
+      "comunidad": "Earlier reports about this community ({{n}})",
+      "sin": {
+        "producto": "This is the first report about this product.",
+        "comunidad": "This is the first report about this community."
+      },
+      "de": "Reports earlier than report {{id}}",
+      "item": "Report {{id}} · {{titulo}} · {{motivo}}"
+    },
     "respuestaProductor": "Producer's reply",
     "historialDe": "History of report {{id}}",
     "evento": {
@@ -4031,7 +4125,18 @@
     "guardar": "Save change",
     "bloqueo": "Sales block",
     "bloqueoTexto": "If the reports justify it, block their sales with a reason. Their products become sale paused and orders in progress are kept.",
-    "bloqueadoTexto": "Their sales are blocked. You can unblock them with a reason."
+    "bloqueadoTexto": "Their sales are blocked. You can unblock them with a reason.",
+    "pestanasEtiqueta": "Report status",
+    "pestana": {
+      "RECIBIDA": "Received",
+      "EN_REVISION": "Under review",
+      "RESUELTA": "Resolved",
+      "DESESTIMADA": "Dismissed"
+    },
+    "buscar": "Search by description, product, reason or who reported",
+    "vacioPestana": "There are no reports with status {{estado}}",
+    "movida": "Report {{id}} moved to {{estado}}",
+    "movidaTexto": "It is now in the {{pestana}} tab."
   },
   "minimoCalificaciones": {
     "seccion": "Minimum ratings to show the average",

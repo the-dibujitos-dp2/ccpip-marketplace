@@ -23,6 +23,7 @@ import CalificacionesProducto from './CalificacionesProducto.jsx'
 import CertificacionProducto from './CertificacionProducto.jsx'
 import PremiosProducto from './PremiosProducto.jsx'
 import MeInteresa from './MeInteresa.jsx'
+import SellosProducto from './SellosProducto.jsx'
 import OfertasMaestro from './OfertasMaestro.jsx'
 import './ProductoPage.css'
 
@@ -270,11 +271,7 @@ export default function ProductoPage({ id }) {
         <section className="seccion" aria-labelledby="titulo-confianza">
           <h2 id="titulo-confianza" className="seccion__titulo">{t('producto.confianza')}</h2>
           <div className="ficha__confianza">
-            {tienda.origenVerificado ? (
-              <SelloOrigen variante="completo" />
-            ) : (
-              <p className="body-m">{t('producto.verificando')}</p>
-            )}
+            <SellosProducto productoId={id} />
             {(cosecha?.produccion || cosecha?.consumirAntesDe) && (
               <div className="ficha__cosecha">
                 <p className="overline">{t('producto.sobreCosecha')}</p>

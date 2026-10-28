@@ -32,6 +32,10 @@
 .evidencias__vinculo p { margin: 0; overflow-wrap: anywhere; }
 .evidencias__vinculo-acciones { display: flex; flex-wrap: wrap; gap: 10px; }
 
+/* CCPIP-29: enviar la solicitud a la Camara */
+.evidencias__solicitar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.evidencias__solicitar .caption { margin: 0; flex: 1 1 240px; }
+
 /* CCPIP-34: reglas de origen y sostenibilidad declaradas por el productor */
 .cumplimiento { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 24px; }
 .cumplimiento > .campo { width: 100%; }

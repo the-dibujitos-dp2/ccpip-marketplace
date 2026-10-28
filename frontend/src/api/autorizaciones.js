@@ -38,6 +38,10 @@ export async function subirEvidencia(productoId, archivo, { tipo, titulo, emisor
   return cuerpo
 }
 
+/** CCPIP-29: envia la solicitud de autorizacion del producto a la Camara. Devuelve la vista actualizada. */
+export const solicitarAutorizacion = async (productoId) =>
+  apiFetch(`/api/productor/productos/${idRuta(productoId)}/autorizacion/solicitar`, { method: 'POST' })
+
 /** Retiro logico: deja de sustentar la solicitud, pero se conserva. */
 export const retirarEvidencia = async (productoId, evidenciaId) =>
   apiFetch(`/api/productor/productos/${idRuta(productoId)}/evidencias/${idRuta(evidenciaId)}`, { method: 'DELETE' })
@@ -74,6 +78,23 @@ export const solicitarRenovacion = async (id, { evidenciaId, motivo, plazo }) =>
 
 /** CCPIP-321: las solicitudes de renovacion de un producto propio (PW-14). */
 export const renovacionesDeProducto = async (productoId) => apiFetch(`/api/productor/productos/${idRuta(productoId)}/renovaciones`)
+
+/** CCPIP-35 y CCPIP-329: evidencias fisicas de la solicitud (S-02), la mas reciente primero. */
+export const evidenciasFisicas = async (id) => apiFetch(`/api/admin/autorizaciones/${idRuta(id)}/evidencias-fisicas`)
+
+/** CCPIP-35: registra el envio de una evidencia fisica. `referencia` y `observaciones` son opcionales. */
+export const registrarEnvioFisica = async (id, { descripcion, referencia, enviadaEl, observaciones }) =>
+  apiFetch(`/api/admin/autorizaciones/${idRuta(id)}/evidencias-fisicas`, {
+    method: 'POST',
+    body: { descripcion, referencia: referencia || null, enviadaEl, observaciones: observaciones || null },
+  })
+
+/** CCPIP-329: registra la recepcion de una evidencia fisica con su resultado, una sola vez. */
+export const registrarRecepcionFisica = async (id, fisicaId, { recibidaEl, resultado, observaciones }) =>
+  apiFetch(`/api/admin/autorizaciones/${idRuta(id)}/evidencias-fisicas/${idRuta(fisicaId)}/recepcion`, {
+    method: 'POST',
+    body: { recibidaEl, resultado, observaciones: observaciones || null },
+  })
 
 /** CCPIP-50: analisis preliminar. 503 IA_NO_DISPONIBLE si no hay servicio: se revisa a mano. */
 export const analizarEvidencias = async (id) => apiFetch(`/api/admin/autorizaciones/${idRuta(id)}/analisis`, { method: 'POST' })
