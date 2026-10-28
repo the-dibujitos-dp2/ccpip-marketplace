@@ -25,6 +25,7 @@ import pe.ccpip.autorizacion.AutorizacionModelos.Evidencia;
 import pe.ccpip.autorizacion.AutorizacionModelos.EvidenciasProducto;
 import pe.ccpip.autorizacion.AutorizacionModelos.NuevaEvidencia;
 import pe.ccpip.autorizacion.AutorizacionModelos.TipoEvidencia;
+import pe.ccpip.autorizacion.AutorizacionModelos.VinculoCertificadoLote;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.imagenes.ImagenStorage;
 import pe.ccpip.productor.Auditoria;
@@ -108,6 +109,37 @@ public class EvidenciasService {
         cambios.put("titulo", datos.titulo().strip());
         auditoria.registrar(productoId, usuarioId, Accion.EVIDENCIA, cambios);
         return buscar("e.id = ?", id, EvidenciasService::urlProductor).orElseThrow();
+    }
+
+    /** Asocia un certificado completo a un lote del producto sin cambiar autorización, revisión ni archivo. */
+    @Transactional
+    public VinculoCertificadoLote vincularLote(long productorId, long productoId, UUID evidenciaId, long loteId) {
+        productoPropio(productorId, productoId);
+        record Cert(LocalDate desde, LocalDate hasta, String emisor, String tipo, Long lote) {}
+        Cert certificado = jdbc.query("SELECT vigente_desde, vigente_hasta, emisor, tipo, lote_id FROM evidencia_producto WHERE id = ? AND productor_id = ? AND producto_id = ?",
+                (rs, row) -> new Cert(rs.getObject("vigente_desde", LocalDate.class), rs.getObject("vigente_hasta", LocalDate.class), rs.getString("emisor"), rs.getString("tipo"), (Long) rs.getObject("lote_id")),
+                evidenciaId, productorId, productoId).stream().findFirst().orElseThrow(EvidenciasService::noEncontrada);
+        if (!"CERTIFICADO".equals(certificado.tipo())) {
+            throw ErrorNegocio.invalido("NO_ES_CERTIFICADO", "Solo se puede vincular un certificado.");
+        }
+        if (certificado.emisor() == null || certificado.emisor().isBlank() || certificado.desde() == null || certificado.hasta() == null) {
+            throw ErrorNegocio.invalido("CERTIFICADO_INCOMPLETO", "El certificado debe indicar emisor e inicio y fin de vigencia.");
+        }
+        if (certificado.desde().isAfter(certificado.hasta())) {
+            throw ErrorNegocio.invalido("VIGENCIA_INVALIDA", "La vigencia termina antes de empezar.");
+        }
+        if (certificado.lote() != null) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "CERTIFICADO_YA_VINCULADO", "El certificado ya está vinculado a un lote.");
+        }
+        boolean lotePropioProducto = jdbc.queryForObject("SELECT EXISTS (SELECT 1 FROM lote WHERE id = ? AND producto_id = ?)", Boolean.class, loteId, productoId);
+        if (!lotePropioProducto) {
+            throw ErrorNegocio.noEncontrado("LOTE_NO_ENCONTRADO", "El lote no existe para este producto.");
+        }
+        int actualizado = jdbc.update("UPDATE evidencia_producto SET lote_id = ? WHERE id = ? AND lote_id IS NULL", loteId, evidenciaId);
+        if (actualizado != 1) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "CERTIFICADO_YA_VINCULADO", "El certificado ya está vinculado a un lote.");
+        }
+        return new VinculoCertificadoLote(evidenciaId, productoId, loteId);
     }
 
     /** Retiro logico: deja de sustentar la solicitud, pero se conserva por las decisiones que la citan. */

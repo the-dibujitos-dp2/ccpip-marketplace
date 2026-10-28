@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +31,8 @@ import pe.ccpip.autorizacion.AutorizacionModelos.Evidencia;
 import pe.ccpip.autorizacion.AutorizacionModelos.EvidenciasProducto;
 import pe.ccpip.autorizacion.AutorizacionModelos.NuevaEvidencia;
 import pe.ccpip.autorizacion.AutorizacionModelos.TipoEvidencia;
+import pe.ccpip.autorizacion.AutorizacionModelos.SolicitudVinculoLote;
+import pe.ccpip.autorizacion.AutorizacionModelos.VinculoCertificadoLote;
 import pe.ccpip.productor.ProductorActual;
 
 /**
@@ -69,6 +72,15 @@ public class EvidenciasController {
                 new NuevaEvidencia(tipo, titulo, emisor, vigenteDesde, vigenteHasta),
                 archivo.getOriginalFilename(), archivo.getBytes());
         return ResponseEntity.status(HttpStatus.CREATED).body(evidencia);
+    }
+
+    /** Vínculo explícito; no altera la decisión de revisión ni el archivo privado. */
+    @PostMapping("/api/productor/productos/{productoId}/evidencias/{evidenciaId}/lote")
+    public VinculoCertificadoLote vincularLote(
+            @RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+            @PathVariable long productoId, @PathVariable UUID evidenciaId,
+            @RequestBody SolicitudVinculoLote solicitud) {
+        return service.vincularLote(actual.id(s), productoId, evidenciaId, solicitud.loteId());
     }
 
     @DeleteMapping("/api/productor/productos/{productoId}/evidencias/{evidenciaId}")

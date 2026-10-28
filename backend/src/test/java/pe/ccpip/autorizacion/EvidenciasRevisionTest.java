@@ -66,7 +66,71 @@ class EvidenciasRevisionTest extends IntegrationTest {
         jdbc.update("DELETE FROM autorizacion_producto WHERE producto_id = ?", miel);
     }
 
+    @Test
+    void vinculaUnCertificadoCompletoAlLotePropioSinCambiarRevisionNiPrivacidad() throws Exception {
+        String id = json(subir(productor, miel, PDF, "c.pdf", "CERTIFICADO", "Certificado de miel", "Emisor", EN_UN_ANIO))
+                .get("id").asText();
+        long autorizacionId = solicitud(miel);
+        decidir(autorizacionId, "aprobar", "Revisión humana previa al vínculo").andExpect(status().isOk());
+        String estadoPrevio = jdbc.queryForObject("SELECT estado FROM autorizacion_producto WHERE id = ?", String.class, autorizacionId);
+        long lote = jdbc.queryForObject("SELECT id FROM lote WHERE producto_id = ? ORDER BY id LIMIT 1", Long.class, miel);
+        mockMvc.perform(post("/api/productor/productos/{p}/evidencias/{e}/lote", miel, id).cookie(productor)
+                        .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("loteId", lote))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.evidenciaId").value(id))
+                .andExpect(jsonPath("$.productoId").value(miel))
+                .andExpect(jsonPath("$.loteId").value(lote));
+        assertThat(jdbc.queryForObject("SELECT lote_id FROM evidencia_producto WHERE id = ?::uuid", Long.class, id)).isEqualTo(lote);
+        assertThat(jdbc.queryForObject("SELECT estado FROM autorizacion_producto WHERE id = ?", String.class, autorizacionId)).isEqualTo(estadoPrevio);
+        mockMvc.perform(get("/api/productor/evidencias/{id}/archivo", id).cookie(productor))
+                .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"));
+    }
+
+    @Test
+    void rechazaLoteDeOtroProductoYNoPermiteReasignarElCertificado() throws Exception {
+        String id = json(subir(productor, miel, PDF, "c.pdf", "CERTIFICADO", "Certificado de miel", "Emisor", EN_UN_ANIO)).get("id").asText();
+        long otroProducto = productoConLote("Café ajeno", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_ANIO);
+        long loteAjeno = jdbc.queryForObject("SELECT id FROM lote WHERE producto_id = ?", Long.class, otroProducto);
+        mockMvc.perform(post("/api/productor/productos/{p}/evidencias/{e}/lote", miel, id).cookie(productor)
+                        .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("loteId", loteAjeno))))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("LOTE_NO_ENCONTRADO"));
+        long lotePropio = jdbc.queryForObject("SELECT id FROM lote WHERE producto_id = ?", Long.class, miel);
+        mockMvc.perform(post("/api/productor/productos/{p}/evidencias/{e}/lote", miel, id).cookie(productor)
+                        .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("loteId", lotePropio))))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/productor/productos/{p}/evidencias/{e}/lote", miel, id).cookie(productor)
+                        .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("loteId", lotePropio))))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("CERTIFICADO_YA_VINCULADO"));
+        assertThat(jdbc.queryForObject("SELECT lote_id FROM evidencia_producto WHERE id = ?::uuid", Long.class, id)).isEqualTo(lotePropio);
+    }
+
+    @Test
+    void soloProductorAutenticadoPuedeSolicitarVinculo() throws Exception {
+        String id = json(subir(productor, miel, PDF, "c.pdf", "CERTIFICADO", "Certificado de miel", "Emisor", EN_UN_ANIO)).get("id").asText();
+        long lote = jdbc.queryForObject("SELECT id FROM lote WHERE producto_id = ?", Long.class, miel);
+        mockMvc.perform(post("/api/productor/productos/{p}/evidencias/{e}/lote", miel, id)
+                        .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("loteId", lote))))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/productor/productos/{p}/evidencias/{e}/lote", miel, id).cookie(subAdmin)
+                        .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("loteId", lote))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void noVinculaCertificadoSinEmisorOVigenciaCompleta() throws Exception {
+        String id = json(subir(productor, miel, PDF, "c.pdf", "CERTIFICADO", "Certificado incompleto", null, EN_UN_ANIO))
+                .get("id").asText();
+        long lote = jdbc.queryForObject("SELECT id FROM lote WHERE producto_id = ?", Long.class, miel);
+        mockMvc.perform(post("/api/productor/productos/{p}/evidencias/{e}/lote", miel, id).cookie(productor)
+                        .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("loteId", lote))))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("CERTIFICADO_INCOMPLETO"));
+        assertThat(jdbc.queryForObject("SELECT lote_id FROM evidencia_producto WHERE id = ?::uuid", Long.class, id)).isNull();
+    }
+
     // --- CCPIP-36: el productor adjunta evidencias ---
+
+
 
     @Test
     void elProductorAdjuntaUnCertificadoQueIdentificaProductoTipoYVigencia() throws Exception {
@@ -370,6 +434,9 @@ class EvidenciasRevisionTest extends IntegrationTest {
             peticion.param("emisor", emisor);
         }
         if (vigenteHasta != null) {
+            if (!vigenteHasta.isBefore(LocalDate.now(java.time.ZoneId.of("America/Lima")))) {
+                peticion.param("vigenteDesde", LocalDate.now(java.time.ZoneId.of("America/Lima")).minusDays(1).toString());
+            }
             peticion.param("vigenteHasta", vigenteHasta.toString());
         }
         return mockMvc.perform(peticion.cookie(cookie));

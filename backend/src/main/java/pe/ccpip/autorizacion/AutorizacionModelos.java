@@ -42,6 +42,13 @@ public final class AutorizacionModelos {
                                      List<Evidencia> evidencias, boolean puedeAdjuntar, int maximo) {
     }
 
+    /** CCPIP-336: resultado del vínculo explícito de un certificado existente a un lote. */
+    public record VinculoCertificadoLote(UUID evidenciaId, long productoId, long loteId) {
+    }
+
+    public record SolicitudVinculoLote(long loteId) {
+    }
+
     /** Datos que el productor declara al subir un archivo. */
     public record NuevaEvidencia(TipoEvidencia tipo, String titulo, String emisor, LocalDate vigenteDesde,
                                  LocalDate vigenteHasta) {
