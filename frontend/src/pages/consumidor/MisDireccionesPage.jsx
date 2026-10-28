@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listarDirecciones, retirarDireccion } from '../../api/cuenta.js'
+import { actualizarDireccion, listarDirecciones, retirarDireccion } from '../../api/cuenta.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Boton from '../../components/Boton.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
@@ -8,6 +8,7 @@ import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { RUTAS } from '../../router.js'
 import LateralCuenta from './LateralCuenta.jsx'
+import EditorDireccion394 from './EditorDireccion394.jsx'
 import './MisPedidosPage.css'
 import './MisDireccionesPage.css'
 
@@ -23,6 +24,9 @@ export default function MisDireccionesPage() {
   const [retirando, setRetirando] = useState(false)
   const [errorRetiro, setErrorRetiro] = useState(false)
   const [aviso, setAviso] = useState('')
+  const [editando, setEditando] = useState(null)
+  const [guardando, setGuardando] = useState(false)
+  const [errorEdicion, setErrorEdicion] = useState(false)
   const envioActivo = useRef(false)
 
   async function confirmarRetiro() {
@@ -43,7 +47,30 @@ export default function MisDireccionesPage() {
     }
   }
 
+  async function guardarEdicion(datos) {
+    if (!editando || envioActivo.current) return
+    envioActivo.current = true
+    setGuardando(true)
+    setErrorEdicion(false)
+    try {
+      await actualizarDireccion(editando.id, { alias: datos.alias || null, ubigeo: datos.ubigeo, direccion: datos.direccion, referencia: datos.referencia || null })
+      setEditando(null)
+      setAviso(t('misDirecciones.editada'))
+      recargar()
+    } catch { setErrorEdicion(true) }
+    finally { envioActivo.current = false; setGuardando(false) }
+  }
+  function abrirEdicion(d) {
+    if (envioActivo.current) return
+    setAviso('')
+    setSeleccionada(null)
+    setEditando(d)
+    setErrorEdicion(false)
+  }
+
   function abrirRetiro(direccion) {
+    if (envioActivo.current) return
+    setEditando(null)
     setAviso('')
     setErrorRetiro(false)
     setSeleccionada(direccion)
@@ -76,14 +103,17 @@ export default function MisDireccionesPage() {
                     <p className="mis-direcciones__direccion">{d.direccion}</p>
                     <p className="mis-direcciones__zona">{`${d.distrito} · ${d.provincia} · ${d.departamento}`}</p>
                     {d.referencia && <p className="mis-direcciones__referencia">{t('misDirecciones.referencia', { referencia: d.referencia })}</p>}
-                    <Boton tipo="destructivo" tamano="S" onClick={() => abrirRetiro(d)} aria-label={t('misDirecciones.retirarAria')}>{t('misDirecciones.retirar')}</Boton>
+                    <Boton tamano="S" disabled={guardando || retirando} onClick={() => abrirEdicion(d)}>{t('misDirecciones.editar')}</Boton>
+                    <Boton tipo="destructivo" tamano="S" disabled={guardando || retirando} onClick={() => abrirRetiro(d)} aria-label={t('misDirecciones.retirarAria')}>{t('misDirecciones.retirar')}</Boton>
                   </li>
                 ))}
               </ul>
             )}
+            {editando && <EditorDireccion394 key={editando.id} direccion={editando} guardando={guardando} error={errorEdicion} onGuardar={guardarEdicion} onCancelar={() => { if (!envioActivo.current) setEditando(null) }} />}
             {aviso && <p className="mis-direcciones__aviso" role="status">{aviso}</p>}
           </section>
         </div>
+
         <Dialogo
           abierto={Boolean(seleccionada)}
           titulo={t('misDirecciones.confirmarTitulo')}
