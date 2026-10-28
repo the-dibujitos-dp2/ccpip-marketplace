@@ -31,3 +31,10 @@
 .evidencias__vinculo .campo { min-width: 0; }
 .evidencias__vinculo p { margin: 0; overflow-wrap: anywhere; }
 .evidencias__vinculo-acciones { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* CCPIP-34: reglas de origen y sostenibilidad declaradas por el productor */
+.cumplimiento { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 24px; }
+.cumplimiento > .campo { width: 100%; }
+.cumplimiento__reglas { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.cumplimiento__reglas .caption { margin: 4px 0 0; }
+.cumplimiento__historial ul { margin: 8px 0 0; padding-left: 20px; }
