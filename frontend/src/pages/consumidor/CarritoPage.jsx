@@ -397,7 +397,7 @@ function CantidadEditable({ item, onCambiar }) {
         invalido={Boolean(error)}
         describedBy={mensaje ? idError : undefined}
       />
-      {guardando && <p className="caption" role="status">{t('carrito.guardando')}</p>}
+      {guardando && <p className="caption carrito__guardando" role="status"><Giro tamano={14} />{t('carrito.guardando')}</p>}
       {mensaje && (
         <p id={idError} className="carrito__error" role="alert">
           <img src={iconoAlerta} width="16" height="16" alt="" />
