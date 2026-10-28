@@ -7,17 +7,13 @@ import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import Enlace from '../../components/Enlace.jsx'
-import { fechaCorta, unidades } from '../../formato.js'
+import { diaLima, fechaCorta, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import { RUTAS } from '../../router.js'
 import './Lotes.css'
 
 const TONO = { VENDE_PRIMERO: 'error', DISPONIBLE: 'exito', EN_ALMACEN: 'info', AGOTADO: 'neutro', VENCIDO: 'neutro' }
-
-function hoyLima() {
-  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' })
-}
 
 /** Formulario "Nuevo lote" de PW-06 (CCPIP-41). Valida en pantalla lo mismo que el servidor. */
 export function FormularioLote({ productoId, requiereVencimiento, onRegistrado, sugerencia }) {
@@ -34,7 +30,7 @@ export function FormularioLote({ productoId, requiereVencimiento, onRegistrado, 
   useEffect(() => setDatos((d) => ({ ...d, codigo: sugerencia ?? d.codigo })), [sugerencia])
 
   const cambiar = (campo) => (e) => setDatos({ ...datos, [campo]: e.target.value })
-  const hoy = hoyLima()
+  const hoy = diaLima()
 
   async function enviar(e) {
     e.preventDefault()

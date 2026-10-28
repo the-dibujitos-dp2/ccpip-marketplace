@@ -10,7 +10,7 @@ import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import Icono from '../../components/Icono.jsx'
-import { fechaCorta } from '../../formato.js'
+import { diaLima, fechaCorta } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import PaginaProductor from './PaginaProductor.jsx'
@@ -19,11 +19,6 @@ import './EvidenciasPage.css'
 
 const FORMATOS = ['application/pdf', 'image/jpeg', 'image/png']
 const MAX_BYTES = 10 * 1024 * 1024
-
-/** Hoy en Lima como AAAA-MM-DD, para no aceptar un premio con fecha futura. */
-function hoyLima() {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima' }).format(new Date())
-}
 
 /** Como se nombra un lote al elegirlo: su codigo y la fecha de produccion, si la tiene. */
 function nombreLote(lote, t) {
@@ -169,7 +164,7 @@ function validar(campos, archivo, t) {
   if (!campos.titulo.trim()) errores.titulo = t('premios.form.errorTitulo')
   if (!campos.emisor.trim()) errores.emisor = t('premios.form.errorEmisor')
   if (!campos.otorgadoEn) errores.otorgadoEn = t('premios.form.errorFecha')
-  else if (campos.otorgadoEn > hoyLima()) errores.otorgadoEn = t('premios.form.errorFutura')
+  else if (campos.otorgadoEn > diaLima()) errores.otorgadoEn = t('premios.form.errorFutura')
   if (campos.vigenteHasta && campos.otorgadoEn && campos.vigenteHasta < campos.otorgadoEn) {
     errores.vigenteHasta = t('premios.form.errorOrden')
   }
@@ -221,7 +216,7 @@ function FormularioPremio({ productoId, lotes, onCancelar, onRegistrado }) {
         opciones={lotes.map((l) => ({ valor: String(l.id), etiqueta: nombreLote(l, t) }))}
       />
       <div className="evidencias__fechas">
-        <Campo etiqueta={t('premios.form.otorgado')} type="date" max={hoyLima()} value={campos.otorgadoEn} onChange={cambiar('otorgadoEn')} error={errores.otorgadoEn} />
+        <Campo etiqueta={t('premios.form.otorgado')} type="date" max={diaLima()} value={campos.otorgadoEn} onChange={cambiar('otorgadoEn')} error={errores.otorgadoEn} />
         <Campo
           etiqueta={`${t('evidencias.form.hasta')} ${t('evidencias.form.opcionalCorto')}`}
           type="date"
