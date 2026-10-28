@@ -116,7 +116,7 @@ public class EvidenciasService {
     public VinculoCertificadoLote vincularLote(long productorId, long productoId, UUID evidenciaId, long loteId) {
         productoPropio(productorId, productoId);
         record Cert(LocalDate desde, LocalDate hasta, String emisor, String tipo, Long lote) {}
-        Cert certificado = jdbc.query("SELECT vigente_desde, vigente_hasta, emisor, tipo, lote_id FROM evidencia_producto WHERE id = ? AND productor_id = ? AND producto_id = ? AND retirada_en IS NULL",
+        Cert certificado = jdbc.query("SELECT vigente_desde, vigente_hasta, emisor, tipo, lote_id FROM evidencia_producto WHERE id = ? AND productor_id = ? AND producto_id = ? AND retirada_en IS NULL FOR UPDATE",
                 (rs, row) -> new Cert(rs.getObject("vigente_desde", LocalDate.class), rs.getObject("vigente_hasta", LocalDate.class), rs.getString("emisor"), rs.getString("tipo"), (Long) rs.getObject("lote_id")),
                 evidenciaId, productorId, productoId).stream().findFirst().orElseThrow(EvidenciasService::noEncontrada);
         if (!"CERTIFICADO".equals(certificado.tipo())) {
@@ -135,7 +135,7 @@ public class EvidenciasService {
         if (!lotePropioProducto) {
             throw ErrorNegocio.noEncontrado("LOTE_NO_ENCONTRADO", "El lote no existe para este producto.");
         }
-        int actualizado = jdbc.update("UPDATE evidencia_producto SET lote_id = ? WHERE id = ? AND lote_id IS NULL", loteId, evidenciaId);
+        int actualizado = jdbc.update("UPDATE evidencia_producto SET lote_id = ? WHERE id = ? AND productor_id = ? AND producto_id = ? AND retirada_en IS NULL AND lote_id IS NULL", loteId, evidenciaId, productorId, productoId);
         if (actualizado != 1) {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "CERTIFICADO_YA_VINCULADO", "El certificado ya está vinculado a un lote.");
         }
