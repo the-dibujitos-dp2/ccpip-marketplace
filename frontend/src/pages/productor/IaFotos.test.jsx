@@ -281,3 +281,67 @@ describe('PW-04 Mejora opcional con IA (CCPIP-176, 272, 281, 282)', () => {
     expect(screen.getByAltText('Foto del producto')).toHaveAttribute('src', `/api/imagenes/${A}?tam=min`)
   })
 })
+
+describe('PW-04 Fotos y borrador mientras esperan respuesta (CCPIP-413)', () => {
+  it('reemplazar desde el aviso muestra el aro en ese enlace y en el lápiz de la miniatura', async () => {
+    let responder
+    productor({
+      'GET /api/productor/productos/9': () => [200, conFotos(fotoDe(A, true), fotoDe(B))],
+      'GET /api/productor/imagenes/validaciones': () => [200, [validacion(A, 'VALIDA'), validacion(B, 'SOSPECHOSA', 'ARTESANIA')]],
+      [`POST /api/productor/imagenes/${B}/reemplazo`]: () => new Promise((r) => { responder = r }),
+      [`POST /api/productor/imagenes/${D}/validacion`]: [200, validacion(D, 'VALIDA')],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.upload(await screen.findByLabelText('Reemplazar imagen'), archivo('aceite.jpg'))
+
+    const enlace = screen.getByLabelText('Reemplazar imagen').closest('label')
+    expect(enlace).toHaveAttribute('aria-busy', 'true')
+    expect(enlace.querySelector('.boton__giro')).not.toBeNull()
+    const lapices = screen.getAllByTitle('Reemplazar foto')
+    expect(lapices[1]).toHaveAttribute('aria-busy', 'true')
+    expect(lapices[1].querySelector('.boton__giro')).not.toBeNull()
+    expect(lapices[0].querySelector('.boton__giro')).toBeNull()
+    responder([201, fotoDe(D)])
+    await waitFor(() => expect(document.querySelector('.boton__giro')).toBeNull())
+  })
+
+  it('conservar la original pone el aro en "Conservar" y no en "Usar la mejorada"', async () => {
+    let responder
+    productor({
+      'GET /api/productor/productos/9': () => [200, conFotos(fotoDe(A, true))],
+      [`POST /api/productor/imagenes/${A}/mejora`]: [201, comparacion(A)],
+      [`POST /api/productor/imagenes/${A}/mejora/rechazar`]: () => new Promise((r) => { responder = r }),
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.click(await screen.findByRole('button', { name: 'Mejorar con IA' }))
+    const dialogo = await screen.findByRole('dialog')
+    const conservar = within(dialogo).getByRole('button', { name: 'Conservar la original' })
+    const usar = within(dialogo).getByRole('button', { name: 'Usar la mejorada' })
+    await user.click(conservar)
+
+    expect(conservar).toHaveAttribute('aria-busy', 'true')
+    expect(conservar.querySelector('.boton__giro')).not.toBeNull()
+    expect(usar).toBeDisabled()
+    expect(usar.querySelector('.boton__giro')).toBeNull()
+    responder([204])
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Compara la foto mejorada' })).not.toBeInTheDocument())
+  })
+
+  it('mientras la IA prepara el borrador de la descripción se ve el indicador de carga', async () => {
+    let responder
+    productor({
+      'GET /api/productor/productos/9': () => [200, conFotos()],
+      'POST /api/productor/ia/descripcion': () => new Promise((r) => { responder = r }),
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.click(await screen.findByRole('button', { name: 'Sugerir una descripción con IA (borrador)' }))
+
+    const estado = (await screen.findByText('Preparando un borrador…')).closest('[role="status"]')
+    expect(estado.querySelector('.cargando__giro')).not.toBeNull()
+    responder([200, { texto: 'Aceite prensado en frío.' }])
+    expect(await screen.findByText('Borrador asistido por IA · revisa antes de publicar')).toBeInTheDocument()
+  })
+})

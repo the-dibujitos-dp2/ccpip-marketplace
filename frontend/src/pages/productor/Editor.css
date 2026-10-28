@@ -29,6 +29,8 @@
 .editor__miniatura--principal { outline: 2px solid var(--color-border-brand); outline-offset: 2px; }
 .editor__miniatura--error { background: var(--color-status-error-bg); padding: 6px; }
 .editor__miniatura--subiendo { background: var(--color-bg-brand-subtle); }
+/* CCPIP-413: el aro sobre el texto "Subiendo…" */
+.editor__miniatura--subiendo .caption { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--color-text-brand); }
 
 .editor__miniatura--agregar { border: 2px dashed var(--color-border-focus); background: var(--color-bg-brand-subtle); }
 .editor__miniatura--agregar label { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; height: 100%; justify-content: center; font-weight: 500; font-size: 13px; color: var(--color-text-brand); cursor: pointer; }
@@ -52,6 +54,9 @@
 }
 
 .editor__miniatura--error .editor__accion-foto { position: static; }
+/* CCPIP-413: "Hacer principal" lleva el aro junto al texto mientras espera */
+.editor__accion-foto--principal { display: flex; align-items: center; justify-content: center; gap: 4px; }
+.editor__accion-foto:disabled, .editor__quitar:disabled { cursor: progress; }
 .editor__principal { cursor: default; }
 
 .editor__quitar { position: absolute; top: 6px; right: 6px; display: flex; padding: 4px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.92); color: var(--color-text-primary); cursor: pointer; }
