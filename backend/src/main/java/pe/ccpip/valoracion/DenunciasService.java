@@ -44,8 +44,9 @@ import pe.ccpip.valoracion.ValoracionModelos.ResumenRecibidas;
  *       historial, y las pasa a revision o las cierra con una nota que queda auditada.</li>
  *   <li>CCPIP-116 (RF-91) y CCPIP-323 (RF-216): el productor ve las suyas anonimizadas y responde una vez.</li>
  * </ul>
- * RNF-41: el denunciante nunca sale del servidor. Las consultas del productor y del subadministrador no
- * seleccionan {@code denunciante_id} ni datos del usuario; y la descripcion se entrega con correos y
+ * RNF-41: el denunciante no le llega al productor. Su consulta no selecciona {@code denunciante_id} ni datos
+ * del usuario. CCPIP-432: la administracion si ve su nombre, en la denuncia y en el paso de registro. A
+ * ambos la descripcion se entrega con correos y
  * telefonos ocultos. Nada se borra: cada paso queda en {@code denuncia_evento}.
  */
 @Service
@@ -73,11 +74,12 @@ public class DenunciasService {
                    max(d.creada_en) AS ultima_en, pr.venta_bloqueada
             FROM denuncia d JOIN productor pr ON pr.id = d.productor_id""".formatted(ORGANIZACION);
 
-    /** {@code compra_verificada} se calcula aqui; el denunciante no se selecciona. */
+    /** {@code compra_verificada} se calcula aqui. CCPIP-432: el nombre del denunciante, solo para la administracion. */
     private static final String COLUMNAS_ADMIN = """
             EXISTS (SELECT 1 FROM pedido pe JOIN item_pedido i ON i.pedido_id = pe.id
                     WHERE pe.usuario_id = d.denunciante_id AND i.productor_id = d.productor_id
                       AND pe.estado = 'ENTREGADO') AS compra_verificada,
+            (SELECT u.nombre FROM usuario u WHERE u.id = d.denunciante_id) AS denunciante,
             """ + COLUMNAS;
 
     private final JdbcTemplate jdbc;
@@ -261,11 +263,12 @@ public class DenunciasService {
         EstadoDenuncia estado = estado(rs);
         return new DenunciaAdmin(rs.getLong("id"), producto(rs), Motivo.valueOf(rs.getString("motivo")),
                 anonimizar(rs.getString("descripcion")), estado, instante(rs, "creada_en"),
-                rs.getBoolean("compra_verificada"), rs.getString("respuesta_productor"), instante(rs, "respondida_en"),
+                rs.getBoolean("compra_verificada"), rs.getString("denunciante"), rs.getString("respuesta_productor"),
+                instante(rs, "respondida_en"),
                 siguientes(estado), List.of());
     }
 
-    /** Agrega a cada denuncia su historial. El responsable del registro (el comprador) nunca se nombra. */
+    /** Agrega a cada denuncia su historial. Solo lo ve la administracion: el registro lleva el nombre del comprador (CCPIP-432). */
     private List<DenunciaAdmin> conHistorial(List<DenunciaAdmin> denuncias) {
         if (denuncias.isEmpty()) {
             return denuncias;
@@ -275,11 +278,13 @@ public class DenunciasService {
         jdbc.query("""
                     SELECT e.denuncia_id, e.tipo, e.estado, e.rol, e.nota, e.registrado_en,
                            CASE e.rol WHEN 'SUB_ADMIN' THEN u.nombre
+                                      WHEN 'CONSUMIDOR' THEN dn.nombre
                                       WHEN 'PRODUCTOR' THEN coalesce(pr.nombre_tienda, pr.comunidad) END AS responsable
                     FROM denuncia_evento e
                     JOIN denuncia d ON d.id = e.denuncia_id
                     JOIN productor pr ON pr.id = d.productor_id
                     LEFT JOIN usuario u ON u.id = e.usuario_id AND e.rol = 'SUB_ADMIN'
+                    LEFT JOIN usuario dn ON dn.id = d.denunciante_id
                     WHERE e.denuncia_id = ANY (?) ORDER BY e.registrado_en, e.id""", (RowCallbackHandler) rs -> {
             eventos.computeIfAbsent(rs.getLong("denuncia_id"), k -> new ArrayList<>())
                     .add(new EventoDenuncia(rs.getString("tipo"), EstadoDenuncia.valueOf(rs.getString("estado")),
@@ -287,9 +292,7 @@ public class DenunciasService {
                             "REGISTRADA".equals(rs.getString("tipo")) ? null : rs.getString("nota"),
                             instante(rs, "registrado_en")));
         }, (Object) ids);
-        return denuncias.stream().map(d -> new DenunciaAdmin(d.id(), d.producto(), d.motivo(), d.descripcion(), d.estado(),
-                d.creadaEn(), d.compraVerificada(), d.respuestaProductor(), d.respondidaEn(), d.siguientes(),
-                eventos.getOrDefault(d.id(), List.of()))).toList();
+        return denuncias.stream().map(d -> d.conHistorial(eventos.getOrDefault(d.id(), List.of()))).toList();
     }
 
     static List<EstadoDenuncia> siguientes(EstadoDenuncia estado) {

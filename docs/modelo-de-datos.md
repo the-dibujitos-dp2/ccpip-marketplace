@@ -1007,7 +1007,7 @@ CCPIP-83 (RF-90): denuncia de un comprador sobre una oferta (`producto_id`) o so
 | Columna | Tipo | Nulo | Nota |
 |---|---|---|---|
 | id | bigserial | no | |
-| denunciante_id | bigint | no | RNF-41: identidad protegida, no sale en ninguna respuesta |
+| denunciante_id | bigint | no | RNF-41: el productor nunca lo ve. CCPIP-432: la administracion ve su nombre en el expediente |
 | productor_id | bigint | no | Denunciado. Con producto, el de esa oferta (llave foranea compuesta) |
 | producto_id | bigint | si | Nulo si se denuncia a la comunidad |
 | motivo | varchar(30) | no | `NO_CORRESPONDE`, `CALIDAD`, `ORIGEN_DUDOSO`, `PRACTICA_INDEBIDA`, `CONTENIDO_INAPROPIADO`, `OTRO` |
@@ -1033,7 +1033,7 @@ Historial y auditoria de cada denuncia. Solo insercion.
 | tipo | varchar(20) | no | `REGISTRADA`, `RESPUESTA`, `CAMBIO_ESTADO` |
 | estado | varchar(20) | no | Estado de la denuncia despues del evento |
 | nota | varchar(1000) | si | Respuesta del productor o nota obligatoria del subadministrador |
-| usuario_id | bigint | no | Quien dio el paso. En `REGISTRADA` es el denunciante y no se expone |
+| usuario_id | bigint | no | Quien dio el paso. En `REGISTRADA` es el denunciante: solo la administracion ve su nombre (CCPIP-432) |
 | rol | varchar(20) | no | `CONSUMIDOR`, `PRODUCTOR` o `SUB_ADMIN` |
 | registrado_en | timestamptz | no | |
 
@@ -1044,8 +1044,9 @@ Que ve cada rol (filtrado en el servidor, RNF-05 y RNF-41):
   dia) y con correos y telefonos de la descripcion ocultos.
 - **Subadministrador (CCPIP-84):** bandeja por productor ordenada por cantidad de denuncias, separada
   del tablero analitico, y el historial con el nombre del subadministrador en cada cambio de estado.
-  Del denunciante solo sabe si recibio algun pedido de ese productor (`compraVerificada`). El
-  superadministrador consulta en modo lectura.
+  CCPIP-432: en cada denuncia ve tambien el nombre de quien denuncio (en la denuncia y en el paso de
+  registro), si recibio algun pedido de ese productor (`compraVerificada`) y las denuncias anteriores sobre
+  el mismo producto o la misma comunidad. El superadministrador consulta lo mismo en modo lectura.
 
 ## Fuera de este modelo
 

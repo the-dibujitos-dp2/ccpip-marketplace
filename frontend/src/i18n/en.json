@@ -15,6 +15,7 @@
     "limpiarFiltros": "Clear filters",
     "sinCoincidencias": "Nothing matches the search and filters",
     "sinCoincidenciasTexto": "Try other words or clear the filters.",
+    "conteo": "{{titulo}} ({{total}})",
     "descargas": {
       "cargando": "Updating the report; you can download it as soon as it finishes.",
       "pendiente": "To download, the report must show the selected filters: complete the period or try again."
@@ -1114,7 +1115,6 @@
         "ENTREGADO": "Delivered today",
         "EN_CAMINO": "On the way"
       },
-      "columnaConteo": "{{titulo}} ({{total}})",
       "estados": "Orders by status",
       "lista": "Orders in the selected status",
       "buscar": "Search by order, product, community or who picked it up",
@@ -3960,7 +3960,13 @@
     "denunciarProducto": "Report this product",
     "ingresaParaDenunciar": "Sign in to report this product",
     "denunciar": "Report",
-    "denunciarDe": "Report {{nombre}}"
+    "denunciarDe": "Report {{nombre}}",
+    "filtros": {
+      "producto": "Product",
+      "todos": "All",
+      "desde": "From",
+      "hasta": "To"
+    }
   },
   "denunciasProductor": {
     "titulo": "Reports received",
@@ -3979,7 +3985,20 @@
     "responder": "Your reply",
     "responderAyuda": "The Chamber and the buyer will see it. You can reply only once.",
     "enviarRespuesta": "Send reply",
-    "cerradaSinRespuesta": "The Chamber closed this report without a reply from you."
+    "cerradaSinRespuesta": "The Chamber closed this report without a reply from you.",
+    "pestanasEtiqueta": "Which reports to see",
+    "pestana": {
+      "abiertas": "Open",
+      "sinResponder": "Not replied",
+      "cerradas": "Closed"
+    },
+    "buscar": "Search by description, product, reason or your reply",
+    "vacioPestana": {
+      "abiertas": "You have no open reports",
+      "sinResponder": "You replied to all your open reports",
+      "cerradas": "You have no closed reports"
+    },
+    "respuestaEnviada": "We sent your reply. The Chamber and the buyer will see it."
   },
   "denunciasAdmin": {
     "titulo": "Reports against producers",
@@ -4004,7 +4023,7 @@
     },
     "verHistorial": "View history",
     "verHistorialDe": "View report history of {{organizacion}}",
-    "notaPie": "Sorted by number of reports. The identity of whoever reports is protected. Analytical reports are on the dashboard.",
+    "notaPie": "Sorted by number of reports. Only the administration sees who reports; the producer does not. Analytical reports are on the dashboard.",
     "volver": "← Back to reports",
     "sinDenuncias": "This community has no reports",
     "resumenProductor": "{{total}} reports · {{abiertas}} open",
@@ -4012,7 +4031,25 @@
     "contraComunidad": "Against the community",
     "denuncia": "Report {{id}}: {{titulo}}",
     "compraVerificada": "Verified purchase",
-    "recibida": "Received on {{fecha}} · {{motivo}}",
+    "detalleDe": "Details of report {{id}}",
+    "detalle": {
+      "denunciado": "Reported",
+      "productoDe": "{{producto}}, by {{organizacion}}",
+      "laComunidad": "The community {{organizacion}}",
+      "denuncio": "Reported by",
+      "fecha": "Date",
+      "motivo": "Reason"
+    },
+    "anteriores": {
+      "producto": "Earlier reports about this product ({{n}})",
+      "comunidad": "Earlier reports about this community ({{n}})",
+      "sin": {
+        "producto": "This is the first report about this product.",
+        "comunidad": "This is the first report about this community."
+      },
+      "de": "Reports earlier than report {{id}}",
+      "item": "Report {{id}} · {{titulo}} · {{motivo}}"
+    },
     "respuestaProductor": "Producer's reply",
     "historialDe": "History of report {{id}}",
     "evento": {
@@ -4030,7 +4067,18 @@
     "guardar": "Save change",
     "bloqueo": "Sales block",
     "bloqueoTexto": "If the reports justify it, block their sales with a reason. Their products become sale paused and orders in progress are kept.",
-    "bloqueadoTexto": "Their sales are blocked. You can unblock them with a reason."
+    "bloqueadoTexto": "Their sales are blocked. You can unblock them with a reason.",
+    "pestanasEtiqueta": "Report status",
+    "pestana": {
+      "RECIBIDA": "Received",
+      "EN_REVISION": "Under review",
+      "RESUELTA": "Resolved",
+      "DESESTIMADA": "Dismissed"
+    },
+    "buscar": "Search by description, product, reason or who reported",
+    "vacioPestana": "There are no reports with status {{estado}}",
+    "movida": "Report {{id}} moved to {{estado}}",
+    "movidaTexto": "It is now in the {{pestana}} tab."
   },
   "minimoCalificaciones": {
     "seccion": "Minimum ratings to show the average",

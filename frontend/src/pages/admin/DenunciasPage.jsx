@@ -20,8 +20,8 @@ import './admin.css'
 
 /**
  * CCPIP-84 (RF-77): denuncias contra productores, separadas de los reportes analiticos del tablero.
- * Los productores llegan ordenados por cantidad de denuncias; la identidad de quien denuncia nunca
- * llega a la pantalla (RNF-41).
+ * Los productores llegan ordenados por cantidad de denuncias. Quien denuncio solo se ve en el expediente
+ * (CCPIP-432); el productor nunca lo ve (RNF-41).
  */
 export default function DenunciasPage({ path }) {
   const { t } = useTranslation()
@@ -44,10 +44,10 @@ export default function DenunciasPage({ path }) {
         <div className="tabla" role="table" aria-label={t('denunciasAdmin.tabla')}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('denunciasAdmin.col.productor')}</span>
-            <span className="tabla__celda" role="columnheader">{t('denunciasAdmin.col.total')}</span>
-            <span className="tabla__celda" role="columnheader">{t('denunciasAdmin.col.abiertas')}</span>
-            <span className="tabla__celda" role="columnheader">{t('denunciasAdmin.col.ultima')}</span>
-            <span className="tabla__celda" role="columnheader"><span className="visually-hidden">{t('denunciasAdmin.col.accion')}</span></span>
+            <span className="tabla__celda denuncias__num" role="columnheader">{t('denunciasAdmin.col.total')}</span>
+            <span className="tabla__celda denuncias__num" role="columnheader">{t('denunciasAdmin.col.abiertas')}</span>
+            <span className="tabla__celda denuncias__ultima" role="columnheader">{t('denunciasAdmin.col.ultima')}</span>
+            <span className="tabla__celda denuncias__accion" role="columnheader"><span className="visually-hidden">{t('denunciasAdmin.col.accion')}</span></span>
           </div>
           {datos.productores.map((p) => (
             <div key={p.productorId} className="tabla__fila" role="row">
@@ -56,10 +56,10 @@ export default function DenunciasPage({ path }) {
                 <span className="caption">{[p.comunidad, p.region].filter(Boolean).join(' · ')}</span>
                 {p.ventaBloqueada && <Badge tono="error">{t('productores.venta.bloqueada')}</Badge>}
               </span>
-              <span className="tabla__celda" role="cell">{p.total}</span>
-              <span className="tabla__celda" role="cell">{p.abiertas}</span>
-              <span className="tabla__celda" role="cell">{diaMes(p.ultimaEn)}</span>
-              <span className="tabla__celda" role="cell">
+              <span className="tabla__celda denuncias__num" role="cell">{p.total}</span>
+              <span className="tabla__celda denuncias__num" role="cell">{p.abiertas}</span>
+              <span className="tabla__celda denuncias__ultima" role="cell">{diaMes(p.ultimaEn)}</span>
+              <span className="tabla__celda denuncias__accion" role="cell">
                 <Boton tipo={p.abiertas > 0 ? 'primario' : 'secundario'} tamano="S" to={`${RUTAS.adminDenuncias}/productores/${p.productorId}`}
                   aria-label={t('denunciasAdmin.verHistorialDe', { organizacion: p.organizacion })}>
                   {t('denunciasAdmin.verHistorial')}

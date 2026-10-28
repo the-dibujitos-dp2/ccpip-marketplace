@@ -20,3 +20,4 @@
 .valoraciones__historial { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 0; padding: 0 0 0 16px; border-left: 2px solid var(--color-border-default); list-style: none; font-size: 14px; }
 .valoraciones__historial li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .valoraciones__historial .caption { color: var(--color-text-secondary); }
+.valoraciones__historial time { flex-shrink: 0; white-space: nowrap; }

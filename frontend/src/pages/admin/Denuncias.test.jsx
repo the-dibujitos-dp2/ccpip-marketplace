@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
 import i18n from '../../i18n/index.js'
-import { copia, DATOS, llamadas, PUBLICAS, servidor, SESION, SESION_SUB, SESION_SUPER } from '../../test/servidor.js'
+import { abrirPestana, copia, DATOS, llamadas, panel, PUBLICAS, servidor, SESION, SESION_SUB, SESION_SUPER } from '../../test/servidor.js'
 
 function abrirEn(ruta) {
   window.history.replaceState(null, '', ruta)
@@ -34,17 +34,20 @@ describe('Denuncias contra productores (CCPIP-84)', () => {
     expect(window.location.pathname).toBe('/admin/denuncias/productores/2')
   })
 
-  it('el expediente muestra el historial con quién dio cada paso, sin nombrar al denunciante', async () => {
+  it('el expediente muestra el historial con quién dio cada paso', async () => {
     servidor(comoSub())
+    const user = userEvent.setup()
     abrirEn('/admin/denuncias/productores/2')
-    const cerrada = within(await screen.findByRole('article', { name: 'Denuncia 17: Contra la comunidad' }))
+    const resueltas = await abrirPestana(user, 'Resueltas')
+    const cerrada = within(resueltas.getByRole('article', { name: 'Denuncia 17: Contra la comunidad' }))
     const pasos = within(cerrada.getByRole('list', { name: 'Historial de la denuncia 17' })).getAllByRole('listitem')
     expect(pasos).toHaveLength(3)
-    expect(pasos[0]).toHaveTextContent('Registrada · Comprador (identidad protegida)')
+    expect(pasos[0]).toHaveTextContent('Registrada · Carlos Mendoza')
     expect(pasos[1]).toHaveTextContent('Respuesta del productor · C.N. Yarina')
     expect(pasos[2]).toHaveTextContent('Pasa a Resuelta · Lucía Paredes — El productor corrigió la oferta.')
     expect(cerrada.queryByRole('form')).not.toBeInTheDocument()
-    const abierta = within(screen.getByRole('article', { name: 'Denuncia 21: Cacao en grano fermentado 1 kg' }))
+    const recibidas = await abrirPestana(user, 'Recibidas')
+    const abierta = within(recibidas.getByRole('article', { name: 'Denuncia 21: Cacao en grano fermentado 1 kg' }))
     expect(abierta.getByText('Compra verificada')).toBeInTheDocument()
     expect(abierta.getByText('No parece cacao de la comunidad. Llámame al [teléfono oculto].')).toBeInTheDocument()
   })
@@ -63,8 +66,13 @@ describe('Denuncias contra productores (CCPIP-84)', () => {
     await user.selectOptions(form.getByLabelText('Nuevo estado'), 'En revisión')
     await user.type(form.getByLabelText('Nota'), 'Pedimos fotos del lote.')
     await user.click(form.getByRole('button', { name: 'Guardar cambio' }))
-    const abierta = within(await screen.findByRole('article', { name: 'Denuncia 21: Cacao en grano fermentado 1 kg' }))
-    expect(await abierta.findByText('En revisión', { selector: '.badge-estado' })).toBeInTheDocument()
+    // Pasa a la pestana de su nuevo estado y el aviso dice cual
+    expect(await screen.findByText('La denuncia 21 pasó a En revisión')).toBeInTheDocument()
+    expect(screen.getByText('Ahora está en la pestaña En revisión.')).toBeInTheDocument()
+    expect((await panel('Recibidas')).getByText('No hay denuncias en estado Recibida')).toBeInTheDocument()
+    const pestanaEnRevision = await abrirPestana(user, 'En revisión')
+    const abierta = within(pestanaEnRevision.getByRole('article',{ name: 'Denuncia 21: Cacao en grano fermentado 1 kg' }))
+    expect(abierta.getByText('En revisión', { selector: '.badge-estado' })).toBeInTheDocument()
     expect(JSON.parse(llamadas(fetchMock, 'POST /api/admin/denuncias/21/estado')[0][1].body))
       .toEqual({ estado: 'EN_REVISION', nota: 'Pedimos fotos del lote.' })
     expect(screen.getByText('2 denuncias · 1 abiertas')).toBeInTheDocument()
@@ -90,6 +98,166 @@ describe('Denuncias contra productores (CCPIP-84)', () => {
     await screen.findByRole('heading', { level: 1 })
     expect(window.location.pathname).not.toBe('/admin/denuncias')
     expect(llamadas(fetchMock, 'GET /api/admin/denuncias')).toHaveLength(0)
+  })
+})
+
+describe('Detalle de una denuncia (CCPIP-432)', () => {
+  /** Los pares termino → valor del detalle de la denuncia. */
+  const detalle = (id, etiqueta = `Detalle de la denuncia ${id}`) => {
+    const dl = screen.getByLabelText(etiqueta)
+    return Object.fromEntries([...dl.querySelectorAll('dt')].map((dt) => [dt.textContent, dt.nextElementSibling.textContent]))
+  }
+  /** El expediente con denuncias previas: una sobre el mismo cacao y otra sobre otro producto. */
+  const conAnteriores = () => {
+    const expediente = copia(DATOS.expedienteDenuncias)
+    const previa = (id, producto, motivo, estado, creadaEn) => ({
+      id, producto, motivo, descripcion: 'Una denuncia previa.', estado, creadaEn, compraVerificada: false,
+      denunciante: 'Ana Torres', siguientes: [], historial: [{ tipo: 'REGISTRADA', estado: 'RECIBIDA', rol: 'CONSUMIDOR', responsable: 'Ana Torres', registradoEn: creadaEn }],
+    })
+    expediente.denuncias.push(
+      previa(12, { id: 8, nombre: 'Miel de abeja 500 g' }, 'CALIDAD', 'RESUELTA', '2026-09-25T14:00:00Z'),
+      previa(9, { id: 5, nombre: 'Cacao en grano fermentado 1 kg' }, 'NO_CORRESPONDE', 'DESESTIMADA', '2026-09-20T14:00:00Z'),
+    )
+    expediente.productor.total = 4
+    return expediente
+  }
+
+  it('muestra a quién se denunció, quién denunció, la fecha y el motivo', async () => {
+    servidor(comoSub())
+    const user = userEvent.setup()
+    abrirEn('/admin/denuncias/productores/2')
+    await screen.findByRole('article', { name: 'Denuncia 21: Cacao en grano fermentado 1 kg' })
+    expect(detalle(21)).toEqual({
+      Denunciado: 'Cacao en grano fermentado 1 kg, de C.N. Yarina',
+      Denunció: 'Rosa Quispe',
+      Fecha: '15/10 09:00',
+      Motivo: 'Origen o certificación dudosa',
+    })
+    expect(screen.getByText('Es la primera denuncia sobre este producto.')).toBeInTheDocument()
+    await abrirPestana(user, 'Resueltas')
+    expect(detalle(17)).toMatchObject({ Denunciado: 'La comunidad C.N. Yarina', Denunció: 'Carlos Mendoza', Motivo: 'Práctica indebida del productor' })
+    expect(screen.getByText('Es la primera denuncia sobre esta comunidad.')).toBeInTheDocument()
+  })
+
+  it('lista las denuncias anteriores sobre el mismo producto o, si es contra la comunidad, todas las suyas', async () => {
+    servidor(comoSub({ [`GET ${EXPEDIENTE}`]: () => [200, conAnteriores()] }))
+    const user = userEvent.setup()
+    abrirEn('/admin/denuncias/productores/2')
+    const cacao = within(await screen.findByRole('article', { name: 'Denuncia 21: Cacao en grano fermentado 1 kg' }))
+    expect(cacao.getByText('Denuncias anteriores sobre este producto (1)')).toBeInTheDocument()
+    const previasCacao = within(cacao.getByRole('list', { name: 'Denuncias anteriores a la denuncia 21' })).getAllByRole('listitem')
+    expect(previasCacao).toHaveLength(1)
+    expect(previasCacao[0]).toHaveTextContent('Denuncia 9 · Cacao en grano fermentado 1 kg · No corresponde a lo descrito Desestimada')
+    expect(within(previasCacao[0]).getByText('20/9 09:00')).toHaveAttribute('datetime', '2026-09-20T14:00:00Z')
+    // Las anteriores salen aunque esten en otra pestana
+    const resueltas = await abrirPestana(user, 'Resueltas')
+    const comunidad = within(resueltas.getByRole('article', { name: 'Denuncia 17: Contra la comunidad' }))
+    expect(comunidad.getByText('Denuncias anteriores sobre esta comunidad (2)')).toBeInTheDocument()
+    const previasComunidad = within(comunidad.getByRole('list', { name: 'Denuncias anteriores a la denuncia 17' })).getAllByRole('listitem')
+    expect(previasComunidad.map((li) => li.textContent.split(' · ')[0])).toEqual(['Denuncia 12', 'Denuncia 9'])
+    const desestimadas = await abrirPestana(user, 'Desestimadas')
+    const primera = within(desestimadas.getByRole('article', { name: 'Denuncia 9: Cacao en grano fermentado 1 kg' }))
+    expect(primera.getByText('Es la primera denuncia sobre este producto.')).toBeInTheDocument()
+  })
+
+  it('sin el nombre del denunciante, dice que su identidad está protegida', async () => {
+    const expediente = copia(DATOS.expedienteDenuncias)
+    delete expediente.denuncias[0].denunciante
+    delete expediente.denuncias[0].historial[0].responsable
+    servidor(comoSub({ [`GET ${EXPEDIENTE}`]: () => [200, expediente] }))
+    abrirEn('/admin/denuncias/productores/2')
+    const abierta = within(await screen.findByRole('article', { name: 'Denuncia 21: Cacao en grano fermentado 1 kg' }))
+    expect(detalle(21).Denunció).toBe('Comprador (identidad protegida)')
+    expect(within(abierta.getByRole('list', { name: 'Historial de la denuncia 21' })).getByRole('listitem'))
+      .toHaveTextContent('Registrada · Comprador (identidad protegida)')
+  })
+
+  it('el superadministrador ve el mismo detalle, solo para consultar', async () => {
+    servidor(comoSub({ 'GET /api/auth/me': [200, SESION_SUPER], 'GET /api/admin/tablero': [200, copia(DATOS.tableroAdmin)] }))
+    abrirEn('/admin/denuncias/productores/2')
+    await screen.findByRole('article', { name: 'Denuncia 21: Cacao en grano fermentado 1 kg' })
+    expect(detalle(21).Denunció).toBe('Rosa Quispe')
+    expect(screen.queryByRole('form')).not.toBeInTheDocument()
+  })
+
+  it('en inglés', async () => {
+    await i18n.changeLanguage('en')
+    servidor(comoSub({ [`GET ${EXPEDIENTE}`]: () => [200, conAnteriores()] }))
+    const user = userEvent.setup()
+    abrirEn('/admin/denuncias/productores/2')
+    await screen.findByRole('article', { name: 'Report 21: Cacao en grano fermentado 1 kg' })
+    expect(detalle(21, 'Details of report 21')).toMatchObject({ Reported: 'Cacao en grano fermentado 1 kg, by C.N. Yarina', 'Reported by': 'Rosa Quispe', Reason: 'Questionable origin or certification' })
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Received (1)', 'Under review (0)', 'Resolved (2)', 'Dismissed (1)'])
+    await abrirPestana(user, 'Resolved')
+    expect(screen.getByText('Earlier reports about this community (2)')).toBeInTheDocument()
+    expect(screen.getByText('This is the first report about this product.')).toBeInTheDocument()
+    expect(screen.getByRole('searchbox', { name: 'Search by description, product, reason or who reported' })).toBeInTheDocument()
+    await i18n.changeLanguage('es')
+  })
+})
+
+describe('Pestañas y filtros del expediente (CCPIP-432)', () => {
+  /** El expediente con una denuncia por estado y una mas resuelta, de distintos productos, motivos y fechas. */
+  const variado = () => {
+    const expediente = copia(DATOS.expedienteDenuncias)
+    const otra = (id, producto, motivo, estado, creadaEn, denunciante) => ({
+      id, producto, motivo, descripcion: `Detalle de la denuncia ${id}.`, estado, creadaEn, compraVerificada: false,
+      denunciante, siguientes: [], historial: [{ tipo: 'REGISTRADA', estado: 'RECIBIDA', rol: 'CONSUMIDOR', responsable: denunciante, registradoEn: creadaEn }],
+    })
+    expediente.denuncias.push(
+      otra(12, { id: 8, nombre: 'Miel de abeja 500 g' }, 'CALIDAD', 'RESUELTA', '2026-09-25T14:00:00Z', 'Ana Torres'),
+      otra(9, { id: 5, nombre: 'Cacao en grano fermentado 1 kg' }, 'NO_CORRESPONDE', 'DESESTIMADA', '2026-09-20T14:00:00Z', 'Luis Rojas'),
+    )
+    return expediente
+  }
+  const denunciasVisibles = () => screen.queryAllByRole('article').map((a) => a.getAttribute('aria-label').split(':')[0])
+
+  it('una pestaña por estado con su conteo; abre la primera que tiene denuncias', async () => {
+    servidor(comoSub())
+    const { unmount } = abrirEn('/admin/denuncias/productores/2')
+    await screen.findByRole('article', { name: 'Denuncia 21: Cacao en grano fermentado 1 kg' })
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Recibidas (1)', 'En revisión (0)', 'Resueltas (1)', 'Desestimadas (0)'])
+    expect(screen.getByRole('tab', { selected: true })).toHaveTextContent('Recibidas (1)')
+    unmount()
+
+    const soloResueltas = copia(DATOS.expedienteDenuncias)
+    soloResueltas.denuncias = soloResueltas.denuncias.filter((d) => d.estado === 'RESUELTA')
+    servidor(comoSub({ [`GET ${EXPEDIENTE}`]: () => [200, soloResueltas] }))
+    abrirEn('/admin/denuncias/productores/2')
+    expect(await (await panel('Resueltas')).findByRole('article', { name: 'Denuncia 17: Contra la comunidad' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { selected: true })).toHaveTextContent('Resueltas (1)')
+  })
+
+  it('busca por texto (también motivo y quién denunció) y filtra por producto y fechas dentro de la pestaña, y los filtros se mantienen al cambiarla', async () => {
+    servidor(comoSub({ [`GET ${EXPEDIENTE}`]: () => [200, variado()] }))
+    const user = userEvent.setup()
+    abrirEn('/admin/denuncias/productores/2')
+    await abrirPestana(user, 'Resueltas')
+    expect(denunciasVisibles()).toEqual(['Denuncia 17', 'Denuncia 12'])
+    // El producto ofrece solo los denunciados y la comunidad; el motivo no tiene selector, se busca
+    const producto = screen.getByLabelText('Producto')
+    expect([...producto.options].map((o) => o.textContent)).toEqual(['Todos', 'Cacao en grano fermentado 1 kg', 'Miel de abeja 500 g', 'Contra la comunidad'])
+    expect(screen.queryByRole('combobox', { name: 'Motivo' })).not.toBeInTheDocument()
+    await user.selectOptions(producto, 'Contra la comunidad')
+    expect(denunciasVisibles()).toEqual(['Denuncia 17'])
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+    const buscador = screen.getByRole('searchbox', { name: 'Buscar por descripción, producto, motivo o quién denunció' })
+    await user.type(buscador, 'ana torres')
+    expect(denunciasVisibles()).toEqual(['Denuncia 12'])
+    await user.clear(buscador)
+    await user.type(buscador, 'practica indebida')
+    expect(denunciasVisibles()).toEqual(['Denuncia 17'])
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+    await user.type(screen.getByLabelText('Desde'), '2026-09-30')
+    expect(denunciasVisibles()).toEqual(['Denuncia 17'])
+    await user.type(buscador, 'mala calidad')
+    expect(screen.getByText('Nada coincide con la búsqueda y los filtros')).toBeInTheDocument()
+    // Al cambiar de pestana siguen puestos
+    await abrirPestana(user, 'Desestimadas')
+    expect(denunciasVisibles()).toEqual([])
+    expect(screen.getByText('Nada coincide con la búsqueda y los filtros')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+    expect(denunciasVisibles()).toEqual(['Denuncia 9'])
   })
 })
 

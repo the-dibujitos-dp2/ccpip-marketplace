@@ -25,7 +25,8 @@ import pe.ccpip.support.IntegrationTest;
  * CCPIP-83 (RF-90): el comprador denuncia un producto o un productor con motivo y descripcion, sin
  * aprobacion previa. CCPIP-116 (RF-91) y CCPIP-323 (RF-216): el productor ve las suyas anonimizadas en el
  * servidor y responde. CCPIP-84 (RF-77): el subadministrador las consulta por productor, ordenadas por
- * cantidad, con su historial. RNF-41: el denunciante no aparece en ninguna respuesta.
+ * cantidad, con su historial. RNF-41: el productor nunca ve al denunciante. CCPIP-432: la administracion
+ * ve su nombre, pero nunca su correo.
  */
 @Transactional
 class DenunciasTest extends IntegrationTest {
@@ -199,8 +200,8 @@ class DenunciasTest extends IntegrationTest {
     }
 
     @Test
-    void elExpedienteMuestraElHistorialCompletoSinElDenunciante() throws Exception {
-        // Compra recibida del productor: el subadministrador lo sabe sin saber quien es
+    void elExpedienteMuestraQuienDenuncioYElHistorialCompleto() throws Exception {
+        // Compra recibida del productor: el subadministrador lo sabe
         long pedido = jdbc.queryForObject("""
                 INSERT INTO pedido (numero, usuario_id, modalidad, ubicacion_origen_id, total, estado, confirmado_en)
                 SELECT 'DEN-1', u.id, 'RECOJO', l.id, 20, 'ENTREGADO', now()
@@ -224,6 +225,8 @@ class DenunciasTest extends IntegrationTest {
                 .andExpect(jsonPath("$.productor.abiertas").value(0))
                 .andExpect(jsonPath("$.denuncias[0].estado").value("RESUELTA"))
                 .andExpect(jsonPath("$.denuncias[0].compraVerificada").value(true))
+                // CCPIP-432: la administracion ve quien denuncio, en la denuncia y en el paso de registro
+                .andExpect(jsonPath("$.denuncias[0].denunciante").value(NOMBRE_DENUNCIANTE))
                 .andExpect(jsonPath("$.denuncias[0].descripcion").value(
                         "El aceite llegó rancio. Escríbeme a [correo oculto] o al [teléfono oculto]."))
                 .andExpect(jsonPath("$.denuncias[0].respuestaProductor").value("Revisamos el lote y lo reemplazaremos."))
@@ -231,13 +234,18 @@ class DenunciasTest extends IntegrationTest {
                 .andExpect(jsonPath("$.denuncias[0].historial[*].tipo")
                         .value(contains("REGISTRADA", "RESPUESTA", "CAMBIO_ESTADO", "CAMBIO_ESTADO")))
                 .andExpect(jsonPath("$.denuncias[0].historial[0].rol").value("CONSUMIDOR"))
-                .andExpect(jsonPath("$.denuncias[0].historial[0].responsable").doesNotExist())
+                .andExpect(jsonPath("$.denuncias[0].historial[0].responsable").value(NOMBRE_DENUNCIANTE))
                 .andExpect(jsonPath("$.denuncias[0].historial[0].nota").doesNotExist())
                 .andExpect(jsonPath("$.denuncias[0].historial[1].responsable").exists())
                 .andExpect(jsonPath("$.denuncias[0].historial[3].responsable").value("Sub-Administrador de Prueba"))
                 .andExpect(jsonPath("$.denuncias[0].historial[3].nota").value("El productor reemplazó el lote."))
                 .andReturn().getResponse().getContentAsString();
-        assertThat(cuerpo).doesNotContain(NOMBRE_DENUNCIANTE).doesNotContain(DENUNCIANTE).doesNotContain("reservada@correo.pe");
+        // Su nombre si, pero nunca su correo ni los datos de contacto que escribio
+        assertThat(cuerpo).doesNotContain(DENUNCIANTE).doesNotContain("reservada@correo.pe").doesNotContain("987 654 321");
+        // El superadministrador consulta lo mismo, en modo lectura
+        mockMvc.perform(get("/api/admin/denuncias/productores/" + productor).cookie(loginAs("sudo@ccpip.test")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.denuncias[0].denunciante").value(NOMBRE_DENUNCIANTE));
         // Quien cambio el estado queda auditado en la base
         assertThat(jdbc.queryForObject("""
                 SELECT count(*) FROM denuncia_evento e JOIN usuario u ON u.id = e.usuario_id
