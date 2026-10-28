@@ -179,6 +179,7 @@ export default function MisEntregasPage({ path }) {
               {entregadas.length === 0 ? (
                 <p className="caption mis-entregas__nada">{t('distribuidor.entregas.sinEntregadosHoy')}</p>
               ) : (
+                <div className="mis-entregas__tabla-scroll" role="region" aria-label={t('distribuidor.entregas.entregadosHoy')} tabIndex={0}>
                 <table className="mis-entregas__tabla">
                   <caption className="visually-hidden">{t('distribuidor.entregas.entregadosHoy')}</caption>
                   <thead>
@@ -200,6 +201,7 @@ export default function MisEntregasPage({ path }) {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
           </div>
