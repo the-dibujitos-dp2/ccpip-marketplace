@@ -2750,7 +2750,8 @@
     "guardando": "Guardando…",
     "guardarCambios": "Guardar cambios",
     "editada": "Dirección actualizada.",
-    "errorCatalogo": "No pudimos cargar el catálogo territorial."
+    "errorCatalogo": "No pudimos cargar el catálogo territorial.",
+    "reglaDireccion": "La dirección debe tener al menos 5 caracteres y una letra."
   },
   "misDatos": {
     "titulo": "Datos personales",

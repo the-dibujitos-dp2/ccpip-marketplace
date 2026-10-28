@@ -68,6 +68,49 @@ describe('CW-13 Mis direcciones (CCPIP-393)', () => {
     expect(llamadas(fetchMock, DIRECCIONES)).toHaveLength(2)
   })
 
+  it('bloquea dirección inválida con ayuda de campo y no envía PUT', async () => {
+    const fetchMock = servidor(comoComprador({
+      'GET /api/territorio/departamentos': [200, ['Lima']],
+      'GET /api/territorio/provincias': [200, ['Lima']],
+      'GET /api/territorio/distritos': [200, [{ ubigeo: '150122', departamento: 'Lima', provincia: 'Lima', distrito: 'Miraflores' }]],
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/cuenta/direcciones')
+    const tarjeta = (await screen.findByText('Casa')).closest('li')
+    await usuario.click(within(tarjeta).getByRole('button', { name: 'Editar dirección' }))
+    const formulario = within(await screen.findByRole('form', { name: 'Editar dirección' }))
+    const direccion = formulario.getByLabelText('Dirección')
+    await waitFor(() => expect(direccion).toBeValid())
+    await usuario.clear(direccion)
+    await usuario.type(direccion, '1234')
+    expect(direccion).toBeInvalid()
+    expect(formulario.getByText('La dirección debe tener al menos 5 caracteres y una letra.')).toBeInTheDocument()
+    await usuario.click(formulario.getByRole('button', { name: 'Guardar cambios' }))
+    expect(llamadas(fetchMock, 'PUT /api/cuenta/direcciones/3')).toHaveLength(0)
+  })
+
+  it('acepta una dirección válida con letra Unicode y la guarda', async () => {
+    let lista = copia(GUARDADAS)
+    const fetchMock = servidor(comoComprador({
+      [DIRECCIONES]: () => [200, lista],
+      'GET /api/territorio/departamentos': [200, ['Lima']],
+      'GET /api/territorio/provincias': [200, ['Lima']],
+      'GET /api/territorio/distritos': [200, [{ ubigeo: '150122', departamento: 'Lima', provincia: 'Lima', distrito: 'Miraflores' }]],
+      'PUT /api/cuenta/direcciones/3': op => { const body = JSON.parse(op.body); lista = lista.map(d => d.id === 3 ? { ...d, ...body } : d); return [200, lista[1]] },
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/cuenta/direcciones')
+    const tarjeta = (await screen.findByText('Casa')).closest('li')
+    await usuario.click(within(tarjeta).getByRole('button', { name: 'Editar dirección' }))
+    const formulario = within(await screen.findByRole('form', { name: 'Editar dirección' }))
+    const direccion = formulario.getByLabelText('Dirección')
+    await usuario.clear(direccion)
+    await usuario.type(direccion, 'Árbol 123')
+    await usuario.click(formulario.getByRole('button', { name: 'Guardar cambios' }))
+    await waitFor(() => expect(llamadas(fetchMock, 'PUT /api/cuenta/direcciones/3')).toHaveLength(1))
+    expect(JSON.parse(llamadas(fetchMock, 'PUT /api/cuenta/direcciones/3')[0][1].body).direccion).toBe('Árbol 123')
+  })
+
   it('edita con el catalogo territorial y reinicia descendientes al cambiar departamento', async () => {
     servidor(comoComprador({
       [DIRECCIONES]: [200, copia(GUARDADAS)],

@@ -43,7 +43,7 @@ export default function EditorDireccion394({ direccion, guardando, error, onGuar
       <Campo tipo="selector" etiqueta={t('compra.domicilio.departamento')} value={form.departamento} onChange={escribir('departamento')} opciones={opciones(departamentos.opciones)} disabled={departamentos.cargando} required />
       <Campo tipo="selector" etiqueta={t('compra.domicilio.provincia')} value={form.provincia} onChange={escribir('provincia')} opciones={opciones(provincias.opciones)} disabled={!form.departamento || provincias.cargando} required />
       <Campo tipo="selector" etiqueta={t('compra.domicilio.distrito')} value={form.ubigeo} onChange={escribir('ubigeo')} opciones={distritos.opciones.map(d => ({ valor: d.ubigeo, etiqueta: d.distrito }))} disabled={!form.provincia || distritos.cargando} required />
-      <Campo etiqueta={t('misDirecciones.direccionCampo')} value={form.direccion} onChange={escribir('direccion')} maxLength={255} autoComplete="street-address" required />
+      <Campo etiqueta={t('misDirecciones.direccionCampo')} ayuda={t('misDirecciones.reglaDireccion')} value={form.direccion} onChange={escribir('direccion')} minLength={5} maxLength={255} pattern={'(?=.*\\p{L}).{5,}'} title={t('misDirecciones.reglaDireccion')} autoComplete="street-address" required />
       <Campo etiqueta={t('misDirecciones.referenciaCampo')} value={form.referencia} onChange={escribir('referencia')} maxLength={255} />
     </fieldset>
     {errorCatalogo && <div role="alert"><p>{t('misDirecciones.errorCatalogo')}</p><Boton tipo="secundario" onClick={() => setVersion(v => v + 1)} disabled={guardando}>{t('carrito.reintentar')}</Boton></div>}

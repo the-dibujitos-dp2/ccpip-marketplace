@@ -2750,7 +2750,8 @@
     "guardando": "Saving…",
     "guardarCambios": "Save changes",
     "editada": "Address updated.",
-    "errorCatalogo": "We could not load the territorial catalogue."
+    "errorCatalogo": "We could not load the territorial catalogue.",
+    "reglaDireccion": "The address must have at least 5 characters and one letter."
   },
   "misDatos": {
     "titulo": "Personal details",
