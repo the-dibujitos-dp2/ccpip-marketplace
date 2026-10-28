@@ -40,7 +40,8 @@ describe('i18n (CCPIP-98)', () => {
 
   it('al cambiar a inglés traduce la interfaz y el atributo lang', async () => {
     await i18n.changeLanguage('en')
-    render(<><PieDePagina /><SelloOrigen variante="completo" /></>)
+    const sellos = [{ tipo: 'ORIGEN_VERIFICADO', titulo: 'Comunidad Shipibo Konibo', emisor: 'Ucayali', desde: null, hasta: null }]
+    render(<><PieDePagina /><SelloOrigen variante="completo" sellos={sellos} /></>)
     expect(screen.getByText('Explore products')).toBeInTheDocument()
     expect(screen.getByText('Origin verified by CCPIP')).toBeInTheDocument()
     expect(document.documentElement.lang).toBe('en')

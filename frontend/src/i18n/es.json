@@ -15,6 +15,7 @@
     "limpiarFiltros": "Limpiar filtros",
     "sinCoincidencias": "Nada coincide con la búsqueda y los filtros",
     "sinCoincidenciasTexto": "Prueba con otras palabras o limpia los filtros.",
+    "conteo": "{{titulo}} ({{total}})",
     "descargas": {
       "cargando": "Actualizando el reporte; podrás descargarlo en cuanto termine.",
       "pendiente": "Para descargar, el reporte debe mostrar los filtros elegidos: completa el período o vuelve a intentarlo."
@@ -1114,7 +1115,6 @@
         "ENTREGADO": "Entregado hoy",
         "EN_CAMINO": "En camino"
       },
-      "columnaConteo": "{{titulo}} ({{total}})",
       "estados": "Pedidos por estado",
       "lista": "Pedidos del estado elegido",
       "buscar": "Buscar por pedido, producto, comunidad o quien recogió",
@@ -1878,9 +1878,16 @@
   "sello": {
     "titulo": "Origen verificado por la CCPIP",
     "corto": "Origen verificado",
-    "ceroDeforestacion": "Cero deforestación",
-    "ceroPesticidas": "Cero pesticidas o herbicidas",
-    "comunidadIndigena": "Elaborado por comunidad indígena"
+    "origen": {
+      "significado": "La Cámara verificó que este producto lo elabora {{comunidad}} ({{region}}), una comunidad indígena asociada.",
+      "desde": "Verificado el {{fecha}}."
+    },
+    "certificados": "Certificados vigentes revisados por la Cámara",
+    "certificado": {
+      "respaldo": "Emitido por {{emisor}} · vigente hasta el {{fecha}}",
+      "vigente": "Vigente hasta el {{fecha}}"
+    },
+    "nota": "Solo mostramos sellos con respaldo: la verificación de origen de la Cámara y los certificados vigentes que revisó. Una condición como cero deforestación o sin pesticidas solo se afirma si un certificado la acredita."
   },
   "modalidad": {
     "MINORISTA": "Minorista",
@@ -1935,14 +1942,14 @@
       "conocer": "Conocer a las comunidades"
     },
     "valores": {
-      "etiqueta": "Lo que garantiza cada producto",
+      "etiqueta": "Lo que respalda la Cámara",
       "deforestacion": {
         "titulo": "Cero deforestación",
-        "texto": "Productos que no vienen de áreas taladas."
+        "texto": "Lo afirmamos solo cuando un certificado vigente lo acredita."
       },
       "pesticidas": {
         "titulo": "Cero pesticidas",
-        "texto": "Sin agroquímicos en cultivo ni transformación."
+        "texto": "Lo afirmamos solo cuando un certificado vigente lo acredita."
       },
       "comunidades": {
         "titulo": "Hecho por comunidades",
@@ -1950,7 +1957,7 @@
       },
       "verificado": {
         "titulo": "Verificado por la Cámara",
-        "texto": "Muestra física y certificados revisados."
+        "texto": "Origen de la comunidad y certificados revisados por la Cámara."
       }
     },
     "error": "No pudimos cargar el inicio",
@@ -2232,7 +2239,12 @@
     "VIDEO_NO_ENCONTRADO": "El video no existe.",
     "REEMPLAZO_EN_REVISION": "Este video ya tiene un reemplazo en revisión. Espera la decisión de la Cámara o retíralo.",
     "SIN_EVIDENCIAS": "Adjunta al menos una evidencia del producto antes de solicitar su autorización.",
-    "SOLICITUD_EN_REVISION": "La solicitud de este producto ya está en revisión de la Cámara."
+    "SOLICITUD_EN_REVISION": "La solicitud de este producto ya está en revisión de la Cámara.",
+    "FECHA_FUTURA": "La fecha no puede ser posterior a hoy.",
+    "RECEPCION_ANTES_DEL_ENVIO": "La recepción no puede ser anterior al envío.",
+    "OBSERVACIONES_REQUERIDAS": "Explica en las observaciones qué se encontró en la evidencia.",
+    "EVIDENCIA_FISICA_YA_RECIBIDA": "La recepción de esta evidencia física ya se registró.",
+    "EVIDENCIA_FISICA_NO_ENCONTRADA": "La evidencia física no existe en esta solicitud."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -2396,7 +2408,7 @@
       "cosechaDel": "producido el {{fecha}}",
       "nota": "Premios declarados por el productor, cada uno con un documento de respaldo que no se publica. La Cámara no los certifica."
     },
-    "verificando": "La Cámara aún está verificando el origen de esta comunidad.",
+    "sinSellos": "Este producto todavía no tiene un origen verificado ni certificados vigentes que mostrar. Eso no significa que esté aprobado ni rechazado.",
     "sobreCosecha": "Sobre esta cosecha",
     "consumirAntes": "Consumir antes de",
     "volumen": {
@@ -3348,6 +3360,40 @@
       "error": "No pudimos registrar la solicitud",
       "registrada": "Solicitud de renovación registrada",
       "registradaTexto": "Avisamos al productor por correo."
+    },
+    "fisica": {
+      "titulo": "Evidencias físicas",
+      "texto": "Registra el envío de una muestra o un documento original solo cuando la evaluación lo requiera, y después su recepción con el resultado. Es opcional: aprobar no exige ninguna y el resultado no decide la solicitud.",
+      "lista": "Evidencias físicas de esta solicitud",
+      "registrarEnvio": "Registrar envío",
+      "registrarRecepcion": "Registrar recepción",
+      "dialogoEnvio": "Registrar el envío de una evidencia física",
+      "dialogoEnvioTexto": "Queda en el expediente tal como lo registres: no se edita ni se borra.",
+      "dialogoRecepcion": "Registrar la recepción de «{{descripcion}}»",
+      "dialogoRecepcionTexto": "El resultado es un insumo de la revisión: la solicitud se sigue decidiendo aparte, con motivo. La recepción se registra una sola vez.",
+      "descripcion": "Qué se envía",
+      "descripcionAyuda": "Por ejemplo: muestra de 500 g de cacao en grano.",
+      "referencia": "Guía o referencia (opcional)",
+      "fechaEnvio": "Fecha de envío",
+      "fechaRecepcion": "Fecha de recepción",
+      "resultadoEtiqueta": "Resultado",
+      "resultado": {
+        "CONFORME": "Conforme",
+        "OBSERVADA": "Con observaciones",
+        "NO_CONFORME": "No conforme"
+      },
+      "observaciones": "Observaciones (opcional)",
+      "observacionesAyuda": "Obligatorias si el resultado no es conforme.",
+      "enviadaEl": "Enviada el {{fecha}}",
+      "recibidaEl": "Recibida el {{fecha}}",
+      "registradaPor": "Registrada por {{nombre}} el {{fecha}}",
+      "envioRegistrado": "Envío registrado",
+      "recepcionRegistrada": "Recepción registrada",
+      "error": "No pudimos registrar la evidencia física",
+      "errorDescripcion": "Describe la evidencia física que se envía",
+      "errorFecha": "Indica la fecha",
+      "errorResultado": "Elige el resultado de la revisión",
+      "errorObservaciones": "Explica qué se encontró en la evidencia"
     }
   },
   "moderacion": {
@@ -3971,7 +4017,13 @@
     "denunciarProducto": "Denunciar este producto",
     "ingresaParaDenunciar": "Ingresa para denunciar este producto",
     "denunciar": "Denunciar",
-    "denunciarDe": "Denunciar {{nombre}}"
+    "denunciarDe": "Denunciar {{nombre}}",
+    "filtros": {
+      "producto": "Producto",
+      "todos": "Todos",
+      "desde": "Desde",
+      "hasta": "Hasta"
+    }
   },
   "denunciasProductor": {
     "titulo": "Denuncias recibidas",
@@ -3990,7 +4042,20 @@
     "responder": "Tu respuesta",
     "responderAyuda": "La verán la Cámara y el comprador. Solo puedes responder una vez.",
     "enviarRespuesta": "Enviar respuesta",
-    "cerradaSinRespuesta": "La Cámara cerró esta denuncia sin respuesta tuya."
+    "cerradaSinRespuesta": "La Cámara cerró esta denuncia sin respuesta tuya.",
+    "pestanasEtiqueta": "Qué denuncias ver",
+    "pestana": {
+      "abiertas": "Abiertas",
+      "sinResponder": "Sin responder",
+      "cerradas": "Cerradas"
+    },
+    "buscar": "Buscar por descripción, producto, motivo o tu respuesta",
+    "vacioPestana": {
+      "abiertas": "No tienes denuncias abiertas",
+      "sinResponder": "Respondiste todas tus denuncias abiertas",
+      "cerradas": "No tienes denuncias cerradas"
+    },
+    "respuestaEnviada": "Enviamos tu respuesta. La verán la Cámara y el comprador."
   },
   "denunciasAdmin": {
     "titulo": "Denuncias contra productores",
@@ -4015,7 +4080,7 @@
     },
     "verHistorial": "Ver historial",
     "verHistorialDe": "Ver historial de denuncias de {{organizacion}}",
-    "notaPie": "Ordenadas por cantidad de denuncias. La identidad de quien denuncia está protegida. Los reportes analíticos están en el tablero.",
+    "notaPie": "Ordenadas por cantidad de denuncias. Solo la administración ve quién denuncia; el productor no. Los reportes analíticos están en el tablero.",
     "volver": "← Volver a denuncias",
     "sinDenuncias": "Esta comunidad no tiene denuncias",
     "resumenProductor": "{{total}} denuncias · {{abiertas}} abiertas",
@@ -4023,7 +4088,25 @@
     "contraComunidad": "Contra la comunidad",
     "denuncia": "Denuncia {{id}}: {{titulo}}",
     "compraVerificada": "Compra verificada",
-    "recibida": "Recibida el {{fecha}} · {{motivo}}",
+    "detalleDe": "Detalle de la denuncia {{id}}",
+    "detalle": {
+      "denunciado": "Denunciado",
+      "productoDe": "{{producto}}, de {{organizacion}}",
+      "laComunidad": "La comunidad {{organizacion}}",
+      "denuncio": "Denunció",
+      "fecha": "Fecha",
+      "motivo": "Motivo"
+    },
+    "anteriores": {
+      "producto": "Denuncias anteriores sobre este producto ({{n}})",
+      "comunidad": "Denuncias anteriores sobre esta comunidad ({{n}})",
+      "sin": {
+        "producto": "Es la primera denuncia sobre este producto.",
+        "comunidad": "Es la primera denuncia sobre esta comunidad."
+      },
+      "de": "Denuncias anteriores a la denuncia {{id}}",
+      "item": "Denuncia {{id}} · {{titulo}} · {{motivo}}"
+    },
     "respuestaProductor": "Respuesta del productor",
     "historialDe": "Historial de la denuncia {{id}}",
     "evento": {
@@ -4041,7 +4124,18 @@
     "guardar": "Guardar cambio",
     "bloqueo": "Bloqueo de ventas",
     "bloqueoTexto": "Si las denuncias lo justifican, bloquea sus ventas con un motivo. Sus productos quedan en venta pausada y los pedidos en curso se mantienen.",
-    "bloqueadoTexto": "Sus ventas están bloqueadas. Puedes desbloquearlas con un motivo."
+    "bloqueadoTexto": "Sus ventas están bloqueadas. Puedes desbloquearlas con un motivo.",
+    "pestanasEtiqueta": "Estado de las denuncias",
+    "pestana": {
+      "RECIBIDA": "Recibidas",
+      "EN_REVISION": "En revisión",
+      "RESUELTA": "Resueltas",
+      "DESESTIMADA": "Desestimadas"
+    },
+    "buscar": "Buscar por descripción, producto, motivo o quién denunció",
+    "vacioPestana": "No hay denuncias en estado {{estado}}",
+    "movida": "La denuncia {{id}} pasó a {{estado}}",
+    "movidaTexto": "Ahora está en la pestaña {{pestana}}."
   },
   "minimoCalificaciones": {
     "seccion": "Calificaciones mínimas para mostrar el promedio",

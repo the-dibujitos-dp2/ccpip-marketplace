@@ -22,6 +22,7 @@ import { fechaCorta, fechaHora } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import { BadgeAnalisis } from './AutorizacionesPage.jsx'
+import EvidenciasFisicas from './EvidenciasFisicas.jsx'
 import RenovacionesCertificado from './RenovacionesCertificado.jsx'
 import { CampoMotivo, DialogoDecision, FilaEvidencia, SinExpediente, useDecision } from './revision.jsx'
 import '../productor/productor.css'
@@ -137,6 +138,8 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
               ))}
             </ul>
           </section>
+
+          <EvidenciasFisicas autorizacionId={exp.id} pendiente={exp.puedeDecidir} />
 
           <RenovacionesCertificado
             autorizacionId={exp.id}

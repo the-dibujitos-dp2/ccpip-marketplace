@@ -17,12 +17,13 @@ import { VigenciaYArchivo } from '../productor/EvidenciasPage.jsx'
  * S-02) y moderacion de publicaciones (CCPIP-46). `textos` es el espacio de nombres de cada modulo.
  */
 
-/** Las pestanas por estado de una bandeja: `{textos}.pestana.{estado}`. */
-export function PestanasEstado({ textos, estados, valor, onCambiar }) {
+/** Las pestanas por estado de una bandeja: `{textos}.pestana.{estado}`, con `cuantas(estado)` entre parentesis si se da. */
+export function PestanasEstado({ textos, estados, valor, onCambiar, cuantas }) {
   const { t } = useTranslation()
+  const etiqueta = (e) => (cuantas ? t('comun.conteo', { titulo: t(`${textos}.pestana.${e}`), total: cuantas(e) }) : t(`${textos}.pestana.${e}`))
   return (
     <Pestanas etiqueta={t(`${textos}.pestanasEtiqueta`)} valor={valor} onCambiar={onCambiar}
-      opciones={estados.map((e) => ({ valor: e, etiqueta: t(`${textos}.pestana.${e}`) }))} />
+      opciones={estados.map((e) => ({ valor: e, etiqueta: etiqueta(e) }))} />
   )
 }
 
