@@ -67,6 +67,13 @@ public class DireccionesGuardadasService {
     /** CCPIP-394: modifica únicamente una dirección activa propia; los pedidos conservan su snapshot. */
     @Transactional
     public DireccionGuardada modificar(long usuarioId, long direccionId, NuevaDireccion nueva) {
+        var propias = jdbc.queryForList("""
+                SELECT id FROM direccion_guardada
+                WHERE id = :id AND usuario_id = :usuario AND activa FOR UPDATE""",
+                new MapSqlParameterSource("id", direccionId).addValue("usuario", usuarioId), Long.class);
+        if (propias.isEmpty()) {
+            throw ErrorNegocio.noEncontrado("DIRECCION_NO_ENCONTRADA", "La dirección no existe.");
+        }
         EntregaService.validarDireccion(nueva.direccion());
         String direccion = nueva.direccion().strip();
         MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId).addValue("id", direccionId)
