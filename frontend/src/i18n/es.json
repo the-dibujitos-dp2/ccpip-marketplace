@@ -2740,7 +2740,18 @@
     "confirmarTexto": "¿Quieres retirar {{direccion}} de tus direcciones guardadas? No se quitará de los pedidos anteriores.",
     "retirando": "Retirando…",
     "retirada": "Dirección retirada",
-    "errorRetirar": "No pudimos retirar la dirección. Inténtalo de nuevo."
+    "errorRetirar": "No pudimos retirar la dirección. Inténtalo de nuevo.",
+    "editar": "Editar dirección",
+    "alias": "Alias",
+    "ubigeo": "Ubigeo",
+    "direccionCampo": "Dirección",
+    "referenciaCampo": "Referencia",
+    "errorEditar": "No pudimos guardar los cambios. Inténtalo de nuevo.",
+    "guardando": "Guardando…",
+    "guardarCambios": "Guardar cambios",
+    "editada": "Dirección actualizada.",
+    "errorCatalogo": "No pudimos cargar el catálogo territorial.",
+    "reglaDireccion": "La dirección debe tener al menos 5 caracteres y una letra."
   },
   "misDatos": {
     "titulo": "Datos personales",
@@ -3068,6 +3079,20 @@
       "titulo_other": "La Cámara te pide renovar {{count}} certificados",
       "detalle": "«{{certificado}}» antes del {{plazo}}. Motivo: {{motivo}}",
       "venta": "Tu producto sigue a la venta. Si el certificado vence sin renovarse, su venta queda pausada hasta que se apruebe uno nuevo."
+    },
+    "vinculo": {
+      "accion": "Vincular lote",
+      "formulario": "Vincular lote al certificado {{titulo}}",
+      "lote": "Lote del certificado {{titulo}}",
+      "registrado": "Vínculo registrado con lote {{lote}}",
+      "sinAprobacion": "Registrar el vínculo no aprueba ni publica el certificado o el lote.",
+      "incompleto": "Para vincular este certificado se requieren emisor, inicio de vigencia y vencimiento. El documento histórico se conserva.",
+      "cargando": "Consultando vínculo del certificado…",
+      "errorLeer": "No pudimos consultar el vínculo y los lotes.",
+      "errorGuardar": "No pudimos vincular el certificado. Reintenta o recarga los datos.",
+      "reintentar": "Reintentar",
+      "sinLotes": "Este producto no tiene lotes disponibles en su registro.",
+      "metadatos": "Emisor: {{emisor}} · Inicio: {{desde}} · Vencimiento: {{hasta}}"
     }
   },
   "premios": {

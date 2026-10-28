@@ -64,6 +64,39 @@ public class DireccionesGuardadasService {
         return jdbc.queryForObject(DIRECCIONES + "WHERE d.id = :id", new MapSqlParameterSource("id", id), DIRECCION);
     }
 
+    /** CCPIP-394: modifica únicamente una dirección activa propia; los pedidos conservan su snapshot. */
+    @Transactional
+    public DireccionGuardada modificar(long usuarioId, long direccionId, NuevaDireccion nueva) {
+        var propias = jdbc.queryForList("""
+                SELECT id FROM direccion_guardada
+                WHERE id = :id AND usuario_id = :usuario AND activa FOR UPDATE""",
+                new MapSqlParameterSource("id", direccionId).addValue("usuario", usuarioId), Long.class);
+        if (propias.isEmpty()) {
+            throw ErrorNegocio.noEncontrado("DIRECCION_NO_ENCONTRADA", "La dirección no existe.");
+        }
+        EntregaService.validarDireccion(nueva.direccion());
+        String direccion = nueva.direccion().strip();
+        MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId).addValue("id", direccionId)
+                .addValue("ubigeo", nueva.ubigeo()).addValue("direccion", direccion)
+                .addValue("alias", vacioANulo(nueva.alias())).addValue("referencia", vacioANulo(nueva.referencia()));
+        Boolean admitido = jdbc.queryForObject("SELECT EXISTS (SELECT 1 FROM ubigeo WHERE codigo = :ubigeo)", p, Boolean.class);
+        if (!Boolean.TRUE.equals(admitido)) {
+            throw ErrorNegocio.invalido("DESTINO_NO_ADMITIDO", "Ese distrito no está entre los destinos admitidos.");
+        }
+        Boolean repetida = jdbc.queryForObject("""
+                SELECT EXISTS (SELECT 1 FROM direccion_guardada
+                               WHERE usuario_id = :usuario AND activa AND id <> :id AND ubigeo = :ubigeo
+                                 AND lower(direccion) = lower(:direccion))""", p, Boolean.class);
+        if (Boolean.TRUE.equals(repetida)) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "DIRECCION_YA_GUARDADA", "Ya guardaste esa dirección.");
+        }
+        int actualizadas = jdbc.update("""
+                UPDATE direccion_guardada SET alias = :alias, ubigeo = :ubigeo, direccion = :direccion,
+                    referencia = :referencia WHERE id = :id AND usuario_id = :usuario AND activa""", p);
+        if (actualizadas == 0) throw ErrorNegocio.noEncontrado("DIRECCION_NO_ENCONTRADA", "La dirección no existe.");
+        return jdbc.queryForObject(DIRECCIONES + "WHERE d.id = :id", p, DIRECCION);
+    }
+
     /**
      * CCPIP-393: las direcciones activas del comprador de la sesion, la ultima que guardo primero. Las de otros
      * compradores y las retiradas (CCPIP-395) no aparecen (RNF-05).

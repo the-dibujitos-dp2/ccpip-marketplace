@@ -102,6 +102,15 @@ La integración exige, en este orden:
 
 Solo cuando CI requerida esté verde, no haya conflicto ni hallazgo bloqueante de revisión, y el ledger registre la evidencia de los cinco puntos anteriores, el orquestador ejecuta `Squash and merge` conforme a los permisos y la política del repositorio. Esa evidencia es el límite de auditoría del orquestador; ningún otro agente hace merge. El merge no autoriza despliegue ni cambio automático de estado en Jira. Si algún gate falla, la PR vuelve al carril de corrección y el ledger registra el motivo.
 
+### Integración sin despliegue automático
+
+Antes de cada merge se inspeccionan los triggers reales de `.github/workflows`. La autorización de integración no autoriza los efectos de un workflow de despliegue disparado por `push` a `main`.
+
+- Si el merge activa `Deploy`, el orquestador debe tener preparado un control acotado a su SHA de merge: identificar y cancelar esa ejecución antes de que empiecen los jobs de imágenes/publicación o EC2. Leer de vuelta su conclusión y los pasos de esos jobs; una solicitud de cancelación por sí sola no prueba que se detuvieron a tiempo.
+- Ejecutar después únicamente `ci.yml` mediante `workflow_dispatch` sobre `main`, comprobar que `headSha` coincide con la SHA recién integrada y verificar todos los checks y el análisis Sonar de esa revisión. La cancelación preventiva de `Deploy` no se presenta como CI aprobada ni sustituye ese CI independiente.
+- No desactivar workflows, cambiar triggers/protecciones, omitir scanners ni alterar credenciales para lograrlo. Si el control no puede garantizarse o un paso de despliegue ya comenzó, detener nuevas integraciones y comunicar el estado exacto; no iniciar ni revertir despliegues por cuenta propia.
+- Guardar por separado las evidencias de PR verde, merge, cancelación preventiva sin pasos de despliegue ejecutados y CI/Sonar posterior. Nunca extrapolar a `main` el resultado de la PR por identidad del árbol.
+
 ## Regla de relevo y uso del pool
 
 El pool mantiene hasta cinco carriles implementadores independientes cuando haya historias claras y sin solapamiento material. Las tareas de reconocimiento, CI o revisión son apoyo breve: no deben ocupar la capacidad destinada a historias listas para implementar.

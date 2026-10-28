@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -83,6 +84,24 @@ class DireccionesGuardadasTest extends IntegrationTest {
         return jdbc.queryForObject("""
                 SELECT ubigeo || '|' || direccion || '|' || referencia || '|' || contacto_nombre || '|' || contacto_celular
                 FROM entrega WHERE pedido_id = ?""", String.class, pedido);
+    }
+
+    @Test
+    void editaLaDireccionPropiaSinCambiarPedidoConfirmado() throws Exception {
+        Cookie comprador = loginAs(COMPRADOR);
+        long id = direccionGuardada(COMPRADOR);
+        long pedido = pedidoConDestinoHistorico(COMPRADOR);
+        String destinoAntes = destinoHistorico(pedido);
+        Map<String, Object> cambios = direccion();
+        cambios.put("alias", "Casa nueva");
+        cambios.put("direccion", "Av. Arequipa 456, dpto. 8");
+        mockMvc.perform(put(RUTA + "/{id}", id).cookie(comprador).contentType(MediaType.APPLICATION_JSON)
+                .content(json(cambios)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.alias").value("Casa nueva"))
+                .andExpect(jsonPath("$.direccion").value("Av. Arequipa 456, dpto. 8"));
+        assertThat(destinoHistorico(pedido)).isEqualTo(destinoAntes);
     }
 
     @Test

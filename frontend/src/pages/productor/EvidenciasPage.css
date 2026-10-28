@@ -26,3 +26,8 @@
 @media (max-width: 600px) {
   .evidencias__fechas { grid-template-columns: 1fr; }
 }
+
+.evidencias__vinculo { flex: 1 1 100%; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.evidencias__vinculo .campo { min-width: 0; }
+.evidencias__vinculo p { margin: 0; overflow-wrap: anywhere; }
+.evidencias__vinculo-acciones { display: flex; flex-wrap: wrap; gap: 10px; }

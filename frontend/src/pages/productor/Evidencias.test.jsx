@@ -19,6 +19,8 @@ const productor = (rutas = {}) =>
     'GET /api/auth/me': [200, SESION_PRODUCTOR],
     'GET /api/productor/tienda': () => [200, copia(DATOS.tiendaProductor)],
     [`GET ${RUTA}`]: () => [200, copia(DATOS.evidenciasProductor)],
+    'GET /api/productor/productos/9/lotes': [200, { items: [] }],
+    [`GET ${RUTA}/6f1c2a4e-1b2c-4d3e-8f90-112233445566/lote`]: [204, null],
     ...rutas,
   })
 
@@ -46,6 +48,24 @@ describe('Certificados y evidencias del producto (CCPIP-36)', () => {
       .toHaveAttribute('href', '/api/productor/evidencias/6f1c2a4e-1b2c-4d3e-8f90-112233445566/archivo')
     expect(tarjeta('Documentos').getByText('Pendiente')).toBeInTheDocument()
     expect(screen.getByText('Solo la Cámara y tú pueden verlas.')).toBeInTheDocument()
+  })
+
+  it('vincula certificado a lote propio y relee el vínculo persistido', async () => {
+    const lotePath = `${RUTA}/6f1c2a4e-1b2c-4d3e-8f90-112233445566/lote`
+    const lote = { items: [{ id: 9, codigo: 'L-0009' }] }
+    let vinculo = null
+    const fetchMock = productor({
+      'GET /api/productor/productos/9/lotes': [200, lote],
+      [`GET ${lotePath}`]: () => vinculo ? [200, vinculo] : [204, null],
+      [`POST ${lotePath}`]: ({ body }) => { vinculo = { evidenciaId: '6f1c2a4e-1b2c-4d3e-8f90-112233445566', productoId: 9, loteId: JSON.parse(body).loteId }; return [200, vinculo] },
+    })
+    abrirEn('/productor/productos/9/evidencias')
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole('button', { name: 'Vincular lote', exact: true }))
+    await user.selectOptions(await screen.findByLabelText('Lote del certificado Certificado orgánico de camu camu'), '9')
+    await user.click(screen.getByRole('button', { name: 'Vincular lote' }))
+    expect(await screen.findByText('Vínculo registrado con lote L-0009')).toBeInTheDocument()
+    expect(llamadas(fetchMock, `GET ${lotePath}`)).toHaveLength(2)
   })
 
   it('valida antes de subir y envía el archivo con lo que lo identifica', async () => {
