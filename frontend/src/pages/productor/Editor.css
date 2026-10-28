@@ -40,6 +40,8 @@
   left: 6px;
   right: 6px;
   padding: 2px 4px;
+  /* CCPIP-168: con el interlineado heredado "Hacer principal" medía 52 px en dos lineas y tapaba el chip "Revisar" */
+  line-height: 1.2;
   border: 0;
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.92);
@@ -58,8 +60,9 @@
 .editor__reemplazar:focus-within { outline: 2px solid var(--color-border-focus); outline-offset: 1px; }
 .editor__reemplazar--ocupado { opacity: 0.6; cursor: progress; }
 
-/* CCPIP-144 y CCPIP-168 (Figma 185:4509): un aviso por foto con la recomendacion de la IA */
-.editor__revisar { position: absolute; top: 50%; left: 50%; display: inline-flex; align-items: center; gap: 4px; padding: 6px 8px; border: 0; border-radius: var(--radius-m); background: var(--color-bg-surface); box-shadow: var(--shadow-menu); font-weight: 500; font-size: 12px; color: var(--color-text-primary); transform: translate(-50%, -50%); cursor: pointer; }
+/* CCPIP-144 y CCPIP-168 (Figma 185:4509): un aviso por foto con la recomendacion de la IA. Va entre los
+   botones de las esquinas y "Hacer principal", y por encima de ellos para que el clic nunca lo tome otro boton. */
+.editor__revisar { position: absolute; z-index: 1; top: 45%; left: 50%; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: 0; border-radius: var(--radius-m); background: var(--color-bg-surface); box-shadow: var(--shadow-menu); font-weight: 500; font-size: 12px; color: var(--color-text-primary); transform: translate(-50%, -50%); cursor: pointer; }
 .editor__ia-fotos { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .editor__ia-foto { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: var(--radius-l); background: var(--color-bg-surface-alt); }
 .editor__ia-foto:focus { outline: 2px solid var(--color-border-focus); outline-offset: 2px; }
