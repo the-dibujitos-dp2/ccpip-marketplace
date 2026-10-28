@@ -22,3 +22,6 @@ export const listarDirecciones = () => apiFetch('/api/cuenta/direcciones')
 
 /** CCPIP-395: retira una dirección guardada del consumidor actual; no afecta pedidos históricos. */
 export const retirarDireccion = (id) => apiFetch(`/api/cuenta/direcciones/${idRuta(id)}`, { method: 'DELETE' })
+
+/** CCPIP-394: actualiza una dirección activa propia del consumidor actual. */
+export const actualizarDireccion = (id, direccion) => apiFetch(`/api/cuenta/direcciones/${idRuta(id)}`, { method: 'PUT', body: direccion })

@@ -45,6 +45,94 @@ describe('CW-13 Mis direcciones (CCPIP-393)', () => {
     expect(within(tarjetas[1]).getByText('Referencia: Frente al parque Kennedy')).toBeInTheDocument()
   })
 
+  it('permite editar una dirección guardada y refresca los datos', async () => {
+    let lista = copia(GUARDADAS)
+    const fetchMock = servidor(comoComprador({
+      [DIRECCIONES]: () => [200, lista],
+      'GET /api/territorio/departamentos': [200, ['Lima', 'Cusco']],
+      'GET /api/territorio/provincias': [200, ['Lima']],
+      'GET /api/territorio/distritos': [200, [{ ubigeo: '150122', departamento: 'Lima', provincia: 'Lima', distrito: 'Miraflores' }]],
+      'PUT /api/cuenta/direcciones/3': (op) => { const body = JSON.parse(op.body); lista = lista.map(d => d.id === 3 ? { ...d, ...body, distrito: 'Miraflores', provincia: 'Lima', departamento: 'Lima' } : d); return [200, lista[1]] },
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/cuenta/direcciones')
+    const tarjeta = within(await screen.findByRole('list', { name: 'Mis direcciones' })).getByText('Casa').closest('li')
+    await usuario.click(within(tarjeta).getByRole('button', { name: 'Editar dirección' }))
+    const formulario = await screen.findByRole('form', { name: 'Editar dirección' })
+    expect(within(formulario).getByLabelText('Dirección')).toHaveValue('Av. Larco 123, dpto. 4')
+    await usuario.clear(within(formulario).getByLabelText('Dirección'))
+    await usuario.type(within(formulario).getByLabelText('Dirección'), 'Calle nueva 10')
+    await usuario.click(within(formulario).getByRole('button', { name: 'Guardar cambios' }))
+    expect(await screen.findByText('Calle nueva 10')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'PUT /api/cuenta/direcciones/3')).toHaveLength(1)
+    expect(llamadas(fetchMock, DIRECCIONES)).toHaveLength(2)
+  })
+
+  it('bloquea dirección inválida con ayuda de campo y no envía PUT', async () => {
+    const fetchMock = servidor(comoComprador({
+      'GET /api/territorio/departamentos': [200, ['Lima']],
+      'GET /api/territorio/provincias': [200, ['Lima']],
+      'GET /api/territorio/distritos': [200, [{ ubigeo: '150122', departamento: 'Lima', provincia: 'Lima', distrito: 'Miraflores' }]],
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/cuenta/direcciones')
+    const tarjeta = (await screen.findByText('Casa')).closest('li')
+    await usuario.click(within(tarjeta).getByRole('button', { name: 'Editar dirección' }))
+    const formulario = within(await screen.findByRole('form', { name: 'Editar dirección' }))
+    const direccion = formulario.getByLabelText('Dirección')
+    await waitFor(() => expect(direccion).toBeValid())
+    await usuario.clear(direccion)
+    await usuario.type(direccion, '1234')
+    expect(direccion).toBeInvalid()
+    expect(formulario.getByText('La dirección debe tener al menos 5 caracteres y una letra.')).toBeInTheDocument()
+    await usuario.click(formulario.getByRole('button', { name: 'Guardar cambios' }))
+    expect(llamadas(fetchMock, 'PUT /api/cuenta/direcciones/3')).toHaveLength(0)
+  })
+
+  it('acepta una dirección válida con letra Unicode y la guarda', async () => {
+    let lista = copia(GUARDADAS)
+    const fetchMock = servidor(comoComprador({
+      [DIRECCIONES]: () => [200, lista],
+      'GET /api/territorio/departamentos': [200, ['Lima']],
+      'GET /api/territorio/provincias': [200, ['Lima']],
+      'GET /api/territorio/distritos': [200, [{ ubigeo: '150122', departamento: 'Lima', provincia: 'Lima', distrito: 'Miraflores' }]],
+      'PUT /api/cuenta/direcciones/3': op => { const body = JSON.parse(op.body); lista = lista.map(d => d.id === 3 ? { ...d, ...body } : d); return [200, lista[1]] },
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/cuenta/direcciones')
+    const tarjeta = (await screen.findByText('Casa')).closest('li')
+    await usuario.click(within(tarjeta).getByRole('button', { name: 'Editar dirección' }))
+    const formulario = within(await screen.findByRole('form', { name: 'Editar dirección' }))
+    const direccion = formulario.getByLabelText('Dirección')
+    await usuario.clear(direccion)
+    await usuario.type(direccion, 'Árbol 123')
+    await usuario.click(formulario.getByRole('button', { name: 'Guardar cambios' }))
+    await waitFor(() => expect(llamadas(fetchMock, 'PUT /api/cuenta/direcciones/3')).toHaveLength(1))
+    expect(JSON.parse(llamadas(fetchMock, 'PUT /api/cuenta/direcciones/3')[0][1].body).direccion).toBe('Árbol 123')
+  })
+
+  it('edita con el catalogo territorial y reinicia descendientes al cambiar departamento', async () => {
+    servidor(comoComprador({
+      [DIRECCIONES]: [200, copia(GUARDADAS)],
+      'GET /api/territorio/departamentos': [200, ['Lima', 'Cusco']],
+      'GET /api/territorio/provincias': (_, url) => [200, [new URL(url, 'http://qa.local').searchParams.get('departamento')]],
+      'GET /api/territorio/distritos': (_, url) => [200, new URL(url, 'http://qa.local').searchParams.get('departamento') === 'Lima'
+        ? [{ ubigeo: '150122', departamento: 'Lima', provincia: 'Lima', distrito: 'Miraflores' }]
+        : [{ ubigeo: '080108', departamento: 'Cusco', provincia: 'Cusco', distrito: 'Wanchaq' }]],
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/cuenta/direcciones')
+    const tarjeta = (await screen.findByText('Casa')).closest('li')
+    await usuario.click(within(tarjeta).getByRole('button', { name: 'Editar dirección' }))
+    const formulario = within(await screen.findByRole('form', { name: 'Editar dirección' }))
+    const departamento = await formulario.findByRole('combobox', { name: 'Departamento' })
+    await waitFor(() => expect(departamento).toHaveValue('Lima'))
+    await usuario.selectOptions(departamento, 'Cusco')
+    expect(formulario.getByRole('combobox', { name: 'Provincia' })).toHaveValue('')
+    expect(formulario.getByRole('combobox', { name: 'Distrito de entrega' })).toHaveValue('')
+    expect(formulario.getByRole('button', { name: 'Guardar cambios' })).toBeDisabled()
+  })
+
   it('permite confirmar el retiro de una dirección propia y recarga la lista sin afectar las demás', async () => {
     let lista = [...GUARDADAS]
     const fetchMock = servidor(comoComprador({

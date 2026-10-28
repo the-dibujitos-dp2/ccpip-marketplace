@@ -2740,7 +2740,18 @@
     "confirmarTexto": "¿Quieres retirar {{direccion}} de tus direcciones guardadas? No se quitará de los pedidos anteriores.",
     "retirando": "Retirando…",
     "retirada": "Dirección retirada",
-    "errorRetirar": "No pudimos retirar la dirección. Inténtalo de nuevo."
+    "errorRetirar": "No pudimos retirar la dirección. Inténtalo de nuevo.",
+    "editar": "Editar dirección",
+    "alias": "Alias",
+    "ubigeo": "Ubigeo",
+    "direccionCampo": "Dirección",
+    "referenciaCampo": "Referencia",
+    "errorEditar": "No pudimos guardar los cambios. Inténtalo de nuevo.",
+    "guardando": "Guardando…",
+    "guardarCambios": "Guardar cambios",
+    "editada": "Dirección actualizada.",
+    "errorCatalogo": "No pudimos cargar el catálogo territorial.",
+    "reglaDireccion": "La dirección debe tener al menos 5 caracteres y una letra."
   },
   "misDatos": {
     "titulo": "Datos personales",
