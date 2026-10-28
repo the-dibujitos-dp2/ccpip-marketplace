@@ -15,8 +15,9 @@ import jakarta.validation.constraints.Size;
 
 /**
  * Calificaciones (CCPIP-81, CCPIP-82) y denuncias (CCPIP-83, CCPIP-84, CCPIP-116, CCPIP-323).
- * Ninguna respuesta lleva la identidad del comprador que califica o denuncia (RNF-41): ni su id, ni su
- * nombre, ni su correo. Las respuestas al productor y al subadministrador se arman ya anonimizadas.
+ * Ninguna respuesta publica ni del productor lleva la identidad del comprador que califica o denuncia
+ * (RNF-41): ni su id, ni su nombre, ni su correo. CCPIP-432: solo la administracion de la Camara ve el
+ * nombre de quien denuncio, para decidir con informacion suficiente.
  */
 public final class ValoracionModelos {
 
@@ -155,7 +156,7 @@ public final class ValoracionModelos {
 
     /**
      * Un paso del historial. {@code responsable} es el nombre del subadministrador en sus cambios de
-     * estado; en el registro del comprador es nulo (identidad protegida) y en la respuesta, la comunidad.
+     * estado, el del comprador en el registro (CCPIP-432) y, en la respuesta, la comunidad.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record EventoDenuncia(String tipo, EstadoDenuncia estado, String rol, String responsable, String nota,
@@ -163,13 +164,20 @@ public final class ValoracionModelos {
     }
 
     /**
-     * Una denuncia en el expediente del subadministrador. {@code compraVerificada}: el denunciante recibio
-     * algun pedido de este productor, sin decir quien es.
+     * Una denuncia en el expediente de la administracion. {@code compraVerificada}: el denunciante recibio
+     * algun pedido de este productor. CCPIP-432: {@code denunciante} es su nombre, solo para la
+     * administracion; el productor la sigue viendo anonima ({@link DenunciaRecibida}).
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record DenunciaAdmin(long id, Referencia producto, Motivo motivo, String descripcion, EstadoDenuncia estado,
-                                Instant creadaEn, boolean compraVerificada, String respuestaProductor,
+                                Instant creadaEn, boolean compraVerificada, String denunciante, String respuestaProductor,
                                 Instant respondidaEn, List<EstadoDenuncia> siguientes, List<EventoDenuncia> historial) {
+
+        /** La misma denuncia con su historial. */
+        public DenunciaAdmin conHistorial(List<EventoDenuncia> pasos) {
+            return new DenunciaAdmin(id, producto, motivo, descripcion, estado, creadaEn, compraVerificada, denunciante,
+                    respuestaProductor, respondidaEn, siguientes, pasos);
+        }
     }
 
     public record ExpedienteProductor(ProductorDenunciado productor, List<DenunciaAdmin> denuncias) {

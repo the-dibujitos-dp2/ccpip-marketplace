@@ -77,6 +77,13 @@ export function mesAnterior(periodo) {
   return localeFechas().startsWith('es') ? texto.toLocaleLowerCase('es') : texto
 }
 
+const DIA_LIMA = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima' })
+
+/** El dia en Lima como AAAA-MM-DD, el formato de los campos de fecha: "2026-10-16T03:00:00Z" -> "2026-10-15". Sin instante, hoy. */
+export function diaLima(instante = new Date()) {
+  return DIA_LIMA.format(new Date(instante))
+}
+
 /** "2026-11-16T14:12:00Z" -> "16 nov" · "16 Nov", en hora de Lima (listas de pedidos, CW-09) */
 export function diaMes(instante) {
   return instante ? formato('diaMes').format(new Date(instante)).replace('.', '') : ''
