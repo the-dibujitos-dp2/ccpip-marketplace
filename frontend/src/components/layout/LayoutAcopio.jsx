@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoCaja from '../../assets/icons/caja.svg'
+import iconoGlobo from '../../assets/icons/globo.svg'
 import iconoCampana from '../../assets/icons/campana.svg'
 import iconoGrafico from '../../assets/icons/grafico.svg'
 import iconoMerma from '../../assets/icons/merma.svg'
@@ -14,6 +15,7 @@ import LayoutPanel from './LayoutPanel.jsx'
  * llegan con sus historias. Mientras tanto, su inicio sigue siendo /inicio.
  */
 const NAV = [
+  { to: RUTAS.acopioCobertura, clave: 'cobertura', icono: iconoGlobo, activo: (p) => p === RUTAS.acopioCobertura },
   { to: RUTAS.acopioPedidos, clave: 'pedidos', icono: iconoCaja, activo: (p) => p.startsWith(RUTAS.acopioPedidos) },
   { to: RUTAS.acopioMovimientos, clave: 'movimientos', icono: iconoMovimientos, activo: (p) => p.startsWith(RUTAS.acopioMovimientos) },
   // A-02 (CCPIP-162): inventario por producto, productor y lote

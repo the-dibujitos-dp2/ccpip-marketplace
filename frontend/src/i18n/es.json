@@ -1088,7 +1088,8 @@
       "transferencias": "Transferencias",
       "alertas": "Alertas",
       "merma": "Merma",
-      "reportes": "Reportes"
+      "reportes": "Reportes",
+      "cobertura": "Cobertura"
     },
     "pedidos": {
       "vence": "vence {{fecha}}",
@@ -1374,6 +1375,21 @@
         "vacio": "No hubo existencias en este período",
         "nota": "Sale de los movimientos de los lotes de su punto: saldo final = saldo inicial + entradas − salidas. Aquí las transferencias sí cuentan, porque cambian lo que hay en el punto. Lo vendido aún por entregar ya salió del saldo, pero sigue en el almacén hasta que se entrega."
       }
+    },
+    "cobertura401": {
+      "titulo": "Cobertura de entrega",
+      "sinAsignacion": "No hay puntos de acopio asignados a tu cuenta.",
+      "sinZonas": "Este punto aún no tiene zonas de entrega declaradas.",
+      "error": "No pudimos cargar la cobertura",
+      "reintentar": "Reintentar",
+      "zona": "Zona de entrega",
+      "ubigeo": "Ubigeo",
+      "departamento": "Departamento",
+      "provincia": "Provincia",
+      "distrito": "Distrito",
+      "estado": "Estado",
+      "activa": "Activa",
+      "inactiva": "Inactiva"
     }
   },
   "admin": {

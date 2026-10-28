@@ -32,6 +32,7 @@ import ExpedienteDenunciasPage from './pages/admin/ExpedienteDenunciasPage.jsx'
 import TableroPage from './pages/admin/TableroPage.jsx'
 import PermisosPage from './pages/admin/PermisosPage.jsx'
 import InventarioPage from './pages/acopio/InventarioPage.jsx'
+import CoberturaPage from './pages/acopio/CoberturaPage.jsx'
 import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
 import PedidosPage from './pages/acopio/PedidosPage.jsx'
 import TransferenciasPuntoPage from './pages/acopio/TransferenciasPage.jsx'
@@ -350,6 +351,7 @@ export default function App() {
     // Por ahora el punto tiene Pedidos (A-05, CCPIP-159), Movimientos (A-03, CCPIP-158), Inventario (A-02, CCPIP-162)
     // y Transferencias (CCPIP-278)
     if (user.role !== 'ADMIN_PUNTO') pagina = null
+    else if (path === RUTAS.acopioCobertura) pagina = <CoberturaPage path={path} />
     else if (path === RUTAS.acopioPedidos) pagina = <PedidosPage path={path} />
     else if (path === RUTAS.acopioMovimientos) pagina = <MovimientosPage path={path} />
     else if (path === RUTAS.acopioInventario) pagina = <InventarioPage path={path} />

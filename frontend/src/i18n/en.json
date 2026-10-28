@@ -1088,7 +1088,8 @@
       "transferencias": "Transfers",
       "alertas": "Alerts",
       "merma": "Shrinkage",
-      "reportes": "Reports"
+      "reportes": "Reports",
+      "cobertura": "Coverage"
     },
     "pedidos": {
       "vence": "expires {{fecha}}",
@@ -1374,6 +1375,21 @@
         "vacio": "No stock in this period",
         "nota": "Based on your point's batch movements: closing balance = opening balance + in − out. Transfers do count here, because they change what's at the point. Units sold but not yet delivered are already out of the balance, but stay in the warehouse until delivery."
       }
+    },
+    "cobertura401": {
+      "titulo": "Delivery coverage",
+      "sinAsignacion": "No collection points are assigned to your account.",
+      "sinZonas": "No delivery zones have been declared for this point yet.",
+      "error": "We could not load the coverage",
+      "reintentar": "Retry",
+      "zona": "Delivery zone",
+      "ubigeo": "UBIGEO code",
+      "departamento": "Department",
+      "provincia": "Province",
+      "distrito": "District",
+      "estado": "Status",
+      "activa": "Active",
+      "inactiva": "Inactive"
     }
   },
   "admin": {
