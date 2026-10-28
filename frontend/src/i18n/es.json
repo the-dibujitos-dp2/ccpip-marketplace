@@ -1878,9 +1878,16 @@
   "sello": {
     "titulo": "Origen verificado por la CCPIP",
     "corto": "Origen verificado",
-    "ceroDeforestacion": "Cero deforestación",
-    "ceroPesticidas": "Cero pesticidas o herbicidas",
-    "comunidadIndigena": "Elaborado por comunidad indígena"
+    "origen": {
+      "significado": "La Cámara verificó que este producto lo elabora {{comunidad}} ({{region}}), una comunidad indígena asociada.",
+      "desde": "Verificado el {{fecha}}."
+    },
+    "certificados": "Certificados vigentes revisados por la Cámara",
+    "certificado": {
+      "respaldo": "Emitido por {{emisor}} · vigente hasta el {{fecha}}",
+      "vigente": "Vigente hasta el {{fecha}}"
+    },
+    "nota": "Solo mostramos sellos con respaldo: la verificación de origen de la Cámara y los certificados vigentes que revisó. Una condición como cero deforestación o sin pesticidas solo se afirma si un certificado la acredita."
   },
   "modalidad": {
     "MINORISTA": "Minorista",
@@ -1935,14 +1942,14 @@
       "conocer": "Conocer a las comunidades"
     },
     "valores": {
-      "etiqueta": "Lo que garantiza cada producto",
+      "etiqueta": "Lo que respalda la Cámara",
       "deforestacion": {
         "titulo": "Cero deforestación",
-        "texto": "Productos que no vienen de áreas taladas."
+        "texto": "Lo afirmamos solo cuando un certificado vigente lo acredita."
       },
       "pesticidas": {
         "titulo": "Cero pesticidas",
-        "texto": "Sin agroquímicos en cultivo ni transformación."
+        "texto": "Lo afirmamos solo cuando un certificado vigente lo acredita."
       },
       "comunidades": {
         "titulo": "Hecho por comunidades",
@@ -1950,7 +1957,7 @@
       },
       "verificado": {
         "titulo": "Verificado por la Cámara",
-        "texto": "Muestra física y certificados revisados."
+        "texto": "Origen de la comunidad y certificados revisados por la Cámara."
       }
     },
     "error": "No pudimos cargar el inicio",
@@ -2394,7 +2401,7 @@
       "cosechaDel": "producido el {{fecha}}",
       "nota": "Premios declarados por el productor, cada uno con un documento de respaldo que no se publica. La Cámara no los certifica."
     },
-    "verificando": "La Cámara aún está verificando el origen de esta comunidad.",
+    "sinSellos": "Este producto todavía no tiene un origen verificado ni certificados vigentes que mostrar. Eso no significa que esté aprobado ni rechazado.",
     "sobreCosecha": "Sobre esta cosecha",
     "consumirAntes": "Consumir antes de",
     "volumen": {
