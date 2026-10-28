@@ -536,7 +536,7 @@ sin renovarse rige C5 (Venta pausada, sin revocar), y nunca hay un bloqueo perma
 Un trigger impide borrarla y editarla, salvo pasar una vez de `PENDIENTE` a otro estado.
 
 ### evidencia_fisica (CCPIP-35, CCPIP-329)
-Migracion `V202610281300`. El subadministrador registra en el expediente S-02 el envio de una evidencia
+Migracion `V202610281600`. El subadministrador registra en el expediente S-02 el envio de una evidencia
 fisica (una muestra, un documento original) cuando la evaluacion la requiera
 (`POST /api/admin/autorizaciones/{id}/evidencias-fisicas`, solo con la solicitud `SOLICITADA`, si no
 `409 SOLICITUD_YA_RESUELTA`) y despues su recepcion
