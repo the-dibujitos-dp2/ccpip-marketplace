@@ -137,6 +137,10 @@
 .moderacion__tipo { flex: 0 0 120px; }
 .moderacion__fotos { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .moderacion__fotos img { display: block; width: 96px; height: 96px; object-fit: cover; border-radius: var(--radius-m); border: 1px solid var(--color-border-default); }
+/* Bandeja de denuncias (CCPIP-84, CCPIP-432): columnas de ancho fijo para que cada encabezado quede sobre su valor */
+.denuncias__num { flex: 0 0 80px; font-variant-numeric: tabular-nums; }
+.denuncias__ultima { flex: 0 0 80px; }
+.denuncias__accion { flex: 0 0 124px; display: flex; justify-content: flex-end; }
 .moderacion__datos { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; margin: 0; font-size: 14px; }
 .moderacion__datos dt { color: var(--color-text-secondary); }
 .moderacion__datos dd { margin: 0; }

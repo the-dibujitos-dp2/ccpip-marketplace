@@ -162,7 +162,7 @@ export default function PedidosPage({ path }) {
             etiqueta={t('acopio.pedidos.estados')}
             valor={estado}
             onCambiar={setEstado}
-            opciones={pestanas.map((e) => ({ valor: e, etiqueta: t('acopio.pedidos.columnaConteo', { titulo: titulo(e), total: delEstado(e).length }) }))}
+            opciones={pestanas.map((e) => ({ valor: e, etiqueta: t('comun.conteo', { titulo: titulo(e), total: delEstado(e).length }) }))}
           />
           <section role="tabpanel" aria-label={titulo(estado)}>
             {visibles.length === 0 && (filtrando ? <SinCoincidencias /> : <EstadoVacio titulo={t(`acopio.pedidos.columnaVacia.${estado}`)} />)}
