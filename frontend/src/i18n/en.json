@@ -2238,6 +2238,8 @@
     "VIDEO_YA_RESUELTO": "This video is no longer pending review.",
     "VIDEO_NO_ENCONTRADO": "The video does not exist.",
     "REEMPLAZO_EN_REVISION": "This video already has a replacement in review. Wait for the Chamber's decision or withdraw it.",
+    "SIN_EVIDENCIAS": "Attach at least one piece of evidence for the product before requesting its authorization.",
+    "SOLICITUD_EN_REVISION": "The request for this product is already under review by the Chamber.",
     "FECHA_FUTURA": "The date cannot be later than today.",
     "RECEPCION_ANTES_DEL_ENVIO": "The receipt cannot be earlier than the shipment.",
     "OBSERVACIONES_REQUERIDAS": "Explain in the observations what was found in the evidence.",
@@ -3017,21 +3019,23 @@
     "error": "We couldn't load the evidence",
     "errorSubir": "We couldn't upload the file",
     "errorRetirar": "We couldn't remove the evidence",
-    "subida": "You uploaded “{{titulo}}”. The Chamber will review it.",
+    "subida": "You uploaded “{{titulo}}”.",
     "retirada": "You removed “{{titulo}}”.",
     "limite": "You reached the maximum of {{maximo}} items. Remove one to add another.",
     "privadas": "Only the Chamber and you can see them.",
     "decisionHumana": "The preliminary AI review only helps the Chamber: a person makes the decision.",
     "estado": {
       "SIN_SOLICITUD": "You haven't requested authorization yet",
-      "SIN_SOLICITUDTexto": "Upload at least one valid certificate for this product to send the request to the Chamber.",
+      "SIN_SOLICITUDTexto": "Upload the evidence for this product and then request authorization from the Chamber.",
+      "BORRADOR": "Request in preparation",
+      "BORRADORTexto": "The Chamber is not reviewing it yet. When your evidence is ready, request the authorization.",
       "SOLICITADA": "Under review by the Chamber",
       "SOLICITADATexto": "You can add or remove evidence while it is reviewed. We'll let you know the decision.",
       "APROBADA": "Authorized to sell",
       "aprobadaHasta": "The authorization is valid until {{fecha}}, when your first certificate expires.",
       "RECHAZADA": "The Chamber rejected the request",
       "REVOCADA": "The authorization was revoked",
-      "conMotivo": "Reason: “{{motivo}}”. Attach new evidence to request it again.",
+      "conMotivo": "Reason: “{{motivo}}”. Correct your evidence if needed and request it again.",
       "lineaNueva": "The authorization does not cover a new line",
       "lineaNuevaTexto": "You added a line the Chamber did not review: the sale is paused. Attach evidence to request a new review."
     },
@@ -3105,6 +3109,12 @@
       "reintentar": "Retry",
       "sinLotes": "This product has no batches in its record.",
       "metadatos": "Issuer: {{emisor}} · Start: {{desde}} · Expiry: {{hasta}}"
+    },
+    "solicitar": {
+      "boton": "Request authorization",
+      "ayuda": "The Chamber will review your evidence and let you know its decision. Requesting it does not publish your offer.",
+      "enviada": "You sent the request to the Chamber",
+      "error": "We could not send the request"
     }
   },
   "premios": {
@@ -3240,6 +3250,7 @@
       "ninguna": "Not analyzed"
     },
     "estado": {
+      "BORRADOR": "In preparation",
       "SOLICITADA": "Under review",
       "APROBADA": "Approved",
       "RECHAZADA": "Rejected",

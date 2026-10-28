@@ -91,6 +91,13 @@ public class EvidenciasController {
                 .map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
     }
 
+    /** CCPIP-29: envia la solicitud a revision. Devuelve la vista del producto ya actualizada. */
+    @PostMapping("/api/productor/productos/{productoId}/autorizacion/solicitar")
+    public EvidenciasProducto solicitar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                        @PathVariable long productoId) {
+        return service.solicitar(actual.id(s), s.userId(), productoId);
+    }
+
     @DeleteMapping("/api/productor/productos/{productoId}/evidencias/{evidenciaId}")
     public ResponseEntity<Void> retirar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                         @PathVariable long productoId, @PathVariable UUID evidenciaId) {
