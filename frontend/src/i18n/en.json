@@ -2740,7 +2740,18 @@
     "confirmarTexto": "Remove {{direccion}} from your saved addresses? It will remain on previous orders.",
     "retirando": "Removing…",
     "retirada": "Address removed",
-    "errorRetirar": "We couldn't remove the address. Try again."
+    "errorRetirar": "We couldn't remove the address. Try again.",
+    "editar": "Edit address",
+    "alias": "Alias",
+    "ubigeo": "Ubigeo",
+    "direccionCampo": "Address",
+    "referenciaCampo": "Reference",
+    "errorEditar": "We could not save your changes. Try again.",
+    "guardando": "Saving…",
+    "guardarCambios": "Save changes",
+    "editada": "Address updated.",
+    "errorCatalogo": "We could not load the territorial catalogue.",
+    "reglaDireccion": "The address must have at least 5 characters and one letter."
   },
   "misDatos": {
     "titulo": "Personal details",

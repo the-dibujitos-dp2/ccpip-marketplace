@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,6 +46,12 @@ public class DireccionesGuardadasController {
     public DireccionGuardada guardar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                      @Valid @RequestBody NuevaDireccion nueva) {
         return service.guardar(s.userId(), nueva);
+    }
+
+    @PutMapping("/{id}")
+    public DireccionGuardada modificar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                       @PathVariable long id, @Valid @RequestBody NuevaDireccion nueva) {
+        return service.modificar(s.userId(), id, nueva);
     }
 
     @DeleteMapping("/{id}")
