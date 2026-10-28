@@ -31,3 +31,7 @@
 .evidencias__vinculo .campo { min-width: 0; }
 .evidencias__vinculo p { margin: 0; overflow-wrap: anywhere; }
 .evidencias__vinculo-acciones { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* CCPIP-29: enviar la solicitud a la Camara */
+.evidencias__solicitar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.evidencias__solicitar .caption { margin: 0; flex: 1 1 240px; }

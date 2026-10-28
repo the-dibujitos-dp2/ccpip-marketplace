@@ -35,5 +35,6 @@
     }
   ],
   "puedeAdjuntar": true,
-  "maximo": 10
+  "maximo": 10,
+  "puedeSolicitar": false
 }

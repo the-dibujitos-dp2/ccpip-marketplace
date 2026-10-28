@@ -38,6 +38,10 @@ export async function subirEvidencia(productoId, archivo, { tipo, titulo, emisor
   return cuerpo
 }
 
+/** CCPIP-29: envia la solicitud de autorizacion del producto a la Camara. Devuelve la vista actualizada. */
+export const solicitarAutorizacion = async (productoId) =>
+  apiFetch(`/api/productor/productos/${idRuta(productoId)}/autorizacion/solicitar`, { method: 'POST' })
+
 /** Retiro logico: deja de sustentar la solicitud, pero se conserva. */
 export const retirarEvidencia = async (productoId, evidenciaId) =>
   apiFetch(`/api/productor/productos/${idRuta(productoId)}/evidencias/${idRuta(evidenciaId)}`, { method: 'DELETE' })

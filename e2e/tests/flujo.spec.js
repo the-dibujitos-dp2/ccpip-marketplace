@@ -32,6 +32,10 @@ async function autorizarProducto(page, id) {
   }, [id, CERTIFICADO_PDF, enDias(365)])
   expect(evidencia.status).toBe(201)
   expect(evidencia.cuerpo.vencida).toBe(false)
+  // CCPIP-29: adjuntar la prepara; el productor la envía a la Cámara
+  const enviada = await api(page, 'POST', `/api/productor/productos/${id}/autorizacion/solicitar`)
+  expect(enviada.status).toBe(200)
+  expect(enviada.cuerpo.autorizacion.estado).toBe('SOLICITADA')
 
   expect((await api(page, 'POST', '/api/auth/logout')).status).toBe(204)
   await ingresar(page, 'sub_admin@ccpip.test')
