@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -44,6 +45,14 @@ public class ApiErrorHandler {
         return ResponseEntity.badRequest().body(Map.of(
                 "code", "PARAMETRO_INVALIDO",
                 "error", "El valor de " + e.getName() + " no es válido."));
+    }
+
+    /** El cuerpo no pudo convertirse al contrato de entrada; no se expone el payload ni el mensaje del parser. */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> cuerpoIlegible(HttpMessageNotReadableException e) {
+        return ResponseEntity.badRequest().body(Map.of(
+                "code", "CUERPO_INVALIDO",
+                "error", "El cuerpo de la solicitud no es válido."));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)

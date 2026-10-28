@@ -7,6 +7,7 @@ import iconoHoja from '../../assets/icons/hoja.svg'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoMas from '../../assets/icons/mas.svg'
 import { listarEvidencias, retirarEvidencia, subirEvidencia } from '../../api/autorizaciones.js'
+import VinculoCertificadoLote from './VinculoCertificadoLote.jsx'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
@@ -204,6 +205,7 @@ function TarjetaTipo({ tipo, evidencias, puedeAdjuntar, editable, productoId, on
                 </span>
               </span>
               <VigenciaYArchivo evidencia={e} />
+              {e.tipo === 'CERTIFICADO' && <VinculoCertificadoLote productoId={productoId} evidencia={e} />}
               {editable && (
                 <Boton tipo="terciario" tamano="S" onClick={() => onRetirar(e)} aria-label={t('evidencias.retirarDe', { titulo: e.titulo })}>
                   {t('evidencias.retirar')}
