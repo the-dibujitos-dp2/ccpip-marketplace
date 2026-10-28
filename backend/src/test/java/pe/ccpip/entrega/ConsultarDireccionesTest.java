@@ -102,6 +102,26 @@ class ConsultarDireccionesTest extends IntegrationTest {
                 .andExpect(jsonPath("$[0].direccion").value("Calle Ajena 999"));
     }
 
+    /** CCPIP-393: datos invalidos. La consulta no recibe datos; lo que mande el cliente para pedir las de otro se ignora. */
+    @Test
+    void ignoraElCompradorQueMandeElClienteYSoloDevuelveLasSuyas() throws Exception {
+        jdbc.update("""
+                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
+                SELECT 'otra.compradora@ccpip.test', contrasena_hash, 'Otra Compradora', rol_id, true
+                FROM usuario WHERE correo = ?""", COMPRADOR);
+        direccion("otra.compradora@ccpip.test", "Casa de otra", "150122", "Calle Ajena 999", null, 1);
+        direccion(COMPRADOR, "Casa", "150122", "Av. Larco 123, dpto. 4", null, 2);
+        String otra = String.valueOf(jdbc.queryForObject("SELECT id FROM usuario WHERE correo = 'otra.compradora@ccpip.test'", Long.class));
+
+        for (String[] parametro : new String[][] {{"usuarioId", otra}, {"compradorId", otra}, {"usuarioId", "abc"}, {"id", "-1"}}) {
+            mockMvc.perform(get(RUTA).param(parametro[0], parametro[1]).cookie(comprador))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(1)))
+                    .andExpect(jsonPath("$[0].direccion").value("Av. Larco 123, dpto. 4"))
+                    .andExpect(content().string(not(containsString("Calle Ajena"))));
+        }
+    }
+
     @Test
     void esSoloParaElComprador() throws Exception {
         consultar(null).andExpect(status().isUnauthorized());
