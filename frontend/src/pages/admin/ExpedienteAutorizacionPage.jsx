@@ -28,7 +28,7 @@ import { CampoMotivo, DialogoDecision, FilaEvidencia, SinExpediente, useDecision
 import '../productor/productor.css'
 import './admin.css'
 
-const TONO_ESTADO = { SOLICITADA: 'info', APROBADA: 'exito', RECHAZADA: 'error', REVOCADA: 'error' }
+const TONO_ESTADO = { BORRADOR: 'neutro', SOLICITADA: 'info', APROBADA: 'exito', RECHAZADA: 'error', REVOCADA: 'error' }
 const TONO_HALLAZGO = { CONFORME: 'exito', INCONSISTENCIA: 'aviso', FALTANTE: 'error' }
 const ENVIAR = { aprobar: aprobarAutorizacion, rechazar: rechazarAutorizacion, revocar: revocarAutorizacion }
 const RECARGAR_SI = ['SOLICITUD_YA_RESUELTA', 'AUTORIZACION_NO_APROBADA']
