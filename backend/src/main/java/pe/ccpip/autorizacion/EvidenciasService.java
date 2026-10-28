@@ -178,7 +178,7 @@ public class EvidenciasService {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "AUTORIZACION_VIGENTE",
                     "Este producto ya está autorizado y su autorización está vigente.");
         }
-        if (autorizacion == null || vigentes(autorizacion.id(), x -> null).isEmpty()) {
+        if (autorizacion == null || vigentes(autorizacion.id(), x -> null).stream().noneMatch(e -> !e.vencida())) {
             throw ErrorNegocio.invalido("SIN_EVIDENCIAS",
                     "Adjunta al menos una evidencia del producto antes de solicitar su autorización.");
         }

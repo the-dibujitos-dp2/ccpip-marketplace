@@ -325,6 +325,8 @@ class EvidenciasRevisionTest extends IntegrationTest {
     void unCertificadoVencidoNoAutoriza() throws Exception {
         subir(productor, miel, PDF, "c.pdf", "CERTIFICADO", "Certificado de miel", "E", LocalDate.now(java.time.ZoneId.of("America/Lima")).minusDays(3))
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.vencida").value(true));
+        subir(productor, miel, PDF, "acta.pdf", "DOCUMENTO", "Acta comunal", null, null)
+                .andExpect(status().isCreated());
         decidir(solicitud(miel), "aprobar", "Todo en orden")
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("SIN_CERTIFICADO_VIGENTE"));
     }

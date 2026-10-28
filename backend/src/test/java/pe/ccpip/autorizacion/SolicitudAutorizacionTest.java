@@ -104,6 +104,16 @@ class SolicitudAutorizacionTest extends IntegrationTest {
     }
 
     @Test
+    void evidenciaPropiaCaducadaNoPermiteSolicitar() throws Exception {
+        certificadoCaducado().andExpect(status().isCreated());
+
+        solicitar(productor).andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("SIN_EVIDENCIAS"));
+        assertThat(jdbc.queryForObject("SELECT estado FROM autorizacion_producto WHERE producto_id = ?", String.class, producto))
+                .isEqualTo("BORRADOR");
+    }
+
+    @Test
     void unaSolicitudEnRevisionNoSeVuelveASolicitar() throws Exception {
         certificado().andExpect(status().isCreated());
         solicitar(productor).andExpect(status().isOk());
@@ -157,6 +167,15 @@ class SolicitudAutorizacionTest extends IntegrationTest {
                 .param("tipo", "CERTIFICADO").param("titulo", "Certificado orgánico de aguaje")
                 .param("emisor", "Control Unión").param("vigenteDesde", HOY.minusDays(1).toString())
                 .param("vigenteHasta", HOY.plusYears(1).toString())
+                .cookie(productor));
+    }
+
+    private ResultActions certificadoCaducado() throws Exception {
+        return mockMvc.perform(multipart("/api/productor/productos/{id}/evidencias", producto)
+                .file(new MockMultipartFile("archivo", "c.pdf", "application/octet-stream", PDF))
+                .param("tipo", "CERTIFICADO").param("titulo", "Certificado orgánico de aguaje")
+                .param("emisor", "Control Unión").param("vigenteDesde", HOY.minusYears(2).toString())
+                .param("vigenteHasta", HOY.minusDays(1).toString())
                 .cookie(productor));
     }
 
