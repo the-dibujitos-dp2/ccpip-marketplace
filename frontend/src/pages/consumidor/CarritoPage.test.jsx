@@ -194,6 +194,18 @@ describe('CCPIP-268 Modificar la cantidad en el carrito', () => {
     await waitFor(() => expect(within(fila).queryByText('Guardando…')).not.toBeInTheDocument())
   })
 
+  it('si guardar la cantidad falla, "Guardando…" y su aro se quitan (CCPIP-413)', async () => {
+    servidor({ ...conSesion(), 'PUT /api/carrito/items/8': [409, { code: 'STOCK_INSUFICIENTE', error: 'Solo quedan 15 unidades disponibles.' }] })
+    const user = userEvent.setup()
+    abrirEn('/carrito')
+    const fila = (await screen.findByLabelText('Cantidad de Aceite de aguaje 250 ml')).closest('li')
+    await user.click(within(fila).getByRole('button', { name: 'Agregar una unidad' }))
+
+    expect(await within(fila).findByText('Solo quedan 15 unidades disponibles.')).toBeInTheDocument()
+    expect(within(fila).queryByText('Guardando…')).not.toBeInTheDocument()
+    expect(fila.querySelector('.boton__giro')).toBeNull()
+  })
+
   it('cambia la cantidad sin boton de actualizar y recalcula subtotal, total y cabecera', async () => {
     const fetchMock = servidor({
       ...conSesion(),

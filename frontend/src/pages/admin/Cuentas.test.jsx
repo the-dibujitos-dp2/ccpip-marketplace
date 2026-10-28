@@ -149,6 +149,15 @@ describe('Nueva cuenta administrativa (CCPIP-301, CCPIP-304)', () => {
     expect(screen.queryByText('Cargando los puntos de acopio…')).not.toBeInTheDocument()
   })
 
+  it('si los puntos de acopio no llegan, el indicador de carga se quita (CCPIP-413)', async () => {
+    comoSuper({ [`GET ${CUENTAS}/puntos`]: [503, { error: 'Servicio no disponible' }] })
+    abrirEn('/admin/cuentas/nueva')
+    await userEvent.selectOptions(await screen.findByLabelText('Rol'), 'ADMIN_PUNTO')
+
+    await waitFor(() => expect(screen.queryByText('Cargando los puntos de acopio…')).not.toBeInTheDocument())
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+  })
+
   it('valida antes de enviar y pide puntos para el administrador de punto', async () => {
     const fetchMock = comoSuper()
     abrirEn('/admin/cuentas/nueva')

@@ -103,6 +103,22 @@ describe('CW-11 Me interesa (CCPIP-105)', () => {
     expect(await screen.findByText('Retiramos tu interés en este producto')).toBeInTheDocument()
   })
 
+  it('si retirar el interés falla, avisa, quita el aro y deja reintentar (CCPIP-413)', async () => {
+    servidor(comoComprador({
+      [`GET ${INTERES}`]: [200, registrado(2)],
+      [`DELETE ${INTERES}`]: [503, { error: 'Servicio no disponible' }],
+    }))
+    const user = userEvent.setup()
+    abrirEn('/productos/1')
+    const retirar = await screen.findByRole('button', { name: 'Retirar interés' })
+    await user.click(retirar)
+
+    expect(await screen.findByText('No pudimos retirar tu interés')).toBeInTheDocument()
+    expect(retirar).toBeEnabled()
+    expect(retirar.querySelector('.boton__giro')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Cambiar cantidad' })).toBeEnabled()
+  })
+
   it('valida la cantidad y muestra el rechazo del servidor dentro del modal', async () => {
     const fetchMock = servidor(comoComprador({
       [`PUT ${INTERES}`]: [409, { code: 'OFERTA_DISPONIBLE', error: 'Este producto está disponible: puedes agregarlo a tu carrito.' }],

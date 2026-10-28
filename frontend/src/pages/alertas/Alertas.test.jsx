@@ -160,6 +160,18 @@ describe('PW-21 Alertas del productor (CCPIP-79, 145, 293, 337, 366, 367)', () =
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Marcar todas como leídas' })).not.toBeInTheDocument())
   })
 
+  it('si marcar todas falla, el aro se quita y se puede reintentar (CCPIP-413)', async () => {
+    productor({ 'POST /api/productor/alertas/leidas': [503, { error: 'Servicio no disponible' }] })
+    const user = userEvent.setup()
+    abrirEn('/productor/alertas')
+    const marcar = await screen.findByRole('button', { name: 'Marcar todas como leídas' })
+    await user.click(marcar)
+
+    await waitFor(() => expect(marcar).toBeEnabled())
+    expect(marcar).not.toHaveAttribute('aria-busy')
+    expect(marcar.querySelector('.boton__giro')).toBeNull()
+  })
+
   // CCPIP-425: la bandeja abierta se mantiene al dia, sin esperar la revision periodica ni recargar
   it('muestra una alerta nueva sin recargar la página', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })

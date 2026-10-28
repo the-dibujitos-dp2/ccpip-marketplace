@@ -248,6 +248,19 @@ describe('DW-03 Retirar el pedido del punto de acopio (CCPIP-109)', () => {
     expect(within(tarjeta('MC-00144')).getByRole('button', { name: 'Retiré el pedido' })).toBeEnabled()
   })
 
+  it('si el retiro falla, el aro se quita y se puede reintentar (CCPIP-413)', async () => {
+    servidor(comoDistribuidor(reparto([entrega('MC-00139', 'San Isidro', '150131', 'ASIGNADA')], { 'MC-00139': [503, { error: 'Servicio no disponible' }] })))
+    const usuario = userEvent.setup()
+    abrirEn('/distribuidor/entregas')
+    await screen.findByText('MC-00139 · San Isidro')
+    await usuario.click(within(tarjeta('MC-00139')).getByRole('button', { name: 'Retiré el pedido' }))
+
+    const boton = await within(tarjeta('MC-00139')).findByRole('button', { name: 'Retiré el pedido' })
+    await waitFor(() => expect(boton).toBeEnabled())
+    expect(boton).not.toHaveAttribute('aria-busy')
+    expect(boton.querySelector('.boton__giro')).toBeNull()
+  })
+
   it('si la entrega ya no es suya, avisa con el motivo y la lista se pone al día', async () => {
     const entregas = [entrega('MC-00139', 'San Isidro', '150131', 'ASIGNADA')]
     const rutas = reparto(entregas, {

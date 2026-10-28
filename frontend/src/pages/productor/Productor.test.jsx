@@ -1124,3 +1124,58 @@ describe('Acciones del productor que esperan respuesta (CCPIP-413)', () => {
     await waitFor(() => expect(quitar).toBeEnabled())
   })
 })
+
+describe('Si la acción del productor falla, el aro se quita (CCPIP-413)', () => {
+  it('publicar desde el menú: avisa y el botón de la fila vuelve a estar disponible', async () => {
+    const retirados = { items: [{ ...DATOS.productosProductor.items[0], estado: 'RETIRADO' }], conteo: { PUBLICADO: 3, EN_MODERACION: 0, BORRADOR: 0, RETIRADO: 1 } }
+    productor({
+      'GET /api/productor/productos': () => [200, copia(retirados)],
+      'POST /api/productor/productos/9/publicar': [503, { error: 'Servicio no disponible' }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos?estado=RETIRADO')
+    const acciones = await screen.findByRole('button', { name: /Más acciones para/ })
+    await user.click(acciones)
+    await user.click(screen.getByRole('menuitem', { name: 'Volver a publicar' }))
+
+    await waitFor(() => expect(acciones).toBeEnabled())
+    expect(acciones).not.toHaveAttribute('aria-busy')
+    expect(acciones.querySelector('.boton__giro')).toBeNull()
+  })
+
+  it('"Hacer principal": avisa y las fotos vuelven a estar disponibles', async () => {
+    const conFotos = {
+      ...copia(DATOS.edicion),
+      imagenes: [
+        { id: '0000000a-0000-4000-8000-000000000000', urlMiniatura: '/api/imagenes/a?tam=min', principal: true },
+        { id: '0000000b-0000-4000-8000-000000000000', urlMiniatura: '/api/imagenes/b?tam=min', principal: false },
+      ],
+    }
+    productor({
+      'GET /api/productor/productos/9': () => [200, copia(conFotos)],
+      'GET /api/productor/imagenes/validaciones': [200, []],
+      'PUT /api/productor/imagenes/0000000b-0000-4000-8000-000000000000/principal': [503, { error: 'Servicio no disponible' }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    const hacer = await screen.findByRole('button', { name: 'Hacer principal' })
+    await user.click(hacer)
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Hacer principal' })).toBeEnabled())
+    expect(screen.getByRole('button', { name: 'Hacer principal' }).querySelector('.boton__giro')).toBeNull()
+  })
+
+  it('quitar una foto de la galería: avisa y el botón vuelve a estar disponible', async () => {
+    const conGaleria = { ...copia(DATOS.tiendaProductor), galeria: [{ id: '000000a1-0000-4000-8000-000000000000', categoria: 'CULTIVO', urlMiniatura: '/api/imagenes/g1?tam=min' }] }
+    productor({
+      'GET /api/productor/tienda': () => [200, copia(conGaleria)],
+      'DELETE /api/productor/imagenes/000000a1-0000-4000-8000-000000000000': [503, { error: 'Servicio no disponible' }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/tienda')
+    await user.click(await screen.findByRole('button', { name: 'Quitar foto' }))
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Quitar foto' })).toBeEnabled())
+    expect(screen.getByRole('button', { name: 'Quitar foto' }).querySelector('.boton__giro')).toBeNull()
+  })
+})

@@ -345,3 +345,48 @@ describe('PW-04 Fotos y borrador mientras esperan respuesta (CCPIP-413)', () => 
     expect(await screen.findByText('Borrador asistido por IA · revisa antes de publicar')).toBeInTheDocument()
   })
 })
+
+describe('PW-04 Si la foto o el borrador fallan, el aro se quita (CCPIP-413)', () => {
+  it('reemplazar desde el aviso: el enlace y el lápiz vuelven a su ícono', async () => {
+    productor({
+      'GET /api/productor/productos/9': () => [200, conFotos(fotoDe(A, true), fotoDe(B))],
+      'GET /api/productor/imagenes/validaciones': () => [200, [validacion(A, 'VALIDA'), validacion(B, 'SOSPECHOSA', 'ARTESANIA')]],
+      [`POST /api/productor/imagenes/${B}/reemplazo`]: [503, { error: 'Servicio no disponible' }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.upload(await screen.findByLabelText('Reemplazar imagen'), archivo('aceite.jpg'))
+
+    await waitFor(() => expect(document.querySelector('[aria-busy="true"]')).toBeNull())
+    expect(document.querySelector('.boton__giro')).toBeNull()
+    expect(screen.getByLabelText('Reemplazar imagen')).toBeEnabled()
+  })
+
+  it('conservar la original: avisa, cierra la comparación y no queda ningún aro', async () => {
+    productor({
+      'GET /api/productor/productos/9': () => [200, conFotos(fotoDe(A, true))],
+      [`POST /api/productor/imagenes/${A}/mejora`]: [201, comparacion(A)],
+      [`POST /api/productor/imagenes/${A}/mejora/rechazar`]: [503, { error: 'Servicio no disponible' }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.click(await screen.findByRole('button', { name: 'Mejorar con IA' }))
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Conservar la original' }))
+
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Compara la foto mejorada' })).not.toBeInTheDocument())
+    expect(document.querySelector('.boton__giro')).toBeNull()
+  })
+
+  it('el borrador de la descripción: el indicador se quita y lo dice', async () => {
+    productor({
+      'GET /api/productor/productos/9': () => [200, conFotos()],
+      'POST /api/productor/ia/descripcion': [500, { error: 'Fallo' }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9')
+    await user.click(await screen.findByRole('button', { name: 'Sugerir una descripción con IA (borrador)' }))
+
+    await waitFor(() => expect(screen.queryByText('Preparando un borrador…')).not.toBeInTheDocument())
+    expect(document.querySelector('.cargando__giro')).toBeNull()
+  })
+})

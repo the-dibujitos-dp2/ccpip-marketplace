@@ -169,6 +169,19 @@ describe('CCPIP-73, 164, 362 y 277 Mis transferencias (PW-17)', () => {
     expect(await within(fila).findByRole('button', { name: 'Ocultar detalle' })).toBeEnabled()
   })
 
+  it('si el detalle no llega, avisa y "Ver detalle" vuelve a estar disponible (CCPIP-413)', async () => {
+    productor({ 'GET /api/productor/transferencias/31': [503, { error: 'Servicio no disponible' }] })
+    const user = userEvent.setup()
+    abrirEn('/productor/transferencias')
+    const fila = (await screen.findByText('TR-0031')).closest('li')
+    const ver = within(fila).getByRole('button', { name: 'Ver detalle' })
+    await user.click(ver)
+
+    await waitFor(() => expect(ver).toBeEnabled())
+    expect(ver.querySelector('.boton__giro')).toBeNull()
+    expect(within(fila).queryByRole('table')).not.toBeInTheDocument()
+  })
+
   it('CCPIP-164: registra la preparacion tras confirmar', async () => {
     const fetchMock = productor({
       'POST /api/productor/transferencias/31/preparar': () => [200, transferencia(31, 'PREPARADA')],
