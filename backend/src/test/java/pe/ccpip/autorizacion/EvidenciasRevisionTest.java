@@ -87,6 +87,31 @@ class EvidenciasRevisionTest extends IntegrationTest {
     }
 
     @Test
+    void consultaElVinculoPrivadoPersistidoTrasRecargar() throws Exception {
+        String id = json(subir(productor, miel, PDF, "c.pdf", "CERTIFICADO", "Certificado de miel", "Emisor", EN_UN_ANIO)).get("id").asText();
+        long lote = jdbc.queryForObject("SELECT id FROM lote WHERE producto_id = ?", Long.class, miel);
+        String ruta = "/api/productor/productos/{p}/evidencias/{e}/lote";
+        mockMvc.perform(get(ruta, miel, id).cookie(productor)).andExpect(status().isNoContent());
+        mockMvc.perform(post(ruta, miel, id).cookie(productor).contentType(MediaType.APPLICATION_JSON).content(json(Map.of("loteId", lote)))).andExpect(status().isOk());
+        mockMvc.perform(get(ruta, miel, id).cookie(productor)).andExpect(status().isOk()).andExpect(jsonPath("$.evidenciaId").value(id)).andExpect(jsonPath("$.productoId").value(miel)).andExpect(jsonPath("$.loteId").value(lote));
+        mockMvc.perform(get(ruta, miel, id)).andExpect(status().isUnauthorized());
+        mockMvc.perform(get(ruta, miel, id).cookie(subAdmin)).andExpect(status().isForbidden());
+        mockMvc.perform(get(ruta, miel, "00000000-0000-0000-0000-000000000000").cookie(productor)).andExpect(status().isNotFound());
+        Cookie otro = loginAs(OTRO_PRODUCTOR);
+        mockMvc.perform(get(ruta, miel, id).cookie(otro)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void evidenciaRetiradaNoSePuedeVincularNiConsultar() throws Exception {
+        String id = json(subir(productor, miel, PDF, "c.pdf", "CERTIFICADO", "Certificado de miel", "Emisor", EN_UN_ANIO)).get("id").asText();
+        long lote = jdbc.queryForObject("SELECT id FROM lote WHERE producto_id = ?", Long.class, miel);
+        mockMvc.perform(delete("/api/productor/productos/{p}/evidencias/{e}", miel, id).cookie(productor)).andExpect(status().isNoContent());
+        mockMvc.perform(post("/api/productor/productos/{p}/evidencias/{e}/lote", miel, id).cookie(productor).contentType(MediaType.APPLICATION_JSON).content(json(Map.of("loteId", lote)))).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/productor/productos/{p}/evidencias/{e}/lote", miel, id).cookie(productor)).andExpect(status().isNotFound());
+        assertThat(jdbc.queryForObject("SELECT lote_id FROM evidencia_producto WHERE id = ?::uuid", Long.class, id)).isNull();
+    }
+
+    @Test
     void rechazaLoteDeOtroProductoYNoPermiteReasignarElCertificado() throws Exception {
         String id = json(subir(productor, miel, PDF, "c.pdf", "CERTIFICADO", "Certificado de miel", "Emisor", EN_UN_ANIO)).get("id").asText();
         long otroProducto = productoConLote("Café ajeno", "PUBLICADO", "PUNTO_ACOPIO", EN_UN_ANIO);

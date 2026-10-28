@@ -83,6 +83,14 @@ public class EvidenciasController {
         return service.vincularLote(actual.id(s), productoId, evidenciaId, solicitud.loteId());
     }
 
+    @GetMapping("/api/productor/productos/{productoId}/evidencias/{evidenciaId}/lote")
+    public ResponseEntity<VinculoCertificadoLote> consultarVinculoLote(
+            @RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+            @PathVariable long productoId, @PathVariable UUID evidenciaId) {
+        return service.consultarVinculoLote(actual.id(s), productoId, evidenciaId)
+                .map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
     @DeleteMapping("/api/productor/productos/{productoId}/evidencias/{evidenciaId}")
     public ResponseEntity<Void> retirar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                         @PathVariable long productoId, @PathVariable UUID evidenciaId) {

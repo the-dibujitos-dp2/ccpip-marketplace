@@ -116,7 +116,7 @@ public class EvidenciasService {
     public VinculoCertificadoLote vincularLote(long productorId, long productoId, UUID evidenciaId, long loteId) {
         productoPropio(productorId, productoId);
         record Cert(LocalDate desde, LocalDate hasta, String emisor, String tipo, Long lote) {}
-        Cert certificado = jdbc.query("SELECT vigente_desde, vigente_hasta, emisor, tipo, lote_id FROM evidencia_producto WHERE id = ? AND productor_id = ? AND producto_id = ?",
+        Cert certificado = jdbc.query("SELECT vigente_desde, vigente_hasta, emisor, tipo, lote_id FROM evidencia_producto WHERE id = ? AND productor_id = ? AND producto_id = ? AND retirada_en IS NULL",
                 (rs, row) -> new Cert(rs.getObject("vigente_desde", LocalDate.class), rs.getObject("vigente_hasta", LocalDate.class), rs.getString("emisor"), rs.getString("tipo"), (Long) rs.getObject("lote_id")),
                 evidenciaId, productorId, productoId).stream().findFirst().orElseThrow(EvidenciasService::noEncontrada);
         if (!"CERTIFICADO".equals(certificado.tipo())) {
@@ -140,6 +140,18 @@ public class EvidenciasService {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "CERTIFICADO_YA_VINCULADO", "El certificado ya está vinculado a un lote.");
         }
         return new VinculoCertificadoLote(evidenciaId, productoId, loteId);
+    }
+
+    /** Lee únicamente el vínculo de una evidencia vigente propiedad del productor. */
+    @Transactional(readOnly = true)
+    public Optional<VinculoCertificadoLote> consultarVinculoLote(long productorId, long productoId, UUID evidenciaId) {
+        productoPropio(productorId, productoId);
+        record VinculoFila(boolean existe, Long loteId) {}
+        VinculoFila fila = jdbc.query("SELECT lote_id FROM evidencia_producto WHERE id = ? AND productor_id = ? AND producto_id = ? AND retirada_en IS NULL",
+                (rs, row) -> new VinculoFila(true, rs.getObject("lote_id", Long.class)), evidenciaId, productorId, productoId)
+                .stream().findFirst().orElseThrow(EvidenciasService::noEncontrada);
+        return fila.loteId() == null ? Optional.empty()
+                : Optional.of(new VinculoCertificadoLote(evidenciaId, productoId, fila.loteId()));
     }
 
     /** Retiro logico: deja de sustentar la solicitud, pero se conserva por las decisiones que la citan. */
