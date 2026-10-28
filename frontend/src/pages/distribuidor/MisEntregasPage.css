@@ -45,3 +45,7 @@
   .mis-entregas__tarjeta { padding: 16px; }
   .mis-entregas__acciones .boton { flex: 1; }
 }
+
+.ubicaciones{position:fixed;inset:0;margin:auto;background:white;border:0;border-radius:12px;padding:1.5rem;width:min(38rem,calc(100% - 2rem));max-height:90vh;overflow:auto;box-shadow:0 8px 32px #0003}.ubicaciones::backdrop{background:#0008}.ubicaciones__cerrar{float:right;min-height:2.75rem;padding:.5rem 1rem}.ubicaciones p{overflow-wrap:anywhere}.ubicaciones h3{margin-top:1.25rem}
+
+.mis-entregas__tabla-scroll { max-width: 100%; min-width: 0; overflow-x: auto; }

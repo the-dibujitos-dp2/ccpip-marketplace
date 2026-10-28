@@ -47,3 +47,7 @@ export const registrarEnCamino = (numero) =>
 /** Registra la entrega final del pedido que ya está EN_CAMINO. */
 export const registrarEntrega = (numero) =>
   apiFetch(`/api/distribuidor/pedidos/${encodeURIComponent(numero)}/entregar`, { method: 'POST' })
+
+/** Ubicaciones registradas de una entrega asignada propia (CCPIP-110), consulta de solo lectura. */
+export const consultarUbicaciones = (numero) =>
+  apiFetch(`/api/distribuidor/pedidos/${encodeURIComponent(numero)}/ubicaciones`)

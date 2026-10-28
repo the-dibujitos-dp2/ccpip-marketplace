@@ -49,6 +49,33 @@ function reparto(entregas, respuestas = {}) {
 const comoDistribuidor = (rutas) => ({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_DISTRIBUIDOR], ...rutas })
 const tarjeta = (numero) => screen.getByRole('article', { name: new RegExp(`^${numero} ·`) })
 
+describe('CCPIP-110 ubicaciones', () => {
+  it('consulta y muestra ubicaciones registradas, referencia opcional, errores reintentables y limpia al cambiar pedido', async () => {
+    const rutas = reparto([entrega('MC-11001', 'Lince', '150116', 'ASIGNADA'), entrega('MC-11002', 'Surco', '150140', 'ASIGNADA')])
+    let intento = 0
+    rutas['GET /api/distribuidor/pedidos/MC-11001/ubicaciones'] = () => (++intento === 1 ? [503, { error: 'fallo' }] : [200, { numero: 'MC-11001', origen: { id: 1, nombre: 'Punto Uno', distrito: 'Lima', direccion: 'Calle Uno' }, destino: { territorio: { ubigeo: '150116', departamento: 'Lima', provincia: 'Lima', distrito: 'Lince' }, direccion: 'Jr. Dos', referencia: null } }])
+    rutas['GET /api/distribuidor/pedidos/MC-11002/ubicaciones'] = () => [200, { numero: 'MC-11002', origen: { id: 1, nombre: 'Punto Dos', distrito: 'Lima', direccion: 'Calle Tres' }, destino: { territorio: { ubigeo: '150140', departamento: 'Lima', provincia: 'Lima', distrito: 'Surco' }, direccion: 'Av. Cuatro', referencia: 'Puerta azul' } }]
+    const fetchMock = servidor(comoDistribuidor(rutas)); const user = userEvent.setup(); abrirEn('/distribuidor/entregas')
+    const card = await screen.findByRole('article', { name: /^MC-11001/ }); await user.click(within(card).getByRole('button', { name: 'Ver ubicaciones' }))
+    expect(await screen.findByRole('alertdialog')).toHaveTextContent('No pudimos cargar las ubicaciones')
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }))
+    const dlg = await screen.findByRole('dialog', { name: 'Ubicaciones del pedido MC-11001' }); expect(dlg).toHaveTextContent('Calle Uno'); expect(dlg).toHaveTextContent('Jr. Dos'); expect(dlg).not.toHaveTextContent('Puerta azul')
+    await user.click(within(dlg).getByRole('button', { name: 'Cerrar' })); await user.click(within(await screen.findByRole('article', { name: /^MC-11002/ })).getByRole('button', { name: 'Ver ubicaciones' }))
+    expect(await screen.findByRole('dialog', { name: 'Ubicaciones del pedido MC-11002' })).toHaveTextContent('Puerta azul')
+    expect(llamadas(fetchMock, 'GET /api/distribuidor/pedidos/MC-11001/ubicaciones')).toHaveLength(2)
+  })
+
+  it('permite consultar las ubicaciones de una entrega propia ya entregada', async () => {
+    const rutas = reparto([entrega('MC-11003', 'Lince', '150116', 'ENTREGADA')])
+    rutas['GET /api/distribuidor/pedidos/MC-11003/ubicaciones'] = [200, { numero: 'MC-11003', origen: { id: 1, nombre: 'Punto Uno', distrito: 'Lima', direccion: 'Calle Uno' }, destino: { territorio: { ubigeo: '150116', departamento: 'Lima', provincia: 'Lima', distrito: 'Lince' }, direccion: 'Jr. Destino', referencia: null } }]
+    const fetchMock = servidor(comoDistribuidor(rutas)); const user = userEvent.setup(); abrirEn('/distribuidor/entregas')
+    const tabla = await screen.findByRole('table', { name: 'Entregados hoy' })
+    await user.click(within(tabla).getByRole('button', { name: 'Ver ubicaciones' }))
+    expect(await screen.findByRole('dialog', { name: 'Ubicaciones del pedido MC-11003' })).toHaveTextContent('Jr. Destino')
+    expect(llamadas(fetchMock, 'GET /api/distribuidor/pedidos/MC-11003/ubicaciones')).toHaveLength(1)
+  })
+})
+
 describe('DW-03 Mis entregas (CCPIP-317)', () => {
   it('muestra cada entrega en curso con el punto donde recogerla, su destino, su estado y sus pasos', async () => {
     servidor(comoDistribuidor(reparto([

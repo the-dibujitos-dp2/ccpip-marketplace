@@ -1060,7 +1060,23 @@
       "registrarEntrega": "Registrar entrega",
       "registrandoEntrega": "Registrando…",
       "entregaRegistrada": "Registraste la entrega del pedido {{numero}}.",
-      "errorEntrega": "No pudimos registrar la entrega del pedido {{numero}}"
+      "errorEntrega": "No pudimos registrar la entrega del pedido {{numero}}",
+      "ubicaciones": {
+        "accion": "Ver ubicaciones",
+        "titulo": "Ubicaciones del pedido {{numero}}",
+        "cerrar": "Cerrar",
+        "cargando": "Cargando ubicaciones…",
+        "error": "No pudimos cargar las ubicaciones",
+        "reintentar": "Reintentar",
+        "origen": "Origen",
+        "punto": "Punto de acopio",
+        "direccion": "Dirección",
+        "distrito": "Distrito",
+        "destino": "Destino",
+        "provincia": "Provincia",
+        "departamento": "Departamento",
+        "referencia": "Referencia"
+      }
     }
   },
   "acopio": {

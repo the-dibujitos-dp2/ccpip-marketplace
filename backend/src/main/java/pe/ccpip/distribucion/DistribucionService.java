@@ -20,6 +20,8 @@ import pe.ccpip.distribucion.DistribucionModelos.EntregaDelDistribuidor;
 import pe.ccpip.distribucion.DistribucionModelos.Origen;
 import pe.ccpip.distribucion.DistribucionModelos.PedidoDisponible;
 import pe.ccpip.distribucion.DistribucionModelos.PuntoConPedidos;
+import pe.ccpip.distribucion.DistribucionUbicacionesModelos.UbicacionesPedido;
+import pe.ccpip.distribucion.DistribucionUbicacionesModelos.UbicacionDestino;
 import pe.ccpip.entrega.EntregaModelos.Distrito;
 
 /**
@@ -123,6 +125,26 @@ public class DistribucionService {
                                 rs.getString("distrito")),
                         rs.getString("estado"), rs.getObject("asignada_en", Timestamp.class).toInstant(),
                         instante(rs.getObject("retirada_en", Timestamp.class))));
+    }
+
+    /** CCPIP-110: ubicaciones registradas, solo para el distribuidor propietario de la entrega. */
+    @Transactional(readOnly = true)
+    public UbicacionesPedido ubicaciones(long distribuidorId, String numero) {
+        return jdbc.query("""
+                SELECT pe.numero, u.id AS punto_id, u.nombre AS punto, u.distrito AS punto_distrito, u.direccion AS punto_direccion,
+                       g.codigo, g.departamento, g.provincia, g.distrito, e.direccion AS destino_direccion, e.referencia
+                FROM pedido pe
+                JOIN entrega e ON e.pedido_id = pe.id
+                JOIN ubigeo g ON g.codigo = e.ubigeo
+                JOIN ubicacion u ON u.id = pe.ubicacion_origen_id
+                WHERE upper(pe.numero) = :numero AND pe.modalidad = 'ENVIO' AND e.distribuidor_id = :distribuidor
+                """, new MapSqlParameterSource("numero", numero).addValue("distribuidor", distribuidorId),
+                (rs, row) -> new UbicacionesPedido(rs.getString("numero"),
+                        new Origen(rs.getLong("punto_id"), rs.getString("punto"), rs.getString("punto_distrito"), rs.getString("punto_direccion")),
+                        new UbicacionDestino(new Distrito(rs.getString("codigo"), rs.getString("departamento"), rs.getString("provincia"), rs.getString("distrito")),
+                                rs.getString("destino_direccion"), rs.getString("referencia"))))
+                .stream().findFirst()
+                .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "El pedido no existe o no se entrega a domicilio."));
     }
 
     /** La entrega de un pedido a domicilio, ya bloqueada, con lo que hace falta para decidir si se puede asumir o retirar. */
