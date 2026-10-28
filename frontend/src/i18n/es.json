@@ -2230,7 +2230,9 @@
     "TITULO_MUY_LARGO": "El título admite hasta 120 caracteres.",
     "VIDEO_YA_RESUELTO": "Este video ya no está pendiente de revisión.",
     "VIDEO_NO_ENCONTRADO": "El video no existe.",
-    "REEMPLAZO_EN_REVISION": "Este video ya tiene un reemplazo en revisión. Espera la decisión de la Cámara o retíralo."
+    "REEMPLAZO_EN_REVISION": "Este video ya tiene un reemplazo en revisión. Espera la decisión de la Cámara o retíralo.",
+    "SIN_EVIDENCIAS": "Adjunta al menos una evidencia del producto antes de solicitar su autorización.",
+    "SOLICITUD_EN_REVISION": "La solicitud de este producto ya está en revisión de la Cámara."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -3005,21 +3007,23 @@
     "error": "No pudimos cargar las evidencias",
     "errorSubir": "No pudimos subir el archivo",
     "errorRetirar": "No pudimos retirar la evidencia",
-    "subida": "Subiste «{{titulo}}». La Cámara la revisará.",
+    "subida": "Subiste «{{titulo}}».",
     "retirada": "Retiraste «{{titulo}}».",
     "limite": "Llegaste al máximo de {{maximo}} evidencias. Retira una para agregar otra.",
     "privadas": "Solo la Cámara y tú pueden verlas.",
     "decisionHumana": "La revisión preliminar con IA solo ayuda a la Cámara: la decisión la toma una persona.",
     "estado": {
       "SIN_SOLICITUD": "Aún no solicitas la autorización",
-      "SIN_SOLICITUDTexto": "Sube al menos un certificado vigente de este producto para enviar la solicitud a la Cámara.",
+      "SIN_SOLICITUDTexto": "Sube las evidencias de este producto y después solicita la autorización a la Cámara.",
+      "BORRADOR": "Solicitud en preparación",
+      "BORRADORTexto": "La Cámara aún no la revisa. Cuando tengas tus evidencias listas, solicita la autorización.",
       "SOLICITADA": "En revisión por la Cámara",
       "SOLICITADATexto": "Puedes agregar o retirar evidencias mientras la revisan. Te avisaremos con la decisión.",
       "APROBADA": "Autorizado para vender",
       "aprobadaHasta": "La autorización vale hasta el {{fecha}}, cuando vence tu primer certificado.",
       "RECHAZADA": "La Cámara rechazó la solicitud",
       "REVOCADA": "La autorización fue revocada",
-      "conMotivo": "Motivo: «{{motivo}}». Adjunta nuevas evidencias para volver a solicitarla.",
+      "conMotivo": "Motivo: «{{motivo}}». Corrige tus evidencias si hace falta y vuelve a solicitarla.",
       "lineaNueva": "La autorización no cubre una línea nueva",
       "lineaNuevaTexto": "Agregaste una línea que la Cámara no revisó: la venta está pausada. Adjunta evidencias para pedir una nueva revisión."
     },
@@ -3093,6 +3097,12 @@
       "reintentar": "Reintentar",
       "sinLotes": "Este producto no tiene lotes disponibles en su registro.",
       "metadatos": "Emisor: {{emisor}} · Inicio: {{desde}} · Vencimiento: {{hasta}}"
+    },
+    "solicitar": {
+      "boton": "Solicitar autorización",
+      "ayuda": "La Cámara revisará tus evidencias y te avisará su decisión. Solicitarla no publica tu oferta.",
+      "enviada": "Enviaste la solicitud a la Cámara",
+      "error": "No pudimos enviar la solicitud"
     }
   },
   "premios": {
@@ -3228,6 +3238,7 @@
       "ninguna": "Sin análisis"
     },
     "estado": {
+      "BORRADOR": "En preparación",
       "SOLICITADA": "En revisión",
       "APROBADA": "Aprobada",
       "RECHAZADA": "Rechazada",

@@ -36,9 +36,10 @@ import pe.ccpip.productor.Auditoria.Accion;
  * autorizacion solicita. Todo se filtra por el productor de la sesion (RNF-05): un producto ajeno
  * no existe para el. El archivo va al bucket privado y solo se sirve con sesion (RNF-08).
  *
- * <p>Subir la primera evidencia crea la solicitud; si estaba RECHAZADA, REVOCADA o su aprobacion ya
- * vencio, vuelve a SOLICITADA para una nueva revision. Mientras esta APROBADA y vigente no se
- * agregan ni se retiran evidencias: sustentan la decision tomada.
+ * <p>Subir la primera evidencia crea la solicitud en BORRADOR; si estaba RECHAZADA, REVOCADA o su
+ * aprobacion ya vencio, vuelve a BORRADOR. Solo pasa a revision cuando el productor la solicita
+ * (CCPIP-29, {@link #solicitar}). Mientras esta APROBADA y vigente no se agregan ni se retiran
+ * evidencias: sustentan la decision tomada.
  */
 @Service
 public class EvidenciasService {
@@ -64,8 +65,9 @@ public class EvidenciasService {
                 .map(a -> vigentes(a.id(), EvidenciasService::urlProductor))
                 .orElse(List.of());
         Autorizacion vista = autorizacion.orElse(new Autorizacion(null, Estado.SIN_SOLICITUD, null, null, null, null, true));
+        boolean puedeSolicitar = !evidencias.isEmpty() && vista.estado() != Estado.SOLICITADA && admiteCambios(vista);
         return new EvidenciasProducto(productoId, nombre, vista, evidencias,
-                admiteCambios(vista) && evidencias.size() < MAX_EVIDENCIAS, MAX_EVIDENCIAS);
+                admiteCambios(vista) && evidencias.size() < MAX_EVIDENCIAS, MAX_EVIDENCIAS, puedeSolicitar);
     }
 
     @Transactional
@@ -84,10 +86,11 @@ public class EvidenciasService {
             throw ErrorNegocio.invalido("LIMITE_DE_EVIDENCIAS",
                     "Un producto admite hasta " + MAX_EVIDENCIAS + " evidencias. Retira una para agregar otra.");
         }
-        if (autorizacion.estado() != Estado.SOLICITADA) {
-            // Vuelve a revision: el motivo anterior queda en autorizacion_decision
+        if (autorizacion.estado() != Estado.SOLICITADA && autorizacion.estado() != Estado.BORRADOR) {
+            // CCPIP-29: vuelve a preparacion hasta que el productor la solicite; el motivo anterior queda
+            // en autorizacion_decision
             jdbc.update("""
-                    UPDATE autorizacion_producto SET estado = 'SOLICITADA', solicitada_en = now(), motivo = NULL,
+                    UPDATE autorizacion_producto SET estado = 'BORRADOR', solicitada_en = NULL, motivo = NULL,
                            decidido_por = NULL, decidido_en = NULL, vigente_hasta = NULL, decision_id = NULL
                     WHERE id = ?""", autorizacion.id());
         }
@@ -152,6 +155,42 @@ public class EvidenciasService {
                 .stream().findFirst().orElseThrow(EvidenciasService::noEncontrada);
         return fila.loteId() == null ? Optional.empty()
                 : Optional.of(new VinculoCertificadoLote(evidenciaId, productoId, fila.loteId()));
+    }
+
+    /**
+     * CCPIP-29 (RF-04): el productor solicita la autorizacion de su producto ante la Camara; recien entonces
+     * llega a la bandeja del subadministrador. Exige al menos una evidencia vigente. Se puede volver a
+     * solicitar despues de un rechazo o una revocacion, sin veto permanente (C4). No crea la cuenta ni
+     * publica la oferta: alta, autorizacion y publicacion son procesos separados (C1).
+     */
+    @Transactional
+    public EvidenciasProducto solicitar(long productorId, long usuarioId, long productoId) {
+        productoPropio(productorId, productoId);
+        Optional<Long> id = jdbc.query(
+                "SELECT id FROM autorizacion_producto WHERE productor_id = ? AND producto_id = ? FOR UPDATE",
+                (rs, row) -> rs.getLong(1), productorId, productoId).stream().findFirst();
+        Autorizacion autorizacion = id.flatMap(x -> autorizacion(productorId, productoId)).orElse(null);
+        if (autorizacion != null && autorizacion.estado() == Estado.SOLICITADA) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "SOLICITUD_EN_REVISION",
+                    "La solicitud de este producto ya está en revisión de la Cámara.");
+        }
+        if (autorizacion != null && !admiteCambios(autorizacion)) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "AUTORIZACION_VIGENTE",
+                    "Este producto ya está autorizado y su autorización está vigente.");
+        }
+        if (autorizacion == null || vigentes(autorizacion.id(), x -> null).isEmpty()) {
+            throw ErrorNegocio.invalido("SIN_EVIDENCIAS",
+                    "Adjunta al menos una evidencia del producto antes de solicitar su autorización.");
+        }
+        jdbc.update("""
+                UPDATE autorizacion_producto SET estado = 'SOLICITADA', solicitada_en = now(), motivo = NULL,
+                       decidido_por = NULL, decidido_en = NULL, vigente_hasta = NULL, decision_id = NULL
+                WHERE id = ?""", autorizacion.id());
+        Map<String, Object> cambios = new LinkedHashMap<>();
+        cambios.put("solicitada", autorizacion.id());
+        cambios.put("desde", autorizacion.estado().name());
+        auditoria.registrar(productoId, usuarioId, Accion.AUTORIZACION, cambios);
+        return listar(productorId, productoId);
     }
 
     /** Retiro logico: deja de sustentar la solicitud, pero se conserva por las decisiones que la citan. */
@@ -278,8 +317,8 @@ public class EvidenciasService {
     /** La solicitud del producto, creada si no existia, bloqueada para esta transaccion. */
     private Autorizacion solicitud(long productorId, long productoId) {
         jdbc.update("""
-                INSERT INTO autorizacion_producto (productor_id, producto_id, estado, solicitada_en)
-                VALUES (?, ?, 'SOLICITADA', now())
+                INSERT INTO autorizacion_producto (productor_id, producto_id, estado)
+                VALUES (?, ?, 'BORRADOR')
                 ON CONFLICT (productor_id, producto_id) DO NOTHING""", productorId, productoId);
         jdbc.query("SELECT id FROM autorizacion_producto WHERE productor_id = ? AND producto_id = ? FOR UPDATE",
                 (rs, row) -> rs.getLong(1), productorId, productoId);

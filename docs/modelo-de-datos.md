@@ -437,10 +437,19 @@ por la migracion `V202610121000` y por las semillas queda con `decision_id` nula
 ### autorizacion_producto (columnas nuevas)
 | Columna | Tipo | Nula | Descripcion |
 |---|---|---|---|
-| solicitada_en | timestamptz | si | Cuando entro (o volvio) a SOLICITADA. Ordena la bandeja |
+| solicitada_en | timestamptz | si | Cuando entro (o volvio) a SOLICITADA. Ordena la bandeja. Nula en BORRADOR (CCPIP-29) |
 | decision_id | bigint | si | La decision que fijo el estado actual. Nula en lo aprobado antes de la bandeja |
 
 Se agrega el unico `(id, productor_id, producto_id)` para la llave compuesta de las evidencias.
+
+**CCPIP-29 (migracion `V202610281400`):** `estado` admite tambien `BORRADOR`. Adjuntar evidencias ya no
+envia la solicitud a revision: la crea (o la devuelve, tras un rechazo, una revocacion o un vencimiento)
+en `BORRADOR`, que el subadministrador no ve en su bandeja ni puede decidir. El productor la envia con
+`POST /api/productor/productos/{productoId}/autorizacion/solicitar`, que exige al menos una evidencia
+vigente (`422 SIN_EVIDENCIAS`), rechaza una en revision (`409 SOLICITUD_EN_REVISION`) o aprobada y vigente
+(`409 AUTORIZACION_VIGENTE`), y queda en `producto_auditoria` (`AUTORIZACION`). Tras un rechazo se puede
+volver a solicitar sin veto permanente (C4). No publica la oferta: alta, autorizacion y publicacion siguen
+separadas (C1).
 
 ### evidencia_producto
 | Columna | Tipo | Nula | Descripcion |

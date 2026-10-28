@@ -172,7 +172,8 @@ class EvidenciasRevisionTest extends IntegrationTest {
 
         mockMvc.perform(get("/api/productor/productos/{id}/evidencias", miel).cookie(productor))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.autorizacion.estado").value("SOLICITADA"))
+                // CCPIP-29: adjuntar no la envia a revision; queda en preparacion hasta que el productor la solicite
+                .andExpect(jsonPath("$.autorizacion.estado").value("BORRADOR"))
                 .andExpect(jsonPath("$.evidencias.length()").value(1))
                 .andExpect(jsonPath("$.puedeAdjuntar").value(true));
 
@@ -287,8 +288,9 @@ class EvidenciasRevisionTest extends IntegrationTest {
         mockMvc.perform(get("/api/productos/{id}", miel)).andExpect(jsonPath("$.comprable").value(true));
         assertThat(jdbc.queryForObject("SELECT decision_id IS NOT NULL FROM autorizacion_producto WHERE id = ?",
                 Boolean.class, solicitud)).isTrue();
+        // La solicitud del productor (CCPIP-29) y la aprobacion
         assertThat(jdbc.queryForObject("SELECT count(*) FROM producto_auditoria WHERE producto_id = ? AND accion = 'AUTORIZACION'",
-                Integer.class, miel)).isEqualTo(1);
+                Integer.class, miel)).isEqualTo(2);
 
         // Las evidencias de una autorizacion vigente sustentan la decision: no se cambian
         subir(productor, miel, PDF, "otro.pdf", "DOCUMENTO", "Otro", null, null)
@@ -362,9 +364,14 @@ class EvidenciasRevisionTest extends IntegrationTest {
         mockMvc.perform(get("/api/admin/autorizaciones?estado=RECHAZADA").cookie(subAdmin))
                 .andExpect(jsonPath("$.solicitudes[*].id", hasItem((int) solicitud)));
 
-        // Una evidencia nueva vuelve a poner la solicitud en revision; la decision anterior se conserva
+        // Una evidencia nueva la deja en preparacion y al solicitarla vuelve a revision (CCPIP-29); la
+        // decision anterior se conserva
         subir(productor, miel, PDF, "c2.pdf", "CERTIFICADO", "Certificado de miel 2026", "E", EN_UN_ANIO)
                 .andExpect(status().isCreated());
+        mockMvc.perform(get("/api/admin/autorizaciones/{id}", solicitud).cookie(subAdmin))
+                .andExpect(jsonPath("$.estado").value("BORRADOR"))
+                .andExpect(jsonPath("$.puedeDecidir").value(false));
+        solicitud(miel);
         mockMvc.perform(get("/api/admin/autorizaciones/{id}", solicitud).cookie(subAdmin))
                 .andExpect(jsonPath("$.estado").value("SOLICITADA"))
                 .andExpect(jsonPath("$.motivo").doesNotExist())
@@ -472,7 +479,13 @@ class EvidenciasRevisionTest extends IntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("motivo", motivo))));
     }
 
-    private long solicitud(long producto) {
+    /** La solicitud del producto, enviada a revision por el productor si aun estaba en preparacion (CCPIP-29). */
+    private long solicitud(long producto) throws Exception {
+        String estado = jdbc.queryForObject("SELECT estado FROM autorizacion_producto WHERE producto_id = ?", String.class, producto);
+        if ("BORRADOR".equals(estado)) {
+            mockMvc.perform(post("/api/productor/productos/{id}/autorizacion/solicitar", producto).cookie(productor))
+                    .andExpect(status().isOk());
+        }
         return jdbc.queryForObject("SELECT id FROM autorizacion_producto WHERE producto_id = ?", Long.class, producto);
     }
 

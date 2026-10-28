@@ -19,7 +19,7 @@ import { BadgesProductor } from './ProductoresPage.jsx'
 import '../productor/productor.css'
 import './admin.css'
 
-const TONO_ESTADO = { SIN_SOLICITUD: 'neutro', SOLICITADA: 'info', APROBADA: 'exito', RECHAZADA: 'error', REVOCADA: 'error' }
+const TONO_ESTADO = { SIN_SOLICITUD: 'neutro', BORRADOR: 'neutro', SOLICITADA: 'info', APROBADA: 'exito', RECHAZADA: 'error', REVOCADA: 'error' }
 const TONO_DECISION = { HABILITAR_TIENDA: 'exito', REVOCAR_VENTA: 'error', RESTITUIR_VENTA: 'info', BLOQUEAR_VENTA: 'error', DESBLOQUEAR_VENTA: 'info' }
 const DESTRUCTIVAS = new Set(['revocar', 'bloquear'])
 
