@@ -3068,6 +3068,20 @@
       "titulo_other": "The Chamber asks you to renew {{count}} certificates",
       "detalle": "“{{certificado}}” by {{plazo}}. Reason: {{motivo}}",
       "venta": "Your product remains on sale. If the certificate expires without renewal, its sale is paused until a new one is approved."
+    },
+    "vinculo": {
+      "accion": "Link batch",
+      "formulario": "Link batch to certificate {{titulo}}",
+      "lote": "Batch for certificate {{titulo}}",
+      "registrado": "Link registered with batch {{lote}}",
+      "sinAprobacion": "Registering this link does not approve or publish the certificate or batch.",
+      "incompleto": "Linking requires issuer, validity start and expiry. The historical document is preserved.",
+      "cargando": "Loading certificate link…",
+      "errorLeer": "We could not load the link and batches.",
+      "errorGuardar": "We could not link the certificate. Retry or reload the data.",
+      "reintentar": "Retry",
+      "sinLotes": "This product has no batches in its record.",
+      "metadatos": "Issuer: {{emisor}} · Start: {{desde}} · Expiry: {{hasta}}"
     }
   },
   "premios": {
