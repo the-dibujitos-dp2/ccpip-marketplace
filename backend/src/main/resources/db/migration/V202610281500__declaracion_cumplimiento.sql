@@ -22,11 +22,11 @@ COMMENT ON TABLE regla_cumplimiento IS
 -- Las tres reglas de la propuesta de valor (Definicion de Producto). Son declarables, no obligatorias.
 INSERT INTO regla_cumplimiento (codigo, nombre, nombre_en, descripcion, descripcion_en, orden) VALUES
     ('CERO_DEFORESTACION', 'Cero deforestación', 'Zero deforestation',
-     'La materia prima no proviene de áreas taladas.', 'The raw material does not come from cleared areas.', 1),
+     'Cero deforestación', 'Zero deforestation', 1),
     ('CERO_PESTICIDAS', 'Cero pesticidas o herbicidas', 'Zero pesticides or herbicides',
-     'No se usan agroquímicos en el cultivo ni en la transformación.', 'No agrochemicals are used in cultivation or processing.', 2),
+     'Cero pesticidas o herbicidas', 'Zero pesticides or herbicides', 2),
     ('ELABORADO_POR_COMUNIDAD', 'Elaborado por comunidad indígena', 'Made by an Indigenous community',
-     'Lo elaboran personas de la comunidad indígena del productor.', 'It is made by people from the producer''s Indigenous community.', 3);
+     'Elaborado por comunidad indígena', 'Made by an Indigenous community', 3);
 
 -- Cada declaracion es completa (las reglas que el producto cumple a esa fecha) y no se edita: una nueva
 -- reemplaza a la anterior, que queda en el historial.

@@ -46,7 +46,12 @@ class CumplimientoTest extends IntegrationTest {
                 .andExpect(jsonPath("$.reglas[0].codigo").value("CERO_DEFORESTACION"))
                 .andExpect(jsonPath("$.reglas[0].nombre").value("Cero deforestación"))
                 .andExpect(jsonPath("$.reglas[0].nombreEn").value("Zero deforestation"))
-                .andExpect(jsonPath("$.reglas[0].descripcion").isString())
+                .andExpect(jsonPath("$.reglas[0].descripcion").value("Cero deforestación"))
+                .andExpect(jsonPath("$.reglas[0].descripcionEn").value("Zero deforestation"))
+                .andExpect(jsonPath("$.reglas[1].descripcion").value("Cero pesticidas o herbicidas"))
+                .andExpect(jsonPath("$.reglas[1].descripcionEn").value("Zero pesticides or herbicides"))
+                .andExpect(jsonPath("$.reglas[2].descripcion").value("Elaborado por comunidad indígena"))
+                .andExpect(jsonPath("$.reglas[2].descripcionEn").value("Made by an Indigenous community"))
                 .andExpect(jsonPath("$.vigente").doesNotExist())
                 .andExpect(jsonPath("$.historial").isEmpty());
     }
