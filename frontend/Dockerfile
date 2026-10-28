@@ -12,9 +12,10 @@ RUN npm run build
 FROM golang:1.27.3-alpine AS caddy
 ARG CADDY_VERSION=v2.11.7
 WORKDIR /src
+# Caddy v2.11.7 requires go-jose/v4 v4.1.5; Trivy flags CVE-2026-116587 (fixed in v4.1.6).
 RUN go mod init ccpip-caddy \
     && printf 'package main\n\nimport (\n\tcaddycmd "github.com/caddyserver/caddy/v2/cmd"\n\t_ "github.com/caddyserver/caddy/v2/modules/standard"\n)\n\nfunc main() { caddycmd.Main() }\n' > main.go \
-    && go get github.com/caddyserver/caddy/v2@${CADDY_VERSION} golang.org/x/net@v0.60.0 \
+    && go get github.com/caddyserver/caddy/v2@${CADDY_VERSION} golang.org/x/net@v0.60.0 github.com/go-jose/go-jose/v4@v4.1.6 \
     && go mod tidy \
     && CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o /caddy .
 
