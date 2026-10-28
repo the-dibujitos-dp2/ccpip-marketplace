@@ -117,6 +117,7 @@ function puedeVerAdmin(user, path) {
 
 /** A donde va cada rol al ingresar si no venia de ninguna pagina. */
 function destinoPorRol(user) {
+  if (user?.role === 'ADMIN_PUNTO') return RUTAS.acopioPedidos
   if (user?.role === 'PRODUCTOR') return RUTAS.productor
   if (user?.role === 'CONSUMIDOR') return RUTAS.catalogo
   if (user?.role === 'SUPER_ADMIN') return RUTAS.admin
@@ -220,7 +221,8 @@ export default function App() {
   // Reglas de acceso de cada ruta. El servidor valida igual (CCPIP-151); esto solo evita pantallas vacias.
   useEffect(() => {
     if (cargando) return
-    if (sesion && (path === RUTAS.ingresar || path === RUTAS.registro)) navigate(volver, { replace: true })
+    if (sesion && path === RUTAS.inicio && user?.role === 'ADMIN_PUNTO') navigate(RUTAS.acopioPedidos, { replace: true })
+    else if (sesion && (path === RUTAS.ingresar || path === RUTAS.registro)) navigate(volver, { replace: true })
     else if (!sesion && protegida) navigate(`${RUTAS.ingresar}?volver=${encodeURIComponent(path + search)}`, { replace: true })
     else if (restringida) return
     else if (sesion && delProductor && user.role !== 'PRODUCTOR') navigate(RUTAS.inicio, { replace: true })
