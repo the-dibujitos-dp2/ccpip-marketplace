@@ -47,6 +47,19 @@ describe('Botón con acción en curso (CCPIP-413)', () => {
     expect(cancelar).toBeDisabled()
   })
 
+  it('cuando el botón secundario es la decisión que espera, el aro va en él y confirmar solo se bloquea', () => {
+    render(
+      <Dialogo abierto titulo="Compara" confirmar="Usar la mejorada" cancelar="Conservar la original" onConfirmar={vi.fn()} onCancelar={vi.fn()}
+        ocupado ocupadoEn="cancelar">Elige</Dialogo>,
+    )
+    const conservar = screen.getByRole('button', { name: 'Conservar la original' })
+    const usar = screen.getByRole('button', { name: 'Usar la mejorada' })
+    expect(aro(conservar)).not.toBeNull()
+    expect(conservar).toHaveAttribute('aria-busy', 'true')
+    expect(aro(usar)).toBeNull()
+    expect(usar).toBeDisabled()
+  })
+
   it('al ingresar, el botón muestra el aro mientras espera la respuesta y lo quita al terminar', async () => {
     let responder
     servidor({

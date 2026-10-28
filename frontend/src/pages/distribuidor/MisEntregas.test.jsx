@@ -222,7 +222,7 @@ describe('DW-03 Retirar el pedido del punto de acopio (CCPIP-109)', () => {
     expect(within(tarjeta('MC-00139')).queryByRole('button', { name: 'Retiré el pedido' })).not.toBeInTheDocument()
   })
 
-  it('mientras registra, el botón lo dice y los demás retiros quedan bloqueados', async () => {
+  it('mientras registra, el botón lo dice con el aro de carga y los demás retiros quedan bloqueados (CCPIP-413)', async () => {
     let soltar
     const rutas = reparto([
       entrega('MC-00139', 'San Isidro', '150131', 'ASIGNADA'),
@@ -239,6 +239,9 @@ describe('DW-03 Retirar el pedido del punto de acopio (CCPIP-109)', () => {
 
     const registrando = within(tarjeta('MC-00139')).getByRole('button', { name: 'Registrando…' })
     expect(registrando).toBeDisabled()
+    expect(registrando).toHaveAttribute('aria-busy', 'true')
+    expect(registrando.querySelector('.boton__giro')).not.toBeNull()
+    expect(within(tarjeta('MC-00144')).getByRole('button', { name: 'Retiré el pedido' }).querySelector('.boton__giro')).toBeNull()
     expect(within(tarjeta('MC-00144')).getByRole('button', { name: 'Retiré el pedido' })).toBeDisabled()
     soltar()
     expect(await screen.findByText('Registraste el retiro del pedido MC-00139.')).toBeInTheDocument()

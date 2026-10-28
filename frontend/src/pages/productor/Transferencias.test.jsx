@@ -153,6 +153,22 @@ describe('CCPIP-73, 164, 362 y 277 Mis transferencias (PW-17)', () => {
     expect(within(fila).queryByRole('table')).not.toBeInTheDocument()
   })
 
+  it('mientras trae el detalle, "Ver detalle" muestra el aro de carga (CCPIP-413)', async () => {
+    let responder
+    productor({ 'GET /api/productor/transferencias/31': () => new Promise((r) => { responder = r }) })
+    const user = userEvent.setup()
+    abrirEn('/productor/transferencias')
+    const fila = (await screen.findByText('TR-0031')).closest('li')
+    const ver = within(fila).getByRole('button', { name: 'Ver detalle' })
+    await user.click(ver)
+
+    expect(ver).toBeDisabled()
+    expect(ver).toHaveAttribute('aria-busy', 'true')
+    expect(ver.querySelector('.boton__giro')).not.toBeNull()
+    responder([200, transferencia(31, 'INICIADA', { historial: [] })])
+    expect(await within(fila).findByRole('button', { name: 'Ocultar detalle' })).toBeEnabled()
+  })
+
   it('CCPIP-164: registra la preparacion tras confirmar', async () => {
     const fetchMock = productor({
       'POST /api/productor/transferencias/31/preparar': () => [200, transferencia(31, 'PREPARADA')],

@@ -96,7 +96,7 @@ function aviso(v, n, nombreLinea, lineaActual, t) {
  * sospechosa se puede reemplazar desde el aviso (CCPIP-364) o dejar como esta, y la mejora es
  * siempre una eleccion expresa (CCPIP-176).
  */
-export function AvisosFotos({ imagenes, porFoto, nombreLinea, lineaActual, onValidar, onReemplazar, onMejorar, reemplazando, mejorando }) {
+export function AvisosFotos({ imagenes, porFoto, nombreLinea, lineaActual, onValidar, onReemplazar, onMejorar, reemplazando = null, mejorando = null }) {
   const { t } = useTranslation()
   if (!imagenes.length) return null
   return (
@@ -120,9 +120,10 @@ export function AvisosFotos({ imagenes, porFoto, nombreLinea, lineaActual, onVal
               {v?.estado === 'SOSPECHOSA' && <p className="caption">{t('productor.datos.iaFotos.noBloquea')}</p>}
               <div className="editor__ia-foto-acciones">
                 {v?.estado === 'SOSPECHOSA' && (
-                  <label className={`editor__ia-enlace${reemplazando ? ' editor__ia-enlace--ocupado' : ''}`}>
+                  <label className={`editor__ia-enlace${reemplazando !== null ? ' editor__ia-enlace--ocupado' : ''}`} aria-busy={reemplazando === img.id || undefined}>
+                    {reemplazando === img.id && <Giro tamano={16} />}
                     {t('productor.datos.iaFotos.reemplazar')}
-                    <input className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" disabled={reemplazando}
+                    <input className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" disabled={reemplazando !== null}
                       onChange={(e) => { void onReemplazar(img, e.target.files?.[0]); e.target.value = '' }} />
                   </label>
                 )}
@@ -167,7 +168,7 @@ export function ChipRevisar({ imagenId }) {
  * CCPIP-272, CCPIP-281 y CCPIP-282: la original y la mejorada lado a lado. Nada cambia hasta
  * que el productor elige; cerrar sin elegir deja la propuesta pendiente.
  */
-export function ComparacionMejora({ comparacion, ocupado, onUsar, onConservar, onCerrar }) {
+export function ComparacionMejora({ comparacion, decidiendo = null, onUsar, onConservar, onCerrar }) {
   const { t } = useTranslation()
   return (
     <Dialogo
@@ -177,7 +178,8 @@ export function ComparacionMejora({ comparacion, ocupado, onUsar, onConservar, o
       confirmar={t('productor.datos.mejora.usar')}
       cancelar={t('productor.datos.mejora.conservar')}
       tipoCancelar="secundario"
-      ocupado={ocupado}
+      ocupado={decidiendo !== null}
+      ocupadoEn={decidiendo === 'conservar' ? 'cancelar' : 'confirmar'}
       onConfirmar={onUsar}
       onCancelar={onConservar}
       onCerrar={onCerrar}
