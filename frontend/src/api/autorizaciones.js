@@ -7,6 +7,14 @@ import { ApiError, apiFetch, idRuta, restartIdle } from './http.js'
 /** La solicitud de autorizacion del producto y sus evidencias vigentes. */
 export const listarEvidencias = async (productoId) => apiFetch(`/api/productor/productos/${idRuta(productoId)}/evidencias`)
 
+/** CCPIP-336: lee el vínculo persistido (204 equivale a null). */
+export const leerLoteEvidencia = async (productoId, evidenciaId) => {
+  try { return await apiFetch(`/api/productor/productos/${idRuta(productoId)}/evidencias/${idRuta(evidenciaId)}/lote`) }
+  catch (e) { if (e.status === 204) return null; throw e }
+}
+export const vincularEvidenciaLote = (productoId, evidenciaId, loteId) =>
+  apiFetch(`/api/productor/productos/${idRuta(productoId)}/evidencias/${idRuta(evidenciaId)}/lote`, { method: 'POST', body: { loteId: Number(loteId) } })
+
 /**
  * Sube UNA evidencia con lo que la identifica: tipo, titulo, emisor y vigencia (RF-13). El
  * servidor reconoce el formato por el contenido del archivo, no por su extension.
