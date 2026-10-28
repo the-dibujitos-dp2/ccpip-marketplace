@@ -11,6 +11,7 @@ import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
+import Giro from '../../components/Giro.jsx'
 import Icono from '../../components/Icono.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -53,6 +54,8 @@ export default function TiendaEditorPage({ path }) {
   const [categoria, setCategoria] = useState('COMUNIDAD')
   const [eligiendo, setEligiendo] = useState(false)
   const [subiendo, setSubiendo] = useState(null)
+  // CCPIP-413: la foto de la galeria que se esta quitando
+  const [quitando, setQuitando] = useState(null)
 
   function aplicar(datos) {
     setTienda(datos)
@@ -126,12 +129,14 @@ export default function TiendaEditorPage({ path }) {
   }
 
   async function quitar(imagen) {
+    setQuitando(imagen.id)
     try {
       await eliminarImagen(imagen.id)
     } catch (err) {
       setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.errorQuitarFoto') })
     }
     await recargar()
+    setQuitando(null)
   }
 
   /** Vuelve a leer la tienda tras subir o quitar fotos; si falla, lo dice sin romper la pantalla. */
@@ -271,15 +276,16 @@ export default function TiendaEditorPage({ path }) {
               <li key={g.id}>
                 <img src={g.urlMiniatura} alt={nombreCategoria(g.categoria) ? t('productor.tienda.fotoDe', { categoria: nombreCategoria(g.categoria) }) : t('productor.tienda.fotoGaleria')} />
                 <Badge tono="neutro" conPunto={false}>{nombreCategoria(g.categoria)}</Badge>
-                <button type="button" className="editor__quitar" aria-label={t('productor.datos.quitarFoto')} onClick={() => void quitar(g)}>
-                  <Icono src={iconoCerrar} tamano={14} />
+                <button type="button" className="editor__quitar" aria-label={t('productor.datos.quitarFoto')} disabled={quitando !== null}
+                  aria-busy={quitando === g.id || undefined} onClick={() => void quitar(g)}>
+                  {quitando === g.id ? <Giro tamano={14} /> : <Icono src={iconoCerrar} tamano={14} />}
                 </button>
               </li>
             ))}
             {tienda.galeria.length < MAX_GALERIA && (
               <li className="tienda-editor__agregar">
-                <label>
-                  <Icono src={iconoCamara} tamano={20} />
+                <label aria-busy={Boolean(subiendo) || undefined}>
+                  {subiendo ? <Giro tamano={20} /> : <Icono src={iconoCamara} tamano={20} />}
                   {subiendo ? t('productor.datos.subiendo') : t('productor.tienda.agregarFoto')}
                   <input className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => { void subir(Array.from(e.target.files ?? []), 'GALERIA'); e.target.value = '' }} />
                 </label>
