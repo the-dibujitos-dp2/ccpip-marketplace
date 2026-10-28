@@ -226,6 +226,24 @@ class DireccionesGuardadasTest extends IntegrationTest {
                 .isEqualTo(repetidaResultado.getResponse().getContentAsString());
     }
 
+    /** CCPIP-395: datos invalidos. Un id mal formado no llega al servicio; uno fuera de rango no existe. Nada se retira. */
+    @Test
+    void rechazaUnIdInvalidoSinRetirarNinguna() throws Exception {
+        direccionGuardada(COMPRADOR);
+        Cookie comprador = loginAs(COMPRADOR);
+
+        for (String malFormado : new String[] {"abc", "1.5", "99999999999999999999"}) {
+            mockMvc.perform(delete(RUTA + "/" + malFormado).cookie(comprador))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("PARAMETRO_INVALIDO"));
+        }
+        for (long fueraDeRango : new long[] {0, -1}) {
+            retirar(comprador, fueraDeRango).andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.code").value("DIRECCION_NO_ENCONTRADA"));
+        }
+        assertThat(guardadas(COMPRADOR)).isEqualTo(1);
+    }
+
     @Test
     void esSoloParaElComprador() throws Exception {
         mockMvc.perform(post(RUTA).contentType(MediaType.APPLICATION_JSON).content(json(direccion())))
