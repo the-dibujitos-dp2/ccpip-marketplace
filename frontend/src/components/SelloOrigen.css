@@ -48,4 +48,13 @@
   line-height: 20px;
 }
 
-.sello--completo li { display: flex; align-items: center; gap: 10px; }
+.sello--completo li { display: flex; align-items: flex-start; gap: 10px; }
+
+/* CCPIP-38: cada sello con su significado y su respaldo */
+.sello__origen { display: flex; flex-direction: column; gap: 4px; }
+.sello__significado, .sello__nota { margin: 0; font-size: 14px; line-height: 20px; color: var(--color-text-secondary); }
+.sello__nota { font-size: 12px; line-height: 16px; }
+.sello__subtitulo { margin: 0; font-weight: 600; font-size: 14px; line-height: 20px; color: var(--color-text-primary); }
+.sello--completo li > span { display: flex; flex-direction: column; }
+.sello__certificado { font-weight: 600; color: var(--color-text-primary); }
+.sello__respaldo { font-size: 12px; line-height: 16px; color: var(--color-text-secondary); }

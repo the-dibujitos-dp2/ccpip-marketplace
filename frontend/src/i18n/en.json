@@ -1878,9 +1878,16 @@
   "sello": {
     "titulo": "Origin verified by CCPIP",
     "corto": "Verified origin",
-    "ceroDeforestacion": "Zero deforestation",
-    "ceroPesticidas": "Zero pesticides or herbicides",
-    "comunidadIndigena": "Made by an Indigenous community"
+    "origen": {
+      "significado": "The Chamber verified that this product is made by {{comunidad}} ({{region}}), an associated Indigenous community.",
+      "desde": "Verified on {{fecha}}."
+    },
+    "certificados": "Valid certificates reviewed by the Chamber",
+    "certificado": {
+      "respaldo": "Issued by {{emisor}} · valid until {{fecha}}",
+      "vigente": "Valid until {{fecha}}"
+    },
+    "nota": "We only show seals that are backed: the Chamber's origin verification and the valid certificates it reviewed. A condition such as zero deforestation or no pesticides is only stated when a certificate attests to it."
   },
   "modalidad": {
     "MINORISTA": "Retail",
@@ -1935,14 +1942,14 @@
       "conocer": "Meet the communities"
     },
     "valores": {
-      "etiqueta": "What every product guarantees",
+      "etiqueta": "What the Chamber backs",
       "deforestacion": {
         "titulo": "Zero deforestation",
-        "texto": "Products that don't come from cleared land."
+        "texto": "We only state it when a valid certificate attests to it."
       },
       "pesticidas": {
         "titulo": "Zero pesticides",
-        "texto": "No agrochemicals in farming or processing."
+        "texto": "We only state it when a valid certificate attests to it."
       },
       "comunidades": {
         "titulo": "Made by communities",
@@ -1950,7 +1957,7 @@
       },
       "verificado": {
         "titulo": "Verified by the Chamber",
-        "texto": "Physical samples and certificates reviewed."
+        "texto": "Community origin and certificates reviewed by the Chamber."
       }
     },
     "error": "We couldn't load the home page",
@@ -2394,7 +2401,7 @@
       "cosechaDel": "produced on {{fecha}}",
       "nota": "Awards declared by the producer, each with a supporting document that is not published. The Chamber does not certify them."
     },
-    "verificando": "The Chamber is still verifying this community's origin.",
+    "sinSellos": "This product has no verified origin or valid certificates to show yet. That does not mean it is approved or rejected.",
     "sobreCosecha": "About this harvest",
     "consumirAntes": "Best before",
     "volumen": {
