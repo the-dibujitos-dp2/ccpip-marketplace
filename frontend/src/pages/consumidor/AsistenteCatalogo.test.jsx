@@ -44,6 +44,31 @@ describe('Asistente de catálogo (CCPIP-51, CCPIP-175)', () => {
     await waitFor(() => expect(window.location.search).toBe('?q=cacao&linea=CACAO'))
   })
 
+  it('CCPIP-347: muestra tiendas reales que llevan a la tienda de la comunidad', async () => {
+    const tienda = DATOS.tiendas[0]
+    servidor({
+      ...sinSesion,
+      'POST /api/asistente/catalogo': [200, {
+        texto: 'No encontré productos que coincidan, pero estas tiendas del catálogo sí coinciden con tu pregunta.',
+        productos: [],
+        tiendas: [tienda],
+        busqueda: { q: 'chinchero', lineas: [], regiones: [] },
+        sinResultados: false,
+        fueraDeAlcance: false,
+        proveedor: 'gemini',
+      }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/buscar')
+    await preguntar(user, 'tejedoras de Chinchero')
+
+    expect(await screen.findByText(/estas tiendas del catálogo sí coinciden/)).toBeInTheDocument()
+    const tiendas = screen.getByRole('list', { name: 'Tiendas que coinciden con tu pregunta' })
+    expect(within(tiendas).getByRole('heading', { name: tienda.nombre })).toBeInTheDocument()
+    expect(within(tiendas).getByRole('link', { name: /Visitar/ })).toHaveAttribute('href', `/tiendas/${tienda.id}`)
+    expect(screen.queryByRole('list', { name: 'Productos que sugiere el asistente' })).not.toBeInTheDocument()
+  })
+
   it('sin coincidencias muestra el texto del servidor y ningun producto', async () => {
     servidor({
       ...sinSesion,

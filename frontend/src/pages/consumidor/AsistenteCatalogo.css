@@ -22,3 +22,7 @@
 @media (max-width: 640px) {
   .asistente__formulario { flex-direction: column; align-items: stretch; }
 }
+
+/* CCPIP-347: tiendas reales que coinciden con la pregunta */
+.asistente__subtitulo { margin: 8px 0 0; }
+.asistente__tiendas { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
