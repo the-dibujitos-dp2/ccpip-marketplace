@@ -46,6 +46,8 @@ export const RUTAS = {
   distribuidorEntregas: '/distribuidor/entregas',
   admin: '/admin',
   adminPermisos: '/admin/permisos',
+  // CCPIP-97: auditoria de operaciones sensibles
+  adminAuditoria: '/admin/auditoria',
   adminComision: '/admin/comision',
   adminComisiones: '/admin/comisiones',
   adminReportes: '/admin/reportes',

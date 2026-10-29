@@ -31,6 +31,7 @@ import CertificadosPage from './pages/admin/CertificadosPage.jsx'
 import ExpedienteDenunciasPage from './pages/admin/ExpedienteDenunciasPage.jsx'
 import TableroPage from './pages/admin/TableroPage.jsx'
 import PermisosPage from './pages/admin/PermisosPage.jsx'
+import AuditoriaPage from './pages/admin/AuditoriaPage.jsx'
 import InventarioPage from './pages/acopio/InventarioPage.jsx'
 import CoberturaPage from './pages/acopio/CoberturaPage.jsx'
 import MovimientosPage from './pages/acopio/MovimientosPage.jsx'
@@ -291,6 +292,7 @@ export default function App() {
     if (!puedeVerAdmin(user, path)) pagina = null
     else if (path === RUTAS.admin) pagina = <TableroPage path={path} />
     else if (path === RUTAS.adminPermisos) pagina = <PermisosPage path={path} />
+    else if (path === RUTAS.adminAuditoria) pagina = <AuditoriaPage path={path} />
     else if (path === RUTAS.adminComision) pagina = <ComisionPage path={path} />
     else if (path === RUTAS.adminComisiones) pagina = <ComisionesPage path={path} />
     else if (path === RUTAS.adminReportes) pagina = <ReportesPage path={path} />
