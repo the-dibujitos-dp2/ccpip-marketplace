@@ -2,6 +2,9 @@ package pe.ccpip.cobertura;
 
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,5 +30,10 @@ public class CoberturasController {
             throw pe.ccpip.comun.ErrorNegocio.invalido("PUNTO_INVALIDO", "El punto debe ser un identificador positivo.");
         }
         return coberturas.listar(sesion.userId(), punto);
+    }
+    @PatchMapping("/{zonaId}/desactivar")
+    public ResponseEntity<Void> desactivar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession sesion, @PathVariable long zonaId) {
+        coberturas.desactivar(sesion.userId(), zonaId);
+        return ResponseEntity.noContent().build();
     }
 }

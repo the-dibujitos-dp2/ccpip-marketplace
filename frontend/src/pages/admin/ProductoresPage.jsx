@@ -9,6 +9,8 @@ import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
+import Paginacion from '../../components/Paginacion.jsx'
 import '../productor/productor.css'
 import './admin.css'
 
@@ -40,6 +42,8 @@ export default function ProductoresPage({ path }) {
     listarProductores().then(setProductores).catch(setError)
   }, [])
 
+  const paginas = usePaginacionLocal(productores ?? [])
+
   return (
     <LayoutAdmin path={path} migas={t('admin.nav.productores')} titulo={t('productores.titulo')}>
       <p className="body-m">{t('productores.intro')}</p>
@@ -54,7 +58,7 @@ export default function ProductoresPage({ path }) {
             <span className="tabla__celda productores__estado" role="columnheader">{t('productores.col.estado')}</span>
             <span className="tabla__celda autorizaciones__accion" role="columnheader"><span className="visually-hidden">{t('autorizaciones.col.accion')}</span></span>
           </div>
-          {productores.map((p) => (
+          {paginas.filas.map((p) => (
             <div key={p.id} className="tabla__fila" role="row">
               <span className="tabla__celda tabla__celda--flex" role="cell">
                 <span className="label-m">{p.organizacion}</span>
@@ -74,6 +78,7 @@ export default function ProductoresPage({ path }) {
           ))}
         </div>
       )}
+      {productores && <Paginacion {...paginas} />}
     </LayoutAdmin>
   )
 }

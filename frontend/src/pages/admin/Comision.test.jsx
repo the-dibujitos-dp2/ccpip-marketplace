@@ -296,7 +296,8 @@ describe('Comisión por pedido (CCPIP-91)', () => {
     servidor(comoSuper())
     abrirEn('/admin/comisiones')
     await screen.findByRole('table', { name: 'Pedidos confirmados' })
-    expect(screen.queryByRole('navigation', { name: 'Paginación' })).not.toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Paginación' })).toHaveTextContent('Página 1')
+    expect(screen.queryByRole('button', { name: 'Siguiente' })).not.toBeInTheDocument()
   })
 
   it('si los filtros no dejan pedidos lo dice distinto que un rango vacío (CCPIP-431)', async () => {

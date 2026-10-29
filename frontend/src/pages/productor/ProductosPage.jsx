@@ -17,6 +17,8 @@ import Giro from '../../components/Giro.jsx'
 import Icono from '../../components/Icono.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
+import Paginacion from '../../components/Paginacion.jsx'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import { precio, unidades } from '../../formato.js'
 import { mensajeError, traducirFaltante } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
@@ -107,6 +109,7 @@ export default function ProductosPage({ path, search }) {
   }
 
   const conteo = datos?.conteo ?? {}
+  const paginacion = usePaginacionLocal(datos?.items ?? [], JSON.stringify([estado, q]))
 
   return (
     <PaginaProductor path={path} seccion={t('productor.nav.productos')} titulo={t('productor.productos.titulo')}>
@@ -160,7 +163,7 @@ export default function ProductosPage({ path, search }) {
             <span className="tabla__celda productos__col-acciones" />
           </div>
           <ul className="productos__lista" aria-label={t('productor.nav.productos')}>
-            {datos.items.map((f) => (
+            {paginacion.filas.map((f) => (
               <li key={f.id} className="tabla__fila">
                 <span className="tabla__celda tabla__celda--flex tabla__producto">
                   <ImagenProducto url={f.miniatura} linea={f.lineaCodigo} className="tabla__miniatura" />
@@ -205,6 +208,7 @@ export default function ProductosPage({ path, search }) {
           </ul>
         </div>
       )}
+      {datos?.items.length > 0 && <Paginacion {...paginacion} />}
 
       <p className="productor__nota">
         <Icono src={iconoInfo} tamano={16} />

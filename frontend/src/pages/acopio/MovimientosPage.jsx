@@ -116,7 +116,7 @@ export default function MovimientosPage({ path }) {
       {!error && datos?.items.length > 0 && (
         <>
           <TablaMovimientos items={datos.items} />
-          <Paginacion pagina={datos.pagina} totalPaginas={datos.totalPaginas} onCambiar={setPagina} />
+          <Paginacion pagina={datos.pagina} totalPaginas={datos.totalPaginas} total={datos.total} onCambiar={setPagina} />
         </>
       )}
 

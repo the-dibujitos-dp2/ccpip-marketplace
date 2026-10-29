@@ -1389,7 +1389,13 @@
       "distrito": "Distrito",
       "estado": "Estado",
       "activa": "Activa",
-      "inactiva": "Inactiva"
+      "inactiva": "Inactiva",
+      "desactivar": "Desactivar zona",
+      "confirmarDesactivar": "¿Desactivar esta zona de cobertura?",
+      "tituloDialogo": "Desactivar zona de cobertura",
+      "confirmar": "Desactivar",
+      "cancelar": "Cancelar",
+      "errorDesactivar": "No se pudo desactivar la zona. Inténtalo nuevamente."
     }
   },
   "admin": {
@@ -1906,7 +1912,9 @@
     "etiqueta": "Paginación",
     "anterior": "Anterior",
     "siguiente": "Siguiente",
-    "pagina": "Página {{numero}}"
+    "pagina": "Página {{numero}}",
+    "paginaActualTotal": "Página {{pagina}}",
+    "registrosTotal": "{{total}} registros"
   },
   "selectorCantidad": {
     "etiqueta": "Cantidad",
