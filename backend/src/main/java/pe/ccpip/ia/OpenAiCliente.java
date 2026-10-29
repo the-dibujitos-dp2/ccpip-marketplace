@@ -1,7 +1,5 @@
 package pe.ccpip.ia;
 
-import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
@@ -30,32 +28,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * rechazada, cortada o mal formada) se reporta como {@link ModeloTexto.Falla} y la persona sigue a
  * mano (RNF-48).
  */
-public class OpenAiCliente implements ModeloTexto {
+public class OpenAiCliente extends ClienteIaHttp {
 
     private static final Logger log = LoggerFactory.getLogger(OpenAiCliente.class);
     private static final ObjectMapper JSON = new ObjectMapper();
-
-    private final HttpClient http;
-    private final URI endpoint;
-    private final String clave;
-    private final String modelo;
-    private final Duration espera;
 
     /**
      * @param urlBase normalmente https://api.openai.com; configurable para pruebas
      * @param espera  tiempo maximo de una llamada completa (RNF-48)
      */
     public OpenAiCliente(String urlBase, String clave, String modelo, Duration espera) {
-        String base = urlBase.endsWith("/") ? urlBase.substring(0, urlBase.length() - 1) : urlBase;
-        this.endpoint = URI.create(base + "/v1/chat/completions");
-        this.clave = clave;
-        this.modelo = modelo;
-        this.espera = espera;
-        this.http = HttpClient.newBuilder().connectTimeout(espera).build();
-    }
-
-    public String modelo() {
-        return modelo;
+        super(urlBase, "/v1/chat/completions", clave, modelo, espera);
     }
 
     @Override

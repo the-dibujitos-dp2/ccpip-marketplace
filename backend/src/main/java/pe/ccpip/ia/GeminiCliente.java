@@ -1,7 +1,5 @@
 package pe.ccpip.ia;
 
-import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
@@ -25,31 +23,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * {@link ModeloTexto.Falla}; quien llama la convierte en {@link IaNoDisponible} y la persona sigue a
  * mano (RNF-48).
  */
-public class GeminiCliente implements ModeloTexto {
+public class GeminiCliente extends ClienteIaHttp {
 
     private static final ObjectMapper JSON = new ObjectMapper();
-
-    private final HttpClient http;
-    private final URI endpoint;
-    private final String clave;
-    private final String modelo;
-    private final Duration espera;
 
     /**
      * @param urlBase normalmente https://generativelanguage.googleapis.com; configurable para pruebas
      * @param espera  tiempo maximo de una llamada completa (RNF-48)
      */
     public GeminiCliente(String urlBase, String clave, String modelo, Duration espera) {
-        String base = urlBase.endsWith("/") ? urlBase.substring(0, urlBase.length() - 1) : urlBase;
-        this.endpoint = URI.create(base + "/v1beta/models/" + modelo + ":generateContent");
-        this.clave = clave;
-        this.modelo = modelo;
-        this.espera = espera;
-        this.http = HttpClient.newBuilder().connectTimeout(espera).build();
-    }
-
-    public String modelo() {
-        return modelo;
+        super(urlBase, "/v1beta/models/" + modelo + ":generateContent", clave, modelo, espera);
     }
 
     @Override
