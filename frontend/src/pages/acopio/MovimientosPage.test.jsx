@@ -159,12 +159,12 @@ describe('A-03 Movimientos del punto de acopio (CCPIP-158)', () => {
 
   it('el administrador de acopio llega desde su inicio', async () => {
     servidor(comoAcopio({
-      'GET /api/panel/acopio': [200, { titulo: 'Tu punto', descripcion: 'Panel del punto' }],
+      'GET /api/acopio/pedidos': [200, copia(DATOS.pedidos)],
       [`GET ${RUTA}?pagina=0`]: [200, copia(DATOS.movimientos)],
     }))
     const user = userEvent.setup()
-    abrirEn('/inicio')
-    await user.click(await screen.findByRole('link', { name: 'Ver movimientos del punto' }))
+    abrirEn('/acopio/pedidos')
+    await user.click(await screen.findByRole('link', { name: 'Movimientos', exact: true }))
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Movimientos' })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/acopio/movimientos')
