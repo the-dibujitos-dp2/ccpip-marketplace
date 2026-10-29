@@ -79,6 +79,15 @@ describe('CCPIP-34 Declarar el cumplimiento de las reglas de origen y sostenibil
     expect(s.getByText(/Ninguna regla · «Cambio de semillas»/)).toBeInTheDocument()
   })
 
+  it('no repite el nombre de la regla cuando la descripcion es igual (CCPIP-438)', async () => {
+    const reglas = REGLAS.map((r, i) => (i === 0 ? { ...r, descripcion: r.nombre, descripcionEn: r.nombreEn } : r))
+    productor({ [`GET ${RUTA}`]: () => [200, { ...copia(SIN_DECLARAR), reglas }] })
+    abrirEn('/productor/productos/9/evidencias')
+    const s = await seccion()
+    expect(s.queryAllByText('Cero deforestación')).toHaveLength(1)
+    expect(s.getByText('No se usan agroquímicos.')).toBeInTheDocument()
+  })
+
   it('si el servidor la rechaza, lo dice', async () => {
     productor({ [`POST ${RUTA}`]: () => [422, { code: 'REGLA_INVALIDA', error: 'Solo se declaran reglas vigentes definidas por la Cámara.' }] })
     const user = userEvent.setup()

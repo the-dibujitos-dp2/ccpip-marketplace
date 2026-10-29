@@ -67,12 +67,17 @@ export default function CumplimientoProducto({ productoId }) {
           : c('sinDeclaracion')}
       </p>
       <ul className="cumplimiento__reglas" aria-label={c('reglas')}>
-        {datos.reglas.map((r) => (
-          <li key={r.codigo}>
-            <Interruptor etiqueta={enIngles() ? r.nombreEn : r.nombre} activo={marcadas.includes(r.codigo)} onCambiar={cambiar(r.codigo)} />
-            <p className="caption">{enIngles() ? r.descripcionEn : r.descripcion}</p>
-          </li>
-        ))}
+        {datos.reglas.map((r) => {
+          const etiqueta = enIngles() ? r.nombreEn : r.nombre
+          const descripcion = enIngles() ? r.descripcionEn : r.descripcion
+          return (
+            <li key={r.codigo}>
+              <Interruptor etiqueta={etiqueta} activo={marcadas.includes(r.codigo)} onCambiar={cambiar(r.codigo)} />
+              {/* CCPIP-438: si la descripcion solo repite el nombre, no se muestra dos veces */}
+              {descripcion && descripcion.trim() !== etiqueta.trim() && <p className="caption">{descripcion}</p>}
+            </li>
+          )
+        })}
       </ul>
       <Campo tipo="area" etiqueta={c('observaciones')} value={observaciones} maxLength={500}
         onChange={(e) => setObservaciones(e.target.value)} />
