@@ -51,7 +51,7 @@ Una historia entra a un carril solo si:
 4. hay una superficie de cambio y matriz mínima de pruebas identificadas;
 5. el ledger no muestra solapamiento material con otro carril activo.
 
-Si el código parece cubrir la historia, se abre una tarea de **reconciliación**, no una reimplementación: cada criterio se mapea a comportamiento y prueba. Jira solo se actualiza con evidencia verificable.
+Si el código parece cubrir la historia, se abre una tarea de **reconciliación**, no una reimplementación: cada criterio se mapea a comportamiento y prueba. Jira solo se actualiza con evidencia verificable. En la ejecución recurrente de HUs, implementar un único gap funcional real y continuar la selección criterio por criterio en el ledger; la reconciliación no cuenta como HU implementada. Si no hay HU elegible ni gap verificable, no fabricar documentación, pruebas o PR para llenar la cuota.
 
 ### Gate 1 — Ficha de implementación y trazabilidad de diseño
 

@@ -90,6 +90,39 @@ class CoberturasPermisosTest extends IntegrationTest {
         });
     }
 
+    @Test
+    void adminPuedeDesactivarZonaPropiaYSeBloqueaCompraDomicilioSinAlterarPedidosExistentes() throws Exception {
+        var cookie = loginAs("admin_acopio@ccpip.test");
+        Long punto = puntoPropio();
+        Long zona = jdbc.queryForObject("INSERT INTO cobertura_entrega(ubicacion_id,ubigeo,activa) VALUES (?, '150122', true) ON CONFLICT (ubicacion_id,ubigeo) DO UPDATE SET activa=true RETURNING id", Long.class, punto);
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch(RUTA + "/" + zona + "/desactivar").cookie(cookie))
+                .andExpect(status().isNoContent());
+        assertThat(jdbc.queryForObject("SELECT activa FROM cobertura_entrega WHERE id=?", Boolean.class, zona)).isFalse();
+    }
+
+    @Test
+    void matrizDePermisosDeDesactivacionNoRevelaZonasAjenaOInexistente() throws Exception {
+        Long punto = puntoPropio();
+        Long propia = jdbc.queryForObject("INSERT INTO cobertura_entrega(ubicacion_id,ubigeo,activa) VALUES (?, '150122', true) ON CONFLICT (ubicacion_id,ubigeo) DO UPDATE SET activa=true RETURNING id", Long.class, punto);
+        Long ajena = jdbc.queryForObject("SELECT c.id FROM cobertura_entrega c WHERE c.ubicacion_id NOT IN (SELECT ubicacion_id FROM usuario_ubicacion WHERE usuario_id=(SELECT id FROM usuario WHERE correo='admin_acopio@ccpip.test')) ORDER BY c.id LIMIT 1", Long.class);
+        snapshot(() -> {
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch(RUTA + "/" + ajena + "/desactivar").cookie(loginAs("admin_acopio@ccpip.test")))
+                    .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("ZONA_NO_ENCONTRADA"));
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch(RUTA + "/999999999/desactivar").cookie(loginAs("admin_acopio@ccpip.test")))
+                    .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("ZONA_NO_ENCONTRADA"));
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch(RUTA + "/0/desactivar").cookie(loginAs("admin_acopio@ccpip.test")))
+                    .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("ZONA_INVALIDA"));
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch(RUTA + "/not-a-long/desactivar").cookie(loginAs("admin_acopio@ccpip.test")))
+                    .andExpect(status().isBadRequest());
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch(RUTA + "/" + propia + "/desactivar"))
+                    .andExpect(status().isUnauthorized());
+            for (String correo : List.of("consumidor@ccpip.test", "productor@ccpip.test", "distribuidor@ccpip.test", "sub_admin@ccpip.test", "sudo@ccpip.test")) {
+                mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch(RUTA + "/" + propia + "/desactivar").cookie(loginAs(correo)))
+                        .andExpect(status().isForbidden());
+            }
+        });
+    }
+
     private Long puntoPropio() {
         return jdbc.queryForObject("SELECT u.id FROM ubicacion u JOIN usuario_ubicacion uu ON uu.ubicacion_id=u.id JOIN usuario a ON a.id=uu.usuario_id WHERE a.correo='admin_acopio@ccpip.test' AND u.tipo='PUNTO_ACOPIO' ORDER BY u.id LIMIT 1", Long.class);
     }

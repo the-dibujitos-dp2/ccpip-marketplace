@@ -1389,7 +1389,13 @@
       "distrito": "District",
       "estado": "Status",
       "activa": "Active",
-      "inactiva": "Inactive"
+      "inactiva": "Inactive",
+      "desactivar": "Deactivate zone",
+      "confirmarDesactivar": "Deactivate this coverage zone?",
+      "tituloDialogo": "Deactivate delivery zone",
+      "confirmar": "Deactivate",
+      "cancelar": "Cancel",
+      "errorDesactivar": "The zone could not be deactivated. Please try again."
     }
   },
   "admin": {
