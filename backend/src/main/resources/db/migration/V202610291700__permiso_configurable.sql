@@ -66,18 +66,5 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER permiso_configurable_sin_reescribir BEFORE UPDATE OR DELETE ON permiso_configurable
     FOR EACH ROW EXECUTE FUNCTION permiso_configurable_al_cambiar();
 
--- Acciones de gobierno del subadministrador, concedidas como hasta hoy
-INSERT INTO permiso_configurable (rol_id, codigo, concedido)
-SELECT r.id, p.codigo, true
-FROM rol r
-CROSS JOIN (VALUES ('DECIDIR_AUTORIZACIONES'), ('MODERAR_PUBLICACIONES'), ('GESTIONAR_PRODUCTORES'),
-                   ('GESTIONAR_DENUNCIAS'), ('SUSPENDER_CUENTAS')) AS p (codigo)
-WHERE r.codigo = 'SUB_ADMIN';
-
--- Restricciones de gobernanza para la administracion de la Camara: nunca se conceden
-INSERT INTO permiso_configurable (rol_id, codigo, restringido, concedido)
-SELECT r.id, p.codigo, true, false
-FROM rol r
-CROSS JOIN (VALUES ('EDITAR_PRODUCTOS'), ('EDITAR_TIENDAS'), ('EDITAR_PEDIDOS'),
-                   ('EDITAR_DATOS_COMPRADORES'), ('EDITAR_EXISTENCIAS')) AS p (codigo)
-WHERE r.codigo IN ('SUB_ADMIN', 'SUPER_ADMIN');
+-- Las filas iniciales van en R__07_permisos_configurables.sql: los roles los carga R__01, que Flyway corre
+-- despues de las migraciones versionadas.
