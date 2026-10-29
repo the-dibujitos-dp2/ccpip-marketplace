@@ -1,10 +1,16 @@
 package pe.ccpip.catalogo;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -43,13 +49,35 @@ public class TiendasRepository {
     public List<TiendaTarjeta> listar(Integer limite) {
         MapSqlParameterSource p = new MapSqlParameterSource("limite", limite == null ? 1000 : limite);
         return jdbc.query(TARJETA + " ORDER BY pr.origen_verificado DESC, productos DESC, nombre LIMIT :limite", p,
-                (rs, row) -> {
-                    Object portada = rs.getObject("portada");
-                    return new TiendaTarjeta(rs.getLong("id"), rs.getString("nombre"), rs.getString("pueblo"),
-                            rs.getString("comunidad"), rs.getString("region"), rs.getString("localidad"),
-                            rs.getString("cita"), rs.getBoolean("origen_verificado"),
-                            portada == null ? null : ImagenService.url((UUID) portada), rs.getLong("productos"));
-                });
+                TiendasRepository::tarjeta);
+    }
+
+    /** CCPIP-385: las tiendas aun publicadas entre `ids`, por id. */
+    public Map<Long, TiendaTarjeta> tarjetas(Collection<Long> ids) {
+        Map<Long, TiendaTarjeta> tarjetas = new HashMap<>();
+        if (!ids.isEmpty()) {
+            jdbc.query(TARJETA + " AND pr.id IN (:ids)", new MapSqlParameterSource("ids", ids),
+                    (RowCallbackHandler) rs -> {
+                        TiendaTarjeta t = tarjeta(rs, 0);
+                        tarjetas.put(t.id(), t);
+                    });
+        }
+        return tarjetas;
+    }
+
+    /** CCPIP-386: las tiendas publicadas de una comunidad, sin distinguir mayusculas, tildes ni espacios al borde. */
+    public List<TiendaTarjeta> deComunidad(String comunidad) {
+        return jdbc.query(TARJETA + """
+                 AND lower(inmutable_unaccent(btrim(pr.comunidad))) = lower(inmutable_unaccent(btrim(:comunidad)))
+                ORDER BY nombre""", new MapSqlParameterSource("comunidad", comunidad), TiendasRepository::tarjeta);
+    }
+
+    private static TiendaTarjeta tarjeta(ResultSet rs, int row) throws SQLException {
+        Object portada = rs.getObject("portada");
+        return new TiendaTarjeta(rs.getLong("id"), rs.getString("nombre"), rs.getString("pueblo"),
+                rs.getString("comunidad"), rs.getString("region"), rs.getString("localidad"),
+                rs.getString("cita"), rs.getBoolean("origen_verificado"),
+                portada == null ? null : ImagenService.url((UUID) portada), rs.getLong("productos"));
     }
 
     /** CCPIP-363: la comunidad existe, esta activa y tiene su tienda publicada. */

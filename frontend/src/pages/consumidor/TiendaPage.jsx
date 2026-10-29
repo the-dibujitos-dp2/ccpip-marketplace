@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import iconoEstrella from '../../assets/icons/estrella.svg'
 import { obtenerTienda } from '../../api/catalogo.js'
 import AvisoTraduccion from '../../components/AvisoTraduccion.jsx'
+import BotonFavorito, { useFavoritos } from '../../components/BotonFavorito.jsx'
 import Boton from '../../components/Boton.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
@@ -30,6 +31,7 @@ export default function TiendaPage({ id }) {
   const [linea, setLinea] = useState('TODOS')
   const [copiado, setCopiado] = useState(false)
   const [verOriginal, setVerOriginal] = useState(false)
+  const favoritos = useFavoritos()
 
   useEffect(() => {
     let vigente = true
@@ -121,9 +123,14 @@ export default function TiendaPage({ id }) {
                 </div>
               )}
             </dl>
-            <Boton tipo="secundario" tamano="M" onClick={compartir}>
-              {copiado ? t('tienda.copiado') : t('tienda.compartir')}
-            </Boton>
+            <div className="tienda-publica__acciones">
+              {/* CCPIP-368 y CCPIP-369: el productor y su comunidad se guardan por separado */}
+              <BotonFavorito tipo="productores" id={tienda.id} estado={favoritos} />
+              <BotonFavorito tipo="comunidades" id={tienda.id} estado={favoritos} />
+              <Boton tipo="secundario" tamano="M" onClick={compartir}>
+                {copiado ? t('tienda.copiado') : t('tienda.compartir')}
+              </Boton>
+            </div>
           </header>
 
           <div className={`tienda-publica__historia${tienda.galeria?.length > 0 ? ' tienda-publica__historia--galeria' : ''}`}>

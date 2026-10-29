@@ -19,6 +19,7 @@ import { RUTAS } from '../../router.js'
 import { idiomaSegun, textoSegun } from '../../traduccion.js'
 import { resolverTarifa } from '../../tarifa.js'
 import AgregarAlCarrito from './AgregarAlCarrito.jsx'
+import BotonFavorito, { useFavoritos } from '../../components/BotonFavorito.jsx'
 import CalificacionesProducto from './CalificacionesProducto.jsx'
 import CertificacionProducto from './CertificacionProducto.jsx'
 import PremiosProducto from './PremiosProducto.jsx'
@@ -46,6 +47,7 @@ export default function ProductoPage({ id }) {
   const [originalHistoria, setOriginalHistoria] = useState(false)
   // CCPIP-134: la cantidad del panel de compra decide la tarifa, por eso se comparte con las tarjetas de precio
   const [cantidad, setCantidad] = useState('1')
+  const favoritos = useFavoritos()
 
   useEffect(() => {
     let vigente = true
@@ -227,6 +229,8 @@ export default function ProductoPage({ id }) {
               </p>
               <AgregarAlCarrito key={producto.id} producto={producto} cantidad={cantidad} onCantidad={setCantidad} modo={activa} />
               <MeInteresa key={`interes-${producto.id}`} producto={producto} />
+              {/* CCPIP-177 y CCPIP-396: guardarlo no reserva ni registra cantidad */}
+              <BotonFavorito tipo="productos" id={producto.id} estado={favoritos} />
             </div>
 
             {producto.descripcion && (

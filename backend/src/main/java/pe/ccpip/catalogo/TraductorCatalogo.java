@@ -118,6 +118,17 @@ public class TraductorCatalogo {
         return tarjetas.stream().map(t::tarjeta).toList();
     }
 
+    /** CCPIP-327: ofertas sueltas (los favoritos) con nombres y tiendas en el idioma pedido. */
+    public List<ProductoResumen> resumenes(List<ProductoResumen> resumenes, Idioma idioma) {
+        if (idioma == Idioma.ES || resumenes.isEmpty()) {
+            return resumenes;
+        }
+        Claves c = new Claves();
+        resumenes.forEach(c::resumen);
+        Textos t = cargar(c, idioma);
+        return resumenes.stream().map(t::resumen).toList();
+    }
+
     public TiendaDetalle tienda(TiendaDetalle d, Idioma idioma) {
         if (idioma == Idioma.ES) {
             return d;

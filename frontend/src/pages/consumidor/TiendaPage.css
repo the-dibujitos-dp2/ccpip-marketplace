@@ -13,6 +13,8 @@
 .tienda-publica__cifras div { display: flex; flex-direction: column-reverse; align-items: center; }
 .tienda-publica__cifras dd { margin: 0; font-weight: 600; font-size: 16px; }
 .tienda-publica__cifras dt { font-size: 12px; color: var(--color-text-tertiary); }
+/* CCPIP-368 y CCPIP-369: guardar el productor o su comunidad, junto a compartir */
+.tienda-publica__acciones { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
 
 .tienda-publica__historia { display: grid; gap: 40px; max-width: 760px; }
 .tienda-publica__historia--galeria { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); max-width: none; }

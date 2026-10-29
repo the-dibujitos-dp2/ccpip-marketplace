@@ -1590,3 +1590,24 @@ Cada declaracion es completa: las reglas que el producto cumplia a esa fecha (`d
 `observaciones` opcionales, `declarada_por` y `declarada_en`. La vigente es la mas reciente; una nueva reemplaza
 a la anterior, que queda en el historial. Un trigger impide editarlas o borrarlas. Cada una queda tambien en
 `producto_auditoria` con la accion nueva `CUMPLIMIENTO`.
+
+## Favoritos del consumidor (CCPIP-177, CCPIP-327, CCPIP-396, CCPIP-368, CCPIP-385, CCPIP-397, CCPIP-369, CCPIP-386, CCPIP-398)
+
+Un favorito solo dice quien guardo que y cuando: no registra cantidad, intencion de compra, pago ni reserva.
+Guardar es idempotente; retirarlo borra la fila y no toca el producto, la tienda ni la comunidad. Solo el
+consumidor de la sesion ve y retira los suyos (RNF-05). Un producto o una tienda que dejan de estar
+publicados siguen en la lista, marcados, hasta que el consumidor los retire.
+
+### favorito_producto, favorito_productor
+
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| usuario_id | bigint | no | El consumidor; con `producto_id` (o `productor_id`) forma la clave primaria |
+| producto_id / productor_id | bigint | no | Solo se guarda una oferta visible en el catalogo o una tienda publicada |
+| guardado_en | timestamptz | no | La lista va del ultimo guardado al primero |
+
+### favorito_comunidad
+La comunidad no tiene tabla propia: es `productor.comunidad`, y su pagina es la tienda. Se guarda el nombre
+(`comunidad`) y la tienda desde la que se guardo (`productor_id`). Un indice unico sobre
+`(usuario_id, lower(inmutable_unaccent(btrim(comunidad))))` evita guardarla dos veces desde dos tiendas de la
+misma comunidad. La lista muestra las tiendas publicadas de esa comunidad.
