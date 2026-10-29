@@ -36,15 +36,25 @@ Internet ──443──▶ web (Caddy: HTTPS automatico, archivos de React, cab
 
 ### Redaccion asistida por IA (CCPIP-48, CCPIP-49)
 
-La redaccion asistida (`AsistenteRedaccion`, CCPIP-48) y el analisis de evidencias
-(`AnalistaEvidencias`, CCPIP-50) usan Gemini. Se elige con `CCPIP_IA_PROVEEDOR`: `gemini` en
-produccion, `ninguno` (responde `503 IA_NO_DISPONIBLE` y se escribe a mano) y `simulado` solo en
-pruebas. La llave es el secreto `GEMINI_API_KEY`, vive solo en el servidor y viaja en la cabecera
-`x-goog-api-key`. Sin llave, o si Gemini no responde en `CCPIP_GEMINI_ESPERA` (20 s), la pantalla
-sigue a mano (RNF-48). El modelo se cambia con `CCPIP_GEMINI_MODELO` (por defecto
-`gemini-flash-latest`). Al analisis de evidencias solo se envian los datos declarados, nunca los
-archivos. Gemini es solo de texto. La validacion y la mejora de fotos usan el modelo propio
-(`CCPIP_IA_IMAGENES_PROVEEDOR=propio`), que corre dentro del backend: ver `ia/modelo-imagenes/README.md`.
+La redaccion asistida (`AsistenteRedaccion`, CCPIP-48), el analisis de evidencias
+(`AnalistaEvidencias`, CCPIP-50) y el asistente de catalogo (CCPIP-51) dependen solo de la interfaz
+`ModeloTexto`, asi que funcionan con Gemini o con OpenAI. Se elige con `CCPIP_IA_PROVEEDOR`:
+`gemini` u `openai` en produccion (variable `IA_PROVEEDOR` del repositorio, por defecto `gemini`),
+`ninguno` (responde `503 IA_NO_DISPONIBLE` y se escribe a mano) y `simulado` solo en pruebas.
+
+| Proveedor | Secreto | Cabecera | Modelo por defecto |
+|---|---|---|---|
+| `gemini` | `GEMINI_API_KEY` | `x-goog-api-key` | `gemini-flash-latest` (`CCPIP_GEMINI_MODELO`) |
+| `openai` | `OPENAI_API_KEY` | `Authorization: Bearer` | `gpt-4.1-mini` (`CCPIP_OPENAI_MODELO`) |
+
+Las llaves viven solo en el servidor. Sin la llave del proveedor elegido, o si no responde dentro de
+la espera (`CCPIP_GEMINI_ESPERA` / `CCPIP_OPENAI_ESPERA`, 20 s), la pantalla sigue a mano (RNF-48).
+Si el proveedor esta saturado (429 o 503) se reintenta una vez, dentro de esa misma espera. Con
+OpenAI se usa Structured Outputs en modo estricto, y si el modelo no acepta temperatura (los de
+razonamiento) la consulta se repite sin ella. Al analisis de evidencias solo se envian los datos
+declarados, nunca los archivos. La IA externa es solo de texto. La validacion y la mejora de fotos
+usan el modelo propio (`CCPIP_IA_IMAGENES_PROVEEDOR=propio`), que corre dentro del backend: ver
+`ia/modelo-imagenes/README.md`.
 
 - `infra/terraform/`: EC2 (Amazon Linux 2023, IMDSv2, disco cifrado), Security Group, Elastic IP.
 - `deploy/docker-compose.yml`: los tres contenedores.
@@ -101,6 +111,9 @@ Todas las Actions estan fijadas por SHA (evita ataques de cadena de suministro p
 | `USER_MAIL_ADDRESS` | Secret | Cuenta de Gmail del equipo que envia los correos (ADR-14), por ejemplo `mercado.ccpip@gmail.com`. Si falta, el deploy sigue con un aviso, pero las cuentas nuevas no reciben el enlace de verificacion (CCPIP-328). |
 | `MAIL_PASSWORD` | Secret | Contrasena de aplicacion de esa cuenta (con o sin espacios, el deploy los quita): Cuenta de Google → *Seguridad* → activar *Verificacion en dos pasos* → *Contrasenas de aplicaciones*. No es la clave de la cuenta. |
 | `GEMINI_API_KEY` | Secret | aistudio.google.com → *Get API key*. Si falta, el deploy sigue con un aviso y la IA de texto responde no disponible. En la capa gratuita Google puede usar las consultas para mejorar sus modelos: no se envian archivos ni datos de contacto. |
+| `OPENAI_API_KEY` | Secret | platform.openai.com → *API keys* → *Create new secret key*. Solo se usa con `IA_PROVEEDOR=openai`; si falta, el deploy sigue con un aviso y la IA de texto responde no disponible. |
+| `IA_PROVEEDOR` | Variable | `gemini` (por defecto si no existe), `openai` o `ninguno`. Otro valor detiene el deploy antes de tocar el servidor. |
+| `GEMINI_MODELO`, `OPENAI_MODELO` | Variable | Opcionales. Modelo de cada proveedor si no sirve el de por defecto (`gemini-flash-latest`, `gpt-4.1-mini`), por ejemplo uno *lite* cuando el gratuito esta saturado. |
 | `SONAR_TOKEN` | Secret | sonarcloud.io → *My Account → Security → Generate Token*. Si falta, CI salta el analisis sin fallar. |
 | `DEPLOY_HOST` | Variable | Salida `app_domain` de Terraform. |
 | `TF_STATE_BUCKET` | Variable | Nombre del bucket del paso 1.3 (solo para el workflow de Terraform). |
