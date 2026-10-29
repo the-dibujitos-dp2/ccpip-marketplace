@@ -3,7 +3,6 @@ package pe.ccpip.gobernanza;
 import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,7 +23,6 @@ import pe.ccpip.gobernanza.AuditoriaModelos.Resultado;
  */
 @RolesPermitidos(Rol.SUPER_ADMIN)
 @RestController
-@Validated
 public class AuditoriaController {
 
     private final AuditoriaService service;
