@@ -66,9 +66,10 @@ class TerritorioTest extends IntegrationTest {
     }
 
     @Test
-    void esSoloParaElComprador() throws Exception {
+    void esDelCompradorYDelPuntoDeAcopio() throws Exception {
         mockMvc.perform(get(BASE + "/departamentos")).andExpect(status().isUnauthorized());
         mockMvc.perform(get(BASE + "/departamentos").cookie(loginAs("productor@ccpip.test"))).andExpect(status().isForbidden());
-        mockMvc.perform(get(BASE + "/departamentos").cookie(loginAs("admin_acopio@ccpip.test"))).andExpect(status().isForbidden());
+        // CCPIP-149: el punto de acopio elige del catalogo los distritos que declara como cobertura
+        mockMvc.perform(get(BASE + "/departamentos").cookie(loginAs("admin_acopio@ccpip.test"))).andExpect(status().isOk());
     }
 }
