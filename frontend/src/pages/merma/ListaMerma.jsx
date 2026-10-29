@@ -101,7 +101,7 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
             ))}
           </div>
           <div className="merma__pie">
-            <Paginacion pagina={datos.pagina} totalPaginas={datos.totalPaginas} onCambiar={setPagina} />
+            <Paginacion pagina={datos.pagina} totalPaginas={datos.totalPaginas} total={datos.total} onCambiar={setPagina} />
           </div>
         </>
       )}

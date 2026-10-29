@@ -98,8 +98,12 @@ jobs:
           # CCPIP-328: cuenta de Gmail del equipo y su contrasena de aplicacion (ADR-14)
           CORREO_USUARIO: ${{ secrets.USER_MAIL_ADDRESS }}
           CORREO_CLAVE: ${{ secrets.MAIL_PASSWORD }}
-          # CCPIP-48 y CCPIP-50: clave de la API de Gemini (Google AI Studio)
+          # CCPIP-48 y CCPIP-50: proveedor de IA de texto (gemini por defecto, u openai) y sus claves
+          IA_PROVEEDOR: ${{ vars.IA_PROVEEDOR }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_MODELO: ${{ vars.GEMINI_MODELO }}
+          OPENAI_MODELO: ${{ vars.OPENAI_MODELO }}
         run: |
           test -n "$DB_PASSWORD" || { echo "::error::Falta el secreto DB_PASSWORD"; exit 1; }
           test -n "$IMAGES_BUCKET" || { echo "::error::Falta la variable IMAGES_BUCKET (salida images_bucket de Terraform)"; exit 1; }
@@ -113,8 +117,15 @@ jobs:
             echo "::warning::Faltan los secretos USER_MAIL_ADDRESS y MAIL_PASSWORD: no se enviaran correos de verificacion"
           fi
           # La IA tampoco detiene el despliegue: sin clave responde no disponible y se escribe a mano
-          if [ -z "$GEMINI_API_KEY" ]; then
-            echo "::warning::Falta el secreto GEMINI_API_KEY: la redaccion asistida y el analisis de evidencias no estaran disponibles"
+          IA_PROVEEDOR="${IA_PROVEEDOR:-gemini}"
+          case "$IA_PROVEEDOR" in
+            gemini) [ -n "$GEMINI_API_KEY" ] || FALTA_IA=GEMINI_API_KEY ;;
+            openai) [ -n "$OPENAI_API_KEY" ] || FALTA_IA=OPENAI_API_KEY ;;
+            ninguno) ;;
+            *) echo "::error::La variable IA_PROVEEDOR debe ser gemini, openai o ninguno, no '$IA_PROVEEDOR'"; exit 1 ;;
+          esac
+          if [ -n "${FALTA_IA:-}" ]; then
+            echo "::warning::Falta el secreto $FALTA_IA: la redaccion asistida y el analisis de evidencias no estaran disponibles"
           fi
           umask 077
           cat > .env <<ENV
@@ -126,7 +137,11 @@ jobs:
           CORREO_HOST=$CORREO_HOST
           CORREO_USUARIO=$CORREO_USUARIO
           CORREO_CLAVE=$CORREO_CLAVE
+          IA_PROVEEDOR=$IA_PROVEEDOR
           GEMINI_API_KEY=$GEMINI_API_KEY
+          OPENAI_API_KEY=$OPENAI_API_KEY
+          GEMINI_MODELO=$GEMINI_MODELO
+          OPENAI_MODELO=$OPENAI_MODELO
           ENV
           ssh "$SSH_TARGET" 'cd /opt/ccpip && if [ -f .env ]; then cp -p .env .env.previous; fi'
           scp deploy/docker-compose.yml "$SSH_TARGET:/opt/ccpip/docker-compose.yml"

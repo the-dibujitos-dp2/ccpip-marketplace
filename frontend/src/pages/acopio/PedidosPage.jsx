@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import Paginacion from '../../components/Paginacion.jsx'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import { useTranslation } from 'react-i18next'
 import { listarPedidos, marcarListo, marcarListoParaDespacho, marcarPreparacion } from '../../api/acopio.js'
 import { useConsulta } from '../../api/useConsulta.js'
@@ -83,6 +85,7 @@ export default function PedidosPage({ path }) {
   const titulo = (e) => t(`acopio.pedidos.columna.${e}`)
   const pestanas = ESTADOS.filter((e) => FIJAS.includes(e) || e === estado || delEstado(e).length > 0)
   const visibles = delEstado(estado)
+  const paginacion = usePaginacionLocal(visibles, `${estado}|${texto}|${modalidad}`)
 
   /** Pone el pedido que devolvio el servidor en su lugar: cambia de pestana sin volver a pedir la lista. */
   function reemplazar(pedido) {
@@ -167,7 +170,10 @@ export default function PedidosPage({ path }) {
           <section role="tabpanel" aria-label={titulo(estado)}>
             {visibles.length === 0 && (filtrando ? <SinCoincidencias /> : <EstadoVacio titulo={t(`acopio.pedidos.columnaVacia.${estado}`)} />)}
             {visibles.length > 0 && (
-              <TablaPedidos pedidos={visibles} accion={ACCION[estado]} marcando={marcando} onMarcar={marcar} onRecojo={setRecojo} />
+              <>
+                <TablaPedidos key={`${estado}|${texto}|${modalidad}`} pedidos={paginacion.filas} accion={ACCION[estado]} marcando={marcando} onMarcar={marcar} onRecojo={setRecojo} />
+                <Paginacion {...paginacion} />
+              </>
             )}
           </section>
         </>

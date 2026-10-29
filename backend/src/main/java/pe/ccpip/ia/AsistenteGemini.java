@@ -7,10 +7,11 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * CCPIP-48 con Gemini: propone la descripcion (PW-04) y la historia (PW-05) a partir de lo que
- * escribio el productor. Lo que devuelve es siempre un BORRADOR que el productor edita, acepta o
- * rechaza (CCPIP-49, 279, 280 y RNF-29). Las instrucciones prohiben inventar origen,
- * certificaciones, cifras o propiedades: el texto solo puede usar los datos recibidos.
+ * CCPIP-48 con un modelo de lenguaje (Gemini u OpenAI, ver {@link IaConfig}): propone la
+ * descripcion (PW-04) y la historia (PW-05) a partir de lo que escribio el productor. Lo que
+ * devuelve es siempre un BORRADOR que el productor edita, acepta o rechaza (CCPIP-49, 279, 280 y
+ * RNF-29). Las instrucciones prohiben inventar origen, certificaciones, cifras o propiedades: el
+ * texto solo puede usar los datos recibidos.
  */
 public class AsistenteGemini implements AsistenteRedaccion {
 
@@ -38,10 +39,10 @@ public class AsistenteGemini implements AsistenteRedaccion {
                     "texto", Map.of("type", "STRING")),
             "required", List.of("titulo", "texto"));
 
-    private final GeminiCliente gemini;
+    private final ModeloTexto modelo;
 
-    public AsistenteGemini(GeminiCliente gemini) {
-        this.gemini = gemini;
+    public AsistenteGemini(ModeloTexto modelo) {
+        this.modelo = modelo;
     }
 
     @Override
@@ -94,13 +95,13 @@ public class AsistenteGemini implements AsistenteRedaccion {
 
     @Override
     public String proveedor() {
-        return "gemini";
+        return modelo.proveedor();
     }
 
     private JsonNode consultar(String pedido, double temperatura) {
         try {
-            return gemini.generar(REGLAS, pedido, ESQUEMA, temperatura);
-        } catch (GeminiCliente.Falla e) {
+            return modelo.generar(REGLAS, pedido, ESQUEMA, temperatura);
+        } catch (ModeloTexto.Falla e) {
             throw new IaNoDisponible();
         }
     }

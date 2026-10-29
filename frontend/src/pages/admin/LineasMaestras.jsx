@@ -1,3 +1,5 @@
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
+import Paginacion from '../../components/Paginacion.jsx'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { lineasMaestras } from '../../api/admin.js'
@@ -58,6 +60,7 @@ export default function LineasMaestras() {
   const { filtros, setFiltros, datos, error, recargar } = useListado(lineasMaestras.listar)
   const { datos: catalogos } = useConsulta(obtenerCatalogos)
   const [alerta, setAlerta] = useState(null)
+  const paginas = usePaginacionLocal(datos?.lineas ?? [], JSON.stringify(filtros))
 
   const validar = (f) => {
     const e = {}
@@ -114,7 +117,7 @@ export default function LineasMaestras() {
             <span className="tabla__celda catalogo-maestro__estado" role="columnheader">{t('catalogoMaestro.col.estado')}</span>
             <span className="tabla__celda catalogo-maestro__acciones" role="columnheader"><span className="visually-hidden">{t('catalogoMaestro.col.acciones')}</span></span>
           </div>
-          {datos.lineas.map((l) => (
+          {paginas.filas.map((l) => (
             <div key={l.id} className="tabla__fila" role="row">
               <span className="tabla__celda tabla__celda--flex" role="cell">
                 <span className="label-m">{l.nombre}</span>
@@ -134,6 +137,8 @@ export default function LineasMaestras() {
           ))}
         </div>
       )}
+
+      {datos && <Paginacion {...paginas} />}
 
       <DialogoEdicion edicion={edicion} titulo={t(edicion.edicion?.item ? 'catalogoMaestro.lineas.form.tituloEditar' : 'catalogoMaestro.lineas.form.tituloNueva')}>
         {f && (

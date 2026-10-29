@@ -3,16 +3,17 @@ import Boton from './Boton.jsx'
 import './Paginacion.css'
 
 /** Paginacion numerada (CW-02). `pagina` empieza en 0, como en la API. */
-export default function Paginacion({ pagina, totalPaginas, onCambiar }) {
+export default function Paginacion({ pagina, totalPaginas, total, onCambiar }) {
   const { t } = useTranslation()
-  if (totalPaginas <= 1) return null
+  if (totalPaginas <= 1 && total === undefined) return null
   const numeros = paginasVisibles(pagina, totalPaginas)
   return (
     <nav className="paginacion" aria-label={t('paginacion.etiqueta')}>
-      <Boton tipo="secundario" tamano="S" disabled={pagina === 0} onClick={() => onCambiar(pagina - 1)}>
+      {total !== undefined && <span className="paginacion__metadata">{t('paginacion.paginaActualTotal', { pagina: pagina + 1 })} · {t('paginacion.registrosTotal', { total })}</span>}
+      {totalPaginas > 1 && <Boton tipo="secundario" tamano="S" disabled={pagina === 0} onClick={() => onCambiar(pagina - 1)}>
         {t('paginacion.anterior')}
-      </Boton>
-      {numeros.map((n, i) =>
+      </Boton>}
+      {totalPaginas > 1 && numeros.map((n, i) =>
         n === null ? (
           <span key={`s${i}`} className="paginacion__salto" aria-hidden="true">…</span>
         ) : (
@@ -28,9 +29,9 @@ export default function Paginacion({ pagina, totalPaginas, onCambiar }) {
           </button>
         ),
       )}
-      <Boton tipo="secundario" tamano="S" disabled={pagina >= totalPaginas - 1} onClick={() => onCambiar(pagina + 1)}>
+      {totalPaginas > 1 && <Boton tipo="secundario" tamano="S" disabled={pagina >= totalPaginas - 1} onClick={() => onCambiar(pagina + 1)}>
         {t('paginacion.siguiente')}
-      </Boton>
+      </Boton>}
     </nav>
   )
 }

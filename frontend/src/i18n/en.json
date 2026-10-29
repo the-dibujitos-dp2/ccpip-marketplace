@@ -1912,7 +1912,9 @@
     "etiqueta": "Pagination",
     "anterior": "Previous",
     "siguiente": "Next",
-    "pagina": "Page {{numero}}"
+    "pagina": "Page {{numero}}",
+    "paginaActualTotal": "Page {{pagina}}",
+    "registrosTotal": "{{total}} records"
   },
   "selectorCantidad": {
     "etiqueta": "Quantity",
