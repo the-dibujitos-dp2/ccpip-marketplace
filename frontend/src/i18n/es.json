@@ -383,7 +383,15 @@
         "vendidas": "Vendidas",
         "merma": "Merma",
         "otrasSalidas": "Otras salidas",
-        "saldoFinal": "Saldo final"
+        "saldoFinal": "Saldo final",
+        "pedidos": "Pedidos",
+        "compradores": "Compradores",
+        "unidadesB2c": "Unid. B2C",
+        "unidadesB2b": "Unid. B2B",
+        "compras": "Compras en el período",
+        "compradoresB2c": "Compradores B2C",
+        "compradoresB2b": "Compradores B2B",
+        "importe": "Importe"
       },
       "ventas": {
         "pestana": "Ventas",
@@ -419,6 +427,25 @@
         "porProducto": "Inventario por producto",
         "vacio": "No tuviste existencias en este período",
         "nota": "Sale de los movimientos de tus lotes: saldo final = saldo inicial + entradas − vendidas − merma − otras salidas (retiros y devoluciones). Las transferencias no cambian el total de tu inventario y no se cuentan; lo que está en tránsito o vencido sin dar de baja sigue siendo tuyo."
+      },
+      "consumo": {
+        "pestana": "Consumo",
+        "pedidos": "Pedidos",
+        "pedidosDetalle": "{{compradores}} compradores distintos",
+        "ticket": "Ticket promedio",
+        "ticketDetalle": "Importe promedio por pedido",
+        "comprasPorComprador": "Compras por comprador",
+        "comprasPorCompradorDetalle": "Promedio en el período",
+        "porPeriodo": "Consumo por período",
+        "frecuencia": "Frecuencia de compra",
+        "vacio": "No hubo compras en este período",
+        "nota": "Pedidos pagados y no cancelados con alguno de tus productos. Un pedido con productos a precio minorista y mayorista cuenta en B2C y en B2B, pero una sola vez en el total de pedidos.",
+        "notaFrecuencia": "Cuántas personas te compraron una, dos a tres, o cuatro o más veces en el período. Solo se cuentan: nunca se muestra quién compró.",
+        "tramos": {
+          "UNA": "1 compra",
+          "DOS_A_TRES": "2 a 3 compras",
+          "CUATRO_O_MAS": "4 o más compras"
+        }
       }
     },
     "productos": {
