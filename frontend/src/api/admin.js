@@ -133,3 +133,13 @@ export function miHistorial({ desde, hasta, tipo } = {}) {
   const consulta = q.toString()
   return apiFetch(`/api/admin/mi-historial${consulta ? `?${consulta}` : ''}`)
 }
+
+/**
+ * CCPIP-137 y CCPIP-353: solicitudes de unidad de medida de los productores. estado: PENDIENTE | APROBADA |
+ * RECHAZADA. aprobar(id, { nombre?, nombreEn?, codigo?, motivo }) crea la unidad; rechazar(id, motivo).
+ */
+export const solicitudesUnidad = {
+  listar: (estado = 'PENDIENTE') => apiFetch(`/api/admin/catalogo/unidades/solicitudes?estado=${encodeURIComponent(estado)}`),
+  aprobar: (id, datos) => apiFetch(`/api/admin/catalogo/unidades/solicitudes/${idRuta(id)}/aprobar`, { method: 'POST', body: datos }),
+  rechazar: (id, motivo) => apiFetch(`/api/admin/catalogo/unidades/solicitudes/${idRuta(id)}/rechazar`, { method: 'POST', body: { motivo } }),
+}

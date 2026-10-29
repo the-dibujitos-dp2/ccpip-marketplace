@@ -161,3 +161,9 @@ export const crearTransferencia = (datos) => apiFetch(`${base}/transferencias`, 
 export const prepararTransferencia = async (id) => apiFetch(`${base}/transferencias/${idRuta(id)}/preparar`, { method: 'POST' })
 /** CCPIP-362: despacha lo preparado; no vuelve a descontar. */
 export const despacharTransferencia = async (id) => apiFetch(`${base}/transferencias/${idRuta(id)}/despachar`, { method: 'POST' })
+
+/** CCPIP-119: pide a la Cámara una unidad de medida que no está en el catálogo. { nombre, justificacion }. */
+export const solicitarUnidad = (datos) => apiFetch('/api/productor/unidades/solicitudes', { method: 'POST', body: datos })
+
+/** CCPIP-119: sus solicitudes de unidad, la última primero, con la decisión de la Cámara y su motivo. */
+export const listarSolicitudesUnidad = () => apiFetch('/api/productor/unidades/solicitudes')

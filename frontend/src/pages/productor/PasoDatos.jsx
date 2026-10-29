@@ -25,6 +25,7 @@ import { precio } from '../../formato.js'
 import { mensajeError, traducirFaltante } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import { AvisosFotos, ChipRevisar, ComparacionMejora, useValidaciones } from './IaFotos.jsx'
+import SolicitarUnidad from './SolicitarUnidad.jsx'
 import './Editor.css'
 
 export const MAX_FOTOS = 6
@@ -506,6 +507,8 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
           />
           <Campo etiqueta={t('productor.datos.contenido')} value={d.contenido} onChange={set('contenido')} maxLength={40} placeholder="250 ml" ayuda={t('productor.datos.contenidoAyuda')} />
         </div>
+        {/* CCPIP-119: si ninguna unidad del catalogo le sirve, la pide a la Camara */}
+        <SolicitarUnidad />
 
         <OpcionTarjeta nombre="modalidad" etiqueta={t('productor.datos.modalidad')} opciones={MODALIDADES.map((m) => ({ valor: m, etiqueta: t(`productor.datos.modalidades.${m}`) }))} valor={d.modalidad} onCambiar={set('modalidad')} />
 
