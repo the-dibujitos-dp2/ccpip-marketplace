@@ -229,6 +229,20 @@ public class CatalogoRepository {
         return vendibles;
     }
 
+    /** CCPIP-327: las ofertas aun visibles entre `ids`, por id. Las retiradas o de tiendas ocultas no aparecen. */
+    public Map<Long, ProductoResumen> resumenes(Collection<Long> ids) {
+        Map<Long, ProductoResumen> resumenes = new HashMap<>();
+        if (ids.isEmpty()) {
+            return resumenes;
+        }
+        jdbc.query("SELECT " + COLUMNAS + VISIBLE + " AND p.id IN (:ids)", new MapSqlParameterSource("ids", ids),
+                (RowCallbackHandler) rs -> {
+                    ProductoResumen r = resumen(rs, 0);
+                    resumenes.put(r.id(), r);
+                });
+        return resumenes;
+    }
+
     public List<ProductoResumen> deTienda(long tiendaId) {
         MapSqlParameterSource p = new MapSqlParameterSource("tienda", tiendaId);
         return jdbc.query("SELECT " + COLUMNAS + VISIBLE + " AND pr.id = :tienda ORDER BY p.destacado_tienda DESC, p.nombre",

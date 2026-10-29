@@ -1,0 +1,9 @@
+.boton-favorito {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.boton-favorito__error {
+  color: var(--color-status-error-fg);
+}

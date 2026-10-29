@@ -2245,7 +2245,8 @@
     "RECEPCION_ANTES_DEL_ENVIO": "La recepción no puede ser anterior al envío.",
     "OBSERVACIONES_REQUERIDAS": "Explica en las observaciones qué se encontró en la evidencia.",
     "EVIDENCIA_FISICA_YA_RECIBIDA": "La recepción de esta evidencia física ya se registró.",
-    "EVIDENCIA_FISICA_NO_ENCONTRADA": "La evidencia física no existe en esta solicitud."
+    "EVIDENCIA_FISICA_NO_ENCONTRADA": "La evidencia física no existe en esta solicitud.",
+    "FAVORITO_NO_ENCONTRADO": "Ya no está entre tus favoritos."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -4411,5 +4412,50 @@
     "nota": "Es tu declaración, con su fecha. No es un sello ni una aprobación: solo los certificados que revisa la Cámara respaldan una regla ante los compradores.",
     "historial": "Declaraciones anteriores",
     "ninguna": "Ninguna regla"
+  },
+  "favoritos": {
+    "titulo": "Favoritos",
+    "nota": "Lo que guardas para encontrarlo después. No reserva productos ni registra cantidades.",
+    "error": "No pudimos cargar tus favoritos",
+    "pestana": {
+      "productos_one": "Productos ({{count}})",
+      "productos_other": "Productos ({{count}})",
+      "productores_one": "Productores ({{count}})",
+      "productores_other": "Productores ({{count}})",
+      "comunidades_one": "Comunidades ({{count}})",
+      "comunidades_other": "Comunidades ({{count}})"
+    },
+    "vacio": {
+      "productos": "Aún no guardaste productos",
+      "productores": "Aún no guardaste productores",
+      "comunidades": "Aún no guardaste comunidades"
+    },
+    "vacioTexto": "Toca el corazón en la ficha de un producto o en la tienda de una comunidad para guardarlo aquí.",
+    "retirar": "Quitar de favoritos",
+    "retirarDe": "Quitar {{nombre}} de favoritos",
+    "retirado": "Quitaste «{{nombre}}» de tus favoritos.",
+    "errorRetirar": "No pudimos quitarlo de tus favoritos",
+    "noPublicado": "Ya no está publicado.",
+    "sinTiendas": "Ninguna tienda de esta comunidad está publicada ahora.",
+    "tiendasDe": "Tiendas de {{comunidad}}",
+    "boton": {
+      "productos": {
+        "guardar": "Guardar en favoritos",
+        "guardado": "En tus favoritos"
+      },
+      "productores": {
+        "guardar": "Guardar productor",
+        "guardado": "Productor guardado"
+      },
+      "comunidades": {
+        "guardar": "Guardar comunidad",
+        "guardado": "Comunidad guardada"
+      }
+    },
+    "tipo": {
+      "productos": "Productos",
+      "productores": "Productores",
+      "comunidades": "Comunidades"
+    }
   }
 }

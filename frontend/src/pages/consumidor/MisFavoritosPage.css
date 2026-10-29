@@ -1,0 +1,21 @@
+/* Mi cuenta › Favoritos (CCPIP-327, CCPIP-385, CCPIP-386): tarjetas del catalogo con su accion de retirar */
+.mis-favoritos__titulo { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 24px; line-height: 32px; }
+.mis-favoritos__nota { margin: 0; color: var(--color-text-secondary); }
+.mis-favoritos__lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.mis-favoritos__item { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
+.mis-favoritos__item > :first-child { align-self: stretch; }
+.mis-favoritos__comunidad,
+.mis-favoritos__no-publicado {
+  padding: 20px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-surface);
+}
+.mis-favoritos__comunidad p,
+.mis-favoritos__no-publicado p { margin: 0; }
+.mis-favoritos__comunidad > :first-child { align-self: auto; }
+.mis-favoritos__nombre { font-weight: 600; font-size: 16px; line-height: 24px; color: var(--color-text-primary); }
+.mis-favoritos__tiendas { display: flex; flex-direction: column; gap: 4px; margin: 4px 0; padding: 0; list-style: none; }
+@media (max-width: 600px) {
+  .mis-favoritos__lista { grid-template-columns: minmax(0, 1fr); }
+}

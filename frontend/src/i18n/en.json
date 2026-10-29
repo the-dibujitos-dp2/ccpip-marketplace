@@ -2245,7 +2245,8 @@
     "RECEPCION_ANTES_DEL_ENVIO": "The receipt cannot be earlier than the shipment.",
     "OBSERVACIONES_REQUERIDAS": "Explain in the observations what was found in the evidence.",
     "EVIDENCIA_FISICA_YA_RECIBIDA": "The receipt of this physical evidence was already recorded.",
-    "EVIDENCIA_FISICA_NO_ENCONTRADA": "This physical evidence does not exist in this request."
+    "EVIDENCIA_FISICA_NO_ENCONTRADA": "This physical evidence does not exist in this request.",
+    "FAVORITO_NO_ENCONTRADO": "It's no longer in your favorites."
   },
   "buscar": {
     "comunidad": "Community",
@@ -4411,5 +4412,50 @@
     "nota": "This is your declaration, with its date. It is not a seal or an approval: only the certificates the Chamber reviews back a rule before buyers.",
     "historial": "Previous declarations",
     "ninguna": "No rules"
+  },
+  "favoritos": {
+    "titulo": "Favorites",
+    "nota": "What you save to find it again later. It does not reserve products or record quantities.",
+    "error": "We couldn't load your favorites",
+    "pestana": {
+      "productos_one": "Products ({{count}})",
+      "productos_other": "Products ({{count}})",
+      "productores_one": "Producers ({{count}})",
+      "productores_other": "Producers ({{count}})",
+      "comunidades_one": "Communities ({{count}})",
+      "comunidades_other": "Communities ({{count}})"
+    },
+    "vacio": {
+      "productos": "You haven't saved any products yet",
+      "productores": "You haven't saved any producers yet",
+      "comunidades": "You haven't saved any communities yet"
+    },
+    "vacioTexto": "Tap the heart on a product page or on a community's store to save it here.",
+    "retirar": "Remove from favorites",
+    "retirarDe": "Remove {{nombre}} from favorites",
+    "retirado": "You removed “{{nombre}}” from your favorites.",
+    "errorRetirar": "We couldn't remove it from your favorites",
+    "noPublicado": "No longer published.",
+    "sinTiendas": "None of this community's stores is published right now.",
+    "tiendasDe": "Stores of {{comunidad}}",
+    "boton": {
+      "productos": {
+        "guardar": "Save to favorites",
+        "guardado": "In your favorites"
+      },
+      "productores": {
+        "guardar": "Save producer",
+        "guardado": "Producer saved"
+      },
+      "comunidades": {
+        "guardar": "Save community",
+        "guardado": "Community saved"
+      }
+    },
+    "tipo": {
+      "productos": "Products",
+      "productores": "Producers",
+      "comunidades": "Communities"
+    }
   }
 }
