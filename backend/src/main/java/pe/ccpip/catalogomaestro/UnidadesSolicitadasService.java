@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -109,9 +110,9 @@ public class UnidadesSolicitadasService {
         }
         long id;
         try {
-            id = jdbc.queryForObject("""
+            id = Objects.requireNonNull(jdbc.queryForObject("""
                     INSERT INTO solicitud_unidad_medida (productor_id, solicitada_por, nombre, justificacion)
-                    VALUES (:productor, :usuario, :nombre, :justificacion) RETURNING id""", p, Long.class);
+                    VALUES (:productor, :usuario, :nombre, :justificacion) RETURNING id""", p, Long.class));
         } catch (DuplicateKeyException e) {
             // Dos pedidos iguales al mismo tiempo: el indice unico deja pasar solo uno
             throw pendienteRepetida();
@@ -151,7 +152,8 @@ public class UnidadesSolicitadasService {
         if (Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS (SELECT 1 FROM unidad_medida WHERE codigo = :codigo)", p, Boolean.class))) {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "CODIGO_DUPLICADO", "Ya existe una unidad con el código " + codigo + ".");
         }
-        int unidad = jdbc.queryForObject("INSERT INTO unidad_medida (codigo, nombre) VALUES (:codigo, :nombre) RETURNING id", p, Integer.class);
+        int unidad = Objects.requireNonNull(
+                jdbc.queryForObject("INSERT INTO unidad_medida (codigo, nombre) VALUES (:codigo, :nombre) RETURNING id", p, Integer.class));
         String nombreEn = CatalogoComun.limpio(a.nombreEn());
         if (nombreEn != null) {
             traducciones.aprobarTexto(Traducciones.Entidad.UNIDAD, codigo, "nombre", Idioma.EN, nombreEn,
@@ -185,7 +187,7 @@ public class UnidadesSolicitadasService {
     /** Codigo del catalogo a partir del nombre: "Atado de 10" → "ATADO_DE_10". */
     static String codigoDe(String nombre) {
         String sinTildes = Normalizer.normalize(nombre, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
-        String codigo = sinTildes.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+", "_").replaceAll("^_+|_+$", "");
+        String codigo = sinTildes.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+", "_").replaceAll("^_+", "").replaceAll("_+$", "");
         return codigo.length() > 20 ? codigo.substring(0, 20).replaceAll("_+$", "") : codigo;
     }
 

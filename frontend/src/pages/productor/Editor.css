@@ -142,3 +142,5 @@
 .solicitar-unidad { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: -8px; }
 .solicitar-unidad__lista { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .solicitar-unidad__form { display: flex; flex-direction: column; gap: 16px; }
+/* El enlace es largo: en celular salta de linea en vez de desbordar la pantalla */
+.solicitar-unidad .boton { max-width: 100%; height: auto; min-height: 32px; white-space: normal; text-align: left; }
