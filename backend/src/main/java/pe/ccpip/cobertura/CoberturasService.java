@@ -53,6 +53,23 @@ public class CoberturasService {
         }
         return grupos.values().stream().map(Grupo::respuesta).toList();
     }
+    @Transactional
+    public void desactivar(long usuarioId, long zonaId) {
+        if (zonaId <= 0) throw ErrorNegocio.invalido("ZONA_INVALIDA", "La zona debe tener identificador positivo.");
+        int actualizadas = jdbc.update("""
+                UPDATE cobertura_entrega c SET activa=false, actualizado_en=now()
+                WHERE c.id=:zona AND c.activa=true AND EXISTS (
+                  SELECT 1 FROM usuario_ubicacion uu WHERE uu.ubicacion_id=c.ubicacion_id AND uu.usuario_id=:usuario)
+                """, new MapSqlParameterSource("zona", zonaId).addValue("usuario", usuarioId));
+        if (actualizadas == 0) {
+            Integer existe = jdbc.queryForObject("SELECT count(*) FROM cobertura_entrega WHERE id=:zona", new MapSqlParameterSource("zona", zonaId), Integer.class);
+            if (existe != null && existe > 0) {
+                Integer propia = jdbc.queryForObject("SELECT count(*) FROM cobertura_entrega c JOIN usuario_ubicacion uu ON uu.ubicacion_id=c.ubicacion_id WHERE c.id=:zona AND uu.usuario_id=:usuario", new MapSqlParameterSource("zona", zonaId).addValue("usuario", usuarioId), Integer.class);
+                if (propia != null && propia > 0) return;
+            }
+            throw ErrorNegocio.noEncontrado("ZONA_NO_ENCONTRADA", "La zona no existe o no está asignada a tu cuenta.");
+        }
+    }
     private static final class Grupo {
         private final long id;
         private final String nombre;

@@ -154,6 +154,29 @@ class EntregaDomicilioTest extends IntegrationTest {
                 .andExpect(jsonPath("$.code").value("CARRITO_VACIO"));
     }
 
+    @Test
+    void desactivarDespuesDeCompraBloqueaNuevaOrdenSinAlterarOrdenAnterior() throws Exception {
+        alCarrito(productoEnCusco(8), 1);
+        long pedidoId = objectMapper.readTree(pedir(aDomicilio(destino(WANCHAQ))).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString()).get("id").asLong();
+        String pedidoAntes = jdbc.queryForObject("SELECT to_jsonb(p)::text FROM pedido p WHERE id=?", String.class, pedidoId);
+        String entregaAntes = jdbc.queryForObject("SELECT to_jsonb(e)::text FROM entrega e WHERE pedido_id=?", String.class, pedidoId);
+        String itemsAntes = jdbc.queryForObject("SELECT jsonb_agg(to_jsonb(i) ORDER BY i.id)::text FROM item_pedido i WHERE pedido_id=?", String.class, pedidoId);
+        int pagosAntes = jdbc.queryForObject("SELECT count(*) FROM pago WHERE pedido_id=?", Integer.class, pedidoId);
+        jdbc.update("UPDATE cobertura_entrega SET activa=false WHERE ubigeo=? AND ubicacion_id=?", WANCHAQ, punto(CUSCO));
+        alCarrito(productoEnCusco(3), 1);
+        pedir(aDomicilio(destino(WANCHAQ))).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("SIN_COBERTURA"));
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM pago WHERE pedido_id=?", Integer.class, pedidoId)).isEqualTo(pagosAntes);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM pago WHERE pedido_id IN (SELECT id FROM pedido WHERE usuario_id=(SELECT id FROM usuario WHERE correo=?))", Integer.class, COMPRADOR)).isZero();
+        assertThat(jdbc.queryForObject("SELECT to_jsonb(p)::text FROM pedido p WHERE id=?", String.class, pedidoId)).isEqualTo(pedidoAntes);
+        assertThat(jdbc.queryForObject("SELECT to_jsonb(e)::text FROM entrega e WHERE pedido_id=?", String.class, pedidoId)).isEqualTo(entregaAntes);
+        assertThat(jdbc.queryForObject("SELECT jsonb_agg(to_jsonb(i) ORDER BY i.id)::text FROM item_pedido i WHERE pedido_id=?", String.class, pedidoId)).isEqualTo(itemsAntes);
+        mockMvc.perform(get("/api/pedidos/" + pedidoId).cookie(comprador)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(pedidoId)).andExpect(jsonPath("$.estado").value("PENDIENTE_PAGO"))
+                .andExpect(jsonPath("$.entrega.ubigeo").value(WANCHAQ));
+    }
+
     // --- Confirmar ---
 
     @Test
