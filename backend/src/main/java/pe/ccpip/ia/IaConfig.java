@@ -1,6 +1,8 @@
 package pe.ccpip.ia;
 
 import java.time.Duration;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,40 +12,48 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Elige el proveedor de IA con {@code ccpip.ia.proveedor}: "gemini" (redaccion y analisis de
- * evidencias con la API de Gemini), "simulado" (solo pruebas) o "ninguno". La clave de Gemini va en
- * la variable de entorno del servidor CCPIP_GEMINI_API_KEY, nunca en el navegador (CCPIP-48). Sin
- * clave, "gemini" se comporta como "ninguno": la plataforma arranca y se escribe a mano.
+ * Elige el proveedor de IA de texto con {@code ccpip.ia.proveedor}: "gemini" o "openai" (redaccion,
+ * analisis de evidencias y asistente de catalogo con la API de cada uno), "simulado" (solo pruebas)
+ * o "ninguno". Las claves van en las variables de entorno del servidor CCPIP_GEMINI_API_KEY y
+ * CCPIP_OPENAI_API_KEY, nunca en el navegador (CCPIP-48). Sin la clave del proveedor elegido, este
+ * se comporta como "ninguno": la plataforma arranca y se escribe a mano.
  */
 @Configuration
 public class IaConfig {
 
     private static final Logger log = LoggerFactory.getLogger(IaConfig.class);
 
-    /** Cliente de Gemini, o nulo si no hay clave configurada. */
-    private final GeminiCliente gemini;
+    /** Clientes de cada proveedor, o nulos si no hay clave configurada. */
+    private final ModeloTexto gemini;
+    private final ModeloTexto openai;
 
-    /** Sin Gemini: lo usan las pruebas unitarias de los proveedores simulado y ninguno. */
+    /** Sin modelos de texto: lo usan las pruebas unitarias de los proveedores simulado y ninguno. */
     public IaConfig() {
-        this((GeminiCliente) null);
+        this(null, null);
     }
 
-    public IaConfig(GeminiCliente gemini) {
+    public IaConfig(ModeloTexto gemini, ModeloTexto openai) {
         this.gemini = gemini;
+        this.openai = openai;
     }
 
     @Autowired
-    public IaConfig(@Value("${ccpip.ia.gemini.clave:}") String clave,
-                    @Value("${ccpip.ia.gemini.modelo:gemini-flash-latest}") String modelo,
-                    @Value("${ccpip.ia.gemini.url:https://generativelanguage.googleapis.com}") String url,
-                    @Value("${ccpip.ia.gemini.espera:20s}") Duration espera) {
-        this(clave == null || clave.isBlank() ? null : new GeminiCliente(url, clave.strip(), modelo, espera));
+    public IaConfig(@Value("${ccpip.ia.gemini.clave:}") String claveGemini,
+                    @Value("${ccpip.ia.gemini.modelo:gemini-flash-latest}") String modeloGemini,
+                    @Value("${ccpip.ia.gemini.url:https://generativelanguage.googleapis.com}") String urlGemini,
+                    @Value("${ccpip.ia.gemini.espera:20s}") Duration esperaGemini,
+                    @Value("${ccpip.ia.openai.clave:}") String claveOpenai,
+                    @Value("${ccpip.ia.openai.modelo:gpt-4.1-mini}") String modeloOpenai,
+                    @Value("${ccpip.ia.openai.url:https://api.openai.com}") String urlOpenai,
+                    @Value("${ccpip.ia.openai.espera:20s}") Duration esperaOpenai) {
+        this(sinTexto(claveGemini) ? null : new GeminiCliente(urlGemini, claveGemini.strip(), modeloGemini, esperaGemini),
+                sinTexto(claveOpenai) ? null : new OpenAiCliente(urlOpenai, claveOpenai.strip(), modeloOpenai, esperaOpenai));
     }
 
     @Bean
     AsistenteRedaccion asistenteRedaccion(@Value("${ccpip.ia.proveedor:ninguno}") String proveedor) {
         AsistenteRedaccion asistente = switch (proveedor) {
-            case "gemini" -> gemini == null ? sinClave(new AsistenteNoConfigurado()) : new AsistenteGemini(gemini);
+            case "gemini", "openai" -> conModelo(proveedor, AsistenteGemini::new, AsistenteNoConfigurado::new);
             case "simulado" -> new AsistenteSimulado();
             case "ninguno" -> new AsistenteNoConfigurado();
             default -> throw new IllegalStateException("Proveedor de IA desconocido: " + proveedor);
@@ -63,8 +73,8 @@ public class IaConfig {
             // CCPIP-144: modelo propio del equipo, ejecutado dentro del backend (RNF-48)
             case "propio" -> new ValidadorImagenPropio(ModeloImagenes.cargar());
             case "simulado" -> new ValidadorImagenSimulado();
-            // Gemini es solo para texto: la validacion de imagenes usa el modelo propio
-            case "ninguno", "gemini" -> new ValidadorImagenNoConfigurado();
+            // Gemini y OpenAI son solo para texto: la validacion de imagenes usa el modelo propio
+            case "ninguno", "gemini", "openai" -> new ValidadorImagenNoConfigurado();
             default -> throw new IllegalStateException("Proveedor de IA de imágenes desconocido: " + proveedor);
         };
         log.info("Validación de imágenes por IA: proveedor '{}'", validador.proveedor());
@@ -76,7 +86,7 @@ public class IaConfig {
         return switch (proveedor) {
             case "propio" -> new MejoradorImagenPropio();
             case "simulado" -> new MejoradorImagenSimulado();
-            case "ninguno", "gemini" -> new MejoradorImagenNoConfigurado();
+            case "ninguno", "gemini", "openai" -> new MejoradorImagenNoConfigurado();
             default -> throw new IllegalStateException("Proveedor de IA de imágenes desconocido: " + proveedor);
         };
     }
@@ -88,7 +98,7 @@ public class IaConfig {
     @Bean
     AnalistaEvidencias analistaEvidencias(@Value("${ccpip.ia.proveedor:ninguno}") String proveedor) {
         AnalistaEvidencias analista = switch (proveedor) {
-            case "gemini" -> gemini == null ? sinClave(new AnalistaNoConfigurado()) : new AnalistaGemini(gemini);
+            case "gemini", "openai" -> conModelo(proveedor, AnalistaGemini::new, AnalistaNoConfigurado::new);
             case "simulado" -> new AnalistaSimulado();
             case "ninguno" -> new AnalistaNoConfigurado();
             default -> throw new IllegalStateException("Proveedor de IA desconocido: " + proveedor);
@@ -101,7 +111,7 @@ public class IaConfig {
     @Bean
     AsistenteCatalogo asistenteCatalogo(@Value("${ccpip.ia.proveedor:ninguno}") String proveedor) {
         AsistenteCatalogo asistente = switch (proveedor) {
-            case "gemini" -> gemini == null ? sinClave(new AsistenteCatalogoNoConfigurado()) : new AsistenteCatalogoGemini(gemini);
+            case "gemini", "openai" -> conModelo(proveedor, AsistenteCatalogoGemini::new, AsistenteCatalogoNoConfigurado::new);
             case "simulado" -> new AsistenteCatalogoSimulado();
             case "ninguno" -> new AsistenteCatalogoNoConfigurado();
             default -> throw new IllegalStateException("Proveedor de IA desconocido: " + proveedor);
@@ -110,8 +120,18 @@ public class IaConfig {
         return asistente;
     }
 
-    private static <T> T sinClave(T noConfigurado) {
-        log.warn("ccpip.ia.proveedor=gemini pero falta CCPIP_GEMINI_API_KEY: la IA queda no disponible");
-        return noConfigurado;
+    /** Arma el componente con el modelo del proveedor elegido; sin su clave queda no disponible. */
+    private <T> T conModelo(String proveedor, Function<ModeloTexto, T> conIa, Supplier<T> sinIa) {
+        ModeloTexto modelo = "openai".equals(proveedor) ? openai : gemini;
+        if (modelo != null) {
+            return conIa.apply(modelo);
+        }
+        log.warn("ccpip.ia.proveedor={} pero falta {}: la IA queda no disponible", proveedor,
+                "openai".equals(proveedor) ? "CCPIP_OPENAI_API_KEY" : "CCPIP_GEMINI_API_KEY");
+        return sinIa.get();
+    }
+
+    private static boolean sinTexto(String clave) {
+        return clave == null || clave.isBlank();
     }
 }
