@@ -295,6 +295,7 @@ export default function BuscarPage({ search }) {
                 <Paginacion
                   pagina={resultado.pagina}
                   totalPaginas={resultado.totalPaginas}
+                  total={resultado.total}
                   onCambiar={(n) => {
                     navigate(escribirFiltros({ ...filtros, pagina: n }))
                     window.scrollTo?.(0, 0)

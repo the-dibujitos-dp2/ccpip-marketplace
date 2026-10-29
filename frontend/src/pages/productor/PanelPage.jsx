@@ -13,7 +13,9 @@ import Boton from '../../components/Boton.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
+import Paginacion from '../../components/Paginacion.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import { fecha, unidades } from '../../formato.js'
 import { RUTAS } from '../../router.js'
 import { useSesion } from '../../sesion.js'
@@ -28,6 +30,7 @@ export default function PanelPage({ path }) {
   const [error, setError] = useState(false)
   const [alertaVisible, setAlertaVisible] = useState(true)
   const [intereses, setIntereses] = useState([])
+  const paginacionSinStock = usePaginacionLocal(panel?.publicadosSinStock ?? [])
 
   useEffect(() => {
     obtenerPanel().then(setPanel).catch(() => setError(true))
@@ -111,7 +114,7 @@ export default function PanelPage({ path }) {
                         <span className="tabla__celda tabla__celda--flex">{t('productor.tabla.producto')}</span>
                         <span className="tabla__celda tabla__celda--accion">{t('productor.tabla.accion')}</span>
                       </div>
-                      {panel.publicadosSinStock.map((p) => (
+                      {paginacionSinStock.filas.map((p) => (
                         <div key={p.id} className="tabla__fila">
                           <span className="tabla__celda tabla__celda--flex label-m">{p.nombre}</span>
                           <span className="tabla__celda tabla__celda--accion">
@@ -122,6 +125,7 @@ export default function PanelPage({ path }) {
                         </div>
                       ))}
                     </div>
+                    {paginacionSinStock.total > 0 && <Paginacion {...paginacionSinStock} />}
                   </section>
                 )}
                 {intereses.length > 0 && <Intereses intereses={intereses} />}

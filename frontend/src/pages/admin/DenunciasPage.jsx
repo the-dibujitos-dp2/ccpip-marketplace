@@ -17,6 +17,8 @@ import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import '../productor/productor.css'
 import './admin.css'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
+import Paginacion from '../../components/Paginacion.jsx'
 
 /**
  * CCPIP-84 (RF-77): denuncias contra productores, separadas de los reportes analiticos del tablero.
@@ -27,6 +29,7 @@ export default function DenunciasPage({ path }) {
   const { t } = useTranslation()
   const { datos, error } = useConsulta(bandejaDenuncias)
   const c = datos?.contadores
+  const paginas = usePaginacionLocal(datos?.productores ?? [])
   return (
     <LayoutAdmin path={path} migas={t('admin.nav.denuncias')} titulo={t('denunciasAdmin.titulo')}>
       {c && (
@@ -49,7 +52,7 @@ export default function DenunciasPage({ path }) {
             <span className="tabla__celda denuncias__ultima" role="columnheader">{t('denunciasAdmin.col.ultima')}</span>
             <span className="tabla__celda denuncias__accion" role="columnheader"><span className="visually-hidden">{t('denunciasAdmin.col.accion')}</span></span>
           </div>
-          {datos.productores.map((p) => (
+          {paginas.filas.map((p) => (
             <div key={p.productorId} className="tabla__fila" role="row">
               <span className="tabla__celda tabla__celda--flex" role="cell">
                 <span className="label-m">{p.organizacion}</span>
@@ -69,6 +72,7 @@ export default function DenunciasPage({ path }) {
           ))}
         </div>
       )}
+      {datos && <Paginacion {...paginas} />}
       <p className="productor__nota">{t('denunciasAdmin.notaPie')}</p>
     </LayoutAdmin>
   )

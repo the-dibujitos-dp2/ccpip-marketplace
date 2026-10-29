@@ -10,6 +10,8 @@ import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
+import Paginacion from '../../components/Paginacion.jsx'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import { diaMes, fechaCorta, fechaHora, precio, unidades } from '../../formato.js'
 import PaginaProductor from './PaginaProductor.jsx'
 import './productor.css'
@@ -33,6 +35,7 @@ export default function PedidosPage({ path }) {
 
   const items = datos?.items ?? []
   const pedido = items.find((p) => p.numero === elegido) ?? items[0]
+  const paginacion = usePaginacionLocal(items, estado)
   useEffect(() => setElegido(null), [estado])
 
   const conteos = datos?.conteos ?? {}
@@ -65,7 +68,7 @@ export default function PedidosPage({ path }) {
               <span className="tabla__celda pedidos-productor__col-estado">{t('productor.lote.tabla.estado')}</span>
             </div>
             <ul className="pedidos-productor__lista" aria-label={t('productor.pedidos.titulo')}>
-              {items.map((p) => (
+              {paginacion.filas.map((p) => (
                 <li key={p.numero}>
                   <button
                     type="button"
@@ -87,6 +90,7 @@ export default function PedidosPage({ path }) {
             </ul>
           </div>
           {pedido && <Detalle pedido={pedido} />}
+          <Paginacion {...paginacion} />
         </div>
       )}
 

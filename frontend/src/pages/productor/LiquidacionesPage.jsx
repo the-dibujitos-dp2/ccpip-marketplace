@@ -9,6 +9,8 @@ import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import FiltroFechas from '../../components/FiltroFechas.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
+import Paginacion from '../../components/Paginacion.jsx'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import { fechaHora, precio, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import PaginaProductor from './PaginaProductor.jsx'
@@ -57,6 +59,8 @@ function Exportar({ rango }) {
 function Resultado({ datos }) {
   const { t } = useTranslation()
   const { resumen, pedidos } = datos
+  const paginacion = usePaginacionLocal(pedidos, JSON.stringify([datos.desde, datos.hasta]))
+  const pedidosVisibles = paginacion.filas
   return (
     <>
       <div className="productor__kpis">
@@ -81,7 +85,7 @@ function Resultado({ datos }) {
               <span className="tabla__celda liquidaciones__importe" role="columnheader">{t('productor.liquidaciones.col.comision')}</span>
               <span className="tabla__celda liquidaciones__importe" role="columnheader">{t('productor.liquidaciones.col.neto')}</span>
             </div>
-            {pedidos.map((p) => (
+            {pedidosVisibles.map((p) => (
               <div key={p.id} className="tabla__fila" role="row">
                 <span className="tabla__celda liquidaciones__pedido label-m" role="cell">{p.numero}</span>
                 <span className="tabla__celda liquidaciones__fecha" role="cell">{fechaHora(p.confirmadoEn)}</span>
@@ -103,6 +107,7 @@ function Resultado({ datos }) {
             ))}
           </div>
         )}
+        <Paginacion {...paginacion} />
         <p className="caption">{t('productor.liquidaciones.nota')}</p>
       </section>
     </>

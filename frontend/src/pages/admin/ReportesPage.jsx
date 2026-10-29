@@ -10,6 +10,8 @@ import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import DescargasReporte from '../../components/DescargasReporte.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
+import Paginacion from '../../components/Paginacion.jsx'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import { Barra, Kpis, nombrePeriodo } from '../../components/TablaReporte.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { precio } from '../../formato.js'
@@ -131,6 +133,7 @@ function Resultado({ datos }) {
   const metrica = `metrica.${datos.metrica.toLowerCase()}`
   const clave = `admin.reportes.${metrica}`
   const mayor = Math.max(...periodos.map((p) => Number(p.total)), 0)
+  const paginacion = usePaginacionLocal(periodos, JSON.stringify([datos.desde, datos.hasta, agrupacion, datos.metrica]))
   return (
     <>
       <Kpis textos="admin.reportes" tarjetas={[
@@ -149,7 +152,7 @@ function Resultado({ datos }) {
             <span className="tabla__celda admin__num" role="columnheader">{t('admin.reportes.col.total')}</span>
             <span className="tabla__celda admin__num" role="columnheader">{t('admin.reportes.col.acumulado')}</span>
           </div>
-          {periodos.map((p) => (
+          {paginacion.filas.map((p) => (
             <div key={p.inicio} className="tabla__fila" role="row">
               <span className="tabla__celda reportes__periodo label-m" role="cell">{nombrePeriodo(p, agrupacion, t, 'admin.reportes.semana')}</span>
               <span className="tabla__celda tabla__celda--flex" role="cell">
@@ -162,6 +165,7 @@ function Resultado({ datos }) {
             </div>
           ))}
         </div>
+        <Paginacion {...paginacion} />
         <p className="caption">{t(`${clave}.nota`)}</p>
       </section>
     </>

@@ -1,3 +1,5 @@
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
+import Paginacion from '../../components/Paginacion.jsx'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoInfo from '../../assets/icons/info.svg'
@@ -35,6 +37,7 @@ export default function ProductosMaestros() {
   const todasLasLineas = useCallback(() => lineasMaestras.listar(), [])
   const { datos: lineas } = useConsulta(todasLasLineas)
   const [alerta, setAlerta] = useState(null)
+  const paginas = usePaginacionLocal(datos?.productos ?? [], JSON.stringify(filtros))
 
   const validar = (f) => {
     const e = {}
@@ -97,7 +100,7 @@ export default function ProductosMaestros() {
             <span className="tabla__celda catalogo-maestro__estado" role="columnheader">{t('catalogoMaestro.col.estado')}</span>
             <span className="tabla__celda catalogo-maestro__acciones" role="columnheader"><span className="visually-hidden">{t('catalogoMaestro.col.acciones')}</span></span>
           </div>
-          {datos.productos.map((p) => (
+          {paginas.filas.map((p) => (
             <div key={p.id} className="tabla__fila" role="row">
               <span className="tabla__celda tabla__celda--flex" role="cell">
                 <span className="label-m">{p.nombre}</span>
@@ -114,6 +117,8 @@ export default function ProductosMaestros() {
           ))}
         </div>
       )}
+
+      {datos && <Paginacion {...paginas} />}
 
       <DialogoEdicion edicion={edicion} titulo={t(actual ? 'catalogoMaestro.productos.form.tituloEditar' : 'catalogoMaestro.productos.form.tituloNuevo')}>
         {f && (

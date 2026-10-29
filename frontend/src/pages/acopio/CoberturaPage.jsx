@@ -8,7 +8,20 @@ import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
+import Paginacion from '../../components/Paginacion.jsx'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import './CoberturaPage.css'
+
+function ZonaPunto({ punto, c, onDesactivar }) {
+  const { filas, pagina, total, totalPaginas, onCambiar } = usePaginacionLocal(punto.zonas ?? [], punto.puntoId)
+  return <section className="cobertura401__punto" key={punto.puntoId} aria-labelledby={`punto-${punto.puntoId}`}>
+    <h2 id={`punto-${punto.puntoId}`}>{punto.punto}</h2>
+    {!total ? <p className="cobertura401__vacio">{c('sinZonas')}</p> : <>
+      <div className="cobertura401__tabla-scroll"><table className="cobertura401__tabla"><caption>{c('zona')} · {punto.punto}</caption><thead><tr>{['ubigeo','departamento','provincia','distrito','estado'].map((k) => <th key={k} scope="col">{c(k)}</th>)}</tr></thead><tbody>{filas.map((z) => <tr key={z.id}><td data-label={c('ubigeo')}>{z.ubigeo}</td><td data-label={c('departamento')}>{z.departamento}</td><td data-label={c('provincia')}>{z.provincia}</td><td data-label={c('distrito')}>{z.distrito}</td><td data-label={c('estado')}>{z.activa && <Boton tipo="secundario" aria-label={`${c('desactivar')} · ${z.distrito} · ${z.ubigeo}`} onClick={() => onDesactivar(z)}>{c('desactivar')}</Boton>}<Badge tono={z.activa ? 'exito' : 'neutro'}>{c(z.activa ? 'activa' : 'inactiva')}</Badge></td></tr>)}</tbody></table></div>
+      <Paginacion pagina={pagina} totalPaginas={totalPaginas} total={total} onCambiar={onCambiar} />
+    </>}
+  </section>
+}
 
 export default function CoberturaPage({ path }) {
   const { t } = useTranslation()
@@ -38,10 +51,7 @@ export default function CoberturaPage({ path }) {
   else if (error?.status === 409) contenido = <EstadoVacio titulo={c('sinAsignacion')} />
   else if (error) contenido = <EstadoVacio titulo={c('error')}><Boton tipo="secundario" onClick={recargar}>{c('reintentar')}</Boton></EstadoVacio>
   else if (!datos?.length) contenido = <EstadoVacio titulo={c('sinAsignacion')} />
-  else contenido = <div className="cobertura401__puntos">{datos.map((punto) => <section className="cobertura401__punto" key={punto.puntoId} aria-labelledby={`punto-${punto.puntoId}`}>
-    <h2 id={`punto-${punto.puntoId}`}>{punto.punto}</h2>
-    {!punto.zonas?.length ? <p className="cobertura401__vacio">{c('sinZonas')}</p> : <div className="cobertura401__tabla-scroll"><table className="cobertura401__tabla"><caption>{c('zona')} · {punto.punto}</caption><thead><tr>{['ubigeo','departamento','provincia','distrito','estado'].map((k) => <th key={k} scope="col">{c(k)}</th>)}</tr></thead><tbody>{punto.zonas.map((z) => <tr key={z.id}><td data-label={c('ubigeo')}>{z.ubigeo}</td><td data-label={c('departamento')}>{z.departamento}</td><td data-label={c('provincia')}>{z.provincia}</td><td data-label={c('distrito')}>{z.distrito}</td><td data-label={c('estado')}>{z.activa && <Boton tipo="secundario" aria-label={`${c('desactivar')} · ${z.distrito} · ${z.ubigeo}`} onClick={() => { setZonaSeleccionada(z); setErrorDesactivar(false) }}>{c('desactivar')}</Boton>}<Badge tono={z.activa ? 'exito' : 'neutro'}>{c(z.activa ? 'activa' : 'inactiva')}</Badge></td></tr>)}</tbody></table></div>}
-  </section>)}</div>
+  else contenido = <div className="cobertura401__puntos">{datos.map((punto) => <ZonaPunto key={punto.puntoId} punto={punto} c={c} onDesactivar={(z) => { setZonaSeleccionada(z); setErrorDesactivar(false) }} />)}</div>
   return <LayoutAcopio path={path} titulo={c('titulo')}><section className="cobertura401" aria-label={c('titulo')} aria-busy={cargando}>{contenido}</section>
     <Dialogo abierto={Boolean(zonaSeleccionada)} titulo={c('tituloDialogo')} confirmar={c('confirmar')} cancelar={c('cancelar')} onConfirmar={confirmarDesactivar} onCancelar={() => !ocupado && setZonaSeleccionada(null)} ocupado={ocupado}>
       <p>{c('confirmarDesactivar')}</p>

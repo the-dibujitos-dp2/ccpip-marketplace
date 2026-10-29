@@ -11,6 +11,8 @@ import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import LayoutDistribuidor from '../../components/layout/LayoutDistribuidor.jsx'
+import Paginacion from '../../components/Paginacion.jsx'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import { fechaHora } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { navigate, RUTAS } from '../../router.js'
@@ -56,6 +58,7 @@ export default function MisEntregasPage({ path }) {
 
   const enCurso = datos?.filter((e) => e.estado !== 'ENTREGADA') ?? []
   const entregadas = datos?.filter((e) => e.estado === 'ENTREGADA') ?? []
+  const { filas: entregadasPagina, pagina, total, totalPaginas, onCambiar } = usePaginacionLocal(entregadas, 'entregadas')
   const pasos = ['recogido', 'enCamino', 'entregado'].map((p) => t(`distribuidor.entregas.pasos.${p}`))
 
   async function retirar(numero) {
@@ -192,7 +195,7 @@ export default function MisEntregasPage({ path }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {entregadas.map((e) => (
+                    {entregadasPagina.map((e) => (
                       <tr key={e.numero}>
                         <th scope="row" className="mis-entregas__numero">{e.numero}</th>
                         <td>{e.destino.distrito}</td>
@@ -204,6 +207,7 @@ export default function MisEntregasPage({ path }) {
                 </table>
                 </div>
               )}
+              {entregadas.length > 0 && <Paginacion pagina={pagina} totalPaginas={totalPaginas} total={total} onCambiar={onCambiar} />}
             </div>
           </div>
         )}

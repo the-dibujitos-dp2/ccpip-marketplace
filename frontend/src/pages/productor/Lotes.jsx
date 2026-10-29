@@ -12,6 +12,8 @@ import { mensajeError } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import { RUTAS } from '../../router.js'
 import './Lotes.css'
+import Paginacion from '../../components/Paginacion.jsx'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 
 const TONO = { VENDE_PRIMERO: 'error', DISPONIBLE: 'exito', EN_ALMACEN: 'info', AGOTADO: 'neutro', VENCIDO: 'neutro' }
 
@@ -115,7 +117,9 @@ export function FormularioLote({ productoId, requiereVencimiento, onRegistrado, 
  */
 export function TablaTodosLosLotes({ lotes }) {
   const { t } = useTranslation()
+  const paginacion = usePaginacionLocal(lotes)
   return (
+    <>
     <div className="tabla tabla--todos-lotes">
       <div className="tabla__fila tabla__fila--encabezado" aria-hidden="true">
         <span className="tabla__celda tabla__celda--flex">{t('productor.lote.tabla.producto')}</span>
@@ -126,7 +130,7 @@ export function TablaTodosLosLotes({ lotes }) {
         <span className="tabla__celda lotes__col-estado">{t('productor.lote.tabla.estado')}</span>
       </div>
       <ul className="productos__lista" aria-label={t('productor.lotes.todos')}>
-        {lotes.map((l) => (
+        {paginacion.filas.map((l) => (
           <li key={l.id} className="tabla__fila">
             <span className="tabla__celda tabla__celda--flex">
               <Enlace className="enlace-marca" to={`${RUTAS.productorLotes}?producto=${l.productoId}`} aria-label={t('productor.lotes.verLotesDe', { producto: l.producto })}>
@@ -147,16 +151,20 @@ export function TablaTodosLosLotes({ lotes }) {
         ))}
       </ul>
     </div>
+    <Paginacion {...paginacion} />
+    </>
   )
 }
 
 /** "Lotes de este producto" de PW-06. El codigo solo lo ve el productor. */
 export function TablaLotes({ lotes }) {
   const { t } = useTranslation()
+  const paginacion = usePaginacionLocal(lotes?.items ?? [], lotes?.productoId ?? '')
   if (!lotes?.items.length) {
     return <p className="body-s">{t('productor.lote.sinLotes')}</p>
   }
   return (
+    <>
     <div className="tabla tabla--lotes">
       <div className="tabla__fila tabla__fila--encabezado" aria-hidden="true">
         <span className="tabla__celda lotes__col">{t('productor.lote.tabla.lote')}</span>
@@ -166,7 +174,7 @@ export function TablaLotes({ lotes }) {
         <span className="tabla__celda lotes__col-estado">{t('productor.lote.tabla.estado')}</span>
       </div>
       <ul className="productos__lista" aria-label={t('productor.lotes.deEsteProducto')}>
-        {lotes.items.map((l) => (
+        {paginacion.filas.map((l) => (
           <li key={l.id} className="tabla__fila">
             <span className="tabla__celda lotes__col label-m">{l.codigo}</span>
             <span className="tabla__celda lotes__col">{l.fechaVencimiento ? fechaCorta(l.fechaVencimiento) : t('productor.lote.noVence')}</span>
@@ -179,5 +187,7 @@ export function TablaLotes({ lotes }) {
         ))}
       </ul>
     </div>
+    <Paginacion {...paginacion} />
+    </>
   )
 }
