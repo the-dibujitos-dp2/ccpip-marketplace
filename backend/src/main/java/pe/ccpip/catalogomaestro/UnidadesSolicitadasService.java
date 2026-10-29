@@ -187,8 +187,21 @@ public class UnidadesSolicitadasService {
     /** Codigo del catalogo a partir del nombre: "Atado de 10" → "ATADO_DE_10". */
     static String codigoDe(String nombre) {
         String sinTildes = Normalizer.normalize(nombre, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
-        String codigo = sinTildes.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+", "_").replaceAll("^_+", "").replaceAll("_+$", "");
-        return codigo.length() > 20 ? codigo.substring(0, 20).replaceAll("_+$", "") : codigo;
+        String codigo = sinGuionesAlBorde(sinTildes.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+", "_"));
+        return codigo.length() > 20 ? sinGuionesAlBorde(codigo.substring(0, 20)) : codigo;
+    }
+
+    /** Quita los guiones bajos de los extremos sin expresiones regulares (que retrocederian en "____"). */
+    private static String sinGuionesAlBorde(String texto) {
+        int inicio = 0;
+        int fin = texto.length();
+        while (inicio < fin && texto.charAt(inicio) == '_') {
+            inicio++;
+        }
+        while (fin > inicio && texto.charAt(fin - 1) == '_') {
+            fin--;
+        }
+        return texto.substring(inicio, fin);
     }
 
     private void exigirNueva(String nombre) {

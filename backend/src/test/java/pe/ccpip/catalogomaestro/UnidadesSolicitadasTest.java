@@ -191,5 +191,7 @@ class UnidadesSolicitadasTest extends IntegrationTest {
         assertThat(UnidadesSolicitadasService.codigoDe("Atado de 10")).isEqualTo("ATADO_DE_10");
         assertThat(UnidadesSolicitadasService.codigoDe("  Mazo (pequeño) ")).isEqualTo("MAZO_PEQUENO");
         assertThat(UnidadesSolicitadasService.codigoDe("Racimo de plátanos maduros")).isEqualTo("RACIMO_DE_PLATANOS_M");
+        assertThat(UnidadesSolicitadasService.codigoDe("__ (Atado) __")).isEqualTo("ATADO");
+        assertThat(UnidadesSolicitadasService.codigoDe("Bolsita de semillas x")).isEqualTo("BOLSITA_DE_SEMILLAS");
     }
 }

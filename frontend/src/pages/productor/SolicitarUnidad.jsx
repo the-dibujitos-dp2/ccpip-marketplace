@@ -26,7 +26,7 @@ export default function SolicitarUnidad() {
 
   const cargar = () => listarSolicitudesUnidad().then(setSolicitudes).catch(() => setSolicitudes([]))
   useEffect(() => {
-    cargar()
+    void cargar()
   }, [])
 
   function abrir() {
@@ -49,7 +49,7 @@ export default function SolicitarUnidad() {
       const nueva = await solicitarUnidad({ nombre: form.nombre.trim(), justificacion: form.justificacion.trim() })
       setAbierto(false)
       setAviso({ tono: 'exito', titulo: t('unidadSolicitada.enviada', { nombre: nueva.nombre }), descripcion: t('unidadSolicitada.enviadaTexto') })
-      cargar()
+      void cargar()
     } catch (err) {
       setError(err)
     } finally {
