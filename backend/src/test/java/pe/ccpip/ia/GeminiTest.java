@@ -156,7 +156,8 @@ class GeminiTest {
 
     @Test
     void sinClaveGeminiSeComportaComoNinguno() {
-        IaConfig config = new IaConfig("", "modelo-x", "http://127.0.0.1:1", Duration.ofSeconds(1));
+        IaConfig config = new IaConfig("", "modelo-x", "http://127.0.0.1:1", Duration.ofSeconds(1),
+                "", "modelo-y", "http://127.0.0.1:1", Duration.ofSeconds(1));
         assertThat(config.asistenteRedaccion("gemini").proveedor()).isEqualTo("ninguno");
         assertThat(config.analistaEvidencias("gemini").proveedor()).isEqualTo("ninguno");
         // Gemini es solo de texto: las imagenes siguen sin proveedor hasta conectar el modelo propio
@@ -165,8 +166,10 @@ class GeminiTest {
 
     @Test
     void conClaveSeEligeGeminiParaRedactarYAnalizar() {
-        IaConfig config = new IaConfig("abc", "modelo-x", "http://127.0.0.1:1", Duration.ofSeconds(1));
+        IaConfig config = new IaConfig("abc", "modelo-x", "http://127.0.0.1:1", Duration.ofSeconds(1),
+                "", "modelo-y", "http://127.0.0.1:1", Duration.ofSeconds(1));
         assertThat(config.asistenteRedaccion("gemini")).isInstanceOf(AsistenteGemini.class);
+        assertThat(config.asistenteRedaccion("gemini").proveedor()).isEqualTo("gemini");
         assertThat(config.analistaEvidencias("gemini")).isInstanceOf(AnalistaGemini.class);
         assertThat(config.analistaEvidencias("gemini").simulado()).isFalse();
     }

@@ -45,6 +45,14 @@ public class EntregaService {
                 (rs, row) -> new Cobertura(distrito(rs), rs.getLong("ubicacion_id")));
     }
 
+    /** CCPIP-60: si el punto cubre hoy el distrito con una zona activa. Un ubigeo inexistente no esta cubierto. */
+    public boolean cubre(long puntoId, String ubigeo) {
+        return Boolean.TRUE.equals(jdbc.queryForObject("""
+                SELECT EXISTS (SELECT 1 FROM cobertura_entrega c
+                               WHERE c.activa AND c.ubicacion_id = :punto AND c.ubigeo = :ubigeo)""",
+                new MapSqlParameterSource("punto", puntoId).addValue("ubigeo", ubigeo), Boolean.class));
+    }
+
     /** El distrito de destino debe existir y estar en la cobertura activa del punto, si no 409. */
     public Distrito exigirCobertura(long puntoId, String ubigeo) {
         return jdbc.query("""
