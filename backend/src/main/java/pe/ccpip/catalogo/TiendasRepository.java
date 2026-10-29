@@ -3,6 +3,7 @@ package pe.ccpip.catalogo;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -78,6 +79,34 @@ public class TiendasRepository {
                 rs.getString("comunidad"), rs.getString("region"), rs.getString("localidad"),
                 rs.getString("cita"), rs.getBoolean("origen_verificado"),
                 portada == null ? null : ImagenService.url((UUID) portada), rs.getLong("productos"));
+    }
+
+    /**
+     * CCPIP-347: las tiendas publicadas que el asistente puede mostrar: las de las regiones o los terminos de la
+     * pregunta (nombre, comunidad, pueblo o localidad, sin mayusculas ni tildes) y las de los productos que
+     * muestra (`deProductos`). Por nombre, para no favorecer a ninguna, hasta `limite`.
+     */
+    public List<TiendaTarjeta> paraAsistente(List<String> terminos, List<String> regiones, Collection<Long> deProductos, int limite) {
+        List<String> condiciones = new ArrayList<>();
+        MapSqlParameterSource p = new MapSqlParameterSource("limite", limite);
+        for (int i = 0; i < terminos.size(); i++) {
+            p.addValue("t" + i, "%" + terminos.get(i).strip() + "%");
+            condiciones.add(("lower(inmutable_unaccent(concat_ws(' ', pr.nombre_tienda, pr.comunidad, pr.pueblo, pr.localidad))) "
+                    + "LIKE lower(inmutable_unaccent(:t%d))").formatted(i));
+        }
+        if (!regiones.isEmpty()) {
+            p.addValue("regiones", regiones);
+            condiciones.add("pr.region IN (:regiones)");
+        }
+        if (!deProductos.isEmpty()) {
+            p.addValue("productos", deProductos);
+            condiciones.add("pr.id IN (SELECT productor_id FROM producto WHERE id IN (:productos))");
+        }
+        if (condiciones.isEmpty()) {
+            return List.of();
+        }
+        return jdbc.query(TARJETA + " AND (" + String.join(" OR ", condiciones) + ") ORDER BY nombre, pr.id LIMIT :limite",
+                p, TiendasRepository::tarjeta);
     }
 
     /** CCPIP-363: la comunidad existe, esta activa y tiene su tienda publicada. */

@@ -4347,7 +4347,7 @@
   "asistente": {
     "titulo": "Ask the assistant",
     "etiqueta": "What are you looking for?",
-    "ejemplo": "E.g.: coffee from Junín as a gift, under S/ 40",
+    "ejemplo": "E.g.: coffee from Junín as a gift, or stores in Ucayali",
     "preguntar": "Ask",
     "consultando": "Searching…",
     "muyCorta": "Write your question with a bit more detail.",
@@ -4356,7 +4356,9 @@
     "error": "We couldn't reach the assistant.",
     "productosCitados": "Products suggested by the assistant",
     "aviso": "AI-generated answer based on the real catalog. Check each product page before buying.",
-    "verEnBusqueda": "See all results in search"
+    "verEnBusqueda": "See all results in search",
+    "tiendas": "Community stores",
+    "tiendasCitadas": "Stores that match your question"
   },
   "miHistorial": {
     "titulo": "My history",

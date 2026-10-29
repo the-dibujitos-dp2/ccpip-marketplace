@@ -4347,7 +4347,7 @@
   "asistente": {
     "titulo": "Pregúntale al asistente",
     "etiqueta": "¿Qué estás buscando?",
-    "ejemplo": "Ej.: café de Junín para regalar, menos de S/ 40",
+    "ejemplo": "Ej.: café de Junín para regalar, o tiendas de Ucayali",
     "preguntar": "Preguntar",
     "consultando": "Buscando…",
     "muyCorta": "Escribe tu pregunta con un poco más de detalle.",
@@ -4356,7 +4356,9 @@
     "error": "No pudimos consultar al asistente.",
     "productosCitados": "Productos que sugiere el asistente",
     "aviso": "Respuesta generada con IA a partir del catálogo real. Revisa la ficha de cada producto antes de comprar.",
-    "verEnBusqueda": "Ver todos los resultados en la búsqueda"
+    "verEnBusqueda": "Ver todos los resultados en la búsqueda",
+    "tiendas": "Tiendas de comunidades",
+    "tiendasCitadas": "Tiendas que coinciden con tu pregunta"
   },
   "miHistorial": {
     "titulo": "Mi historial",
