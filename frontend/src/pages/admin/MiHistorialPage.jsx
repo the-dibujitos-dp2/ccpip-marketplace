@@ -16,6 +16,8 @@ import { RUTAS } from '../../router.js'
 import '../productor/productor.css'
 import './admin.css'
 import './MiHistorialPage.css'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
+import Paginacion from '../../components/Paginacion.jsx'
 
 const TIPOS = ['AUTORIZACIONES', 'MODERACION', 'PRODUCTORES', 'DENUNCIAS', 'CUENTAS']
 
@@ -63,6 +65,8 @@ export default function MiHistorialPage({ path }) {
     void consultar()
   }, [consultar])
 
+  const paginas = usePaginacionLocal(datos?.acciones ?? [], JSON.stringify(filtro))
+
   const cambiar = (campo) => (e) => {
     const nuevo = { ...filtro, [campo]: e.target.value }
     setFiltro(nuevo)
@@ -95,7 +99,7 @@ export default function MiHistorialPage({ path }) {
             <span className="tabla__celda mi-historial__sobre" role="columnheader">{t('miHistorial.col.sobre')}</span>
             <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('miHistorial.col.motivo')}</span>
           </div>
-          {datos.acciones.map((a) => (
+          {paginas.filas.map((a) => (
             <div key={a.clave} className="tabla__fila" role="row">
               <span className="tabla__celda mi-historial__fecha label-m" role="cell">
                 <time dateTime={a.fecha}>{fechaHora(a.fecha)}</time>
@@ -114,6 +118,7 @@ export default function MiHistorialPage({ path }) {
           ))}
         </div>
       )}
+      {datos && <Paginacion {...paginas} />}
       <p className="caption mi-historial__nota">
         <Icono src={iconoCandado} tamano={16} />
         {t('miHistorial.inalterable')}

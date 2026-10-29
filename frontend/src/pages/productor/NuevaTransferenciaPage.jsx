@@ -8,6 +8,8 @@ import Campo from '../../components/Campo.jsx'
 import { nombreLugar } from '../../components/DetalleTransferencia.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
+import Paginacion from '../../components/Paginacion.jsx'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import { fechaCorta, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { navigate, RUTAS } from '../../router.js'
@@ -50,6 +52,7 @@ export default function NuevaTransferenciaPage() {
     ? (datos?.inventario.productos ?? []).flatMap((p) =>
       p.lotes.filter((l) => l.ubicacionId === origen.id && l.estado !== 'VENCIDO').map((l) => ({ ...l, producto: p.nombre })))
     : []
+  const paginacion = usePaginacionLocal(lotes, JSON.stringify([tipo, origen?.id]))
 
   function cambiarTipo(nuevo) {
     setTipo(nuevo)
@@ -70,21 +73,25 @@ export default function NuevaTransferenciaPage() {
     if (!origen) e.origen = t('productor.transferencias.form.errorOrigen')
     if (!lugarDestino) e.destino = t('productor.transferencias.form.errorDestino')
     const elegidos = lotes.filter((l) => (cantidades[l.id] ?? '').trim() !== '')
+    let primerInvalido = null
     for (const l of elegidos) {
       const texto = cantidades[l.id].trim()
-      if (!CANTIDAD.test(texto) || Number(texto) <= 0) e[`lote-${l.id}`] = t('productor.transferencias.form.errorCantidad')
-      else if (Number(texto) > Number(l.cantidad)) e[`lote-${l.id}`] = t('productor.transferencias.form.errorSaldo', { cantidad: unidades(l.cantidad) })
+      if (!CANTIDAD.test(texto) || Number(texto) <= 0) { e[`lote-${l.id}`] = t('productor.transferencias.form.errorCantidad'); primerInvalido ??= l.id }
+      else if (Number(texto) > Number(l.cantidad)) { e[`lote-${l.id}`] = t('productor.transferencias.form.errorSaldo', { cantidad: unidades(l.cantidad) }); primerInvalido ??= l.id }
     }
     if (origen && elegidos.length === 0) e.lotes = t('productor.transferencias.form.errorLotes')
-    return { e, elegidos }
+    return { e, elegidos, primerInvalido }
   }
 
   async function enviar(ev) {
     ev.preventDefault()
     setErrorEnvio(null)
-    const { e, elegidos } = validar()
+    const { e, elegidos, primerInvalido } = validar()
     setErrores(e)
-    if (Object.keys(e).length) return
+    if (Object.keys(e).length) {
+      if (primerInvalido != null) paginacion.onCambiar(Math.floor(lotes.findIndex((l) => l.id === primerInvalido) / 20))
+      return
+    }
     setEnviando(true)
     try {
       const creada = await crearTransferencia({
@@ -181,7 +188,7 @@ export default function NuevaTransferenciaPage() {
             )}
             {lotes.length > 0 && (
               <div className="tabla">
-                {lotes.map((l) => (
+                {paginacion.filas.map((l) => (
                   <div key={l.id} className="nueva-transferencia__lote">
                     <span className="nueva-transferencia__lote-datos">
                       <span className="label-m">{l.producto}</span>
@@ -205,6 +212,7 @@ export default function NuevaTransferenciaPage() {
                 ))}
               </div>
             )}
+            {lotes.length > 0 && <Paginacion {...paginacion} />}
             {errores.lotes && <Alerta tono="error" titulo={errores.lotes} />}
           </fieldset>
 

@@ -144,12 +144,31 @@ describe('DW-01 Pedidos disponibles del distribuidor (CCPIP-107)', () => {
     expect(screen.getByText('Mostrando 20 de 25')).toBeInTheDocument()
 
     await usuario.click(screen.getByRole('button', { name: 'Cargar más pedidos' }))
-    await waitFor(() => expect(within(tabla).getAllByRole('row')).toHaveLength(26))
-    // Las páginas se encadenan en el orden del servidor y sin repetir pedidos
-    const numeros = within(tabla).getAllByRole('rowheader').map((c) => c.textContent)
-    expect(numeros).toEqual(MUCHOS.map((p) => p.numero))
+    await waitFor(() => expect(within(tabla).getAllByRole('row')).toHaveLength(21))
+    // Cargar más amplía las páginas locales y conserva el orden del servidor
+    expect(within(tabla).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(MUCHOS.slice(0, 20).map((p) => p.numero))
     expect(screen.queryByRole('button', { name: 'Cargar más pedidos' })).not.toBeInTheDocument()
     expect(llamadas(fetchMock, `${DISPONIBLES}?cursor=20`)).toHaveLength(1)
+  })
+
+  it('pagina localmente los pedidos cargados y conserva selecciones entre páginas', async () => {
+    servidor(comoDistribuidor({ [DISPONIBLES]: cola(MUCHOS) }))
+    const usuario = userEvent.setup()
+    abrirEn('/distribuidor/pedidos')
+
+    const tabla = await screen.findByRole('table', { name: 'Pedidos disponibles' })
+    await usuario.click(within(tabla).getByRole('checkbox', { name: 'Elegir el pedido MC-00200' }))
+    await usuario.click(screen.getByRole('button', { name: 'Cargar más pedidos' }))
+    await waitFor(() => expect(within(tabla).getAllByRole('row')).toHaveLength(21))
+    expect(screen.getByText('25 pedidos disponibles')).toBeInTheDocument()
+    expect(screen.getByLabelText('Paginación')).toHaveTextContent('Página 1 · 25 registros')
+
+    await usuario.click(screen.getByRole('button', { name: 'Página 2' }))
+    expect(within(tabla).getAllByRole('row')).toHaveLength(6)
+    expect(within(tabla).getByText('MC-00220')).toBeInTheDocument()
+    expect(within(tabla).queryByText('MC-00200')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Paginación')).toHaveTextContent('Página 2 · 25 registros')
+    expect(screen.getByText('1 pedido seleccionado')).toBeInTheDocument()
   })
 
   it('si falla cargar más lo avisa, conserva lo cargado y deja reintentar', async () => {
@@ -164,7 +183,7 @@ describe('DW-01 Pedidos disponibles del distribuidor (CCPIP-107)', () => {
     expect(await screen.findByText('No pudimos cargar más pedidos')).toBeInTheDocument()
     expect(within(screen.getByRole('table', { name: 'Pedidos disponibles' })).getAllByRole('row')).toHaveLength(21)
     await usuario.click(screen.getByRole('button', { name: 'Cargar más pedidos' }))
-    await waitFor(() => expect(within(screen.getByRole('table', { name: 'Pedidos disponibles' })).getAllByRole('row')).toHaveLength(26))
+    await waitFor(() => expect(within(screen.getByRole('table', { name: 'Pedidos disponibles' })).getAllByRole('row')).toHaveLength(21))
     expect(screen.queryByText('No pudimos cargar más pedidos')).not.toBeInTheDocument()
   })
 
@@ -174,7 +193,7 @@ describe('DW-01 Pedidos disponibles del distribuidor (CCPIP-107)', () => {
     abrirEn('/distribuidor/pedidos')
 
     await usuario.click(await screen.findByRole('button', { name: 'Cargar más pedidos' }))
-    await waitFor(() => expect(within(screen.getByRole('table', { name: 'Pedidos disponibles' })).getAllByRole('row')).toHaveLength(26))
+    await waitFor(() => expect(within(screen.getByRole('table', { name: 'Pedidos disponibles' })).getAllByRole('row')).toHaveLength(21))
     await usuario.click(screen.getByRole('button', { name: 'Actualizar' }))
     await waitFor(() => expect(within(screen.getByRole('table', { name: 'Pedidos disponibles' })).getAllByRole('row')).toHaveLength(21))
     expect(screen.getByRole('button', { name: 'Cargar más pedidos' })).toBeInTheDocument()

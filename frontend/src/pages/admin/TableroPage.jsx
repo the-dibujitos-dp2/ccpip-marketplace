@@ -8,6 +8,8 @@ import { obtenerTablero } from '../../api/admin.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Cargando from '../../components/Cargando.jsx'
+import Paginacion from '../../components/Paginacion.jsx'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { mesAnterior, precio, unidades } from '../../formato.js'
@@ -54,6 +56,7 @@ export default function TableroPage({ path }) {
 
 function Contenido({ tablero }) {
   const { t } = useTranslation()
+  const puntosPaginacion = usePaginacionLocal(tablero.puntos, 'tablero-puntos')
   const { ventas, comision, productores } = tablero
   const anterior = mesAnterior(tablero.periodo)
   let variacion = { texto: t('admin.tablero.sinComparacion', { mes: anterior }), tono: 'neutro' }
@@ -95,7 +98,7 @@ function Contenido({ tablero }) {
             <span className="tabla__celda admin__merma" role="columnheader">{t('admin.tablero.puntos.merma')}</span>
             <span className="tabla__celda admin__num" role="columnheader">{t('admin.tablero.puntos.reclamos')}</span>
           </div>
-          {tablero.puntos.map((p) => (
+          {puntosPaginacion.filas.map((p) => (
             <div key={p.id} className="tabla__fila" role="row">
               <span className="tabla__celda tabla__celda--flex label-m" role="cell">{p.nombre} · {p.distrito}</span>
               <span className="tabla__celda admin__num" role="cell">{t('comun.und', { cantidad: unidades(p.stock) })}</span>
@@ -108,6 +111,7 @@ function Contenido({ tablero }) {
             </div>
           ))}
         </div>
+        <Paginacion {...puntosPaginacion} />
         <p className="productor__nota">{t('admin.tablero.merma.notaPunto')} {t('admin.tablero.notaPronto')}</p>
       </section>
 
@@ -147,6 +151,7 @@ function MermaPunto({ merma, linea }) {
 /** CCPIP-430: merma del mes de cada linea en cada punto, solo donde hubo merma. */
 function MermaPorLinea({ filas }) {
   const { t } = useTranslation()
+  const paginacion = usePaginacionLocal(filas, 'tablero-merma-por-linea')
   return (
     <section className="productor__seccion" aria-labelledby="titulo-merma">
       <h2 id="titulo-merma" className="heading-h3">{t('admin.tablero.merma.titulo')}</h2>
@@ -162,7 +167,7 @@ function MermaPorLinea({ filas }) {
             <span className="tabla__celda admin__merma" role="columnheader">{t('admin.tablero.merma.porcentaje')}</span>
             <span className="tabla__celda admin__num" role="columnheader">{t('admin.tablero.merma.umbrales')}</span>
           </div>
-          {filas.map((m) => (
+          {paginacion.filas.map((m) => (
             <div key={`${m.puntoId}-${m.codigo}`} className="tabla__fila" role="row">
               <span className="tabla__celda tabla__celda--flex label-m" role="cell">{m.punto}</span>
               <span className="tabla__celda tabla__celda--flex" role="cell">{m.linea}</span>
@@ -175,6 +180,7 @@ function MermaPorLinea({ filas }) {
           ))}
         </div>
       )}
+      <Paginacion {...paginacion} />
     </section>
   )
 }

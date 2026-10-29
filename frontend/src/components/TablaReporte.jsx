@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next'
+import usePaginacionLocal from '../hooks/usePaginacionLocal.js'
+import Paginacion from './Paginacion.jsx'
 import { capital, fecha, mesAnio } from '../formato.js'
 import EstadoVacio from './EstadoVacio.jsx'
 import TarjetaKpi from './TarjetaKpi.jsx'
@@ -11,7 +13,10 @@ import './TablaReporte.css'
  * derecha. `barra` es una columna decorativa con la barra apilada de la fila (las cifras estan en la fila).
  * Sin filas muestra el estado vacio `vacio` con `vacioTexto`.
  */
-export default function TablaReporte({ id, titulo, columnas, filas, clave, vacio, vacioTexto, nota, estrecha }) {
+export default function TablaReporte({ id, titulo, columnas, filas, clave, vacio, vacioTexto, nota, estrecha, filterKey }) {
+  const claveFiltro = filterKey ?? JSON.stringify(filas)
+  const paginacion = usePaginacionLocal(filas, claveFiltro)
+  const filasVisibles = paginacion.filas
   const clase = (c) => {
     if (c.periodo) return 'tabla__celda tabla-reporte__periodo'
     if (c.texto) return `tabla__celda tabla-reporte__texto${c.corto ? ' tabla-reporte__texto--corto' : ''}`
@@ -30,7 +35,7 @@ export default function TablaReporte({ id, titulo, columnas, filas, clave, vacio
               <span key={c.clave} className={clase(c)} role="columnheader">{c.etiqueta}</span>
             ))}
           </div>
-          {filas.map((f) => (
+          {filasVisibles.map((f) => (
             <div key={clave(f)} className="tabla__fila" role="row">
               {columnas.map((c) => (
                 <span key={c.clave} className={`${clase(c)}${c.fuerte || c.periodo ? ' label-m' : ''}`} role="cell">{c.valor(f)}</span>
@@ -39,6 +44,7 @@ export default function TablaReporte({ id, titulo, columnas, filas, clave, vacio
           ))}
         </div>
       )}
+      <Paginacion {...paginacion} />
       {nota && <p className="caption">{nota}</p>}
     </section>
   )

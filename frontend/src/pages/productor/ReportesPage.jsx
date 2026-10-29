@@ -16,6 +16,8 @@ import DescargasReporte from '../../components/DescargasReporte.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
+import Paginacion from '../../components/Paginacion.jsx'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import { capital, fecha, mesAnio, precio, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import PaginaProductor from './PaginaProductor.jsx'
@@ -134,6 +136,11 @@ function nombrePeriodo(p, agrupacion, t) {
 function Ventas({ datos }) {
   const { t } = useTranslation()
   const { totales, periodos, porProducto, agrupacion } = datos
+  const filtroKey = JSON.stringify([datos.aplicado?.desde, datos.aplicado?.hasta, datos.aplicado?.agrupacion, datos.aplicado?.producto])
+  const paginasPeriodo = usePaginacionLocal(periodos, filtroKey)
+  const paginasProducto = usePaginacionLocal(porProducto, filtroKey)
+  const periodosVisibles = paginasPeriodo.filas
+  const productosVisibles = paginasProducto.filas
   const mayor = Math.max(...periodos.map((p) => Number(p.total)), 0)
   return (
     <>
@@ -155,7 +162,7 @@ function Ventas({ datos }) {
             <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.total')}</span>
             <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.acumulado')}</span>
           </div>
-          {periodos.map((p) => (
+          {periodosVisibles.map((p) => (
             <div key={p.inicio} className="tabla__fila" role="row">
               <span className="tabla__celda reportes-productor__periodo label-m" role="cell">{nombrePeriodo(p, agrupacion, t)}</span>
               <span className="tabla__celda tabla__celda--flex" role="cell">
@@ -169,6 +176,7 @@ function Ventas({ datos }) {
             </div>
           ))}
         </div>
+        <Paginacion {...paginasPeriodo} />
         <p className="caption">{t('productor.reportes.ventas.nota')}</p>
       </section>
       <section className="productor__seccion" aria-labelledby="reportes-ventas-producto">
@@ -184,7 +192,7 @@ function Ventas({ datos }) {
               <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.b2b')}</span>
               <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.total')}</span>
             </div>
-            {porProducto.map((p) => (
+            {productosVisibles.map((p) => (
               <div key={p.productoId} className="tabla__fila" role="row">
                 <span className="tabla__celda tabla__celda--flex label-m" role="cell">{p.producto}</span>
                 <span className="tabla__celda reportes-productor__num" role="cell">{unidades(p.unidades)}</span>
@@ -195,6 +203,7 @@ function Ventas({ datos }) {
             ))}
           </div>
         )}
+        <Paginacion {...paginasProducto} />
       </section>
     </>
   )
@@ -204,6 +213,11 @@ function Ventas({ datos }) {
 function Produccion({ datos }) {
   const { t } = useTranslation()
   const { totales, periodos, porProducto, agrupacion } = datos
+  const filtroKey = JSON.stringify([datos.aplicado?.desde, datos.aplicado?.hasta, datos.aplicado?.agrupacion, datos.aplicado?.producto])
+  const paginasPeriodo = usePaginacionLocal(periodos, filtroKey)
+  const paginasProducto = usePaginacionLocal(porProducto, filtroKey)
+  const periodosVisibles = paginasPeriodo.filas
+  const productosVisibles = paginasProducto.filas
   const mayor = Math.max(...periodos.map((p) => Number(p.unidades)), 0)
   return (
     <>
@@ -223,7 +237,7 @@ function Produccion({ datos }) {
             <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.lotes')}</span>
             <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.acumulado')}</span>
           </div>
-          {periodos.map((p) => (
+          {periodosVisibles.map((p) => (
             <div key={p.inicio} className="tabla__fila" role="row">
               <span className="tabla__celda reportes-productor__periodo label-m" role="cell">{nombrePeriodo(p, agrupacion, t)}</span>
               <span className="tabla__celda tabla__celda--flex" role="cell">
@@ -235,6 +249,7 @@ function Produccion({ datos }) {
             </div>
           ))}
         </div>
+        <Paginacion {...paginasPeriodo} />
         <p className="caption">{t('productor.reportes.produccion.nota')}</p>
       </section>
       <section className="productor__seccion" aria-labelledby="reportes-produccion-producto">
@@ -248,7 +263,7 @@ function Produccion({ datos }) {
               <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.ingresadas')}</span>
               <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.lotes')}</span>
             </div>
-            {porProducto.map((p) => (
+            {productosVisibles.map((p) => (
               <div key={p.productoId} className="tabla__fila" role="row">
                 <span className="tabla__celda tabla__celda--flex label-m" role="cell">{p.producto}</span>
                 <span className="tabla__celda reportes-productor__num" role="cell">{unidades(p.unidades)}</span>
@@ -257,6 +272,7 @@ function Produccion({ datos }) {
             ))}
           </div>
         )}
+        <Paginacion {...paginasProducto} />
       </section>
     </>
   )
@@ -273,6 +289,11 @@ const COLUMNAS_INVENTARIO_PRODUCTO = ['saldoInicial', 'entradas', 'vendidas', 'm
 function Inventario({ datos }) {
   const { t } = useTranslation()
   const { totales, periodos, porProducto, agrupacion } = datos
+  const filtroKey = JSON.stringify([datos.aplicado?.desde, datos.aplicado?.hasta, datos.aplicado?.agrupacion, datos.aplicado?.producto])
+  const paginasPeriodo = usePaginacionLocal(periodos, filtroKey)
+  const paginasProducto = usePaginacionLocal(porProducto, filtroKey)
+  const periodosVisibles = paginasPeriodo.filas
+  const productosVisibles = paginasProducto.filas
   const salidas = [totales.vendidasB2c, totales.vendidasB2b, totales.merma, totales.otrasSalidas].reduce((a, b) => a + Number(b), 0)
   const und = (v) => t('comun.und', { cantidad: unidades(v) })
   return (
@@ -296,7 +317,7 @@ function Inventario({ datos }) {
               <span key={c} className="tabla__celda reportes-productor__num reportes-productor__num--estrecha" role="columnheader">{t(`productor.reportes.col.${c}`)}</span>
             ))}
           </div>
-          {periodos.map((p) => (
+          {periodosVisibles.map((p) => (
             <div key={p.inicio} className="tabla__fila" role="row">
               <span className="tabla__celda reportes-productor__periodo label-m" role="cell">{nombrePeriodo(p, agrupacion, t)}</span>
               {COLUMNAS_INVENTARIO.map((c) => (
@@ -305,6 +326,7 @@ function Inventario({ datos }) {
             </div>
           ))}
         </div>
+        <Paginacion {...paginasPeriodo} />
         <p className="caption">{t('productor.reportes.inventario.nota')}</p>
       </section>
       <section className="productor__seccion" aria-labelledby="reportes-inventario-producto">
@@ -319,7 +341,7 @@ function Inventario({ datos }) {
                 <span key={c} className="tabla__celda reportes-productor__num" role="columnheader">{t(`productor.reportes.col.${c}`)}</span>
               ))}
             </div>
-            {porProducto.map((p) => (
+            {productosVisibles.map((p) => (
               <div key={p.productoId} className="tabla__fila" role="row">
                 <span className="tabla__celda tabla__celda--flex label-m" role="cell">{p.producto}</span>
                 {COLUMNAS_INVENTARIO_PRODUCTO.map((c) => (
@@ -329,6 +351,7 @@ function Inventario({ datos }) {
             ))}
           </div>
         )}
+        <Paginacion {...paginasProducto} />
       </section>
     </>
   )
