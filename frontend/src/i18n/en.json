@@ -2582,6 +2582,12 @@
     "sinPuntoTexto": "Right now no point has stock for all your products together. Adjust the quantities or remove one.",
     "puntoTitulo": "1. Pickup point",
     "puntoAyuda": "Pick up your order free of charge at one of the Chamber's collection points.",
+    "factibilidad": {
+      "titulo": "This point can no longer deliver your order",
+      "PUNTO_SIN_EXISTENCIAS": "It no longer has stock for your whole cart.",
+      "SIN_COBERTURA": "It does not deliver to the district you chose.",
+      "accion": "Choose another point or change the delivery method to pay."
+    },
     "perecibles": {
       "titulo": "Perishable products in your order",
       "producto": "{{nombre}}: best before {{fecha}}",

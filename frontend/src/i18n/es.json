@@ -2582,6 +2582,12 @@
     "sinPuntoTexto": "Por ahora ningún punto tiene existencias para todos tus productos juntos. Ajusta las cantidades o quita alguno.",
     "puntoTitulo": "1. Punto de recojo",
     "puntoAyuda": "Recoges tu pedido sin costo en un punto de acopio de la Cámara.",
+    "factibilidad": {
+      "titulo": "Este punto ya no puede entregar tu pedido",
+      "PUNTO_SIN_EXISTENCIAS": "Ya no tiene existencias para todo tu carrito.",
+      "SIN_COBERTURA": "No entrega a domicilio en el distrito que elegiste.",
+      "accion": "Elige otro punto o cambia la forma de entrega para poder pagar."
+    },
     "perecibles": {
       "titulo": "Productos perecibles de tu compra",
       "producto": "{{nombre}}: consumir antes del {{fecha}}",
