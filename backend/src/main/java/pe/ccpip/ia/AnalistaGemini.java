@@ -11,7 +11,8 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * CCPIP-50 con Gemini: analisis preliminar de las evidencias de una solicitud de autorizacion.
+ * CCPIP-50 con un modelo de lenguaje (Gemini u OpenAI, ver {@link IaConfig}): analisis preliminar
+ * de las evidencias de una solicitud de autorizacion.
  *
  * Solo se envian los datos que el productor declaro de cada evidencia (tipo, titulo, emisor,
  * vigencia y formato), nunca los archivos: son privados (RNF-08) y la Ley 29733 pide no compartir
@@ -58,10 +59,10 @@ public class AnalistaGemini implements AnalistaEvidencias {
                             "required", List.of("tipo", "detalle")))),
             "required", List.of("recomendacion", "resumen", "hallazgos"));
 
-    private final GeminiCliente gemini;
+    private final ModeloTexto modelo;
 
-    public AnalistaGemini(GeminiCliente gemini) {
-        this.gemini = gemini;
+    public AnalistaGemini(ModeloTexto modelo) {
+        this.modelo = modelo;
     }
 
     @Override
@@ -85,8 +86,8 @@ public class AnalistaGemini implements AnalistaEvidencias {
         datos.put("evidencias", evidencias);
         JsonNode r;
         try {
-            r = gemini.generar(REGLAS, "Solicitud a revisar:\n" + GeminiCliente.comoDatos(datos), ESQUEMA, 0.2);
-        } catch (GeminiCliente.Falla e) {
+            r = modelo.generar(REGLAS, "Solicitud a revisar:\n" + GeminiCliente.comoDatos(datos), ESQUEMA, 0.2);
+        } catch (ModeloTexto.Falla e) {
             throw IaNoDisponible.paraRevision();
         }
         return validar(r, s);
@@ -125,7 +126,7 @@ public class AnalistaGemini implements AnalistaEvidencias {
 
     @Override
     public String proveedor() {
-        return "gemini";
+        return modelo.proveedor();
     }
 
     @Override

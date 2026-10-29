@@ -12,8 +12,9 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * CCPIP-51 con Gemini. La IA no ve la base de datos: primero traduce la pregunta a filtros cerrados
- * (lineas y regiones que existen) y despues redacta con los productos que encontro la busqueda.
+ * CCPIP-51 con un modelo de lenguaje (Gemini u OpenAI, ver {@link IaConfig}). La IA no ve la base
+ * de datos: primero traduce la pregunta a filtros cerrados (lineas y regiones que existen) y
+ * despues redacta con los productos que encontro la busqueda.
  * Todo lo que devuelve se valida aqui: codigos desconocidos e ids que no fueron candidatos se
  * descartan, y los textos se recortan.
  */
@@ -54,10 +55,10 @@ public class AsistenteCatalogoGemini implements AsistenteCatalogo {
                     "citados", Map.of("type", "ARRAY", "items", Map.of("type", "INTEGER"))),
             "required", List.of("texto", "citados"));
 
-    private final GeminiCliente gemini;
+    private final ModeloTexto modelo;
 
-    public AsistenteCatalogoGemini(GeminiCliente gemini) {
-        this.gemini = gemini;
+    public AsistenteCatalogoGemini(ModeloTexto modelo) {
+        this.modelo = modelo;
     }
 
     @Override
@@ -129,7 +130,7 @@ public class AsistenteCatalogoGemini implements AsistenteCatalogo {
 
     @Override
     public String proveedor() {
-        return "gemini";
+        return modelo.proveedor();
     }
 
     /** Solo los codigos que existen, con la escritura del catalogo, sin repetir. */
@@ -144,8 +145,8 @@ public class AsistenteCatalogoGemini implements AsistenteCatalogo {
 
     private JsonNode consultar(String pedido, Map<String, Object> esquema, double temperatura) {
         try {
-            return gemini.generar(REGLAS, pedido, esquema, temperatura);
-        } catch (GeminiCliente.Falla e) {
+            return modelo.generar(REGLAS, pedido, esquema, temperatura);
+        } catch (ModeloTexto.Falla e) {
             throw IaNoDisponible.catalogo();
         }
     }
