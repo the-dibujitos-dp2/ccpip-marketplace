@@ -1611,3 +1611,25 @@ La comunidad no tiene tabla propia: es `productor.comunidad`, y su pagina es la 
 (`comunidad`) y la tienda desde la que se guardo (`productor_id`). Un indice unico sobre
 `(usuario_id, lower(inmutable_unaccent(btrim(comunidad))))` evita guardarla dos veces desde dos tiendas de la
 misma comunidad. La lista muestra las tiendas publicadas de esa comunidad.
+
+## Unidades de medida pedidas por los productores (CCPIP-119, CCPIP-137, CCPIP-353)
+
+El catalogo de unidades es cerrado (RNF-32). Si ninguna le sirve, el productor pide una nueva; mientras esta
+pendiente no existe en `unidad_medida`, asi que ninguna oferta puede usarla. El superadministrador, que
+administra el catalogo por la Camara, la aprueba (crea la unidad, con nombre en ingles opcional en `traduccion`
+y una fila `UNIDAD`/`CREAR` en `catalogo_maestro_auditoria`) o la rechaza con un motivo que ve el productor.
+
+### solicitud_unidad_medida
+
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| productor_id, solicitada_por | bigint | no | La comunidad que la pide y la persona que la envio |
+| nombre | varchar(60) | no | Como la pidio. Un productor no repite una pendiente con el mismo nombre (indice unico parcial, sin mayusculas ni tildes) |
+| justificacion | varchar(500) | no | Para que la necesita |
+| estado | varchar(10) | no | `PENDIENTE`, `APROBADA` o `RECHAZADA` |
+| motivo, decidida_por, decidida_en | | si | La decision de la Camara; obligatorios al decidir (CHECK) |
+| unidad_medida_id | smallint | si | La unidad creada al aprobarla |
+
+Un trigger impide borrar una solicitud y cambiar una ya decidida. No se pide una unidad que ya existe en el
+catalogo (`409 UNIDAD_YA_EXISTE`). Al aprobar, el codigo sale del nombre (`Atado de 10` → `ATADO_DE_10`) salvo
+que la Camara indique otro.

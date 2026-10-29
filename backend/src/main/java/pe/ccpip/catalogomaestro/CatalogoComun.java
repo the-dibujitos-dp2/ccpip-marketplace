@@ -28,7 +28,7 @@ import pe.ccpip.comun.ErrorNegocio;
 class CatalogoComun {
 
     /** Que se audita. Coincide con el CHECK de catalogo_maestro_auditoria.entidad. */
-    enum Entidad { LINEA, PRODUCTO }
+    enum Entidad { LINEA, PRODUCTO, UNIDAD }
 
     enum Accion { CREAR, EDITAR, DESACTIVAR, REACTIVAR }
 

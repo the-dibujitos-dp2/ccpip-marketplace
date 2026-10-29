@@ -2246,7 +2246,10 @@
     "OBSERVACIONES_REQUERIDAS": "Explain in the observations what was found in the evidence.",
     "EVIDENCIA_FISICA_YA_RECIBIDA": "The receipt of this physical evidence was already recorded.",
     "EVIDENCIA_FISICA_NO_ENCONTRADA": "This physical evidence does not exist in this request.",
-    "FAVORITO_NO_ENCONTRADO": "It's no longer in your favorites."
+    "FAVORITO_NO_ENCONTRADO": "It's no longer in your favorites.",
+    "UNIDAD_YA_EXISTE": "That unit is already in the catalog: choose it when publishing.",
+    "SOLICITUD_UNIDAD_PENDIENTE": "You already requested that unit and the Chamber hasn't reviewed it yet.",
+    "CODIGO_INVALIDO": "The code uses only letters without accents, numbers and underscore."
   },
   "buscar": {
     "comunidad": "Community",
@@ -3843,7 +3846,8 @@
     "pestanas": "Master catalog sections",
     "vista": {
       "lineas": "Lines",
-      "productos": "Products"
+      "productos": "Products",
+      "unidades": "Requested units"
     },
     "estado": {
       "TODOS": "All",
@@ -4457,5 +4461,68 @@
       "productores": "Producers",
       "comunidades": "Communities"
     }
+  },
+  "unidadSolicitada": {
+    "abrir": "Can't find your unit? Ask the Chamber",
+    "titulo": "Request a unit of measure",
+    "texto": "The Chamber reviews every request. You can't use it until it is approved: meanwhile choose the closest one in the catalog.",
+    "nombre": "Unit name",
+    "nombrePlaceholder": "For example: Bundle",
+    "justificacion": "What do you need it for?",
+    "justificacionAyuda": "Explain how you sell the product and why no unit in the catalog works for you.",
+    "enviar": "Send to the Chamber",
+    "error": "We couldn't send your request",
+    "errorNombre": "Write the unit name",
+    "errorJustificacion": "Tell the Chamber what you need it for",
+    "enviada": "You requested the unit “{{nombre}}”.",
+    "enviadaTexto": "We'll show the Chamber's decision here.",
+    "tuyas": "Your unit requests",
+    "yaPuedes": "you can choose it now",
+    "motivo": "reason: {{motivo}}",
+    "estado": {
+      "PENDIENTE": "Under review",
+      "APROBADA": "Approved",
+      "RECHAZADA": "Rejected"
+    }
+  },
+  "unidadesSolicitadas": {
+    "titulo": "Units requested by producers",
+    "texto": "If you approve, the unit joins the closed catalog and every producer can choose it. If you reject, the producer sees your reason.",
+    "filtro": "Show",
+    "estado": {
+      "PENDIENTE": "Pending",
+      "APROBADA": "Approved",
+      "RECHAZADA": "Rejected"
+    },
+    "vacio": {
+      "PENDIENTE": "No pending requests",
+      "APROBADA": "You haven't approved any unit yet",
+      "RECHAZADA": "You haven't rejected any unit yet"
+    },
+    "errorCargar": "We couldn't load the requests",
+    "de": "From {{productor}} · {{fecha}}",
+    "entro": "Added to the catalog as “{{nombre}}” ({{codigo}})",
+    "motivo": "Reason: {{motivo}}",
+    "decidida": "{{nombre}} · {{fecha}}",
+    "aprobar": "Approve",
+    "rechazar": "Reject",
+    "aprobarDe": "Approve {{nombre}}",
+    "rechazarDe": "Reject {{nombre}}",
+    "dialogo": {
+      "aprobar": "Approve “{{nombre}}”",
+      "rechazar": "Reject “{{nombre}}”"
+    },
+    "textoAprobar": "You can adjust how it enters the catalog. The code comes from the name if you leave it empty.",
+    "textoRechazar": "The producer will see this reason. If a similar unit exists, mention it.",
+    "nombre": "Name in the catalog",
+    "nombreEn": "English name (optional)",
+    "nombreEnAyuda": "Without it, it is shown in Spanish.",
+    "codigo": "Code (optional)",
+    "codigoAyuda": "Letters without accents, numbers and underscore. E.g.: BUNDLE",
+    "motivoCampo": "Reason",
+    "errorMotivo": "State the reason for the decision",
+    "errorDecidir": "We couldn't save the decision",
+    "aprobada": "“{{nombre}}” ({{codigo}}) is now in the catalog.",
+    "rechazada": "You rejected “{{nombre}}”. The producer will see the reason."
   }
 }

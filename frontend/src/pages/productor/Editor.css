@@ -137,3 +137,8 @@
 @media (max-width: 520px) {
   .editor__fila, .editor__comparacion { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* CCPIP-119: pedir una unidad nueva, junto al selector de unidad */
+.solicitar-unidad { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: -8px; }
+.solicitar-unidad__lista { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.solicitar-unidad__form { display: flex; flex-direction: column; gap: 16px; }

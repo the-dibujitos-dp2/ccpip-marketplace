@@ -2246,7 +2246,10 @@
     "OBSERVACIONES_REQUERIDAS": "Explica en las observaciones qué se encontró en la evidencia.",
     "EVIDENCIA_FISICA_YA_RECIBIDA": "La recepción de esta evidencia física ya se registró.",
     "EVIDENCIA_FISICA_NO_ENCONTRADA": "La evidencia física no existe en esta solicitud.",
-    "FAVORITO_NO_ENCONTRADO": "Ya no está entre tus favoritos."
+    "FAVORITO_NO_ENCONTRADO": "Ya no está entre tus favoritos.",
+    "UNIDAD_YA_EXISTE": "Esa unidad ya está en el catálogo: elígela al publicar.",
+    "SOLICITUD_UNIDAD_PENDIENTE": "Ya pediste esa unidad y la Cámara aún no la revisa.",
+    "CODIGO_INVALIDO": "El código usa solo letras sin tilde, números y guion bajo."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -3843,7 +3846,8 @@
     "pestanas": "Secciones del catálogo maestro",
     "vista": {
       "lineas": "Líneas",
-      "productos": "Productos"
+      "productos": "Productos",
+      "unidades": "Unidades solicitadas"
     },
     "estado": {
       "TODOS": "Todos",
@@ -4457,5 +4461,68 @@
       "productores": "Productores",
       "comunidades": "Comunidades"
     }
+  },
+  "unidadSolicitada": {
+    "abrir": "¿No encuentras tu unidad? Pídela a la Cámara",
+    "titulo": "Pedir una unidad de medida",
+    "texto": "La Cámara revisa cada pedido. Hasta que la apruebe no podrás usarla: mientras tanto elige la más cercana del catálogo.",
+    "nombre": "Nombre de la unidad",
+    "nombrePlaceholder": "Por ejemplo: Atado",
+    "justificacion": "¿Para qué la necesitas?",
+    "justificacionAyuda": "Cuenta cómo vendes el producto y por qué ninguna unidad del catálogo te sirve.",
+    "enviar": "Enviar a la Cámara",
+    "error": "No pudimos enviar tu pedido",
+    "errorNombre": "Escribe el nombre de la unidad",
+    "errorJustificacion": "Cuéntale a la Cámara para qué la necesitas",
+    "enviada": "Pediste la unidad «{{nombre}}».",
+    "enviadaTexto": "Te mostraremos aquí lo que decida la Cámara.",
+    "tuyas": "Tus pedidos de unidad",
+    "yaPuedes": "ya puedes elegirla",
+    "motivo": "motivo: {{motivo}}",
+    "estado": {
+      "PENDIENTE": "En revisión",
+      "APROBADA": "Aprobada",
+      "RECHAZADA": "Rechazada"
+    }
+  },
+  "unidadesSolicitadas": {
+    "titulo": "Unidades que piden los productores",
+    "texto": "Si apruebas, la unidad entra al catálogo cerrado y todos los productores pueden elegirla. Si rechazas, el productor ve tu motivo.",
+    "filtro": "Mostrar",
+    "estado": {
+      "PENDIENTE": "Pendientes",
+      "APROBADA": "Aprobadas",
+      "RECHAZADA": "Rechazadas"
+    },
+    "vacio": {
+      "PENDIENTE": "No hay pedidos pendientes",
+      "APROBADA": "Aún no apruebas ninguna unidad",
+      "RECHAZADA": "Aún no rechazas ninguna unidad"
+    },
+    "errorCargar": "No pudimos cargar los pedidos",
+    "de": "De {{productor}} · {{fecha}}",
+    "entro": "Entró al catálogo como «{{nombre}}» ({{codigo}})",
+    "motivo": "Motivo: {{motivo}}",
+    "decidida": "{{nombre}} · {{fecha}}",
+    "aprobar": "Aprobar",
+    "rechazar": "Rechazar",
+    "aprobarDe": "Aprobar {{nombre}}",
+    "rechazarDe": "Rechazar {{nombre}}",
+    "dialogo": {
+      "aprobar": "Aprobar «{{nombre}}»",
+      "rechazar": "Rechazar «{{nombre}}»"
+    },
+    "textoAprobar": "Puedes ajustar cómo entra al catálogo. El código sale del nombre si lo dejas vacío.",
+    "textoRechazar": "El productor verá este motivo. Si existe una unidad parecida, indícala.",
+    "nombre": "Nombre en el catálogo",
+    "nombreEn": "Nombre en inglés (opcional)",
+    "nombreEnAyuda": "Sin él, se muestra en español.",
+    "codigo": "Código (opcional)",
+    "codigoAyuda": "Letras sin tilde, números y guion bajo. Ej.: ATADO",
+    "motivoCampo": "Motivo",
+    "errorMotivo": "Indica el motivo de la decisión",
+    "errorDecidir": "No pudimos guardar la decisión",
+    "aprobada": "«{{nombre}}» ({{codigo}}) ya está en el catálogo.",
+    "rechazada": "Rechazaste «{{nombre}}». El productor verá el motivo."
   }
 }
