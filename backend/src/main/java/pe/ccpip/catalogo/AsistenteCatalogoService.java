@@ -1,10 +1,12 @@
 package pe.ccpip.catalogo;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,6 +48,13 @@ public class AsistenteCatalogoService {
     static final int MAX_CANDIDATOS = 8;
     /** Tiendas que se muestran como maximo. */
     static final int MAX_TIENDAS = 6;
+    /**
+     * Palabras que estan en casi todas las tiendas ("Comunidad Nativa ...") o que solo dicen que se busca una
+     * tienda: por si solas no eligen ninguna. Sin tildes y en minusculas.
+     */
+    static final Set<String> GENERICAS_TIENDA = Set.of("comunidad", "comunidades", "nativa", "nativas", "nativo",
+            "nativos", "tienda", "tiendas", "productor", "productores", "productora", "productoras", "community",
+            "communities", "native", "store", "stores", "shop", "shops", "producer", "producers");
 
     /** Criterios equivalentes en el buscador, para "ver en la búsqueda". */
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -140,7 +149,12 @@ public class AsistenteCatalogoService {
 
     /** CCPIP-347: tiendas de la pregunta y de los productos citados, con sus nombres en el idioma pedido. */
     private List<TiendaTarjeta> tiendasDe(Interpretacion i, List<Long> productos, Idioma idioma) {
-        return traductor.tarjetas(tiendas.paraAsistente(i.terminos(), i.regiones(), productos, MAX_TIENDAS), idioma);
+        List<String> terminos = i.terminos().stream().filter(t -> !GENERICAS_TIENDA.contains(llana(t))).toList();
+        return traductor.tarjetas(tiendas.paraAsistente(terminos, i.regiones(), productos, MAX_TIENDAS), idioma);
+    }
+
+    private static String llana(String termino) {
+        return Normalizer.normalize(termino.strip().toLowerCase(Locale.ROOT), Normalizer.Form.NFD).replaceAll("\\p{M}", "");
     }
 
     private List<ProductoResumen> traducir(List<ProductoResumen> productos, Idioma idioma) {

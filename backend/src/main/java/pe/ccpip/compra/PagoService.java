@@ -18,6 +18,7 @@ import pe.ccpip.catalogo.CatalogoRepository;
 import pe.ccpip.catalogo.CatalogoRepository.Vendible;
 import pe.ccpip.comision.ComisionService;
 import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.compra.CompraModelos.Factibilidad;
 import pe.ccpip.compra.CompraModelos.ResultadoPago;
 import pe.ccpip.inventario.DescuentoExistenciasService;
 import pe.ccpip.pago.PasarelaPago;
@@ -32,6 +33,8 @@ import pe.ccpip.pago.Tarjeta;
  * <ol>
  *   <li>CCPIP-270: cada producto debe seguir autorizado para su productor. Si se revoco despues de
  *       crear el pedido, no se cobra y el pedido se cancela.</li>
+ *   <li>CCPIP-60: el punto de origen debe seguir teniendo existencias para todo el pedido y, si es a
+ *       domicilio, cubrir el distrito de destino. Si no, tampoco se cobra y el pedido se cancela.</li>
  *   <li>Se registra el intento en PENDIENTE (transaccion corta).</li>
  *   <li>Se cobra en la pasarela, fuera de toda transaccion.</li>
  *   <li>Se aplica el resultado. Si se aprobo, en una sola transaccion: descuento de stock (CCPIP-158),
@@ -85,6 +88,7 @@ public class PagoService {
 
         Tarjeta.Marca marca = tarjeta.validar();
         exigirAutorizados(usuarioId, pedidoId);
+        exigirFactible(usuarioId, pedidoId);
         Intento intento = tx.execute(s -> registrar(usuarioId, pedidoId, clave, marca));
 
         ResultadoCobro cobro;
@@ -131,6 +135,40 @@ public class PagoService {
         if (!pausado) {
             return;
         }
+        cancelarSinCobro(p);
+        throw new ErrorNegocio(HttpStatus.CONFLICT, "VENTA_PAUSADA",
+                "La venta de un producto de tu pedido se pausó. No se hizo ningún cobro; vuelve a tu carrito para revisarlo.");
+    }
+
+    /**
+     * CCPIP-60 (RF-41, RNF-45): la factibilidad de la entrega se resuelve antes de cobrar, nunca con una
+     * aprobacion posterior. Si desde que se creo el pedido el punto se quedo sin existencias para alguna
+     * linea o dejo de cubrir el distrito de destino, no se cobra: el pedido se cancela y el comprador
+     * vuelve a elegir punto o distrito con su carrito intacto. Solo aplica a un pedido aun por pagar.
+     */
+    private void exigirFactible(long usuarioId, long pedidoId) {
+        MapSqlParameterSource p = new MapSqlParameterSource("id", pedidoId).addValue("usuario", usuarioId);
+        boolean porPagar = Boolean.TRUE.equals(jdbc.queryForObject("""
+                SELECT EXISTS (SELECT 1 FROM pedido WHERE id = :id AND usuario_id = :usuario AND estado = 'PENDIENTE_PAGO')""",
+                p, Boolean.class));
+        if (!porPagar) {
+            return;
+        }
+        Factibilidad factibilidad = compra.factibilidadDelPedido(usuarioId, pedidoId);
+        if (factibilidad.factible()) {
+            return;
+        }
+        cancelarSinCobro(p);
+        if (!factibilidad.existencias()) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "PUNTO_SIN_EXISTENCIAS",
+                    "El punto de acopio ya no tiene existencias para todo tu pedido. No se hizo ningún cobro; elige otro punto.");
+        }
+        throw new ErrorNegocio(HttpStatus.CONFLICT, "SIN_COBERTURA",
+                "El punto de acopio ya no entrega a domicilio en ese distrito. No se hizo ningún cobro; elige otro punto o el recojo.");
+    }
+
+    /** Cancela el pedido aun por pagar, sin intentos de cobro: no desconto nada, no hay stock que devolver. */
+    private void cancelarSinCobro(MapSqlParameterSource p) {
         tx.executeWithoutResult(s -> {
             if (jdbc.update("""
                     UPDATE pedido SET estado = 'CANCELADO', actualizado_en = now()
@@ -138,8 +176,6 @@ public class PagoService {
                 jdbc.update("INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (:id, 'CANCELADO', :usuario)", p);
             }
         });
-        throw new ErrorNegocio(HttpStatus.CONFLICT, "VENTA_PAUSADA",
-                "La venta de un producto de tu pedido se pausó. No se hizo ningún cobro; vuelve a tu carrito para revisarlo.");
     }
 
     private Intento registrar(long usuarioId, long pedidoId, UUID clave, Tarjeta.Marca marca) {

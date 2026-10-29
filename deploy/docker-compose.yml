@@ -36,10 +36,14 @@ services:
       CCPIP_CORREO_HOST: ${CORREO_HOST:-}
       CCPIP_CORREO_USUARIO: ${CORREO_USUARIO:-}
       CCPIP_CORREO_CLAVE: ${CORREO_CLAVE:-}
-      # CCPIP-48 y CCPIP-50: redaccion asistida y analisis de evidencias con Gemini. Sin GEMINI_API_KEY
-      # (secreto del repositorio) la IA responde no disponible y todo se hace a mano.
-      CCPIP_IA_PROVEEDOR: gemini
+      # CCPIP-48 y CCPIP-50: IA de texto con Gemini u OpenAI (variable IA_PROVEEDOR del repositorio, por
+      # defecto gemini). Sin la clave del proveedor elegido la IA responde no disponible y todo se hace a mano.
+      CCPIP_IA_PROVEEDOR: ${IA_PROVEEDOR:-gemini}
       CCPIP_GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      CCPIP_OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # Modelo de cada proveedor (variables GEMINI_MODELO y OPENAI_MODELO); vacio no se acepta, por eso el defecto
+      CCPIP_GEMINI_MODELO: ${GEMINI_MODELO:-gemini-flash-latest}
+      CCPIP_OPENAI_MODELO: ${OPENAI_MODELO:-gpt-4.1-mini}
       # CCPIP-144 y CCPIP-176: validacion y mejora de fotos con el modelo propio, sin servicios externos
       CCPIP_IA_IMAGENES_PROVEEDOR: propio
     depends_on:

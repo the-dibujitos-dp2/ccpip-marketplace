@@ -9,8 +9,10 @@ import Boton from '../../components/Boton.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LayoutDistribuidor from '../../components/layout/LayoutDistribuidor.jsx'
+import Paginacion from '../../components/Paginacion.jsx'
 import { fechaHora } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import '../../components/Chips.css'
 import './PedidosDisponiblesPage.css'
 
@@ -59,6 +61,7 @@ export default function PedidosDisponiblesPage({ path }) {
   }, [datos, punto])
 
   const items = datos ? [...datos.items, ...(mas?.items ?? [])] : []
+  const paginacion = usePaginacionLocal(items, punto)
   const siguiente = mas ? mas.siguiente : datos?.siguiente
   const hayPedidos = (datos?.puntos.length ?? 0) > 0
   const todos = datos?.puntos.reduce((suma, p) => suma + p.total, 0) ?? 0
@@ -127,6 +130,7 @@ export default function PedidosDisponiblesPage({ path }) {
             <Boton tamano="M" tipo="secundario" onClick={recargar}>{t('distribuidor.pedidos.actualizar')}</Boton>
           </EstadoVacio>
         )}
+        {datos && <Paginacion pagina={paginacion.pagina} totalPaginas={paginacion.totalPaginas} total={datos.total} onCambiar={paginacion.onCambiar} />}
 
         {datos && hayPedidos && (
           <>
@@ -156,7 +160,7 @@ export default function PedidosDisponiblesPage({ path }) {
                 </tr>
               </thead>
               <tbody>
-                {items.map((p) => (
+                {paginacion.filas.map((p) => (
                   <tr key={p.numero}>
                     <td className="pedidos-disponibles__elegir">
                       <input
@@ -185,6 +189,7 @@ export default function PedidosDisponiblesPage({ path }) {
                 ))}
               </tbody>
             </table>
+
             {elegidos.length > 0 && (
               <div className="pedidos-disponibles__tomar">
                 <p>{t('distribuidor.pedidos.seleccionados', { count: elegidos.length })}</p>

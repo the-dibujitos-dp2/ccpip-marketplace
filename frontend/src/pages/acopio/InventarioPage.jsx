@@ -168,7 +168,7 @@ export default function InventarioPage({ path }) {
                 total: datos.total,
               })}
             </span>
-            <Paginacion pagina={datos.pagina} totalPaginas={datos.totalPaginas} onCambiar={setPagina} />
+            <Paginacion pagina={datos.pagina} totalPaginas={datos.totalPaginas} total={datos.total} onCambiar={setPagina} />
           </div>
         </>
       )}

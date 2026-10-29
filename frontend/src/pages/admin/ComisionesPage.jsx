@@ -127,7 +127,7 @@ function Resultado({ datos, filtrado, onPagina }) {
             ))}
           </div>
         )}
-        <Paginacion pagina={datos.pagina} totalPaginas={datos.totalPaginas} onCambiar={onPagina} />
+        <Paginacion pagina={datos.pagina} totalPaginas={datos.totalPaginas} total={datos.total} onCambiar={onPagina} />
         <p className="caption">{t('admin.comisiones.nota')}</p>
       </section>
     </>

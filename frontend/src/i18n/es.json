@@ -1912,7 +1912,9 @@
     "etiqueta": "Paginación",
     "anterior": "Anterior",
     "siguiente": "Siguiente",
-    "pagina": "Página {{numero}}"
+    "pagina": "Página {{numero}}",
+    "paginaActualTotal": "Página {{pagina}}",
+    "registrosTotal": "{{total}} registros"
   },
   "selectorCantidad": {
     "etiqueta": "Cantidad",
