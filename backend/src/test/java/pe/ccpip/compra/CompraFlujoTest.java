@@ -169,10 +169,14 @@ class CompraFlujoTest extends IntegrationTest {
         long pedido = pedidoPendiente(elegida, 2);
         jdbc.update("UPDATE lote SET cantidad_actual = 0 WHERE producto_id = ?", elegida);
         jdbc.update("UPDATE stock SET cantidad = 0 WHERE producto_id = ?", elegida);
+        // CCPIP-60: se detecta antes de cobrar y no se completa con la oferta de otro productor
         pagar(pedido, UUID.randomUUID(), APROBADA, "123")
-                .andExpect(jsonPath("$.estado").value("ANULADO"))
-                .andExpect(jsonPath("$.pedido.lineas[0].productoId").value(elegida))
-                .andExpect(jsonPath("$.pedido.lineas[0].productorId").value(productorDe(elegida)));
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("PUNTO_SIN_EXISTENCIAS"));
+        mockMvc.perform(get("/api/pedidos/" + pedido).cookie(comprador))
+                .andExpect(jsonPath("$.lineas[0].productoId").value(elegida))
+                .andExpect(jsonPath("$.lineas[0].productorId").value(productorDe(elegida)))
+                .andExpect(jsonPath("$.pagos", hasSize(0)));
         assertThat(stock(alternativa)).isEqualByComparingTo("10");
         assertThat(jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario WHERE pedido_id = ?",
                 Integer.class, pedido)).isZero();
@@ -338,17 +342,20 @@ class CompraFlujoTest extends IntegrationTest {
     }
 
     @Test
-    void si_el_stock_se_agoto_mientras_pagaba_se_anula_el_pago_y_se_cancela() throws Exception {
+    void si_el_stock_se_agoto_antes_de_pagar_no_se_cobra_y_se_cancela() throws Exception {
         long producto = productoEnCusco("Canasta", 5);
         long pedido = pedidoPendiente(producto, 2);
-        // Otro comprador se llevo casi todo entre la confirmacion y el pago
+        // Otro comprador se llevo casi todo entre la confirmacion y el pago. CCPIP-60: se ve antes de cobrar;
+        // la carrera durante el cobro (pago ANULADO y devuelto) esta en FactibilidadAntesDePagarTest
         jdbc.update("UPDATE lote SET cantidad_actual = 1 WHERE producto_id = ?", producto);
         jdbc.update("UPDATE stock SET cantidad = 1 WHERE producto_id = ?", producto);
 
         pagar(pedido, UUID.randomUUID(), APROBADA, "123")
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.estado").value("ANULADO"))
-                .andExpect(jsonPath("$.pedido.estado").value("CANCELADO"));
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("PUNTO_SIN_EXISTENCIAS"));
+        mockMvc.perform(get("/api/pedidos/" + pedido).cookie(comprador))
+                .andExpect(jsonPath("$.estado").value("CANCELADO"))
+                .andExpect(jsonPath("$.pagos", hasSize(0)));
         assertThat(stock(producto)).isEqualByComparingTo("1");
     }
 
