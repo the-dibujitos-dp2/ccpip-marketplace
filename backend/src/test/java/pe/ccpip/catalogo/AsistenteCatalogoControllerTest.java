@@ -72,6 +72,16 @@ class AsistenteCatalogoControllerTest extends IntegrationTest {
     }
 
     @Test
+    void soloTiendasEnIngles() throws Exception {
+        preguntar("Chinchero weavers", "en")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tiendas.length()").value(1))
+                .andExpect(jsonPath("$.texto", Matchers.startsWith("I didn't find matching products, but these catalog stores")));
+        preguntar("television", "en")
+                .andExpect(jsonPath("$.texto", Matchers.startsWith("I couldn't find catalog products or stores")));
+    }
+
+    @Test
     void noMuestraTiendasNoPublicadas() throws Exception {
         jdbc.update("UPDATE productor SET tienda_publicada = false WHERE comunidad = 'Comunidad de Tejedoras de Chinchero'");
         preguntar("¿Quiénes son las tejedoras de Chinchero?", null)
