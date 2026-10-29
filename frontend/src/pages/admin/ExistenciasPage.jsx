@@ -1,4 +1,6 @@
 import { useCallback } from 'react'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
+import Paginacion from '../../components/Paginacion.jsx'
 import { useTranslation } from 'react-i18next'
 import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoCaja from '../../assets/icons/caja.svg'
@@ -36,6 +38,8 @@ export default function ExistenciasPage({ path }) {
 function Resultado({ datos }) {
   const { t } = useTranslation()
   const { totales, puntos, lineas } = datos
+  const paginaPuntos = usePaginacionLocal(puntos)
+  const paginaLineas = usePaginacionLocal(lineas)
   return (
     <>
       <p className="body-s">{t('admin.existencias.corte', { fecha: fechaLarga(datos.fecha) })}</p>
@@ -59,7 +63,7 @@ function Resultado({ datos }) {
             <span className="tabla__celda existencias__cantidades" role="columnheader">{t('admin.existencias.col.vigente')}</span>
             <span className="tabla__celda existencias__cantidades" role="columnheader">{t('admin.existencias.col.vencido')}</span>
           </div>
-          {puntos.map((p) => (
+          {paginaPuntos.filas.map((p) => (
             <div key={p.id} className="tabla__fila" role="row">
               <span className="tabla__celda tabla__celda--flex" role="cell">
                 <span className="label-m">{p.nombre}</span>
@@ -73,6 +77,7 @@ function Resultado({ datos }) {
             </div>
           ))}
         </div>
+        <Paginacion {...paginaPuntos} />
       </section>
 
       <section className="productor__seccion" aria-labelledby="existencias-lineas">
@@ -88,7 +93,7 @@ function Resultado({ datos }) {
               <span className="tabla__celda existencias__cantidades" role="columnheader">{t('admin.existencias.col.vigente')}</span>
               <span className="tabla__celda existencias__cantidades" role="columnheader">{t('admin.existencias.col.vencido')}</span>
             </div>
-            {lineas.map((l) => (
+            {paginaLineas.filas.map((l) => (
               <div key={l.codigo ?? 'sin-linea'} className="tabla__fila" role="row">
                 <span className="tabla__celda tabla__celda--flex label-m" role="cell">{l.nombre ?? t('admin.existencias.sinLinea')}</span>
                 <span className="tabla__celda existencias__conteo" role="cell">{l.productos}</span>
@@ -99,6 +104,7 @@ function Resultado({ datos }) {
             ))}
           </div>
         )}
+        <Paginacion {...paginaLineas} />
         <p className="caption">{t('admin.existencias.nota')}</p>
       </section>
     </>

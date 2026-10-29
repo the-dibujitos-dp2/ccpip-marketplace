@@ -15,6 +15,8 @@ import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { erroresPorCampo, mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
 import './admin.css'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
+import Paginacion from '../../components/Paginacion.jsx'
 
 /**
  * Catalogo de causas de merma del superadministrador: consultar (CCPIP-77), crear (CCPIP-298),
@@ -32,6 +34,7 @@ export default function MotivosMermaPage({ path }) {
   const [ocupado, setOcupado] = useState(null)
 
   const activos = datos?.filter((m) => m.activo).length ?? 0
+  const paginas = usePaginacionLocal(datos ?? [])
 
   function reemplazar(motivo) {
     setDatos((lista) => {
@@ -89,7 +92,7 @@ export default function MotivosMermaPage({ path }) {
             <span className="tabla__celda motivos__col-estado" role="columnheader">{t('admin.motivosMerma.col.estado')}</span>
             <span className="tabla__celda tabla__celda--accion motivos__col-acciones" role="columnheader">{t('admin.motivosMerma.col.acciones')}</span>
           </div>
-          {datos.map((m) => (
+          {paginas.filas.map((m) => (
             <div key={m.id} className="tabla__fila" role="row">
               <span className="tabla__celda tabla__celda--flex" role="cell">
                 <span className="label-m">{m.nombre}</span>
@@ -119,6 +122,7 @@ export default function MotivosMermaPage({ path }) {
           ))}
         </div>
       )}
+      {datos && <Paginacion {...paginas} />}
 
       {editando && <DialogoMotivo motivo={editando} onGuardado={alGuardar} onCancelar={() => setEditando(null)} />}
 

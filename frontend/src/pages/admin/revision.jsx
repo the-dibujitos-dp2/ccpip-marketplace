@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
+import Paginacion from '../../components/Paginacion.jsx'
 import { useTranslation } from 'react-i18next'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -73,16 +75,20 @@ export function SinExpediente({ path, migas, textos, error, volverA }) {
  */
 export function TablaBandeja({ textos, estado, datos, error, columnas, fila }) {
   const { t } = useTranslation()
+  const paginacion = usePaginacionLocal(datos?.solicitudes ?? [], estado)
   if (error) return <Alerta tono="error" titulo={mensajeError(error, `${textos}.error`)} />
   if (!datos) return <Cargando />
-  if (datos.solicitudes.length === 0) return <EstadoVacio titulo={t(`${textos}.vacio.${estado}`)} />
+  if (datos.solicitudes.length === 0) return <><EstadoVacio titulo={t(`${textos}.vacio.${estado}`)} /><Paginacion {...paginacion} /></>
   return (
+    <>
     <div className="tabla" role="table" aria-label={t(`${textos}.pestana.${estado}`)}>
       <div className="tabla__fila tabla__fila--encabezado" role="row">
         {columnas.map((c) => <span key={c.clase} className={`tabla__celda ${c.clase}`} role="columnheader">{c.texto}</span>)}
       </div>
-      {datos.solicitudes.map(fila)}
+      {paginacion.filas.map(fila)}
     </div>
+    <Paginacion {...paginacion} />
+    </>
   )
 }
 

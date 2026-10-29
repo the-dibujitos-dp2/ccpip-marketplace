@@ -13,8 +13,10 @@ import DialogoMovimiento, { AvisoRegistrado } from '../../components/DialogoMovi
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
+import Paginacion from '../../components/Paginacion.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import { fechaCorta, mesAnio, unidades } from '../../formato.js'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import { MOTIVOS_ALMACEN } from '../../movimientos.js'
 import { RUTAS } from '../../router.js'
 import PaginaProductor from './PaginaProductor.jsx'
@@ -197,6 +199,7 @@ function cosechaYVencimiento(l, t) {
 /** Los lotes con saldo en una ubicacion (CCPIP-162). En su almacen, la accion de CCPIP-283. */
 function PorUbicacion({ ubicacion, lotes, onMovimiento, onMerma }) {
   const { t } = useTranslation()
+  const paginas = usePaginacionLocal(lotes, ubicacion.id)
   const almacen = ubicacion.tipo === 'ALMACEN_PRODUCTOR'
   const titulo = almacen
     ? t('productor.almacen.inventarioAlmacen', { departamento: ubicacion.departamento })
@@ -222,7 +225,7 @@ function PorUbicacion({ ubicacion, lotes, onMovimiento, onMerma }) {
             <span className="tabla__celda almacen__col-estado" role="columnheader">{t('productor.lote.tabla.estado')}</span>
             {almacen && <span className="tabla__celda almacen__col-accion" role="columnheader">{t('productor.tabla.accion')}</span>}
           </div>
-          {lotes.map((l) => (
+          {paginas.filas.map((l) => (
             <div key={l.id} className="tabla__fila" role="row">
               <span className="tabla__celda tabla__celda--flex" role="cell">
                 <span className="label-m almacen__producto">{l.producto}</span>
@@ -246,6 +249,7 @@ function PorUbicacion({ ubicacion, lotes, onMovimiento, onMerma }) {
           ))}
         </div>
       )}
+      <Paginacion {...paginas} />
     </section>
   )
 }
@@ -255,6 +259,7 @@ function PorProducto({ productos }) {
   const { t } = useTranslation()
   // CCPIP-427: el producto cuyo reparto por almacen esta desplegado
   const [abierto, setAbierto] = useState(null)
+  const paginas = usePaginacionLocal(productos)
   const titulo = t('productor.almacen.inventarioProductos')
   return (
     <section className="productor__seccion" aria-labelledby="titulo-inventario">
@@ -272,7 +277,7 @@ function PorProducto({ productos }) {
             <span className="tabla__celda almacen__col-cantidad" role="columnheader">{t('productor.almacen.col.disponible')}</span>
             <span className="tabla__celda almacen__col-detalle" role="columnheader"><span className="visually-hidden">{t('productor.almacen.col.detalle')}</span></span>
           </div>
-          {productos.map((p) => (
+          {paginas.filas.map((p) => (
             <Fragment key={p.id}>
             <div className="tabla__fila" role="row">
               <span className="tabla__celda tabla__celda--flex tabla__producto" role="cell">
@@ -312,6 +317,7 @@ function PorProducto({ productos }) {
           ))}
         </div>
       )}
+      <Paginacion {...paginas} />
     </section>
   )
 }

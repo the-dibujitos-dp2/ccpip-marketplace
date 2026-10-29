@@ -136,7 +136,7 @@ export default function CuentasPage({ path }) {
               </div>
             ))}
           </div>
-          <Paginacion pagina={datos.pagina} totalPaginas={datos.totalPaginas} onCambiar={setPagina} />
+          <Paginacion pagina={datos.pagina} totalPaginas={datos.totalPaginas} total={datos.total} onCambiar={setPagina} />
         </>
       )}
       <p className="productor__nota">{t('cuentas.nota')}</p>
