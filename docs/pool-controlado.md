@@ -2,14 +2,14 @@
 
 ## Estado, propósito y fuentes de verdad
 
-Esta es la política vigente para ejecutar historias de Jira sin que agentes concurrentes mezclen cambios, inventen requisitos, modifiquen datos, desplieguen o eludan revisión. **Jira define el alcance y los criterios de aceptación completos y más recientes.** El repositorio, las pruebas y GitHub aportan evidencia de implementación e integración. Figma es una referencia visual que puede estar desactualizada: sirve para inspección de experiencia y consistencia, pero nunca amplía, contradice ni sustituye a Jira. Una regla de producto no presente en Jira solo puede proponerse mediante una decisión humana identificada y enlazada a la historia; un documento redactado por agentes, o sin aprobación humana verificable, no es autoridad.
+Esta es la política vigente para ejecutar historias de Jira sin que agentes concurrentes mezclen cambios, inventen requisitos, modifiquen datos, realicen despliegues no autorizados o eludan revisión. **Jira define el alcance y los criterios de aceptación completos y más recientes.** El repositorio, las pruebas y GitHub aportan evidencia de implementación e integración. Figma es una referencia visual que puede estar desactualizada: sirve para inspección de experiencia y consistencia, pero nunca amplía, contradice ni sustituye a Jira. Una regla de producto no presente en Jira solo puede proponerse mediante una decisión humana identificada y enlazada a la historia; un documento redactado por agentes, o sin aprobación humana verificable, no es autoridad.
 
 El pool admite **hasta cinco carriles de implementación independientes y activos**. No es una cola de un único worktree ni de una única historia. La concurrencia solo es válida cuando cada carril tiene una historia distinta, un alcance verificable y ningún solapamiento material de archivos, contratos o migraciones.
 
 - **Orquestador:** `gpt-6.1-sol`.
 - **Ejecutor, QA/E2E y revisor independiente:** `gpt-6-luna`.
 - **Delegación y observabilidad:** toda tarea de cada carril se inicia mediante `delegate_task` desde la sesión del orquestador; así permanece visible en **Subagent Viewer**. No se sustituyen los carriles por subprocesos autónomos invisibles.
-- **Límites no negociables:** ningún agente hace push directo a `main`, despliega, ejecuta Terraform `apply`, borra datos, cambia Jira automáticamente ni introduce reglas de producto que no estén en Jira o en una decisión humana aprobada y enlazada a Jira.
+- **Límites no negociables:** ningún agente hace push directo a `main`, realiza despliegues no autorizados, ejecuta Terraform `apply`, borra datos ni cambia automáticamente el estado de Jira, salvo la asignación fallback autorizada descrita en «Automatización recurrente autorizada»; tampoco introduce reglas de producto que no estén en Jira o en una decisión humana aprobada y enlazada a Jira.
 
 ## Roles y responsabilidades
 
@@ -73,7 +73,7 @@ El archivo Figma proporcionado para DP2 es una **referencia visual no autoritati
 - Cada historia tiene rama y worktree propios, creados desde un `origin/main` actualizado y con la convención del repositorio.
 - Cada tarea de implementación, QA, revisión o diagnóstico de carril se crea con `delegate_task` desde el orquestador.
 - Los cambios se limitan al alcance de la ficha y se registran inmediatamente en el ledger si amplían la superficie de archivos o contratos.
-- Los commits llevan la clave Jira y son revisables; no se hace push directo a `main`, despliegue, cambio automático de Jira ni operación destructiva. La integración queda exclusivamente en Gate 4.
+- Los commits llevan la clave Jira y son revisables; no se hace push directo a `main`, despliegue no autorizado ni cambio automático del estado de Jira, salvo la asignación fallback autorizada descrita en «Automatización recurrente autorizada», ni operación destructiva. La integración queda exclusivamente en Gate 4.
 
 ### Gate 3 — Calidad y revisión independiente
 
@@ -100,11 +100,21 @@ La integración exige, en este orden:
 4. para PRs hermanas o apiladas, rebase o integración en orden de dependencia y CI contra la base integrada;
 5. lectura final de estado de merge, revisiones y check rollup.
 
-Solo cuando CI requerida esté verde, no haya conflicto ni hallazgo bloqueante de revisión, y el ledger registre la evidencia de los cinco puntos anteriores, el orquestador ejecuta `Squash and merge` conforme a los permisos y la política del repositorio. Esa evidencia es el límite de auditoría del orquestador; ningún otro agente hace merge. El merge no autoriza despliegue ni cambio automático de estado en Jira. Si algún gate falla, la PR vuelve al carril de corrección y el ledger registra el motivo.
+Solo cuando CI requerida esté verde, no haya conflicto ni hallazgo bloqueante de revisión, y el ledger registre la evidencia de los cinco puntos anteriores, el orquestador ejecuta `Squash and merge` conforme a los permisos y la política del repositorio. Esa evidencia es el límite de auditoría del orquestador; ningún otro agente hace merge. El merge no autoriza por sí solo el despliegue ni el cambio automático de estado en Jira. El despliegue por `push` a `main` queda autorizado únicamente bajo la autorización recurrente explícita descrita en «Automatización recurrente autorizada» y solo tras superar todos los gates de integración y producción. Si algún gate falla, la PR vuelve al carril de corrección y el ledger registra el motivo.
 
-### Integración sin despliegue automático
+### Automatización recurrente autorizada
 
-Antes de cada merge se inspeccionan los triggers reales de `.github/workflows`. La autorización de integración no autoriza los efectos de un workflow de despliegue disparado por `push` a `main`.
+Existe autorización recurrente explícita de Alonso, concedida en sesión desktop, para revisión, merge y seguimiento del despliegue por `push` cada hora, y para avanzar una historia de usuario (HU) cada dos horas. La autorización no elimina gates ni amplía el alcance de cada HU; no autoriza Terraform `apply`, push directo a `main`, cambios automáticos de estado Jira salvo la asignación fallback autorizada al seleccionar una HU pendiente, ni operaciones destructivas. La autorización de despliegue se limita al flujo verificado de merge y sus controles de producción; no se lanza manualmente un segundo despliegue ni se cancela preventivamente el despliegue autorizado.
+
+- Antes de cada ciclo, usar claims atómicos y ledger persistente con owner/run/session/PID comprobables, head/base, fase, archivos reservados y timestamp. Actualizar checkpoint tras cada fase. Los jobs pueden coexistir, pero no pueden reservar superficies de cambio solapadas: solo hay un escritor de integración. Verificar claims existentes; no robar uno vivo ni borrar trabajo ajeno. Reanudar un claim huérfano desde su checkpoint tras inspeccionar worktree, PR y artefactos. Liberar solo claims propios con evidencia en `runs/`.
+- El job horario revisa PRs, ejecuta revisión independiente, integra únicamente al superar los gates obligatorios y sigue el despliegue autorizado hasta verificar merge, `mergedAt`/commit, evento `push` con `headSha` exacto, CI, análisis de ambas imágenes, EC2, smoke y DAST. Inspeccionar advertencias y rollback; merge o inicio de run no equivalen a producción verificada.
+- El job cada dos horas trabaja en una sola HU por ejecución: reanuda primero la propia incompleta; si no hay una, prioriza HU pendiente asignada a Alonso y, en su defecto, puede seleccionar una HU pendiente del backlog no iniciada y sin PR abierta, reasignándola a Alonso y leyendo de vuelta el assignee. Comprobar Jira vivo, dependencias, actividad, ramas, worktrees, claims y duplicados. Publica una PR tras sus pruebas, QA y revisión independiente; **no fusiona**. No modifica estados Jira. Si no hay HU elegible o está bloqueada, no inventa alcance ni trabajo para llenar la cuota.
+- Todas las tareas de implementación, QA/E2E y revisión se ejecutan como lanes separados con `delegate_task`; orquestador `gpt-6.1-sol`, delegates `gpt-6-luna`. Registrar y evitar riesgos de solapamiento antes de delegar.
+- Estos jobs requieren el host despierto, gateway activo y accesos/herramientas disponibles. Una ejecución no realizada o incompleta no se reporta como éxito; conservar el checkpoint y comunicar fallos reales.
+
+### Prevención de despliegue cuando no está autorizado
+
+Antes de cada merge se inspeccionan los triggers reales de `.github/workflows`. Si no existe autorización explícita vigente para el despliegue, la autorización de integración no autoriza los efectos de un workflow disparado por `push` a `main`.
 
 - Si el merge activa `Deploy`, el orquestador debe tener preparado un control acotado a su SHA de merge: identificar y cancelar esa ejecución antes de que empiecen los jobs de imágenes/publicación o EC2. Leer de vuelta su conclusión y los pasos de esos jobs; una solicitud de cancelación por sí sola no prueba que se detuvieron a tiempo.
 - Ejecutar después únicamente `ci.yml` mediante `workflow_dispatch` sobre `main`, comprobar que `headSha` coincide con la SHA recién integrada y verificar todos los checks y el análisis Sonar de esa revisión. La cancelación preventiva de `Deploy` no se presenta como CI aprobada ni sustituye ese CI independiente.
