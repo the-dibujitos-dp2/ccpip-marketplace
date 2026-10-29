@@ -13,6 +13,7 @@ import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
+import Giro from '../../components/Giro.jsx'
 import Icono from '../../components/Icono.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
@@ -54,6 +55,8 @@ export default function ProductosPage({ path, search }) {
   const [menu, setMenu] = useState(null)
   const [confirmar, setConfirmar] = useState(null)
   const [ocupado, setOcupado] = useState(false)
+  // CCPIP-413: publicar sale del menu sin confirmacion; el aro queda en el boton de la fila mientras espera
+  const [publicando, setPublicando] = useState(null)
   const [aviso, setAviso] = useState(inicial.get('enviado') ? { tono: 'exito', titulo: t('productor.productos.enviado'), descripcion: t('productor.productos.enviadoTexto') } : null)
   const menuRef = useRef(null)
 
@@ -82,7 +85,9 @@ export default function ProductosPage({ path, search }) {
   }, [menu])
 
   async function cambiarEstado(fila, accion) {
+    if (ocupado) return
     setOcupado(true)
+    if (accion === 'publicar') setPublicando(fila.id)
     try {
       if (accion === 'retirar') await retirarProducto(fila.id)
       else await publicarProducto(fila.id)
@@ -96,6 +101,7 @@ export default function ProductosPage({ path, search }) {
       setAviso({ tono: 'error', titulo: mensajeError(e, 'productor.productos.errorEstado'), descripcion: e.body?.detalles?.map(traducirFaltante).join(' · ') })
     } finally {
       setOcupado(false)
+      setPublicando(null)
       setConfirmar(null)
     }
   }
@@ -170,8 +176,9 @@ export default function ProductosPage({ path, search }) {
                     <Icono src={iconoEditar} tamano={18} />
                   </Enlace>
                   <span className="productos__menu">
-                    <button type="button" className="productos__icono-boton" aria-label={t('productor.productos.masAcciones', { nombre: f.nombre })} aria-haspopup="menu" aria-expanded={menu === f.id} onClick={() => setMenu(menu === f.id ? null : f.id)}>
-                      <Icono src={iconoMasVertical} tamano={18} />
+                    <button type="button" className="productos__icono-boton" aria-label={t('productor.productos.masAcciones', { nombre: f.nombre })} aria-haspopup="menu" aria-expanded={menu === f.id}
+                      disabled={publicando === f.id} aria-busy={publicando === f.id || undefined} onClick={() => setMenu(menu === f.id ? null : f.id)}>
+                      {publicando === f.id ? <Giro tamano={18} /> : <Icono src={iconoMasVertical} tamano={18} />}
                     </button>
                     {menu === f.id && (
                       <span className="productos__menu-lista" role="menu">

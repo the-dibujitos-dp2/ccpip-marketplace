@@ -35,6 +35,7 @@ export default function TransferenciasPage({ path, search = '' }) {
   const consultar = useCallback(() => listarTransferencias(vista), [vista])
   const { datos, setDatos, error, recargar } = useConsulta(consultar)
   const [abierta, setAbierta] = useState(null) // detalle con historial
+  const [cargandoDetalle, setCargandoDetalle] = useState(null) // CCPIP-413: la que espera su detalle
   const [confirmando, setConfirmando] = useState(null) // { transferencia, accion }
   const [ocupado, setOcupado] = useState(false)
   const [aviso, setAviso] = useState(creada ? { tono: 'exito', titulo: t('productor.transferencias.creada', { codigo: creada }) } : null)
@@ -44,10 +45,13 @@ export default function TransferenciasPage({ path, search = '' }) {
       setAbierta(null)
       return
     }
+    setCargandoDetalle(tr.id)
     try {
       setAbierta(await obtenerTransferencia(tr.id))
     } catch (e) {
       setAviso({ tono: 'error', titulo: t('productor.transferencias.errorDetalle'), descripcion: mensajeError(e, 'comun.errorConexion') })
+    } finally {
+      setCargandoDetalle(null)
     }
   }
 
@@ -122,7 +126,7 @@ export default function TransferenciasPage({ path, search = '' }) {
                   <span className="transferencias__fecha caption">{fechaHora(tr.actualizadaEn)}</span>
                   <EstadoTransferencia estado={tr.estado} />
                   <span className="transferencias__acciones">
-                    <Boton tipo="terciario" tamano="S" aria-expanded={abierta?.id === tr.id} onClick={() => verDetalle(tr)}>
+                    <Boton tipo="terciario" tamano="S" aria-expanded={abierta?.id === tr.id} cargando={cargandoDetalle === tr.id} onClick={() => verDetalle(tr)}>
                       {t(abierta?.id === tr.id ? 'transferencias.ocultarDetalle' : 'transferencias.verDetalle')}
                     </Boton>
                     {accion && (

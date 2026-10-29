@@ -55,6 +55,8 @@
 /* Ancho fijo de columna y alineado a la derecha: un mensaje de error no desplaza el selector */
 .carrito__cantidad-editable { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; text-align: right; }
 .carrito__cantidad-editable p { margin: 0; }
+/* CCPIP-413: el aro de carga junto a "Guardando…" */
+.carrito__guardando { display: inline-flex; align-items: center; gap: 6px; }
 .carrito__error { display: flex; align-items: flex-start; gap: 6px; font-size: 14px; line-height: 20px; color: var(--color-status-error-fg); }
 .carrito__subtotal { justify-self: end; text-align: right; font-size: 18px; line-height: 26px; }
 /* CCPIP-156: basurero de la fila */

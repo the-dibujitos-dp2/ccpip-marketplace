@@ -3752,6 +3752,7 @@
     "opcional": "Opcional.",
     "ayudaCorreo": "Aquí le llegará el enlace para elegir su contraseña.",
     "ayudaPuntos": "Solo verá y operará los puntos que marques.",
+    "cargandoPuntos": "Cargando los puntos de acopio…",
     "ayudaMotivo": "Queda en el historial y se le envía a la persona por correo.",
     "avisoAcceso": "Nadie escribe una contraseña por la persona: le enviaremos un enlace de un solo uso para que elija la suya.",
     "validacion": {

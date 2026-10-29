@@ -35,6 +35,7 @@ export default function MeInteresa({ producto }) {
   const [error, setError] = useState(null)
   const [aviso, setAviso] = useState(null)
   const [enviando, setEnviando] = useState(false)
+  const [retirando, setRetirando] = useState(false)
 
   useEffect(() => {
     if (!aplica || !conSesion) return
@@ -82,6 +83,7 @@ export default function MeInteresa({ producto }) {
 
   async function retirar() {
     setAviso(null)
+    setRetirando(true)
     try {
       await retirarInteres(producto.id)
       setInteres(null)
@@ -89,6 +91,8 @@ export default function MeInteresa({ producto }) {
     } catch (e) {
       if (e.status === 404) setInteres(null)
       else if (e.status !== 401) setAviso({ tono: 'error', titulo: t('interes.errorRetirar'), descripcion: mensajeError(e) })
+    } finally {
+      setRetirando(false)
     }
   }
 
@@ -99,10 +103,10 @@ export default function MeInteresa({ producto }) {
           <p className="label-m">{t('interes.registrado', { count: interes.cantidad })}</p>
           <p className="caption">{t('interes.teAvisamos')}</p>
           <div className="me-interesa__acciones">
-            <Boton tipo="secundario" tamano="M" onClick={abrir}>
+            <Boton tipo="secundario" tamano="M" onClick={abrir} disabled={retirando}>
               {t('interes.cambiar')}
             </Boton>
-            <Boton tipo="terciario" tamano="M" onClick={retirar}>
+            <Boton tipo="terciario" tamano="M" onClick={retirar} cargando={retirando}>
               {t('interes.retirar')}
             </Boton>
           </div>

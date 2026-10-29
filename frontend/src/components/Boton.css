@@ -37,6 +37,9 @@
 /* CCPIP-413: mientras espera conserva su color, con un aro que gira en lugar del icono */
 .boton--cargando { cursor: progress; }
 .boton__giro {
+  /* fuera de un contenedor flex (un texto o un enlace) tambien toma su tamano */
+  display: inline-block;
+  vertical-align: middle;
   flex: none;
   box-sizing: border-box;
   border: 2px solid currentColor;

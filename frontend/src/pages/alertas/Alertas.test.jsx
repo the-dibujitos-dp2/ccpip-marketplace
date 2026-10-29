@@ -143,6 +143,35 @@ describe('PW-21 Alertas del productor (CCPIP-79, 145, 293, 337, 366, 367)', () =
     expect(screen.queryByRole('button', { name: 'Marcar todas como leídas' })).not.toBeInTheDocument()
   })
 
+  it('mientras marca todas como leídas, el botón muestra el aro de carga (CCPIP-413)', async () => {
+    let responder
+    const fetchMock = productor({ 'POST /api/productor/alertas/leidas': () => new Promise((r) => { responder = r }) })
+    const user = userEvent.setup()
+    abrirEn('/productor/alertas')
+    const marcar = await screen.findByRole('button', { name: 'Marcar todas como leídas' })
+    await user.click(marcar)
+
+    expect(marcar).toBeDisabled()
+    expect(marcar).toHaveAttribute('aria-busy', 'true')
+    expect(marcar.querySelector('.boton__giro')).not.toBeNull()
+    await user.click(marcar)
+    expect(llamadas(fetchMock, 'POST /api/productor/alertas/leidas')).toHaveLength(1)
+    responder([204])
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Marcar todas como leídas' })).not.toBeInTheDocument())
+  })
+
+  it('si marcar todas falla, el aro se quita y se puede reintentar (CCPIP-413)', async () => {
+    productor({ 'POST /api/productor/alertas/leidas': [503, { error: 'Servicio no disponible' }] })
+    const user = userEvent.setup()
+    abrirEn('/productor/alertas')
+    const marcar = await screen.findByRole('button', { name: 'Marcar todas como leídas' })
+    await user.click(marcar)
+
+    await waitFor(() => expect(marcar).toBeEnabled())
+    expect(marcar).not.toHaveAttribute('aria-busy')
+    expect(marcar.querySelector('.boton__giro')).toBeNull()
+  })
+
   // CCPIP-425: la bandeja abierta se mantiene al dia, sin esperar la revision periodica ni recargar
   it('muestra una alerta nueva sin recargar la página', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })

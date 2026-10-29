@@ -3752,6 +3752,7 @@
     "opcional": "Optional.",
     "ayudaCorreo": "The link to choose a password will be sent here.",
     "ayudaPuntos": "They will only see and operate the points you check.",
+    "cargandoPuntos": "Loading the collection points…",
     "ayudaMotivo": "It is kept in the history and emailed to the person.",
     "avisoAcceso": "Nobody types a password for the person: we will email a single-use link so they choose their own.",
     "validacion": {
