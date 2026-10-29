@@ -7,13 +7,15 @@ import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import Icono from '../../components/Icono.jsx'
 import TarjetaProducto from '../../components/TarjetaProducto.jsx'
+import TarjetaTienda from '../../components/TarjetaTienda.jsx'
 import './AsistenteCatalogo.css'
 
 const MAXIMO = 300
 
 /**
  * CCPIP-51 y CCPIP-175: asistente de catalogo dentro de CW-02. Responde con productos reales que
- * llevan a su ficha. Si la IA falla, la busqueda y los filtros de la pagina siguen funcionando.
+ * llevan a su ficha. CCPIP-347: tambien tiendas reales, que llevan a la tienda de la comunidad. Si la IA
+ * falla, la busqueda y los filtros de la pagina siguen funcionando.
  * `onVerEnBusqueda(busqueda)`: lleva los criterios que uso el asistente al buscador normal.
  */
 export default function AsistenteCatalogo({ onVerEnBusqueda }) {
@@ -77,6 +79,18 @@ export default function AsistenteCatalogo({ onVerEnBusqueda }) {
                 </li>
               ))}
             </ul>
+          )}
+          {respuesta.tiendas?.length > 0 && (
+            <>
+              <h3 className="label-m asistente__subtitulo">{t('asistente.tiendas')}</h3>
+              <ul className="asistente__tiendas" aria-label={t('asistente.tiendasCitadas')}>
+                {respuesta.tiendas.map((tienda) => (
+                  <li key={tienda.id}>
+                    <TarjetaTienda tienda={tienda} />
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
           <p className="caption asistente__aviso">{t('asistente.aviso')}</p>
           {respuesta.busqueda && onVerEnBusqueda && (

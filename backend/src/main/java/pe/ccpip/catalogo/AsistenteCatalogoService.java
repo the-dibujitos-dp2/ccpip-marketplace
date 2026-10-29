@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import pe.ccpip.catalogo.CatalogoModelos.Busqueda;
 import pe.ccpip.catalogo.CatalogoModelos.Facetas;
 import pe.ccpip.catalogo.CatalogoModelos.ProductoResumen;
+import pe.ccpip.catalogo.CatalogoModelos.TiendaTarjeta;
 import pe.ccpip.catalogo.CatalogoRepository.Filtro;
 import pe.ccpip.catalogo.CatalogoRepository.Orden;
 import pe.ccpip.comun.Idioma;
@@ -32,6 +33,9 @@ import pe.ccpip.ia.AsistenteCatalogo.Opcion;
  *   <li>Los productos se devuelven en el orden de relevancia de la busqueda, no en el que elija la
  *       IA, para no favorecer a un productor.</li>
  *   <li>Si la IA falla responde 503 y la pantalla lleva a la busqueda normal, que no depende de ella.</li>
+ *   <li>CCPIP-347 (RF-237): tambien muestra tiendas reales, las de las regiones o los terminos de la pregunta y
+ *       las de los productos que cita. Las busca el catalogo, en orden alfabetico; si solo hay tiendas, el texto
+ *       es fijo, sin preguntar a la IA.</li>
  * </ul>
  */
 @Service
@@ -40,6 +44,8 @@ public class AsistenteCatalogoService {
     /** Productos por termino y en total que se le muestran a la IA. */
     static final int POR_TERMINO = 6;
     static final int MAX_CANDIDATOS = 8;
+    /** Tiendas que se muestran como maximo. */
+    static final int MAX_TIENDAS = 6;
 
     /** Criterios equivalentes en el buscador, para "ver en la búsqueda". */
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -47,22 +53,26 @@ public class AsistenteCatalogoService {
     }
 
     /**
-     * {@code productos}: solo los citados, todos reales y visibles. {@code sinResultados}: no hubo
-     * productos que mostrar. {@code fueraDeAlcance}: la pregunta no era sobre el catalogo.
+     * {@code productos}: solo los citados, todos reales y visibles. {@code tiendas}: tiendas publicadas que
+     * coinciden (CCPIP-347). {@code sinResultados}: no hubo productos ni tiendas que mostrar.
+     * {@code fueraDeAlcance}: la pregunta no era sobre el catalogo.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record Respuesta(String texto, List<ProductoResumen> productos, Consulta busqueda, boolean sinResultados,
-                            boolean fueraDeAlcance, String proveedor) {
+    public record Respuesta(String texto, List<ProductoResumen> productos, List<TiendaTarjeta> tiendas, Consulta busqueda,
+                            boolean sinResultados, boolean fueraDeAlcance, String proveedor) {
     }
 
     private final AsistenteCatalogo asistente;
     private final CatalogoRepository catalogo;
     private final TraductorCatalogo traductor;
+    private final TiendasRepository tiendas;
 
-    public AsistenteCatalogoService(AsistenteCatalogo asistente, CatalogoRepository catalogo, TraductorCatalogo traductor) {
+    public AsistenteCatalogoService(AsistenteCatalogo asistente, CatalogoRepository catalogo, TraductorCatalogo traductor,
+                                    TiendasRepository tiendas) {
         this.asistente = asistente;
         this.catalogo = catalogo;
         this.traductor = traductor;
+        this.tiendas = tiendas;
     }
 
     public Respuesta consultar(String pregunta, Idioma idioma) {
@@ -77,7 +87,7 @@ public class AsistenteCatalogoService {
             return new Respuesta(ingles
                     ? "I can only help you find products in the Mercado CCPIP catalog. Tell me what you are looking for."
                     : "Solo puedo ayudarte a encontrar productos del catálogo de Mercado CCPIP. Cuéntame qué buscas.",
-                    List.of(), null, true, true, asistente.proveedor());
+                    List.of(), List.of(), null, true, true, asistente.proveedor());
         }
 
         List<ProductoResumen> encontrados = buscar(i, i.terminos());
@@ -88,17 +98,26 @@ public class AsistenteCatalogoService {
         Consulta consulta = new Consulta(i.terminos().isEmpty() ? null : i.terminos().get(0), i.lineas(), i.regiones(),
                 i.modalidad(), i.precioMax());
         if (encontrados.isEmpty()) {
+            List<TiendaTarjeta> soloTiendas = tiendasDe(i, List.of(), idioma);
+            if (!soloTiendas.isEmpty()) {
+                // Solo tiendas: el texto no lo redacta la IA, asi no puede decir nada que no este en ellas
+                return new Respuesta(ingles
+                        ? "I didn't find matching products, but these catalog stores match your question."
+                        : "No encontré productos que coincidan, pero estas tiendas del catálogo sí coinciden con tu pregunta.",
+                        List.of(), soloTiendas, consulta, false, false, asistente.proveedor());
+            }
             return new Respuesta(ingles
-                    ? "I couldn't find catalog products that match your question. Try other words or use the filters."
-                    : "No encontré productos del catálogo que coincidan con tu pregunta. Prueba con otras palabras o usa los filtros.",
-                    List.of(), consulta, true, false, asistente.proveedor());
+                    ? "I couldn't find catalog products or stores that match your question. Try other words or use the filters."
+                    : "No encontré productos ni tiendas del catálogo que coincidan con tu pregunta. Prueba con otras palabras o usa los filtros.",
+                    List.of(), List.of(), consulta, true, false, asistente.proveedor());
         }
 
         AsistenteCatalogo.Respuesta r = asistente.responder(pregunta, encontrados.stream().map(this::candidato).toList(), ingles);
         Set<Long> citados = Set.copyOf(r.citados());
         List<ProductoResumen> productos = encontrados.stream().filter(p -> citados.contains(p.id())).toList();
-        return new Respuesta(r.texto(), traducir(productos, idioma), consulta, productos.isEmpty(), false,
-                asistente.proveedor());
+        List<TiendaTarjeta> conTiendas = tiendasDe(i, productos.stream().map(ProductoResumen::id).toList(), idioma);
+        return new Respuesta(r.texto(), traducir(productos, idioma), conTiendas, consulta,
+                productos.isEmpty() && conTiendas.isEmpty(), false, asistente.proveedor());
     }
 
     /** Une los resultados de cada termino (o una sola busqueda sin termino), sin repetir y en orden de relevancia. */
@@ -117,6 +136,11 @@ public class AsistenteCatalogoService {
         return new Candidato(p.id(), p.nombre(), p.linea() == null ? null : p.linea().nombre(),
                 p.tienda() == null ? null : p.tienda().nombre(), p.tienda() == null ? null : p.tienda().region(),
                 p.modalidad(), p.precio() != null ? p.precio() : p.precioMayorista(), presentacion, p.disponible());
+    }
+
+    /** CCPIP-347: tiendas de la pregunta y de los productos citados, con sus nombres en el idioma pedido. */
+    private List<TiendaTarjeta> tiendasDe(Interpretacion i, List<Long> productos, Idioma idioma) {
+        return traductor.tarjetas(tiendas.paraAsistente(i.terminos(), i.regiones(), productos, MAX_TIENDAS), idioma);
     }
 
     private List<ProductoResumen> traducir(List<ProductoResumen> productos, Idioma idioma) {
