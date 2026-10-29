@@ -153,6 +153,7 @@ export default function MisEntregasPage({ path }) {
                       <Boton
                         tamano="M"
                         icono={iconoCheck}
+                        cargando={retirando === e.numero}
                         disabled={retirando !== null || enCaminoActualizando !== null || entregaActualizando !== null}
                         onClick={() => void retirar(e.numero)}
                       >

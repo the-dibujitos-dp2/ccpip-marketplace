@@ -46,6 +46,16 @@ export const solicitarAutorizacion = async (productoId) =>
 export const retirarEvidencia = async (productoId, evidenciaId) =>
   apiFetch(`/api/productor/productos/${idRuta(productoId)}/evidencias/${idRuta(evidenciaId)}`, { method: 'DELETE' })
 
+/** CCPIP-34: catalogo de reglas de la Camara y lo declarado para el producto (vigente e historial). */
+export const consultarCumplimiento = async (productoId) => apiFetch(`/api/productor/productos/${idRuta(productoId)}/cumplimiento`)
+
+/** CCPIP-34: declara las reglas que cumple el producto (puede ser ninguna). Devuelve la vista actualizada. */
+export const declararCumplimiento = async (productoId, { reglas, observaciones }) =>
+  apiFetch(`/api/productor/productos/${idRuta(productoId)}/cumplimiento`, {
+    method: 'POST',
+    body: { reglas, observaciones: observaciones || null },
+  })
+
 // --- Subadministrador (S-01, S-02) ---
 
 /** S-01: contadores y solicitudes. estado: SOLICITADA (pendientes), APROBADA o RECHAZADA. */

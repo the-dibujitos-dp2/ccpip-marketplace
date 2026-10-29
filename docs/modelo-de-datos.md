@@ -1566,3 +1566,27 @@ Mis entregas (DW-03) muestra las en curso y "Entregados hoy", y las anteriores s
 **Que se muestra.** Lo mismo que al asumirla, mas el estado y la fecha del retiro. La direccion exacta y el contacto de
 quien recibe llegan con CCPIP-110, y el comprador no se muestra nunca. Sin paginacion: son solo las entregas en curso
 del distribuidor.
+
+## Declarar el cumplimiento de reglas de origen y sostenibilidad (CCPIP-34)
+
+Migracion `V202610281500`. El productor declara, por cada producto propio, cuales reglas de la Camara cumple
+(`GET` y `POST /api/productor/productos/{productoId}/cumplimiento`). **No hay reglas universales (C11):** ninguna
+se asume, cada producto declara las suyas y puede declarar ninguna. **Declarar no es acreditar:** no da sellos al
+visitante (CCPIP-38) ni cambia la autorizacion; solo un certificado revisado respalda una regla.
+
+### regla_cumplimiento
+| Columna | Tipo | Nula | Descripcion |
+|---|---|---|---|
+| codigo | varchar(40) | no | Unico. Semilla: `CERO_DEFORESTACION`, `CERO_PESTICIDAS`, `ELABORADO_POR_COMUNIDAD` |
+| nombre, nombre_en | varchar(80) | no | En los dos idiomas, como los demas catalogos controlados |
+| descripcion, descripcion_en | varchar(300) | no | Que significa cumplirla |
+| activa | boolean | no | Una inactiva no se declara mas (`422 REGLA_INVALIDA`), pero se conserva en las declaraciones anteriores |
+| orden | smallint | no | Orden en pantalla |
+
+La Camara define las reglas; se cargan como datos (no hay pantalla de mantenimiento en esta historia).
+
+### declaracion_cumplimiento, declaracion_regla
+Cada declaracion es completa: las reglas que el producto cumplia a esa fecha (`declaracion_regla`), con
+`observaciones` opcionales, `declarada_por` y `declarada_en`. La vigente es la mas reciente; una nueva reemplaza
+a la anterior, que queda en el historial. Un trigger impide editarlas o borrarlas. Cada una queda tambien en
+`producto_auditoria` con la accion nueva `CUMPLIMIENTO`.

@@ -12,8 +12,10 @@ import {
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import Chips from '../../components/Chips.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
+import Giro from '../../components/Giro.jsx'
 import Icono from '../../components/Icono.jsx'
 import OpcionTarjeta from '../../components/OpcionTarjeta.jsx'
 import TarjetaProducto from '../../components/TarjetaProducto.jsx'
@@ -94,10 +96,12 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
   const [aRetirar, setARetirar] = useState(null)
   const [retirando, setRetirando] = useState(false)
   const [reemplazando, setReemplazando] = useState(null)
+  const [haciendoPrincipal, setHaciendoPrincipal] = useState(null)
   const [ia, setIa] = useState({ estado: 'inicial' })
   const [mejorando, setMejorando] = useState(null)
   const [comparacion, setComparacion] = useState(null)
-  const [decidiendo, setDecidiendo] = useState(false)
+  // CCPIP-413: 'usar' o 'conservar', para que el aro quede en el boton que se pulso
+  const [decidiendo, setDecidiendo] = useState(null)
 
   useEffect(() => {
     obtenerCatalogos().then(setCatalogos).catch(() => {})
@@ -249,7 +253,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
 
   // Solo una eleccion expresa cambia algo: usar la mejorada la pone en el lugar de la original
   async function decidirMejora(usar) {
-    setDecidiendo(true)
+    setDecidiendo(usar ? 'usar' : 'conservar')
     try {
       if (usar) {
         const nueva = await aceptarMejora(comparacion.imagenId)
@@ -262,7 +266,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
     } catch (err) {
       setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.datos.mejora.errorDecidir') })
     } finally {
-      setDecidiendo(false)
+      setDecidiendo(null)
       setComparacion(null)
       onImagenes(producto.id)
     }
@@ -270,7 +274,11 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
 
   const nombreLinea = (codigo) => (codigo ? (catalogos.lineas.find((l) => l.codigo === codigo)?.nombre ?? codigo) : null)
 
-  const principal = (imagen) => accionFoto(() => marcarPrincipal(imagen.id), 'productor.datos.errorPrincipal')
+  async function principal(imagen) {
+    setHaciendoPrincipal(imagen.id)
+    await accionFoto(() => marcarPrincipal(imagen.id), 'productor.datos.errorPrincipal')
+    setHaciendoPrincipal(null)
+  }
 
   // ---------- Descripcion asistida (CCPIP-48, CCPIP-49, RNF-29) ----------
 
@@ -351,12 +359,15 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
                 {img.principal ? (
                   <span className="editor__principal">{t('productor.datos.principal')}</span>
                 ) : (
-                  <button type="button" className="editor__accion-foto editor__accion-foto--principal" onClick={() => void principal(img)}>
+                  <button type="button" className="editor__accion-foto editor__accion-foto--principal" disabled={haciendoPrincipal !== null}
+                    aria-busy={haciendoPrincipal === img.id || undefined} onClick={() => void principal(img)}>
+                    {haciendoPrincipal === img.id && <Giro tamano={12} />}
                     {t('productor.datos.hacerPrincipal')}
                   </button>
                 )}
-                <label className={`editor__reemplazar${reemplazando === img.id ? ' editor__reemplazar--ocupado' : ''}`} title={t('productor.datos.reemplazarFoto')}>
-                  <Icono src={iconoEditar} tamano={14} />
+                <label className={`editor__reemplazar${reemplazando === img.id ? ' editor__reemplazar--ocupado' : ''}`} title={t('productor.datos.reemplazarFoto')}
+                  aria-busy={reemplazando === img.id || undefined}>
+                  {reemplazando === img.id ? <Giro tamano={14} /> : <Icono src={iconoEditar} tamano={14} />}
                   <span className="visually-hidden">{t('productor.datos.reemplazarFoto')}</span>
                   <input className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" disabled={reemplazando !== null}
                     onChange={(e) => { void reemplazar(img, e.target.files?.[0]); e.target.value = '' }} />
@@ -368,7 +379,10 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
             ))}
             {subidas.map((s) => (
               <li key={s.clave} className={`editor__miniatura editor__miniatura--${s.estado}`}>
-                <span className="caption">{s.estado === 'subiendo' ? t('productor.datos.subiendo') : s.mensaje}</span>
+                <span className="caption">
+                  {s.estado === 'subiendo' && <Giro tamano={16} />}
+                  {s.estado === 'subiendo' ? t('productor.datos.subiendo') : s.mensaje}
+                </span>
                 {s.estado === 'error' && (
                   <button type="button" className="editor__accion-foto" onClick={() => void reintentar(s)}>
                     {t('carrito.reintentar')}
@@ -394,7 +408,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
             onValidar={validar}
             onReemplazar={reemplazar}
             onMejorar={mejorar}
-            reemplazando={reemplazando !== null}
+            reemplazando={reemplazando}
             mejorando={mejorando}
           />
           {imagenes.length < MAX_FOTOS && <ZonaArchivos onArchivos={subir} />}
@@ -412,7 +426,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
           </Dialogo>
           <ComparacionMejora
             comparacion={comparacion}
-            ocupado={decidiendo}
+            decidiendo={decidiendo}
             onUsar={() => void decidirMejora(true)}
             onConservar={() => void decidirMejora(false)}
             onCerrar={() => setComparacion(null)}
@@ -437,7 +451,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
             </button>
           ) : null}
           {ia.estado === 'descartada' && <p className="caption">{t('productor.datos.ia.descartada')}</p>}
-          {ia.estado === 'cargando' && <p className="body-s">{t('productor.datos.ia.preparando')}</p>}
+          {ia.estado === 'cargando' && <Cargando texto={t('productor.datos.ia.preparando')} />}
           {ia.estado === 'no-disponible' && (
             <Alerta tono="aviso" titulo={t('productor.datos.ia.noDisponible')} descripcion={t('productor.datos.ia.noDisponibleTexto')} onCerrar={() => setIa({ estado: 'inicial' })} />
           )}

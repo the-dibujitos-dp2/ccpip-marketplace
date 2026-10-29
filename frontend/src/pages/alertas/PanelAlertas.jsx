@@ -70,6 +70,7 @@ export default function PanelAlertas({ rol, onPuntos }) {
   const { t } = useTranslation()
   const [filtro, setFiltro] = useState('TODAS')
   const [texto, setTexto] = useState('')
+  const [marcandoTodas, setMarcandoTodas] = useState(false)
   const consultar = useCallback(() => listarAlertas(rol), [rol])
   const { datos, setDatos, error, recargar } = useConsulta(consultar, { cadaMs: ACTUALIZAR_CADA_MS })
 
@@ -91,9 +92,11 @@ export default function PanelAlertas({ rol, onPuntos }) {
   }
 
   function todasLeidas() {
+    setMarcandoTodas(true)
     marcarTodasLeidas(rol)
       .then(() => setDatos((d) => ({ ...d, sinLeer: 0, alertas: d.alertas.map((a) => ({ ...a, leida: true })) })))
       .catch(() => {})
+      .finally(() => setMarcandoTodas(false))
   }
 
   return (
@@ -116,7 +119,7 @@ export default function PanelAlertas({ rol, onPuntos }) {
               ))}
             </div>
             {datos?.sinLeer > 0 && (
-              <Boton tipo="terciario" tamano="S" onClick={todasLeidas}>
+              <Boton tipo="terciario" tamano="S" onClick={todasLeidas} cargando={marcandoTodas}>
                 {t('alertas.marcarTodas')}
               </Boton>
             )}

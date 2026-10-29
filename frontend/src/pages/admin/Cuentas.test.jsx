@@ -136,6 +136,28 @@ describe('SA-03 y SA-04 Cuentas: consulta y búsqueda (CCPIP-124, CCPIP-125, CCP
 })
 
 describe('Nueva cuenta administrativa (CCPIP-301, CCPIP-304)', () => {
+  it('mientras trae los puntos de acopio, la lista muestra el indicador de carga (CCPIP-413)', async () => {
+    let responder
+    comoSuper({ [`GET ${CUENTAS}/puntos`]: () => new Promise((r) => { responder = r }) })
+    abrirEn('/admin/cuentas/nueva')
+    await userEvent.selectOptions(await screen.findByLabelText('Rol'), 'ADMIN_PUNTO')
+
+    const cargando = screen.getByText('Cargando los puntos de acopio…').closest('[role="status"]')
+    expect(cargando.querySelector('.cargando__giro')).not.toBeNull()
+    responder([200, copia(DATOS.puntosCuentas)])
+    expect(await screen.findByRole('checkbox', { name: /Centro Regional Cusco/ })).toBeInTheDocument()
+    expect(screen.queryByText('Cargando los puntos de acopio…')).not.toBeInTheDocument()
+  })
+
+  it('si los puntos de acopio no llegan, el indicador de carga se quita (CCPIP-413)', async () => {
+    comoSuper({ [`GET ${CUENTAS}/puntos`]: [503, { error: 'Servicio no disponible' }] })
+    abrirEn('/admin/cuentas/nueva')
+    await userEvent.selectOptions(await screen.findByLabelText('Rol'), 'ADMIN_PUNTO')
+
+    await waitFor(() => expect(screen.queryByText('Cargando los puntos de acopio…')).not.toBeInTheDocument())
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+  })
+
   it('valida antes de enviar y pide puntos para el administrador de punto', async () => {
     const fetchMock = comoSuper()
     abrirEn('/admin/cuentas/nueva')

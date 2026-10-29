@@ -2,6 +2,7 @@
 import { useTranslation } from 'react-i18next'
 import Badge from '../../components/Badge.jsx'
 import Campo from '../../components/Campo.jsx'
+import Cargando from '../../components/Cargando.jsx'
 import { mensajeError } from '../../i18n/errores.js'
 
 const TONO_ESTADO = { ACTIVA: 'exito', SUSPENDIDA: 'aviso', DESACTIVADA: 'neutro' }
@@ -85,6 +86,7 @@ export function FormularioCuenta({ f, set, setPuntos, errores, nueva, puntos }) 
         <fieldset className="cuentas__puntos" aria-describedby={errores.puntos ? 'cuentas-puntos-error' : undefined}>
           <legend className="campo__etiqueta">{t('cuentas.campo.puntos')}</legend>
           <p className="caption">{t('cuentas.ayudaPuntos')}</p>
+          {puntos === null && <Cargando texto={t('cuentas.cargandoPuntos')} />}
           {(puntos ?? []).map((p) => (
             <label key={p.id} className="cuentas__punto">
               <input type="checkbox" checked={f.puntos.includes(p.id)} onChange={marcar(p.id)} />

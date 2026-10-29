@@ -19,6 +19,7 @@ import { fechaCorta } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import AvisoRenovaciones from './AvisoRenovaciones.jsx'
+import CumplimientoProducto from './CumplimientoProducto.jsx'
 import PaginaProductor from './PaginaProductor.jsx'
 import './productor.css'
 import './EvidenciasPage.css'
@@ -185,6 +186,8 @@ export default function EvidenciasPage({ path, productoId }) {
           <p className="caption">{t('evidencias.decisionHumana')}</p>
         </aside>
       </div>
+
+      <CumplimientoProducto productoId={productoId} />
 
       <Dialogo
         abierto={retirar !== null}

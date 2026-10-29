@@ -2056,6 +2056,7 @@
     "verTablero": "See the operations dashboard"
   },
   "errores": {
+    "REGLA_INVALIDA": "Only current rules defined by the Chamber can be declared.",
     "generico": "Something went wrong. Please try again.",
     "AGOTADO": "This product is out of stock for now.",
     "ARCHIVO_MUY_PESADO": "The file is too large: photos can be up to 10 MB and videos up to 50 MB.",
@@ -3751,6 +3752,7 @@
     "opcional": "Optional.",
     "ayudaCorreo": "The link to choose a password will be sent here.",
     "ayudaPuntos": "They will only see and operate the points you check.",
+    "cargandoPuntos": "Loading the collection points…",
     "ayudaMotivo": "It is kept in the history and emailed to the person.",
     "avisoAcceso": "Nobody types a password for the person: we will email a single-use link so they choose their own.",
     "validacion": {
@@ -4395,5 +4397,19 @@
     "vacio": "You recorded no actions in this period.",
     "error": "We could not load your history",
     "inalterable": "Unalterable record. Corrections are recorded as new actions."
+  },
+  "cumplimiento": {
+    "titulo": "Origin and sustainability rules",
+    "texto": "Check only the Chamber rules this product meets. None is assumed: each product declares its own.",
+    "reglas": "Chamber rules",
+    "ultima": "Last declaration: {{fecha}}, by {{nombre}}.",
+    "sinDeclaracion": "You have not declared any rule for this product yet.",
+    "observaciones": "Observations (optional)",
+    "declarar": "Save declaration",
+    "guardada": "You saved the declaration",
+    "error": "We could not save the declaration",
+    "nota": "This is your declaration, with its date. It is not a seal or an approval: only the certificates the Chamber reviews back a rule before buyers.",
+    "historial": "Previous declarations",
+    "ninguna": "No rules"
   }
 }
