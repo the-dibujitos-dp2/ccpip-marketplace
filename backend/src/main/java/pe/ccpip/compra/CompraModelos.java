@@ -3,6 +3,7 @@ package pe.ccpip.compra;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import pe.ccpip.comision.ComisionModelos.ComisionPedido;
@@ -36,6 +37,25 @@ public final class CompraModelos {
      * {@code diasRestantes}: de hoy (Lima) a esa fecha. No estima cuando llega el pedido.
      */
     public record AdvertenciaPerecible(long productoId, String nombre, LocalDate consumirAntesDe, long diasRestantes) {
+    }
+
+    /**
+     * CCPIP-60 (RF-41, RNF-45): si el carrito se puede entregar desde el punto elegido, antes de cobrar.
+     * {@code existencias}: el punto tiene lotes vigentes para todas las lineas. {@code cobertura}: el punto
+     * cubre el distrito de destino; en el recojo siempre es verdadera. {@code motivos}: los codigos de error
+     * que se obtendrian al confirmar o pagar ({@code PUNTO_SIN_EXISTENCIAS}, {@code SIN_COBERTURA}).
+     */
+    public record Factibilidad(boolean factible, boolean existencias, boolean cobertura, List<String> motivos) {
+        static Factibilidad de(boolean existencias, boolean cobertura) {
+            List<String> motivos = new ArrayList<>();
+            if (!existencias) {
+                motivos.add("PUNTO_SIN_EXISTENCIAS");
+            }
+            if (!cobertura) {
+                motivos.add("SIN_COBERTURA");
+            }
+            return new Factibilidad(motivos.isEmpty(), existencias, cobertura, List.copyOf(motivos));
+        }
     }
 
     /** Linea del pedido con el precio copiado al confirmar (RNF-13), nunca el vigente. */
