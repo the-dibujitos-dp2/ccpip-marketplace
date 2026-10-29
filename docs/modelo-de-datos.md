@@ -1652,3 +1652,19 @@ que las ventas (CCPIP-114): confirmados y no cancelados, por su fecha de confirm
   dos decimales y redondeo mitad hacia arriba; cero si no hubo compras.
 - **Frecuencia**: tramos `UNA`, `DOS_A_TRES` y `CUATRO_O_MAS` compras en el rango. Por modalidad se cuentan
   solo las compras de esa modalidad; el total y el importe, todas.
+
+## Factibilidad de la entrega antes de pagar (CCPIP-60)
+
+Sin migracion. RF-41 y RNF-45: la factibilidad del envio se resuelve antes de cobrar, nunca con una aprobacion
+posterior. Usa las mismas reglas que ya aplica `POST /api/pedidos`: el punto debe tener lotes vigentes para todas
+las lineas y, si es a domicilio, cubrir el distrito de destino con una zona activa de `cobertura_entrega`.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `GET /api/compra/factibilidad?punto=&ubigeo=` | CONSUMIDOR | `{factible, existencias, cobertura, motivos}` del carrito si sale de ese punto. Sin `ubigeo` es recojo y `cobertura` es `true`. `motivos` lista los codigos que se obtendrian al confirmar o pagar: `PUNTO_SIN_EXISTENCIAS`, `SIN_COBERTURA` |
+| `POST /api/pedidos/{id}/pagos` | CONSUMIDOR | Antes de registrar el intento y llamar a la pasarela, revisa de nuevo existencias y cobertura del pedido. Si fallan, no se cobra, el pedido pasa a `CANCELADO` y responde `409 PUNTO_SIN_EXISTENCIAS` o `409 SIN_COBERTURA` |
+
+Entre crear el pedido y pagarlo otro comprador puede llevarse las ultimas unidades o el punto puede desactivar
+la zona (CCPIP-403). Si las unidades se van durante el cobro mismo, sigue el camino de CCPIP-62: el pago se
+anula y se devuelve. Los destinos fuera del Peru no se ofrecen: no hay puntos de acopio en el extranjero y el
+destino sale del catalogo `ubigeo`; sus reglas dependen de la decision C9 del cliente.
