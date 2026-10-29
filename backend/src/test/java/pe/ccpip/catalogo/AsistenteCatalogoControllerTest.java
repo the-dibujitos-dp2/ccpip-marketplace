@@ -72,6 +72,19 @@ class AsistenteCatalogoControllerTest extends IntegrationTest {
     }
 
     @Test
+    void lasPalabrasGenericasNoEligenTodasLasTiendas() throws Exception {
+        // Casi todas dicen "Comunidad ..." en su comunidad: esa palabra sola no elige ninguna
+        preguntar("Tiendas de la comunidad de Chinchero", null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tiendas.length()").value(1))
+                .andExpect(jsonPath("$.tiendas[0].comunidad").value("Comunidad de Tejedoras de Chinchero"));
+        preguntar("comunidades nativas", null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tiendas.length()").value(0))
+                .andExpect(jsonPath("$.sinResultados").value(true));
+    }
+
+    @Test
     void soloTiendasEnIngles() throws Exception {
         preguntar("Chinchero weavers", "en")
                 .andExpect(status().isOk())
