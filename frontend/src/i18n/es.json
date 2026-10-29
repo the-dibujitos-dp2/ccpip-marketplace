@@ -1395,7 +1395,22 @@
       "tituloDialogo": "Desactivar zona de cobertura",
       "confirmar": "Desactivar",
       "cancelar": "Cancelar",
-      "errorDesactivar": "No se pudo desactivar la zona. Inténtalo nuevamente."
+      "errorDesactivar": "No se pudo desactivar la zona. Inténtalo nuevamente.",
+      "declarar": {
+        "abrir": "Declarar distritos",
+        "titulo": "Declarar distritos de {{punto}}",
+        "ayuda": "Elige del catálogo territorial los distritos donde este punto entrega a domicilio. Los pedidos y entregas ya registrados no cambian.",
+        "elegir": "Elige",
+        "yaDeclarado": "Ya declarado",
+        "elegirUno": "Elige al menos un distrito",
+        "elegidos_one": "{{count}} distrito elegido",
+        "elegidos_other": "{{count}} distritos elegidos",
+        "confirmar": "Declarar",
+        "error": "No pudimos declarar la cobertura",
+        "errorCatalogo": "No pudimos cargar el catálogo territorial",
+        "hecho_one": "Declaraste {{count}} distrito para {{punto}}",
+        "hecho_other": "Declaraste {{count}} distritos para {{punto}}"
+      }
     }
   },
   "admin": {

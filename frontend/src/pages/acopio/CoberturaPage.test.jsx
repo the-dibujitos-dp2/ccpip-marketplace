@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import App from '../../App.jsx'
@@ -99,5 +99,67 @@ describe('Cobertura del punto (CCPIP-401)', () => {
     servidor({ ...sesion(), 'GET /api/acopio/coberturas': [409, { code: 'ACOPIO_SIN_ASIGNAR' }] }); abrir()
     expect(await screen.findByText('No hay puntos de acopio asignados a tu cuenta.')).toBeInTheDocument()
     expect(screen.queryByText('No pudimos cargar la cobertura')).not.toBeInTheDocument()
+  })
+})
+
+describe('Declarar cobertura (CCPIP-149)', () => {
+  const territorio = {
+    'GET /api/territorio/departamentos': [200, ['Cusco', 'Lima']],
+    'GET /api/territorio/provincias?departamento=Lima': [200, ['Lima']],
+    'GET /api/territorio/distritos?departamento=Lima&provincia=Lima': [200, [
+      { ubigeo: '150101', departamento: 'Lima', provincia: 'Lima', distrito: 'Lima' },
+      { ubigeo: '150102', departamento: 'Lima', provincia: 'Lima', distrito: 'Ancón' },
+      { ubigeo: '150122', departamento: 'Lima', provincia: 'Lima', distrito: 'Miraflores' },
+    ]],
+  }
+  const elegirDistritos = async (user) => {
+    await user.click(await screen.findByRole('button', { name: 'Declarar distritos · Punto Centro' }))
+    const dialogo = within(await screen.findByRole('dialog', { name: 'Declarar distritos de Punto Centro' }))
+    await user.selectOptions(await dialogo.findByLabelText('Departamento'), 'Lima')
+    await user.selectOptions(dialogo.getByLabelText('Provincia'), 'Lima')
+    await dialogo.findByRole('checkbox', { name: /Miraflores/ })
+    return dialogo
+  }
+
+  it('elige distritos del catálogo, deja marcados los ya activos y declara', async () => {
+    const actualizado = { ...cuerpo[0], zonas: [...zonas.map((z) => ({ ...z, activa: true })),
+      { id: 9, ubigeo: '150122', departamento: 'Lima', provincia: 'Lima', distrito: 'Miraflores', activa: true, actualizadoEn: null }] }
+    const fetch = servidor({ ...sesion(), ...territorio, 'POST /api/acopio/coberturas': [200, actualizado] })
+    const user = userEvent.setup(); abrir()
+    const dialogo = await elegirDistritos(user)
+    // Lima ya está activa: marcada y sin cambio; Ancón está inactiva y se puede volver a declarar
+    expect(dialogo.getByRole('checkbox', { name: /Lima · 150101/ })).toBeChecked()
+    expect(dialogo.getByRole('checkbox', { name: /Lima · 150101/ })).toBeDisabled()
+    expect(dialogo.getByText('Ya declarado')).toBeInTheDocument()
+    await user.click(dialogo.getByRole('checkbox', { name: /Ancón/ }))
+    await user.click(dialogo.getByRole('checkbox', { name: /Miraflores/ }))
+    expect(dialogo.getByText('2 distritos elegidos')).toBeInTheDocument()
+    await user.click(dialogo.getByRole('button', { name: 'Declarar' }))
+
+    expect(await screen.findByText('Declaraste 2 distritos para Punto Centro')).toBeInTheDocument()
+    const [[, opciones]] = llamadas(fetch, 'POST /api/acopio/coberturas')
+    expect(JSON.parse(opciones.body)).toEqual({ puntoId: 7, ubigeos: ['150102', '150122'] })
+    expect(screen.getByText('150122')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog', { name: 'Declarar distritos de Punto Centro' })).not.toBeInTheDocument()
+  })
+
+  it('sin distritos elegidos no envía', async () => {
+    const fetch = servidor({ ...sesion(), ...territorio })
+    const user = userEvent.setup(); abrir()
+    const dialogo = await elegirDistritos(user)
+    await user.click(dialogo.getByRole('button', { name: 'Declarar' }))
+    expect(dialogo.getByText('Elige al menos un distrito')).toBeInTheDocument()
+    expect(llamadas(fetch, 'POST /api/acopio/coberturas')).toHaveLength(0)
+  })
+
+  it('muestra el rechazo del servidor y no cierra', async () => {
+    servidor({ ...sesion(), ...territorio,
+      'POST /api/acopio/coberturas': [422, { code: 'UBIGEO_NO_CATALOGADO', error: 'Algunos distritos no estan en el catalogo territorial.' }] })
+    const user = userEvent.setup(); abrir()
+    const dialogo = await elegirDistritos(user)
+    await user.click(dialogo.getByRole('checkbox', { name: /Miraflores/ }))
+    await user.click(dialogo.getByRole('button', { name: 'Declarar' }))
+    expect(await dialogo.findByText('No pudimos declarar la cobertura')).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Declarar distritos de Punto Centro' })).toBeInTheDocument()
   })
 })
