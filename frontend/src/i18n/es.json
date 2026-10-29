@@ -2056,6 +2056,7 @@
     "verTablero": "Ver tablero de operación"
   },
   "errores": {
+    "REGLA_INVALIDA": "Solo se declaran reglas vigentes definidas por la Cámara.",
     "generico": "Algo salió mal. Inténtalo otra vez.",
     "AGOTADO": "Este producto está agotado por ahora.",
     "ARCHIVO_MUY_PESADO": "El archivo es demasiado pesado: las fotos admiten hasta 10 MB y los videos hasta 50 MB.",
@@ -4395,5 +4396,19 @@
     "vacio": "No registraste acciones en este periodo.",
     "error": "No pudimos cargar tu historial",
     "inalterable": "Registro inalterable. Las correcciones se registran como nuevas acciones."
+  },
+  "cumplimiento": {
+    "titulo": "Reglas de origen y sostenibilidad",
+    "texto": "Marca solo las reglas de la Cámara que este producto cumple. Ninguna se da por hecha: cada producto declara las suyas.",
+    "reglas": "Reglas de la Cámara",
+    "ultima": "Última declaración: {{fecha}}, por {{nombre}}.",
+    "sinDeclaracion": "Aún no declaraste ninguna regla para este producto.",
+    "observaciones": "Observaciones (opcional)",
+    "declarar": "Guardar declaración",
+    "guardada": "Guardaste la declaración",
+    "error": "No pudimos guardar la declaración",
+    "nota": "Es tu declaración, con su fecha. No es un sello ni una aprobación: solo los certificados que revisa la Cámara respaldan una regla ante los compradores.",
+    "historial": "Declaraciones anteriores",
+    "ninguna": "Ninguna regla"
   }
 }
