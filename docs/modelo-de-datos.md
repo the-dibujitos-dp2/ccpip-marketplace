@@ -1633,3 +1633,38 @@ y una fila `UNIDAD`/`CREAR` en `catalogo_maestro_auditoria`) o la rechaza con un
 Un trigger impide borrar una solicitud y cambiar una ya decidida. No se pide una unidad que ya existe en el
 catalogo (`409 UNIDAD_YA_EXISTE`). Al aprobar, el codigo sale del nombre (`Atado de 10` → `ATADO_DE_10`) salvo
 que la Camara indique otro.
+
+## Consumo por modalidad y frecuencia de compra (CCPIP-135)
+
+Sin migracion. RF-105: el productor consulta el consumo de sus productos separado en B2C y B2B (importe y
+volumen) y con que frecuencia le compran, sin datos demograficos ni de quien compro. Usa los mismos pedidos
+que las ventas (CCPIP-114): confirmados y no cancelados, por su fecha de confirmacion, y la tarifa copiada en
+`item_pedido.tarifa`.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `GET /api/productor/reportes/consumo?desde&hasta&agrupacion&producto&modalidad` | PRODUCTOR | Totales, periodos y frecuencia. El PDF y el Excel del reporte (`/pdf`, `/xlsx`) suman las secciones «Consumo por período» y «Frecuencia de compra» al final |
+
+- **Pedidos y compradores**: un pedido cuenta una vez aunque tenga lineas B2C y B2B; en cada modalidad
+  cuenta si tiene alguna linea de ella. Los compradores del total son personas distintas en el rango, no la
+  suma de los periodos. El comprador solo se usa en el servidor para contar: no se devuelve.
+- **Promedios**: `ticketPromedio` = importe / pedidos y `comprasPorComprador` = pedidos / compradores, con
+  dos decimales y redondeo mitad hacia arriba; cero si no hubo compras.
+- **Frecuencia**: tramos `UNA`, `DOS_A_TRES` y `CUATRO_O_MAS` compras en el rango. Por modalidad se cuentan
+  solo las compras de esa modalidad; el total y el importe, todas.
+
+## Factibilidad de la entrega antes de pagar (CCPIP-60)
+
+Sin migracion. RF-41 y RNF-45: la factibilidad del envio se resuelve antes de cobrar, nunca con una aprobacion
+posterior. Usa las mismas reglas que ya aplica `POST /api/pedidos`: el punto debe tener lotes vigentes para todas
+las lineas y, si es a domicilio, cubrir el distrito de destino con una zona activa de `cobertura_entrega`.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `GET /api/compra/factibilidad?punto=&ubigeo=` | CONSUMIDOR | `{factible, existencias, cobertura, motivos}` del carrito si sale de ese punto. Sin `ubigeo` es recojo y `cobertura` es `true`. `motivos` lista los codigos que se obtendrian al confirmar o pagar: `PUNTO_SIN_EXISTENCIAS`, `SIN_COBERTURA` |
+| `POST /api/pedidos/{id}/pagos` | CONSUMIDOR | Antes de registrar el intento y llamar a la pasarela, revisa de nuevo existencias y cobertura del pedido. Si fallan, no se cobra, el pedido pasa a `CANCELADO` y responde `409 PUNTO_SIN_EXISTENCIAS` o `409 SIN_COBERTURA` |
+
+Entre crear el pedido y pagarlo otro comprador puede llevarse las ultimas unidades o el punto puede desactivar
+la zona (CCPIP-403). Si las unidades se van durante el cobro mismo, sigue el camino de CCPIP-62: el pago se
+anula y se devuelve. Los destinos fuera del Peru no se ofrecen: no hay puntos de acopio en el extranjero y el
+destino sale del catalogo `ubigeo`; sus reglas dependen de la decision C9 del cliente.

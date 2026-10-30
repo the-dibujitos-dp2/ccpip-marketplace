@@ -1431,6 +1431,7 @@
     "nav": {
       "tablero": "Tablero",
       "permisos": "Permisos",
+      "auditoria": "Auditoría",
       "comision": "Comisión",
       "comisiones": "Comisión por pedido",
       "reportes": "Reportes",
@@ -1454,7 +1455,76 @@
       "rol": "Rol",
       "metodo": "Método",
       "ruta": "Ruta",
-      "vacio": "Este rol no tiene accesos declarados."
+      "vacio": "Este rol no tiene accesos declarados.",
+      "declarados": "Accesos declarados por el servidor"
+    },
+    "configurables": {
+      "titulo": "Permisos configurables",
+      "descripcion": "Concede o revoca acciones de cada rol. Revocar una acción la bloquea en el servidor aunque el rol la tenga declarada. Las restricciones de gobernanza no se pueden conceder.",
+      "error": "No pudimos cargar los permisos configurables",
+      "deRol": "Permisos configurables de {{rol}}",
+      "concedido": "Concedido",
+      "revocado": "Revocado",
+      "restringido": "Restringido por gobernanza",
+      "conceder": "Conceder",
+      "revocar": "Revocar",
+      "concederDe": "Conceder {{permiso}} a {{rol}}",
+      "revocarDe": "Revocar {{permiso}} a {{rol}}",
+      "ultimoCambio": "Último cambio: {{fecha}}, por {{nombre}}.",
+      "dialogo": {
+        "conceder": "Conceder «{{permiso}}» a {{rol}}",
+        "revocar": "Revocar «{{permiso}}» a {{rol}}"
+      },
+      "auditado": "El cambio se aplica de inmediato y queda en la auditoría con tu nombre y el motivo.",
+      "motivo": "Motivo",
+      "motivoRequerido": "Indica el motivo del cambio",
+      "errorCambiar": "No pudimos cambiar el permiso",
+      "hecho": {
+        "conceder": "Concediste «{{permiso}}» a {{rol}}",
+        "revocar": "Revocaste «{{permiso}}» a {{rol}}"
+      },
+      "codigo": {
+        "DECIDIR_AUTORIZACIONES": {
+          "nombre": "Decidir autorizaciones",
+          "descripcion": "Aprobar, rechazar o revocar autorizaciones, pedir renovaciones y registrar evidencias físicas."
+        },
+        "MODERAR_PUBLICACIONES": {
+          "nombre": "Moderar publicaciones",
+          "descripcion": "Aprobar o rechazar publicaciones y videos."
+        },
+        "GESTIONAR_PRODUCTORES": {
+          "nombre": "Gestionar productores",
+          "descripcion": "Habilitar tiendas y revocar, restituir, bloquear o desbloquear la venta."
+        },
+        "GESTIONAR_DENUNCIAS": {
+          "nombre": "Gestionar denuncias",
+          "descripcion": "Cambiar el estado de las denuncias."
+        },
+        "SUSPENDER_CUENTAS": {
+          "nombre": "Suspender cuentas",
+          "descripcion": "Suspender o reactivar cuentas."
+        },
+        "EDITAR_PRODUCTOS": {
+          "nombre": "Editar productos",
+          "descripcion": "Los productos los edita solo su productor."
+        },
+        "EDITAR_TIENDAS": {
+          "nombre": "Editar tiendas",
+          "descripcion": "Las tiendas las edita solo su productor."
+        },
+        "EDITAR_PEDIDOS": {
+          "nombre": "Editar pedidos",
+          "descripcion": "Los pedidos no se editan desde la administración."
+        },
+        "EDITAR_DATOS_COMPRADORES": {
+          "nombre": "Editar datos personales de compradores",
+          "descripcion": "Los datos personales los cambia solo su titular."
+        },
+        "EDITAR_EXISTENCIAS": {
+          "nombre": "Editar existencias",
+          "descripcion": "Las existencias cambian solo con movimientos registrados."
+        }
+      }
     },
     "tablero": {
       "titulo": "Tablero de operación",
@@ -2672,6 +2742,12 @@
       "celularAyuda": "9 dígitos. Lo usamos para coordinar la entrega.",
       "resumen": "A domicilio · por confirmar",
       "sinCobertura": "Ese punto no entrega en tu distrito"
+    },
+    "factibilidad": {
+      "titulo": "Este punto ya no puede entregar tu pedido",
+      "PUNTO_SIN_EXISTENCIAS": "Ya no tiene existencias para todo tu carrito.",
+      "SIN_COBERTURA": "No entrega a domicilio en el distrito que elegiste.",
+      "accion": "Elige otro punto o cambia la forma de entrega para poder pagar."
     }
   },
   "pedido": {
@@ -4439,6 +4515,77 @@
     "vacio": "No registraste acciones en este periodo.",
     "error": "No pudimos cargar tu historial",
     "inalterable": "Registro inalterable. Las correcciones se registran como nuevas acciones."
+  },
+  "auditoria": {
+    "titulo": "Auditoría de operaciones sensibles",
+    "intro": "Quién hizo cada operación sensible, con su rol, la acción, sobre qué, cuándo y con qué resultado. Nadie puede editar ni borrar estos registros.",
+    "filtros": "Filtros de la auditoría",
+    "desde": "Desde",
+    "hasta": "Hasta",
+    "usuario": "Usuario",
+    "usuarioAyuda": "Nombre o correo",
+    "rol": "Rol",
+    "accionFiltro": "Acción",
+    "entidadFiltro": "Entidad",
+    "resultadoFiltro": "Resultado",
+    "todos": "Todos",
+    "todas": "Todas",
+    "buscar": "Buscar",
+    "col": {
+      "fecha": "Fecha y hora",
+      "usuario": "Usuario",
+      "rol": "Rol",
+      "accion": "Acción",
+      "entidad": "Entidad",
+      "resultado": "Resultado"
+    },
+    "accion": {
+      "PRODUCTO_CREAR": "Creó producto",
+      "PRODUCTO_EDITAR": "Editó producto",
+      "PRODUCTO_PUBLICAR": "Publicó producto",
+      "PRODUCTO_RETIRAR": "Retiró producto",
+      "PRODUCTO_REPUBLICAR": "Republicó producto",
+      "PRODUCTO_HISTORIA": "Cambió historia del producto",
+      "PRODUCTO_LOTE": "Registró lote",
+      "PRODUCTO_IMAGEN": "Cambió imagen del producto",
+      "PRODUCTO_EVIDENCIA": "Subió evidencia del producto",
+      "PRODUCTO_AUTORIZACION": "Cambió autorización del producto",
+      "PRODUCTO_MODERACION": "Envió a moderación",
+      "PRODUCTO_PREMIO": "Registró premio",
+      "PRODUCTO_CUMPLIMIENTO": "Declaró cumplimiento",
+      "CATALOGO_CREAR": "Creó en el catálogo maestro",
+      "CATALOGO_EDITAR": "Editó el catálogo maestro",
+      "CATALOGO_DESACTIVAR": "Desactivó en el catálogo maestro",
+      "CATALOGO_REACTIVAR": "Reactivó en el catálogo maestro",
+      "PAGO": "Intentó un pago",
+      "PERMISO_CONCEDIDO": "Concedió un permiso",
+      "PERMISO_REVOCADO": "Revocó un permiso"
+    },
+    "entidad": {
+      "AUTORIZACION": "Autorización",
+      "MODERACION": "Moderación de publicación",
+      "VIDEO": "Video",
+      "PRODUCTOR": "Productor",
+      "DENUNCIAS": "Denuncias",
+      "CUENTA": "Cuenta",
+      "PRODUCTO": "Producto",
+      "LINEA_MAESTRA": "Línea maestra",
+      "PRODUCTO_MAESTRO": "Producto maestro",
+      "PEDIDO": "Pedido",
+      "PERMISO": "Permiso"
+    },
+    "resultado": {
+      "EXITOSA": "Exitosa",
+      "APROBADO": "Aprobado",
+      "RECHAZADO": "Rechazado",
+      "ERROR": "Error",
+      "PENDIENTE": "Pendiente",
+      "ANULADO": "Anulado"
+    },
+    "sistema": "Sistema",
+    "vacio": "No hay operaciones que coincidan con los filtros en este periodo.",
+    "error": "No pudimos cargar la auditoría",
+    "inalterable": "Registro inalterable. Las correcciones se registran como nuevas operaciones."
   },
   "cumplimiento": {
     "titulo": "Reglas de origen y sostenibilidad",

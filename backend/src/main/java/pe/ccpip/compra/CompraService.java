@@ -31,6 +31,7 @@ import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.compra.CompraModelos.AdvertenciaPerecible;
 import pe.ccpip.compra.CompraModelos.DistritoConPuntos;
 import pe.ccpip.compra.CompraModelos.EventoPedido;
+import pe.ccpip.compra.CompraModelos.Factibilidad;
 import pe.ccpip.compra.CompraModelos.IntentoPago;
 import pe.ccpip.compra.CompraModelos.LineaPedido;
 import pe.ccpip.compra.CompraModelos.Pedido;
@@ -124,6 +125,44 @@ public class CompraService {
             Vence v = porProducto.get(i.productoId());
             return new AdvertenciaPerecible(i.productoId(), i.nombre(), v.fecha(), v.dias());
         }).toList();
+    }
+
+    /**
+     * CCPIP-60 (RF-41, RNF-45): si el carrito se puede entregar desde el punto elegido, para avisar al
+     * comprador antes de que pague. Sin {@code ubigeo} es recojo y solo cuentan las existencias; con
+     * {@code ubigeo} el punto ademas debe cubrir ese distrito con una zona activa. Es la misma regla que
+     * aplican {@link #confirmar} y el pago, asi que lo factible aqui no necesita una aprobacion posterior.
+     * No es de solo lectura por la misma razon que {@link #puntosElegibles}.
+     */
+    @Transactional
+    public Factibilidad factibilidad(long usuarioId, long puntoId, String ubigeo) {
+        boolean existencias = !puntos(comprables(usuarioId), puntoId).isEmpty();
+        boolean cobertura = ubigeo == null || ubigeo.isBlank() || entregas.cubre(puntoId, ubigeo.strip());
+        return Factibilidad.de(existencias, cobertura);
+    }
+
+    /**
+     * CCPIP-60: la factibilidad del pedido ya creado, con sus propias lineas y su punto de origen, para
+     * revisarla justo antes de cobrar. Entre crear el pedido y pagarlo otro comprador pudo llevarse las
+     * ultimas unidades o el punto pudo desactivar la zona de entrega (CCPIP-403). Ajeno = no existe (RNF-05).
+     */
+    @Transactional(readOnly = true)
+    public Factibilidad factibilidadDelPedido(long usuarioId, long pedidoId) {
+        MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId).addValue("id", pedidoId);
+        record Origen(long puntoId, String ubigeo) {
+        }
+        Origen origen = jdbc.query("""
+                SELECT pe.ubicacion_origen_id, e.ubigeo
+                FROM pedido pe LEFT JOIN entrega e ON e.pedido_id = pe.id
+                WHERE pe.id = :id AND pe.usuario_id = :usuario""", p,
+                (rs, row) -> new Origen(rs.getLong("ubicacion_origen_id"), rs.getString("ubigeo")))
+                .stream().findFirst()
+                .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "No encontramos ese pedido."));
+        List<Pedida> pedidas = jdbc.query("SELECT producto_id, cantidad FROM item_pedido WHERE pedido_id = :id ORDER BY id", p,
+                (rs, row) -> new Pedida(rs.getLong("producto_id"), rs.getBigDecimal("cantidad")));
+        boolean existencias = !pedidas.isEmpty() && !puntosCon(pedidas, origen.puntoId()).isEmpty();
+        boolean cobertura = origen.ubigeo() == null || entregas.cubre(origen.puntoId(), origen.ubigeo());
+        return Factibilidad.de(existencias, cobertura);
     }
 
     /**
@@ -292,9 +331,17 @@ public class CompraService {
      * solo punto, el mismo del que luego descuenta {@code DescuentoExistenciasService}.
      */
     private List<PuntoRecojo> puntos(List<Item> items, Long soloPunto) {
+        return puntosCon(items.stream().map(i -> new Pedida(i.productoId(), i.cantidad())).toList(), soloPunto);
+    }
+
+    /** Lo que se pide de un producto: del carrito al confirmar, o del pedido ya creado al pagar (CCPIP-60). */
+    private record Pedida(long productoId, BigDecimal cantidad) {
+    }
+
+    private List<PuntoRecojo> puntosCon(List<Pedida> pedidas, Long soloPunto) {
         MapSqlParameterSource p = new MapSqlParameterSource("punto", soloPunto);
-        String lineas = IntStream.range(0, items.size()).mapToObj(i -> {
-            p.addValue("producto" + i, items.get(i).productoId()).addValue("cantidad" + i, items.get(i).cantidad());
+        String lineas = IntStream.range(0, pedidas.size()).mapToObj(i -> {
+            p.addValue("producto" + i, pedidas.get(i).productoId()).addValue("cantidad" + i, pedidas.get(i).cantidad());
             return "(CAST(:producto%d AS bigint), CAST(:cantidad%d AS numeric))".formatted(i, i);
         }).collect(Collectors.joining(", "));
         return jdbc.query("""

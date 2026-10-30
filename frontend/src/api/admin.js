@@ -8,6 +8,18 @@ export const obtenerTablero = () => apiFetch('/api/admin/tablero')
 /** CCPIP-28: permisos declarados por rol, derivados de los accesos del servidor. Solo lectura. */
 export const consultarPermisos = () => apiFetch('/api/admin/permisos')
 
+/** CCPIP-296: permisos configurables de cada rol, con sus restricciones de gobernanza. */
+export const consultarPermisosConfigurables = () => apiFetch('/api/admin/permisos/configurables')
+
+/** Codigo de rol o de permiso (SUB_ADMIN, SUSPENDER_CUENTAS): solo mayusculas y guiones bajos. */
+const CODIGO = /^[A-Z][A-Z_]{0,39}$/
+
+/** CCPIP-296: concede o revoca un permiso configurable a un rol, siempre con motivo. */
+export function cambiarPermisoConfigurable(rol, codigo, { concedido, motivo }) {
+  if (!CODIGO.test(rol) || !CODIGO.test(codigo)) return Promise.reject(new Error(`Permiso inválido: ${rol}/${codigo}`))
+  return apiFetch(`/api/admin/permisos/configurables/${rol}/${codigo}`, { method: 'PUT', body: { concedido, motivo } })
+}
+
 const RANGO = ['desde', 'hasta']
 
 /** Los filtros de cada reporte; las metricas por periodo (SA-05) y los indicadores tambien se agrupan. */
@@ -132,6 +144,21 @@ export function miHistorial({ desde, hasta, tipo } = {}) {
   if (tipo) q.set('tipo', tipo)
   const consulta = q.toString()
   return apiFetch(`/api/admin/mi-historial${consulta ? `?${consulta}` : ''}`)
+}
+
+/**
+ * CCPIP-97 (RF-84): la auditoria de operaciones sensibles, solo del superadministrador. Filtros opcionales:
+ * desde, hasta, usuario (nombre o correo), rol, accion, entidad, resultado; `pagina` empieza en 0.
+ */
+export function auditoria({ pagina, ...filtro } = {}) {
+  const q = new URLSearchParams()
+  for (const campo of ['desde', 'hasta', 'usuario', 'rol', 'accion', 'entidad', 'resultado']) {
+    const valor = filtro[campo]?.trim?.() ?? filtro[campo]
+    if (valor) q.set(campo, valor)
+  }
+  if (pagina) q.set('pagina', pagina)
+  const consulta = q.toString()
+  return apiFetch(`/api/admin/auditoria${consulta ? `?${consulta}` : ''}`)
 }
 
 /**

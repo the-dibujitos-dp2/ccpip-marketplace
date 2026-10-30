@@ -1,12 +1,17 @@
 package pe.ccpip.reportes.productor;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -19,7 +24,9 @@ import pe.ccpip.comun.RangoFechas;
 import pe.ccpip.reportes.ReportesModelos.Agrupacion;
 import pe.ccpip.reportes.Tramos;
 import pe.ccpip.reportes.exportar.DocumentoReporte;
+import pe.ccpip.reportes.productor.ReportesProductorModelos.FrecuenciaCompra;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.Modalidad;
+import pe.ccpip.reportes.productor.ReportesProductorModelos.PeriodoConsumo;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.PeriodoInventario;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.PeriodoProduccion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.PeriodoVentas;
@@ -27,10 +34,13 @@ import pe.ccpip.reportes.productor.ReportesProductorModelos.ProductoExistencias;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.ProductoOpcion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.ProductoProduccion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.ProductoVentas;
+import pe.ccpip.reportes.productor.ReportesProductorModelos.ReporteConsumo;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.ReporteInventario;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.ReporteProduccion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.ReporteVentas;
+import pe.ccpip.reportes.productor.ReportesProductorModelos.TotalesConsumo;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.TotalesInventario;
+import pe.ccpip.reportes.productor.ReportesProductorModelos.TramoFrecuencia;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.TotalesProduccion;
 import pe.ccpip.reportes.productor.ReportesProductorModelos.TotalesVentas;
 
@@ -141,6 +151,115 @@ public class ReportesProductorService {
                 .toList();
         return new ReporteVentas(c.desde(), c.hasta(), c.agrupacion(), c.producto(), modalidad, totales, periodos,
                 productos, productos(productorId));
+    }
+
+    /**
+     * CCPIP-135 (RF-105): consumo de sus productos por modalidad y frecuencia de compra, con los mismos
+     * pedidos que las ventas (confirmados y no cancelados, por fecha de confirmacion). El comprador solo se
+     * usa aqui para contar personas distintas y cuantas veces compraron: no sale del servidor.
+     */
+    @Transactional(readOnly = true)
+    public ReporteConsumo consumo(long productorId, LocalDate desde, LocalDate hasta, Agrupacion agrupacion,
+                                  Long producto, Modalidad modalidad) {
+        Consulta c = consulta(productorId, desde, hasta, agrupacion, producto);
+        Tramos tramos = new Tramos(c.desde(), c.hasta(), c.agrupacion());
+        int n = tramos.cantidad();
+
+        MapSqlParameterSource p = c.parametros();
+        String filtroModalidad = "";
+        if (modalidad != null) {
+            p.addValue("tarifa", modalidad.name());
+            filtroModalidad = " AND i.tarifa = :tarifa";
+        }
+        // Una fila por pedido y modalidad: lo que se llevo de sus productos en esa compra
+        record Compra(long pedido, long comprador, int periodo, boolean minorista, BigDecimal unidades,
+                      BigDecimal importe) {
+        }
+        List<Compra> compras = jdbc.query("""
+                SELECT pe.id AS pedido, pe.usuario_id, (pe.confirmado_en AT TIME ZONE 'America/Lima')::date AS fecha,
+                       i.tarifa, sum(i.cantidad) AS unidades, sum(i.subtotal) AS importe
+                FROM item_pedido i
+                JOIN pedido pe ON pe.id = i.pedido_id
+                WHERE i.productor_id = :productor
+                  AND pe.confirmado_en IS NOT NULL AND pe.estado <> 'CANCELADO'
+                  AND (pe.confirmado_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta
+                """ + c.filtroProducto("i.producto_id") + filtroModalidad + """
+
+                GROUP BY pe.id, pe.usuario_id, 3, i.tarifa""", p,
+                (rs, row) -> new Compra(rs.getLong("pedido"), rs.getLong("usuario_id"),
+                        tramos.posicion(rs.getObject("fecha", LocalDate.class)),
+                        Modalidad.MINORISTA.name().equals(rs.getString("tarifa")),
+                        rs.getBigDecimal("unidades"), rs.getBigDecimal("importe")));
+
+        List<Set<Long>> pedidos = new ArrayList<>();
+        List<Set<Long>> compradores = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            pedidos.add(new HashSet<>());
+            compradores.add(new HashSet<>());
+        }
+        BigDecimal[] unidadesB2c = ceros(n);
+        BigDecimal[] unidadesB2b = ceros(n);
+        BigDecimal[] importeB2c = ceros(n);
+        BigDecimal[] importeB2b = ceros(n);
+        // Por comprador: sus pedidos en total y por modalidad, y lo que gasto
+        Map<Long, Set<Long>> pedidosDe = new HashMap<>();
+        Map<Long, Set<Long>> pedidosB2cDe = new HashMap<>();
+        Map<Long, Set<Long>> pedidosB2bDe = new HashMap<>();
+        Map<Long, BigDecimal> importeDe = new HashMap<>();
+        for (Compra compra : compras) {
+            int i = compra.periodo();
+            pedidos.get(i).add(compra.pedido());
+            compradores.get(i).add(compra.comprador());
+            if (compra.minorista()) {
+                unidadesB2c[i] = unidadesB2c[i].add(compra.unidades());
+                importeB2c[i] = importeB2c[i].add(compra.importe());
+            } else {
+                unidadesB2b[i] = unidadesB2b[i].add(compra.unidades());
+                importeB2b[i] = importeB2b[i].add(compra.importe());
+            }
+            pedidosDe.computeIfAbsent(compra.comprador(), k -> new HashSet<>()).add(compra.pedido());
+            (compra.minorista() ? pedidosB2cDe : pedidosB2bDe)
+                    .computeIfAbsent(compra.comprador(), k -> new HashSet<>()).add(compra.pedido());
+            importeDe.merge(compra.comprador(), compra.importe(), BigDecimal::add);
+        }
+
+        List<PeriodoConsumo> periodos = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            Tramos.Tramo t = tramos.lista().get(i);
+            periodos.add(new PeriodoConsumo(t.inicio(), t.fin(), pedidos.get(i).size(), compradores.get(i).size(),
+                    unidadesB2c[i], unidadesB2b[i], importeB2c[i], importeB2b[i]));
+        }
+        long totalPedidos = compras.stream().map(Compra::pedido).distinct().count();
+        long totalCompradores = pedidosDe.size();
+        BigDecimal importe = suma(importeB2c).add(suma(importeB2b));
+        TotalesConsumo totales = new TotalesConsumo(totalPedidos, totalCompradores, suma(unidadesB2c), suma(unidadesB2b),
+                suma(importeB2c), suma(importeB2b), importe, cociente(importe, totalPedidos),
+                cociente(BigDecimal.valueOf(totalPedidos), totalCompradores));
+
+        Map<TramoFrecuencia, long[]> conteos = new EnumMap<>(TramoFrecuencia.class);
+        Map<TramoFrecuencia, BigDecimal> importes = new EnumMap<>(TramoFrecuencia.class);
+        for (TramoFrecuencia tramo : TramoFrecuencia.values()) {
+            conteos.put(tramo, new long[3]);
+            importes.put(tramo, BigDecimal.ZERO);
+        }
+        pedidosB2cDe.values().forEach(s -> conteos.get(TramoFrecuencia.de(s.size()))[0]++);
+        pedidosB2bDe.values().forEach(s -> conteos.get(TramoFrecuencia.de(s.size()))[1]++);
+        pedidosDe.forEach((comprador, suyos) -> {
+            TramoFrecuencia tramo = TramoFrecuencia.de(suyos.size());
+            conteos.get(tramo)[2]++;
+            importes.merge(tramo, importeDe.get(comprador), BigDecimal::add);
+        });
+        List<FrecuenciaCompra> frecuencia = conteos.entrySet().stream()
+                .map(e -> new FrecuenciaCompra(e.getKey(), e.getValue()[0], e.getValue()[1], e.getValue()[2],
+                        importes.get(e.getKey())))
+                .toList();
+        return new ReporteConsumo(c.desde(), c.hasta(), c.agrupacion(), c.producto(), modalidad, totales, periodos,
+                frecuencia, productos(productorId));
+    }
+
+    /** Un promedio con dos decimales (RNF-12, mitad hacia arriba); cero si no hay de que promediar. */
+    private static BigDecimal cociente(BigDecimal valor, long entre) {
+        return entre == 0 ? BigDecimal.ZERO.setScale(2) : valor.divide(BigDecimal.valueOf(entre), 2, RoundingMode.HALF_UP);
     }
 
     /**
@@ -320,11 +439,12 @@ public class ReportesProductorService {
         // Mismo rango resuelto para las tres secciones, aunque se haya pedido sin fechas
         ReporteProduccion produccion = produccion(productorId, ventas.desde(), ventas.hasta(), ventas.agrupacion(), producto);
         ReporteInventario inventario = inventario(productorId, ventas.desde(), ventas.hasta(), ventas.agrupacion(), producto);
+        ReporteConsumo consumo = consumo(productorId, ventas.desde(), ventas.hasta(), ventas.agrupacion(), producto, modalidad);
         String nombre = jdbc.queryForObject("SELECT coalesce(nombre_tienda, comunidad) FROM productor WHERE id = :productor",
                 new MapSqlParameterSource("productor", productorId), String.class);
         String nombreProducto = producto == null ? null : ventas.productos().stream()
                 .filter(o -> o.id() == producto).map(ProductoOpcion::nombre).findFirst().orElse(null);
-        return ContenidoReporte.documento(nombre, ventas, produccion, inventario, nombreProducto, idioma);
+        return ContenidoReporte.documento(nombre, ventas, produccion, inventario, consumo, nombreProducto, idioma);
     }
 
     /** Sus productos, para el filtro de la pantalla. */

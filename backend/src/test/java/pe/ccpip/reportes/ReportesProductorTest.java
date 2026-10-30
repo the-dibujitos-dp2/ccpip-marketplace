@@ -276,7 +276,7 @@ class ReportesProductorTest extends IntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Language", "en"))
                 .andReturn().getResponse().getContentAsByteArray();
-        assertThat(texto(pdf)).contains("Product report", "Product: RP Harina", "Purchase mode (sales only): Wholesale (B2B)",
+        assertThat(texto(pdf)).contains("Product report", "Product: RP Harina", "Purchase mode (sales and consumption): Wholesale (B2B)",
                 "Sales by period", "May 2024", "Inventory by period (units)").doesNotContain("RP Aceite");
 
         mockMvc.perform(get(PDF + "?producto=" + ajeno).cookie(sesion)).andExpect(status().isNotFound());

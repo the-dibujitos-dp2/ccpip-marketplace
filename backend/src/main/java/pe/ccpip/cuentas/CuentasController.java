@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import pe.ccpip.auth.access.Permiso;
+import pe.ccpip.auth.access.PermisoConfigurable;
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.filter.SessionAuthFilter;
 import pe.ccpip.auth.model.AuthenticatedSession;
@@ -100,6 +102,7 @@ public class CuentasController {
     }
 
     @RolesPermitidos({Rol.SUB_ADMIN, Rol.SUPER_ADMIN})
+    @PermisoConfigurable(Permiso.SUSPENDER_CUENTAS)
     @PostMapping("/{id}/suspender")
     public Resultado suspender(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                @PathVariable long id, @Valid @RequestBody Motivo motivo) {
@@ -107,6 +110,7 @@ public class CuentasController {
     }
 
     @RolesPermitidos({Rol.SUB_ADMIN, Rol.SUPER_ADMIN})
+    @PermisoConfigurable(Permiso.SUSPENDER_CUENTAS)
     @PostMapping("/{id}/reactivar")
     public Resultado reactivar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                @PathVariable long id, @Valid @RequestBody Motivo motivo) {

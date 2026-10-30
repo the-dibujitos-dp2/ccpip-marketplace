@@ -1,0 +1,13 @@
+/* CCPIP-296: permisos configurables por rol */
+.permisos-configurables { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+.permisos-configurables__rol { display: flex; flex-direction: column; gap: 8px; }
+.permisos-configurables__lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column;
+  border: 1px solid var(--color-border-default); border-radius: 8px; }
+.permisos-configurables__permiso { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; }
+.permisos-configurables__permiso + .permisos-configurables__permiso { border-top: 1px solid var(--color-border-default); }
+.permisos-configurables__texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.permisos-configurables__acciones { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+@media (max-width: 720px) {
+  .permisos-configurables__permiso { flex-direction: column; align-items: flex-start; }
+}

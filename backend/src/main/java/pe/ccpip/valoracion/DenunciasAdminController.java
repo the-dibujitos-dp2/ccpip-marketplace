@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import pe.ccpip.auth.access.Permiso;
+import pe.ccpip.auth.access.PermisoConfigurable;
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.filter.SessionAuthFilter;
 import pe.ccpip.auth.model.AuthenticatedSession;
@@ -44,6 +46,7 @@ public class DenunciasAdminController {
     }
 
     @RolesPermitidos(Rol.SUB_ADMIN)
+    @PermisoConfigurable(Permiso.GESTIONAR_DENUNCIAS)
     @PostMapping("/{id}/estado")
     public DenunciaAdmin cambiarEstado(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                        @PathVariable long id, @Valid @RequestBody CambioEstado cambio) {

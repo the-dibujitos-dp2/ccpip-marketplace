@@ -25,6 +25,7 @@ import pe.ccpip.auth.model.AuthenticatedSession;
 import pe.ccpip.auth.model.Rol;
 import pe.ccpip.compra.CompraModelos.AdvertenciaPerecible;
 import pe.ccpip.compra.CompraModelos.DistritoConPuntos;
+import pe.ccpip.compra.CompraModelos.Factibilidad;
 import pe.ccpip.compra.CompraModelos.IntentoPago;
 import pe.ccpip.compra.CompraModelos.Pedido;
 import pe.ccpip.compra.CompraModelos.PuntoRecojo;
@@ -34,7 +35,7 @@ import pe.ccpip.entrega.EntregaModelos.Destino;
 import pe.ccpip.pago.Tarjeta;
 
 /**
- * Compra del comprador: recojo (CCPIP-157), entrega a domicilio (CCPIP-59), pago con tarjeta (CCPIP-62), intentos de pago
+ * Compra del comprador: recojo (CCPIP-157), entrega a domicilio (CCPIP-59), factibilidad antes de pagar (CCPIP-60), pago con tarjeta (CCPIP-62), intentos de pago
  * (CCPIP-163) y confirmacion (CCPIP-64). Opera siempre sobre los datos del usuario de la sesion (RNF-05).
  */
 @RolesPermitidos(Rol.CONSUMIDOR)
@@ -113,6 +114,13 @@ public class CompraController {
     public List<AdvertenciaPerecible> advertencias(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                                    @RequestParam long punto) {
         return compra.advertencias(s.userId(), punto);
+    }
+
+    /** CCPIP-60: si el carrito se puede entregar desde el punto (y al distrito, si es a domicilio) antes de pagar. */
+    @GetMapping("/api/compra/factibilidad")
+    public Factibilidad factibilidad(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                     @RequestParam long punto, @RequestParam(required = false) String ubigeo) {
+        return compra.factibilidad(s.userId(), punto, ubigeo);
     }
 
     /** CCPIP-112 (CW-09): las compras del comprador con su estado e historial. Solo las propias. */
