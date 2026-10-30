@@ -61,6 +61,157 @@ class MermaTest extends IntegrationTest {
     @Autowired
     private MermaPorVencimiento automatica;
 
+    @Test
+    void adminSolicitaRevisionDeMermaPropiaSinAlterarInventario() throws Exception {
+        long producto = producto("Arroz revisión merma");
+        long punto = ubicacion("Centro Nacional Lima");
+        long lote = lote(producto, "L-REV-" + UUID.randomUUID().toString().substring(0, 8), punto, "8", HOY.plusDays(60));
+        Cookie admin = loginAs(ADMIN);
+        marcar(admin, ACOPIO, cuerpo(lote, "2", causa("Daño"), null, true)).andExpect(status().isCreated());
+        long movimiento = jdbc.queryForObject("SELECT movimiento_id FROM merma WHERE lote_id = ?", Long.class, lote);
+        BigDecimal saldoAntes = saldo(lote); BigDecimal stockAntes = stock(producto, punto);
+        int movsAntes = Math.toIntExact(contar("SELECT count(*) FROM movimiento_inventario WHERE lote_id = ?", lote));
+        mockMvc.perform(post("/api/acopio/merma/solicitudes-revision").cookie(admin).contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("mermaId", movimiento))))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.mermaId").value(movimiento))
+                .andExpect(jsonPath("$.solicitante").value("Administrador de Acopio de Prueba"));
+        assertThat(contar("SELECT count(*) FROM solicitud_revision_merma WHERE merma_movimiento_id = ?", movimiento)).isOne();
+        assertThat(saldo(lote)).isEqualByComparingTo(saldoAntes); assertThat(stock(producto, punto)).isEqualByComparingTo(stockAntes);
+        assertThat(contar("SELECT count(*) FROM movimiento_inventario WHERE lote_id = ?", lote)).isEqualTo(movsAntes);
+    }
+
+    @Test
+    void solicitudRevisionOcultaMermaAlAdminAsignadoAOtroPuntoSinMutaciones() throws Exception {
+        long producto = producto("Papa solicitud revisión entre puntos");
+        long puntoPropietario = ubicacion("Centro Nacional Lima");
+        long lote = lote(producto, "L-OTRO-" + UUID.randomUUID().toString().substring(0, 8), puntoPropietario, "6", HOY.plusDays(60));
+        Cookie propietario = loginAs(ADMIN);
+        marcar(propietario, ACOPIO, cuerpo(lote, "2", causa("Daño"), null, true)).andExpect(status().isCreated());
+        long merma = jdbc.queryForObject("SELECT movimiento_id FROM merma WHERE lote_id = ?", Long.class, lote);
+
+        jdbc.update("""
+                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
+                SELECT 'admin_loreto_revision@ccpip.test', contrasena_hash, 'Admin Loreto de prueba', rol_id, true
+                FROM usuario WHERE correo = ?""", ADMIN);
+        long otroAdminId = jdbc.queryForObject("SELECT id FROM usuario WHERE correo = ?", Long.class, "admin_loreto_revision@ccpip.test");
+        long loreto = ubicacion("Centro Regional Loreto");
+        jdbc.update("INSERT INTO usuario_ubicacion (usuario_id, ubicacion_id) VALUES (?, ?)", otroAdminId, loreto);
+        assertThat(contar("SELECT count(*) FROM usuario_ubicacion WHERE usuario_id = ?", otroAdminId)).isOne();
+
+        var mermaAntes = jdbc.queryForList("SELECT * FROM merma WHERE movimiento_id = ?", merma);
+        var movimientosAntes = jdbc.queryForList("SELECT * FROM movimiento_inventario WHERE lote_id = ? ORDER BY id", lote);
+        var loteAntes = jdbc.queryForList("SELECT * FROM lote WHERE id = ?", lote);
+        var existenciasAntes = jdbc.queryForList("SELECT * FROM stock WHERE producto_id = ? AND ubicacion_id = ?", producto, puntoPropietario);
+        int solicitudesAntes = Math.toIntExact(contar("SELECT count(*) FROM solicitud_revision_merma WHERE merma_movimiento_id = ?", merma));
+
+        mockMvc.perform(post("/api/acopio/merma/solicitudes-revision").cookie(loginAs("admin_loreto_revision@ccpip.test"))
+                        .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("mermaId", merma))))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("MERMA_NO_ENCONTRADA"));
+
+        assertThat(contar("SELECT count(*) FROM solicitud_revision_merma WHERE merma_movimiento_id = ?", merma)).isEqualTo(solicitudesAntes);
+        assertThat(jdbc.queryForList("SELECT * FROM merma WHERE movimiento_id = ?", merma)).isEqualTo(mermaAntes);
+        assertThat(jdbc.queryForList("SELECT * FROM movimiento_inventario WHERE lote_id = ? ORDER BY id", lote)).isEqualTo(movimientosAntes);
+        assertThat(jdbc.queryForList("SELECT * FROM lote WHERE id = ?", lote)).isEqualTo(loteAntes);
+        assertThat(jdbc.queryForList("SELECT * FROM stock WHERE producto_id = ? AND ubicacion_id = ?", producto, puntoPropietario)).isEqualTo(existenciasAntes);
+
+        mockMvc.perform(post("/api/acopio/merma/solicitudes-revision").cookie(propietario).contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("mermaId", merma))))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.mermaId").value(merma));
+        assertThat(contar("SELECT count(*) FROM solicitud_revision_merma WHERE merma_movimiento_id = ?", merma)).isEqualTo(solicitudesAntes + 1);
+        assertThat(jdbc.queryForList("SELECT * FROM merma WHERE movimiento_id = ?", merma)).isEqualTo(mermaAntes);
+        assertThat(jdbc.queryForList("SELECT * FROM movimiento_inventario WHERE lote_id = ? ORDER BY id", lote)).isEqualTo(movimientosAntes);
+        assertThat(jdbc.queryForList("SELECT * FROM lote WHERE id = ?", lote)).isEqualTo(loteAntes);
+        assertThat(jdbc.queryForList("SELECT * FROM stock WHERE producto_id = ? AND ubicacion_id = ?", producto, puntoPropietario)).isEqualTo(existenciasAntes);
+    }
+
+    @Test
+    void solicitudRevisionPersisteSolicitanteDeSesionYNoModificaFilasDeInventario() throws Exception {
+        long producto = producto("Maíz solicitud revisión");
+        long punto = ubicacion("Centro Nacional Lima");
+        long lote = lote(producto, "L-SOL-" + UUID.randomUUID().toString().substring(0, 8), punto, "8", HOY.plusDays(60));
+        Cookie admin = loginAs(ADMIN);
+        marcar(admin, ACOPIO, cuerpo(lote, "2", causa("Daño"), null, true)).andExpect(status().isCreated());
+        long merma = jdbc.queryForObject("SELECT movimiento_id FROM merma WHERE lote_id = ?", Long.class, lote);
+        long solicitante = jdbc.queryForObject("SELECT id FROM usuario WHERE correo = ?", Long.class, ADMIN);
+        var mermaAntes = jdbc.queryForList("SELECT * FROM merma WHERE movimiento_id = ?", merma);
+        var movimientosAntes = jdbc.queryForList("SELECT * FROM movimiento_inventario WHERE lote_id = ? ORDER BY id", lote);
+        var loteAntes = jdbc.queryForList("SELECT * FROM lote WHERE id = ?", lote);
+        var existenciasAntes = jdbc.queryForList("SELECT * FROM stock WHERE producto_id = ? AND ubicacion_id = ?", producto, punto);
+        mockMvc.perform(post("/api/acopio/merma/solicitudes-revision").cookie(admin).contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("mermaId", merma, "solicitanteId", 999999))))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.mermaId").value(merma)).andExpect(jsonPath("$.solicitanteId").value(solicitante))
+                .andExpect(jsonPath("$.solicitante").value("Administrador de Acopio de Prueba"))
+                .andExpect(jsonPath("$.registradaEn").isString());
+        assertThat(jdbc.queryForList("SELECT * FROM merma WHERE movimiento_id = ?", merma)).isEqualTo(mermaAntes);
+        assertThat(jdbc.queryForList("SELECT * FROM movimiento_inventario WHERE lote_id = ? ORDER BY id", lote)).isEqualTo(movimientosAntes);
+        assertThat(jdbc.queryForList("SELECT * FROM lote WHERE id = ?", lote)).isEqualTo(loteAntes);
+        assertThat(jdbc.queryForList("SELECT * FROM stock WHERE producto_id = ? AND ubicacion_id = ?", producto, punto)).isEqualTo(existenciasAntes);
+        assertThat(jdbc.queryForObject("SELECT solicitante_id FROM solicitud_revision_merma WHERE merma_movimiento_id = ?", Long.class, merma)).isEqualTo(solicitante);
+    }
+
+    @Test
+    void solicitudRevisionRechazaRolesNoAutorizadosYSinSesion() throws Exception {
+        long lote = lote(producto("Café permiso revisión"), "L-PERM-" + UUID.randomUUID().toString().substring(0, 8), ubicacion("Centro Nacional Lima"), "4", HOY.plusDays(60));
+        Cookie admin = loginAs(ADMIN);
+        marcar(admin, ACOPIO, cuerpo(lote, "1", causa("Daño"), null, true)).andExpect(status().isCreated());
+        long merma = jdbc.queryForObject("SELECT movimiento_id FROM merma WHERE lote_id = ?", Long.class, lote);
+        for (String correo : new String[]{"consumidor@ccpip.test", "productor@ccpip.test", "sub_admin@ccpip.test", "sudo@ccpip.test", "distribuidor@ccpip.test"}) {
+            mockMvc.perform(post("/api/acopio/merma/solicitudes-revision").cookie(loginAs(correo)).contentType(MediaType.APPLICATION_JSON).content(json(Map.of("mermaId", merma)))).andExpect(status().isForbidden());
+        }
+        mockMvc.perform(post("/api/acopio/merma/solicitudes-revision").contentType(MediaType.APPLICATION_JSON).content(json(Map.of("mermaId", merma)))).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void solicitudRevisionClasificaMermaAusenteMovimientoNoMermaYIdsInvalidos() throws Exception {
+        long lote = lote(producto("Quinua revisión ids"), "L-ID-" + UUID.randomUUID().toString().substring(0, 8), ubicacion("Centro Nacional Lima"), "4", HOY.plusDays(60));
+        Cookie admin = loginAs(ADMIN);
+        long movimiento = jdbc.queryForObject("SELECT id FROM movimiento_inventario WHERE lote_id = ?", Long.class, lote);
+        for (String id : new String[]{"abc", "0", "-1"}) mockMvc.perform(post("/api/acopio/merma/solicitudes-revision").cookie(admin).contentType(MediaType.APPLICATION_JSON).content("{\"mermaId\":"+id+"}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").isString());
+        mockMvc.perform(post("/api/acopio/merma/solicitudes-revision").cookie(admin).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").isString());
+        mockMvc.perform(post("/api/acopio/merma/solicitudes-revision").cookie(admin).contentType(MediaType.APPLICATION_JSON).content(json(Map.of("mermaId", 987654321L)))).andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("MERMA_NO_ENCONTRADA"));
+        mockMvc.perform(post("/api/acopio/merma/solicitudes-revision").cookie(admin).contentType(MediaType.APPLICATION_JSON).content(json(Map.of("mermaId", movimiento)))).andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("MERMA_NO_ENCONTRADA"));
+    }
+
+    @Test
+    void solicitudRevisionNoExponeMermaSiAdminPierdeAsignacionAlPunto() throws Exception {
+        long punto = ubicacion("Centro Nacional Lima");
+        long adminId = jdbc.queryForObject("SELECT id FROM usuario WHERE correo = ?", Long.class, ADMIN);
+        String loteNombre = "L-REVOC-" + UUID.randomUUID().toString().substring(0, 8);
+        long lote = lote(producto("Merma asignación revocada"), loteNombre, punto, "5", HOY.plusDays(60));
+        Cookie admin = loginAs(ADMIN);
+        marcar(admin, ACOPIO, cuerpo(lote, "1", causa("Daño"), null, true)).andExpect(status().isCreated());
+        long merma = jdbc.queryForObject("SELECT movimiento_id FROM merma WHERE lote_id = ?", Long.class, lote);
+        assertThat(contar("SELECT count(*) FROM usuario_ubicacion WHERE usuario_id = ? AND ubicacion_id = ?", adminId, punto)).isGreaterThan(0);
+        mockMvc.perform(post("/api/acopio/merma/solicitudes-revision").cookie(admin).contentType(MediaType.APPLICATION_JSON).content(json(Map.of("mermaId", merma))))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.mermaId").value(merma));
+        int solicitudesAntes = Math.toIntExact(contar("SELECT count(*) FROM solicitud_revision_merma WHERE merma_movimiento_id = ?", merma));
+        jdbc.update("DELETE FROM usuario_ubicacion WHERE usuario_id = ? AND ubicacion_id = ?", adminId, punto);
+        assertThat(contar("SELECT count(*) FROM usuario_ubicacion WHERE usuario_id = ? AND ubicacion_id = ?", adminId, punto)).isZero();
+        mockMvc.perform(post("/api/acopio/merma/solicitudes-revision").cookie(admin).contentType(MediaType.APPLICATION_JSON).content(json(Map.of("mermaId", merma))))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("MERMA_NO_ENCONTRADA"));
+        assertThat(contar("SELECT count(*) FROM solicitud_revision_merma WHERE merma_movimiento_id = ?", merma)).isEqualTo(solicitudesAntes);
+        long otroPunto = ubicacion("Centro Regional Loreto");
+        jdbc.update("INSERT INTO usuario_ubicacion (usuario_id, ubicacion_id) VALUES (?, ?) ON CONFLICT DO NOTHING", adminId, otroPunto);
+        mockMvc.perform(get(ACOPIO).cookie(admin)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].lote", not(hasItem(loteNombre))));
+    }
+
+    @Test
+    void solicitudRevisionNoAceptaMermaDeAlmacenProductorAunqueAdminEsteAsignadoAlPunto() throws Exception {
+        long almacen = almacenDe(PRODUCTOR);
+        long adminId = jdbc.queryForObject("SELECT id FROM usuario WHERE correo = ?", Long.class, ADMIN);
+        jdbc.update("INSERT INTO usuario_ubicacion (usuario_id, ubicacion_id) VALUES (?, ?) ON CONFLICT DO NOTHING", adminId, almacen);
+        assertThat(contar("SELECT count(*) FROM usuario_ubicacion WHERE usuario_id = ? AND ubicacion_id = ?", adminId, almacen)).isOne();
+        long lote = lote(producto("Yuca merma almacén"), "L-WH-" + UUID.randomUUID().toString().substring(0, 8), almacen, "5", HOY.plusDays(60));
+        Cookie admin = loginAs(ADMIN);
+        marcar(loginAs(PRODUCTOR), ALMACEN, cuerpo(lote, "1", causa("Daño"), null, true)).andExpect(status().isCreated());
+        long merma = jdbc.queryForObject("SELECT movimiento_id FROM merma WHERE lote_id = ?", Long.class, lote);
+        mockMvc.perform(post("/api/acopio/merma/solicitudes-revision").cookie(admin).contentType(MediaType.APPLICATION_JSON).content(json(Map.of("mermaId", merma)))).andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("MERMA_NO_ENCONTRADA"));
+    }
+
     // --- CCPIP-76: marcar merma ---
 
     @Test

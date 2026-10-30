@@ -22,6 +22,8 @@ function rutaReporte(base, sufijo = '', pagina = null, filtros = {}) {
 export const listarMermaPunto = (n, filtros) => apiFetch(rutaReporte('/api/acopio/merma', '', n, filtros))
 export const urlReporteMermaPunto = (formato, filtros) => rutaReporte('/api/acopio/merma', `/${formato}`, null, filtros)
 
+export const solicitarRevisionMermaPunto = (mermaId) => apiFetch('/api/acopio/merma/solicitudes-revision', { method: 'POST', body: { mermaId } })
+
 /**
  * `datos`: { loteId, cantidad, motivoId, detalle, clave, confirmada }. Sin `confirmada` el servidor
  * no marca nada; con la misma `clave` no descuenta dos veces.

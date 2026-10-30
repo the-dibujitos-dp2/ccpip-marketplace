@@ -22,15 +22,30 @@ const SIN_FILTROS = { desde: '', hasta: '', lote: '', producto: '', ubicacion: '
  * estaba el lote (el productor tiene lotes en su almacen y en los puntos). `ir` ({ ruta, texto }) lleva a
  * donde se marca la merma, con `irTexto` que lo explica. `onDatos` recibe cada pagina.
  */
-export default function ListaMerma({ consultar, exportar, conUbicacion = false, conProductor = false, ir, irTexto, onDatos }) {
+export default function ListaMerma({ consultar, exportar, solicitarRevision, conUbicacion = false, conProductor = false, ir, irTexto, onDatos }) {
   const { t, i18n } = useTranslation()
   const [pagina, setPagina] = useState(0)
   const [escritos, setEscritos] = useState(SIN_FILTROS)
   const [filtros, setFiltros] = useState(escritos)
   const [filtrosAplicados, setFiltrosAplicados] = useState(false)
+  const [solicitudes, setSolicitudes] = useState({})
+  const [errorSolicitud, setErrorSolicitud] = useState({})
+  const [enviando, setEnviando] = useState({})
   const cargar = useCallback(() => consultar(pagina, filtros).then((d) => { onDatos?.(d); return d }), [consultar, pagina, filtros, onDatos])
   const { datos, error, recargar } = useConsulta(cargar)
   const titulo = t('merma.lista.titulo')
+  const solicitar = async (mermaId) => {
+    setEnviando((actual) => ({ ...actual, [mermaId]: true }))
+    setErrorSolicitud((actual) => ({ ...actual, [mermaId]: '' }))
+    try {
+      await solicitarRevision(mermaId)
+      setSolicitudes((actual) => ({ ...actual, [mermaId]: true }))
+    } catch (e) {
+      setErrorSolicitud((actual) => ({ ...actual, [mermaId]: e.message || t('merma.lista.solicitudError') }))
+    } finally {
+      setEnviando((actual) => ({ ...actual, [mermaId]: false }))
+    }
+  }
   const cambiar = (campo) => (e) => setEscritos((actual) => ({ ...actual, [campo]: e.target.value }))
   const aplicar = () => { setPagina(0); setFiltros(escritos); setFiltrosAplicados(true) }
   // CCPIP-417: vuelve a toda la merma, sin filtros
@@ -96,6 +111,12 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
                 </span>
                 <span className="tabla__celda merma__col-estado" role="cell">
                   <Badge tono={m.automatica ? 'info' : 'error'}>{t(m.automatica ? 'merma.lista.automatica' : 'merma.lista.confirmada')}</Badge>
+                  {solicitarRevision && (solicitudes[m.id]
+                    ? <p role="status">{t('merma.lista.solicitudRegistrada')}</p>
+                    : <>
+                      <Boton tamano="S" tipo="secundario" cargando={Boolean(enviando[m.id])} onClick={() => solicitar(m.id)}>{t('merma.lista.solicitarRevision')}</Boton>
+                      {errorSolicitud[m.id] && <p role="alert">{errorSolicitud[m.id]}</p>}
+                    </>)}
                 </span>
               </div>
             ))}
