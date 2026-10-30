@@ -15,6 +15,8 @@ import LimpiarFiltros, { SinCoincidencias } from '../../components/LimpiarFiltro
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
 import { coincide, fechaHora, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
+import Paginacion from '../../components/Paginacion.jsx'
 import '../productor/productor.css'
 import '../productor/TransferenciasPage.css'
 
@@ -43,6 +45,9 @@ export default function TransferenciasPage({ path }) {
     && coincide(texto, tr.codigo, tr.productor, nombreLugar(tr.origen, t), nombreLugar(tr.destino, t), ...(tr.items ?? []).map((i) => i.producto))
   const porRecibir = datos?.porRecibir.filter(pasa) ?? []
   const todas = datos?.items.filter(pasa) ?? []
+  const filtroKey = JSON.stringify([texto, sentido, estado])
+  const paginaPorRecibir = usePaginacionLocal(porRecibir, filtroKey)
+  const paginaTodas = usePaginacionLocal(todas, filtroKey)
 
   function limpiar() {
     setTexto('')
@@ -132,12 +137,13 @@ export default function TransferenciasPage({ path }) {
             {porRecibir.length > 0 && (
               <Lista
                 etiqueta={t('acopio.transferencias.listaPorRecibir')}
-                items={porRecibir}
+                items={paginaPorRecibir.filas}
                 abierta={abierta}
                 onDetalle={verDetalle}
                 onRecibir={setRecibiendo}
               />
             )}
+            <Paginacion {...paginaPorRecibir} />
           </section>
 
           <section className="productor__seccion" aria-labelledby="titulo-todas">
@@ -146,8 +152,9 @@ export default function TransferenciasPage({ path }) {
               <EstadoVacio titulo={t('acopio.transferencias.vacio')} descripcion={t('acopio.transferencias.vacioTexto')} />
             ))}
             {todas.length > 0 && (
-              <Lista etiqueta={t('acopio.transferencias.listaTodas')} items={todas} abierta={abierta} onDetalle={verDetalle} />
+              <Lista etiqueta={t('acopio.transferencias.listaTodas')} items={paginaTodas.filas} abierta={abierta} onDetalle={verDetalle} />
             )}
+            <Paginacion {...paginaTodas} />
           </section>
         </>
       )}

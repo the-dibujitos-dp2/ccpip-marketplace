@@ -53,6 +53,21 @@ function acopio(rutas = {}) {
   })
 }
 
+describe('HU-433 paginación de transferencias operativas', () => {
+  it('página la lista completa de acopio conservando acciones y total', async () => {
+    const items = Array.from({ length: 21 }, (_, i) => transferencia(100 + i, 'DESPACHADA'))
+    acopio({ 'GET /api/acopio/transferencias': [200, { ...DATOS, porRecibir: items, items }] })
+    abrirEn('/acopio/transferencias')
+    const recibir = await screen.findByRole('list', { name: 'Transferencias por recibir' })
+    expect(within(recibir).getAllByRole('listitem')).toHaveLength(20)
+    expect(screen.queryByText('TR-0120')).not.toBeInTheDocument()
+    expect(screen.getAllByText(/21 registros/i)).toHaveLength(2)
+    await userEvent.click(within(screen.getByRole('region', { name: /Transferencias por recibir/ })).getByRole('button', { name: /Siguiente|Next/i }))
+    expect(await within(screen.getByRole('list', { name: 'Transferencias por recibir' })).findByText('TR-0120')).toBeInTheDocument()
+    expect(within(screen.getByRole('list', { name: 'Transferencias por recibir' })).getByRole('button', { name: 'Registrar la recepción de TR-0120' })).toBeInTheDocument()
+  })
+})
+
 describe('CCPIP-278 Transferencias del punto de acopio (A-03)', () => {
   afterEach(async () => {
     await i18n.changeLanguage('es')
