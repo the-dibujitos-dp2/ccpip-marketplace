@@ -169,7 +169,7 @@ describe('SA-01 Tablero de operación del superadministrador (CCPIP-111)', () =>
     servidor(comoSuper())
     abrirEn('/admin')
     const nav = within(await screen.findByRole('navigation', { name: 'Super administrador' }))
-    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Tablero', 'Permisos', 'Denuncias', 'Comisión', 'Comisión por pedido', 'Reportes', 'Parámetros', 'Catálogo maestro', 'Existencias', 'Cuentas', 'Causas de merma'])
+    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Tablero', 'Permisos', 'Auditoría', 'Denuncias', 'Comisión', 'Comisión por pedido', 'Reportes', 'Parámetros', 'Catálogo maestro', 'Existencias', 'Cuentas', 'Causas de merma'])
     expect(nav.getByRole('link', { name: 'Tablero' })).toHaveAttribute('aria-current', 'page')
   })
 
@@ -230,8 +230,8 @@ describe('SA-08 Acceso restringido (CCPIP-111)', () => {
     expect(window.location.pathname).toBe(ruta)
     const pedidas = fetchMock.mock.calls.map(([url]) => url)
     expect(pedidas.some((u) => /\/api\/(productor|acopio|carrito|pedidos|compra)/.test(u))).toBe(false)
-    // Tampoco promete un registro en Auditoría que todavía no existe
-    expect(screen.queryByText(/Auditoría/)).not.toBeInTheDocument()
+    // Tampoco promete que el intento quede en la Auditoría (CCPIP-97): no se registra
+    expect(within(screen.getByRole('main')).queryByText(/Auditoría/)).not.toBeInTheDocument()
   })
 
   it('vuelve al tablero', async () => {

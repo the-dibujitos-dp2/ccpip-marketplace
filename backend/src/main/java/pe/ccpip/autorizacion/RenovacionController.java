@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import pe.ccpip.auth.access.Permiso;
+import pe.ccpip.auth.access.PermisoConfigurable;
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.filter.SessionAuthFilter;
 import pe.ccpip.auth.model.AuthenticatedSession;
@@ -40,6 +42,7 @@ public class RenovacionController {
 
     /** El servicio ya confirmo la transaccion: el aviso sale solo si la solicitud quedo guardada. */
     @RolesPermitidos(Rol.SUB_ADMIN)
+    @PermisoConfigurable(Permiso.DECIDIR_AUTORIZACIONES)
     @PostMapping("/api/admin/autorizaciones/{id}/renovaciones")
     @ResponseStatus(HttpStatus.CREATED)
     public Renovacion registrar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,

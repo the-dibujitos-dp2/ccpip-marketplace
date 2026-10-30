@@ -19,13 +19,20 @@ import pe.ccpip.auth.model.AuthenticatedSession;
 /**
  * CCPIP-151: cada endpoint de /api declara quien puede llamarlo con {@link Publico},
  * {@link Autenticado} o {@link RolesPermitidos}. Un endpoint sin declaracion se niega
- * (falla cerrado). Todo acceso denegado queda en el log con usuario, rol y ruta.
+ * (falla cerrado). Un endpoint con {@link PermisoConfigurable} exige ademas que el permiso no se haya
+ * revocado al rol (CCPIP-296). Todo acceso denegado queda en el log con usuario, rol y ruta.
  * Sin sesion responde 401 indicando si expiro (SESION_EXPIRADA) o si no habia (SIN_SESION).
  */
 @Component
 public class AccessInterceptor implements HandlerInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(AccessInterceptor.class);
+
+    private final PermisosConfigurables permisos;
+
+    public AccessInterceptor(PermisosConfigurables permisos) {
+        this.permisos = permisos;
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
@@ -52,10 +59,15 @@ public class AccessInterceptor implements HandlerInterceptor {
             log.error("Endpoint sin declaracion de acceso: {} {}", request.getMethod(), request.getRequestURI());
             return deny(request, response, session, HttpServletResponse.SC_FORBIDDEN, "SIN_PERMISO");
         }
-        if (Arrays.asList(roles.value()).contains(session.role())) {
-            return true;
+        if (!Arrays.asList(roles.value()).contains(session.role())) {
+            return deny(request, response, session, HttpServletResponse.SC_FORBIDDEN, "SIN_PERMISO");
         }
-        return deny(request, response, session, HttpServletResponse.SC_FORBIDDEN, "SIN_PERMISO");
+        // CCPIP-296: el rol puede, salvo que el superadministrador le haya revocado este permiso
+        PermisoConfigurable requerido = find(method, PermisoConfigurable.class);
+        if (requerido != null && permisos.revocado(session.role(), requerido.value())) {
+            return deny(request, response, session, HttpServletResponse.SC_FORBIDDEN, "PERMISO_REVOCADO");
+        }
+        return true;
     }
 
     private static boolean unauthenticated(HttpServletResponse response, boolean expired) throws IOException {

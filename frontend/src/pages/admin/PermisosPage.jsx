@@ -5,10 +5,14 @@ import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
+import PermisosConfigurables from './PermisosConfigurables.jsx'
 import '../productor/productor.css'
 import './admin.css'
 
-/** CCPIP-28: consulta de las reglas de acceso declaradas en el servidor; esta pantalla no modifica roles. */
+/**
+ * CCPIP-296: los permisos configurables de cada rol, que el superadministrador concede o revoca, y
+ * CCPIP-28: la consulta de las reglas de acceso declaradas en el servidor, de solo lectura.
+ */
 export default function PermisosPage({ path }) {
   const { t } = useTranslation()
   const consultar = useCallback(() => consultarPermisos(), [])
@@ -16,6 +20,8 @@ export default function PermisosPage({ path }) {
 
   return (
     <LayoutAdmin path={path} migas={t('admin.nav.permisos')} titulo={t('admin.permisos.titulo')}>
+      <PermisosConfigurables />
+      <h2 className="heading-s">{t('admin.permisos.declarados')}</h2>
       <p className="body-s">{t('admin.permisos.descripcion')}</p>
       {error && <Alerta tono="error" titulo={t('admin.permisos.error')} descripcion={t('comun.errorConexion')} />}
       {!datos && !error && <Cargando />}
