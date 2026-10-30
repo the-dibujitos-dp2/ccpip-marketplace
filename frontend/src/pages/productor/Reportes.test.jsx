@@ -70,6 +70,29 @@ const INVENTARIO = {
   productos: PRODUCTOS,
 }
 
+const CONSUMO = {
+  desde: '2026-01-01',
+  hasta: '2026-03-18',
+  agrupacion: 'MES',
+  producto: null,
+  modalidad: null,
+  totales: {
+    pedidos: 7, compradores: 3, unidadesB2c: 7, unidadesB2b: 45, importeB2c: 140, importeB2b: 450, importe: 590,
+    ticketPromedio: 84.29, comprasPorComprador: 2.33,
+  },
+  periodos: [
+    { inicio: '2026-01-01', fin: '2026-01-31', pedidos: 3, compradores: 2, unidadesB2c: 6, unidadesB2b: 10, importeB2c: 120, importeB2b: 100 },
+    { inicio: '2026-02-01', fin: '2026-02-28', pedidos: 0, compradores: 0, unidadesB2c: 0, unidadesB2b: 0, importeB2c: 0, importeB2b: 0 },
+    { inicio: '2026-03-01', fin: '2026-03-18', pedidos: 4, compradores: 2, unidadesB2c: 1, unidadesB2b: 35, importeB2c: 20, importeB2b: 350 },
+  ],
+  frecuencia: [
+    { tramo: 'UNA', compradoresB2c: 1, compradoresB2b: 0, compradores: 1, importe: 60 },
+    { tramo: 'DOS_A_TRES', compradoresB2c: 1, compradoresB2b: 2, compradores: 1, importe: 300 },
+    { tramo: 'CUATRO_O_MAS', compradoresB2c: 0, compradoresB2b: 0, compradores: 1, importe: 230 },
+  ],
+  productos: PRODUCTOS,
+}
+
 function productor(rutas = {}) {
   return servidor({
     ...PUBLICAS,
@@ -201,6 +224,57 @@ describe('Reportes del productor', () => {
     expect(within(productos[2]).getAllByRole('cell').map((c) => c.textContent))
       .toEqual(['Harina de aguaje 500 g', '0', '30', '4', '0', '2', '24'])
     expect(screen.getByText(/Las transferencias no cambian el total/)).toBeInTheDocument()
+  })
+
+  it('CCPIP-135: la pestana Consumo separa B2C y B2B con importe, volumen y frecuencia, y conserva la modalidad', async () => {
+    const fetchMock = productor({
+      'GET /api/productor/reportes/consumo?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES&modalidad=MAYORISTA': () => [200, {
+        ...copia(CONSUMO), modalidad: 'MAYORISTA',
+      }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/reportes')
+    await screen.findByRole('table', { name: 'Ventas por período' })
+    fireEvent.change(screen.getByLabelText('Modalidad'), { target: { value: 'MAYORISTA' } })
+    await user.click(screen.getByRole('tab', { name: 'Consumo' }))
+
+    expect(await screen.findByRole('region', { name: 'Pedidos' })).toHaveTextContent('7')
+    expect(screen.getByRole('region', { name: 'Pedidos' })).toHaveTextContent('3 compradores distintos')
+    expect(screen.getByRole('region', { name: 'B2C (minorista)' })).toHaveTextContent('S/ 140.00')
+    expect(screen.getByRole('region', { name: 'B2C (minorista)' })).toHaveTextContent('7 unidades vendidas')
+    expect(screen.getByRole('region', { name: 'B2B (mayorista)' })).toHaveTextContent('45 unidades vendidas')
+    expect(screen.getByRole('region', { name: 'Ticket promedio' })).toHaveTextContent('S/ 84.29')
+    expect(screen.getByRole('region', { name: 'Compras por comprador' })).toHaveTextContent('2.33')
+    // La modalidad tambien filtra el consumo
+    expect(screen.getByLabelText('Modalidad')).toHaveValue('MAYORISTA')
+    expect(llamadas(fetchMock, 'GET /api/productor/reportes/consumo?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES&modalidad=MAYORISTA')).toHaveLength(1)
+
+    const periodos = within(screen.getByRole('table', { name: 'Consumo por período' })).getAllByRole('row')
+    // El precio usa espacio no separable (Intl)
+    const celdas = (fila) => within(fila).getAllByRole('cell').map((c) => c.textContent.replace(/\s/g, ' '))
+    expect(celdas(periodos[1]))
+      .toEqual(['Enero de 2026', '', '3', '2', '6', '10', 'S/ 120.00', 'S/ 100.00'])
+    const frecuencia = within(screen.getByRole('table', { name: 'Frecuencia de compra' })).getAllByRole('row')
+    expect(frecuencia).toHaveLength(4)
+    expect(celdas(frecuencia[2]))
+      .toEqual(['2 a 3 compras', '1', '2', '1', 'S/ 300.00'])
+    expect(screen.getByText(/nunca se muestra quién compró/)).toBeInTheDocument()
+  })
+
+  it('CCPIP-135: sin compras en el rango lo dice en vez de la frecuencia', async () => {
+    productor({
+      'GET /api/productor/reportes/consumo?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES': () => [200, {
+        ...copia(CONSUMO),
+        totales: { ...CONSUMO.totales, pedidos: 0, compradores: 0 },
+        frecuencia: CONSUMO.frecuencia.map((f) => ({ ...f, compradoresB2c: 0, compradoresB2b: 0, compradores: 0, importe: 0 })),
+      }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/reportes')
+    await screen.findByRole('table', { name: 'Ventas por período' })
+    await user.click(screen.getByRole('tab', { name: 'Consumo' }))
+    expect(await screen.findByText('No hubo compras en este período')).toBeInTheDocument()
+    expect(screen.queryByRole('table', { name: 'Frecuencia de compra' })).not.toBeInTheDocument()
   })
 
   it('CCPIP-115: descarga en PDF lo que se esta viendo, con la modalidad y el idioma', async () => {
