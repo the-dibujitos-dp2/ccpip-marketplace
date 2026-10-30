@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import pe.ccpip.auth.access.Permiso;
+import pe.ccpip.auth.access.PermisoConfigurable;
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.filter.SessionAuthFilter;
 import pe.ccpip.auth.model.AuthenticatedSession;
@@ -57,6 +59,7 @@ public class ModeracionController {
     }
 
     /** CCPIP-331: aprobar con motivo; la oferta pasa al catalogo. */
+    @PermisoConfigurable(Permiso.MODERAR_PUBLICACIONES)
     @PostMapping("/{id}/aprobar")
     public Expediente aprobar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                               @PathVariable long id, @Valid @RequestBody NuevaDecision decision) {
@@ -65,6 +68,7 @@ public class ModeracionController {
     }
 
     /** CCPIP-332: rechazar con motivo; la oferta vuelve a su estado anterior y el productor ve el motivo. */
+    @PermisoConfigurable(Permiso.MODERAR_PUBLICACIONES)
     @PostMapping("/{id}/rechazar")
     public Expediente rechazar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                @PathVariable long id, @Valid @RequestBody NuevaDecision decision) {
@@ -92,6 +96,7 @@ public class ModeracionController {
     }
 
     /** Aprobar o rechazar un video, con motivo; el productor recibe el aviso. */
+    @PermisoConfigurable(Permiso.MODERAR_PUBLICACIONES)
     @PostMapping("/videos/{id}/{accion:aprobar|rechazar}")
     public ExpedienteVideo decidirVideo(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                         @PathVariable long id, @PathVariable String accion,

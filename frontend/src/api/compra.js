@@ -17,6 +17,14 @@ export const consultarDistritosEntrega = () => apiFetch('/api/compra/distritos')
 export const consultarAdvertencias = (puntoId) => apiFetch(`/api/compra/advertencias?punto=${idRuta(puntoId)}`)
 
 /**
+ * CCPIP-60 (RF-41, RNF-45): si el carrito se puede entregar desde el punto, antes de pagar. Con `ubigeo` es a
+ * domicilio y el punto ademas debe cubrir ese distrito. Devuelve { factible, existencias, cobertura, motivos },
+ * donde motivos son los codigos que se obtendrian al pagar: PUNTO_SIN_EXISTENCIAS, SIN_COBERTURA.
+ */
+export const consultarFactibilidad = (puntoId, ubigeo) =>
+  apiFetch(`/api/compra/factibilidad?punto=${idRuta(puntoId)}${ubigeo ? `&ubigeo=${encodeURIComponent(ubigeo)}` : ''}`)
+
+/**
  * Crea el pedido en espera de pago. No descuenta stock hasta que el pago se aprueba. Con `entrega`
  * (CCPIP-59) es a domicilio: { ubigeo, direccion, referencia, contactoNombre, contactoCelular }; sin
  * ella es recojo, con persona autorizada y celular de contacto.

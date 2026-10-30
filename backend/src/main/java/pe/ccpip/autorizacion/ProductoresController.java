@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import pe.ccpip.auth.access.Permiso;
+import pe.ccpip.auth.access.PermisoConfigurable;
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.filter.SessionAuthFilter;
 import pe.ccpip.auth.model.AuthenticatedSession;
@@ -53,6 +55,7 @@ public class ProductoresController {
      * Habilitar la tienda (CCPIP-291), revocar o restituir la venta (CCPIP-330) y bloquearla o
      * desbloquearla (CCPIP-85, CCPIP-322), siempre con motivo.
      */
+    @PermisoConfigurable(Permiso.GESTIONAR_PRODUCTORES)
     @PostMapping("/{id}/{accion:habilitar-tienda|revocar|restituir|bloquear|desbloquear}")
     public FichaProductor decidir(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                   @PathVariable long id, @PathVariable String accion, @Valid @RequestBody NuevaDecision decision) {
