@@ -2715,6 +2715,12 @@
       "celularAyuda": "9 dígitos. Lo usamos para coordinar la entrega.",
       "resumen": "A domicilio · por confirmar",
       "sinCobertura": "Ese punto no entrega en tu distrito"
+    },
+    "factibilidad": {
+      "titulo": "Este punto ya no puede entregar tu pedido",
+      "PUNTO_SIN_EXISTENCIAS": "Ya no tiene existencias para todo tu carrito.",
+      "SIN_COBERTURA": "No entrega a domicilio en el distrito que elegiste.",
+      "accion": "Elige otro punto o cambia la forma de entrega para poder pagar."
     }
   },
   "pedido": {

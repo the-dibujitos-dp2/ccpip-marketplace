@@ -2715,6 +2715,12 @@
       "celularAyuda": "9 digits. We use it to coordinate the delivery.",
       "resumen": "Home delivery · to be confirmed",
       "sinCobertura": "That point does not deliver to your district"
+    },
+    "factibilidad": {
+      "titulo": "This point can no longer deliver your order",
+      "PUNTO_SIN_EXISTENCIAS": "It no longer has stock for your whole cart.",
+      "SIN_COBERTURA": "It does not deliver to the district you chose.",
+      "accion": "Choose another point or change the delivery method to pay."
     }
   },
   "pedido": {
