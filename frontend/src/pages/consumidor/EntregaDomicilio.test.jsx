@@ -336,6 +336,45 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     expect(llamadas(fetchMock, 'GET /api/compra/distritos').length).toBeGreaterThanOrEqual(2)
   })
 
+  it('CCPIP-60: consulta la factibilidad con el distrito y avisa antes de pagar si el punto ya no lo cubre', async () => {
+    const FACTIBILIDAD = 'GET /api/compra/factibilidad?punto=3&ubigeo=080108'
+    const fetchMock = servidor(rutas({
+      [FACTIBILIDAD]: [200, { factible: false, existencias: true, cobertura: false, motivos: ['SIN_COBERTURA'] }],
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    await elegirDestino(usuario, 'Cusco', 'Cusco', '080108')
+
+    expect(await screen.findByText('Este punto ya no puede entregar tu pedido')).toBeInTheDocument()
+    expect(screen.getByText(/No entrega a domicilio en el distrito que elegiste/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: PAGAR })).toBeDisabled()
+    expect(llamadas(fetchMock, FACTIBILIDAD)).toHaveLength(1)
+    expect(llamadas(fetchMock, 'POST /api/pedidos')).toHaveLength(0)
+  })
+
+  it('CCPIP-60: si al pagar el punto dejó de cubrir el distrito, no hubo cobro: lo explica y recarga', { timeout: 15_000 }, async () => {
+    const fetchMock = servidor(rutas({
+      'POST /api/pedidos/78/pagos': [409, { code: 'SIN_COBERTURA', error: 'El punto de acopio ya no entrega a domicilio en ese distrito. No se hizo ningún cobro; elige otro punto o el recojo.' }],
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    await elegirDestino(usuario, 'Cusco', 'Cusco', '080108')
+    await usuario.type(screen.getByLabelText('Dirección de entrega'), 'Av. de la Cultura 1234')
+    await usuario.clear(screen.getByLabelText('Nombre de quien recibe'))
+    await usuario.type(screen.getByLabelText('Nombre de quien recibe'), 'María Quispe')
+    await usuario.clear(screen.getByLabelText('Celular de quien recibe'))
+    await usuario.type(screen.getByLabelText('Celular de quien recibe'), '987654321')
+    await datosDeTarjeta(usuario)
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+
+    const alerta = await screen.findByRole('alert')
+    expect(within(alerta).getByText('Ese punto no entrega en tu distrito')).toBeInTheDocument()
+    expect(within(alerta).getByText(/No se hizo ningún cobro/)).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'GET /api/compra/distritos').length).toBeGreaterThanOrEqual(2)
+  })
+
   it('al recargar las opciones no conserva un punto que ya no cubre el distrito: queda el que sigue', { timeout: 15_000 }, async () => {
     let vez = 0
     servidor(rutas({

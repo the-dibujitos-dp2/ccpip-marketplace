@@ -47,6 +47,54 @@ public final class ReportesProductorModelos {
                                 List<ProductoVentas> porProducto, List<ProductoOpcion> productos) {
     }
 
+    /**
+     * CCPIP-135: el consumo de un periodo. {@code pedidos} son las compras confirmadas con alguno de sus
+     * productos y {@code compradores}, cuantas personas distintas las hicieron (solo el conteo).
+     */
+    public record PeriodoConsumo(LocalDate inicio, LocalDate fin, long pedidos, long compradores,
+                                 BigDecimal unidadesB2c, BigDecimal unidadesB2b, BigDecimal importeB2c,
+                                 BigDecimal importeB2b) {
+    }
+
+    /**
+     * CCPIP-135: el consumo de todo el rango. {@code compradores} son personas distintas en el rango, no la
+     * suma de los periodos. {@code ticketPromedio} = importe / pedidos y {@code comprasPorComprador} = pedidos
+     * / compradores, con dos decimales (cero si no hubo compras).
+     */
+    public record TotalesConsumo(long pedidos, long compradores, BigDecimal unidadesB2c, BigDecimal unidadesB2b,
+                                 BigDecimal importeB2c, BigDecimal importeB2b, BigDecimal importe,
+                                 BigDecimal ticketPromedio, BigDecimal comprasPorComprador) {
+    }
+
+    /** CCPIP-135: cuantas veces compro una persona en el rango. */
+    public enum TramoFrecuencia {
+        UNA, DOS_A_TRES, CUATRO_O_MAS;
+
+        static TramoFrecuencia de(long compras) {
+            return compras <= 1 ? UNA : compras <= 3 ? DOS_A_TRES : CUATRO_O_MAS;
+        }
+    }
+
+    /**
+     * CCPIP-135: cuantos compradores caen en un tramo de frecuencia. {@code compradoresB2c} y
+     * {@code compradoresB2b} cuentan solo sus compras de esa modalidad; {@code compradores} e {@code importe},
+     * todas sus compras. Por eso alguien con una compra B2C y otra B2B esta en UNA para cada modalidad y en
+     * DOS_A_TRES en el total.
+     */
+    public record FrecuenciaCompra(TramoFrecuencia tramo, long compradoresB2c, long compradoresB2b, long compradores,
+                                   BigDecimal importe) {
+    }
+
+    /**
+     * CCPIP-135 (RF-105): consumo y ventas de sus productos por modalidad y frecuencia de compra. Sin datos
+     * de los compradores: solo conteos, nunca quien compro. Un pedido con lineas B2C y B2B cuenta en cada
+     * modalidad, pero una sola vez en {@code pedidos}.
+     */
+    public record ReporteConsumo(LocalDate desde, LocalDate hasta, Agrupacion agrupacion, Long producto,
+                                 Modalidad modalidad, TotalesConsumo totales, List<PeriodoConsumo> periodos,
+                                 List<FrecuenciaCompra> frecuencia, List<ProductoOpcion> productos) {
+    }
+
     /** CCPIP-333: un periodo de produccion: unidades ingresadas y lotes nuevos. */
     public record PeriodoProduccion(LocalDate inicio, LocalDate fin, BigDecimal unidades, long lotes,
                                     BigDecimal acumulado) {
