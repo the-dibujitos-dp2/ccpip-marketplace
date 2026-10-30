@@ -25,14 +25,14 @@ import './productor.css'
 import './ReportesPage.css'
 
 /** Pestanas de la pantalla, en orden. Cada una es /api/productor/reportes/{clave}. */
-const METRICAS = ['ventas', 'produccion', 'inventario']
+const METRICAS = ['ventas', 'produccion', 'inventario', 'consumo']
 
 const AGRUPACIONES = ['DIA', 'SEMANA', 'MES']
 
 const MODALIDADES = ['MINORISTA', 'MAYORISTA']
 
-/** Filtros que solo tienen sentido en algunas pestanas: la modalidad de compra es de las ventas. */
-const CON_MODALIDAD = ['ventas']
+/** Filtros que solo tienen sentido en algunas pestanas: la modalidad de compra es de las ventas y el consumo. */
+const CON_MODALIDAD = ['ventas', 'consumo']
 
 /** Formatos de exportacion: el reporte completo de lo que se esta viendo. */
 const FORMATOS = ['pdf', 'xlsx']
@@ -49,8 +49,8 @@ const aFiltro = (r, f) => ({ ...f, desde: r.desde, hasta: r.hasta, agrupacion: r
 /**
  * Reportes del productor: estadisticas de sus productos por periodo, con el formato de los reportes de la
  * plataforma (SA-05). CCPIP-114 (RF-25): ventas; CCPIP-333 (RF-223): produccion;
- * CCPIP-334 (RF-224): inventario; CCPIP-115 (RF-26) y CCPIP-335 (RF-225): exportacion en PDF y
- * Excel. El servidor solo envia sus productos (RNF-05) y ningun
+ * CCPIP-334 (RF-224): inventario; CCPIP-135 (RF-105): consumo por modalidad y frecuencia de compra;
+ * CCPIP-115 (RF-26) y CCPIP-335 (RF-225): exportacion en PDF y Excel. El servidor solo envia sus productos (RNF-05) y ningun
  * dato de los compradores; la pantalla solo muestra lo calculado.
  */
 export default function ReportesPage({ path }) {
@@ -121,6 +121,7 @@ export default function ReportesPage({ path }) {
       {mostrada === 'ventas' && <Ventas datos={datos} />}
       {mostrada === 'produccion' && <Produccion datos={datos} />}
       {mostrada === 'inventario' && <Inventario datos={datos} />}
+      {mostrada === 'consumo' && <Consumo datos={datos} />}
     </PaginaProductor>
   )
 }
@@ -352,6 +353,93 @@ function Inventario({ datos }) {
           </div>
         )}
         <Paginacion {...paginasProducto} />
+      </section>
+    </>
+  )
+}
+
+/** Columnas de conteos del consumo y de la frecuencia, en el orden de la tabla. */
+const COLUMNAS_CONSUMO = ['pedidos', 'compradores', 'unidadesB2c', 'unidadesB2b']
+const COLUMNAS_FRECUENCIA = ['compradoresB2c', 'compradoresB2b', 'compradores']
+
+/**
+ * CCPIP-135 (RF-105): cuanto le compran por modalidad (pedidos, compradores, volumen e importe) y con que
+ * frecuencia. El servidor solo envia conteos: la pantalla nunca sabe quien compro.
+ */
+function Consumo({ datos }) {
+  const { t } = useTranslation()
+  const { totales, periodos, frecuencia, agrupacion } = datos
+  const filtroKey = JSON.stringify([datos.aplicado?.desde, datos.aplicado?.hasta, datos.aplicado?.agrupacion, datos.aplicado?.producto, datos.aplicado?.modalidad])
+  const paginasPeriodo = usePaginacionLocal(periodos, filtroKey)
+  const mayor = Math.max(...periodos.map((p) => Number(p.importeB2c) + Number(p.importeB2b)), 0)
+  return (
+    <>
+      <div className="productor__kpis">
+        <TarjetaKpi titulo={t('productor.reportes.consumo.pedidos')} valor={unidades(totales.pedidos)} tono="neutro" icono={iconoGrafico}
+          detalle={t('productor.reportes.consumo.pedidosDetalle', { compradores: unidades(totales.compradores) })} />
+        <TarjetaKpi titulo={t('productor.reportes.b2c')} valor={precio(totales.importeB2c)} tono="neutro" icono={iconoTienda}
+          detalle={t('productor.reportes.ventas.unidades', { cantidad: unidades(totales.unidadesB2c) })} />
+        <TarjetaKpi titulo={t('productor.reportes.b2b')} valor={precio(totales.importeB2b)} tono="neutro" icono={iconoComunidad}
+          detalle={t('productor.reportes.ventas.unidades', { cantidad: unidades(totales.unidadesB2b) })} />
+        <TarjetaKpi titulo={t('productor.reportes.consumo.ticket')} valor={precio(totales.ticketPromedio)} tono="neutro" icono={iconoCaja}
+          detalle={t('productor.reportes.consumo.ticketDetalle')} />
+        <TarjetaKpi titulo={t('productor.reportes.consumo.comprasPorComprador')} valor={unidades(totales.comprasPorComprador)} tono="neutro"
+          icono={iconoMovimientos} detalle={t('productor.reportes.consumo.comprasPorCompradorDetalle')} />
+      </div>
+      <section className="productor__seccion" aria-labelledby="reportes-consumo-periodo">
+        <h2 id="reportes-consumo-periodo" className="heading-h3">{t('productor.reportes.consumo.porPeriodo')}</h2>
+        <div className="tabla" role="table" aria-labelledby="reportes-consumo-periodo">
+          <div className="tabla__fila tabla__fila--encabezado" role="row">
+            <span className="tabla__celda reportes-productor__periodo" role="columnheader">{t('productor.reportes.col.periodo')}</span>
+            <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.reportes.col.barraVentas')}</span>
+            {COLUMNAS_CONSUMO.map((c) => (
+              <span key={c} className="tabla__celda reportes-productor__num reportes-productor__num--estrecha" role="columnheader">{t(`productor.reportes.col.${c}`)}</span>
+            ))}
+            <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.b2c')}</span>
+            <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.b2b')}</span>
+          </div>
+          {paginasPeriodo.filas.map((p) => (
+            <div key={p.inicio} className="tabla__fila" role="row">
+              <span className="tabla__celda reportes-productor__periodo label-m" role="cell">{nombrePeriodo(p, agrupacion, t)}</span>
+              <span className="tabla__celda tabla__celda--flex" role="cell">
+                <Barra partes={[Number(p.importeB2c), Number(p.importeB2b)]} mayor={mayor} />
+              </span>
+              {COLUMNAS_CONSUMO.map((c) => (
+                <span key={c} className="tabla__celda reportes-productor__num reportes-productor__num--estrecha" role="cell">{unidades(p[c])}</span>
+              ))}
+              <span className="tabla__celda reportes-productor__num" role="cell">{precio(p.importeB2c)}</span>
+              <span className="tabla__celda reportes-productor__num" role="cell">{precio(p.importeB2b)}</span>
+            </div>
+          ))}
+        </div>
+        <Paginacion {...paginasPeriodo} />
+        <p className="caption">{t('productor.reportes.consumo.nota')}</p>
+      </section>
+      <section className="productor__seccion" aria-labelledby="reportes-consumo-frecuencia">
+        <h2 id="reportes-consumo-frecuencia" className="heading-h3">{t('productor.reportes.consumo.frecuencia')}</h2>
+        {totales.compradores === 0 ? (
+          <EstadoVacio titulo={t('productor.reportes.consumo.vacio')} descripcion={t('productor.reportes.vacioTexto')} />
+        ) : (
+          <div className="tabla" role="table" aria-labelledby="reportes-consumo-frecuencia">
+            <div className="tabla__fila tabla__fila--encabezado" role="row">
+              <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.reportes.col.compras')}</span>
+              {COLUMNAS_FRECUENCIA.map((c) => (
+                <span key={c} className="tabla__celda reportes-productor__num" role="columnheader">{t(`productor.reportes.col.${c}`)}</span>
+              ))}
+              <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.importe')}</span>
+            </div>
+            {frecuencia.map((f) => (
+              <div key={f.tramo} className="tabla__fila" role="row">
+                <span className="tabla__celda tabla__celda--flex label-m" role="cell">{t(`productor.reportes.consumo.tramos.${f.tramo}`)}</span>
+                {COLUMNAS_FRECUENCIA.map((c) => (
+                  <span key={c} className={`tabla__celda reportes-productor__num${c === 'compradores' ? ' label-m' : ''}`} role="cell">{unidades(f[c])}</span>
+                ))}
+                <span className="tabla__celda reportes-productor__num" role="cell">{precio(f.importe)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="caption">{t('productor.reportes.consumo.notaFrecuencia')}</p>
       </section>
     </>
   )

@@ -383,7 +383,15 @@
         "vendidas": "Sold",
         "merma": "Shrinkage",
         "otrasSalidas": "Other out",
-        "saldoFinal": "Closing"
+        "saldoFinal": "Closing",
+        "pedidos": "Orders",
+        "compradores": "Buyers",
+        "unidadesB2c": "Units B2C",
+        "unidadesB2b": "Units B2B",
+        "compras": "Purchases in the period",
+        "compradoresB2c": "Buyers B2C",
+        "compradoresB2b": "Buyers B2B",
+        "importe": "Amount"
       },
       "ventas": {
         "pestana": "Sales",
@@ -419,6 +427,25 @@
         "porProducto": "Inventory by product",
         "vacio": "You had no stock in this period",
         "nota": "It comes from your batch movements: closing = opening + in − sold − shrinkage − other out (withdrawals and returns). Transfers do not change your inventory total and are not counted; stock in transit or expired but not yet written off is still yours."
+      },
+      "consumo": {
+        "pestana": "Consumption",
+        "pedidos": "Orders",
+        "pedidosDetalle": "{{compradores}} different buyers",
+        "ticket": "Average ticket",
+        "ticketDetalle": "Average amount per order",
+        "comprasPorComprador": "Purchases per buyer",
+        "comprasPorCompradorDetalle": "Average in the period",
+        "porPeriodo": "Consumption by period",
+        "frecuencia": "Purchase frequency",
+        "vacio": "There were no purchases in this period",
+        "nota": "Paid, non-cancelled orders with any of your products. An order with retail and wholesale products counts in both B2C and B2B, but only once in the order total.",
+        "notaFrecuencia": "How many people bought from you once, two to three, or four or more times in the period. They are only counted: who bought is never shown.",
+        "tramos": {
+          "UNA": "1 purchase",
+          "DOS_A_TRES": "2 to 3 purchases",
+          "CUATRO_O_MAS": "4 or more purchases"
+        }
       }
     },
     "productos": {
