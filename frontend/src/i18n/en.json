@@ -1395,7 +1395,22 @@
       "tituloDialogo": "Deactivate delivery zone",
       "confirmar": "Deactivate",
       "cancelar": "Cancel",
-      "errorDesactivar": "The zone could not be deactivated. Please try again."
+      "errorDesactivar": "The zone could not be deactivated. Please try again.",
+      "declarar": {
+        "abrir": "Declare districts",
+        "titulo": "Declare districts for {{punto}}",
+        "ayuda": "Choose from the territorial catalog the districts where this point delivers. Orders and deliveries already recorded do not change.",
+        "elegir": "Choose",
+        "yaDeclarado": "Already declared",
+        "elegirUno": "Choose at least one district",
+        "elegidos_one": "{{count}} district selected",
+        "elegidos_other": "{{count}} districts selected",
+        "confirmar": "Declare",
+        "error": "We couldn't declare the coverage",
+        "errorCatalogo": "We couldn't load the territorial catalog",
+        "hecho_one": "You declared {{count}} district for {{punto}}",
+        "hecho_other": "You declared {{count}} districts for {{punto}}"
+      }
     }
   },
   "admin": {
