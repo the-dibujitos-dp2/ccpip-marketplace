@@ -5,7 +5,7 @@ import iconoCamion from '../../assets/icons/camion.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import { consultarCarrito, recargarUnidadesCarrito } from '../../api/carrito.js'
 import { guardarDireccionHabitual, obtenerMisDatos } from '../../api/cuenta.js'
-import { confirmarCompra, consultarAdvertencias, consultarDistritosEntrega, consultarPuntosRecojo, pagarPedido } from '../../api/compra.js'
+import { confirmarCompra, consultarAdvertencias, consultarDistritosEntrega, consultarFactibilidad, consultarPuntosRecojo, pagarPedido } from '../../api/compra.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
@@ -116,7 +116,8 @@ function mensajePago(resultado) {
 /**
  * CW-05, paso "Entrega y pago": punto de recojo y persona autorizada (CCPIP-157) y pago con tarjeta
  * (CCPIP-62). El pedido se crea al pagar y solo se confirma si el pago se aprueba; entonces se
- * descuenta el stock. Un rechazo deja reintentar sin perder lo escrito.
+ * descuenta el stock. Un rechazo deja reintentar sin perder lo escrito. Antes de pagar se avisa si el
+ * punto ya no puede entregar el carrito (CCPIP-60).
  */
 export default function CompraPage() {
   const { t } = useTranslation()
@@ -164,6 +165,21 @@ export default function CompraPage() {
   }, [t])
 
   useEffect(cargar, [cargar])
+
+  // CCPIP-60 (RNF-45): la factibilidad del punto (y del distrito, a domicilio) se resuelve antes de pagar. Se
+  // revisa de nuevo al recargar el carrito. Si la consulta falla no bloquea: el servidor la revisa al cobrar.
+  const [factibilidad, setFactibilidad] = useState(null)
+  const destino = form.modalidad === 'ENVIO' ? form.ubigeo : null
+  useEffect(() => {
+    setFactibilidad(null)
+    if (!carrito || !form.puntoId || (form.modalidad === 'ENVIO' && !destino)) return undefined
+    let vigente = true
+    consultarFactibilidad(form.puntoId, destino)
+      .then((f) => { if (vigente) setFactibilidad(f) })
+      .catch(() => {})
+    return () => { vigente = false }
+  }, [carrito, form.puntoId, form.modalidad, destino])
+  const noFactible = factibilidad?.factible === false
 
   const cambiar = (campo, valor) => {
     setForm((f) => {
@@ -213,7 +229,7 @@ export default function CompraPage() {
     setAviso(null)
     const nuevos = validar(form, distritos)
     setErrores(nuevos)
-    if (Object.keys(nuevos).length > 0) return
+    if (Object.keys(nuevos).length > 0 || noFactible) return
 
     setEnviando(true)
     try {
@@ -405,6 +421,13 @@ export default function CompraPage() {
                 />
                 )}
                 {errores.puntoId && <p className="campo__ayuda campo__ayuda--error">{errores.puntoId}</p>}
+                {noFactible && (
+                  <Alerta
+                    tono="error"
+                    titulo={t('compra.factibilidad.titulo')}
+                    descripcion={[...factibilidad.motivos.map((m) => t(`compra.factibilidad.${m}`)), t('compra.factibilidad.accion')].join(' ')}
+                  />
+                )}
                 {form.puntoId && <Perecibles puntoId={form.puntoId} />}
               </section>
 
@@ -519,7 +542,7 @@ export default function CompraPage() {
                   <Alerta {...aviso} onCerrar={() => setAviso(null)} />
                 </div>
               )}
-              <Boton tipo="acento" anchoCompleto type="submit" cargando={enviando}>
+              <Boton tipo="acento" anchoCompleto type="submit" cargando={enviando} disabled={noFactible}>
                 {enviando ? t('compra.procesando') : t('compra.pagar', { monto: precio(carrito.total) })}
               </Boton>
               <p className="caption compra__nota">{t('compra.notaStock')}</p>

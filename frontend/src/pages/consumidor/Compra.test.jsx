@@ -265,6 +265,49 @@ describe('CW-05 Entrega y pago (CCPIP-157, CCPIP-62) y confirmación (CCPIP-64)'
   })
 })
 
+describe('CCPIP-60 Factibilidad de la entrega antes de pagar', () => {
+  const FACTIBILIDAD = 'GET /api/compra/factibilidad?punto=1'
+
+  it('consulta el punto elegido y, si puede entregar el carrito, deja pagar', async () => {
+    const fetchMock = servidor(rutas({ [FACTIBILIDAD]: [200, { factible: true, existencias: true, cobertura: true, motivos: [] }] }))
+    abrirEn('/compra')
+    await waitFor(() => expect(llamadas(fetchMock, FACTIBILIDAD)).toHaveLength(1))
+    expect(screen.getByRole('button', { name: PAGAR })).toBeEnabled()
+    expect(screen.queryByText('Este punto ya no puede entregar tu pedido')).not.toBeInTheDocument()
+  })
+
+  it('si el punto ya no tiene todo el carrito lo avisa y no deja pagar ni crea el pedido', async () => {
+    const fetchMock = servidor(rutas({
+      [FACTIBILIDAD]: [200, { factible: false, existencias: false, cobertura: true, motivos: ['PUNTO_SIN_EXISTENCIAS'] }],
+    }))
+    abrirEn('/compra')
+    expect(await screen.findByText('Este punto ya no puede entregar tu pedido')).toBeInTheDocument()
+    expect(screen.getByText(/Ya no tiene existencias para todo tu carrito\. Elige otro punto/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: PAGAR })).toBeDisabled()
+    expect(llamadas(fetchMock, 'POST /api/pedidos')).toHaveLength(0)
+  })
+
+  it('si la consulta falla no impide pagar: el servidor la revisa antes de cobrar', async () => {
+    servidor(rutas({ [FACTIBILIDAD]: [500, { code: 'ERROR' }] }))
+    abrirEn('/compra')
+    expect(await screen.findByRole('button', { name: PAGAR })).toBeEnabled()
+    expect(screen.queryByText('Este punto ya no puede entregar tu pedido')).not.toBeInTheDocument()
+  })
+
+  it('si al pagar el punto se quedó sin existencias, no hubo cobro: lo explica y recarga las opciones', { timeout: 15_000 }, async () => {
+    const fetchMock = servidor(rutas({
+      'POST /api/pedidos/77/pagos': [409, { code: 'PUNTO_SIN_EXISTENCIAS', error: 'El punto de acopio ya no tiene existencias para todo tu pedido. No se hizo ningún cobro; elige otro punto.' }],
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await screen.findByRole('button', { name: PAGAR })
+    await llenarYPagar(usuario)
+    const alerta = await screen.findByRole('alert')
+    expect(within(alerta).getByText('Tu carrito cambió')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'GET /api/compra/puntos').length).toBeGreaterThanOrEqual(2)
+  })
+})
+
 describe('CCPIP-295 Advertencias de perecibilidad al elegir el punto', () => {
   const ADVERTENCIAS = '/api/compra/advertencias?punto=1'
 
