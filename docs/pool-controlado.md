@@ -121,6 +121,14 @@ Antes de cada merge se inspeccionan los triggers reales de `.github/workflows`. 
 - No desactivar workflows, cambiar triggers/protecciones, omitir scanners ni alterar credenciales para lograrlo. Si el control no puede garantizarse o un paso de despliegue ya comenzó, detener nuevas integraciones y comunicar el estado exacto; no iniciar ni revertir despliegues por cuenta propia.
 - Guardar por separado las evidencias de PR verde, merge, cancelación preventiva sin pasos de despliegue ejecutados y CI/Sonar posterior. Nunca extrapolar a `main` el resultado de la PR por identidad del árbol.
 
+## Dictamen rápido de PR (≤300 s)
+
+El objetivo de latencia es el **dictamen por PR**, no completar merge, CI, QA ni despliegue. Admitir todas las PR abiertas en una sola lectura agrupada de metadatos y checks; registrar por PR `admitted_at`, `decided_at`, `elapsed_seconds` y `sla_met`. En el carril de decisión, obtener en paralelo revisiones independientes de solo lectura cuando no haya solapamiento. No ejecutar QA larga, reparaciones ni despliegues en la ruta crítica; derivarlos a sus carriles, sin quitar ni debilitar ningún gate requerido.
+
+La evidencia reutilizable se identifica por SHA exactos de head y base y versión del contrato aplicable. Un cambio de head invalida lo afectado; un cambio de base exige revisar el delta de integración y CI nueva. Persistir evidencia y disposición explícita por PR; si vence el presupuesto sin evidencia suficiente, registrar el gate y estado pendiente concreto (nunca aprobar por tiempo). Los hints de intake (`DRAFT`, `CONFLICT`, `WAIT_CI`, `NEEDS_REVIEW`) son orientación de triage, **no aprobación de merge**. Se mantiene un único integrador/escritor de integración y no se toma ningún claim activo.
+
+El intake automatizado hace una lectura `gh pr list` agrupada y conserva una instantánea atómica; error, inventario posiblemente truncado o checks ausentes/fallidos/pendientes/skipped son fail-closed y no se presentan como inventario completo o verde. El dictamen sigue exigiendo diff, reviews, comentarios/threads y todos los gates vigentes antes de cualquier integración.
+
 ## Regla de relevo y uso del pool
 
 El pool mantiene hasta cinco carriles implementadores independientes cuando haya historias claras y sin solapamiento material. Las tareas de reconocimiento, CI o revisión son apoyo breve: no deben ocupar la capacidad destinada a historias listas para implementar.
