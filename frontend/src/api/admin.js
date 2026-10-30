@@ -135,6 +135,21 @@ export function miHistorial({ desde, hasta, tipo } = {}) {
 }
 
 /**
+ * CCPIP-97 (RF-84): la auditoria de operaciones sensibles, solo del superadministrador. Filtros opcionales:
+ * desde, hasta, usuario (nombre o correo), rol, accion, entidad, resultado; `pagina` empieza en 0.
+ */
+export function auditoria({ pagina, ...filtro } = {}) {
+  const q = new URLSearchParams()
+  for (const campo of ['desde', 'hasta', 'usuario', 'rol', 'accion', 'entidad', 'resultado']) {
+    const valor = filtro[campo]?.trim?.() ?? filtro[campo]
+    if (valor) q.set(campo, valor)
+  }
+  if (pagina) q.set('pagina', pagina)
+  const consulta = q.toString()
+  return apiFetch(`/api/admin/auditoria${consulta ? `?${consulta}` : ''}`)
+}
+
+/**
  * CCPIP-137 y CCPIP-353: solicitudes de unidad de medida de los productores. estado: PENDIENTE | APROBADA |
  * RECHAZADA. aprobar(id, { nombre?, nombreEn?, codigo?, motivo }) crea la unidad; rechazar(id, motivo).
  */

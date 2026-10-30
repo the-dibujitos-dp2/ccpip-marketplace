@@ -16,12 +16,14 @@ import { useSesion } from '../../sesion.js'
 import LayoutPanel from './LayoutPanel.jsx'
 
 /**
- * Solo los modulos que ya existen. Auditoria y los demas reportes (SA-06 a SA-10) llegan con sus historias.
+ * Solo los modulos que ya existen. Los demas reportes (SA-06 a SA-10) llegan con sus historias.
  * El catalogo maestro (lineas y productos) es del superadministrador. `roles`: quienes ven cada modulo.
  */
 const NAV = [
   { to: RUTAS.admin, clave: 'tablero', icono: iconoTablero, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminPermisos, clave: 'permisos', icono: iconoEscudo, roles: ['SUPER_ADMIN'] },
+  // CCPIP-97: auditoria de operaciones sensibles
+  { to: RUTAS.adminAuditoria, clave: 'auditoria', icono: iconoReloj, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminAutorizaciones, clave: 'autorizaciones', icono: iconoEscudo, roles: ['SUB_ADMIN'], prefijo: true },
   // CCPIP-46: lo que los productores piden publicar
   { to: RUTAS.adminModeracion, clave: 'moderacion', icono: iconoEtiqueta, roles: ['SUB_ADMIN'], prefijo: true },
