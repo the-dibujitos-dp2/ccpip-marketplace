@@ -14,6 +14,8 @@ import { fechaHora, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import PaginaProductor from './PaginaProductor.jsx'
+import Paginacion from '../../components/Paginacion.jsx'
+import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import './productor.css'
 import './TransferenciasPage.css'
 
@@ -34,6 +36,7 @@ export default function TransferenciasPage({ path, search = '' }) {
   const [vista, setVista] = useState('EN_CURSO')
   const consultar = useCallback(() => listarTransferencias(vista), [vista])
   const { datos, setDatos, error, recargar } = useConsulta(consultar)
+  const paginacion = usePaginacionLocal(datos?.items ?? [], vista)
   const [abierta, setAbierta] = useState(null) // detalle con historial
   const [cargandoDetalle, setCargandoDetalle] = useState(null) // CCPIP-413: la que espera su detalle
   const [confirmando, setConfirmando] = useState(null) // { transferencia, accion }
@@ -110,7 +113,7 @@ export default function TransferenciasPage({ path, search = '' }) {
 
       {!error && datos?.items.length > 0 && (
         <ul className="transferencias__lista" aria-label={t('productor.transferencias.lista')}>
-          {datos.items.map((tr) => {
+          {paginacion.filas.map((tr) => {
             const accion = ACCIONES[tr.estado]
             return (
               <li key={tr.id} className="transferencias__item">
@@ -149,6 +152,7 @@ export default function TransferenciasPage({ path, search = '' }) {
           })}
         </ul>
       )}
+      {!error && datos?.items.length > 0 && <Paginacion {...paginacion} />}
 
       <Dialogo
         abierto={!!confirmando}

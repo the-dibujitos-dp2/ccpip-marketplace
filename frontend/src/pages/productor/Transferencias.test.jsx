@@ -132,6 +132,31 @@ describe('CCPIP-73, 164, 362 y 277 Mis transferencias (PW-17)', () => {
     expect(screen.getByText('Recibida')).toBeInTheDocument()
   })
 
+  it('pagina las transferencias, conserva los totales y reinicia al cambiar de vista', async () => {
+    const items = Array.from({ length: 21 }, (_, i) => transferencia(100 + i, 'INICIADA'))
+    productor({
+      'GET /api/productor/transferencias?vista=EN_CURSO': [200, { items, enCurso: 21, historial: 3 }],
+      'GET /api/productor/transferencias?vista=HISTORIAL': [200, { items: [transferencia(20, 'RECIBIDA')], enCurso: 21, historial: 3 }],
+      'GET /api/productor/transferencias/120': [200, transferencia(120, 'INICIADA', { historial: [] })],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/transferencias')
+    const lista = await screen.findByRole('list', { name: 'Lista de transferencias' })
+    expect(within(lista).getAllByRole('listitem')).toHaveLength(20)
+    expect(screen.getByText('Página 1 · 21 registros')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Página 2' }))
+    expect(within(lista).getAllByRole('listitem')).toHaveLength(1)
+    const fila = within(lista).getByText('TR-0120').closest('li')
+    await user.click(within(fila).getByRole('button', { name: 'Ver detalle' }))
+    expect(await within(fila).findByRole('table', { name: 'Lotes de la transferencia TR-0120' })).toBeInTheDocument()
+    await user.click(screen.getByRole('tab', { name: 'Historial (3)' }))
+    expect(await screen.findByText('TR-0020')).toBeInTheDocument()
+    expect(screen.getByText('Página 1 · 1 registros')).toBeInTheDocument()
+    await user.click(screen.getByRole('tab', { name: 'En curso (21)' }))
+    expect(await screen.findByText('TR-0100')).toBeInTheDocument()
+    expect(screen.queryByText('TR-0120')).not.toBeInTheDocument()
+  })
+
   it('muestra el detalle con producto, lote, cantidad e historial', async () => {
     const detalle = transferencia(31, 'INICIADA', {
       observacion: 'Para la feria',
