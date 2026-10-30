@@ -1634,6 +1634,25 @@ Un trigger impide borrar una solicitud y cambiar una ya decidida. No se pide una
 catalogo (`409 UNIDAD_YA_EXISTE`). Al aprobar, el codigo sale del nombre (`Atado de 10` → `ATADO_DE_10`) salvo
 que la Camara indique otro.
 
+## Consumo por modalidad y frecuencia de compra (CCPIP-135)
+
+Sin migracion. RF-105: el productor consulta el consumo de sus productos separado en B2C y B2B (importe y
+volumen) y con que frecuencia le compran, sin datos demograficos ni de quien compro. Usa los mismos pedidos
+que las ventas (CCPIP-114): confirmados y no cancelados, por su fecha de confirmacion, y la tarifa copiada en
+`item_pedido.tarifa`.
+
+| Endpoint | Rol | Descripcion |
+|---|---|---|
+| `GET /api/productor/reportes/consumo?desde&hasta&agrupacion&producto&modalidad` | PRODUCTOR | Totales, periodos y frecuencia. El PDF y el Excel del reporte (`/pdf`, `/xlsx`) suman las secciones «Consumo por período» y «Frecuencia de compra» al final |
+
+- **Pedidos y compradores**: un pedido cuenta una vez aunque tenga lineas B2C y B2B; en cada modalidad
+  cuenta si tiene alguna linea de ella. Los compradores del total son personas distintas en el rango, no la
+  suma de los periodos. El comprador solo se usa en el servidor para contar: no se devuelve.
+- **Promedios**: `ticketPromedio` = importe / pedidos y `comprasPorComprador` = pedidos / compradores, con
+  dos decimales y redondeo mitad hacia arriba; cero si no hubo compras.
+- **Frecuencia**: tramos `UNA`, `DOS_A_TRES` y `CUATRO_O_MAS` compras en el rango. Por modalidad se cuentan
+  solo las compras de esa modalidad; el total y el importe, todas.
+
 ## Factibilidad de la entrega antes de pagar (CCPIP-60)
 
 Sin migracion. RF-41 y RNF-45: la factibilidad del envio se resuelve antes de cobrar, nunca con una aprobacion
