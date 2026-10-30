@@ -1428,7 +1428,76 @@
       "rol": "Role",
       "metodo": "Method",
       "ruta": "Route",
-      "vacio": "This role has no declared access."
+      "vacio": "This role has no declared access.",
+      "declarados": "Access declared by the server"
+    },
+    "configurables": {
+      "titulo": "Configurable permissions",
+      "descripcion": "Grant or revoke each role's actions. Revoking an action blocks it on the server even if the role has it declared. Governance restrictions cannot be granted.",
+      "error": "We couldn't load the configurable permissions",
+      "deRol": "Configurable permissions of {{rol}}",
+      "concedido": "Granted",
+      "revocado": "Revoked",
+      "restringido": "Restricted by governance",
+      "conceder": "Grant",
+      "revocar": "Revoke",
+      "concederDe": "Grant {{permiso}} to {{rol}}",
+      "revocarDe": "Revoke {{permiso}} from {{rol}}",
+      "ultimoCambio": "Last change: {{fecha}}, by {{nombre}}.",
+      "dialogo": {
+        "conceder": "Grant “{{permiso}}” to {{rol}}",
+        "revocar": "Revoke “{{permiso}}” from {{rol}}"
+      },
+      "auditado": "The change applies immediately and is recorded in the audit with your name and the reason.",
+      "motivo": "Reason",
+      "motivoRequerido": "State the reason for the change",
+      "errorCambiar": "We couldn't change the permission",
+      "hecho": {
+        "conceder": "You granted “{{permiso}}” to {{rol}}",
+        "revocar": "You revoked “{{permiso}}” from {{rol}}"
+      },
+      "codigo": {
+        "DECIDIR_AUTORIZACIONES": {
+          "nombre": "Decide authorizations",
+          "descripcion": "Approve, reject or revoke authorizations, request renewals and record physical evidence."
+        },
+        "MODERAR_PUBLICACIONES": {
+          "nombre": "Moderate listings",
+          "descripcion": "Approve or reject listings and videos."
+        },
+        "GESTIONAR_PRODUCTORES": {
+          "nombre": "Manage producers",
+          "descripcion": "Enable stores and revoke, restore, block or unblock sales."
+        },
+        "GESTIONAR_DENUNCIAS": {
+          "nombre": "Manage reports",
+          "descripcion": "Change the status of reports."
+        },
+        "SUSPENDER_CUENTAS": {
+          "nombre": "Suspend accounts",
+          "descripcion": "Suspend or reactivate accounts."
+        },
+        "EDITAR_PRODUCTOS": {
+          "nombre": "Edit products",
+          "descripcion": "Only their producer edits products."
+        },
+        "EDITAR_TIENDAS": {
+          "nombre": "Edit stores",
+          "descripcion": "Only their producer edits stores."
+        },
+        "EDITAR_PEDIDOS": {
+          "nombre": "Edit orders",
+          "descripcion": "Orders are not edited from the administration."
+        },
+        "EDITAR_DATOS_COMPRADORES": {
+          "nombre": "Edit buyers' personal data",
+          "descripcion": "Only the account holder changes their personal data."
+        },
+        "EDITAR_EXISTENCIAS": {
+          "nombre": "Edit stock",
+          "descripcion": "Stock only changes through recorded movements."
+        }
+      }
     },
     "tablero": {
       "titulo": "Operations dashboard",
@@ -2585,12 +2654,6 @@
     "sinPuntoTexto": "Right now no point has stock for all your products together. Adjust the quantities or remove one.",
     "puntoTitulo": "1. Pickup point",
     "puntoAyuda": "Pick up your order free of charge at one of the Chamber's collection points.",
-    "factibilidad": {
-      "titulo": "This point can no longer deliver your order",
-      "PUNTO_SIN_EXISTENCIAS": "It no longer has stock for your whole cart.",
-      "SIN_COBERTURA": "It does not deliver to the district you chose.",
-      "accion": "Choose another point or change the delivery method to pay."
-    },
     "perecibles": {
       "titulo": "Perishable products in your order",
       "producto": "{{nombre}}: best before {{fecha}}",
@@ -2652,6 +2715,12 @@
       "celularAyuda": "9 digits. We use it to coordinate the delivery.",
       "resumen": "Home delivery · to be confirmed",
       "sinCobertura": "That point does not deliver to your district"
+    },
+    "factibilidad": {
+      "titulo": "This point can no longer deliver your order",
+      "PUNTO_SIN_EXISTENCIAS": "It no longer has stock for your whole cart.",
+      "SIN_COBERTURA": "It does not deliver to the district you chose.",
+      "accion": "Choose another point or change the delivery method to pay."
     }
   },
   "pedido": {
@@ -4461,7 +4530,9 @@
       "CATALOGO_EDITAR": "Edited master catalog",
       "CATALOGO_DESACTIVAR": "Deactivated in master catalog",
       "CATALOGO_REACTIVAR": "Reactivated in master catalog",
-      "PAGO": "Attempted a payment"
+      "PAGO": "Attempted a payment",
+      "PERMISO_CONCEDIDO": "Granted a permission",
+      "PERMISO_REVOCADO": "Revoked a permission"
     },
     "entidad": {
       "AUTORIZACION": "Authorization",
@@ -4473,7 +4544,8 @@
       "PRODUCTO": "Product",
       "LINEA_MAESTRA": "Master line",
       "PRODUCTO_MAESTRO": "Master product",
-      "PEDIDO": "Order"
+      "PEDIDO": "Order",
+      "PERMISO": "Permission"
     },
     "resultado": {
       "EXITOSA": "Successful",

@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import pe.ccpip.auth.access.Permiso;
+import pe.ccpip.auth.access.PermisoConfigurable;
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.filter.SessionAuthFilter;
 import pe.ccpip.auth.model.AuthenticatedSession;
@@ -42,6 +44,7 @@ public class EvidenciasFisicasController {
         return service.deAutorizacion(id);
     }
 
+    @PermisoConfigurable(Permiso.DECIDIR_AUTORIZACIONES)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public EvidenciaFisica registrarEnvio(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
@@ -49,6 +52,7 @@ public class EvidenciasFisicasController {
         return service.registrarEnvio(id, s.userId(), envio);
     }
 
+    @PermisoConfigurable(Permiso.DECIDIR_AUTORIZACIONES)
     @PostMapping("/{fisicaId}/recepcion")
     public EvidenciaFisica registrarRecepcion(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                               @PathVariable long id, @PathVariable long fisicaId,

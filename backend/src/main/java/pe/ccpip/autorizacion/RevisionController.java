@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import pe.ccpip.auth.access.Permiso;
+import pe.ccpip.auth.access.PermisoConfigurable;
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.filter.SessionAuthFilter;
 import pe.ccpip.auth.model.AuthenticatedSession;
@@ -59,6 +61,7 @@ public class RevisionController {
     }
 
     /** Aprobar (CCPIP-174, CCPIP-37), rechazar (CCPIP-284, CCPIP-297) o revocar (CCPIP-39), siempre con motivo. */
+    @PermisoConfigurable(Permiso.DECIDIR_AUTORIZACIONES)
     @PostMapping("/{id}/{accion:aprobar|rechazar|revocar}")
     public Expediente decidir(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                               @PathVariable long id, @PathVariable String accion, @Valid @RequestBody NuevaDecision decision) {

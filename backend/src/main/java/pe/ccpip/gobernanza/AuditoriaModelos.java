@@ -18,7 +18,9 @@ public final class AuditoriaModelos {
 
     /** Sobre que se hizo la operacion. */
     public enum Entidad {
-        AUTORIZACION, MODERACION, VIDEO, PRODUCTOR, DENUNCIAS, CUENTA, PRODUCTO, LINEA_MAESTRA, PRODUCTO_MAESTRO, PEDIDO
+        AUTORIZACION, MODERACION, VIDEO, PRODUCTOR, DENUNCIAS, CUENTA, PRODUCTO, LINEA_MAESTRA, PRODUCTO_MAESTRO, PEDIDO,
+        /** CCPIP-296: un permiso configurable de un rol. */
+        PERMISO
     }
 
     /**

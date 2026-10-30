@@ -21,7 +21,7 @@ import pe.ccpip.gobernanza.AuditoriaModelos.Resultado;
  * CCPIP-97 (RF-84): auditoria de operaciones sensibles para el superadministrador. Junta, con UNION ALL,
  * lo que cada modulo ya registra con su autor desde el primer sprint: las acciones de gobernanza
  * ({@link HistorialGobernanzaService#ACCIONES}), los cambios de productos (CCPIP-47), los del catalogo
- * maestro y cada intento de pago (CCPIP-163), aprobado o no.
+ * maestro, cada intento de pago (CCPIP-163), aprobado o no, y cada cambio de permisos (CCPIP-296).
  *
  * <p>Solo lee: todas esas tablas son de solo insercion o de un unico cambio de estado, asi que ningun
  * registro se puede alterar desde aqui, y una operacion nueva de esos modulos aparece sola.
@@ -54,6 +54,12 @@ public class AuditoriaService {
             SELECT 'PG-' || pg.id, pg.creado_en, pe.usuario_id, 'PAGO', 'PEDIDO', pe.id, pe.numero, pg.estado
             FROM pago pg
             JOIN pedido pe ON pe.id = pg.pedido_id
+            UNION ALL
+            SELECT 'PC-' || c.id, c.realizado_en, c.realizado_por,
+                   CASE WHEN c.concedido THEN 'PERMISO_CONCEDIDO' ELSE 'PERMISO_REVOCADO' END, 'PERMISO', c.id,
+                   r.codigo || ' · ' || c.codigo, 'EXITOSA'
+            FROM permiso_configurable_cambio c
+            JOIN rol r ON r.id = c.rol_id
             """.formatted(HistorialGobernanzaService.ACCIONES);
 
     private static final String DESDE_REGISTROS = """

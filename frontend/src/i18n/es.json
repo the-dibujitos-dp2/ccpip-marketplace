@@ -1428,7 +1428,76 @@
       "rol": "Rol",
       "metodo": "Método",
       "ruta": "Ruta",
-      "vacio": "Este rol no tiene accesos declarados."
+      "vacio": "Este rol no tiene accesos declarados.",
+      "declarados": "Accesos declarados por el servidor"
+    },
+    "configurables": {
+      "titulo": "Permisos configurables",
+      "descripcion": "Concede o revoca acciones de cada rol. Revocar una acción la bloquea en el servidor aunque el rol la tenga declarada. Las restricciones de gobernanza no se pueden conceder.",
+      "error": "No pudimos cargar los permisos configurables",
+      "deRol": "Permisos configurables de {{rol}}",
+      "concedido": "Concedido",
+      "revocado": "Revocado",
+      "restringido": "Restringido por gobernanza",
+      "conceder": "Conceder",
+      "revocar": "Revocar",
+      "concederDe": "Conceder {{permiso}} a {{rol}}",
+      "revocarDe": "Revocar {{permiso}} a {{rol}}",
+      "ultimoCambio": "Último cambio: {{fecha}}, por {{nombre}}.",
+      "dialogo": {
+        "conceder": "Conceder «{{permiso}}» a {{rol}}",
+        "revocar": "Revocar «{{permiso}}» a {{rol}}"
+      },
+      "auditado": "El cambio se aplica de inmediato y queda en la auditoría con tu nombre y el motivo.",
+      "motivo": "Motivo",
+      "motivoRequerido": "Indica el motivo del cambio",
+      "errorCambiar": "No pudimos cambiar el permiso",
+      "hecho": {
+        "conceder": "Concediste «{{permiso}}» a {{rol}}",
+        "revocar": "Revocaste «{{permiso}}» a {{rol}}"
+      },
+      "codigo": {
+        "DECIDIR_AUTORIZACIONES": {
+          "nombre": "Decidir autorizaciones",
+          "descripcion": "Aprobar, rechazar o revocar autorizaciones, pedir renovaciones y registrar evidencias físicas."
+        },
+        "MODERAR_PUBLICACIONES": {
+          "nombre": "Moderar publicaciones",
+          "descripcion": "Aprobar o rechazar publicaciones y videos."
+        },
+        "GESTIONAR_PRODUCTORES": {
+          "nombre": "Gestionar productores",
+          "descripcion": "Habilitar tiendas y revocar, restituir, bloquear o desbloquear la venta."
+        },
+        "GESTIONAR_DENUNCIAS": {
+          "nombre": "Gestionar denuncias",
+          "descripcion": "Cambiar el estado de las denuncias."
+        },
+        "SUSPENDER_CUENTAS": {
+          "nombre": "Suspender cuentas",
+          "descripcion": "Suspender o reactivar cuentas."
+        },
+        "EDITAR_PRODUCTOS": {
+          "nombre": "Editar productos",
+          "descripcion": "Los productos los edita solo su productor."
+        },
+        "EDITAR_TIENDAS": {
+          "nombre": "Editar tiendas",
+          "descripcion": "Las tiendas las edita solo su productor."
+        },
+        "EDITAR_PEDIDOS": {
+          "nombre": "Editar pedidos",
+          "descripcion": "Los pedidos no se editan desde la administración."
+        },
+        "EDITAR_DATOS_COMPRADORES": {
+          "nombre": "Editar datos personales de compradores",
+          "descripcion": "Los datos personales los cambia solo su titular."
+        },
+        "EDITAR_EXISTENCIAS": {
+          "nombre": "Editar existencias",
+          "descripcion": "Las existencias cambian solo con movimientos registrados."
+        }
+      }
     },
     "tablero": {
       "titulo": "Tablero de operación",
@@ -2585,12 +2654,6 @@
     "sinPuntoTexto": "Por ahora ningún punto tiene existencias para todos tus productos juntos. Ajusta las cantidades o quita alguno.",
     "puntoTitulo": "1. Punto de recojo",
     "puntoAyuda": "Recoges tu pedido sin costo en un punto de acopio de la Cámara.",
-    "factibilidad": {
-      "titulo": "Este punto ya no puede entregar tu pedido",
-      "PUNTO_SIN_EXISTENCIAS": "Ya no tiene existencias para todo tu carrito.",
-      "SIN_COBERTURA": "No entrega a domicilio en el distrito que elegiste.",
-      "accion": "Elige otro punto o cambia la forma de entrega para poder pagar."
-    },
     "perecibles": {
       "titulo": "Productos perecibles de tu compra",
       "producto": "{{nombre}}: consumir antes del {{fecha}}",
@@ -2652,6 +2715,12 @@
       "celularAyuda": "9 dígitos. Lo usamos para coordinar la entrega.",
       "resumen": "A domicilio · por confirmar",
       "sinCobertura": "Ese punto no entrega en tu distrito"
+    },
+    "factibilidad": {
+      "titulo": "Este punto ya no puede entregar tu pedido",
+      "PUNTO_SIN_EXISTENCIAS": "Ya no tiene existencias para todo tu carrito.",
+      "SIN_COBERTURA": "No entrega a domicilio en el distrito que elegiste.",
+      "accion": "Elige otro punto o cambia la forma de entrega para poder pagar."
     }
   },
   "pedido": {
@@ -4461,7 +4530,9 @@
       "CATALOGO_EDITAR": "Editó el catálogo maestro",
       "CATALOGO_DESACTIVAR": "Desactivó en el catálogo maestro",
       "CATALOGO_REACTIVAR": "Reactivó en el catálogo maestro",
-      "PAGO": "Intentó un pago"
+      "PAGO": "Intentó un pago",
+      "PERMISO_CONCEDIDO": "Concedió un permiso",
+      "PERMISO_REVOCADO": "Revocó un permiso"
     },
     "entidad": {
       "AUTORIZACION": "Autorización",
@@ -4473,7 +4544,8 @@
       "PRODUCTO": "Producto",
       "LINEA_MAESTRA": "Línea maestra",
       "PRODUCTO_MAESTRO": "Producto maestro",
-      "PEDIDO": "Pedido"
+      "PEDIDO": "Pedido",
+      "PERMISO": "Permiso"
     },
     "resultado": {
       "EXITOSA": "Exitosa",
