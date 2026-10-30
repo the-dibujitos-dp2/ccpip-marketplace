@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Min;
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.comun.Idioma;
@@ -48,11 +49,13 @@ public class MermaController {
     private final MermaService merma;
     private final MotivosMermaService motivos;
     private final ProductorActual productorActual;
+    private final SolicitudRevisionMermaService solicitudesRevision;
 
-    public MermaController(MermaService merma, MotivosMermaService motivos, ProductorActual productorActual) {
+    public MermaController(MermaService merma, MotivosMermaService motivos, ProductorActual productorActual, SolicitudRevisionMermaService solicitudesRevision) {
         this.merma = merma;
         this.motivos = motivos;
         this.productorActual = productorActual;
+        this.solicitudesRevision = solicitudesRevision;
     }
 
     /** Las causas que ofrece "Marcar como merma": solo las activas del catalogo. */
@@ -114,6 +117,15 @@ public class MermaController {
     public ResponseEntity<MermaRegistrada> marcarEnPunto(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                                                          @Valid @RequestBody DatosMerma datos) {
         return respuesta(merma.marcarEnPunto(s.userId(), datos));
+    }
+
+    public record SolicitudRevisionRequest(@Positive long mermaId) {}
+
+    @RolesPermitidos(Rol.ADMIN_PUNTO)
+    @PostMapping("/api/acopio/merma/solicitudes-revision")
+    public ResponseEntity<SolicitudRevisionMermaService.Solicitud> solicitarRevision(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+            @Valid @RequestBody SolicitudRevisionRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(solicitudesRevision.registrar(s.userId(), request.mermaId()));
     }
 
     @RolesPermitidos(Rol.PRODUCTOR)

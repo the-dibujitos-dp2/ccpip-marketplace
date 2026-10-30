@@ -54,6 +54,7 @@ function acopio(rutas = {}) {
     'GET /api/acopio/inventario': () => [200, copia(INVENTARIO)],
     'GET /api/merma/causas': [200, CAUSAS],
     'POST /api/acopio/merma': [201, MARCADA],
+    'POST /api/acopio/merma/solicitudes-revision': [201, { id: 1, mermaId: 900, solicitanteId: 20, solicitante: 'Admin Acopio', registradaEn: '2026-10-30T12:00:00Z' }],
     ...rutas,
   })
 }
@@ -172,6 +173,48 @@ describe('A-04 Merma del punto y del productor (CCPIP-75, CCPIP-76)', () => {
     expect(filas[1]).toHaveTextContent('Admin Acopio')
     expect(within(filas[1]).getByText('Merma confirmada')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ir al inventario' })).toHaveAttribute('href', '/acopio/inventario')
+  })
+
+  it('el admin del punto puede solicitar revisión de una merma sin cambiar los datos visibles', async () => {
+    const fetchMock = acopio({ 'GET /api/acopio/merma': [200, { ubicacion: 'Centro Nacional Lima', pagina: 0, tamano: 20, total: 1, totalPaginas: 1, items: [merma({})] }] })
+    const user = userEvent.setup()
+    abrirEn('/acopio/merma')
+    const tabla = await screen.findByRole('table', { name: 'Merma registrada' })
+    const fila = within(tabla).getAllByRole('row')[1]
+    expect(within(fila).getByRole('button', { name: 'Solicitar revisión' })).toBeInTheDocument()
+    await user.click(within(fila).getByRole('button', { name: 'Solicitar revisión' }))
+    expect(await screen.findByText('Solicitud de revisión registrada')).toBeInTheDocument()
+    expect(within(fila).getByText('Solicitud de revisión registrada')).toBeInTheDocument()
+    expect(cuerpo(fetchMock, 'POST /api/acopio/merma/solicitudes-revision')).toEqual({ mermaId: 900 })
+    expect(within(fila).getByText('−5')).toBeInTheDocument()
+  })
+
+  it('mantiene el control ocupado durante el POST y permite reintentar tras un error', async () => {
+    let terminar
+    const fetchMock = acopio({
+      'GET /api/acopio/merma': [200, { ubicacion: 'Centro Nacional Lima', pagina: 0, tamano: 20, total: 1, totalPaginas: 1, items: [merma({})] }],
+      'POST /api/acopio/merma/solicitudes-revision': () => new Promise((resolve) => { terminar = resolve }),
+    })
+    const user = userEvent.setup()
+    abrirEn('/acopio/merma')
+    const fila = within(await screen.findByRole('table', { name: 'Merma registrada' })).getAllByRole('row')[1]
+    const boton = within(fila).getByRole('button', { name: 'Solicitar revisión' })
+    await user.click(boton)
+    expect(boton).toBeDisabled()
+    expect(llamadas(fetchMock, 'POST /api/acopio/merma/solicitudes-revision')).toHaveLength(1)
+    terminar([422, { error: 'No se encontró la merma.' }])
+    expect(await within(fila).findByRole('alert')).toHaveTextContent('No se encontró la merma.')
+    expect(within(fila).getByRole('button', { name: 'Solicitar revisión' })).toBeEnabled()
+    await user.click(within(fila).getByRole('button', { name: 'Solicitar revisión' }))
+    expect(llamadas(fetchMock, 'POST /api/acopio/merma/solicitudes-revision')).toHaveLength(2)
+    terminar([201, { id: 2, mermaId: 900, solicitanteId: 20, solicitante: 'Admin Acopio', registradaEn: '2026-10-30T12:01:00Z' }])
+  })
+
+  it('el productor no dispone de una acción para solicitar revisión', async () => {
+    servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_PRODUCTOR], 'GET /api/productor/merma': [200, { pagina: 0, tamano: 20, total: 1, totalPaginas: 1, items: [merma()] }] })
+    abrirEn('/productor/merma')
+    const tabla = await screen.findByRole('table', { name: 'Merma registrada' })
+    expect(within(tabla).queryByRole('button', { name: 'Solicitar revisión' })).not.toBeInTheDocument()
   })
 
   it('el productor ve la merma de sus lotes con su ubicación y la marca desde su almacén', async () => {

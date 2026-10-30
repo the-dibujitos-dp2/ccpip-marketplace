@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listarMermaPunto, urlReporteMermaPunto } from '../../api/merma.js'
+import { listarMermaPunto, solicitarRevisionMermaPunto, urlReporteMermaPunto } from '../../api/merma.js'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
 import { RUTAS } from '../../router.js'
 import ListaMerma from '../merma/ListaMerma.jsx'
@@ -17,6 +17,7 @@ export default function MermaPage({ path }) {
     <LayoutAcopio path={path} punto={punto} titulo={t('acopio.nav.merma')}>
       <ListaMerma
         consultar={listarMermaPunto}
+        solicitarRevision={solicitarRevisionMermaPunto}
         exportar={urlReporteMermaPunto}
         conProductor
         onDatos={alCargar}
