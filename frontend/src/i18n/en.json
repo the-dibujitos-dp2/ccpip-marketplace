@@ -2776,9 +2776,18 @@
     "punto": "Collection point",
     "recoge": "Picked up by",
     "tu": "You, with your ID",
+    "formaEntrega": "Delivery method",
+    "modalidades": {
+      "RECOJO": "Pickup at collection point",
+      "ENVIO": "Home delivery"
+    },
     "pago": "Payment",
     "pagaste": "You paid {{monto}} with {{marca}}",
     "operacion": "Transaction {{referencia}}",
+    "comision": "Chamber commission",
+    "comisionMonto": "{{porcentaje}} % · {{monto}}",
+    "comisionIncluida": "Included in the total: it isn't added to what you paid.",
+    "sinComision": "No commission was applied to this purchase",
     "intentos": "Payment attempts",
     "estadoPago": {
       "APROBADO": "Approved",
@@ -2787,21 +2796,7 @@
       "PENDIENTE": "Processing",
       "ANULADO": "Refunded"
     },
-    "seguirComprando": "Continue shopping",
-    "condiciones": {
-      "titulo": "Your purchase terms",
-      "precios": "Prices",
-      "preciosFijados": "Fixed at confirmation, on {{fecha}}",
-      "modalidad": "Method",
-      "modalidades": {
-        "RECOJO": "Pickup at collection point",
-        "ENVIO": "Home delivery"
-      },
-      "comision": "Chamber commission",
-      "comisionMonto": "{{porcentaje}} % · {{monto}}",
-      "incluida": "Included in the total: it isn't added to what you paid.",
-      "sinComision": "No commission was applied to this purchase"
-    }
+    "seguirComprando": "Continue shopping"
   },
   "misPedidos": {
     "miCuenta": "My account",
