@@ -20,3 +20,6 @@
 .mis-direcciones__editor fieldset { display: grid; gap: 16px; padding: 0; margin: 0; border: 0; min-width: 0; }
 .mis-direcciones__editor .campo { min-width: 0; }
 .mis-direcciones__editor-acciones { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* CCPIP-446: el titulo y "Agregar dirección" en la misma linea */
+.mis-direcciones__encabezado { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }

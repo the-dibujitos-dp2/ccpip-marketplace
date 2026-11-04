@@ -204,7 +204,8 @@ describe('CW-13 Mis direcciones (CCPIP-393)', () => {
     abrirEn('/cuenta/direcciones')
 
     const vacio = within((await screen.findByText('Aún no guardaste direcciones')).closest('[role="status"]'))
-    expect(vacio.getByText('Al comprar con entrega a domicilio puedes guardar la dirección para la próxima vez.')).toBeInTheDocument()
+    expect(vacio.getByText('Agrega una dirección para tenerla lista al comprar, o guárdala al comprar con entrega a domicilio.')).toBeInTheDocument()
+    expect(vacio.getByRole('button', { name: 'Agregar dirección' })).toBeInTheDocument()
     expect(vacio.getByRole('link', { name: 'Explorar productos' })).toHaveAttribute('href', '/buscar')
   })
 
@@ -245,5 +246,90 @@ describe('CW-13 Mis direcciones (CCPIP-393)', () => {
     servidor({ ...PUBLICAS, 'GET /api/auth/me': SIN_SESION })
     abrirEn('/cuenta/direcciones')
     await waitFor(() => expect(window.location.pathname).toBe('/ingresar'))
+  })
+})
+
+describe('CW-13 Agregar direcciones desde el perfil (CCPIP-446)', () => {
+  const TERRITORIO = {
+    'GET /api/territorio/departamentos': [200, ['Lima', 'Cusco']],
+    'GET /api/territorio/provincias': [200, ['Lima']],
+    'GET /api/territorio/distritos': [200, [{ ubigeo: '150122', departamento: 'Lima', provincia: 'Lima', distrito: 'Miraflores' }]],
+  }
+  const AGREGAR = 'POST /api/cuenta/direcciones'
+
+  async function llenar(usuario, formulario, { alias, direccion }) {
+    await usuario.type(within(formulario).getByLabelText('Alias'), alias)
+    await usuario.selectOptions(within(formulario).getByRole('combobox', { name: /Departamento/ }), 'Lima')
+    await usuario.selectOptions(await within(formulario).findByRole('combobox', { name: /Provincia/ }), 'Lima')
+    await waitFor(() => expect(within(formulario).getByRole('option', { name: 'Miraflores' })).toBeInTheDocument())
+    await usuario.selectOptions(within(formulario).getByRole('combobox', { name: /Distrito/ }), '150122')
+    await usuario.type(within(formulario).getByLabelText('Dirección'), direccion)
+  }
+
+  it('sin direcciones agrega la primera y luego otra más en la misma cuenta', async () => {
+    let lista = []
+    let siguiente = 20
+    const fetchMock = servidor(comoComprador({
+      ...TERRITORIO,
+      [DIRECCIONES]: () => [200, lista],
+      [AGREGAR]: (op) => {
+        const body = JSON.parse(op.body)
+        const nueva = { id: siguiente++, ...body, departamento: 'Lima', provincia: 'Lima', distrito: 'Miraflores' }
+        lista = [nueva, ...lista]
+        return [201, nueva]
+      },
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/cuenta/direcciones')
+
+    await usuario.click(await screen.findByRole('button', { name: 'Agregar dirección' }))
+    let formulario = await screen.findByRole('form', { name: 'Agregar dirección' })
+    await llenar(usuario, formulario, { alias: 'Casa', direccion: 'Av. Larco 123' })
+    await usuario.click(within(formulario).getByRole('button', { name: 'Guardar dirección' }))
+
+    expect(await screen.findByText('Dirección agregada.')).toBeInTheDocument()
+    expect(screen.queryByRole('form', { name: 'Agregar dirección' })).not.toBeInTheDocument()
+    expect(JSON.parse(llamadas(fetchMock, AGREGAR)[0][1].body)).toEqual({ alias: 'Casa', ubigeo: '150122', direccion: 'Av. Larco 123', referencia: null })
+
+    // Con direcciones, el boton queda junto al titulo para agregar otra
+    await usuario.click(await screen.findByRole('button', { name: 'Agregar dirección' }))
+    formulario = await screen.findByRole('form', { name: 'Agregar dirección' })
+    await llenar(usuario, formulario, { alias: 'Oficina', direccion: 'Calle Schell 450' })
+    await usuario.click(within(formulario).getByRole('button', { name: 'Guardar dirección' }))
+
+    const tarjetas = within(await screen.findByRole('list', { name: 'Mis direcciones' }))
+    await waitFor(() => expect(tarjetas.getAllByRole('listitem')).toHaveLength(2))
+    expect(tarjetas.getByText('Oficina')).toBeInTheDocument()
+    expect(tarjetas.getByText('Casa')).toBeInTheDocument()
+    expect(llamadas(fetchMock, AGREGAR)).toHaveLength(2)
+  })
+
+  it('si ya la guardó lo dice el servidor y el formulario sigue abierto', async () => {
+    servidor(comoComprador({
+      ...TERRITORIO,
+      [AGREGAR]: [409, { code: 'DIRECCION_YA_GUARDADA', error: 'Ya guardaste esa dirección.' }],
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/cuenta/direcciones')
+
+    await usuario.click(await screen.findByRole('button', { name: 'Agregar dirección' }))
+    const formulario = await screen.findByRole('form', { name: 'Agregar dirección' })
+    await llenar(usuario, formulario, { alias: 'Casa', direccion: 'Av. Larco 123, dpto. 4' })
+    await usuario.click(within(formulario).getByRole('button', { name: 'Guardar dirección' }))
+
+    expect(await within(formulario).findByRole('alert')).toHaveTextContent('Ya guardaste esa dirección.')
+    expect(screen.getByRole('form', { name: 'Agregar dirección' })).toBeInTheDocument()
+  })
+
+  it('cancelar cierra el formulario sin guardar', async () => {
+    const fetchMock = servidor(comoComprador(TERRITORIO))
+    const usuario = userEvent.setup()
+    abrirEn('/cuenta/direcciones')
+
+    await usuario.click(await screen.findByRole('button', { name: 'Agregar dirección' }))
+    const formulario = await screen.findByRole('form', { name: 'Agregar dirección' })
+    await usuario.click(within(formulario).getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByRole('form', { name: 'Agregar dirección' })).not.toBeInTheDocument()
+    expect(llamadas(fetchMock, AGREGAR)).toHaveLength(0)
   })
 })

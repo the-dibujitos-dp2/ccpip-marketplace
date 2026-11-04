@@ -18,8 +18,16 @@ function useOpciones(cargar, version) {
 }
 const opciones = lista => lista.map(valor => ({ valor, etiqueta: valor }))
 
-export default function EditorDireccion394({ direccion, guardando, error, onGuardar, onCancelar }) {
+/** Direccion vacia para agregar una nueva desde el perfil (CCPIP-446). */
+export const DIRECCION_NUEVA = { alias: '', departamento: '', provincia: '', ubigeo: '', direccion: '', referencia: '' }
+
+/**
+ * CCPIP-394 (editar) y CCPIP-446 (agregar): el formulario de una direccion de entrega. `nueva` cambia
+ * los textos; `error` puede ser `true` (mensaje generico) o el mensaje que dio el servidor.
+ */
+export default function EditorDireccion394({ direccion = DIRECCION_NUEVA, nueva = false, guardando, error, onGuardar, onCancelar }) {
   const { t } = useTranslation()
+  const titulo = t(nueva ? 'misDirecciones.agregar' : 'misDirecciones.editar')
   const [form, setForm] = useState({ ...direccion, alias: direccion.alias ?? '', referencia: direccion.referencia ?? '' })
   const [version, setVersion] = useState(0)
   const departamentos = useOpciones(listarDepartamentos, version)
@@ -36,8 +44,8 @@ export default function EditorDireccion394({ direccion, guardando, error, onGuar
       ...(campo === 'provincia' ? { ubigeo: '' } : {}) })) }
   }
   function enviar(e) { e.preventDefault(); if (!guardando && !cargando && !errorCatalogo && distritoValido) onGuardar(form) }
-  return <form className="mis-direcciones__editor" aria-label={t('misDirecciones.editar')} aria-busy={guardando || cargando} onSubmit={enviar}>
-    <h3>{t('misDirecciones.editar')}</h3>
+  return <form className="mis-direcciones__editor" aria-label={titulo} aria-busy={guardando || cargando} onSubmit={enviar}>
+    <h3>{titulo}</h3>
     <fieldset disabled={guardando}>
       <Campo etiqueta={t('misDirecciones.alias')} value={form.alias} onChange={escribir('alias')} maxLength={40} />
       <Campo tipo="selector" etiqueta={t('compra.domicilio.departamento')} value={form.departamento} onChange={escribir('departamento')} opciones={opciones(departamentos.opciones)} disabled={departamentos.cargando} required />
@@ -47,9 +55,9 @@ export default function EditorDireccion394({ direccion, guardando, error, onGuar
       <Campo etiqueta={t('misDirecciones.referenciaCampo')} value={form.referencia} onChange={escribir('referencia')} maxLength={255} />
     </fieldset>
     {errorCatalogo && <div role="alert"><p>{t('misDirecciones.errorCatalogo')}</p><Boton tipo="secundario" onClick={() => setVersion(v => v + 1)} disabled={guardando}>{t('carrito.reintentar')}</Boton></div>}
-    {error && <p role="alert">{t('misDirecciones.errorEditar')}</p>}
+    {error && <p role="alert">{typeof error === 'string' ? error : t(nueva ? 'misDirecciones.errorAgregar' : 'misDirecciones.errorEditar')}</p>}
     <div className="mis-direcciones__editor-acciones">
-      <Boton type="submit" cargando={guardando} disabled={cargando || errorCatalogo || !distritoValido}>{t('misDirecciones.guardarCambios')}</Boton>
+      <Boton type="submit" cargando={guardando} disabled={cargando || errorCatalogo || !distritoValido}>{t(nueva ? 'misDirecciones.guardarNueva' : 'misDirecciones.guardarCambios')}</Boton>
       <Boton tipo="secundario" disabled={guardando} onClick={onCancelar}>{t('comun.cancelar')}</Boton>
     </div>
   </form>
