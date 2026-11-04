@@ -252,7 +252,9 @@
       "vacioProductos": "Aún no tienes existencias",
       "vacioTexto": "Las existencias aparecen aquí al registrar un lote.",
       "unSoloInventario": "Un solo inventario virtual",
-      "unSoloInventarioTexto": "Tu almacén y los puntos de acopio forman un solo inventario: cada cantidad sale de tus lotes y sus movimientos, no de un stock aparte. Solo se vende lo que está en un punto de acopio, y baja al confirmarse cada compra."
+      "unSoloInventarioTexto": "Tu almacén y los puntos de acopio forman un solo inventario: cada cantidad sale de tus lotes y sus movimientos, no de un stock aparte. Solo se vende lo que está en un punto de acopio, y baja al confirmarse cada compra.",
+      "loteNoEncontrado": "No encontramos el lote {{lote}}",
+      "loteNoEncontradoTexto": "Ya no tiene saldo en tu inventario o fue retirado."
     },
     "pedidos": {
       "titulo": "Pedidos",
@@ -1274,7 +1276,8 @@
         "AGOTADO": "Agotado"
       },
       "movimiento": "Movimiento",
-      "movimientoDe": "Registrar un movimiento del lote {{lote}}"
+      "movimientoDe": "Registrar un movimiento del lote {{lote}}",
+      "loteNoEncontradoTexto": "Ya no tiene saldo en este punto o fue retirado."
     },
     "transferencias": {
       "porRecibir": "Transferencias por recibir ({{total}})",
@@ -4295,14 +4298,14 @@
         "titulo": "Lote por vencer: {{producto}}",
         "detalle": "El lote {{lote}} en {{ubicacion}} vence el {{fecha}} y le quedan {{cantidad}} und. Transfiérelo o prográmalo para venta.",
         "detallePunto": "El lote {{lote}} vence el {{fecha}} y le quedan {{cantidad}} und. Coordina su salida con el productor.",
-        "accion": "Ver almacén",
+        "accion": "Ver inventario",
         "accionPunto": "Ver inventario"
       },
       "ESTANCADO": {
         "titulo": "Lote estancado: {{producto}}",
         "detalle": "El lote {{lote}} en {{ubicacion}} no tiene salidas desde el {{fecha}} y le quedan {{cantidad}} und.",
         "detallePunto": "El lote {{lote}} no tiene salidas desde el {{fecha}} y le quedan {{cantidad}} und.",
-        "accion": "Ver almacén",
+        "accion": "Ver inventario",
         "accionPunto": "Ver inventario"
       },
       "REPOSICION": {
@@ -4364,7 +4367,8 @@
       "correo": "Correo electrónico para alertas importantes",
       "guardar": "Guardar preferencias",
       "guardado": "Preferencias guardadas"
-    }
+    },
+    "loteDeAlerta": "(lote de la alerta)"
   },
   "merma": {
     "accion": "Merma",

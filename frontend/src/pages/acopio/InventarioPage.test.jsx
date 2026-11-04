@@ -370,3 +370,26 @@ describe('A-03 Movimientos: salidas manuales y registro (CCPIP-287)', () => {
     await waitFor(() => expect(llamadas(fetchMock, 'GET /api/acopio/movimientos?pagina=0')).toHaveLength(2))
   })
 })
+
+describe('CCPIP-447 Desde una alerta, el lote ubicado y resaltado en el inventario del punto', () => {
+  it('busca el lote en todos los estados y resalta su fila', async () => {
+    const soloEse = { ...copia(INVENTARIO), items: [copia(INVENTARIO.items[0])], total: 1 }
+    const fetchMock = servidor(comoAcopio({ [`GET ${RUTA}?pagina=0&q=L-0231&estado=TODOS`]: () => [200, copia(soloEse)] }))
+    abrirEn('/acopio/inventario?lote=L-0231')
+
+    const fila = (await screen.findByText('lote de la alerta', { exact: false })).closest('[role="row"]')
+    expect(fila).toHaveClass('tabla__fila--resaltada')
+    expect(within(fila).getByText('L-0231')).toBeInTheDocument()
+    expect(screen.getByRole('searchbox', { name: 'Buscar producto o lote…' })).toHaveValue('L-0231')
+    expect(llamadas(fetchMock, `GET ${RUTA}?pagina=0&q=L-0231&estado=TODOS`)).toHaveLength(1)
+    expect(llamadas(fetchMock, `GET ${RUTA}?pagina=0`)).toHaveLength(0)
+  })
+
+  it('si el lote ya no está en el punto, lo avisa', async () => {
+    const vacio = { ...copia(INVENTARIO), items: [], total: 0, totalPaginas: 0 }
+    servidor(comoAcopio({ [`GET ${RUTA}?pagina=0&q=COL-001&estado=TODOS`]: () => [200, vacio] }))
+    abrirEn('/acopio/inventario?lote=COL-001')
+
+    expect(await screen.findByText('No encontramos el lote COL-001')).toBeInTheDocument()
+  })
+})

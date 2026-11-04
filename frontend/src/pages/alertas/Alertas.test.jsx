@@ -127,9 +127,11 @@ describe('PW-21 Alertas del productor (CCPIP-79, 145, 293, 337, 366, 367)', () =
     const user = userEvent.setup()
     abrirEn('/productor/alertas')
 
-    await user.click(await screen.findByRole('link', { name: 'Ver almacén' }))
+    await user.click(await screen.findByRole('link', { name: 'Ver inventario' }))
     await waitFor(() => expect(llamadas(fetchMock, 'POST /api/productor/alertas/7/leida')).toHaveLength(1))
     expect(window.location.pathname).toBe('/productor/almacen')
+    // CCPIP-447: lleva al lote de la alerta
+    expect(window.location.search).toBe('?lote=L-0231')
   })
 
   it('marca todas como leídas', async () => {
@@ -269,7 +271,7 @@ describe('A-08 Alertas del punto de acopio (CCPIP-79, 145, 337)', () => {
 
     expect(await screen.findByText('Lote estancado: Cacao en grano')).toBeInTheDocument()
     expect(screen.getByText(/El lote L-0240 no tiene salidas desde el 08\/09\/2026/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Ver inventario' })).toHaveAttribute('href', '/acopio/inventario')
+    expect(screen.getByRole('link', { name: 'Ver inventario' })).toHaveAttribute('href', '/acopio/inventario?lote=L-0240')
     expect(screen.getByRole('link', { name: 'Alertas' })).toHaveAttribute('aria-current', 'page')
     expect(await screen.findByText('Centro Nacional Lima / Alertas')).toBeInTheDocument()
 

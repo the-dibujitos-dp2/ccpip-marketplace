@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consultarInventario } from '../../api/acopio.js'
 import { marcarMermaPunto } from '../../api/merma.js'
@@ -32,12 +32,14 @@ const SIN_ESCRITOS = { texto: '', stockMin: '', stockMax: '' }
  * lo vencido no es vendible. Desde aqui se registran entradas (CCPIP-121) y salidas (CCPIP-287).
  * "Marcar como merma" (CCPIP-76, A-04 y A-07) tambien parte del lote; las transferencias llegan con su historia.
  * CCPIP-417: busca mientras se escribe, filtra por rango de stock y ordena por vencimiento.
+ * CCPIP-447: `?lote=COD` (desde una alerta) busca ese lote en todos los estados y resalta su fila.
  */
-export default function InventarioPage({ path }) {
+export default function InventarioPage({ path, search = '' }) {
   const { t } = useTranslation()
-  const [escritos, setEscritos] = useState(SIN_ESCRITOS)
+  const [lotePedido] = useState(() => new URLSearchParams(search).get('lote')?.trim() || null)
+  const [escritos, setEscritos] = useState(() => (lotePedido ? { ...SIN_ESCRITOS, texto: lotePedido } : SIN_ESCRITOS))
   const [productor, setProductor] = useState('')
-  const [estado, setEstado] = useState('ACTIVOS')
+  const [estado, setEstado] = useState(lotePedido ? 'TODOS' : 'ACTIVOS')
   const [orden, setOrden] = useState('PRODUCTO')
   const [pagina, setPagina] = useState(0)
   const [avisoVisible, setAvisoVisible] = useState(true)
@@ -153,13 +155,17 @@ export default function InventarioPage({ path }) {
         </p>
       )}
 
+      {!error && lotePedido && datos && !datos.items.some((l) => mismoLote(l.codigo, lotePedido)) && escritos.texto === lotePedido && (
+        <Alerta tono="aviso" titulo={t('productor.almacen.loteNoEncontrado', { lote: lotePedido })} descripcion={t('acopio.inventario.loteNoEncontradoTexto')} />
+      )}
+
       {!error && datos?.items.length === 0 && (
         <EstadoVacio titulo={t('acopio.inventario.vacio')} descripcion={t('acopio.inventario.vacioTexto')} />
       )}
 
       {!error && datos?.items.length > 0 && (
         <>
-          <TablaInventario items={datos.items} onMovimiento={movimiento.abrir} onMerma={(l) => { setMarcada(null); setMerma(l) }} />
+          <TablaInventario items={datos.items} resaltado={lotePedido} onMovimiento={movimiento.abrir} onMerma={(l) => { setMarcada(null); setMerma(l) }} />
           <div className="inventario__pie">
             <span className="caption">
               {t('acopio.inventario.mostrando', {
@@ -186,9 +192,16 @@ export default function InventarioPage({ path }) {
   )
 }
 
-function TablaInventario({ items, onMovimiento, onMerma }) {
+const mismoLote = (a, b) => a.toLowerCase() === b.toLowerCase()
+
+function TablaInventario({ items, resaltado, onMovimiento, onMerma }) {
   const { t } = useTranslation()
   const titulo = t('acopio.inventario.lista')
+  const fila = useRef(null)
+  const idResaltado = resaltado ? items.find((l) => mismoLote(l.codigo, resaltado))?.id : undefined
+  useEffect(() => {
+    fila.current?.scrollIntoView?.({ block: 'center' })
+  }, [idResaltado])
   return (
     <div className="tabla" role="table" aria-label={titulo}>
       <div className="tabla__fila tabla__fila--encabezado" role="row">
@@ -203,8 +216,16 @@ function TablaInventario({ items, onMovimiento, onMerma }) {
         <span className="tabla__celda inventario__col-accion" role="columnheader">{t('acopio.inventario.col.accion')}</span>
       </div>
       {items.map((l) => (
-        <div key={l.id} className="tabla__fila" role="row">
-          <span className="tabla__celda tabla__celda--flex label-m" role="cell">{l.producto}</span>
+        <div
+          key={l.id}
+          ref={l.id === idResaltado ? fila : undefined}
+          className={`tabla__fila${l.id === idResaltado ? ' tabla__fila--resaltada' : ''}`}
+          role="row"
+        >
+          <span className="tabla__celda tabla__celda--flex label-m" role="cell">
+            {l.producto}
+            {l.id === idResaltado && <span className="visually-hidden">{t('alertas.loteDeAlerta')}</span>}
+          </span>
           <span className="tabla__celda inventario__col-productor" role="cell">{l.productor}</span>
           <span className="tabla__celda inventario__col-lote" role="cell">{l.codigo}</span>
           <span className="tabla__celda inventario__col-vence" role="cell">{l.fechaVencimiento ? fechaCorta(l.fechaVencimiento) : '—'}</span>

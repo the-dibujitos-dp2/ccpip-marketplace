@@ -320,3 +320,48 @@ describe('CCPIP-283 Movimiento en el almacén del productor (PW-16)', () => {
     expect(dialogo.getByRole('button', { name: 'Record outgoing' })).toBeInTheDocument()
   })
 })
+
+describe('CCPIP-447 Desde una alerta, el lote ubicado y resaltado en Mi almacén', () => {
+  it('abre la ubicación del lote y resalta su fila', async () => {
+    productor()
+    abrirEn('/productor/almacen?lote=L-0232')
+
+    expect(await screen.findByRole('tab', { name: 'Centro Regional Ucayali (1)', selected: true })).toBeInTheDocument()
+    const fila = screen.getByText('Lote de la alerta', { exact: false }).closest('[role="row"]')
+    expect(fila).toHaveClass('tabla__fila--resaltada')
+    expect(within(fila).getByText('Lote L-0232')).toBeInTheDocument()
+  })
+
+  it('en su almacén resalta solo ese lote, sin importar mayúsculas', async () => {
+    productor()
+    abrirEn('/productor/almacen?lote=ha-01')
+
+    expect(await screen.findByRole('tab', { name: 'Mi almacén (2)', selected: true })).toBeInTheDocument()
+    const resaltadas = document.querySelectorAll('.tabla__fila--resaltada')
+    expect(resaltadas).toHaveLength(1)
+    expect(within(resaltadas[0]).getByText('Lote HA-01')).toBeInTheDocument()
+  })
+
+  it('lleva a la página donde está el lote', async () => {
+    const lotes = Array.from({ length: 25 }, (_, i) => ({
+      id: 100 + i, codigo: `COL-${String(i + 1).padStart(3, '0')}`, ubicacionId: 11, ubicacion: 'Almacén Comunidad Shipibo',
+      tipoUbicacion: 'ALMACEN_PRODUCTOR', cantidad: 5, estado: 'DISPONIBLE',
+    }))
+    const muchos = { ...copia(INVENTARIO), ubicaciones: [ALMACEN], productos: [{ id: 9, nombre: 'Cacao', total: 125, porUbicacion: [], lotes }] }
+    productor({ 'GET /api/productor/inventario': () => [200, copia(muchos)] })
+    abrirEn('/productor/almacen?lote=COL-023')
+
+    const fila = (await screen.findByText('Lote de la alerta', { exact: false })).closest('[role="row"]')
+    expect(within(fila).getByText('Lote COL-023')).toBeInTheDocument()
+    expect(screen.queryByText('Lote COL-001')).not.toBeInTheDocument()
+  })
+
+  it('si el lote ya no está, lo avisa y muestra el almacén', async () => {
+    productor()
+    abrirEn('/productor/almacen?lote=COL-001')
+
+    expect(await screen.findByText('No encontramos el lote COL-001')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Mi almacén (2)', selected: true })).toBeInTheDocument()
+    expect(document.querySelector('.tabla__fila--resaltada')).toBeNull()
+  })
+})
