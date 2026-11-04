@@ -2776,9 +2776,18 @@
     "punto": "Punto de acopio",
     "recoge": "Recoge",
     "tu": "Tú, con tu documento",
+    "formaEntrega": "Forma de entrega",
+    "modalidades": {
+      "RECOJO": "Recojo en punto de acopio",
+      "ENVIO": "Envío a domicilio"
+    },
     "pago": "Pago",
     "pagaste": "Pagaste {{monto}} con {{marca}}",
     "operacion": "Operación {{referencia}}",
+    "comision": "Comisión de la Cámara",
+    "comisionMonto": "{{porcentaje}} % · {{monto}}",
+    "comisionIncluida": "Incluida en el total: no se suma a lo que pagaste.",
+    "sinComision": "No se aplicó comisión a esta compra",
     "intentos": "Intentos de pago",
     "estadoPago": {
       "APROBADO": "Aprobado",
@@ -2787,21 +2796,7 @@
       "PENDIENTE": "En proceso",
       "ANULADO": "Devuelto"
     },
-    "seguirComprando": "Seguir comprando",
-    "condiciones": {
-      "titulo": "Condiciones de tu compra",
-      "precios": "Precios",
-      "preciosFijados": "Fijados al confirmar, el {{fecha}}",
-      "modalidad": "Modalidad",
-      "modalidades": {
-        "RECOJO": "Recojo en punto de acopio",
-        "ENVIO": "Envío a domicilio"
-      },
-      "comision": "Comisión de la Cámara",
-      "comisionMonto": "{{porcentaje}} % · {{monto}}",
-      "incluida": "Incluida en el total: no se suma a lo que pagaste.",
-      "sinComision": "No se aplicó comisión a esta compra"
-    }
+    "seguirComprando": "Seguir comprando"
   },
   "misPedidos": {
     "miCuenta": "Mi cuenta",

@@ -71,38 +71,25 @@ export default function PedidoPage({ id }) {
 }
 
 /**
- * CCPIP-167 (RF-136): lo que quedo fijado al confirmar. Los precios de cada linea ya se ven arriba;
- * aqui la modalidad y la comision de la Camara, incluida en el total (no se suma). Cambios
- * posteriores de la comision no alteran este pedido.
+ * CCPIP-167 (RF-136) y CCPIP-441: la comision de la Camara que quedo fijada al confirmar, dentro del
+ * bloque de pago. Va incluida en el total (no se suma); cambios posteriores no alteran este pedido.
  */
-function Condiciones({ pedido }) {
+function ComisionPagada({ comision }) {
   const { t } = useTranslation()
-  const { comision } = pedido
   return (
-    <section className="pedido__tarjeta" aria-labelledby="pedido-condiciones">
-      <h2 id="pedido-condiciones" className="pedido__tarjeta-titulo">{t('pedido.condiciones.titulo')}</h2>
-      <dl className="pedido__datos">
-        <div>
-          <dt>{t('pedido.condiciones.precios')}</dt>
-          <dd>{t('pedido.condiciones.preciosFijados', { fecha: fechaHora(pedido.confirmadoEn) })}</dd>
-        </div>
-        <div>
-          <dt>{t('pedido.condiciones.modalidad')}</dt>
-          <dd>{t(`pedido.condiciones.modalidades.${pedido.modalidad}`, { defaultValue: pedido.modalidad })}</dd>
-        </div>
-        <div>
-          <dt>{t('pedido.condiciones.comision')}</dt>
-          <dd>
-            <span>
-              {comision
-                ? t('pedido.condiciones.comisionMonto', { porcentaje: unidades(comision.porcentaje), monto: precio(comision.monto) })
-                : t('pedido.condiciones.sinComision')}
-            </span>
-            {comision && <span className="caption">{t('pedido.condiciones.incluida')}</span>}
-          </dd>
-        </div>
-      </dl>
-    </section>
+    <dl className="pedido__datos pedido__comision">
+      <div>
+        <dt>{t('pedido.comision')}</dt>
+        <dd>
+          <span>
+            {comision
+              ? t('pedido.comisionMonto', { porcentaje: unidades(comision.porcentaje), monto: precio(comision.monto) })
+              : t('pedido.sinComision')}
+          </span>
+          {comision && <span className="caption">{t('pedido.comisionIncluida')}</span>}
+        </dd>
+      </div>
+    </dl>
   )
 }
 
@@ -174,7 +161,6 @@ function Detalle({ pedido }) {
             </p>
           </section>
           {pedido.estado === 'ENTREGADO' && <CalificarPedido pedidoId={pedido.id} />}
-          {pedido.confirmadoEn && <Condiciones pedido={pedido} />}
           {pedido.historial?.length > 0 && (
             <section className="pedido__tarjeta" aria-labelledby="pedido-historial">
               <h2 id="pedido-historial" className="pedido__tarjeta-titulo">{t('misPedidos.historialPedido')}</h2>
@@ -194,6 +180,11 @@ function Detalle({ pedido }) {
           <section className="pedido__tarjeta" aria-labelledby="pedido-recojo">
             <h2 id="pedido-recojo" className="pedido__tarjeta-titulo">{t(aDomicilio ? 'pedido.domicilio.titulo' : 'pedido.recojo')}</h2>
             <dl className="pedido__datos">
+              {/* CCPIP-442: la forma de entrega queda en el resumen */}
+              <div>
+                <dt>{t('pedido.formaEntrega')}</dt>
+                <dd>{t(`pedido.modalidades.${pedido.modalidad}`, { defaultValue: pedido.modalidad })}</dd>
+              </div>
               <div>
                 <dt>{t(aDomicilio ? 'pedido.domicilio.sale' : 'pedido.punto')}</dt>
                 <dd>
@@ -245,6 +236,7 @@ function Detalle({ pedido }) {
                 <span className="caption">{t('pedido.operacion', { referencia: pagoAprobado.referencia })}</span>
               </p>
             )}
+            {pedido.confirmadoEn && <ComisionPagada comision={pedido.comision} />}
             {pedido.pagos.length > 0 && (
               <ul className="pedido__intentos" aria-label={t('pedido.intentos')}>
                 {pedido.pagos.map((p) => (

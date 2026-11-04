@@ -495,6 +495,8 @@ describe('CW-06 Pedido a domicilio (CCPIP-59)', () => {
     expect(await screen.findByRole('heading', { name: '¡Gracias por tu compra!' })).toBeInTheDocument()
 
     const entrega = screen.getByRole('heading', { name: 'Entrega a domicilio' }).closest('section')
+    // CCPIP-442: la forma de entrega en el resumen
+    expect(within(entrega).getByText('Envío a domicilio')).toBeInTheDocument()
     expect(within(entrega).getByText('Centro Regional Cusco')).toBeInTheDocument()
     expect(within(entrega).getByText('Av. de la Cultura 1234')).toBeInTheDocument()
     expect(within(entrega).getByText('Wanchaq · Cusco · Cusco')).toBeInTheDocument()
