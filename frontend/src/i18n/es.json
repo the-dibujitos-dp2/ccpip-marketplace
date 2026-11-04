@@ -2741,7 +2741,11 @@
       "celular": "Celular de quien recibe",
       "celularAyuda": "9 dígitos. Lo usamos para coordinar la entrega.",
       "resumen": "A domicilio · por confirmar",
-      "sinCobertura": "Ese punto no entrega en tu distrito"
+      "sinCobertura": "Ese punto no entrega en tu distrito",
+      "guardadas": "Mis direcciones guardadas",
+      "otraDireccion": "Escribir otra dirección",
+      "guardadaOpcion": "{{alias}} · {{direccion}}, {{distrito}}",
+      "guardadaSinEntrega": "{{alias}} · {{direccion}}, {{distrito}} (sin entrega con tu carrito)"
     },
     "factibilidad": {
       "titulo": "Este punto ya no puede entregar tu pedido",

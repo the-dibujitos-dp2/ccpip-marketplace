@@ -2741,7 +2741,11 @@
       "celular": "Mobile number of the person receiving",
       "celularAyuda": "9 digits. We use it to coordinate the delivery.",
       "resumen": "Home delivery · to be confirmed",
-      "sinCobertura": "That point does not deliver to your district"
+      "sinCobertura": "That point does not deliver to your district",
+      "guardadas": "My saved addresses",
+      "otraDireccion": "Enter another address",
+      "guardadaOpcion": "{{alias}} · {{direccion}}, {{distrito}}",
+      "guardadaSinEntrega": "{{alias}} · {{direccion}}, {{distrito}} (no delivery with your cart)"
     },
     "factibilidad": {
       "titulo": "This point can no longer deliver your order",

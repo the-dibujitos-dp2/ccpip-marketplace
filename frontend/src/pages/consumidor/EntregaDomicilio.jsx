@@ -11,8 +11,10 @@ const opciones = (valores) => valores.map((v) => ({ valor: v, etiqueta: v }))
  * distrito del catalogo territorial, mas la direccion y su referencia, sin mapas. El punto que lo entrega se
  * elige aparte, entre los que cubren el distrito con todo el carrito ({@code distritos}); si ninguno lo
  * cubre, se avisa aqui para elegir otro distrito o el recojo.
+ * {@code guardadas}: las direcciones de su cuenta; elegir una llena el destino ({@code onElegirGuardada}). Las de
+ * un distrito sin entrega con este carrito tambien se listan, marcadas, para que no parezca que se perdieron.
  */
-export default function EntregaDomicilio({ distritos, form, errores, alEscribir }) {
+export default function EntregaDomicilio({ distritos, guardadas = [], form, errores, alEscribir, onElegirGuardada }) {
   const { t } = useTranslation()
   const [departamentos, setDepartamentos] = useState([])
   const [provincias, setProvincias] = useState([])
@@ -36,8 +38,24 @@ export default function EntregaDomicilio({ distritos, form, errores, alEscribir 
 
   const elegido = distritosDe.find((d) => d.ubigeo === form.ubigeo)
   const sinPunto = form.ubigeo && !distritos.some((d) => d.distrito.ubigeo === form.ubigeo)
+  const conEntrega = (ubigeo) => distritos.some((d) => d.distrito.ubigeo === ubigeo)
   return (
     <>
+      {guardadas.length > 0 && (
+        <Campo
+          tipo="selector"
+          etiqueta={t('compra.domicilio.guardadas')}
+          placeholder={t('compra.domicilio.otraDireccion')}
+          value={form.direccionGuardadaId}
+          onChange={(e) => onElegirGuardada(e.target.value)}
+          opciones={guardadas.map((g) => ({
+            valor: String(g.id),
+            etiqueta: t(conEntrega(g.ubigeo) ? 'compra.domicilio.guardadaOpcion' : 'compra.domicilio.guardadaSinEntrega', {
+              alias: g.alias ?? t('misDirecciones.sinAlias'), direccion: g.direccion, distrito: g.distrito,
+            }),
+          }))}
+        />
+      )}
       {errorCatalogo && <Alerta tono="error" titulo={t('compra.domicilio.errorCatalogo')} />}
       <div className="compra__fila compra__fila--territorio">
         <Campo
@@ -93,11 +111,13 @@ export default function EntregaDomicilio({ distritos, form, errores, alEscribir 
         error={errores.referencia}
         maxLength={255}
       />
-      <label className="compra__check">
-        <input type="checkbox" checked={form.guardarDireccion} onChange={alEscribir('guardarDireccion')} />
-        {t('compra.domicilio.guardar')}
-      </label>
-      {form.guardarDireccion && (
+      {!form.direccionGuardadaId && (
+        <label className="compra__check">
+          <input type="checkbox" checked={form.guardarDireccion} onChange={alEscribir('guardarDireccion')} />
+          {t('compra.domicilio.guardar')}
+        </label>
+      )}
+      {form.guardarDireccion && !form.direccionGuardadaId && (
         <Campo
           etiqueta={t('compra.domicilio.alias')}
           ayuda={t('compra.domicilio.aliasAyuda')}
