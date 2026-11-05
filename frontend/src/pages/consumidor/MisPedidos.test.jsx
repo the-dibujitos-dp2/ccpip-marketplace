@@ -146,9 +146,9 @@ describe('Detalle del pedido con seguimiento e historial (CCPIP-70, CCPIP-340)',
 
     const historial = within(screen.getByRole('region', { name: 'Historial del pedido' })).getAllByRole('listitem')
     expect(historial.map((li) => li.textContent)).toEqual([
-      'Pedido creado, en espera de pago10 oct 10:40',
-      'Pago aprobado y pedido confirmado10 oct 10:42',
-      'Listo para recoger en el punto de acopio12 oct 09:30',
+      'Pedido creado, en espera de pago10 de octubre 10:40',
+      'Pago aprobado y pedido confirmado10 de octubre 10:42',
+      'Listo para recoger en el punto de acopio12 de octubre 09:30',
     ])
     expect(screen.getByRole('link', { name: 'Ver mis pedidos' })).toHaveAttribute('href', '/cuenta/pedidos')
   })
@@ -240,7 +240,7 @@ describe('Seguimiento y pago del pedido (mejoras de laboratorio)', () => {
     abrirEn('/pedidos/77')
     const pagos = within(await screen.findByRole('region', { name: 'Pago' }))
     expect(pagos.getByText(/Pagaste/)).toBeInTheDocument()
-    expect(pagos.getByText(/10 oct 10:41 · Visa/)).toBeInTheDocument()
+    expect(pagos.getByText(/10 de octubre de 2026 · Visa/)).toBeInTheDocument()
     expect(screen.queryByText(/SIM-c15ed99b/)).not.toBeInTheDocument()
   })
 })
@@ -249,3 +249,16 @@ async function esperarEtapas(numero) {
   await screen.findByRole('list', { name: `Seguimiento del pedido ${numero}` })
   return etapas(numero)
 }
+
+describe('Historial de un pedido a domicilio (CCPIP-445)', () => {
+  it('nombra la salida en camino y escribe las fechas con el mes completo', async () => {
+    const enCamino = {
+      ...DETALLE, modalidad: 'ENVIO', estado: 'EN_CAMINO',
+      historial: [{ estado: 'EN_CAMINO', registradoEn: '2026-10-30T01:35:00Z' }],
+    }
+    servidor(comoComprador({ 'GET /api/pedidos/77': [200, enCamino] }))
+    abrirEn('/pedidos/77')
+    const historial = within(await screen.findByRole('region', { name: 'Historial del pedido' }))
+    expect(historial.getByRole('listitem')).toHaveTextContent('En camino a tu domicilio29 de octubre 20:35')
+  })
+})

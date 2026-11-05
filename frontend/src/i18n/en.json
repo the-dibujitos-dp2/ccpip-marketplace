@@ -2864,7 +2864,8 @@
       "LISTO_PARA_RECOJO": "Ready for pickup at the collection point",
       "LISTO_PARA_DESPACHO": "Prepared at the collection point, waiting for a distributor",
       "ENTREGADO": "Delivered",
-      "CANCELADO": "Order cancelled"
+      "CANCELADO": "Order cancelled",
+      "EN_CAMINO": "On the way to your address"
     }
   },
   "misDirecciones": {

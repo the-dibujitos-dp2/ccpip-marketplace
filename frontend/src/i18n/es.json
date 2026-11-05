@@ -2864,7 +2864,8 @@
       "LISTO_PARA_RECOJO": "Listo para recoger en el punto de acopio",
       "LISTO_PARA_DESPACHO": "Preparado en el punto de acopio, espera a un distribuidor",
       "ENTREGADO": "Entregado",
-      "CANCELADO": "Pedido cancelado"
+      "CANCELADO": "Pedido cancelado",
+      "EN_CAMINO": "En camino a tu domicilio"
     }
   },
   "misDirecciones": {

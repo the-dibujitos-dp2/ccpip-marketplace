@@ -15,6 +15,7 @@ const OPCIONES = {
   hora: { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima' },
   fechaHora: { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima' },
   fechaHoraLarga: { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima' },
+  diaMesAnioLargo: { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Lima' },
 }
 
 // Crear un Intl.*Format es costoso: se guarda uno por formato y locale
@@ -117,6 +118,16 @@ export function diaMesHora(instante) {
  */
 export function fechaHoraLarga(instante) {
   return instante ? formato('fechaHoraLarga').format(new Date(instante)).replace(' a las ', ', ').replace(' at ', ', ') : ''
+}
+
+/** "2026-10-30T01:35:00Z" -> "29 de octubre 20:35" · "29 October 20:35", en hora de Lima (historial del pedido, CCPIP-445) */
+export function diaMesLargoHora(instante) {
+  return instante ? formato('fechaHoraLarga').format(new Date(instante)).replace(' a las ', ' ').replace(' at ', ' ') : ''
+}
+
+/** "2026-12-03T15:00:00Z" -> "3 de diciembre de 2026" · "3 December 2026", en hora de Lima (pago del pedido, CCPIP-440) */
+export function diaMesAnioLargo(instante) {
+  return instante ? formato('diaMesAnioLargo').format(new Date(instante)) : ''
 }
 
 /** Primera oracion de un relato, para citarlo destacado; si no hay una corta, sus primeros 140 caracteres. */

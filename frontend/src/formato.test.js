@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { capital, coincide, diaMes, diaMesAnio, diaMesAnioHora, diaMesHora, fecha, fechaCorta, fechaHoraLarga, hora, mesAnio, mesAnterior, precio, primeraOracion, unidades } from './formato'
+import { capital, coincide, diaMes, diaMesAnio, diaMesAnioHora, diaMesAnioLargo, diaMesHora, diaMesLargoHora, fecha, fechaCorta, fechaHoraLarga, hora, mesAnio, mesAnterior, precio, primeraOracion, unidades } from './formato'
 import i18n from './i18n/index.js'
 
 // Intl separa la moneda con un espacio no separable (U+00A0): se normaliza para comparar
@@ -76,7 +76,12 @@ describe('formato', () => {
       expect(diaMesAnioHora('2026-11-16T14:12:00Z')).toBe('16 nov 2026 09:12')
     })
 
-    it.each([fecha, fechaCorta, mesAnio, mesAnterior, diaMes, diaMesAnio, hora, diaMesHora, diaMesAnioHora, fechaHoraLarga])('%o devuelve cadena vacía sin valor', (fn) => {
+    it('con el mes completo y "de": historial (CCPIP-445) y pago del pedido (CCPIP-440)', () => {
+      expect(diaMesLargoHora('2026-10-30T01:35:00Z')).toBe('29 de octubre 20:35')
+      expect(diaMesAnioLargo('2026-12-03T15:00:00Z')).toBe('3 de diciembre de 2026')
+    })
+
+    it.each([fecha, fechaCorta, mesAnio, mesAnterior, diaMes, diaMesAnio, hora, diaMesHora, diaMesAnioHora, diaMesLargoHora, diaMesAnioLargo, fechaHoraLarga])('%o devuelve cadena vacía sin valor', (fn) => {
       expect(fn(null)).toBe('')
       expect(fn(undefined)).toBe('')
       expect(fn('')).toBe('')
@@ -104,6 +109,7 @@ describe('formato', () => {
       expect(fechaHoraLarga('2026-10-17T19:30:00Z')).toBe('17 October, 14:30')
       expect(diaMesAnio('2026-11-17T03:30:00Z')).toBe('16 Nov 2026')
       expect(diaMesHora('2026-11-16T14:12:00Z')).toBe('16 Nov 09:12')
+      expect(diaMesLargoHora('2026-10-30T01:35:00Z')).toBe('29 October 20:35')
     })
   })
 
