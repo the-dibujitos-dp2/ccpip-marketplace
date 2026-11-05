@@ -63,6 +63,17 @@ export default function ProductosPage({ path, search }) {
   const [publicando, setPublicando] = useState(null)
   const [aviso, setAviso] = useState(inicial.get('enviado') ? { tono: 'exito', titulo: t('productor.productos.enviado'), descripcion: t('productor.productos.enviadoTexto') } : null)
   const menuRef = useRef(null)
+  // El boton que abrio el menu y si se abrio hacia arriba: al desplazarse, el menu lo sigue
+  const abiertoDesde = useRef(null)
+
+  /** Ubica el menu bajo su boton (o encima, si se abrio cerca del borde inferior). */
+  function ubicarMenu() {
+    const { boton, arriba } = abiertoDesde.current ?? {}
+    if (!boton) return
+    const caja = boton.getBoundingClientRect()
+    const right = window.innerWidth - caja.right
+    setPosicionMenu(arriba ? { bottom: window.innerHeight - caja.top + 4, right } : { top: caja.bottom + 4, right })
+  }
 
   function cargar(e = estado, termino = q) {
     setError(false)
@@ -84,15 +95,14 @@ export default function ProductosPage({ path, search }) {
   useEffect(() => {
     if (menu === null) return undefined
     const cerrar = (e) => !menuRef.current?.contains(e.target) && setMenu(null)
-    // Al desplazarse el boton se mueve y el menu quedaria suelto: se cierra
-    const alDesplazar = () => setMenu(null)
+    // Al desplazarse o cambiar el tamano, el menu sigue a su boton en vez de cerrarse o quedar suelto
     document.addEventListener('mousedown', cerrar)
-    window.addEventListener('scroll', alDesplazar, true)
-    window.addEventListener('resize', alDesplazar)
+    window.addEventListener('scroll', ubicarMenu, true)
+    window.addEventListener('resize', ubicarMenu)
     return () => {
       document.removeEventListener('mousedown', cerrar)
-      window.removeEventListener('scroll', alDesplazar, true)
-      window.removeEventListener('resize', alDesplazar)
+      window.removeEventListener('scroll', ubicarMenu, true)
+      window.removeEventListener('resize', ubicarMenu)
     }
   }, [menu])
 
@@ -191,12 +201,10 @@ export default function ProductosPage({ path, search }) {
                   <span className="productos__menu">
                     <button type="button" className="productos__icono-boton" aria-label={t('productor.productos.masAcciones', { nombre: f.nombre })} aria-haspopup="menu" aria-expanded={menu === f.id}
                       disabled={publicando === f.id} aria-busy={publicando === f.id || undefined} onClick={(e) => {
-                        const caja = e.currentTarget.getBoundingClientRect()
-                        const right = window.innerWidth - caja.right
                         // Cerca del borde inferior se abre hacia arriba para que se vea entero
-                        setPosicionMenu(caja.bottom + 280 > window.innerHeight
-                          ? { bottom: window.innerHeight - caja.top + 4, right }
-                          : { top: caja.bottom + 4, right })
+                        const boton = e.currentTarget
+                        abiertoDesde.current = { boton, arriba: boton.getBoundingClientRect().bottom + 280 > window.innerHeight }
+                        ubicarMenu()
                         setMenu(menu === f.id ? null : f.id)
                       }}>
                       {publicando === f.id ? <Giro tamano={18} /> : <Icono src={iconoMasVertical} tamano={18} />}

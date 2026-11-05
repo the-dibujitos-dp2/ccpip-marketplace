@@ -162,6 +162,8 @@ describe('PW-03 Mis productos (CCPIP-160)', () => {
     const user = userEvent.setup()
     abrirEn('/productor/productos')
     await user.click(await screen.findByRole('button', { name: 'Más acciones para Camu camu en polvo 150 g' }))
+    // El menu flota fuera de la tabla y sigue abierto al desplazarse (el navegador hace scroll para llegar a una opcion)
+    window.dispatchEvent(new Event('scroll'))
     await user.click(screen.getByRole('menuitem', { name: 'Despublicar' }))
     const dialogo = screen.getByRole('dialog')
     expect(within(dialogo).getByText(/No se borra/)).toBeInTheDocument()
