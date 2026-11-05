@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoCandado from '../../assets/icons/candado.svg'
 import { miHistorial } from '../../api/admin.js'
@@ -49,20 +49,24 @@ export default function MiHistorialPage({ path }) {
   const [filtro, setFiltro] = useState({ desde: '', hasta: '', tipo: '' })
   const [datos, setDatos] = useState(null)
   const [error, setError] = useState(null)
+  const solicitudActual = useRef(0)
 
   const consultar = useCallback(async (valores) => {
+    const solicitud = ++solicitudActual.current
     setError(null)
     try {
       const respuesta = await miHistorial(valores)
+      if (solicitud !== solicitudActual.current) return
       setDatos(respuesta)
       setFiltro({ desde: respuesta.desde, hasta: respuesta.hasta, tipo: respuesta.tipo ?? '' })
     } catch (e) {
-      setError(e)
+      if (solicitud === solicitudActual.current) setError(e)
     }
   }, [])
 
   useEffect(() => {
     void consultar()
+    return () => { solicitudActual.current += 1 }
   }, [consultar])
 
   const paginas = usePaginacionLocal(datos?.acciones ?? [], JSON.stringify(filtro))

@@ -55,12 +55,25 @@ export default function ProductosPage({ path, search }) {
   const [datos, setDatos] = useState(null)
   const [error, setError] = useState(false)
   const [menu, setMenu] = useState(null)
+  // El menu flota sobre la pagina (fixed), fuera de la tabla que se desliza de costado: se ubica bajo su boton
+  const [posicionMenu, setPosicionMenu] = useState(null)
   const [confirmar, setConfirmar] = useState(null)
   const [ocupado, setOcupado] = useState(false)
   // CCPIP-413: publicar sale del menu sin confirmacion; el aro queda en el boton de la fila mientras espera
   const [publicando, setPublicando] = useState(null)
   const [aviso, setAviso] = useState(inicial.get('enviado') ? { tono: 'exito', titulo: t('productor.productos.enviado'), descripcion: t('productor.productos.enviadoTexto') } : null)
   const menuRef = useRef(null)
+  // El boton que abrio el menu y si se abrio hacia arriba: al desplazarse, el menu lo sigue
+  const abiertoDesde = useRef(null)
+
+  /** Ubica el menu bajo su boton (o encima, si se abrio cerca del borde inferior). */
+  function ubicarMenu() {
+    const { boton, arriba } = abiertoDesde.current ?? {}
+    if (!boton) return
+    const caja = boton.getBoundingClientRect()
+    const right = window.innerWidth - caja.right
+    setPosicionMenu(arriba ? { bottom: window.innerHeight - caja.top + 4, right } : { top: caja.bottom + 4, right })
+  }
 
   function cargar(e = estado, termino = q) {
     setError(false)
@@ -82,8 +95,15 @@ export default function ProductosPage({ path, search }) {
   useEffect(() => {
     if (menu === null) return undefined
     const cerrar = (e) => !menuRef.current?.contains(e.target) && setMenu(null)
+    // Al desplazarse o cambiar el tamano, el menu sigue a su boton en vez de cerrarse o quedar suelto
     document.addEventListener('mousedown', cerrar)
-    return () => document.removeEventListener('mousedown', cerrar)
+    window.addEventListener('scroll', ubicarMenu, true)
+    window.addEventListener('resize', ubicarMenu)
+    return () => {
+      document.removeEventListener('mousedown', cerrar)
+      window.removeEventListener('scroll', ubicarMenu, true)
+      window.removeEventListener('resize', ubicarMenu)
+    }
   }, [menu])
 
   async function cambiarEstado(fila, accion) {
@@ -180,11 +200,17 @@ export default function ProductosPage({ path, search }) {
                   </Enlace>
                   <span className="productos__menu">
                     <button type="button" className="productos__icono-boton" aria-label={t('productor.productos.masAcciones', { nombre: f.nombre })} aria-haspopup="menu" aria-expanded={menu === f.id}
-                      disabled={publicando === f.id} aria-busy={publicando === f.id || undefined} onClick={() => setMenu(menu === f.id ? null : f.id)}>
+                      disabled={publicando === f.id} aria-busy={publicando === f.id || undefined} onClick={(e) => {
+                        // Cerca del borde inferior se abre hacia arriba para que se vea entero
+                        const boton = e.currentTarget
+                        abiertoDesde.current = { boton, arriba: boton.getBoundingClientRect().bottom + 280 > window.innerHeight }
+                        ubicarMenu()
+                        setMenu(menu === f.id ? null : f.id)
+                      }}>
                       {publicando === f.id ? <Giro tamano={18} /> : <Icono src={iconoMasVertical} tamano={18} />}
                     </button>
                     {menu === f.id && (
-                      <span className="productos__menu-lista" role="menu">
+                      <span className="productos__menu-lista" role="menu" style={posicionMenu ?? undefined}>
                         <Enlace role="menuitem" to={`${RUTAS.productorLotes}?producto=${f.id}`}>{t('productor.panel.registrarLote')}</Enlace>
                         <Enlace role="menuitem" to={`${RUTAS.productorProductos}/${f.id}/evidencias`}>{t('productor.productos.evidencias')}</Enlace>
                         <Enlace role="menuitem" to={`${RUTAS.productorProductos}/${f.id}/premios`}>{t('productor.productos.premios')}</Enlace>

@@ -162,6 +162,8 @@ describe('PW-03 Mis productos (CCPIP-160)', () => {
     const user = userEvent.setup()
     abrirEn('/productor/productos')
     await user.click(await screen.findByRole('button', { name: 'Más acciones para Camu camu en polvo 150 g' }))
+    // El menu flota fuera de la tabla y sigue abierto al desplazarse (el navegador hace scroll para llegar a una opcion)
+    window.dispatchEvent(new Event('scroll'))
     await user.click(screen.getByRole('menuitem', { name: 'Despublicar' }))
     const dialogo = screen.getByRole('dialog')
     expect(within(dialogo).getByText(/No se borra/)).toBeInTheDocument()
@@ -343,11 +345,16 @@ describe('PW-06 Registrar lote (CCPIP-41)', () => {
     const user = userEvent.setup()
     abrirEn('/productor/lotes')
     const lista = await screen.findByRole('list', { name: 'Todos tus lotes' })
+    // El titulo dice que aqui se revisan y registran; el registro tiene su propio titulo sobre la tabla
+    expect(screen.getByRole('heading', { level: 1, name: 'Revisa y registra lotes' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Registrar lote' })).toHaveTextContent('¿De qué producto es el lote?')
     const filas = within(lista).getAllByRole('listitem')
     expect(filas.map((f) => within(f).getByText(/^L-/).textContent)).toEqual(['L-0031', 'L-0032', 'L-0033', 'L-0009', 'L-0005'])
     // Producto, unidad, vencimiento, ubicacion y estado de cada lote
     expect(within(filas[0]).getByText('Aceite de aguaje 250 ml')).toBeInTheDocument()
     expect(within(filas[0]).getByText('Botella')).toBeInTheDocument()
+    // Vence: dia, mes abreviado y año (mejoras de laboratorio)
+    expect(within(filas[0]).getByText('10 oct 2026')).toBeInTheDocument()
     expect(within(filas[0]).getByText('Vencido')).toBeInTheDocument()
     expect(within(filas[1]).getByText('Centro Nacional Lima')).toBeInTheDocument()
     expect(within(filas[1]).getByText('Vende primero')).toBeInTheDocument()
@@ -773,7 +780,7 @@ describe('PW-05 Historia asistida (CCPIP-49)', () => {
   const sinHistoria = { ...copia(DATOS.edicion), estado: 'BORRADOR', historia: null }
 
   it('arma el borrador con IA desde las respuestas, permite editarlo y lo aprueba como asistido', async () => {
-    const texto = 'Somos mujeres shipibo que recolectamos camu camu en las cochas sin talar el bosque.'
+    const texto = 'Somos mujeres shipibo que recolectamos camu camu en las cochas sin talar el bosque, y lo secamos al sol.'
     const fetchMock = productor({
       'GET /api/productor/productos/9': () => [200, copia(sinHistoria)],
       'POST /api/productor/productos/9/historia/propuesta': [200, { titulo: 'Del agua a tu mesa', texto }],
@@ -841,9 +848,9 @@ describe('PW-05 Historia asistida (CCPIP-49)', () => {
 
     await user.type(screen.getByLabelText('Historia'), 'Muy corta')
     await user.click(screen.getByRole('button', { name: 'Aprobar historia' }))
-    expect(screen.getByText('La historia debe tener al menos 40 caracteres')).toBeInTheDocument()
+    expect(screen.getByText('La historia debe tener al menos 100 caracteres')).toBeInTheDocument()
 
-    await user.type(screen.getByLabelText('Historia'), ' pero ahora sí cuenta quiénes somos y cómo lo hacemos.')
+    await user.type(screen.getByLabelText('Historia'), ' pero ahora sí cuenta quiénes somos, cómo lo hacemos y por qué lo cuidamos en nuestra comunidad.')
     await user.click(screen.getByRole('button', { name: 'Aprobar historia' }))
     await waitFor(() => expect(llamadas(fetchMock, 'POST /api/productor/productos/9/historia/aprobar')).toHaveLength(1))
     expect(cuerpo(fetchMock, 'POST /api/productor/productos/9/historia/aprobar').asistida).toBe(false)

@@ -15,7 +15,7 @@ import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
-import { fechaCorta, mesAnio, unidades } from '../../formato.js'
+import { fecha, unidades } from '../../formato.js'
 import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import { MOTIVOS_ALMACEN } from '../../movimientos.js'
 import { RUTAS } from '../../router.js'
@@ -203,10 +203,10 @@ function Indicadores({ resumen, diasAviso }) {
   )
 }
 
-/** "Cosecha setiembre de 2026 · vence 15/03/2027", o lo que se sepa del lote. */
+/** "Cosecha 2 sept 2026 · vence 15 mar 2027", o lo que se sepa del lote. */
 function cosechaYVencimiento(l, t) {
-  const vence = l.fechaVencimiento ? t('productor.almacen.vence', { fecha: fechaCorta(l.fechaVencimiento) }) : t('productor.almacen.sinVencimiento')
-  return l.fechaProduccion ? `${t('productor.almacen.cosecha', { mes: mesAnio(l.fechaProduccion) })} · ${vence}` : vence
+  const vence = l.fechaVencimiento ? t('productor.almacen.vence', { fecha: fecha(l.fechaVencimiento) }) : t('productor.almacen.sinVencimiento')
+  return l.fechaProduccion ? `${t('productor.almacen.cosecha', { fecha: fecha(l.fechaProduccion) })} · ${vence}` : vence
 }
 
 /** Los lotes con saldo en una ubicacion (CCPIP-162). En su almacen, la accion de CCPIP-283. */

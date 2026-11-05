@@ -9,7 +9,7 @@ import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import SeguimientoPedido, { conSeguimiento, fechaDe } from '../../components/SeguimientoPedido.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
-import { diaMes, precio } from '../../formato.js'
+import { diaMes, diaMesAnio, precio } from '../../formato.js'
 import { RUTAS } from '../../router.js'
 import LateralCuenta from './LateralCuenta.jsx'
 import './MisPedidosPage.css'
@@ -121,14 +121,14 @@ function Historial({ pedidos }) {
   )
 }
 
-/** "15 oct · 4 productos de 3 comunidades · S/ 92.50" */
+/** "15 oct 2026 · 4 productos de 3 comunidades · S/ 92.50" */
 function Resumen({ pedido }) {
   const { t } = useTranslation()
   const productos = t('misPedidos.productos', { count: pedido.productos })
   const contenido = pedido.comunidades > 1 ? t('misPedidos.deComunidades', { productos, count: pedido.comunidades }) : productos
   return (
     <p className="mis-pedidos__resumen">
-      {[diaMes(pedido.creadoEn), contenido, precio(pedido.total)].join(' · ')}
+      {[diaMesAnio(pedido.creadoEn), contenido, precio(pedido.total)].join(' · ')}
     </p>
   )
 }

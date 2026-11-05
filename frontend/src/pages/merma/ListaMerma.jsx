@@ -9,7 +9,7 @@ import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LimpiarFiltros from '../../components/LimpiarFiltros.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
-import { diaMes, unidades } from '../../formato.js'
+import { diaMesAnio, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
 import './ListaMerma.css'
@@ -40,7 +40,15 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
     <>
       <div className="merma__barra">
         <p className="body-s">{irTexto}</p>
-        {ir && <Boton tipo="secundario" tamano="M" to={ir.ruta}>{ir.texto}</Boton>}
+        {/* Las descargas, PDF y Excel juntos, arriba; asi los filtros y "Aplicar" caben en una sola fila */}
+        <span className="merma__exportar">
+          {exportar && ['pdf', 'xlsx'].map((formato) => (
+            <a key={formato} className="boton boton--secundario boton--M" href={exportar(formato, filtros)} download>
+              {t(`merma.lista.filtros.exportar.${formato}`)}
+            </a>
+          ))}
+          {ir && <Boton tipo="secundario" tamano="M" to={ir.ruta}>{ir.texto}</Boton>}
+        </span>
       </div>
       <section className="merma__filtros" aria-label={t('merma.lista.filtros.titulo')}>
         <Campo etiqueta={t('merma.lista.filtros.desde')} type="date" value={escritos.desde} max={escritos.hasta || undefined} onChange={cambiar('desde')} />
@@ -52,11 +60,6 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
         {conProductor && <Campo etiqueta={t('merma.lista.filtros.productor')} value={escritos.productor} onChange={cambiar('productor')} />}
         <Boton tamano="M" onClick={aplicar}>{t('merma.lista.filtros.aplicar')}</Boton>
         <LimpiarFiltros activos={filtrosAplicados || Object.values(escritos).some(Boolean)} onLimpiar={limpiar} />
-        {exportar && ['pdf', 'xlsx'].map((formato) => (
-          <a key={formato} className="boton boton--secundario boton--M" href={exportar(formato, filtros)} download>
-            {t(`merma.lista.filtros.exportar.${formato}`)}
-          </a>
-        ))}
       </section>
 
       {error && (
@@ -69,7 +72,7 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
 
       {!error && datos?.items.length > 0 && (
         <>
-          <div className="tabla" role="table" aria-label={titulo}>
+          <div className="tabla tabla--espaciada" role="table" aria-label={titulo}>
             <div className="tabla__fila tabla__fila--encabezado" role="row">
               <span className="tabla__celda merma__col-fecha" role="columnheader">{t('merma.lista.col.fecha')}</span>
               <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('merma.lista.col.producto')}</span>
@@ -82,7 +85,7 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
             </div>
             {datos.items.map((m) => (
               <div key={m.id} className="tabla__fila" role="row">
-                <span className="tabla__celda merma__col-fecha label-m" role="cell">{diaMes(m.registradoEn)}</span>
+                <span className="tabla__celda merma__col-fecha label-m" role="cell">{diaMesAnio(m.registradoEn)}</span>
                 <span className="tabla__celda tabla__celda--flex" role="cell">{`${m.producto} · ${m.lote}`}</span>
                 {conProductor && <span className="tabla__celda merma__col-productor" role="cell">{m.productor ?? '—'}</span>}
                 {conUbicacion && <span className="tabla__celda merma__col-ubicacion" role="cell">{m.ubicacion}</span>}

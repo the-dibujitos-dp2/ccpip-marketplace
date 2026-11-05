@@ -179,7 +179,7 @@ describe('Calificar desde la ficha solo lo recibido (CCPIP-412)', () => {
     const s = await seccion()
     const boton = await s.findByRole('button', { name: 'Califica este producto' })
     expect(boton).toBeDisabled()
-    expect(boton).toHaveAccessibleDescription('Solo puedes calificarlo si lo compraste y ya lo recibiste.')
+    expect(boton).toHaveAccessibleDescription('Solo puedes calificarlo si lo compraste y ya lo recibiste. No se mostrará tu nombre.')
     expect(s.queryByRole('radio', { name: '5 estrellas' })).not.toBeInTheDocument()
   })
 
@@ -208,7 +208,7 @@ describe('Calificar desde la ficha solo lo recibido (CCPIP-412)', () => {
     abrirEn('/productos/1')
     const s = within(await screen.findByRole('region', { name: 'Ratings' }))
     expect(await s.findByRole('button', { name: 'Rate this product' })).toBeDisabled()
-    expect(s.getByText('You can rate it only if you bought it and have already received it.')).toBeInTheDocument()
+    expect(s.getByText('You can rate it only if you bought it and have already received it. Your name will not be shown.')).toBeInTheDocument()
   })
 })
 

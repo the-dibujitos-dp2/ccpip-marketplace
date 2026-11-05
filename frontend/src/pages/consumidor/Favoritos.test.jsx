@@ -161,8 +161,12 @@ describe('CCPIP-327, CCPIP-385 y CCPIP-386 Mi cuenta › Favoritos', () => {
     const user = userEvent.setup()
     abrirEn('/cuenta/favoritos')
 
-    await user.click(await screen.findByRole('button', { name: 'Quitar Miel de abeja nativa de favoritos' }))
+    const quitar = await screen.findByRole('button', { name: 'Quitar Miel de abeja nativa de favoritos' })
+    // Quitar va en rojo, y el aviso de que salio de favoritos tambien (mejoras de laboratorio)
+    expect(quitar).toHaveClass('boton--peligro')
+    await user.click(quitar)
     expect(await screen.findByText('Quitaste «Miel de abeja nativa» de tus favoritos.')).toBeInTheDocument()
+    expect(screen.getByText('Quitaste «Miel de abeja nativa» de tus favoritos.').closest('.alerta')).toHaveClass('alerta--error')
     expect(await screen.findByRole('tab', { name: 'Productos (1)' })).toBeInTheDocument()
     expect(llamadas(fetchMock, 'DELETE /api/cuenta/favoritos/productos/40')).toHaveLength(1)
   })

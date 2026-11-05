@@ -42,6 +42,8 @@ class AsistentesTest {
         assertThat(normal.texto()).startsWith("34 mujeres shipibo. Prensamos en frio.");
         AsistenteRedaccion.Propuesta corta = simulado.proponerHistoria(new DatosHistoria("p", "c", "uno", null, null, "dos", Variante.CORTA));
         assertThat(corta.texto()).isEqualTo("Uno. Dos.");
+        assertThat(simulado.proponerHistoria(new DatosHistoria("p", "c", "uno", "tres", "cuatro", "dos", Variante.CORTA)).texto())
+                .isEqualTo("Uno. Tres. Dos.");
         assertThat(simulado.proponerHistoria(new DatosHistoria("p", "c", "a", "b", "c", "d", Variante.OTRA)).texto())
                 .startsWith("C. A.");
         assertThat(simulado.proponerDescripcion(new AsistenteRedaccion.DatosDescripcion(

@@ -14,7 +14,7 @@ import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LimpiarFiltros from '../../components/LimpiarFiltros.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
-import { fechaCorta, unidades } from '../../formato.js'
+import { fecha, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { useDiferido } from '../../useDiferido.js'
 import '../productor/productor.css'
@@ -203,7 +203,7 @@ function TablaInventario({ items, resaltado, onMovimiento, onMerma }) {
     fila.current?.scrollIntoView?.({ block: 'center' })
   }, [idResaltado])
   return (
-    <div className="tabla" role="table" aria-label={titulo}>
+    <div className="tabla tabla--ajustada" role="table" aria-label={titulo}>
       <div className="tabla__fila tabla__fila--encabezado" role="row">
         <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.tabla.producto')}</span>
         <span className="tabla__celda inventario__col-productor" role="columnheader">{t('acopio.inventario.productor')}</span>
@@ -228,7 +228,7 @@ function TablaInventario({ items, resaltado, onMovimiento, onMerma }) {
           </span>
           <span className="tabla__celda inventario__col-productor" role="cell">{l.productor}</span>
           <span className="tabla__celda inventario__col-lote" role="cell">{l.codigo}</span>
-          <span className="tabla__celda inventario__col-vence" role="cell">{l.fechaVencimiento ? fechaCorta(l.fechaVencimiento) : '—'}</span>
+          <span className="tabla__celda inventario__col-vence" role="cell">{l.fechaVencimiento ? fecha(l.fechaVencimiento) : t('productor.lote.noVence')}</span>
           <span className="tabla__celda inventario__col-numero" role="cell">{unidades(l.entradas)}</span>
           <span className="tabla__celda inventario__col-numero" role="cell">{unidades(l.salidas)}</span>
           <span className="tabla__celda inventario__col-numero label-m" role="cell">{unidades(l.stock)}</span>
@@ -240,7 +240,7 @@ function TablaInventario({ items, resaltado, onMovimiento, onMerma }) {
               {t('acopio.inventario.movimiento')}
             </Boton>
             {Number(l.stock) > 0 && (
-              <Boton tipo="terciario" tamano="S" onClick={() => onMerma(l)} aria-label={t('merma.marcarDe', { lote: l.codigo })}>
+              <Boton tipo="terciario" tamano="S" peligro onClick={() => onMerma(l)} aria-label={t('merma.marcarDe', { lote: l.codigo })}>
                 {t('merma.accion')}
               </Boton>
             )}

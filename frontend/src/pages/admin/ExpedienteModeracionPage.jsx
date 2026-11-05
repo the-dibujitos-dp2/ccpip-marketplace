@@ -11,7 +11,7 @@ import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Icono from '../../components/Icono.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { fechaCorta, fechaHora, precio, unidades } from '../../formato.js'
+import { diaMes, fechaCorta, precio, unidades } from '../../formato.js'
 import { traducirFaltante } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import { BadgeAutorizacion } from './ModeracionPage.jsx'
@@ -65,7 +65,7 @@ export default function ExpedienteModeracionPage({ path, id }) {
         <div className="expediente__principal">
           <CabeceraSolicitud titulo={oferta.nombre} tono={TONO_ESTADO[exp.estado]} estado={t(`moderacion.estado.${exp.estado}`)}
             detalle={[oferta.lineas[0], exp.productor.organizacion, exp.productor.pueblo, exp.productor.region]}
-            enviada={`${t('moderacion.expediente.enviada', { nombre: exp.solicitadaPor, fecha: fechaHora(exp.solicitadaEn) })} · ${exp.republicacion ? t('moderacion.tipo.republicacion') : t('moderacion.tipo.nueva')}`} />
+            enviada={`${t('moderacion.expediente.enviada', { nombre: exp.solicitadaPor, fecha: diaMes(exp.solicitadaEn) })} · ${exp.republicacion ? t('moderacion.tipo.republicacion') : t('moderacion.tipo.nueva')}`} />
 
           <Oferta oferta={oferta} />
 
@@ -106,8 +106,8 @@ export default function ExpedienteModeracionPage({ path, id }) {
                     {s.motivo && <span className="body-s">«{s.motivo}»</span>}
                     <span className="caption">
                       {s.decididaEn
-                        ? t('moderacion.expediente.decididaPor', { nombre: s.decididaPor, fecha: fechaHora(s.decididaEn) })
-                        : t('moderacion.expediente.enviada', { nombre: s.solicitadaPor, fecha: fechaHora(s.solicitadaEn) })}
+                        ? t('moderacion.expediente.decididaPor', { nombre: s.decididaPor, fecha: diaMes(s.decididaEn) })
+                        : t('moderacion.expediente.enviada', { nombre: s.solicitadaPor, fecha: diaMes(s.solicitadaEn) })}
                     </span>
                   </li>
                 ))}

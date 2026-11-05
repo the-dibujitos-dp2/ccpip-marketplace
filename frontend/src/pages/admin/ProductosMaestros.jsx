@@ -92,7 +92,7 @@ export default function ProductosMaestros() {
       {!datos && !error && <Cargando />}
       {datos?.productos.length === 0 && <EstadoVacio titulo={t('catalogoMaestro.productos.vacio')} />}
       {datos?.productos.length > 0 && (
-        <div className="tabla" role="table" aria-label={t('catalogoMaestro.vista.productos')}>
+        <div className="tabla tabla--ajustada" role="table" aria-label={t('catalogoMaestro.vista.productos')}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('catalogoMaestro.productos.col.producto')}</span>
             <span className="tabla__celda catalogo-maestro__linea" role="columnheader">{t('catalogoMaestro.productos.col.linea')}</span>

@@ -12,7 +12,7 @@ import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { diaMes } from '../../formato.js'
+import { diaMesAnio } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import '../productor/productor.css'
@@ -61,7 +61,7 @@ export default function DenunciasPage({ path }) {
               </span>
               <span className="tabla__celda denuncias__num" role="cell">{p.total}</span>
               <span className="tabla__celda denuncias__num" role="cell">{p.abiertas}</span>
-              <span className="tabla__celda denuncias__ultima" role="cell">{diaMes(p.ultimaEn)}</span>
+              <span className="tabla__celda denuncias__ultima" role="cell">{diaMesAnio(p.ultimaEn)}</span>
               <span className="tabla__celda denuncias__accion" role="cell">
                 <Boton tipo={p.abiertas > 0 ? 'primario' : 'secundario'} tamano="S" to={`${RUTAS.adminDenuncias}/productores/${p.productorId}`}
                   aria-label={t('denunciasAdmin.verHistorialDe', { organizacion: p.organizacion })}>

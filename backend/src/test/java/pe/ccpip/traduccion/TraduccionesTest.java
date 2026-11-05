@@ -227,13 +227,13 @@ class TraduccionesTest extends IntegrationTest {
         long id = producto(AGUAJE);
         mockMvc.perform(post("/api/productor/productos/{id}/historia/aprobar", id).cookie(productor)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("textoFinal", "Recolectamos el aguaje del suelo del aguajal, sin cortar nunca la palmera.",
+                        .content(json(Map.of("textoFinal", "Recolectamos el aguaje del suelo del aguajal, sin cortar nunca la palmera, y lo prensamos en la comunidad.",
                                 "asistida", false))))
                 .andExpect(status().isOk());
         assertThat(jdbc.queryForObject("SELECT estado FROM traduccion WHERE entidad = 'HISTORIA' AND clave = ? AND campo = 'texto'",
                 String.class, String.valueOf(id))).isEqualTo("DESACTUALIZADA");
         mockMvc.perform(get("/api/productos/{id}", id).header(HttpHeaders.ACCEPT_LANGUAGE, "en"))
-                .andExpect(jsonPath("$.historia.texto").value("Recolectamos el aguaje del suelo del aguajal, sin cortar nunca la palmera."))
+                .andExpect(jsonPath("$.historia.texto").value("Recolectamos el aguaje del suelo del aguajal, sin cortar nunca la palmera, y lo prensamos en la comunidad."))
                 .andExpect(jsonPath("$.traducciones['historia.texto'].vigente").value(false));
     }
 

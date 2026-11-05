@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import App from '../../App.jsx'
@@ -19,6 +19,11 @@ describe('Cobertura del punto (CCPIP-401)', () => {
     expect(screen.getByText('150101')).toBeInTheDocument(); expect(screen.getByText('Activa')).toBeInTheDocument()
     expect(screen.getByText('150102')).toBeInTheDocument(); expect(screen.getByText('Inactiva')).toBeInTheDocument()
     expect(screen.getByText('Punto Norte')).toBeInTheDocument()
+    // Primero el estado y despues, en su propia columna y en rojo, desactivar (mejoras de laboratorio)
+    const activa = screen.getByRole('row', { name: /150101/ })
+    const celdas = within(activa).getAllByRole('cell')
+    expect(celdas[4]).toHaveTextContent('Activa')
+    expect(within(celdas[5]).getByRole('button', { name: 'Desactivar zona · Lima · 150101' })).toHaveClass('boton--peligro')
     expect(screen.getByRole('link', { name: 'Cobertura' })).toHaveAttribute('aria-current', 'page')
     expect(fetch.mock.calls.filter(([, o]) => o?.method && o.method !== 'GET')).toHaveLength(0)
   })

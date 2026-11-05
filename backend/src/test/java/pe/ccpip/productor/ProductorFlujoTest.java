@@ -120,7 +120,7 @@ class ProductorFlujoTest extends IntegrationTest {
         mockMvc.perform(post("/api/productor/productos/{id}/historia/aprobar", id).cookie(nuevo)
                         .contentType(MediaType.APPLICATION_JSON).content(json(Map.of(
                                 "titulo", "El camu camu del río",
-                                "textoFinal", "Doce familias kukama cosechamos el camu camu en canoa, en las orillas inundables del río Marañón.",
+                                "textoFinal", "Doce familias kukama cosechamos el camu camu en canoa, en las orillas inundables del río Marañón, sin talar el monte.",
                                 "asistida", true))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.aprobada").value(true))
@@ -592,7 +592,7 @@ class ProductorFlujoTest extends IntegrationTest {
         // Escrita a mano: no se marca como asistida aunque se pida
         mockMvc.perform(post("/api/productor/productos/{id}/historia/aprobar", id).cookie(nuevo)
                         .contentType(MediaType.APPLICATION_JSON).content(json(Map.of(
-                                "textoFinal", "Escrita a mano por la comunidad, con nuestras propias palabras.", "asistida", true))))
+                                "textoFinal", "Escrita a mano por la comunidad, con nuestras propias palabras: quiénes somos y cómo lo cosechamos juntos.", "asistida", true))))
                 .andExpect(jsonPath("$.asistida").value(false));
     }
 

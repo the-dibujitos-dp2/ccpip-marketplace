@@ -287,7 +287,9 @@ describe('CW-13 Agregar direcciones desde el perfil (CCPIP-446)', () => {
     await llenar(usuario, formulario, { alias: 'Casa', direccion: 'Av. Larco 123' })
     await usuario.click(within(formulario).getByRole('button', { name: 'Guardar dirección' }))
 
-    expect(await screen.findByText('Dirección agregada.')).toBeInTheDocument()
+    // Sin aviso de "Dirección agregada" (mejoras de laboratorio): la nueva aparece en la lista
+    expect(await screen.findByText('Av. Larco 123', { exact: false })).toBeInTheDocument()
+    expect(screen.queryByText('Dirección agregada.')).not.toBeInTheDocument()
     expect(screen.queryByRole('form', { name: 'Agregar dirección' })).not.toBeInTheDocument()
     expect(JSON.parse(llamadas(fetchMock, AGREGAR)[0][1].body)).toEqual({ alias: 'Casa', ubigeo: '150122', direccion: 'Av. Larco 123', referencia: null })
 

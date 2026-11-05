@@ -8,6 +8,8 @@
 .mis-pedidos__lateral nav { display: flex; flex-direction: column; gap: 4px; }
 .mis-pedidos__nav { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 0; border-radius: var(--radius-m); background: none; color: var(--color-text-secondary); font: inherit; font-weight: 500; font-size: 15px; text-align: left; text-decoration: none; cursor: pointer; }
 .mis-pedidos__nav:hover { background: var(--color-bg-surface-alt); }
+.mis-pedidos__nav--salir { color: var(--color-status-error-fg); }
+.mis-pedidos__nav--salir:hover { background: var(--color-status-error-bg); }
 .mis-pedidos__nav--activo { background: var(--color-bg-brand-subtle); color: var(--color-text-brand); font-weight: 600; }
 
 .mis-pedidos__contenido { display: flex; flex-direction: column; gap: 20px; min-width: 0; }

@@ -59,7 +59,7 @@ describe('SA-02 Comisión (CCPIP-90)', () => {
     expect(historial.map((li) => within(li).getByText(/%$/).textContent)).toEqual(['10 %', '8 %'])
     expect(within(historial[0]).getByText('Vigente')).toBeInTheDocument()
     expect(within(historial[1]).getByText('Anterior')).toBeInTheDocument()
-    expect(within(historial[1]).getByText('Desde 01/01/2026 · Ana Shuñaqui')).toBeInTheDocument()
+    expect(within(historial[1]).getByText('Desde el 1 ene 2026 · Ana Shuñaqui')).toBeInTheDocument()
 
     const nav = within(screen.getByRole('navigation', { name: 'Super administrador' }))
     expect(nav.getByRole('link', { name: 'Comisión' })).toHaveAttribute('aria-current', 'page')
@@ -108,7 +108,7 @@ describe('SA-02 Comisión (CCPIP-90)', () => {
 
     await userEvent.type(await screen.findByLabelText('Nueva comisión (%)'), '12')
     fireEvent.change(screen.getByLabelText('Vigente desde'), { target: { value: '2026-12-01' } })
-    expect(screen.getByText('El nuevo porcentaje se aplica solo a pedidos confirmados desde el 01/12/2026.')).toBeInTheDocument()
+    expect(screen.getByText('El nuevo porcentaje se aplica solo a pedidos confirmados desde el 1 dic 2026.')).toBeInTheDocument()
     await userEvent.type(screen.getByLabelText('Motivo del cambio'), 'Ajuste para diciembre')
     await userEvent.click(screen.getByRole('button', { name: 'Programar cambio' }))
 
@@ -200,6 +200,9 @@ describe('Comisión por pedido (CCPIP-91)', () => {
     expect(filas).toHaveLength(4)
     const [, varios, uno, sin] = filas.map((f) => within(f))
     expect(varios.getByText('CCP-000139')).toBeInTheDocument()
+    // Fecha con año y hora de Lima, bajo "Confirmado (fecha y hora)" (mejoras de laboratorio)
+    expect(screen.getByRole('columnheader', { name: 'Confirmado (fecha y hora)' })).toBeInTheDocument()
+    expect(varios.getByText('15 oct 2026 10:42')).toBeInTheDocument()
     expect(normal(varios.getByText(/\(12\.5 %\)/).textContent)).toBe('S/ 10.59 (12.5 %)')
     expect(normal(varios.getByText('S/ 74.11').textContent)).toBe('S/ 74.11')
     // Con varios productores, el neto de cada uno

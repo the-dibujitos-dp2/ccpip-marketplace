@@ -10,7 +10,7 @@ import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import Icono from '../../components/Icono.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { fechaCorta, fechaLarga, precio, unidades } from '../../formato.js'
+import { fecha, fechaLarga, precio, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
 import './admin.css'
@@ -243,7 +243,7 @@ function Formulario({ estado, f, set, errores, enviando, onSubmit, onLimpiar }) 
           <p className="label-m">{t('admin.comision.conservan')}</p>
           <p className="body-s">
             {f.vigenteDesde && f.vigenteDesde >= estado.hoy
-              ? t(desdeHoy ? 'admin.comision.conservanHoy' : 'admin.comision.conservanDesde', { fecha: fechaCorta(f.vigenteDesde) })
+              ? t(desdeHoy ? 'admin.comision.conservanHoy' : 'admin.comision.conservanDesde', { fecha: fecha(f.vigenteDesde) })
               : t('admin.comision.conservanSinFecha')}
           </p>
         </div>
@@ -300,7 +300,7 @@ function Lateral({ estado, nuevo }) {
                 <Badge tono={TONO_ESTADO[c.estado]}>{t(`admin.comision.estado.${c.estado}`)}</Badge>
               </span>
               <span className="caption">
-                {t('admin.comision.historialDesde', { fecha: fechaCorta(c.vigenteDesde), nombre: c.registradoPor })}
+                {t('admin.comision.historialDesde', { fecha: fecha(c.vigenteDesde), nombre: c.registradoPor })}
               </span>
               <span className="caption">{c.motivo}</span>
             </li>

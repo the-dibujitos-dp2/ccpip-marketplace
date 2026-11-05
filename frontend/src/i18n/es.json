@@ -19,7 +19,8 @@
     "descargas": {
       "cargando": "Actualizando el reporte; podrás descargarlo en cuanto termine.",
       "pendiente": "Para descargar, el reporte debe mostrar los filtros elegidos: completa el período o vuelve a intentarlo."
-    }
+    },
+    "hora": "Hora"
   },
   "app": {
     "sesionExpirada": {
@@ -149,7 +150,8 @@
       "todosTexto": "De todos tus productos, primero el que vence antes. El stock de cada lote es lo que queda tras su entrada y sus ventas.",
       "sinLotesTodos": "Aún no registraste lotes. Elige un producto para registrar el primero.",
       "errorTodos": "No pudimos cargar tus lotes",
-      "verLotesDe": "Ver los lotes de {{producto}}"
+      "verLotesDe": "Ver los lotes de {{producto}}",
+      "titulo": "Revisa y registra lotes"
     },
     "lote": {
       "validacion": {
@@ -228,7 +230,7 @@
         "detalle": "Detalle por almacén"
       },
       "lote": "Lote {{codigo}}",
-      "cosecha": "Cosecha {{mes}}",
+      "cosecha": "Cosecha {{fecha}}",
       "vence": "vence {{fecha}}",
       "sinVencimiento": "Sin vencimiento",
       "soloVencidos": "Solo lotes vencidos",
@@ -666,7 +668,7 @@
       "siguienteHistoria": "Siguiente: historia",
       "vistaPrevia": "Vista previa en el catálogo",
       "recibiras": "Recibirás {{monto}} por unidad",
-      "comision": "Comisión de la Cámara: {{porcentaje}} % (valor de ejemplo, configurable). Los descuentos solo los aplica la Cámara."
+      "comision": "Comisión de la Cámara: {{porcentaje}} %. Los descuentos solo los aplica la Cámara."
     },
     "historia": {
       "preguntas": {
@@ -1049,7 +1051,6 @@
       "cargando": "Cargando tus entregas…",
       "error": "No pudimos cargar tus entregas",
       "reintentar": "Reintentar",
-      "actualizar": "Actualizar",
       "enCurso_one": "{{count}} entrega en curso",
       "enCurso_other": "{{count}} entregas en curso",
       "vacio": "No tienes entregas en curso",
@@ -1080,7 +1081,8 @@
       "col": {
         "pedido": "Pedido",
         "destino": "Destino",
-        "estado": "Estado"
+        "estado": "Estado",
+        "hora": "Hora de entrega"
       },
       "registrarEnCamino": "Registrar en camino",
       "registrandoEnCamino": "Registrando…",
@@ -1106,7 +1108,10 @@
         "provincia": "Provincia",
         "departamento": "Departamento",
         "referencia": "Referencia"
-      }
+      },
+      "enCaminoEn": "Salió en camino el {{fecha}}",
+      "entregadaEn": "Lo entregaste el {{fecha}}",
+      "momentos": "Momentos de la entrega {{numero}}"
     }
   },
   "acopio": {
@@ -1425,7 +1430,8 @@
       "tituloDialogo": "Desactivar zona de cobertura",
       "confirmar": "Desactivar",
       "cancelar": "Cancelar",
-      "errorDesactivar": "No se pudo desactivar la zona. Inténtalo nuevamente."
+      "errorDesactivar": "No se pudo desactivar la zona. Inténtalo nuevamente.",
+      "accion": "Acción"
     }
   },
   "admin": {
@@ -1631,7 +1637,7 @@
       "paraCamara": "Comisión de la Cámara",
       "paraProductor": "Recibe el productor",
       "historial": "Historial",
-      "historialDesde": "Desde {{fecha}} · {{nombre}}",
+      "historialDesde": "Desde el {{fecha}} · {{nombre}}",
       "sinHistorial": "Aún no hay cambios registrados.",
       "estado": {
         "VIGENTE": "Vigente",
@@ -1667,7 +1673,7 @@
       "vacio": "No hay pedidos confirmados en estas fechas.",
       "col": {
         "pedido": "Pedido",
-        "fecha": "Confirmado",
+        "fecha": "Confirmado (fecha y hora)",
         "productores": "Productores",
         "venta": "Venta",
         "comision": "Comisión",
@@ -2126,7 +2132,8 @@
     "destacados": "Destacados por la comunidad · elegidos por {{nombre}}",
     "sinProductos": "Aún no hay productos publicados",
     "sinProductosTexto": "Esta comunidad está preparando su catálogo. Vuelve pronto.",
-    "productosDe": "Productos de {{nombre}}"
+    "productosDe": "Productos de {{nombre}}",
+    "desdeAnio": "Desde {{anio}}"
   },
   "cuenta": {
     "hola": "Hola, {{nombre}}",
@@ -2790,7 +2797,6 @@
     },
     "pago": "Pago",
     "pagaste": "Pagaste {{monto}} con {{marca}}",
-    "operacion": "Operación {{referencia}}",
     "comision": "Comisión de la Cámara",
     "comisionMonto": "{{porcentaje}} % · {{monto}}",
     "comisionIncluida": "Incluida en el total: no se suma a lo que pagaste.",
@@ -2847,7 +2853,9 @@
       "CONFIRMADO": "Pago confirmado",
       "EN_PREPARACION": "En preparación",
       "LISTO_PARA_RECOJO": "Disponible en acopio",
-      "ENTREGADO": "Entregado"
+      "ENTREGADO": "Entregado",
+      "LISTO_PARA_DESPACHO": "Listo para despacho",
+      "EN_CAMINO": "En camino"
     },
     "evento": {
       "PENDIENTE_PAGO": "Pedido creado, en espera de pago",
@@ -2856,7 +2864,8 @@
       "LISTO_PARA_RECOJO": "Listo para recoger en el punto de acopio",
       "LISTO_PARA_DESPACHO": "Preparado en el punto de acopio, espera a un distribuidor",
       "ENTREGADO": "Entregado",
-      "CANCELADO": "Pedido cancelado"
+      "CANCELADO": "Pedido cancelado",
+      "EN_CAMINO": "En camino a tu domicilio"
     }
   },
   "misDirecciones": {
@@ -2886,7 +2895,6 @@
     "reglaDireccion": "La dirección debe tener al menos 5 caracteres y una letra.",
     "agregar": "Agregar dirección",
     "guardarNueva": "Guardar dirección",
-    "agregada": "Dirección agregada.",
     "errorAgregar": "No pudimos guardar la dirección. Inténtalo de nuevo."
   },
   "misDatos": {
@@ -3805,6 +3813,17 @@
         "texto": "Sus productos autorizados vuelven a venderse, salvo que su venta también esté revocada. Avisamos al productor y la decisión queda registrada.",
         "hecho": "Desbloqueaste al productor."
       }
+    },
+    "buscar": "Buscar por organización, pueblo o región",
+    "filtros": {
+      "region": "Región",
+      "situacion": "Situación",
+      "todas": "Todas",
+      "sinHabilitar": "Tienda sin habilitar",
+      "ventaVigente": "Venta vigente",
+      "ventaRevocada": "Venta revocada",
+      "ventaBloqueada": "Venta bloqueada",
+      "conPendientes": "Con productos por revisar"
     }
   },
   "cuentas": {
@@ -4090,7 +4109,6 @@
     "insuficiente_other": "Hay {{count}} calificaciones. Mostraremos el promedio cuando haya al menos {{minimo}}.",
     "resenas": "Opiniones de compradores",
     "compraVerificada": "Compra verificada · {{fecha}}",
-    "comoSeCalifica": "Solo califican quienes recibieron este producto en un pedido. No mostramos sus nombres.",
     "calificaTusProductos": "Califica tus productos",
     "pendientes_one": "Te falta calificar {{count}} producto.",
     "pendientes_other": "Te faltan calificar {{count}} productos.",
@@ -4107,7 +4125,7 @@
     "loRecibiste": "Lo recibiste en tu pedido {{numero}}.",
     "yaCalificaste": "Ya calificaste este producto. ¡Gracias!",
     "cuandoRecibas": "Podrás calificarlo cuando recibas tu pedido {{numero}}.",
-    "soloSiRecibiste": "Solo puedes calificarlo si lo compraste y ya lo recibiste."
+    "soloSiRecibiste": "Solo puedes calificarlo si lo compraste y ya lo recibiste. No se mostrará tu nombre."
   },
   "denuncia": {
     "titulo": "Presentar una denuncia",
@@ -4539,7 +4557,7 @@
     "todas": "Todas",
     "buscar": "Buscar",
     "col": {
-      "fecha": "Fecha y hora",
+      "fecha": "Fecha",
       "usuario": "Usuario",
       "rol": "Rol",
       "accion": "Acción",

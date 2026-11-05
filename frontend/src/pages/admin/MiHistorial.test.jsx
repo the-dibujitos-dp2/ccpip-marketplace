@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
@@ -84,6 +84,50 @@ describe('S-05 Mi historial del sub administrador (CCPIP-126)', () => {
     await user.clear(screen.getByLabelText('Desde'))
     await user.type(screen.getByLabelText('Desde'), '2026-09-01')
     expect(llamadas(fetchMock, `GET ${RUTA}?desde=2026-09-01&hasta=2026-10-30&tipo=PRODUCTORES`)).toHaveLength(1)
+  })
+
+  it('ignora una respuesta antigua que llega después de la consulta más reciente', async () => {
+    let liberarAntigua
+    const respuestaAntigua = new Promise((resolve) => { liberarAntigua = resolve })
+    const fetchMock = comoSub({
+      [`GET ${RUTA}?desde=2026-09-01&hasta=2026-10-30`]: () => respuestaAntigua,
+      [`GET ${RUTA}?desde=2026-09-02&hasta=2026-10-30`]: [200, { ...copia(HISTORIAL), acciones: [] }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/admin/mi-historial')
+    await filas()
+    await user.clear(screen.getByLabelText('Desde'))
+    await user.type(screen.getByLabelText('Desde'), '2026-09-01')
+    await user.clear(screen.getByLabelText('Desde'))
+    await user.type(screen.getByLabelText('Desde'), '2026-09-02')
+    expect(await screen.findByText('No registraste acciones en este periodo.')).toBeInTheDocument()
+    liberarAntigua([200, copia(HISTORIAL)])
+    await waitFor(() => expect(screen.getByText('No registraste acciones en este periodo.')).toBeInTheDocument())
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(llamadas(fetchMock, `GET ${RUTA}?desde=2026-09-01&hasta=2026-10-30`)).toHaveLength(1)
+    expect(llamadas(fetchMock, `GET ${RUTA}?desde=2026-09-02&hasta=2026-10-30`)).toHaveLength(1)
+  })
+
+  it('ignora errores obsoletos y no actualiza al desmontarse', async () => {
+    let rechazarAntigua
+    const respuestaAntigua = new Promise((_, reject) => { rechazarAntigua = reject })
+    const fetchMock = comoSub({
+      [`GET ${RUTA}?desde=2026-09-01&hasta=2026-10-30`]: () => respuestaAntigua,
+      [`GET ${RUTA}?desde=2026-09-02&hasta=2026-10-30`]: [200, { ...copia(HISTORIAL), acciones: [] }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/admin/mi-historial')
+    await filas()
+    await user.clear(screen.getByLabelText('Desde'))
+    await user.type(screen.getByLabelText('Desde'), '2026-09-01')
+    await user.clear(screen.getByLabelText('Desde'))
+    await user.type(screen.getByLabelText('Desde'), '2026-09-02')
+    expect(await screen.findByText('No registraste acciones en este periodo.')).toBeInTheDocument()
+    rechazarAntigua(new Error('fallo obsoleto'))
+    await waitFor(() => expect(screen.queryByText(/fallo obsoleto/)).not.toBeInTheDocument())
+    expect(screen.getByText('No registraste acciones en este periodo.')).toBeInTheDocument()
+    expect(llamadas(fetchMock, `GET ${RUTA}?desde=2026-09-01&hasta=2026-10-30`)).toHaveLength(1)
+    expect(llamadas(fetchMock, `GET ${RUTA}?desde=2026-09-02&hasta=2026-10-30`)).toHaveLength(1)
   })
 
   it('sin acciones en el periodo lo dice', async () => {

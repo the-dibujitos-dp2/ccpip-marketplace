@@ -102,7 +102,7 @@ public final class ProductoModelos {
     public record AprobarHistoria(
             @Size(max = 160, message = "Máximo 160 caracteres") String titulo,
             @NotBlank(message = "Escribe la historia antes de aprobarla")
-            @Size(min = 40, max = 4000, message = "La historia debe tener entre 40 y 4000 caracteres") String textoFinal,
+            @Size(min = 100, max = 4000, message = "La historia debe tener entre 100 y 4000 caracteres") String textoFinal,
             boolean asistida) {
     }
 

@@ -6,7 +6,7 @@ import { aprobarVideo, expedienteVideo, rechazarVideo } from '../../api/moderaci
 import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { duracion, fechaHora } from '../../formato.js'
+import { diaMes, duracion } from '../../formato.js'
 import { RUTAS } from '../../router.js'
 import { CabeceraSolicitud, CampoMotivo, DialogoDecision, SinExpediente, useDecision } from './revision.jsx'
 import '../productor/productor.css'
@@ -68,7 +68,7 @@ export default function ExpedienteVideoPage({ path, id }) {
         <div className="expediente__principal">
           <CabeceraSolicitud titulo={exp.titulo} tono={TONO_ESTADO[exp.estado]} estado={t(`moderacion.estado.${exp.estado}`)}
             detalle={[exp.productor.organizacion, exp.productor.pueblo, exp.productor.region]}
-            enviada={`${t('moderacion.expediente.enviada', { nombre: exp.subidoPor, fecha: fechaHora(exp.subidoEn) })} · ${exp.reemplaza ? t('moderacion.tipo.reemplazo') : t('moderacion.tipo.nuevo')}`} />
+            enviada={`${t('moderacion.expediente.enviada', { nombre: exp.subidoPor, fecha: diaMes(exp.subidoEn) })} · ${exp.reemplaza ? t('moderacion.tipo.reemplazo') : t('moderacion.tipo.nuevo')}`} />
 
           <section className="tarjeta-panel" aria-labelledby="video-enviado">
             <h2 id="video-enviado" className="heading-h4">{t('moderacion.video.enviado')}</h2>
@@ -102,7 +102,7 @@ export default function ExpedienteVideoPage({ path, id }) {
             <>
               <p className="body-s">{t(`moderacion.video.resuelto.${exp.estado}`, { defaultValue: t('moderacion.video.retirado') })}</p>
               {exp.motivo && <p className="body-s">«{exp.motivo}»</p>}
-              {exp.decididoEn && <p className="caption">{t('moderacion.expediente.decididaPor', { nombre: exp.decididoPor, fecha: fechaHora(exp.decididoEn) })}</p>}
+              {exp.decididoEn && <p className="caption">{t('moderacion.expediente.decididaPor', { nombre: exp.decididoPor, fecha: diaMes(exp.decididoEn) })}</p>}
             </>
           )}
         </aside>

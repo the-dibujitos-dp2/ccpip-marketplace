@@ -4,9 +4,13 @@ import { listarProductores } from '../../api/autorizaciones.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Buscador from '../../components/Buscador.jsx'
+import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
+import LimpiarFiltros, { SinCoincidencias } from '../../components/LimpiarFiltros.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
+import { coincide } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
@@ -29,6 +33,17 @@ export function BadgesProductor({ productor }) {
   )
 }
 
+const SIN_FILTROS = { texto: '', region: '', situacion: '' }
+
+/** Situaciones por las que se filtra: las mismas que muestran sus badges, y si tiene productos por revisar. */
+const SITUACIONES = {
+  sinHabilitar: (p) => !p.tiendaHabilitada,
+  ventaVigente: (p) => !p.ventaRevocada && !p.ventaBloqueada,
+  ventaRevocada: (p) => p.ventaRevocada,
+  ventaBloqueada: (p) => p.ventaBloqueada,
+  conPendientes: (p) => p.pendientes > 0,
+}
+
 /**
  * CCPIP-292 (RF-148): productores incorporados por la Camara y los productos que cada uno puede vender.
  * Desde la ficha el sub administrador habilita la tienda (CCPIP-291) o revoca la venta (CCPIP-330).
@@ -42,7 +57,14 @@ export default function ProductoresPage({ path }) {
     listarProductores().then(setProductores).catch(setError)
   }, [])
 
-  const paginas = usePaginacionLocal(productores ?? [])
+  // Mejoras de laboratorio: se busca por nombre, pueblo o region y se filtra por region y situacion
+  const [filtros, setFiltros] = useState(SIN_FILTROS)
+  const cambiar = (campo) => (e) => setFiltros({ ...filtros, [campo]: e.target.value })
+  const regiones = [...new Set((productores ?? []).map((p) => p.region).filter(Boolean))].sort((a, b) => a.localeCompare(b))
+  const visibles = (productores ?? []).filter((p) => coincide(filtros.texto, p.organizacion, p.pueblo, p.region)
+    && (!filtros.region || p.region === filtros.region)
+    && (!filtros.situacion || SITUACIONES[filtros.situacion](p)))
+  const paginas = usePaginacionLocal(visibles, JSON.stringify(filtros))
 
   return (
     <LayoutAdmin path={path} migas={t('admin.nav.productores')} titulo={t('productores.titulo')}>
@@ -50,7 +72,20 @@ export default function ProductoresPage({ path }) {
       {error && <Alerta tono="error" titulo={mensajeError(error, 'productores.error')} />}
       {!productores && !error && <Cargando />}
       {productores && productores.length === 0 && <EstadoVacio titulo={t('productores.vacio')} />}
-      {productores && productores.length > 0 && (
+      {productores?.length > 0 && (
+        <div className="barra-filtros">
+          <Buscador id="buscar-productor" etiqueta={t('productores.buscar')} placeholder={t('productores.buscar')} maxLength={100}
+            value={filtros.texto} onChange={cambiar('texto')} onBuscar={(e) => e.preventDefault()} />
+          <Campo tipo="selector" etiqueta={t('productores.filtros.region')} placeholder={t('productores.filtros.todas')}
+            value={filtros.region} onChange={cambiar('region')} opciones={regiones.map((r) => ({ valor: r, etiqueta: r }))} />
+          <Campo tipo="selector" etiqueta={t('productores.filtros.situacion')} placeholder={t('productores.filtros.todas')}
+            value={filtros.situacion} onChange={cambiar('situacion')}
+            opciones={Object.keys(SITUACIONES).map((k) => ({ valor: k, etiqueta: t(`productores.filtros.${k}`) }))} />
+          <LimpiarFiltros activos={Object.values(filtros).some(Boolean)} onLimpiar={() => setFiltros(SIN_FILTROS)} />
+        </div>
+      )}
+      {productores?.length > 0 && visibles.length === 0 && <SinCoincidencias />}
+      {visibles.length > 0 && (
         <div className="tabla" role="table" aria-label={t('productores.titulo')}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('autorizaciones.col.organizacion')}</span>

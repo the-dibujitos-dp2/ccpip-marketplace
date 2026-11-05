@@ -29,6 +29,8 @@ describe('Denuncias contra productores (CCPIP-84)', () => {
     const filas = within(screen.getByRole('table', { name: 'Productores con denuncias' })).getAllByRole('row').slice(1)
     expect(filas.map((f) => within(f).getAllByRole('cell')[0].querySelector('.label-m').textContent)).toEqual(['C.N. Yarina', 'Asoc. Nii Joi'])
     expect(within(filas[0]).getAllByRole('cell')[1]).toHaveTextContent('3')
+    // La ultima denuncia con su año (mejoras de laboratorio)
+    expect(within(filas[0]).getAllByRole('cell')[3]).toHaveTextContent('15 oct 2026')
     await user.click(within(filas[0]).getByRole('link', { name: 'Ver historial de denuncias de C.N. Yarina' }))
     expect(await screen.findByRole('heading', { level: 1, name: 'C.N. Yarina' })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/admin/denuncias/productores/2')
@@ -130,7 +132,7 @@ describe('Detalle de una denuncia (CCPIP-432)', () => {
     expect(detalle(21)).toEqual({
       Denunciado: 'Cacao en grano fermentado 1 kg, de C.N. Yarina',
       Denunció: 'Rosa Quispe',
-      Fecha: '15/10 09:00',
+      Fecha: '15 oct 2026 09:00',
       Motivo: 'Origen o certificación dudosa',
     })
     expect(screen.getByText('Es la primera denuncia sobre este producto.')).toBeInTheDocument()
@@ -148,7 +150,7 @@ describe('Detalle de una denuncia (CCPIP-432)', () => {
     const previasCacao = within(cacao.getByRole('list', { name: 'Denuncias anteriores a la denuncia 21' })).getAllByRole('listitem')
     expect(previasCacao).toHaveLength(1)
     expect(previasCacao[0]).toHaveTextContent('Denuncia 9 · Cacao en grano fermentado 1 kg · No corresponde a lo descrito Desestimada')
-    expect(within(previasCacao[0]).getByText('20/9 09:00')).toHaveAttribute('datetime', '2026-09-20T14:00:00Z')
+    expect(within(previasCacao[0]).getByText('20 set 2026 09:00')).toHaveAttribute('datetime', '2026-09-20T14:00:00Z')
     // Las anteriores salen aunque esten en otra pestana
     const resueltas = await abrirPestana(user, 'Resueltas')
     const comunidad = within(resueltas.getByRole('article', { name: 'Denuncia 17: Contra la comunidad' }))

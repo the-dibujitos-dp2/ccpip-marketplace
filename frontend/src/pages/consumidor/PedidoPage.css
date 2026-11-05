@@ -45,7 +45,7 @@
 .pedido__datos .caption { font-weight: 400; color: var(--color-text-secondary); }
 
 .pedido__pago-ok { display: flex; flex-direction: column; gap: 2px; margin: 0; font-weight: 600; }
-.pedido__pago-ok .caption { font-weight: 400; color: var(--color-text-secondary); overflow-wrap: anywhere; }
+
 /* CCPIP-441: la comision de la Camara dentro del bloque de pago */
 .pedido__comision { padding-top: 16px; border-top: 1px solid var(--color-border-default); }
 .pedido__intentos { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: 14px; }

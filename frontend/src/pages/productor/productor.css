@@ -12,7 +12,18 @@
 .tabla { position: relative; overflow-x: auto; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); background: var(--color-bg-surface); }
 .tabla__fila { display: flex; align-items: center; gap: 16px; min-width: max-content; padding: 14px 20px; border-top: 1px solid var(--color-border-default); font-size: 14px; line-height: 20px; color: var(--color-text-secondary); }
 .tabla__fila--encabezado { padding: 12px 20px; border-top: 0; background: var(--color-bg-surface-alt); font-weight: 500; font-size: 12px; line-height: 16px; }
+/* Mas aire entre columnas de ancho fijo, para que se lean parejas (movimientos, merma, auditoria) */
+.tabla--espaciada .tabla__fila { gap: 24px; }
 .tabla__celda { flex-shrink: 0; }
+/*
+ * Sin desplazamiento lateral (inventario del punto, catalogo maestro): la fila no pasa del ancho de la tabla y cada
+ * columna se angosta hasta su palabra o boton mas largo; el texto baja de linea en vez de salirse.
+ */
+.tabla--ajustada { overflow-x: visible; }
+.tabla--ajustada .tabla__fila { gap: 12px; min-width: 0; }
+.tabla--ajustada .tabla__celda { flex-shrink: 1; }
+.tabla--ajustada .tabla__celda--flex { flex: 1 1 140px; min-width: 100px; }
+.tabla--ajustada .tabla__celda--accion { flex-shrink: 0; }
 .tabla__celda--flex { flex: 1 0 220px; min-width: 220px; color: var(--color-text-primary); }
 .tabla__celda--accion { display: flex; justify-content: flex-end; gap: 8px; }
 .tabla__producto { display: flex; align-items: center; gap: 12px; }

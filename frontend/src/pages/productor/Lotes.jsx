@@ -7,7 +7,7 @@ import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import Enlace from '../../components/Enlace.jsx'
-import { diaLima, fechaCorta, unidades } from '../../formato.js'
+import { diaLima, fecha, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import { RUTAS } from '../../router.js'
@@ -138,7 +138,7 @@ export function TablaTodosLosLotes({ lotes }) {
               </Enlace>
             </span>
             <span className="tabla__celda lotes__col label-m">{l.codigo}</span>
-            <span className="tabla__celda lotes__col">{l.fechaVencimiento ? fechaCorta(l.fechaVencimiento) : t('productor.lote.noVence')}</span>
+            <span className="tabla__celda lotes__col">{l.fechaVencimiento ? fecha(l.fechaVencimiento) : t('productor.lote.noVence')}</span>
             <span className="tabla__celda lotes__col">
               {unidades(l.cantidadActual)}
               {l.unidad && <span className="caption lotes__unidad"> {l.unidad}</span>}
@@ -177,7 +177,7 @@ export function TablaLotes({ lotes }) {
         {paginacion.filas.map((l) => (
           <li key={l.id} className="tabla__fila">
             <span className="tabla__celda lotes__col label-m">{l.codigo}</span>
-            <span className="tabla__celda lotes__col">{l.fechaVencimiento ? fechaCorta(l.fechaVencimiento) : t('productor.lote.noVence')}</span>
+            <span className="tabla__celda lotes__col">{l.fechaVencimiento ? fecha(l.fechaVencimiento) : t('productor.lote.noVence')}</span>
             <span className="tabla__celda lotes__col-corta">{unidades(l.cantidadActual)}</span>
             <span className="tabla__celda tabla__celda--flex lotes__punto">{l.tipoUbicacion === 'ALMACEN_PRODUCTOR' ? t('productor.lote.miAlmacen') : l.ubicacion}</span>
             <span className="tabla__celda lotes__col-estado">

@@ -1,8 +1,9 @@
-/* A-03: pestanas a la izquierda y buscador de pedido a la derecha, sobre la tabla */
+/* A-03: el buscador y los filtros arriba; las pestanas y el boton de registrar, justo sobre la tabla */
 .movimientos__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
 .movimientos__filtros .pestanas { flex: 1 1 320px; }
 
-.movimientos__col-fecha { width: 110px; color: var(--color-text-primary); }
+.movimientos__col-fecha { width: 100px; color: var(--color-text-primary); }
+.movimientos__col-hora { width: 56px; font-variant-numeric: tabular-nums; }
 .movimientos__col-tipo { width: 130px; }
 .movimientos__col-cantidad { width: 80px; font-variant-numeric: tabular-nums; }
 .movimientos__col-registro { width: 160px; }

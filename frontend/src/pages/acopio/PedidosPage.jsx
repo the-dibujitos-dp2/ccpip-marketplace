@@ -14,7 +14,7 @@ import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LimpiarFiltros, { SinCoincidencias } from '../../components/LimpiarFiltros.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
-import { coincide, fechaCorta, fechaHora, precio, unidades } from '../../formato.js'
+import { coincide, diaMesHora, fecha, precio, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import DialogoRecojo from './DialogoRecojo.jsx'
@@ -55,7 +55,7 @@ const ACCIONES = {
 /** "Lote L-0247 · vence 02/11/2027 · 2 und": de donde sale lo que se entrega (CCPIP-74). */
 function textoLote(lote) {
   const t = i18n.t.bind(i18n)
-  const vence = lote.fechaVencimiento ? t('acopio.pedidos.vence', { fecha: fechaCorta(lote.fechaVencimiento) }) : t('productor.lote.noVence').toLowerCase()
+  const vence = lote.fechaVencimiento ? t('acopio.pedidos.vence', { fecha: fecha(lote.fechaVencimiento) }) : t('productor.lote.noVence').toLowerCase()
   return t('acopio.pedidos.lote', { codigo: lote.codigo, vence, cantidad: unidades(lote.cantidad) })
 }
 
@@ -210,7 +210,7 @@ function TablaPedidos({ pedidos, accion, marcando, onMarcar, onRecojo }) {
 function FilaPedido({ pedido, accion, ocupado, onMarcar, onRecojo }) {
   const { t } = useTranslation()
   const cambio = [...pedido.historial].reverse().find((c) => c.estado === pedido.estado)
-  const cuando = fechaHora(cambio?.registradoEn ?? pedido.confirmadoEn)
+  const cuando = diaMesHora(cambio?.registradoEn ?? pedido.confirmadoEn)
   // CCPIP-59: va al domicilio del comprador; en preparacion se registra su salida en vez de marcarlo listo (CCPIP-320)
   const aDomicilio = pedido.modalidad === 'ENVIO'
   const accionFila = accion === 'LISTO' && aDomicilio ? 'DESPACHO' : accion

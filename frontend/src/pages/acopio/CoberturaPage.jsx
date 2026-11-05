@@ -17,7 +17,36 @@ function ZonaPunto({ punto, c, onDesactivar }) {
   return <section className="cobertura401__punto" key={punto.puntoId} aria-labelledby={`punto-${punto.puntoId}`}>
     <h2 id={`punto-${punto.puntoId}`}>{punto.punto}</h2>
     {!total ? <p className="cobertura401__vacio">{c('sinZonas')}</p> : <>
-      <div className="cobertura401__tabla-scroll"><table className="cobertura401__tabla"><caption>{c('zona')} · {punto.punto}</caption><thead><tr>{['ubigeo','departamento','provincia','distrito','estado'].map((k) => <th key={k} scope="col">{c(k)}</th>)}</tr></thead><tbody>{filas.map((z) => <tr key={z.id}><td data-label={c('ubigeo')}>{z.ubigeo}</td><td data-label={c('departamento')}>{z.departamento}</td><td data-label={c('provincia')}>{z.provincia}</td><td data-label={c('distrito')}>{z.distrito}</td><td data-label={c('estado')}>{z.activa && <Boton tipo="secundario" aria-label={`${c('desactivar')} · ${z.distrito} · ${z.ubigeo}`} onClick={() => onDesactivar(z)}>{c('desactivar')}</Boton>}<Badge tono={z.activa ? 'exito' : 'neutro'}>{c(z.activa ? 'activa' : 'inactiva')}</Badge></td></tr>)}</tbody></table></div>
+      {/* Columnas del mismo ancho; primero el estado y despues la accion, en su propia columna y en rojo */}
+      <div className="cobertura401__tabla-scroll">
+        <table className="cobertura401__tabla">
+          <caption>{c('zona')} · {punto.punto}</caption>
+          <thead>
+            <tr>
+              {['ubigeo', 'departamento', 'provincia', 'distrito', 'estado'].map((k) => <th key={k} scope="col">{c(k)}</th>)}
+              <th scope="col"><span className="visually-hidden">{c('accion')}</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filas.map((z) => (
+              <tr key={z.id}>
+                <td data-label={c('ubigeo')}>{z.ubigeo}</td>
+                <td data-label={c('departamento')}>{z.departamento}</td>
+                <td data-label={c('provincia')}>{z.provincia}</td>
+                <td data-label={c('distrito')}>{z.distrito}</td>
+                <td data-label={c('estado')}><Badge tono={z.activa ? 'exito' : 'neutro'}>{c(z.activa ? 'activa' : 'inactiva')}</Badge></td>
+                <td className="cobertura401__accion">
+                  {z.activa && (
+                    <Boton tipo="secundario" tamano="S" peligro aria-label={`${c('desactivar')} · ${z.distrito} · ${z.ubigeo}`} onClick={() => onDesactivar(z)}>
+                      {c('desactivar')}
+                    </Boton>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <Paginacion pagina={pagina} totalPaginas={totalPaginas} total={total} onCambiar={onCambiar} />
     </>}
   </section>

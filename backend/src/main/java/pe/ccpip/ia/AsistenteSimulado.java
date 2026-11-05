@@ -22,7 +22,9 @@ public class AsistenteSimulado implements AsistenteRedaccion {
     @Override
     public Propuesta proponerHistoria(DatosHistoria datos) {
         String texto = switch (datos.variante()) {
-            case CORTA -> oracion(datos.quienes()) + " " + oracion(datos.cuidado());
+            // Como la de Gemini, la corta sigue siendo una historia completa (quienes, como y el cuidado); solo deja
+            // fuera lo que significa, para que alcance el minimo de caracteres al aprobarla
+            case CORTA -> oracion(datos.quienes()) + " " + oracion(datos.como()) + " " + oracion(datos.cuidado());
             case OTRA -> oracion(datos.significado()) + " " + oracion(datos.quienes()) + " " + oracion(datos.como())
                     + " " + oracion(datos.cuidado());
             case NORMAL -> oracion(datos.quienes()) + " " + oracion(datos.como()) + " " + oracion(datos.cuidado())

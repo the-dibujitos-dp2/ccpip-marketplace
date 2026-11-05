@@ -372,8 +372,13 @@ describe('CW-04 Tienda de la comunidad (CCPIP-56, 154)', () => {
     const writeText = vi.fn().mockResolvedValue()
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
     abrirEn('/tiendas/2')
-    await user.click(await screen.findByRole('button', { name: 'Compartir' }))
-    expect(await screen.findByRole('button', { name: 'Enlace copiado' })).toBeInTheDocument()
+    // El año dice desde cuando esta en la plataforma (mejoras de laboratorio)
+    expect(await screen.findByText('Desde 2026')).toBeInTheDocument()
+    expect(screen.getByText('en la plataforma')).toBeInTheDocument()
+    const compartir = await screen.findByRole('button', { name: 'Compartir' })
+    await user.click(compartir)
+    // Es el mismo boton, con los dos textos en el mismo lugar: no cambia de ancho ni mueve a los demas
+    expect(await screen.findByRole('button', { name: 'Enlace copiado' })).toBe(compartir)
     expect(writeText).toHaveBeenCalledWith(window.location.href)
   })
 

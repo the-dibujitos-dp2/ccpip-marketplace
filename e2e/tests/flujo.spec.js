@@ -202,7 +202,7 @@ test.describe('Productor: arma su tienda y publica su producto', () => {
     await expect(page.getByText('Borrador asistido por IA · revisa antes de publicar')).toBeVisible()
     await expect(page.getByRole('heading', { name: `La historia de ${PRODUCTO}` })).toBeVisible()
     await page.getByRole('button', { name: 'Más corto' }).click()
-    await expect(page.getByText('18 familias kukama de Nauta. Cosechamos solo en nuestras chacras, sin talar.')).toBeVisible()
+    await expect(page.getByText('18 familias kukama de Nauta. Prensamos la semilla en frío. Cosechamos solo en nuestras chacras, sin talar.')).toBeVisible()
     await sinViolaciones(page)
     await page.getByRole('button', { name: 'Aprobar historia' }).click()
 
