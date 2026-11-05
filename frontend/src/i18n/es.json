@@ -2744,7 +2744,11 @@
       "celular": "Celular de quien recibe",
       "celularAyuda": "9 dígitos. Lo usamos para coordinar la entrega.",
       "resumen": "A domicilio · por confirmar",
-      "sinCobertura": "Ese punto no entrega en tu distrito"
+      "sinCobertura": "Ese punto no entrega en tu distrito",
+      "guardadas": "Mis direcciones guardadas",
+      "otraDireccion": "Escribir otra dirección",
+      "guardadaOpcion": "{{alias}} · {{direccion}}, {{distrito}}",
+      "guardadaSinEntrega": "{{alias}} · {{direccion}}, {{distrito}} (sin entrega con tu carrito)"
     },
     "factibilidad": {
       "titulo": "Este punto ya no puede entregar tu pedido",
@@ -2859,7 +2863,7 @@
     "titulo": "Mis direcciones",
     "error": "No pudimos cargar tus direcciones",
     "vacio": "Aún no guardaste direcciones",
-    "vacioTexto": "Al comprar con entrega a domicilio puedes guardar la dirección para la próxima vez.",
+    "vacioTexto": "Agrega una dirección para tenerla lista al comprar, o guárdala al comprar con entrega a domicilio.",
     "sinAlias": "Dirección de entrega",
     "referencia": "Referencia: {{referencia}}",
     "retirar": "Retirar dirección",
@@ -2879,7 +2883,11 @@
     "guardarCambios": "Guardar cambios",
     "editada": "Dirección actualizada.",
     "errorCatalogo": "No pudimos cargar el catálogo territorial.",
-    "reglaDireccion": "La dirección debe tener al menos 5 caracteres y una letra."
+    "reglaDireccion": "La dirección debe tener al menos 5 caracteres y una letra.",
+    "agregar": "Agregar dirección",
+    "guardarNueva": "Guardar dirección",
+    "agregada": "Dirección agregada.",
+    "errorAgregar": "No pudimos guardar la dirección. Inténtalo de nuevo."
   },
   "misDatos": {
     "titulo": "Datos personales",

@@ -78,6 +78,7 @@ const rutas = (extra = {}) => ({
   'GET /api/compra/distritos': [200, DISTRITOS],
   ...TERRITORIO,
   'GET /api/cuenta/datos': [200, MIS_DATOS],
+  'GET /api/cuenta/direcciones': [200, []],
   'POST /api/pedidos': [201, PEDIDO],
   'GET /api/pedidos/78': [200, CONFIRMADO],
   ...extra,
@@ -679,5 +680,83 @@ describe('A-05 Tablero del punto con un pedido a domicilio (CCPIP-59)', () => {
     const preparacion = await abrirPestana(userEvent.setup(), 'En preparación')
     expect(preparacion.queryByText('A domicilio')).not.toBeInTheDocument()
     expect(preparacion.getByRole('button', { name: 'Marcar el pedido MC-00155 como listo para recojo' })).toBeEnabled()
+  })
+})
+
+describe('CW-06 Elegir una dirección guardada al comprar (CCPIP-446)', () => {
+  const aprobado = { 'POST /api/pedidos/78/pagos': [200, { estado: 'APROBADO', mensaje: 'Pago aprobado.', pedido: CONFIRMADO }] }
+  const OFICINA = { id: 9, alias: null, ubigeo: '150140', departamento: 'Lima', provincia: 'Lima', distrito: 'Santiago de Surco', direccion: 'Av. Primavera 500', referencia: 'Piso 3' }
+  const conGuardadas = (extra = {}) => rutas({ 'GET /api/cuenta/direcciones': [200, [{ ...GUARDADA, referencia: 'Frente al grifo' }, OFICINA]], ...extra })
+  const selector = () => screen.getByRole('combobox', { name: 'Mis direcciones guardadas' })
+
+  it('sin direcciones guardadas no muestra el selector', async () => {
+    servidor(rutas())
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    await screen.findByLabelText('Dirección de entrega')
+    expect(screen.queryByRole('combobox', { name: 'Mis direcciones guardadas' })).not.toBeInTheDocument()
+  })
+
+  it('elegir una guardada llena el destino y el punto, y el pedido sale con ella sin volver a guardarla', { timeout: 15_000 }, async () => {
+    const fetchMock = servidor(conGuardadas(aprobado))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+
+    await within(await screen.findByRole('combobox', { name: 'Mis direcciones guardadas' })).findByRole('option', { name: 'Casa · Av. de la Cultura 1234, Wanchaq' })
+    // La de un distrito sin entrega con este carrito tambien se lista, marcada
+    expect(within(selector()).getByRole('option', { name: 'Dirección de entrega · Av. Primavera 500, Santiago de Surco (sin entrega con tu carrito)' })).toBeInTheDocument()
+
+    await usuario.selectOptions(selector(), '5')
+    expect(screen.getByLabelText('Departamento')).toHaveValue('Cusco')
+    await waitFor(() => expect(screen.getByLabelText('Distrito de entrega')).toHaveValue('080108'))
+    expect(screen.getByLabelText('Provincia')).toHaveValue('Cusco')
+    expect(screen.getByLabelText('Dirección de entrega')).toHaveValue('Av. de la Cultura 1234')
+    expect(screen.getByLabelText('Referencia (opcional)')).toHaveValue('Frente al grifo')
+    // Ya esta guardada: no ofrece guardarla otra vez
+    expect(screen.queryByLabelText('Guardar esta dirección para próximas compras')).not.toBeInTheDocument()
+
+    await datosDeTarjeta(usuario)
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+    expect(await screen.findByRole('heading', { name: '¡Gracias por tu compra!' })).toBeInTheDocument()
+    const [, pedido] = llamadas(fetchMock, 'POST /api/pedidos')[0]
+    expect(JSON.parse(pedido.body)).toMatchObject({
+      puntoId: 3, modalidad: 'ENVIO', entrega: { ubigeo: '080108', direccion: 'Av. de la Cultura 1234', referencia: 'Frente al grifo' },
+    })
+    expect(llamadas(fetchMock, GUARDAR)).toHaveLength(0)
+  })
+
+  it('una guardada en un distrito sin entrega avisa como si se eligiera a mano', async () => {
+    servidor(conGuardadas())
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    await within(await screen.findByRole('combobox', { name: 'Mis direcciones guardadas' })).findByRole('option', { name: /Av. Primavera 500/ })
+
+    await usuario.selectOptions(selector(), '9')
+    expect(await screen.findByText('Por ahora no entregamos en Santiago de Surco con tu carrito')).toBeInTheDocument()
+  })
+
+  it('cambiar la dirección a mano deja de usar la guardada y vuelve a ofrecer guardarla', async () => {
+    servidor(conGuardadas())
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    await within(await screen.findByRole('combobox', { name: 'Mis direcciones guardadas' })).findByRole('option', { name: /Casa/ })
+
+    await usuario.selectOptions(selector(), '5')
+    await usuario.type(screen.getByLabelText('Dirección de entrega'), ', dpto. 2')
+    expect(selector()).toHaveValue('')
+    expect(screen.getByLabelText('Guardar esta dirección para próximas compras')).toBeInTheDocument()
+  })
+
+  it('si no se pueden leer las guardadas, se escribe la dirección como siempre', async () => {
+    servidor(rutas({ 'GET /api/cuenta/direcciones': [500, { code: 'ERROR', error: 'Falla' }] }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    expect(await screen.findByLabelText('Dirección de entrega')).toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'Mis direcciones guardadas' })).not.toBeInTheDocument()
   })
 })

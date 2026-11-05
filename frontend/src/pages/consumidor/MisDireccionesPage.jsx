@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { actualizarDireccion, listarDirecciones, retirarDireccion } from '../../api/cuenta.js'
+import { actualizarDireccion, guardarDireccionHabitual, listarDirecciones, retirarDireccion } from '../../api/cuenta.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Boton from '../../components/Boton.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
+import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import LateralCuenta from './LateralCuenta.jsx'
 import EditorDireccion394 from './EditorDireccion394.jsx'
@@ -16,6 +17,7 @@ import './MisDireccionesPage.css'
  * CW-13 · Mi cuenta › Mis direcciones. CCPIP-393 (RF-285): el comprador consulta sus direcciones de entrega
  * guardadas, la ultima primero, con su distrito, provincia y departamento. Se guardan al comprar a domicilio
  * (CCPIP-65); retirarlas (CCPIP-395) y modificarlas (CCPIP-394) llegan con sus historias, cada una en su tarjeta.
+ * CCPIP-446: tambien se agregan aqui, una o varias, sin esperar a comprar.
  */
 export default function MisDireccionesPage() {
   const { t } = useTranslation()
@@ -27,6 +29,7 @@ export default function MisDireccionesPage() {
   const [editando, setEditando] = useState(null)
   const [guardando, setGuardando] = useState(false)
   const [errorEdicion, setErrorEdicion] = useState(false)
+  const [agregando, setAgregando] = useState(false)
   const envioActivo = useRef(false)
 
   async function confirmarRetiro() {
@@ -60,10 +63,36 @@ export default function MisDireccionesPage() {
     } catch { setErrorEdicion(true) }
     finally { envioActivo.current = false; setGuardando(false) }
   }
+  async function guardarNueva(datos) {
+    if (!agregando || envioActivo.current) return
+    envioActivo.current = true
+    setGuardando(true)
+    setErrorEdicion(false)
+    try {
+      await guardarDireccionHabitual({ alias: datos.alias || null, ubigeo: datos.ubigeo, direccion: datos.direccion, referencia: datos.referencia || null })
+      setAgregando(false)
+      setAviso(t('misDirecciones.agregada'))
+      recargar()
+    } catch (e) {
+      // DIRECCION_YA_GUARDADA y DESTINO_NO_ADMITIDO dicen que corregir; lo demas, el mensaje generico
+      setErrorEdicion(e?.status >= 400 && e?.status < 500 ? mensajeError(e, 'misDirecciones.errorAgregar') : true)
+    }
+    finally { envioActivo.current = false; setGuardando(false) }
+  }
+  function abrirAgregar() {
+    if (envioActivo.current) return
+    setAviso('')
+    setSeleccionada(null)
+    setEditando(null)
+    setErrorEdicion(false)
+    setAgregando(true)
+  }
+
   function abrirEdicion(d) {
     if (envioActivo.current) return
     setAviso('')
     setSeleccionada(null)
+    setAgregando(false)
     setEditando(d)
     setErrorEdicion(false)
   }
@@ -71,6 +100,7 @@ export default function MisDireccionesPage() {
   function abrirRetiro(direccion) {
     if (envioActivo.current) return
     setEditando(null)
+    setAgregando(false)
     setAviso('')
     setErrorRetiro(false)
     setSeleccionada(direccion)
@@ -83,18 +113,25 @@ export default function MisDireccionesPage() {
         <div className="mis-pedidos__cuerpo">
           <LateralCuenta activo="direcciones" />
           <section className="mis-pedidos__contenido" aria-labelledby="titulo-mis-direcciones" aria-busy={!direcciones && !error}>
-            <h2 id="titulo-mis-direcciones" className="mis-direcciones__titulo">{t('misDirecciones.titulo')}</h2>
+            <div className="mis-direcciones__encabezado">
+              <h2 id="titulo-mis-direcciones" className="mis-direcciones__titulo">{t('misDirecciones.titulo')}</h2>
+              {direcciones?.length > 0 && !agregando && (
+                <Boton tamano="M" disabled={guardando || retirando} onClick={abrirAgregar}>{t('misDirecciones.agregar')}</Boton>
+              )}
+            </div>
             {error && (
               <EstadoVacio titulo={t('misDirecciones.error')} descripcion={t('comun.errorConexion')}>
                 <Boton tamano="M" onClick={recargar}>{t('carrito.reintentar')}</Boton>
               </EstadoVacio>
             )}
             {!error && !direcciones && <p className="visually-hidden">{t('comun.cargando')}</p>}
-            {direcciones?.length === 0 && (
+            {direcciones?.length === 0 && !agregando && (
               <EstadoVacio titulo={t('misDirecciones.vacio')} descripcion={t('misDirecciones.vacioTexto')}>
-                <Boton tamano="M" to={RUTAS.buscar}>{t('misPedidos.explorar')}</Boton>
+                <Boton tamano="M" onClick={abrirAgregar}>{t('misDirecciones.agregar')}</Boton>
+                <Boton tipo="secundario" tamano="M" to={RUTAS.buscar}>{t('misPedidos.explorar')}</Boton>
               </EstadoVacio>
             )}
+            {agregando && <EditorDireccion394 nueva guardando={guardando} error={errorEdicion} onGuardar={guardarNueva} onCancelar={() => { if (!envioActivo.current) setAgregando(false) }} />}
             {direcciones?.length > 0 && (
               <ul className="mis-direcciones__lista" aria-labelledby="titulo-mis-direcciones">
                 {direcciones.map((d) => (

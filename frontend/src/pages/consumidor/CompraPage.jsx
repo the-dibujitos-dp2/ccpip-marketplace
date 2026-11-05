@@ -4,7 +4,7 @@ import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoCamion from '../../assets/icons/camion.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import { consultarCarrito, recargarUnidadesCarrito } from '../../api/carrito.js'
-import { guardarDireccionHabitual, obtenerMisDatos } from '../../api/cuenta.js'
+import { guardarDireccionHabitual, listarDirecciones, obtenerMisDatos } from '../../api/cuenta.js'
 import { confirmarCompra, consultarAdvertencias, consultarDistritosEntrega, consultarFactibilidad, consultarPuntosRecojo, pagarPedido } from '../../api/compra.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -32,12 +32,15 @@ const ANIOS = Array.from({ length: 12 }, (_, i) => ({ valor: String(ANIO + i), e
 const VACIO = {
   modalidad: 'RECOJO', puntoId: '', recogeOtro: false, personaAutorizada: '', celular: '',
   departamento: '', provincia: '', ubigeo: '', direccion: '', referencia: '', nombreRecibe: '',
-  guardarDireccion: false, aliasDireccion: '',
+  guardarDireccion: false, aliasDireccion: '', direccionGuardadaId: '',
   numero: '', titular: '', mes: '', anio: '', cvv: '',
 }
 
 /** Los puntos que cubren el distrito de destino (CCPIP-59), entre los que tienen todo el carrito. */
 const puntosDe = (distritos, ubigeo) => distritos.find((d) => d.distrito.ubigeo === ubigeo)?.puntos ?? []
+
+/** Los campos del destino: escribir en uno deja de usar la direccion guardada elegida. */
+const DEL_DESTINO = ['departamento', 'provincia', 'ubigeo', 'direccion', 'referencia']
 
 /** El punto elegido sigue valiendo si esta entre los que hoy se ofrecen; si no, queda el unico que hay o ninguno. */
 const puntoVigente = (puntoId, ofrecidos) =>
@@ -194,6 +197,7 @@ export default function CompraPage() {
       }
       // Si cambia la marca (p. ej. de Amex a Visa), el CVV se recorta a su nuevo largo
       if (campo === 'numero') nuevo.cvv = LIMPIAR.cvv(f.cvv, nuevo)
+      if (DEL_DESTINO.includes(campo)) nuevo.direccionGuardadaId = ''
       return nuevo
     })
     // Elegir distrito tambien elige el punto si es uno solo: su aviso ya no corresponde
@@ -213,14 +217,49 @@ export default function CompraPage() {
       .catch(() => {})
   }
 
+  // Elegir una direccion guardada (CCPIP-65, 393, 446) llena el destino; el punto, como al elegir el distrito
+  const [guardadas, setGuardadas] = useState([])
+  const guardadasPedidas = useRef(false)
+  function cargarGuardadas() {
+    if (guardadasPedidas.current) return
+    guardadasPedidas.current = true
+    // Es una ayuda: si falla, se escribe la direccion como siempre
+    listarDirecciones().then((l) => setGuardadas(l ?? [])).catch(() => {})
+  }
+  function elegirGuardada(id) {
+    const g = guardadas.find((d) => String(d.id) === id)
+    if (!g) {
+      setForm((f) => ({ ...f, direccionGuardadaId: '' }))
+      return
+    }
+    const cubren = puntosDe(distritos, g.ubigeo)
+    setForm((f) => ({
+      ...f,
+      direccionGuardadaId: String(g.id),
+      departamento: g.departamento,
+      provincia: g.provincia,
+      ubigeo: g.ubigeo,
+      direccion: g.direccion,
+      referencia: g.referencia ?? '',
+      puntoId: cubren.length === 1 ? String(cubren[0].id) : '',
+      // Ya esta guardada: no se vuelve a guardar
+      guardarDireccion: false,
+      aliasDireccion: '',
+    }))
+    setErrores((e) => ({ ...e, departamento: undefined, provincia: undefined, ubigeo: undefined, direccion: undefined, referencia: undefined, puntoId: undefined }))
+  }
+
   // Cambiar entre recojo y domicilio cambia los puntos entre los que se elige
   const elegirModalidad = (modalidad) => {
     setForm((f) => ({
-      ...f, modalidad, departamento: '', provincia: '', ubigeo: '',
+      ...f, modalidad, departamento: '', provincia: '', ubigeo: '', direccionGuardadaId: '',
       puntoId: modalidad === 'RECOJO' && puntos.length === 1 ? String(puntos[0].id) : '',
     }))
     setErrores({})
-    if (modalidad === 'ENVIO') precargarContacto()
+    if (modalidad === 'ENVIO') {
+      precargarContacto()
+      cargarGuardadas()
+    }
   }
   const alEscribir = (campo) => (e) => cambiar(campo, e.target.type === 'checkbox' ? e.target.checked : e.target.value)
 
@@ -263,7 +302,7 @@ export default function CompraPage() {
       if (resultado.estado === 'APROBADO') {
         // CCPIP-65: la direccion se guarda al confirmarse la compra, no al crear el pedido: si el pago se rechaza y el
         // comprador corrige la direccion, no queda guardada tambien la equivocada. Es un extra: no debe fallar la compra.
-        if (recojo.entrega && form.guardarDireccion) {
+        if (recojo.entrega && form.guardarDireccion && !form.direccionGuardadaId) {
           const { ubigeo, direccion, referencia } = recojo.entrega
           await guardarDireccionHabitual({ alias: form.aliasDireccion.trim() || null, ubigeo, direccion, referencia }).catch(() => {})
         }
@@ -400,7 +439,7 @@ export default function CompraPage() {
                   />
                 )}
                 <p className="caption compra__ayuda">{t(aDomicilio ? 'compra.domicilio.ayuda' : 'compra.puntoAyuda')}</p>
-                {aDomicilio && <EntregaDomicilio distritos={distritos} form={form} errores={errores} alEscribir={alEscribir} />}
+                {aDomicilio && <EntregaDomicilio distritos={distritos} guardadas={guardadas} form={form} errores={errores} alEscribir={alEscribir} onElegirGuardada={elegirGuardada} />}
                 {(!aDomicilio || puntosVisibles.length > 0) && (
                 <OpcionTarjeta
                   nombre="punto"

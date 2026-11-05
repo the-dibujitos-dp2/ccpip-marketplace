@@ -2744,7 +2744,11 @@
       "celular": "Mobile number of the person receiving",
       "celularAyuda": "9 digits. We use it to coordinate the delivery.",
       "resumen": "Home delivery · to be confirmed",
-      "sinCobertura": "That point does not deliver to your district"
+      "sinCobertura": "That point does not deliver to your district",
+      "guardadas": "My saved addresses",
+      "otraDireccion": "Enter another address",
+      "guardadaOpcion": "{{alias}} · {{direccion}}, {{distrito}}",
+      "guardadaSinEntrega": "{{alias}} · {{direccion}}, {{distrito}} (no delivery with your cart)"
     },
     "factibilidad": {
       "titulo": "This point can no longer deliver your order",
@@ -2859,7 +2863,7 @@
     "titulo": "My addresses",
     "error": "We couldn't load your addresses",
     "vacio": "You haven't saved any addresses yet",
-    "vacioTexto": "When you buy with home delivery you can save the address for next time.",
+    "vacioTexto": "Add an address to have it ready when you buy, or save it when you buy with home delivery.",
     "sinAlias": "Delivery address",
     "referencia": "Reference: {{referencia}}",
     "retirar": "Remove address",
@@ -2879,7 +2883,11 @@
     "guardarCambios": "Save changes",
     "editada": "Address updated.",
     "errorCatalogo": "We could not load the territorial catalogue.",
-    "reglaDireccion": "The address must have at least 5 characters and one letter."
+    "reglaDireccion": "The address must have at least 5 characters and one letter.",
+    "agregar": "Add address",
+    "guardarNueva": "Save address",
+    "agregada": "Address added.",
+    "errorAgregar": "We could not save the address. Try again."
   },
   "misDatos": {
     "titulo": "Personal details",
