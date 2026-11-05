@@ -16,7 +16,8 @@ import './Editor.css'
 /** Preguntas guiadas; su texto y ejemplo estan en el diccionario (productor.historia.preguntas). */
 export const PREGUNTAS = ['quienes', 'como', 'significado', 'cuidado'].map((campo) => ({ campo }))
 
-const MINIMO = 40
+// Unas dos oraciones: quienes lo hacen y como, lo minimo para contar un origen
+const MINIMO = 100
 
 /**
  * PW-05 · paso 2 "Historia" (CCPIP-48, CCPIP-49). La IA propone un borrador a partir de las

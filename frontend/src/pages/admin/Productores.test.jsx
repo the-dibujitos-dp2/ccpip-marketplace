@@ -232,3 +232,28 @@ describe('Habilitar la tienda (CCPIP-291)', () => {
     expect(screen.getByRole('link', { name: 'Volver a productores' })).toHaveAttribute('href', '/admin/productores')
   })
 })
+
+describe('Buscar y filtrar productores (mejoras de laboratorio)', () => {
+  const organizaciones = () => screen.getAllByRole('row').slice(1).map((f) => within(f).getAllByRole('cell')[0].querySelector('.label-m').textContent)
+
+  it('busca por nombre, pueblo o región y filtra por región y situación', async () => {
+    comoSub()
+    const user = userEvent.setup()
+    abrirEn('/admin/productores')
+    await screen.findByText('Asoc. Nii Joi')
+    expect(organizaciones()).toEqual(['Asoc. Nii Joi', 'Comunidad Kukama de Nauta'])
+
+    await user.type(screen.getByRole('searchbox', { name: 'Buscar por organización, pueblo o región' }), 'shipibo')
+    expect(organizaciones()).toEqual(['Asoc. Nii Joi'])
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+
+    expect([...screen.getByLabelText('Región').options].map((o) => o.textContent)).toEqual(['Todas', 'Loreto', 'Ucayali'])
+    await user.selectOptions(screen.getByLabelText('Región'), 'Loreto')
+    expect(organizaciones()).toEqual(['Comunidad Kukama de Nauta'])
+    await user.selectOptions(screen.getByLabelText('Situación'), 'Con productos por revisar')
+    expect(screen.getByText('Nada coincide con la búsqueda y los filtros')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+    await user.selectOptions(screen.getByLabelText('Situación'), 'Tienda sin habilitar')
+    expect(organizaciones()).toEqual(['Comunidad Kukama de Nauta'])
+  })
+})

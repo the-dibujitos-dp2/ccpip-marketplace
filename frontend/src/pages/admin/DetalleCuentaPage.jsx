@@ -11,7 +11,7 @@ import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import Dialogo from '../../components/Dialogo.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { fechaCorta, fechaHora } from '../../formato.js'
+import { diaMesAnio, fechaHora } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import { cuerpoCuenta, erroresDelServidor, EstadoCuenta, FormularioCuenta, validarCuenta } from './cuentas.jsx'
@@ -220,7 +220,7 @@ function Datos({ cuenta }) {
     ['correo', cuenta.correo],
     ['rol', t(`roles.${cuenta.rol}`, { defaultValue: cuenta.rolNombre })],
     ['telefono', cuenta.telefono],
-    ['creada', fechaCorta(cuenta.creadaEn.slice(0, 10))],
+    ['creada', diaMesAnio(cuenta.creadaEn)],
   ]
   if (cuenta.rol === 'ADMIN_PUNTO') filas.push(['puntos', cuenta.puntos.map((p) => p.nombre).join(', ')])
   return (
@@ -247,7 +247,7 @@ function Acciones({ cuenta, onAccion, onReenviar }) {
       <div className="productor__acciones-barra">
         {a.reenviarAcceso && <Boton tipo="secundario" tamano="M" icono={iconoSobre} onClick={onReenviar}>{t('cuentas.reenviar')}</Boton>}
         {a.reactivar && <Boton tamano="M" onClick={() => onAccion('reactivar')}>{t('cuentas.reactivar')}</Boton>}
-        {a.suspender && <Boton tipo="secundario" tamano="M" icono={iconoPausa} onClick={() => onAccion('suspender')}>{t('cuentas.suspender')}</Boton>}
+        {a.suspender && <Boton tipo="secundario" tamano="M" peligro icono={iconoPausa} onClick={() => onAccion('suspender')}>{t('cuentas.suspender')}</Boton>}
         {a.desactivar && <Boton tipo="destructivo" tamano="M" icono={iconoProhibido} onClick={() => onAccion('desactivar')}>{t('cuentas.desactivar')}</Boton>}
       </div>
       <p className="caption">{t('cuentas.accionesNota')}</p>

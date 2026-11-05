@@ -35,7 +35,8 @@ export default function MisFavoritosPage() {
     setAviso(null)
     try {
       await retirarFavorito(clave, id)
-      setAviso({ tono: 'exito', titulo: t('favoritos.retirado', { nombre }) })
+      // En rojo, como el boton: algo salio de sus favoritos
+      setAviso({ tono: 'error', titulo: t('favoritos.retirado', { nombre }) })
       recargar()
     } catch (e) {
       if (e.status === 404) recargar()
@@ -47,7 +48,7 @@ export default function MisFavoritosPage() {
 
   function botonRetirar(clave, id, nombre) {
     return (
-      <Boton tipo="terciario" tamano="S" cargando={retirando === `${clave}-${id}`} disabled={Boolean(retirando)}
+      <Boton tipo="secundario" tamano="S" peligro anchoCompleto className="mis-favoritos__retirar" cargando={retirando === `${clave}-${id}`} disabled={Boolean(retirando)}
         onClick={() => retirar(clave, id, nombre)} aria-label={t('favoritos.retirarDe', { nombre })}>
         {t('favoritos.retirar')}
       </Boton>

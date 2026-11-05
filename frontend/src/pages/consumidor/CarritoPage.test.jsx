@@ -133,6 +133,8 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
     servidor(conSesion({ items: [], unidades: 0, comunidades: 0, total: 0 }))
     abrirEn('/carrito')
     expect(await screen.findByText('Tu carrito está vacío')).toBeInTheDocument()
+    // Sin nada que comprar no se muestran los pasos de la compra (mejoras de laboratorio)
+    expect(screen.queryByRole('list', { name: 'Pasos de la compra' })).not.toBeInTheDocument()
     expect(within(screen.getByRole('main')).getByRole('link', { name: 'Explorar productos' })).toHaveAttribute('href', '/buscar')
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Carrito' })).toBeInTheDocument()

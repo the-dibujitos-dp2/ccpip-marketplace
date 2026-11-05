@@ -12,7 +12,7 @@ import EstadoVacio from '../../components/EstadoVacio.jsx'
 import FiltrosDenuncias, { pasaFiltros, SIN_FILTROS } from '../../components/FiltrosDenuncias.jsx'
 import { SinCoincidencias } from '../../components/LimpiarFiltros.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { diaLima, fechaHora } from '../../formato.js'
+import { diaLima, diaMesAnioHora } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import { useSesion } from '../../sesion.js'
@@ -134,7 +134,7 @@ function Denuncia({ denuncia: d, organizacion, anteriores, gestiona, onActualiza
         <dt>{t('denunciasAdmin.detalle.denuncio')}</dt>
         <dd>{d.denunciante ?? t('denunciasAdmin.compradorProtegido')}</dd>
         <dt>{t('denunciasAdmin.detalle.fecha')}</dt>
-        <dd><time dateTime={d.creadaEn}>{fechaHora(d.creadaEn)}</time></dd>
+        <dd><time dateTime={d.creadaEn}>{diaMesAnioHora(d.creadaEn)}</time></dd>
         <dt>{t('denunciasAdmin.detalle.motivo')}</dt>
         <dd>{t(`denuncia.motivos.${d.motivo}`)}</dd>
       </dl>
@@ -154,7 +154,7 @@ function Denuncia({ denuncia: d, organizacion, anteriores, gestiona, onActualiza
               {e.responsable ?? t('denunciasAdmin.compradorProtegido')}
               {e.nota && e.tipo === 'CAMBIO_ESTADO' && <span className="caption"> — {e.nota}</span>}
             </span>
-            <time dateTime={e.registradoEn} className="caption">{fechaHora(e.registradoEn)}</time>
+            <time dateTime={e.registradoEn} className="caption">{diaMesAnioHora(e.registradoEn)}</time>
           </li>
         ))}
       </ol>
@@ -169,7 +169,7 @@ function Denuncia({ denuncia: d, organizacion, anteriores, gestiona, onActualiza
                 {t('denunciasAdmin.anteriores.item', { id: a.id, titulo: a.producto ? a.producto.nombre : t('denunciasAdmin.contraComunidad'), motivo: t(`denuncia.motivos.${a.motivo}`) })}
                 {' '}<BadgeDenuncia estado={a.estado} />
               </span>
-              <time dateTime={a.creadaEn} className="caption">{fechaHora(a.creadaEn)}</time>
+              <time dateTime={a.creadaEn} className="caption">{diaMesAnioHora(a.creadaEn)}</time>
             </li>
           ))}
         </ul>

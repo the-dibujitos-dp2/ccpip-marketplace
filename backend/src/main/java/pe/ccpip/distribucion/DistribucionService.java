@@ -1,6 +1,8 @@
 package pe.ccpip.distribucion;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
@@ -36,6 +38,17 @@ import pe.ccpip.entrega.EntregaModelos.Distrito;
  */
 @Service
 public class DistribucionService {
+
+    /** Una entrega con su punto de origen y su distrito de destino; cada lectura agrega su WHERE. */
+    private static final String ENTREGA = """
+            SELECT pe.numero, u.id AS punto_id, u.nombre AS punto, u.distrito AS punto_distrito, u.direccion AS punto_direccion,
+                   g.codigo, g.departamento, g.provincia, g.distrito, e.estado, e.asignada_en, e.retirada_en,
+                   e.en_camino_en, e.entregada_en
+            FROM entrega e
+            JOIN pedido pe ON pe.id = e.pedido_id
+            JOIN ubigeo g ON g.codigo = e.ubigeo
+            JOIN ubicacion u ON u.id = pe.ubicacion_origen_id
+            """;
 
     private static final String ELEGIBLES = """
             SELECT pe.id AS pedido_id, pe.numero, u.id AS punto_id, u.nombre AS punto, u.distrito AS punto_distrito,
@@ -105,26 +118,14 @@ public class DistribucionService {
      */
     @Transactional(readOnly = true)
     public List<EntregaDelDistribuidor> asignadas(long distribuidorId) {
-        return jdbc.query("""
-                SELECT pe.numero, u.id AS punto_id, u.nombre AS punto, u.distrito AS punto_distrito, u.direccion AS punto_direccion,
-                       g.codigo, g.departamento, g.provincia, g.distrito, e.estado, e.asignada_en, e.retirada_en
-                FROM entrega e
-                JOIN pedido pe ON pe.id = e.pedido_id
-                JOIN ubigeo g ON g.codigo = e.ubigeo
-                JOIN ubicacion u ON u.id = pe.ubicacion_origen_id
-                WHERE e.distribuidor_id = :distribuidor
+        return jdbc.query(ENTREGA + """
+                 WHERE e.distribuidor_id = :distribuidor
                   AND (e.estado <> 'ENTREGADA'
                        OR (e.entregada_en AT TIME ZONE 'America/Lima')::date = (now() AT TIME ZONE 'America/Lima')::date)
                 ORDER BY e.estado = 'ENTREGADA',
                          CASE WHEN e.estado = 'ENTREGADA' THEN -extract(epoch FROM e.entregada_en) END,
                          e.asignada_en, e.id""", new MapSqlParameterSource("distribuidor", distribuidorId),
-                (rs, row) -> new EntregaDelDistribuidor(rs.getString("numero"),
-                        new Origen(rs.getLong("punto_id"), rs.getString("punto"), rs.getString("punto_distrito"),
-                                rs.getString("punto_direccion")),
-                        new Distrito(rs.getString("codigo"), rs.getString("departamento"), rs.getString("provincia"),
-                                rs.getString("distrito")),
-                        rs.getString("estado"), rs.getObject("asignada_en", Timestamp.class).toInstant(),
-                        instante(rs.getObject("retirada_en", Timestamp.class))));
+                DistribucionService::entrega);
     }
 
     /** CCPIP-110: ubicaciones registradas, solo para el distribuidor propietario de la entrega. */
@@ -217,7 +218,7 @@ public class DistribucionService {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "PEDIDO_NO_INICIADO", "Este pedido no está retirado o ya no permite iniciar el viaje.");
         }
         jdbc.update("UPDATE pedido SET estado = 'EN_CAMINO', actualizado_en = now() WHERE id = :pedido", new MapSqlParameterSource("pedido", entrega.pedidoId()));
-        jdbc.update("UPDATE entrega SET estado = 'EN_CAMINO' WHERE pedido_id = :pedido", new MapSqlParameterSource("pedido", entrega.pedidoId()));
+        jdbc.update("UPDATE entrega SET estado = 'EN_CAMINO', en_camino_en = now() WHERE pedido_id = :pedido", new MapSqlParameterSource("pedido", entrega.pedidoId()));
         jdbc.update("INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (:pedido, 'EN_CAMINO', :usuario)",
                 new MapSqlParameterSource("pedido", entrega.pedidoId()).addValue("usuario", distribuidorId));
         return entregaDe(entrega.pedidoId());
@@ -267,23 +268,22 @@ public class DistribucionService {
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "El pedido no existe o no se entrega a domicilio."));
     }
 
-    /** La entrega del distribuidor, con su origen, su distrito de destino, su estado y cuando la asumio y la retiro. */
+    /** La entrega del distribuidor, con su origen, su distrito de destino, su estado y cada momento por el que paso. */
     private EntregaDelDistribuidor entregaDe(long pedidoId) {
-        return jdbc.queryForObject("""
-                SELECT pe.numero, u.id AS punto_id, u.nombre AS punto, u.distrito AS punto_distrito, u.direccion AS punto_direccion,
-                       g.codigo, g.departamento, g.provincia, g.distrito, e.estado, e.asignada_en, e.retirada_en
-                FROM pedido pe
-                JOIN entrega e ON e.pedido_id = pe.id
-                JOIN ubigeo g ON g.codigo = e.ubigeo
-                JOIN ubicacion u ON u.id = pe.ubicacion_origen_id
-                WHERE pe.id = :pedido""", new MapSqlParameterSource("pedido", pedidoId),
-                (rs, row) -> new EntregaDelDistribuidor(rs.getString("numero"),
-                        new Origen(rs.getLong("punto_id"), rs.getString("punto"), rs.getString("punto_distrito"),
-                                rs.getString("punto_direccion")),
-                        new Distrito(rs.getString("codigo"), rs.getString("departamento"), rs.getString("provincia"),
-                                rs.getString("distrito")),
-                        rs.getString("estado"), rs.getObject("asignada_en", Timestamp.class).toInstant(),
-                        instante(rs.getObject("retirada_en", Timestamp.class))));
+        return jdbc.queryForObject(ENTREGA + " WHERE pe.id = :pedido", new MapSqlParameterSource("pedido", pedidoId),
+                DistribucionService::entrega);
+    }
+
+    /** Una fila de {@link #ENTREGA}. */
+    private static EntregaDelDistribuidor entrega(ResultSet rs, int row) throws SQLException {
+        return new EntregaDelDistribuidor(rs.getString("numero"),
+                new Origen(rs.getLong("punto_id"), rs.getString("punto"), rs.getString("punto_distrito"),
+                        rs.getString("punto_direccion")),
+                new Distrito(rs.getString("codigo"), rs.getString("departamento"), rs.getString("provincia"),
+                        rs.getString("distrito")),
+                rs.getString("estado"), rs.getObject("asignada_en", Timestamp.class).toInstant(),
+                instante(rs.getObject("retirada_en", Timestamp.class)), instante(rs.getObject("en_camino_en", Timestamp.class)),
+                instante(rs.getObject("entregada_en", Timestamp.class)));
     }
 
     private static Instant instante(Timestamp t) {

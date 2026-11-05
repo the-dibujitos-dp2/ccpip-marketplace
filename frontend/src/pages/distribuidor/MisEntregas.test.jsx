@@ -344,3 +344,40 @@ describe('CCPIP-319 registrar entrega', () => {
     expect(llamadas(fetchMock, endpoint)).toHaveLength(1)
   })
 })
+
+describe('Momentos y ubicaciones de la entrega (mejoras de laboratorio)', () => {
+  it('muestra cada momento guardado con día y hora, sin botón Actualizar, y la hora de las entregadas hoy', async () => {
+    const enCurso = entrega('MC-12001', 'Lince', '150116', 'EN_CAMINO', {
+      retiradaEn: '2026-10-25T16:10:00Z', enCaminoEn: '2026-10-25T16:30:00Z',
+    })
+    const entregada = entrega('MC-12002', 'Surco', '150140', 'ENTREGADA', {
+      retiradaEn: '2026-10-25T16:10:00Z', enCaminoEn: '2026-10-25T16:30:00Z', entregadaEn: '2026-10-25T17:05:00Z',
+    })
+    servidor(comoDistribuidor(reparto([enCurso, entregada])))
+    abrirEn('/distribuidor/entregas')
+    const momentos = await screen.findByRole('list', { name: 'Momentos de la entrega MC-12001' })
+    expect(within(momentos).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+      'Lo tomaste el 25 oct 10:00',
+      'Lo retiraste del punto el 25 oct 11:10',
+      'Salió en camino el 25 oct 11:30',
+    ])
+    expect(screen.queryByRole('button', { name: 'Actualizar' })).not.toBeInTheDocument()
+    const fila = within(screen.getByRole('table', { name: 'Entregados hoy' })).getByRole('row', { name: /MC-12002/ })
+    expect(within(fila).getByText('12:05')).toBeInTheDocument()
+  })
+
+  it('el origen y el destino van en dos columnas', async () => {
+    const rutas = reparto([entrega('MC-12003', 'Lince', '150116', 'ASIGNADA')])
+    rutas['GET /api/distribuidor/pedidos/MC-12003/ubicaciones'] = [200, { numero: 'MC-12003', origen: { id: 1, nombre: 'Punto Uno', distrito: 'Lima', direccion: 'Calle Uno' }, destino: { territorio: { ubigeo: '150116', departamento: 'Lima', provincia: 'Lima', distrito: 'Lince' }, direccion: 'Jr. Dos', referencia: 'Puerta azul' } }]
+    servidor(comoDistribuidor(rutas))
+    const user = userEvent.setup()
+    abrirEn('/distribuidor/entregas')
+    await user.click(within(await screen.findByRole('article', { name: /^MC-12003/ })).getByRole('button', { name: 'Ver ubicaciones' }))
+    const dialogo = within(await screen.findByRole('dialog', { name: 'Ubicaciones del pedido MC-12003' }))
+    const origen = within(dialogo.getByRole('region', { name: 'Origen' }))
+    expect(origen.getByText('Punto de acopio').nextSibling).toHaveTextContent('Punto Uno')
+    const destino = within(dialogo.getByRole('region', { name: 'Destino' }))
+    expect(destino.getByText('Referencia').nextSibling).toHaveTextContent('Puerta azul')
+    expect(destino.queryByText('Punto Uno')).not.toBeInTheDocument()
+  })
+})

@@ -1,9 +1,19 @@
 .inventario__resumen { margin: 0; color: var(--color-text-secondary); }
 .inventario__pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 
-.inventario__col-productor { width: 150px; }
-.inventario__col-lote { width: 90px; }
-.inventario__col-vence { width: 100px; }
-.inventario__col-numero { width: 72px; font-variant-numeric: tabular-nums; }
-.inventario__col-estado { width: 120px; }
-.inventario__col-accion { display: flex; gap: 4px; width: 180px; }
+/* Anchos de cada columna, que se angostan sin pasar de la tabla (tabla--ajustada) */
+.inventario__col-productor { width: 140px; }
+.inventario__col-lote { width: 80px; }
+.inventario__col-vence { width: 96px; }
+.inventario__col-numero { width: 64px; font-variant-numeric: tabular-nums; }
+.inventario__col-estado { width: 110px; }
+.inventario__col-lote, .inventario__col-vence, .inventario__col-numero { white-space: nowrap; }
+/*
+ * El titulo "Accion" queda centrado sobre sus dos botones (movimiento y merma), lado a lado: se angostan las otras
+ * columnas. En pantallas angostas los botones bajan uno debajo del otro en vez de salirse de la columna.
+ */
+.inventario__col-accion { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; width: 190px; text-align: center; }
+.tabla--ajustada .inventario__col-accion { flex-shrink: 0; }
+@media (max-width: 1199px) {
+  .tabla--ajustada .inventario__col-accion { flex-shrink: 1; }
+}

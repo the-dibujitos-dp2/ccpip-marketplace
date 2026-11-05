@@ -2,12 +2,14 @@
 .auditoria__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
 .auditoria__filtros .campo { width: 200px; }
 .auditoria__acciones { display: flex; padding-bottom: 2px; }
-.auditoria__fecha { flex: 0 0 120px; color: var(--color-text-primary); }
-.auditoria__usuario { flex: 0 0 220px; display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
-.auditoria__rol { flex: 0 0 150px; }
-.auditoria__accion { flex: 0 0 180px; }
+.auditoria__fecha { flex: 0 0 100px; color: var(--color-text-primary); }
+.auditoria__hora { flex: 0 0 48px; font-variant-numeric: tabular-nums; }
+.auditoria__usuario { flex: 0 0 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.auditoria__rol { flex: 0 0 140px; }
+.auditoria__accion { flex: 0 0 160px; }
+.auditoria__tabla .tabla__celda--flex { flex-basis: 170px; min-width: 170px; }
 .auditoria__entidad { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
-.auditoria__resultado { flex: 0 0 120px; }
+.auditoria__resultado { flex: 0 0 110px; }
 .auditoria__nota { display: flex; align-items: center; gap: 8px; }
 
 /* En tablet y celular cada registro es una tarjeta: nada se corta ni hay scroll horizontal */

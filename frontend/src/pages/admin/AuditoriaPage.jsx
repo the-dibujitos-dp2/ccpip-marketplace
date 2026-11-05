@@ -11,7 +11,7 @@ import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { fechaHora } from '../../formato.js'
+import { diaMesAnio, hora } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
 import './admin.css'
@@ -92,9 +92,10 @@ export default function AuditoriaPage({ path }) {
       {!datos && !error && <Cargando />}
       {datos && datos.registros.length === 0 && <EstadoVacio titulo={t('auditoria.vacio')} />}
       {datos?.registros.length > 0 && (
-        <div className="tabla auditoria__tabla" role="table" aria-label={t('auditoria.titulo')}>
+        <div className="tabla tabla--espaciada auditoria__tabla" role="table" aria-label={t('auditoria.titulo')}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda auditoria__fecha" role="columnheader">{t('auditoria.col.fecha')}</span>
+            <span className="tabla__celda auditoria__hora" role="columnheader">{t('comun.hora')}</span>
             <span className="tabla__celda auditoria__usuario" role="columnheader">{t('auditoria.col.usuario')}</span>
             <span className="tabla__celda auditoria__rol" role="columnheader">{t('auditoria.col.rol')}</span>
             <span className="tabla__celda auditoria__accion" role="columnheader">{t('auditoria.col.accion')}</span>
@@ -104,8 +105,9 @@ export default function AuditoriaPage({ path }) {
           {datos.registros.map((r) => (
             <div key={r.clave} className="tabla__fila" role="row">
               <span className="tabla__celda auditoria__fecha label-m" role="cell">
-                <time dateTime={r.fecha}>{fechaHora(r.fecha)}</time>
+                <time dateTime={r.fecha}>{diaMesAnio(r.fecha)}</time>
               </span>
+              <span className="tabla__celda auditoria__hora" role="cell">{hora(r.fecha)}</span>
               <span className="tabla__celda auditoria__usuario" role="cell">
                 {r.usuario ? (
                   <>

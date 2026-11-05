@@ -12,7 +12,7 @@ import LimpiarFiltros, { SinCoincidencias } from '../../components/LimpiarFiltro
 import Paginacion from '../../components/Paginacion.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
-import { fechaHora, unidades } from '../../formato.js'
+import { diaMesAnio, hora, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { useDiferido } from '../../useDiferido.js'
 import '../productor/productor.css'
@@ -77,10 +77,6 @@ export default function MovimientosPage({ path }) {
 
   return (
     <LayoutAcopio path={path} punto={datos?.ubicacion} titulo={t('acopio.nav.movimientos')}>
-      <div className="movimientos__filtros">
-        <Pestanas opciones={PESTANAS.map((p) => ({ valor: p, etiqueta: t(`acopio.movimientos.pestana.${p || 'TODOS'}`) }))} valor={tipo} onCambiar={cambiarTipo} etiqueta={t('acopio.movimientos.tipoEtiqueta')} />
-        <Boton tamano="M" onClick={() => movimiento.abrir()}>{t('movimiento.titulo')}</Boton>
-      </div>
       <div className="barra-filtros">
         <Buscador
           id="buscar-movimiento"
@@ -98,6 +94,11 @@ export default function MovimientosPage({ path }) {
         <LimpiarFiltros activos={buscando || Boolean(tipo)} onLimpiar={limpiar} />
       </div>
       <p className="caption">{t('acopio.movimientos.unDia')}</p>
+      {/* Primero se busca y filtra; las pestanas por tipo quedan junto a la tabla que separan */}
+      <div className="movimientos__filtros">
+        <Pestanas opciones={PESTANAS.map((p) => ({ valor: p, etiqueta: t(`acopio.movimientos.pestana.${p || 'TODOS'}`) }))} valor={tipo} onCambiar={cambiarTipo} etiqueta={t('acopio.movimientos.tipoEtiqueta')} />
+        <Boton tamano="M" onClick={() => movimiento.abrir()}>{t('movimiento.titulo')}</Boton>
+      </div>
 
       {movimiento.avisos}
 
@@ -128,9 +129,10 @@ export default function MovimientosPage({ path }) {
 function TablaMovimientos({ items }) {
   const { t } = useTranslation()
   return (
-    <div className="tabla">
+    <div className="tabla tabla--espaciada">
       <div className="tabla__fila tabla__fila--encabezado" aria-hidden="true">
         <span className="tabla__celda movimientos__col-fecha">{t('acopio.movimientos.col.fecha')}</span>
+        <span className="tabla__celda movimientos__col-hora">{t('comun.hora')}</span>
         <span className="tabla__celda movimientos__col-tipo">{t('acopio.movimientos.col.tipo')}</span>
         <span className="tabla__celda tabla__celda--flex">{t('acopio.movimientos.col.producto')}</span>
         <span className="tabla__celda movimientos__col-cantidad">{t('selectorCantidad.etiqueta')}</span>
@@ -141,7 +143,8 @@ function TablaMovimientos({ items }) {
           const tipo = TIPOS[m.tipo] ?? { tono: 'neutro', signo: '' }
           return (
             <li key={m.id} className="tabla__fila">
-              <span className="tabla__celda movimientos__col-fecha label-m">{fechaHora(m.registradoEn)}</span>
+              <span className="tabla__celda movimientos__col-fecha label-m">{diaMesAnio(m.registradoEn)}</span>
+              <span className="tabla__celda movimientos__col-hora">{hora(m.registradoEn)}</span>
               <span className="tabla__celda movimientos__col-tipo">
                 <Badge tono={tipo.tono}>{t(`acopio.movimientos.tipo.${m.tipo}`, { defaultValue: m.tipo })}</Badge>
               </span>

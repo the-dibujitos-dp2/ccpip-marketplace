@@ -13,9 +13,12 @@ const TAMANO_ICONO = { L: 20, M: 18, S: 16 }
  * CCPIP-413: `cargando` marca el boton de la accion que espera una respuesta. Muestra un aro que gira en lugar
  * del icono, igual en toda la plataforma, y queda deshabilitado (y `aria-busy`) hasta que termina, sin el gris de
  * un boton bloqueado. Los demas botones que solo se bloquean mientras tanto (Cancelar) usan `disabled`.
+ *
+ * `peligro` pinta de rojo un secundario o terciario (denunciar, quitar, revocar, cerrar sesion): avisa que la
+ * accion quita o reporta algo sin el peso de un destructivo.
  */
-export default function Boton({ tipo = 'primario', tamano = 'L', anchoCompleto = false, icono, cargando = false, disabled, to, children, className = '', ...props }) {
-  const clases = ['boton', `boton--${tipo}`, `boton--${tamano}`, anchoCompleto && 'boton--ancho', cargando && !to && 'boton--cargando', className]
+export default function Boton({ tipo = 'primario', tamano = 'L', anchoCompleto = false, icono, cargando = false, peligro = false, disabled, to, children, className = '', ...props }) {
+  const clases = ['boton', `boton--${tipo}`, `boton--${tamano}`, anchoCompleto && 'boton--ancho', peligro && 'boton--peligro', cargando && !to && 'boton--cargando', className]
     .filter(Boolean)
     .join(' ')
   const lado = TAMANO_ICONO[tamano]

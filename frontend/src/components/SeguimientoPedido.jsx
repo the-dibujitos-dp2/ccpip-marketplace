@@ -1,15 +1,19 @@
 import { useTranslation } from 'react-i18next'
 import iconoCheck from '../assets/icons/check.svg'
-import { fechaHora } from '../formato.js'
+import { diaMesHora } from '../formato.js'
 import Icono from './Icono.jsx'
 import './SeguimientoPedido.css'
 
 /**
- * Etapas visibles de un pedido para recojo (CW-09). EN_PREPARACION no aparece hasta que un flujo la
- * marque (CCPIP-68). El pedido a domicilio (CCPIP-59) todavia no tiene seguimiento, porque su reparto
- * llega con las historias de distribucion; mientras, se ve su historial. Internacional tendra las suyas.
+ * Etapas visibles de un pedido (CW-09). EN_PREPARACION la marca el punto de acopio; si un pedido
+ * antiguo paso directo a disponible, la etapa se ve hecha y sin fecha. El pedido a domicilio (CCPIP-59) sale del punto
+ * listo para despacho y el distribuidor lo lleva en camino hasta entregarlo (CCPIP-318, CCPIP-319). Internacional tendra
+ * las suyas.
  */
-const ETAPAS = { RECOJO: ['CONFIRMADO', 'LISTO_PARA_RECOJO', 'ENTREGADO'], ENVIO: [] }
+const ETAPAS = {
+  RECOJO: ['CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO', 'ENTREGADO'],
+  ENVIO: ['CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_DESPACHO', 'EN_CAMINO', 'ENTREGADO'],
+}
 
 /** Fecha en que el pedido llego por primera vez a `estado`, segun su historial. */
 export function fechaDe(historial, estado) {
@@ -37,10 +41,11 @@ export default function SeguimientoPedido({ pedido }) {
         return (
           <li key={estado} className={`seguimiento__etapa seguimiento__etapa--${tipo}`} aria-current={i === actual ? 'step' : undefined}>
             <span className="seguimiento__marca" aria-hidden="true">
-              {tipo === 'hecho' && <Icono src={iconoCheck} tamano={14} />}
+              {/* La etapa actual ya se alcanzo: lleva su check, y la linea a la siguiente queda por recorrer */}
+              {tipo !== 'pendiente' && <Icono src={iconoCheck} tamano={14} />}
             </span>
             <span className="seguimiento__nombre">{t(`misPedidos.etapa.${estado}`)}</span>
-            <span className="seguimiento__fecha">{i <= actual && fecha ? fechaHora(fecha) : '—'}</span>
+            <span className="seguimiento__fecha">{i <= actual && fecha ? diaMesHora(fecha) : '—'}</span>
           </li>
         )
       })}

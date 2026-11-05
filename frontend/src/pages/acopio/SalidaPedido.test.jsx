@@ -63,7 +63,7 @@ describe('A-05 Salida de un pedido a domicilio (CCPIP-320)', () => {
     expect(screen.getByRole('tab', { name: 'Listo para despacho (1)' })).toBeInTheDocument()
     expect(despacho.getByText('MC-00155')).toBeInTheDocument()
     expect(despacho.getByText('A domicilio')).toBeInTheDocument()
-    expect(despacho.getByText(`Listo para despacho 13/10 11:10 · ${ADMIN}`)).toBeInTheDocument()
+    expect(despacho.getByText(`Listo para despacho 13 oct 11:10 · ${ADMIN}`)).toBeInTheDocument()
     expect(despacho.getByText('S/ 96.00')).toBeInTheDocument()
     expect(despacho.getByText('Espera a que un distribuidor lo retire.')).toBeInTheDocument()
     // Ya no tiene acciones en el punto: ni recojo ni otra salida
@@ -133,7 +133,9 @@ describe('CW-09 Mis pedidos con un pedido listo para despacho (CCPIP-320)', () =
     abrirEn('/cuenta/pedidos')
 
     const tarjeta = within(await screen.findByRole('article', { name: 'Pedido CCP-000090' }))
-    expect(tarjeta.getByText('Listo para despacho')).toBeInTheDocument()
+    expect(tarjeta.getByText('Listo para despacho', { selector: '.badge-estado' })).toBeInTheDocument()
+    // Y en su seguimiento a domicilio es la etapa actual
+    expect(tarjeta.getByText('Listo para despacho', { selector: '.seguimiento__nombre' }).closest('li')).toHaveAttribute('aria-current', 'step')
     expect(screen.getByRole('tab', { name: /En curso/, selected: true })).toBeInTheDocument()
   })
 })

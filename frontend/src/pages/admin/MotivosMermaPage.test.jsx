@@ -22,3 +22,12 @@ describe('Paginacion local de motivos merma', () => {
     expect(screen.getByText('24 causas activas de 24')).toBeInTheDocument()
   })
 })
+
+describe('Acciones de cada causa de merma (mejoras de laboratorio)', () => {
+  it('editar lleva su marco y desactivar va en rojo', async () => {
+    abrir([{ id: 1, nombre: 'Golpe', nombreEn: 'Damage', activo: true, requiereDetalle: false, usos: 0, sistema: false }])
+    const tabla = within(await screen.findByRole('table'))
+    expect(await tabla.findByRole('button', { name: /^Editar/ })).toHaveClass('boton--secundario')
+    expect(tabla.getByRole('button', { name: /^Desactivar/ })).toHaveClass('boton--peligro')
+  })
+})

@@ -43,7 +43,7 @@ export default function LateralCuenta({ activo }) {
             {t(s.texto)}
           </Enlace>
         ))}
-        <button type="button" className="mis-pedidos__nav" onClick={cerrarSesion} disabled={cerrando}>
+        <button type="button" className="mis-pedidos__nav mis-pedidos__nav--salir" onClick={cerrarSesion} disabled={cerrando}>
           <Icono src={iconoSalir} tamano={20} />
           {cerrando ? t('cabecera.cerrando') : t('cabecera.cerrarSesion')}
         </button>

@@ -40,9 +40,13 @@ describe('A-03 Movimientos del punto de acopio (CCPIP-158)', () => {
     expect(await screen.findByText('Centro Nacional Lima / Movimientos')).toBeInTheDocument()
     const filas = within(screen.getByRole('list', { name: 'Movimientos del punto' })).getAllByRole('listitem')
     expect(filas).toHaveLength(4)
+    // Primero el buscador y los filtros; las pestanas por tipo, justo sobre la tabla (mejoras de laboratorio)
+    const buscador = screen.getByRole('searchbox')
+    expect(buscador.compareDocumentPosition(screen.getByRole('tablist')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 
     // La venta: salida con su lote y numero de pedido, hora de Lima, y sin el nombre del comprador
-    expect(within(filas[0]).getByText('16/11 09:12')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('16 nov 2026')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('09:12')).toBeInTheDocument()
     expect(within(filas[0]).getByText('Salida')).toBeInTheDocument()
     expect(within(filas[0]).getByText('Cafe tostado en grano 500 g · L-0010 · MC-00148')).toBeInTheDocument()
     expect(within(filas[0]).getByText('−2')).toBeInTheDocument()

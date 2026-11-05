@@ -54,6 +54,8 @@ describe('SA-03 y SA-04 Cuentas: consulta y búsqueda (CCPIP-124, CCPIP-125, CCP
 
     const rosa = within(filas()[1])
     expect(rosa.getByText('rosa@ccpip.test')).toBeInTheDocument()
+    // Creada: dia, mes abreviado y año (mejoras de laboratorio)
+    expect(rosa.getByText('17 oct 2026')).toBeInTheDocument()
     expect(rosa.getByText('Acceso pendiente')).toBeInTheDocument()
     expect(within(filas()[2]).getByText('Suspendida')).toBeInTheDocument()
     expect(rosa.getByRole('link', { name: 'Ver la cuenta de Rosa Huamán' })).toHaveAttribute('href', '/admin/cuentas/21')

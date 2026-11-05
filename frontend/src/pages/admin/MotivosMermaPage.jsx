@@ -105,11 +105,11 @@ export default function MotivosMermaPage({ path }) {
                 <Badge tono={m.activo ? 'exito' : 'neutro'}>{t(m.activo ? 'admin.motivosMerma.activa' : 'admin.motivosMerma.inactiva')}</Badge>
               </span>
               <span className="tabla__celda tabla__celda--accion motivos__col-acciones" role="cell">
-                <Boton tipo="terciario" tamano="S" onClick={() => setEditando(m)} aria-label={t('admin.motivosMerma.editarDe', { nombre: m.nombre })}>
+                <Boton tipo="secundario" tamano="S" onClick={() => setEditando(m)} aria-label={t('admin.motivosMerma.editarDe', { nombre: m.nombre })}>
                   {t('admin.motivosMerma.editar')}
                 </Boton>
                 {!m.sistema && (m.activo ? (
-                  <Boton tipo="terciario" tamano="S" onClick={() => setDesactivando(m)} aria-label={t('admin.motivosMerma.desactivarDe', { nombre: m.nombre })}>
+                  <Boton tipo="terciario" tamano="S" peligro onClick={() => setDesactivando(m)} aria-label={t('admin.motivosMerma.desactivarDe', { nombre: m.nombre })}>
                     {t('admin.motivosMerma.desactivar')}
                   </Boton>
                 ) : (

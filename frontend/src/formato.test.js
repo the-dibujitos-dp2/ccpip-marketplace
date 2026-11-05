@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { capital, coincide, diaMes, fecha, fechaCorta, fechaHoraLarga, mesAnio, mesAnterior, precio, primeraOracion, unidades } from './formato'
+import { capital, coincide, diaMes, diaMesAnio, diaMesAnioHora, diaMesHora, fecha, fechaCorta, fechaHoraLarga, hora, mesAnio, mesAnterior, precio, primeraOracion, unidades } from './formato'
 import i18n from './i18n/index.js'
 
 // Intl separa la moneda con un espacio no separable (U+00A0): se normaliza para comparar
@@ -69,7 +69,14 @@ describe('formato', () => {
       expect(fechaHoraLarga('2026-11-17T03:30:00Z')).toBe('16 de noviembre, 22:30')
     })
 
-    it.each([fecha, fechaCorta, mesAnio, mesAnterior, diaMes, fechaHoraLarga])('%o devuelve cadena vacía sin valor', (fn) => {
+    it('diaMesAnio, hora y diaMesHora usan el dia y la hora de Lima (mejoras de laboratorio)', () => {
+      expect(diaMesAnio('2026-11-17T03:30:00Z')).toBe('16 nov 2026')
+      expect(hora('2026-11-17T03:30:00Z')).toBe('22:30')
+      expect(diaMesHora('2026-11-16T14:12:00Z')).toBe('16 nov 09:12')
+      expect(diaMesAnioHora('2026-11-16T14:12:00Z')).toBe('16 nov 2026 09:12')
+    })
+
+    it.each([fecha, fechaCorta, mesAnio, mesAnterior, diaMes, diaMesAnio, hora, diaMesHora, diaMesAnioHora, fechaHoraLarga])('%o devuelve cadena vacía sin valor', (fn) => {
       expect(fn(null)).toBe('')
       expect(fn(undefined)).toBe('')
       expect(fn('')).toBe('')
@@ -95,6 +102,8 @@ describe('formato', () => {
       expect(fecha('2026-10-04')).toBe('4 Oct 2026')
       expect(fechaCorta('2026-11-20')).toBe('20/11/2026')
       expect(fechaHoraLarga('2026-10-17T19:30:00Z')).toBe('17 October, 14:30')
+      expect(diaMesAnio('2026-11-17T03:30:00Z')).toBe('16 Nov 2026')
+      expect(diaMesHora('2026-11-16T14:12:00Z')).toBe('16 Nov 09:12')
     })
   })
 

@@ -58,7 +58,7 @@
 .comisiones__filtros .campo { width: 200px; }
 .comisiones__pedido { flex: 0 0 130px; display: flex; flex-direction: column; gap: 2px; }
 .comisiones__pedido .caption { color: var(--color-text-secondary); }
-.comisiones__fecha { flex: 0 0 110px; }
+.comisiones__fecha { flex: 0 0 160px; }
 .comisiones__comision { flex: 0 0 150px; text-align: right; font-variant-numeric: tabular-nums; }
 .comisiones__productores { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .comisiones__productores li { display: flex; flex-direction: column; }
@@ -159,11 +159,13 @@
 .catalogo-maestro__resumen { display: flex; align-items: center; gap: 16px; }
 .catalogo-maestro__resumen .caption { color: var(--color-text-secondary); }
 .catalogo-maestro__detalle { display: block; color: var(--color-text-secondary); }
-.catalogo-maestro__col { flex: 0 0 130px; }
-.catalogo-maestro__linea { flex: 0 0 170px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
-.catalogo-maestro__num { flex: 0 0 90px; text-align: right; font-variant-numeric: tabular-nums; }
-.catalogo-maestro__estado { flex: 0 0 100px; }
-.catalogo-maestro__acciones { flex: 0 0 210px; }
+/* Columnas de las tablas del catalogo; se angostan sin pasar de la tabla (tabla--ajustada) */
+.catalogo-maestro__col { flex: 0 1 120px; }
+.catalogo-maestro__linea { flex: 0 1 160px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.catalogo-maestro__num { flex: 0 1 80px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.catalogo-maestro__estado { flex: 0 1 96px; }
+/* Editar y desactivar siempre lado a lado: se angostan las demas columnas */
+.catalogo-maestro__acciones { flex: 0 0 190px; }
 /* Ocupa el ancho del dialogo (480 px menos su margen): un minimo mayor lo desbordaba en escritorio */
 .catalogo-maestro__formulario { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .catalogo-maestro__casilla { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--color-text-primary); }

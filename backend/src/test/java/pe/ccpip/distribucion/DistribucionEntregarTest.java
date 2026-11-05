@@ -45,7 +45,8 @@ class DistribucionEntregarTest extends IntegrationTest {
     void entregaAtomicaIdempotenteVisibleSinCambiarStock() throws Exception {
         BigDecimal stock = jdbc.queryForObject("SELECT coalesce(sum(cantidad_actual),0) FROM lote WHERE producto_id=?", BigDecimal.class, producto);
         Integer movs = jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario", Integer.class);
-        String body = entregar(distribuidor, NUMERO).andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("ENTREGADA")).andReturn().getResponse().getContentAsString();
+        String body = entregar(distribuidor, NUMERO).andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("ENTREGADA"))
+                .andExpect(jsonPath("$.entregadaEn").isNotEmpty()).andReturn().getResponse().getContentAsString();
         assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id=?", String.class, pedido)).isEqualTo("ENTREGADO");
         assertThat(jdbc.queryForObject("SELECT entregada_en FROM entrega WHERE pedido_id=?", java.sql.Timestamp.class, pedido)).isNotNull();
         assertThat(jdbc.queryForObject("SELECT count(*) FROM pedido_estado_historial WHERE pedido_id=? AND estado='ENTREGADO'", Integer.class, pedido)).isEqualTo(1);

@@ -12,7 +12,7 @@ import ImagenProducto from '../../components/ImagenProducto.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
-import { diaMes, fechaCorta, fechaHora, precio, unidades } from '../../formato.js'
+import { diaMes, diaMesHora, fecha, precio, unidades } from '../../formato.js'
 import PaginaProductor from './PaginaProductor.jsx'
 import './productor.css'
 import './PedidosPage.css'
@@ -49,6 +49,11 @@ export default function PedidosPage({ path }) {
         onCambiar={setEstado}
         opciones={pestanas.map((e) => ({ valor: e, etiqueta: t(`productor.pedidos.pestana.${e}`, { total: conteos[e] ?? 0 }) }))}
       />
+      {/* Bajo las pestanas, antes de la tabla: aclara que ve solo lo suyo de cada pedido */}
+      <p className="productor__nota">
+        <Icono src={iconoInfo} tamano={16} />
+        {t('productor.pedidos.nota')}
+      </p>
 
       {error && <Alerta tono="error" titulo={t('productor.pedidos.error')} descripcion={t('comun.errorConexion')} />}
       {!datos && !error && <Cargando />}
@@ -94,10 +99,6 @@ export default function PedidosPage({ path }) {
         </div>
       )}
 
-      <p className="productor__nota">
-        <Icono src={iconoInfo} tamano={16} />
-        {t('productor.pedidos.nota')}
-      </p>
     </PaginaProductor>
   )
 }
@@ -140,7 +141,7 @@ function Detalle({ pedido }) {
               {l.lotes.map((lote) => (
                 <p key={lote.codigo} className="caption">
                   {lote.fechaVencimiento
-                    ? t('productor.pedidos.loteVence', { codigo: lote.codigo, cantidad: unidades(lote.cantidad), fecha: fechaCorta(lote.fechaVencimiento) })
+                    ? t('productor.pedidos.loteVence', { codigo: lote.codigo, cantidad: unidades(lote.cantidad), fecha: fecha(lote.fechaVencimiento) })
                     : t('productor.pedidos.lote', { codigo: lote.codigo, cantidad: unidades(lote.cantidad) })}
                 </p>
               ))}
@@ -169,7 +170,7 @@ function Detalle({ pedido }) {
           {pedido.historial.map((c) => (
             <li key={`${c.estado}-${c.registradoEn}`}>
               <span>{t(`productor.pedidos.estado.${c.estado}`)}</span>
-              <span className="caption">{fechaHora(c.registradoEn)}</span>
+              <span className="caption">{diaMesHora(c.registradoEn)}</span>
             </li>
           ))}
         </ol>

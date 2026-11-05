@@ -11,7 +11,7 @@ import Icono from '../../components/Icono.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import SeguimientoPedido, { conSeguimiento } from '../../components/SeguimientoPedido.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
-import { fechaHora, precio, unidades } from '../../formato.js'
+import { diaMesHora, precio, unidades } from '../../formato.js'
 import { RUTAS } from '../../router.js'
 import CalificarPedido from './CalificarPedido.jsx'
 import './PedidoPage.css'
@@ -168,7 +168,7 @@ function Detalle({ pedido }) {
                 {pedido.historial.map((e, i) => (
                   <li key={`${e.estado}-${i}`}>
                     <span>{t(`misPedidos.evento.${e.estado}`, { defaultValue: e.estado })}</span>
-                    <time dateTime={e.registradoEn} className="caption">{fechaHora(e.registradoEn)}</time>
+                    <time dateTime={e.registradoEn} className="caption">{diaMesHora(e.registradoEn)}</time>
                   </li>
                 ))}
               </ol>
@@ -233,7 +233,6 @@ function Detalle({ pedido }) {
             {pagoAprobado && (
               <p className="pedido__pago-ok">
                 {t('pedido.pagaste', { monto: precio(pagoAprobado.monto), marca: pagoAprobado.marca })}
-                <span className="caption">{t('pedido.operacion', { referencia: pagoAprobado.referencia })}</span>
               </p>
             )}
             {pedido.confirmadoEn && <ComisionPagada comision={pedido.comision} />}
@@ -242,7 +241,7 @@ function Detalle({ pedido }) {
                 {pedido.pagos.map((p) => (
                   <li key={p.id}>
                     <span>
-                      {fechaHora(p.creadoEn)} · {p.marca} · {precio(p.monto)}
+                      {diaMesHora(p.creadoEn)} · {p.marca} · {precio(p.monto)}
                     </span>
                     <Badge tono={TONO_PAGO[p.estado] ?? 'neutro'}>{t(`pedido.estadoPago.${p.estado}`, { defaultValue: p.estado })}</Badge>
                   </li>

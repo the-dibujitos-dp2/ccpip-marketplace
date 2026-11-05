@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoCaja from '../../assets/icons/caja.svg'
+import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoCheck from '../../assets/icons/check.svg'
+import iconoUsuario from '../../assets/icons/usuario.svg'
 import { consultarUbicaciones, listarMisEntregas, registrarEnCamino, registrarEntrega, retirarEntrega } from '../../api/distribucion.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
@@ -9,26 +11,113 @@ import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
+import Icono from '../../components/Icono.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import LayoutDistribuidor from '../../components/layout/LayoutDistribuidor.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
-import { fechaHora } from '../../formato.js'
+import { diaMesHora, hora } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { navigate, RUTAS } from '../../router.js'
 import './MisEntregasPage.css'
 
+/** Un dato de una ubicacion; sin valor (la referencia es opcional) no se muestra. */
+function Dato({ etiqueta, valor }) {
+  if (!valor) return null
+  return (
+    <div className="ubicaciones__dato">
+      <dt>{etiqueta}</dt>
+      <dd>{valor}</dd>
+    </div>
+  )
+}
+
+/**
+ * CCPIP-110: de donde sale y a donde va el pedido, en dos columnas con una flecha del origen al destino. Es un
+ * <dialog> modal: se cierra con Escape, con Cerrar o pulsando fuera.
+ */
 function DialogoUbicaciones({ numero, onCerrar }) {
   const { t } = useTranslation()
+  const u = (k) => t(`distribuidor.entregas.ubicaciones.${k}`)
   const [datos, setDatos] = useState(null)
   const [error, setError] = useState(null)
   const [cargando, setCargando] = useState(true)
   const cerrarRef = useRef(null)
   const dialogoRef = useRef(null)
-  async function cargar() { setCargando(true); setError(null); setDatos(null); try { setDatos(await consultarUbicaciones(numero)) } catch (e) { setError(e) } finally { setCargando(false) } }
-  useEffect(() => { let vivo = true; consultarUbicaciones(numero).then((d) => vivo && setDatos(d)).catch((e) => vivo && setError(e)).finally(() => vivo && setCargando(false)); const previo=document.activeElement; const dialogo=dialogoRef.current; if (dialogo && !dialogo.open) { if (typeof dialogo.showModal === 'function') dialogo.showModal(); else dialogo.setAttribute('open', '') }; cerrarRef.current?.focus(); return ()=>{vivo=false;if(dialogo?.open){if(typeof dialogo.close==='function')dialogo.close();else dialogo.removeAttribute('open')}previo?.focus?.()} }, [numero])
-  const campo=(label,value)=>(value ? <p><strong>{label}</strong><br />{value}</p> : null)
-  return <dialog ref={dialogoRef} className="ubicaciones" role={error?'alertdialog':'dialog'} aria-labelledby="ubicaciones-titulo" aria-busy={cargando} onCancel={(e)=>{e.preventDefault();onCerrar()}} onClick={(e)=>{if(e.target===e.currentTarget)onCerrar()}}><h2 id="ubicaciones-titulo">{t('distribuidor.entregas.ubicaciones.titulo',{numero})}</h2><button ref={cerrarRef} type="button" className="ubicaciones__cerrar" onClick={onCerrar}>{t('distribuidor.entregas.ubicaciones.cerrar')}</button>{cargando&&<Cargando texto={t('distribuidor.entregas.ubicaciones.cargando')}/ >}{error&&<div role="alert"><p>{t('distribuidor.entregas.ubicaciones.error')}</p><p>{mensajeError(error)}</p><Boton tamano="S" onClick={cargar}>{t('distribuidor.entregas.ubicaciones.reintentar')}</Boton></div>}{datos&&<><h3>{t('distribuidor.entregas.ubicaciones.origen')}</h3>{campo(t('distribuidor.entregas.ubicaciones.punto'),datos.origen.nombre)}{campo(t('distribuidor.entregas.ubicaciones.direccion'),datos.origen.direccion)}{campo(t('distribuidor.entregas.ubicaciones.distrito'),datos.origen.distrito)}<h3>{t('distribuidor.entregas.ubicaciones.destino')}</h3>{campo(t('distribuidor.entregas.ubicaciones.direccion'),datos.destino.direccion)}{campo(t('distribuidor.entregas.ubicaciones.distrito'),datos.destino.territorio.distrito)}{campo(t('distribuidor.entregas.ubicaciones.provincia'),datos.destino.territorio.provincia)}{campo(t('distribuidor.entregas.ubicaciones.departamento'),datos.destino.territorio.departamento)}{campo(t('distribuidor.entregas.ubicaciones.referencia'),datos.destino.referencia)}</>}</dialog>
+
+  async function cargar() {
+    setCargando(true)
+    setError(null)
+    setDatos(null)
+    try {
+      setDatos(await consultarUbicaciones(numero))
+    } catch (e) {
+      setError(e)
+    } finally {
+      setCargando(false)
+    }
+  }
+
+  useEffect(() => {
+    let vivo = true
+    consultarUbicaciones(numero).then((d) => vivo && setDatos(d)).catch((e) => vivo && setError(e)).finally(() => vivo && setCargando(false))
+    const previo = document.activeElement
+    const dialogo = dialogoRef.current
+    if (dialogo && !dialogo.open) {
+      if (typeof dialogo.showModal === 'function') dialogo.showModal()
+      else dialogo.setAttribute('open', '')
+    }
+    cerrarRef.current?.focus()
+    return () => {
+      vivo = false
+      if (dialogo?.open) {
+        if (typeof dialogo.close === 'function') dialogo.close()
+        else dialogo.removeAttribute('open')
+      }
+      previo?.focus?.()
+    }
+  }, [numero])
+
+  return (
+    <dialog ref={dialogoRef} className="ubicaciones" role={error ? 'alertdialog' : 'dialog'} aria-labelledby="ubicaciones-titulo" aria-busy={cargando}
+      onCancel={(e) => { e.preventDefault(); onCerrar() }} onClick={(e) => { if (e.target === e.currentTarget) onCerrar() }}>
+      <header className="ubicaciones__cabecera">
+        <h2 id="ubicaciones-titulo">{t('distribuidor.entregas.ubicaciones.titulo', { numero })}</h2>
+        <Boton ref={cerrarRef} tipo="secundario" tamano="S" onClick={onCerrar}>{u('cerrar')}</Boton>
+      </header>
+      {cargando && <Cargando texto={u('cargando')} />}
+      {error && (
+        <div role="alert" className="ubicaciones__error">
+          <p>{u('error')}</p>
+          <p>{mensajeError(error)}</p>
+          <Boton tamano="S" onClick={cargar}>{u('reintentar')}</Boton>
+        </div>
+      )}
+      {datos && (
+        <div className="ubicaciones__ruta">
+          <section className="ubicaciones__lugar" aria-labelledby="ubicaciones-origen">
+            <h3 id="ubicaciones-origen" className="ubicaciones__lugar-titulo"><Icono src={iconoAlmacen} tamano={18} />{u('origen')}</h3>
+            <dl>
+              <Dato etiqueta={u('punto')} valor={datos.origen.nombre} />
+              <Dato etiqueta={u('direccion')} valor={datos.origen.direccion} />
+              <Dato etiqueta={u('distrito')} valor={datos.origen.distrito} />
+            </dl>
+          </section>
+          <span className="ubicaciones__flecha" aria-hidden="true">→</span>
+          <section className="ubicaciones__lugar ubicaciones__lugar--destino" aria-labelledby="ubicaciones-destino">
+            <h3 id="ubicaciones-destino" className="ubicaciones__lugar-titulo"><Icono src={iconoUsuario} tamano={18} />{u('destino')}</h3>
+            <dl>
+              <Dato etiqueta={u('direccion')} valor={datos.destino.direccion} />
+              <Dato etiqueta={u('distrito')} valor={datos.destino.territorio.distrito} />
+              <Dato etiqueta={u('provincia')} valor={datos.destino.territorio.provincia} />
+              <Dato etiqueta={u('departamento')} valor={datos.destino.territorio.departamento} />
+              <Dato etiqueta={u('referencia')} valor={datos.destino.referencia} />
+            </dl>
+          </section>
+        </div>
+      )}
+    </dialog>
+  )
 }
 
 /** Color del estado de la entrega: siempre con su texto (Badge). */
@@ -121,10 +210,7 @@ export default function MisEntregasPage({ path }) {
         {datos && (
           <div className="mis-entregas__columnas">
             <div className="mis-entregas__en-curso">
-              <div className="mis-entregas__barra">
-                <h2 className="mis-entregas__subtitulo">{t('distribuidor.entregas.enCurso', { count: enCurso.length })}</h2>
-                <Boton tamano="S" tipo="secundario" onClick={recargar}>{t('distribuidor.entregas.actualizar')}</Boton>
-              </div>
+              <h2 className="mis-entregas__subtitulo">{t('distribuidor.entregas.enCurso', { count: enCurso.length })}</h2>
               {enCurso.length === 0 && (
                 <EstadoVacio titulo={t('distribuidor.entregas.vacio')} descripcion={t('distribuidor.entregas.vacioTexto')}>
                   <Boton tamano="M" icono={iconoCaja} onClick={() => navigate(RUTAS.distribuidorPedidos)}>
@@ -146,11 +232,7 @@ export default function MisEntregasPage({ path }) {
                   <p className="caption">{t('distribuidor.entregas.destino', { provincia: e.destino.provincia, departamento: e.destino.departamento })}</p>
                   <div className="mis-entregas__acciones"><Boton tamano="S" tipo="secundario" onClick={() => setUbicaciones(e.numero)}>{t('distribuidor.entregas.ubicaciones.accion')}</Boton></div>
                   <Pasos pasos={pasos} actual={PASO[e.estado] ?? 0} etiqueta={t('distribuidor.entregas.pasos.etiqueta', { numero: e.numero })} />
-                  <p className="caption">
-                    {e.retiradaEn
-                      ? t('distribuidor.entregas.retiradaEn', { fecha: fechaHora(e.retiradaEn) })
-                      : t('distribuidor.entregas.asignadaEn', { fecha: fechaHora(e.asignadaEn) })}
-                  </p>
+                  <Momentos entrega={e} />
                   {e.estado === 'ASIGNADA' && (
                     <div className="mis-entregas__acciones">
                       <Boton
@@ -190,6 +272,7 @@ export default function MisEntregasPage({ path }) {
                     <tr>
                       <th scope="col">{t('distribuidor.entregas.col.pedido')}</th>
                       <th scope="col">{t('distribuidor.entregas.col.destino')}</th>
+                      <th scope="col">{t('distribuidor.entregas.col.hora')}</th>
                       <th scope="col">{t('distribuidor.entregas.col.estado')}</th>
                       <th scope="col">{t('distribuidor.entregas.ubicaciones.accion')}</th>
                     </tr>
@@ -199,6 +282,7 @@ export default function MisEntregasPage({ path }) {
                       <tr key={e.numero}>
                         <th scope="row" className="mis-entregas__numero">{e.numero}</th>
                         <td>{e.destino.distrito}</td>
+                        <td>{hora(e.entregadaEn)}</td>
                         <td><Badge tono={TONOS[e.estado]}>{t(`distribuidor.entregas.estado.${e.estado}`)}</Badge></td>
                         <td><Boton tamano="S" tipo="secundario" onClick={() => setUbicaciones(e.numero)}>{t('distribuidor.entregas.ubicaciones.accion')}</Boton></td>
                       </tr>
@@ -213,5 +297,19 @@ export default function MisEntregasPage({ path }) {
         )}
       </section>
     </LayoutDistribuidor>
+  )
+}
+
+/** Los momentos por los que ya paso la entrega, cada uno con su dia y hora, como quedan en la base de datos. */
+const MOMENTOS = ['asignadaEn', 'retiradaEn', 'enCaminoEn', 'entregadaEn']
+
+function Momentos({ entrega }) {
+  const { t } = useTranslation()
+  return (
+    <ul className="mis-entregas__momentos" aria-label={t('distribuidor.entregas.momentos', { numero: entrega.numero })}>
+      {MOMENTOS.filter((campo) => entrega[campo]).map((campo) => (
+        <li key={campo} className="caption">{t(`distribuidor.entregas.${campo}`, { fecha: diaMesHora(entrega[campo]) })}</li>
+      ))}
+    </ul>
   )
 }

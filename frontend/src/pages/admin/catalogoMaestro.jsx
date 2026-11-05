@@ -68,7 +68,7 @@ export function AccionesFila({ nombre, activo, onEditar, onEstado }) {
       <Boton tipo="secundario" tamano="S" onClick={onEditar} aria-label={t('catalogoMaestro.editarDe', { nombre })}>
         {t('catalogoMaestro.editar')}
       </Boton>
-      <Boton tipo="terciario" tamano="S" onClick={onEstado} aria-label={t(activo ? 'catalogoMaestro.desactivarDe' : 'catalogoMaestro.reactivarDe', { nombre })}>
+      <Boton tipo="terciario" tamano="S" peligro={activo} onClick={onEstado} aria-label={t(activo ? 'catalogoMaestro.desactivarDe' : 'catalogoMaestro.reactivarDe', { nombre })}>
         {t(activo ? 'catalogoMaestro.desactivar' : 'catalogoMaestro.reactivar')}
       </Boton>
     </span>

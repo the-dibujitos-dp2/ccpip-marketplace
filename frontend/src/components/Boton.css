@@ -26,6 +26,7 @@
   border: 1.5px solid var(--color-border-brand);
 }
 .boton--terciario { background: transparent; color: var(--color-text-brand); }
+.boton--peligro { color: var(--color-status-error-fg); border-color: var(--color-status-error-fg); }
 
 .boton:disabled:not(.boton--cargando) {
   background: var(--color-bg-disabled);
@@ -59,4 +60,5 @@
 
 .boton--primario:not(:disabled):hover { background: #12482d; }
 .boton--secundario:not(:disabled):hover { background: var(--color-bg-brand-subtle); }
+.boton--secundario.boton--peligro:not(:disabled):hover { background: var(--color-status-error-bg); }
 .boton--terciario:not(:disabled):hover { text-decoration: underline; }

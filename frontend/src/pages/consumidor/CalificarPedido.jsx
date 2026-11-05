@@ -60,7 +60,7 @@ function LineaCalificar({ pedidoId, linea, onCalificada, onDenunciar }) {
           <span className="label-m">{linea.nombre}</span>
           <span className="caption"> · {t('carrito.deTienda', { nombre: linea.tienda })}</span>
         </span>
-        <Boton tipo="terciario" tamano="S" onClick={onDenunciar} aria-label={t('denuncia.denunciarDe', { nombre: linea.nombre })}>
+        <Boton tipo="terciario" tamano="S" peligro onClick={onDenunciar} aria-label={t('denuncia.denunciarDe', { nombre: linea.nombre })}>
           {t('denuncia.denunciar')}
         </Boton>
       </div>

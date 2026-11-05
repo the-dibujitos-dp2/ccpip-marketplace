@@ -16,6 +16,7 @@ import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { capital, fecha, mesAnio, precio, primeraOracion } from '../../formato.js'
 import { RUTAS } from '../../router.js'
+import { desplazarHasta } from '../../desplazar.js'
 import { idiomaSegun, textoSegun } from '../../traduccion.js'
 import { resolverTarifa } from '../../tarifa.js'
 import AgregarAlCarrito from './AgregarAlCarrito.jsx'
@@ -192,7 +193,7 @@ export default function ProductoPage({ id }) {
             {historia && (
               <blockquote className="ficha__cita" lang={idiomaHistoria}>
                 <p>“{historia.titulo ?? primeraOracion(historia.texto)}”</p>
-                <a href="#historia" className="enlace-marca">{t('producto.leerHistoria')} <span aria-hidden="true">↓</span></a>
+                <a href="#historia" className="enlace-marca" onClick={(e) => { e.preventDefault(); desplazarHasta(document.getElementById('historia')) }}>{t('producto.leerHistoria')} <span aria-hidden="true">↓</span></a>
               </blockquote>
             )}
 
@@ -357,7 +358,7 @@ export default function ProductoPage({ id }) {
         {producto.relacionados?.length > 0 && (
           <section className="seccion" aria-labelledby="titulo-relacionados">
             <h2 id="titulo-relacionados" className="seccion__titulo">{t('producto.tambienDe', { linea: producto.linea?.nombre?.toLowerCase() })}</h2>
-            <ul className="grilla-productos">
+            <ul className="grilla-productos grilla-productos--fila">
               {producto.relacionados.map((p) => (
                 <li key={p.id}>
                   <TarjetaProducto producto={p} />

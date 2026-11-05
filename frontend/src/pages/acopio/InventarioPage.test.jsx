@@ -79,7 +79,7 @@ describe('A-02 Inventario del punto de acopio (CCPIP-162)', () => {
     expect(primera.getByText('Aceite de sacha inchi 250 ml')).toBeInTheDocument()
     expect(primera.getByText('Asoc. Nii Joi')).toBeInTheDocument()
     expect(primera.getByText('L-0231')).toBeInTheDocument()
-    expect(primera.getByText('21/10/2026')).toBeInTheDocument()
+    expect(primera.getByText('21 oct 2026')).toBeInTheDocument()
     expect(primera.getByText('80')).toBeInTheDocument()
     expect(primera.getByText('48')).toBeInTheDocument()
     expect(primera.getByText('32')).toBeInTheDocument()
@@ -91,7 +91,8 @@ describe('A-02 Inventario del punto de acopio (CCPIP-162)', () => {
     expect(screen.getByText('Mostrando 1–3 de 3 lotes')).toBeInTheDocument()
     expect(screen.getByText('Un solo inventario, calculado a partir de los movimientos')).toBeInTheDocument()
     // CCPIP-76: cada lote con saldo se puede marcar como merma; sin ajustes de conteo
-    expect(screen.getByRole('button', { name: 'Marcar como merma el lote L-0231' })).toBeInTheDocument()
+    // Merma va en rojo (mejoras de laboratorio)
+    expect(screen.getByRole('button', { name: 'Marcar como merma el lote L-0231' })).toHaveClass('boton--peligro')
     expect(screen.queryByText(/ajuste/i, { selector: 'button' })).not.toBeInTheDocument()
   })
 
@@ -391,5 +392,15 @@ describe('CCPIP-447 Desde una alerta, el lote ubicado y resaltado en el inventar
     abrirEn('/acopio/inventario?lote=COL-001')
 
     expect(await screen.findByText('No encontramos el lote COL-001')).toBeInTheDocument()
+  })
+})
+
+describe('Inventario: lotes que no vencen (mejoras de laboratorio)', () => {
+  it('dice "No vence" en lugar de un guion', async () => {
+    const sinVencimiento = { ...copia(INVENTARIO), items: [fila({ id: 60, codigo: 'L-0260', productoId: 9, producto: 'Manta tejida', fechaVencimiento: null, entradas: 3, salidas: 0, stock: 3, estado: 'DISPONIBLE', vendible: true })] }
+    servidor(comoAcopio({ [`GET ${RUTA}?pagina=0`]: () => [200, sinVencimiento] }))
+    abrirEn('/acopio/inventario')
+    const tabla = within(await screen.findByRole('table', { name: 'Inventario del punto' }))
+    expect(within(tabla.getAllByRole('row')[1]).getByText('No vence')).toBeInTheDocument()
   })
 })

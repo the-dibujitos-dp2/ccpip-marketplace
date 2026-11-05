@@ -11,6 +11,8 @@ const OPCIONES = {
   fecha: { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' },
   fechaLarga: { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' },
   diaMes: { day: 'numeric', month: 'short', timeZone: 'America/Lima' },
+  diaMesAnio: { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Lima' },
+  hora: { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima' },
   fechaHora: { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima' },
   fechaHoraLarga: { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima' },
 }
@@ -87,6 +89,26 @@ export function diaLima(instante = new Date()) {
 /** "2026-11-16T14:12:00Z" -> "16 nov" · "16 Nov", en hora de Lima (listas de pedidos, CW-09) */
 export function diaMes(instante) {
   return instante ? formato('diaMes').format(new Date(instante)).replace('.', '') : ''
+}
+
+/** "2026-11-16T14:12:00Z" -> "16 nov 2026" · "16 Nov 2026", en hora de Lima (como fecha(), pero de un instante) */
+export function diaMesAnio(instante) {
+  return instante ? formato('diaMesAnio').format(new Date(instante)).replace('.', '').replaceAll(' de ', ' ') : ''
+}
+
+/** "2026-11-16T14:12:00Z" -> "09:12", en hora de Lima (columna Hora de las tablas) */
+export function hora(instante) {
+  return instante ? formato('hora').format(new Date(instante)) : ''
+}
+
+/** "2026-11-16T14:12:00Z" -> "16 nov 2026 09:12" · "16 Nov 2026 09:12", en hora de Lima */
+export function diaMesAnioHora(instante) {
+  return instante ? `${diaMesAnio(instante)} ${hora(instante)}` : ''
+}
+
+/** "2026-11-16T14:12:00Z" -> "16 nov 09:12" · "16 Nov 09:12", en hora de Lima */
+export function diaMesHora(instante) {
+  return instante ? `${diaMes(instante)} ${hora(instante)}` : ''
 }
 
 /**

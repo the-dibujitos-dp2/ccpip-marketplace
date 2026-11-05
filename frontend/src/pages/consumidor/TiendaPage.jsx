@@ -119,7 +119,7 @@ export default function TiendaPage({ id }) {
               {tienda.desde && (
                 <div>
                   <dt>{t('tienda.cifraDesde')}</dt>
-                  <dd>{tienda.desde}</dd>
+                  <dd>{t('tienda.desdeAnio', { anio: tienda.desde })}</dd>
                 </div>
               )}
             </dl>
@@ -127,8 +127,12 @@ export default function TiendaPage({ id }) {
               {/* CCPIP-368 y CCPIP-369: el productor y su comunidad se guardan por separado */}
               <BotonFavorito tipo="productores" id={tienda.id} estado={favoritos} />
               <BotonFavorito tipo="comunidades" id={tienda.id} estado={favoritos} />
+              {/* Los dos textos ocupan el mismo lugar: al copiar el boton no cambia de ancho ni mueve a los demas */}
               <Boton tipo="secundario" tamano="M" onClick={compartir}>
-                {copiado ? t('tienda.copiado') : t('tienda.compartir')}
+                <span className="tienda-publica__compartir">
+                  <span aria-hidden={copiado}>{t('tienda.compartir')}</span>
+                  <span aria-hidden={!copiado}>{t('tienda.copiado')}</span>
+                </span>
               </Boton>
             </div>
           </header>

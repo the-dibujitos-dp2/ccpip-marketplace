@@ -106,7 +106,7 @@ export default function LineasMaestras() {
       {!datos && !error && <Cargando />}
       {datos?.lineas.length === 0 && <EstadoVacio titulo={t('catalogoMaestro.lineas.vacio')} />}
       {datos?.lineas.length > 0 && (
-        <div className="tabla" role="table" aria-label={t('catalogoMaestro.vista.lineas')}>
+        <div className="tabla tabla--ajustada" role="table" aria-label={t('catalogoMaestro.vista.lineas')}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('catalogoMaestro.lineas.col.linea')}</span>
             <span className="tabla__celda catalogo-maestro__col" role="columnheader">{t('catalogoMaestro.lineas.col.vencimiento')}</span>

@@ -166,7 +166,7 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     expect(confirmado.getByText('MC-00155')).toBeInTheDocument()
     expect(confirmado.getByText('Asoc. Nii Joi · Aceite de ungurahui 250 ml × 1')).toBeInTheDocument()
     expect(confirmado.getByText('Asoc. Nii Joi · Aceite de aguaje 250 ml × 1')).toBeInTheDocument()
-    expect(confirmado.getByText('Confirmado 13/10 06:08')).toBeInTheDocument()
+    expect(confirmado.getByText('Confirmado 13 oct 06:08')).toBeInTheDocument()
     expect(confirmado.getByText('S/ 96.00')).toBeInTheDocument()
     expect(confirmado.getByRole('button', { name: 'Registrar la preparación del pedido MC-00155' })).toBeEnabled()
 
@@ -174,7 +174,7 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     const listo = await abrirPestana(user, 'Listo para recojo')
     expect(listo.getByText('MC-00139')).toBeInTheDocument()
     expect(listo.getByText('C.N. Yarina · Cacao en grano fermentado 1 kg × 2')).toBeInTheDocument()
-    expect(listo.getByText('Listo 13/10 07:38 · Administrador de Acopio de Prueba')).toBeInTheDocument()
+    expect(listo.getByText('Listo 13 oct 07:38 · Administrador de Acopio de Prueba')).toBeInTheDocument()
     expect(listo.getByText('S/ 160.00')).toBeInTheDocument()
     // Lo listo espera su entrega: se registra el recojo, ya no se vuelve a marcar
     expect(listo.getByRole('button', { name: 'Registrar el recojo del pedido MC-00139' })).toBeEnabled()
@@ -196,9 +196,9 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     abrirEn('/acopio/pedidos')
 
     // Una linea con un solo lote, en cada pestana
-    expect((await panel('Confirmado')).getByText('Lote L-0008 · vence 13/10/2027 · 1 und')).toBeInTheDocument()
+    expect((await panel('Confirmado')).getByText('Lote L-0008 · vence 13 oct 2027 · 1 und')).toBeInTheDocument()
     const listo = await abrirPestana(user, 'Listo para recojo')
-    expect(listo.getByText('Lote L-0001 · vence 13/10/2027 · 2 und')).toBeInTheDocument()
+    expect(listo.getByText('Lote L-0001 · vence 13 oct 2027 · 2 und')).toBeInTheDocument()
     // Si el pedido aun no descuenta existencias, lo dice en lugar de callar
     expect(listo.getByText('Sin lotes asignados')).toBeInTheDocument()
 
@@ -206,8 +206,8 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     const entregado = await abrirPestana(user, 'Entregado hoy')
     const cafe = within(entregado.getByRole('list', { name: 'Lotes de Cafe tostado en grano 500 g' })).getAllByRole('listitem')
     expect(cafe.map((l) => l.textContent)).toEqual([
-      'Lote L-0010B · vence 02/11/2026 · 2 und',
-      'Lote L-0010 · vence 13/10/2027 · 1 und',
+      'Lote L-0010B · vence 2 nov 2026 · 2 und',
+      'Lote L-0010 · vence 13 oct 2027 · 1 und',
     ])
   })
 
@@ -244,9 +244,9 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     const listo = await abrirPestana(user, 'Listo para recojo')
     expect(screen.getByRole('tab', { name: 'Listo para recojo (2)' })).toBeInTheDocument()
     expect(listo.getByText('MC-00155')).toBeInTheDocument()
-    expect(listo.getByText('Listo 13/10 10:33 · Administrador de Acopio de Prueba')).toBeInTheDocument()
+    expect(listo.getByText('Listo 13 oct 10:33 · Administrador de Acopio de Prueba')).toBeInTheDocument()
     // Los lotes de la respuesta viajan con el pedido a su nueva pestana
-    expect(listo.getByText('Lote L-0008 · vence 13/10/2027 · 1 und')).toBeInTheDocument()
+    expect(listo.getByText('Lote L-0008 · vence 13 oct 2027 · 1 und')).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Confirmado (0)' })).toBeInTheDocument()
     // Ya sin pedidos en preparacion, esa pestana intermedia se oculta al salir de ella
     expect(screen.queryByRole('tab', { name: /^En preparación/ })).not.toBeInTheDocument()

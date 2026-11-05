@@ -19,7 +19,8 @@
     "descargas": {
       "cargando": "Updating the report; you can download it as soon as it finishes.",
       "pendiente": "To download, the report must show the selected filters: complete the period or try again."
-    }
+    },
+    "hora": "Time"
   },
   "app": {
     "sesionExpirada": {
@@ -149,7 +150,8 @@
       "todosTexto": "From all your products, the one that expires first comes first. Each batch's stock is what remains after its entry and its sales.",
       "sinLotesTodos": "You haven't registered any batches yet. Choose a product to register the first one.",
       "errorTodos": "We couldn't load your batches",
-      "verLotesDe": "See the batches of {{producto}}"
+      "verLotesDe": "See the batches of {{producto}}",
+      "titulo": "Review and register batches"
     },
     "lote": {
       "validacion": {
@@ -228,7 +230,7 @@
         "detalle": "Breakdown by warehouse"
       },
       "lote": "Batch {{codigo}}",
-      "cosecha": "Harvest {{mes}}",
+      "cosecha": "Harvest {{fecha}}",
       "vence": "expires {{fecha}}",
       "sinVencimiento": "No expiry",
       "soloVencidos": "Expired batches only",
@@ -666,7 +668,7 @@
       "siguienteHistoria": "Next: story",
       "vistaPrevia": "Catalog preview",
       "recibiras": "You'll receive {{monto}} per unit",
-      "comision": "Chamber commission: {{porcentaje}} % (example value, configurable). Only the Chamber applies discounts."
+      "comision": "Chamber commission: {{porcentaje}} %. Only the Chamber applies discounts."
     },
     "historia": {
       "preguntas": {
@@ -1049,7 +1051,6 @@
       "cargando": "Loading your deliveries…",
       "error": "We could not load your deliveries",
       "reintentar": "Try again",
-      "actualizar": "Refresh",
       "enCurso_one": "{{count}} delivery in progress",
       "enCurso_other": "{{count}} deliveries in progress",
       "vacio": "You have no deliveries in progress",
@@ -1080,7 +1081,8 @@
       "col": {
         "pedido": "Order",
         "destino": "Destination",
-        "estado": "Status"
+        "estado": "Status",
+        "hora": "Delivery time"
       },
       "registrarEnCamino": "Register as on the way",
       "registrandoEnCamino": "Registering…",
@@ -1106,7 +1108,10 @@
         "provincia": "Province",
         "departamento": "Department",
         "referencia": "Reference"
-      }
+      },
+      "enCaminoEn": "Left for delivery on {{fecha}}",
+      "entregadaEn": "You delivered it on {{fecha}}",
+      "momentos": "Delivery {{numero}} milestones"
     }
   },
   "acopio": {
@@ -1425,7 +1430,8 @@
       "tituloDialogo": "Deactivate delivery zone",
       "confirmar": "Deactivate",
       "cancelar": "Cancel",
-      "errorDesactivar": "The zone could not be deactivated. Please try again."
+      "errorDesactivar": "The zone could not be deactivated. Please try again.",
+      "accion": "Action"
     }
   },
   "admin": {
@@ -1667,7 +1673,7 @@
       "vacio": "No orders confirmed in these dates.",
       "col": {
         "pedido": "Order",
-        "fecha": "Confirmed",
+        "fecha": "Confirmed (date and time)",
         "productores": "Producers",
         "venta": "Sale",
         "comision": "Commission",
@@ -2126,7 +2132,8 @@
     "destacados": "Featured by the community · picked by {{nombre}}",
     "sinProductos": "No products published yet",
     "sinProductosTexto": "This community is preparing its catalog. Come back soon.",
-    "productosDe": "Products from {{nombre}}"
+    "productosDe": "Products from {{nombre}}",
+    "desdeAnio": "Since {{anio}}"
   },
   "cuenta": {
     "hola": "Hello, {{nombre}}",
@@ -2790,7 +2797,6 @@
     },
     "pago": "Payment",
     "pagaste": "You paid {{monto}} with {{marca}}",
-    "operacion": "Transaction {{referencia}}",
     "comision": "Chamber commission",
     "comisionMonto": "{{porcentaje}} % · {{monto}}",
     "comisionIncluida": "Included in the total: it isn't added to what you paid.",
@@ -2847,7 +2853,9 @@
       "CONFIRMADO": "Payment confirmed",
       "EN_PREPARACION": "Being prepared",
       "LISTO_PARA_RECOJO": "Ready at collection point",
-      "ENTREGADO": "Delivered"
+      "ENTREGADO": "Delivered",
+      "LISTO_PARA_DESPACHO": "Ready for dispatch",
+      "EN_CAMINO": "On the way"
     },
     "evento": {
       "PENDIENTE_PAGO": "Order created, awaiting payment",
@@ -2886,7 +2894,6 @@
     "reglaDireccion": "The address must have at least 5 characters and one letter.",
     "agregar": "Add address",
     "guardarNueva": "Save address",
-    "agregada": "Address added.",
     "errorAgregar": "We could not save the address. Try again."
   },
   "misDatos": {
@@ -3805,6 +3812,17 @@
         "texto": "Their authorized products are on sale again, unless their sale is also revoked. We notify the producer and the decision is recorded.",
         "hecho": "You unblocked the producer."
       }
+    },
+    "buscar": "Search by organization, people or region",
+    "filtros": {
+      "region": "Region",
+      "situacion": "Status",
+      "todas": "All",
+      "sinHabilitar": "Store not enabled",
+      "ventaVigente": "Selling",
+      "ventaRevocada": "Sales revoked",
+      "ventaBloqueada": "Sales blocked",
+      "conPendientes": "With products to review"
     }
   },
   "cuentas": {
@@ -4090,7 +4108,6 @@
     "insuficiente_other": "There are {{count}} ratings. We will show the average once there are at least {{minimo}}.",
     "resenas": "Buyer reviews",
     "compraVerificada": "Verified purchase · {{fecha}}",
-    "comoSeCalifica": "Only people who received this product in an order can rate it. We do not show their names.",
     "calificaTusProductos": "Rate your products",
     "pendientes_one": "You have {{count}} product left to rate.",
     "pendientes_other": "You have {{count}} products left to rate.",
@@ -4107,7 +4124,7 @@
     "loRecibiste": "You received it in your order {{numero}}.",
     "yaCalificaste": "You already rated this product. Thank you!",
     "cuandoRecibas": "You can rate it once you receive your order {{numero}}.",
-    "soloSiRecibiste": "You can rate it only if you bought it and have already received it."
+    "soloSiRecibiste": "You can rate it only if you bought it and have already received it. Your name will not be shown."
   },
   "denuncia": {
     "titulo": "File a report",
@@ -4539,7 +4556,7 @@
     "todas": "All",
     "buscar": "Search",
     "col": {
-      "fecha": "Date and time",
+      "fecha": "Date",
       "usuario": "User",
       "rol": "Role",
       "accion": "Action",

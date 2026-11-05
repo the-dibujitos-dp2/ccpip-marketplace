@@ -58,6 +58,9 @@ describe('Auditoría de operaciones sensibles (CCPIP-97)', () => {
     expect(within(pago).getByText('Pedido')).toBeInTheDocument()
     expect(within(pago).getByText('CCPIP-000040')).toBeInTheDocument()
     expect(within(pago).getByText('Rechazado')).toBeInTheDocument()
+    // La fecha y la hora de Lima van en columnas separadas (mejoras de laboratorio)
+    expect(within(pago).getByText('29 oct 2026')).toBeInTheDocument()
+    expect(within(pago).getByText('10:00')).toBeInTheDocument()
     expect(within(producto).getByText('Editó producto')).toBeInTheDocument()
     expect(within(producto).getByText('Exitosa')).toBeInTheDocument()
     // Las acciones de gobernanza usan los mismos nombres que Mi historial

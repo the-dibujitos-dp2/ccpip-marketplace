@@ -70,7 +70,7 @@ describe('CCPIP-66 Pedidos del productor (PW-07)', () => {
     expect(within(lista).getByText('Recojo · Pucallpa')).toBeInTheDocument()
 
     const detalle = screen.getByRole('complementary', { name: 'MC-00148' })
-    expect(within(detalle).getByText('Lote L-0231 · 2 und · vence 20/01/2027')).toBeInTheDocument()
+    expect(within(detalle).getByText('Lote L-0231 · 2 und · vence 20 ene 2027')).toBeInTheDocument()
     expect(within(detalle).getByText('Comisión de la Cámara')).toBeInTheDocument()
     expect(within(detalle).getByText('− S/ 6.40')).toBeInTheDocument()
     expect(within(detalle).getByText('S/ 57.60')).toBeInTheDocument()

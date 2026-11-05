@@ -70,8 +70,8 @@ export default function MisDireccionesPage() {
     setErrorEdicion(false)
     try {
       await guardarDireccionHabitual({ alias: datos.alias || null, ubigeo: datos.ubigeo, direccion: datos.direccion, referencia: datos.referencia || null })
+      // Sin aviso: la direccion nueva aparece en la lista
       setAgregando(false)
-      setAviso(t('misDirecciones.agregada'))
       recargar()
     } catch (e) {
       // DIRECCION_YA_GUARDADA y DESTINO_NO_ADMITIDO dicen que corregir; lo demas, el mensaje generico

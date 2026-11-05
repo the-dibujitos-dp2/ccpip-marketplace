@@ -3,7 +3,6 @@
 .mis-entregas__columnas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 .mis-entregas__en-curso,
 .mis-entregas__hoy { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.mis-entregas__barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .mis-entregas__subtitulo { margin: 0; font-size: 18px; line-height: 26px; }
 
 .mis-entregas__tarjeta {
@@ -19,6 +18,7 @@
 .mis-entregas__tarjeta .pasos { flex-wrap: wrap; }
 .mis-entregas__cabecera { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .mis-entregas__cabecera h3 { margin: 0; font-size: 18px; line-height: 26px; }
+.mis-entregas__momentos { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .mis-entregas__acciones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
 
 .mis-entregas__nada { margin: 0; color: var(--color-text-secondary); }
@@ -46,6 +46,36 @@
   .mis-entregas__acciones .boton { flex: 1; }
 }
 
-.ubicaciones{position:fixed;inset:0;margin:auto;background:white;border:0;border-radius:12px;padding:1.5rem;width:min(38rem,calc(100% - 2rem));max-height:90vh;overflow:auto;box-shadow:0 8px 32px #0003}.ubicaciones::backdrop{background:#0008}.ubicaciones__cerrar{float:right;min-height:2.75rem;padding:.5rem 1rem}.ubicaciones p{overflow-wrap:anywhere}.ubicaciones h3{margin-top:1.25rem}
+/* CCPIP-110: ubicaciones del pedido, origen y destino lado a lado con una flecha entre ellos */
+.ubicaciones {
+  position: fixed;
+  inset: 0;
+  width: min(44rem, calc(100% - 2rem));
+  max-height: 90vh;
+  margin: auto;
+  padding: 24px;
+  overflow: auto;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  box-shadow: 0 8px 32px #0003;
+}
+.ubicaciones::backdrop { background: #0006; }
+.ubicaciones__cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+.ubicaciones__cabecera h2 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 22px; line-height: 30px; }
+.ubicaciones__error p { margin: 0 0 8px; overflow-wrap: anywhere; }
+.ubicaciones__ruta { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px; }
+.ubicaciones__lugar { align-self: stretch; padding: 16px; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); background: var(--color-bg-canvas); }
+.ubicaciones__lugar--destino { border-color: var(--color-border-brand); background: var(--color-bg-brand-subtle); }
+.ubicaciones__lugar-titulo { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 13px; line-height: 16px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--color-text-brand); }
+.ubicaciones__lugar dl { display: flex; flex-direction: column; gap: 10px; margin: 0; }
+.ubicaciones__dato dt { font-size: 12px; line-height: 16px; color: var(--color-text-secondary); }
+.ubicaciones__dato dd { margin: 0; font-weight: 600; font-size: 15px; line-height: 22px; overflow-wrap: anywhere; }
+.ubicaciones__flecha { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--color-bg-brand); color: var(--color-text-on-brand); font-size: 20px; }
+@media (max-width: 600px) {
+  .ubicaciones__ruta { grid-template-columns: minmax(0, 1fr); }
+  .ubicaciones__flecha { justify-self: center; transform: rotate(90deg); }
+}
 
 .mis-entregas__tabla-scroll { max-width: 100%; min-width: 0; overflow-x: auto; }

@@ -490,7 +490,7 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
 })
 
 describe('CW-06 Pedido a domicilio (CCPIP-59)', () => {
-  it('muestra a dónde se entrega y no el seguimiento de recojo', async () => {
+  it('muestra a dónde se entrega y su seguimiento a domicilio, sin el de recojo', async () => {
     servidor(rutas())
     abrirEn('/pedidos/78')
     expect(await screen.findByRole('heading', { name: '¡Gracias por tu compra!' })).toBeInTheDocument()
@@ -504,9 +504,11 @@ describe('CW-06 Pedido a domicilio (CCPIP-59)', () => {
     expect(within(entrega).getByText('Frente al grifo')).toBeInTheDocument()
     expect(within(entrega).getByText('María Quispe')).toBeInTheDocument()
     expect(within(entrega).getByText('987654321')).toBeInTheDocument()
-    // El reparto llega con las historias de distribucion: nada de "listo para recojo"
-    expect(screen.queryByRole('list', { name: /Seguimiento/ })).not.toBeInTheDocument()
-    expect(screen.queryByText('Listo para recojo')).not.toBeInTheDocument()
+    // Sus etapas son las del reparto (CCPIP-318, CCPIP-319): nada de "disponible en acopio"
+    const etapas = within(screen.getByRole('list', { name: /Seguimiento/ })).getAllByRole('listitem')
+    expect(etapas.map((e) => e.querySelector('.seguimiento__nombre').textContent))
+      .toEqual(['Pago confirmado', 'En preparación', 'Listo para despacho', 'En camino', 'Entregado'])
+    expect(screen.queryByText('Disponible en acopio')).not.toBeInTheDocument()
   })
 })
 
@@ -624,7 +626,7 @@ describe('CW-06 Guardar la dirección habitual (CCPIP-65)', () => {
 })
 
 describe('CW-09 Mis pedidos con un pedido a domicilio (CCPIP-59)', () => {
-  it('dice que se entrega a domicilio y de qué punto sale, sin el seguimiento de recojo', async () => {
+  it('dice que se entrega a domicilio, de qué punto sale y en qué etapa del reparto está', async () => {
     const resumen = {
       id: 78, numero: 'CCP-000078', estado: 'CONFIRMADO', modalidad: 'ENVIO', total: 812,
       creadoEn: '2026-10-23T15:00:00Z', confirmadoEn: '2026-10-23T15:01:02Z', punto: CUSCO,
@@ -638,6 +640,9 @@ describe('CW-09 Mis pedidos con un pedido a domicilio (CCPIP-59)', () => {
     expect(tarjeta.getByText('Sale de Centro Regional Cusco')).toBeInTheDocument()
     expect(tarjeta.queryByText('Sede central CCPIP')).not.toBeInTheDocument()
     expect(tarjeta.queryByText('Listo para recojo')).not.toBeInTheDocument()
+    const etapas = within(tarjeta.getByRole('list', { name: 'Seguimiento del pedido CCP-000078' })).getAllByRole('listitem')
+    expect(etapas[0]).toHaveAttribute('aria-current', 'step')
+    expect(etapas[3]).toHaveTextContent('En camino')
   })
 })
 

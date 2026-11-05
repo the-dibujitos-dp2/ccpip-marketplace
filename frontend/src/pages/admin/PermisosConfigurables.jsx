@@ -90,7 +90,7 @@ export default function PermisosConfigurables() {
                     <Badge tono={p.concedido ? 'exito' : 'error'}>
                       {t(p.concedido ? 'admin.configurables.concedido' : 'admin.configurables.revocado')}
                     </Badge>
-                    <Boton tipo="secundario" tamano="S" onClick={() => abrir(rol, p)}
+                    <Boton tipo="secundario" tamano="S" peligro={p.concedido} onClick={() => abrir(rol, p)}
                       aria-label={t(`admin.configurables.${p.concedido ? 'revocarDe' : 'concederDe'}`, { permiso: nombre(p.codigo), rol: t(`roles.${rol}`) })}>
                       {t(p.concedido ? 'admin.configurables.revocar' : 'admin.configurables.conceder')}
                     </Boton>

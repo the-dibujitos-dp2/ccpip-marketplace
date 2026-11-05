@@ -46,7 +46,11 @@ class DistribucionEnCaminoTest extends IntegrationTest {
     void transicionAtomicaConActorFechaHistorialVisibilidadYStockInvariante() throws Exception {
         BigDecimal stock = jdbc.queryForObject("SELECT coalesce(sum(cantidad_actual),0) FROM lote WHERE producto_id=?", BigDecimal.class, producto);
         Integer movimientos = jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario", Integer.class);
-        String respuesta = enCamino(distribuidor, NUMERO).andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("EN_CAMINO")).andReturn().getResponse().getContentAsString();
+        String respuesta = enCamino(distribuidor, NUMERO).andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("EN_CAMINO"))
+                // Cada momento queda en la entrega: tambien cuando salio en camino
+                .andExpect(jsonPath("$.enCaminoEn").isNotEmpty()).andExpect(jsonPath("$.entregadaEn").doesNotExist())
+                .andReturn().getResponse().getContentAsString();
+        assertThat(jdbc.queryForObject("SELECT en_camino_en <= now() FROM entrega WHERE pedido_id=?", Boolean.class, pedido)).isTrue();
         assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id=?", String.class, pedido)).isEqualTo("EN_CAMINO");
         assertThat(jdbc.queryForObject("SELECT estado FROM entrega WHERE pedido_id=?", String.class, pedido)).isEqualTo("EN_CAMINO");
         assertThat(jdbc.queryForObject("SELECT count(*) FROM pedido_estado_historial WHERE pedido_id=? AND estado='EN_CAMINO'", Integer.class, pedido)).isEqualTo(1);

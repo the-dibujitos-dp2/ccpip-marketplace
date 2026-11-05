@@ -105,12 +105,11 @@ export default function CalificacionesProducto({ producto }) {
         </ul>
       )}
       {comprador && mia && <CalificarDesdeFicha mia={mia} onCalificada={() => setVersion((v) => v + 1)} />}
-      <p className="caption">{t('calificaciones.comoSeCalifica')}</p>
 
       <div className="valoraciones__denuncia">
         {enviada && <Alerta tono="exito" titulo={t('denuncia.enviada')} descripcion={t('denuncia.enviadaTexto')} onCerrar={() => setEnviada(false)} />}
         {comprador && (
-          <Boton tipo="terciario" tamano="S" onClick={() => setDenunciando(true)}>{t('denuncia.denunciarProducto')}</Boton>
+          <Boton tipo="terciario" tamano="S" peligro onClick={() => setDenunciando(true)}>{t('denuncia.denunciarProducto')}</Boton>
         )}
         {!user && (
           <Boton tipo="terciario" tamano="S" to={`${RUTAS.ingresar}?volver=${encodeURIComponent(`/productos/${producto.id}`)}`}>

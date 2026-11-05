@@ -41,10 +41,11 @@ public final class DistribucionModelos {
      * Una entrega del distribuidor: la que acaba de asumir (CCPIP-108) o de retirar del punto (CCPIP-109), y cada una
      * de las que tiene asignadas (CCPIP-317), con el punto donde recogerla y el distrito de destino. {@code estado} es
      * el de la entrega (ASIGNADA, RETIRADA, EN_CAMINO o ENTREGADA);
-     * {@code asignadaEn}, cuando la asumio, y {@code retiradaEn}, cuando la retiro (nulo hasta entonces). La direccion
+     * cada momento por el que paso: {@code asignadaEn}, cuando la asumio, {@code retiradaEn}, cuando la retiro,
+     * {@code enCaminoEn}, cuando salio a entregarla, y {@code entregadaEn} (nulos hasta entonces). La direccion
      * exacta y el contacto de quien recibe llegan con CCPIP-110.
      */
     public record EntregaDelDistribuidor(String numero, Origen origen, Distrito destino, String estado,
-                                         Instant asignadaEn, Instant retiradaEn) {
+                                         Instant asignadaEn, Instant retiradaEn, Instant enCaminoEn, Instant entregadaEn) {
     }
 }

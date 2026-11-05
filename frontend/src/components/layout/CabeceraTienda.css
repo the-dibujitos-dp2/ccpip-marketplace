@@ -97,6 +97,8 @@
   text-decoration: none;
   cursor: pointer;
 }
+/* Cerrar sesion, en rojo como en los paneles */
+.cabecera-tienda__menu button { color: var(--color-status-error-fg); }
 
 .cabecera-tienda__lineas { border-top: 1px solid var(--color-border-default); }
 .cabecera-tienda__lineas .contenedor { display: flex; gap: 28px; padding-top: 10px; padding-bottom: 10px; overflow-x: auto; }

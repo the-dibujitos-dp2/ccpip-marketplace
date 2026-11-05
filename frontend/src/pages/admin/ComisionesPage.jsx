@@ -13,7 +13,7 @@ import FiltroFechas from '../../components/FiltroFechas.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { fechaHora, precio, unidades } from '../../formato.js'
+import { diaMesAnioHora, precio, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
 import './admin.css'
@@ -103,7 +103,7 @@ function Resultado({ datos, filtrado, onPagina }) {
                   <span className="label-m">{p.numero}</span>
                   <span className="caption">{t(`admin.comisiones.estado.${p.estado}`, { defaultValue: p.estado })}</span>
                 </span>
-                <span className="tabla__celda comisiones__fecha" role="cell">{fechaHora(p.confirmadoEn)}</span>
+                <span className="tabla__celda comisiones__fecha" role="cell">{diaMesAnioHora(p.confirmadoEn)}</span>
                 <span className="tabla__celda tabla__celda--flex" role="cell">
                   <ul className="comisiones__productores">
                     {p.productores.map((pr) => (

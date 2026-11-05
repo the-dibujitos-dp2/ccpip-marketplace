@@ -11,7 +11,7 @@ import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { fechaCorta } from '../../formato.js'
+import { diaMesAnio } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import { useSesion } from '../../sesion.js'
@@ -127,7 +127,7 @@ export default function CuentasPage({ path }) {
                 <span className="tabla__celda cuentas__rol" role="cell">{t(`roles.${c.rol}`, { defaultValue: c.rolNombre })}</span>
                 {conPuntos && <span className="tabla__celda cuentas__puntos-col" role="cell">{c.puntos.length ? c.puntos.join(', ') : '—'}</span>}
                 <span className="tabla__celda cuentas__estado-col" role="cell"><EstadoCuenta cuenta={c} /></span>
-                <span className="tabla__celda cuentas__fecha" role="cell">{fechaCorta(c.creadaEn.slice(0, 10))}</span>
+                <span className="tabla__celda cuentas__fecha" role="cell">{diaMesAnio(c.creadaEn)}</span>
                 <span className="tabla__celda cuentas__accion" role="cell">
                   <Boton tipo="secundario" tamano="S" to={`${RUTAS.adminCuentas}/${c.id}`} aria-label={t('cuentas.verDe', { nombre: c.nombre })}>
                     {t('cuentas.ver')}

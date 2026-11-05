@@ -1287,7 +1287,7 @@ Una por pedido con modalidad `ENVIO` (`pedido_id` unico).
 | direccion, referencia | varchar(255) | no, si | Destino y referencia opcional |
 | contacto_nombre, contacto_celular | varchar | no | Quien recibe; el celular, de 9 digitos que empiezan con 9 (CHECK) |
 | estado | varchar(12) | no | `DISPONIBLE`, `ASIGNADA`, `RETIRADA`, `EN_CAMINO`, `ENTREGADA`. Nace `DISPONIBLE` |
-| asignada_en, retirada_en, entregada_en, creado_en | timestamptz | si, si, si, no | |
+| asignada_en, retirada_en, en_camino_en, entregada_en, creado_en | timestamptz | si, si, si, si, no | Cada momento de la entrega. `en_camino_en` (migracion `V202611041000`) toma, en las que ya salieron, la hora del historial del pedido |
 
 **Reglas.** El pedido sale siempre de `pedido.ubicacion_origen_id`, el punto de acopio con existencias
 para todo el carrito, y solo llega a distritos que ese punto cubre: el productor no entrega al comprador.

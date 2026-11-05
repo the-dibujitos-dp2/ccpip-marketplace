@@ -59,7 +59,7 @@ export default function LotesPage({ path, search }) {
   const vigentes = lotes ? lotes.items.filter((l) => l.estado !== 'VENCIDO').length : 0
 
   return (
-    <PaginaProductor path={path} seccion={t('productor.nav.lotes')} titulo={t('productor.panel.registrarLote')}>
+    <PaginaProductor path={path} seccion={t('productor.nav.lotes')} titulo={t('productor.lotes.titulo')}>
       {!productos && <Cargando />}
       {productos?.length === 0 && (
         <EstadoVacio titulo={t('productor.lotes.primeroProducto')} descripcion={t('productor.lotes.primeroProductoTexto')}>
@@ -70,16 +70,20 @@ export default function LotesPage({ path, search }) {
       {noEncontrado && <Alerta tono="error" titulo={t('productor.lotes.noExiste')} descripcion={t('productor.lotes.noExisteTexto')} />}
 
       {productos?.length > 0 && (cambiando || !productoId) && (
-        <div className="tarjeta-panel lotes__selector">
-          <Campo
-            etiqueta={t('productor.lotes.deQueProducto')}
-            tipo="selector"
-            placeholder={t('productor.lotes.eligeProducto')}
-            value={productoId ?? ''}
-            onChange={(e) => e.target.value && navigate(`${RUTAS.productorLotes}?producto=${e.target.value}`)}
-            opciones={productos.map((p) => ({ valor: String(p.id), etiqueta: p.nombre }))}
-          />
-        </div>
+        <section className="productor__seccion" aria-labelledby="titulo-registrar-lote">
+          {/* Su titulo va fuera del cuadro, como "Todos tus lotes": separa el registro de la tabla de abajo */}
+          <h2 id="titulo-registrar-lote" className="heading-h4">{t('productor.panel.registrarLote')}</h2>
+          <div className="tarjeta-panel lotes__selector">
+            <Campo
+              etiqueta={t('productor.lotes.deQueProducto')}
+              tipo="selector"
+              placeholder={t('productor.lotes.eligeProducto')}
+              value={productoId ?? ''}
+              onChange={(e) => e.target.value && navigate(`${RUTAS.productorLotes}?producto=${e.target.value}`)}
+              opciones={productos.map((p) => ({ valor: String(p.id), etiqueta: p.nombre }))}
+            />
+          </div>
+        </section>
       )}
 
       {!productoId && productos?.length > 0 && (

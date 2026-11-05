@@ -75,11 +75,11 @@
   border: 0;
   border-radius: var(--radius-m);
   background: none;
-  color: var(--color-text-secondary);
+  color: var(--color-status-error-fg);
   cursor: pointer;
 }
 
-.layout-productor__salir:hover { background: var(--color-bg-surface-alt); }
+.layout-productor__salir:hover { background: var(--color-status-error-bg); }
 /* CCPIP-413: mientras cierra la sesion, el aro de carga en lugar del icono */
 .layout-productor__salir[aria-busy='true'] { cursor: progress; }
 

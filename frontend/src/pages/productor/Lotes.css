@@ -1,6 +1,6 @@
 .formulario-lote { display: flex; flex-direction: column; gap: 18px; padding: 24px; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
 .formulario-lote__fila { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.lotes__col { width: 92px; }
+.lotes__col { width: 100px; }
 .lotes__col-corta { width: 52px; }
 .lotes__col-estado { width: 128px; }
 .tabla__celda--flex.lotes__punto { flex: 1 1 96px; min-width: 96px; color: var(--color-text-secondary); }

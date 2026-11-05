@@ -54,14 +54,19 @@ describe('CW-09 Mis pedidos (CCPIP-112, CCPIP-70, CCPIP-340)', () => {
     expect(screen.getByRole('tab', { name: 'Historial (2)' })).toBeInTheDocument()
 
     const listo = within(screen.getByRole('article', { name: 'Pedido CCP-000077' }))
-    expect(normal(listo.getByText(/productos de 3 comunidades/).textContent)).toBe('10 oct · 4 productos de 3 comunidades · S/ 92.50')
+    expect(normal(listo.getByText(/productos de 3 comunidades/).textContent)).toBe('10 oct 2026 · 4 productos de 3 comunidades · S/ 92.50')
     expect(listo.getByText('Disponible en acopio', { selector: '.badge-estado' })).toBeInTheDocument()
-    // Pago confirmado (hecho, con fecha en hora de Lima), disponible en acopio (actual) y entregado (pendiente)
-    const [pago, acopio, entregado] = etapas('CCP-000077')
+    // Pago confirmado (hecho, con fecha en hora de Lima), en preparacion (hecha sin registro: paso directo),
+    // disponible en acopio (actual, con su check) y entregado (pendiente)
+    const [pago, preparacion, acopio, entregado] = etapas('CCP-000077')
     expect(pago).toHaveClass('seguimiento__etapa--hecho')
-    expect(within(pago).getByText('10/10 10:42')).toBeInTheDocument()
+    expect(within(pago).getByText('10 oct 10:42')).toBeInTheDocument()
+    expect(preparacion).toHaveClass('seguimiento__etapa--hecho')
+    expect(within(preparacion).getByText('—')).toBeInTheDocument()
     expect(acopio).toHaveAttribute('aria-current', 'step')
-    expect(within(acopio).getByText('12/10 09:30')).toBeInTheDocument()
+    expect(acopio.querySelector('.seguimiento__marca .icono')).not.toBeNull()
+    expect(within(acopio).getByText('12 oct 09:30')).toBeInTheDocument()
+    expect(entregado.querySelector('.seguimiento__marca .icono')).toBeNull()
     expect(entregado).toHaveClass('seguimiento__etapa--pendiente')
     expect(within(entregado).getByText('—')).toBeInTheDocument()
     expect(listo.getByText('Centro Nacional Lima')).toBeInTheDocument()
@@ -137,13 +142,13 @@ describe('Detalle del pedido con seguimiento e historial (CCPIP-70, CCPIP-340)',
     expect(await screen.findByRole('heading', { level: 1, name: 'Pedido CCP-000077' })).toBeInTheDocument()
     expect(screen.queryByRole('list', { name: 'Pasos de la compra' })).not.toBeInTheDocument()
     const seguimiento = within(await screen.findByRole('region', { name: 'Seguimiento' }))
-    expect(seguimiento.getAllByRole('listitem')[1]).toHaveAttribute('aria-current', 'step')
+    expect(seguimiento.getAllByRole('listitem')[2]).toHaveAttribute('aria-current', 'step')
 
     const historial = within(screen.getByRole('region', { name: 'Historial del pedido' })).getAllByRole('listitem')
     expect(historial.map((li) => li.textContent)).toEqual([
-      'Pedido creado, en espera de pago10/10 10:40',
-      'Pago aprobado y pedido confirmado10/10 10:42',
-      'Listo para recoger en el punto de acopio12/10 09:30',
+      'Pedido creado, en espera de pago10 oct 10:40',
+      'Pago aprobado y pedido confirmado10 oct 10:42',
+      'Listo para recoger en el punto de acopio12 oct 09:30',
     ])
     expect(screen.getByRole('link', { name: 'Ver mis pedidos' })).toHaveAttribute('href', '/cuenta/pedidos')
   })
@@ -206,8 +211,41 @@ describe('Mis pedidos en inglés (CCPIP-112)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'My account' })).toBeInTheDocument()
     expect(await screen.findByRole('tab', { name: 'In progress (2)' })).toBeInTheDocument()
     const listo = within(screen.getByRole('article', { name: 'Order CCP-000077' }))
-    expect(normal(listo.getByText(/products from 3 communities/).textContent)).toBe('10 Oct · 4 products from 3 communities · S/ 92.50')
+    expect(normal(listo.getByText(/products from 3 communities/).textContent)).toBe('10 Oct 2026 · 4 products from 3 communities · S/ 92.50')
     expect(listo.getAllByText('Ready at collection point').length).toBeGreaterThan(0)
     expect(screen.queryByText(/Disponible|Entregado|productos/)).not.toBeInTheDocument()
   })
 })
+
+describe('Seguimiento y pago del pedido (mejoras de laboratorio)', () => {
+  it('un pedido en preparación también tiene seguimiento, y el pago no muestra la operación', async () => {
+    const enPreparacion = {
+      ...DETALLE,
+      estado: 'EN_PREPARACION',
+      historial: [
+        { estado: 'CONFIRMADO', registradoEn: '2026-10-10T15:42:00Z' },
+        { estado: 'EN_PREPARACION', registradoEn: '2026-10-11T14:05:00Z' },
+      ],
+      pagos: [{ id: 1, estado: 'APROBADO', marca: 'Visa', monto: 92.5, referencia: 'SIM-c15ed99b', creadoEn: '2026-10-10T15:41:00Z' }],
+    }
+    servidor(comoComprador({ 'GET /api/pedidos': [200, [enPreparacion]], 'GET /api/pedidos/77': [200, enPreparacion] }))
+    const { unmount } = abrirEn('/cuenta/pedidos')
+    const [pago, preparacion, acopio] = await esperarEtapas('CCP-000077')
+    expect(pago).toHaveClass('seguimiento__etapa--hecho')
+    expect(preparacion).toHaveAttribute('aria-current', 'step')
+    expect(within(preparacion).getByText('11 oct 09:05')).toBeInTheDocument()
+    expect(acopio).toHaveClass('seguimiento__etapa--pendiente')
+    unmount()
+
+    abrirEn('/pedidos/77')
+    const pagos = within(await screen.findByRole('region', { name: 'Pago' }))
+    expect(pagos.getByText(/Pagaste/)).toBeInTheDocument()
+    expect(pagos.getByText(/10 oct 10:41 · Visa/)).toBeInTheDocument()
+    expect(screen.queryByText(/SIM-c15ed99b/)).not.toBeInTheDocument()
+  })
+})
+
+async function esperarEtapas(numero) {
+  await screen.findByRole('list', { name: `Seguimiento del pedido ${numero}` })
+  return etapas(numero)
+}

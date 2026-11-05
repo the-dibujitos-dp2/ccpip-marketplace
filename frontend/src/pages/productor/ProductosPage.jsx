@@ -55,6 +55,8 @@ export default function ProductosPage({ path, search }) {
   const [datos, setDatos] = useState(null)
   const [error, setError] = useState(false)
   const [menu, setMenu] = useState(null)
+  // El menu flota sobre la pagina (fixed), fuera de la tabla que se desliza de costado: se ubica bajo su boton
+  const [posicionMenu, setPosicionMenu] = useState(null)
   const [confirmar, setConfirmar] = useState(null)
   const [ocupado, setOcupado] = useState(false)
   // CCPIP-413: publicar sale del menu sin confirmacion; el aro queda en el boton de la fila mientras espera
@@ -82,8 +84,16 @@ export default function ProductosPage({ path, search }) {
   useEffect(() => {
     if (menu === null) return undefined
     const cerrar = (e) => !menuRef.current?.contains(e.target) && setMenu(null)
+    // Al desplazarse el boton se mueve y el menu quedaria suelto: se cierra
+    const alDesplazar = () => setMenu(null)
     document.addEventListener('mousedown', cerrar)
-    return () => document.removeEventListener('mousedown', cerrar)
+    window.addEventListener('scroll', alDesplazar, true)
+    window.addEventListener('resize', alDesplazar)
+    return () => {
+      document.removeEventListener('mousedown', cerrar)
+      window.removeEventListener('scroll', alDesplazar, true)
+      window.removeEventListener('resize', alDesplazar)
+    }
   }, [menu])
 
   async function cambiarEstado(fila, accion) {
@@ -180,11 +190,19 @@ export default function ProductosPage({ path, search }) {
                   </Enlace>
                   <span className="productos__menu">
                     <button type="button" className="productos__icono-boton" aria-label={t('productor.productos.masAcciones', { nombre: f.nombre })} aria-haspopup="menu" aria-expanded={menu === f.id}
-                      disabled={publicando === f.id} aria-busy={publicando === f.id || undefined} onClick={() => setMenu(menu === f.id ? null : f.id)}>
+                      disabled={publicando === f.id} aria-busy={publicando === f.id || undefined} onClick={(e) => {
+                        const caja = e.currentTarget.getBoundingClientRect()
+                        const right = window.innerWidth - caja.right
+                        // Cerca del borde inferior se abre hacia arriba para que se vea entero
+                        setPosicionMenu(caja.bottom + 280 > window.innerHeight
+                          ? { bottom: window.innerHeight - caja.top + 4, right }
+                          : { top: caja.bottom + 4, right })
+                        setMenu(menu === f.id ? null : f.id)
+                      }}>
                       {publicando === f.id ? <Giro tamano={18} /> : <Icono src={iconoMasVertical} tamano={18} />}
                     </button>
                     {menu === f.id && (
-                      <span className="productos__menu-lista" role="menu">
+                      <span className="productos__menu-lista" role="menu" style={posicionMenu ?? undefined}>
                         <Enlace role="menuitem" to={`${RUTAS.productorLotes}?producto=${f.id}`}>{t('productor.panel.registrarLote')}</Enlace>
                         <Enlace role="menuitem" to={`${RUTAS.productorProductos}/${f.id}/evidencias`}>{t('productor.productos.evidencias')}</Enlace>
                         <Enlace role="menuitem" to={`${RUTAS.productorProductos}/${f.id}/premios`}>{t('productor.productos.premios')}</Enlace>

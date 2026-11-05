@@ -108,7 +108,8 @@ export default function CarritoPage() {
   return (
     <LayoutTienda>
       <main className="contenedor carrito" aria-busy={!carrito && !error}>
-        <Pasos pasos={PASOS.map((p) => t(`carrito.pasos.${p}`))} actual={0} etiqueta={t('carrito.pasos.etiqueta')} />
+        {/* Los pasos de la compra solo tienen sentido si hay algo que comprar */}
+        {carrito?.items.length > 0 && <Pasos pasos={PASOS.map((p) => t(`carrito.pasos.${p}`))} actual={0} etiqueta={t('carrito.pasos.etiqueta')} />}
         <h1 className="carrito__titulo">{t('carrito.titulo')}</h1>
         {aviso && (
           <div className="carrito__aviso">

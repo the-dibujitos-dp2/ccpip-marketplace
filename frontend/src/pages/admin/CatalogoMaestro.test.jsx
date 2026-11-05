@@ -196,6 +196,8 @@ describe('Catálogo maestro: líneas (CCPIP-96, 309, 310, 311)', LENTA, () => {
     }))
     abrirEn('/admin/catalogo')
     await screen.findByRole('table', { name: 'Líneas' })
+    // Desactivar va en rojo (mejoras de laboratorio)
+    expect(screen.getByRole('button', { name: 'Desactivar Café' })).toHaveClass('boton--peligro')
     await userEvent.click(screen.getByRole('button', { name: 'Desactivar Café' }))
 
     const d = dialogo('¿Desactivar la línea Café?')
@@ -227,6 +229,8 @@ describe('Catálogo maestro: líneas (CCPIP-96, 309, 310, 311)', LENTA, () => {
     }))
     abrirEn('/admin/catalogo')
     await screen.findByRole('table', { name: 'Líneas' })
+    // Desactivar va en rojo (mejoras de laboratorio)
+    expect(screen.getByRole('button', { name: 'Desactivar Café' })).toHaveClass('boton--peligro')
     await userEvent.click(screen.getByRole('button', { name: 'Desactivar Café' }))
     await userEvent.click(dialogo('¿Desactivar la línea Café?').getByRole('button', { name: 'Desactivar' }))
     expect(await screen.findByText('No pudimos cambiar el estado')).toBeInTheDocument()
