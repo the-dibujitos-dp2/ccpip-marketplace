@@ -240,7 +240,7 @@ describe('Seguimiento y pago del pedido (mejoras de laboratorio)', () => {
     abrirEn('/pedidos/77')
     const pagos = within(await screen.findByRole('region', { name: 'Pago' }))
     expect(pagos.getByText(/Pagaste/)).toBeInTheDocument()
-    expect(pagos.getByText(/10 de octubre de 2026 · Visa/)).toBeInTheDocument()
+    expect(pagos.getByText(/10 de oct. 2026 · Visa/)).toBeInTheDocument()
     expect(screen.queryByText(/SIM-c15ed99b/)).not.toBeInTheDocument()
   })
 })
@@ -260,5 +260,19 @@ describe('Historial de un pedido a domicilio (CCPIP-445)', () => {
     abrirEn('/pedidos/77')
     const historial = within(await screen.findByRole('region', { name: 'Historial del pedido' }))
     expect(historial.getByRole('listitem')).toHaveTextContent('En camino a tu domicilio29 de octubre 20:35')
+  })
+})
+
+
+describe('Fecha del pago aprobado (CCPIP-440)', () => {
+  it('muestra la fecha de pago en español con el mes abreviado indicado por aceptación', async () => {
+    const pagado = {
+      ...DETALLE, estado: 'EN_PREPARACION',
+      pagos: [{ id: 440, estado: 'APROBADO', marca: 'Visa', monto: 92.5, creadoEn: '2026-12-03T15:00:00Z' }],
+    }
+    servidor(comoComprador({ 'GET /api/pedidos/77': [200, pagado] }))
+    abrirEn('/pedidos/77')
+    const pagos = within(await screen.findByRole('region', { name: 'Pago' }))
+    expect(pagos.getByText('3 de dic. 2026 · Visa · S/ 92.50')).toBeInTheDocument()
   })
 })

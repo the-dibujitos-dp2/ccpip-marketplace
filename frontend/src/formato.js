@@ -127,7 +127,14 @@ export function diaMesLargoHora(instante) {
 
 /** "2026-12-03T15:00:00Z" -> "3 de diciembre de 2026" · "3 December 2026", en hora de Lima (pago del pedido, CCPIP-440) */
 export function diaMesAnioLargo(instante) {
-  return instante ? formato('diaMesAnioLargo').format(new Date(instante)) : ''
+  if (!instante) return ''
+  const fecha = new Date(instante)
+  if (localeFechas().startsWith('es')) {
+    const abreviada = new Intl.DateTimeFormat(localeFechas(), { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Lima' })
+      .format(fecha)
+    return abreviada.replace(/^(\d+)\s+/, '$1 de ')
+  }
+  return formato('diaMesAnioLargo').format(fecha)
 }
 
 /** Primera oracion de un relato, para citarlo destacado; si no hay una corta, sus primeros 140 caracteres. */
