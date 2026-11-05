@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoGrafico from '../../assets/icons/grafico.svg'
 import { marcarMermaAlmacen } from '../../api/merma.js'
@@ -25,6 +25,7 @@ import './AlmacenPage.css'
 
 const TONO = { DISPONIBLE: 'exito', POR_VENCER: 'aviso', VENCIDO: 'error' }
 const POR_PRODUCTO = 'productos'
+const POR_PAGINA = 20
 
 /** "Centro Regional Ucayali" -> "Ucayali", como en PW-07 */
 const corto = (nombre) => nombre.replace(/^Centro (Nacional|Regional) /, '')
@@ -35,8 +36,9 @@ const corto = (nombre) => nombre.replace(/^Centro (Nacional|Regional) /, '')
  * sus productos (RNF-05) y cada cantidad sale de sus lotes. CCPIP-283 (RF-203): registra entradas y
  * salidas en los lotes de su almacen, el unico que tiene en el MVP. Las transferencias (PW-17, PW-18)
  * y el mapa llegan con sus historias, por eso no hay botones para transferir.
+ * CCPIP-447: `?lote=COD` (desde una alerta) abre la ubicacion de ese lote, en su pagina, y lo resalta.
  */
-export default function AlmacenPage({ path }) {
+export default function AlmacenPage({ path, search = '' }) {
   const { t } = useTranslation()
   const { datos, error, recargar } = useConsulta(consultarInventario)
   const [elegida, setElegida] = useState(null)
@@ -49,8 +51,14 @@ export default function AlmacenPage({ path }) {
 
   const ubicaciones = datos?.ubicaciones ?? []
   const productos = datos?.productos ?? []
-  // Por defecto su almacen, como en el Figma
-  const pestana = elegida ?? (ubicaciones[0] ? String(ubicaciones[0].id) : POR_PRODUCTO)
+  const lotePedido = new URLSearchParams(search).get('lote')?.trim() || null
+  const buscado = lotePedido
+    ? productos.flatMap((p) => p.lotes).find((l) => l.codigo.toLowerCase() === lotePedido.toLowerCase()) ?? null
+    : null
+  // Por defecto su almacen, como en el Figma; si llego desde una alerta, la ubicacion de ese lote
+  const pestana = elegida ?? (buscado && ubicaciones.some((u) => u.id === buscado.ubicacionId)
+    ? String(buscado.ubicacionId)
+    : (ubicaciones[0] ? String(ubicaciones[0].id) : POR_PRODUCTO))
   const lotesDe = (u) => productos.flatMap((p) => p.lotes.filter((l) => l.ubicacionId === u.id).map((l) => ({ ...l, producto: p.nombre })))
   // Lo que el formulario ofrece: los lotes de su almacen, no los que ya estan en un punto
   const lotesAlmacen = productos.flatMap((p) => p.lotes.filter((l) => l.tipoUbicacion === 'ALMACEN_PRODUCTOR').map((l) => ({
@@ -79,6 +87,10 @@ export default function AlmacenPage({ path }) {
         <>
           <Indicadores resumen={datos.resumen} diasAviso={datos.diasAviso} />
 
+          {lotePedido && !buscado && (
+            <Alerta tono="aviso" titulo={t('productor.almacen.loteNoEncontrado', { lote: lotePedido })} descripcion={t('productor.almacen.loteNoEncontradoTexto')} />
+          )}
+
           {datos.resumen.lotesVencidos > 0 && (
             <Alerta
               tono="aviso"
@@ -105,6 +117,7 @@ export default function AlmacenPage({ path }) {
                 key={u.id}
                 ubicacion={u}
                 lotes={lotesDe(u)}
+                resaltado={buscado?.id}
                 onMovimiento={lotesAlmacen.length > 0 ? () => setDialogo({ clave: Date.now() }) : undefined}
                 onMerma={(l) => { setMarcada(null); setMerma(l) }}
               />
@@ -197,9 +210,23 @@ function cosechaYVencimiento(l, t) {
 }
 
 /** Los lotes con saldo en una ubicacion (CCPIP-162). En su almacen, la accion de CCPIP-283. */
-function PorUbicacion({ ubicacion, lotes, onMovimiento, onMerma }) {
+function PorUbicacion({ ubicacion, lotes, resaltado, onMovimiento, onMerma }) {
   const { t } = useTranslation()
-  const paginas = usePaginacionLocal(lotes, ubicacion.id)
+  const paginas = usePaginacionLocal(lotes, ubicacion.id, POR_PAGINA)
+  const { onCambiar } = paginas
+  const fila = useRef(null)
+  const ubicado = useRef(false)
+  // CCPIP-447: una sola vez, la pagina del lote de la alerta; despues el productor pagina libremente
+  useEffect(() => {
+    if (ubicado.current || resaltado == null) return
+    const indice = lotes.findIndex((l) => l.id === resaltado)
+    if (indice < 0) return
+    ubicado.current = true
+    onCambiar(Math.floor(indice / POR_PAGINA))
+  }, [lotes, resaltado, onCambiar])
+  useEffect(() => {
+    fila.current?.scrollIntoView?.({ block: 'center' })
+  }, [paginas.pagina, resaltado])
   const almacen = ubicacion.tipo === 'ALMACEN_PRODUCTOR'
   const titulo = almacen
     ? t('productor.almacen.inventarioAlmacen', { departamento: ubicacion.departamento })
@@ -226,10 +253,16 @@ function PorUbicacion({ ubicacion, lotes, onMovimiento, onMerma }) {
             {almacen && <span className="tabla__celda almacen__col-accion" role="columnheader">{t('productor.tabla.accion')}</span>}
           </div>
           {paginas.filas.map((l) => (
-            <div key={l.id} className="tabla__fila" role="row">
+            <div
+              key={l.id}
+              ref={l.id === resaltado ? fila : undefined}
+              className={`tabla__fila${l.id === resaltado ? ' tabla__fila--resaltada' : ''}`}
+              role="row"
+            >
               <span className="tabla__celda tabla__celda--flex" role="cell">
                 <span className="label-m almacen__producto">{l.producto}</span>
                 <span className="caption">{t('productor.almacen.lote', { codigo: l.codigo })}</span>
+                {l.id === resaltado && <span className="visually-hidden">{t('alertas.loteDeAlerta')}</span>}
               </span>
               <span className="tabla__celda almacen__col-fechas" role="cell">{cosechaYVencimiento(l, t)}</span>
               <span className="tabla__celda almacen__col-cantidad" role="cell">{t('comun.und', { cantidad: unidades(l.cantidad) })}</span>

@@ -325,7 +325,7 @@ export default function App() {
     else if (path === RUTAS.productor) pagina = <PanelPage path={path} />
     else if (path === RUTAS.productorTienda) pagina = <TiendaEditorPage path={path} />
     else if (path === RUTAS.productorProductos) pagina = <ProductosPage path={path} search={search} />
-    else if (path === RUTAS.productorAlmacen) pagina = <AlmacenPage path={path} />
+    else if (path === RUTAS.productorAlmacen) pagina = <AlmacenPage path={path} search={search} />
     else if (path === RUTAS.productorLotes) pagina = <LotesPage path={path} search={search} />
     else if (path === RUTAS.productorCuenta) pagina = <CuentaBancariaPage path={path} />
     else if (path === RUTAS.productorPedidos) pagina = <PedidosProductorPage path={path} />
@@ -360,7 +360,7 @@ export default function App() {
     else if (path === RUTAS.acopioCobertura) pagina = <CoberturaPage path={path} />
     else if (path === RUTAS.acopioPedidos) pagina = <PedidosPage path={path} />
     else if (path === RUTAS.acopioMovimientos) pagina = <MovimientosPage path={path} />
-    else if (path === RUTAS.acopioInventario) pagina = <InventarioPage path={path} />
+    else if (path === RUTAS.acopioInventario) pagina = <InventarioPage path={path} search={search} />
     else if (path === RUTAS.acopioTransferencias) pagina = <TransferenciasPuntoPage path={path} />
     else if (path === RUTAS.acopioAlertas) pagina = <AlertasPuntoPage path={path} />
     else if (path === RUTAS.acopioMerma) pagina = <MermaPuntoPage path={path} />

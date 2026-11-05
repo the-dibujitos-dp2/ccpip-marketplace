@@ -35,3 +35,6 @@
 .panel__interes-producto .caption { color: var(--color-text-secondary); }
 .panel__interes-cifra { flex-shrink: 0; color: var(--color-text-accent); font-weight: 600; font-size: 14px; white-space: nowrap; }
 .panel__intereses > .caption { margin: 0; color: var(--color-text-secondary); }
+
+/* CCPIP-447: el lote al que llevo una alerta, ubicado y resaltado */
+.tabla__fila--resaltada { background: var(--color-bg-accent-subtle); box-shadow: inset 4px 0 0 var(--color-bg-accent); color: var(--color-text-primary); }

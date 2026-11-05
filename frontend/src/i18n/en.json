@@ -252,7 +252,9 @@
       "vacioProductos": "You have no stock yet",
       "vacioTexto": "Stock shows up here when you register a batch.",
       "unSoloInventario": "One virtual inventory",
-      "unSoloInventarioTexto": "Your warehouse and the collection points make up one inventory: every quantity comes from your batches and their movements, not from a separate stock count. Only what is at a collection point is sold, and it goes down when each purchase is confirmed."
+      "unSoloInventarioTexto": "Your warehouse and the collection points make up one inventory: every quantity comes from your batches and their movements, not from a separate stock count. Only what is at a collection point is sold, and it goes down when each purchase is confirmed.",
+      "loteNoEncontrado": "We could not find batch {{lote}}",
+      "loteNoEncontradoTexto": "It no longer has stock in your inventory or was removed."
     },
     "pedidos": {
       "titulo": "Orders",
@@ -1274,7 +1276,8 @@
         "AGOTADO": "Sold out"
       },
       "movimiento": "Movement",
-      "movimientoDe": "Record a movement for batch {{lote}}"
+      "movimientoDe": "Record a movement for batch {{lote}}",
+      "loteNoEncontradoTexto": "It no longer has stock at this point or was removed."
     },
     "transferencias": {
       "porRecibir": "Transfers to receive ({{total}})",
@@ -4295,14 +4298,14 @@
         "titulo": "Batch expiring soon: {{producto}}",
         "detalle": "Batch {{lote}} at {{ubicacion}} expires on {{fecha}} with {{cantidad}} units left. Transfer it or schedule it for sale.",
         "detallePunto": "Batch {{lote}} expires on {{fecha}} with {{cantidad}} units left. Coordinate its outflow with the producer.",
-        "accion": "View warehouse",
+        "accion": "View inventory",
         "accionPunto": "View inventory"
       },
       "ESTANCADO": {
         "titulo": "Stagnant batch: {{producto}}",
         "detalle": "Batch {{lote}} at {{ubicacion}} has had no outflows since {{fecha}} and has {{cantidad}} units left.",
         "detallePunto": "Batch {{lote}} has had no outflows since {{fecha}} and has {{cantidad}} units left.",
-        "accion": "View warehouse",
+        "accion": "View inventory",
         "accionPunto": "View inventory"
       },
       "REPOSICION": {
@@ -4364,7 +4367,8 @@
       "correo": "Email for important alerts",
       "guardar": "Save preferences",
       "guardado": "Preferences saved"
-    }
+    },
+    "loteDeAlerta": "(batch from the alert)"
   },
   "merma": {
     "accion": "Shrinkage",

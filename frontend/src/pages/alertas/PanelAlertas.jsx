@@ -44,9 +44,13 @@ const ACTUALIZAR_CADA_MS = 15000
 /** Las opciones del Figma ("Elige 7, 15 o 30 dias, o un numero personalizado"). */
 const OPCIONES_DIAS = { diasVencimiento: [7, 15, 30], diasEstancado: [15, 30, 60] }
 
+/** CCPIP-447: las alertas de un lote llevan al inventario con ese lote ubicado y resaltado. */
+const DE_LOTE = ['POR_VENCER', 'ESTANCADO']
+const conLote = (ruta, alerta) => (DE_LOTE.includes(alerta.tipo) && alerta.lote ? `${ruta}?lote=${encodeURIComponent(alerta.lote)}` : ruta)
+
 /** A donde lleva cada alerta. */
 function destino(alerta, rol) {
-  if (rol === 'acopio') return RUTAS.acopioInventario
+  if (rol === 'acopio') return conLote(RUTAS.acopioInventario, alerta)
   switch (alerta.tipo) {
     case 'REPOSICION':
       return RUTAS.productorLotes
@@ -57,7 +61,7 @@ function destino(alerta, rol) {
     case 'PEDIDO_NUEVO':
       return RUTAS.productorPedidos
     default:
-      return RUTAS.productorAlmacen
+      return conLote(RUTAS.productorAlmacen, alerta)
   }
 }
 
