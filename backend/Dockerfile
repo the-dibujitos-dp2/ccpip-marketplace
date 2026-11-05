@@ -9,9 +9,9 @@ COPY src src
 RUN ./mvnw -B -q package -DskipTests -Djacoco.skip=true
 
 FROM eclipse-temurin:21-jre-alpine
-# Paquetes de Alpine al dia aunque la imagen base aun no se haya reconstruido: el deploy bloquea CVEs
-# HIGH/CRITICAL que ya tienen parche (p. ej. CVE-2026-77214 en libexpat 2.8.5, corregida en 2.9.0).
+# Paquetes de Alpine al dia; require a patched libexpat even if the base image is stale.
 RUN apk upgrade --no-cache \
+    && apk add --no-cache 'libexpat>=2.10.0-r0' \
     && addgroup -S app && adduser -S app -G app
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
