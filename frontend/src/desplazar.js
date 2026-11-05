@@ -7,7 +7,7 @@ const curva = (x) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2)
  */
 export function desplazarHasta(elemento, duracion = 1000) {
   if (!elemento) return
-  const margen = parseFloat(getComputedStyle(elemento).scrollMarginTop) || 0
+  const margen = Number.parseFloat(getComputedStyle(elemento).scrollMarginTop) || 0
   const desde = window.scrollY
   const hasta = desde + elemento.getBoundingClientRect().top - margen
   if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
