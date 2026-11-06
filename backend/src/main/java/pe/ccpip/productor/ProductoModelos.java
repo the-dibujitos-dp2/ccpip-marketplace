@@ -76,9 +76,12 @@ public final class ProductoModelos {
 
     /**
      * CCPIP-46: la ultima solicitud de publicacion de la oferta. {@code estado}: PENDIENTE, APROBADA o
-     * RECHAZADA; {@code motivo}, el del subadministrador al decidir (CCPIP-331, CCPIP-332).
+     * RECHAZADA; {@code motivo}, el del subadministrador al decidir (CCPIP-331, CCPIP-332). {@code rechazos}
+     * cuenta hacia {@code maximoRechazos}; con {@code bloqueada} solo el subadministrador habilita otro intento
+     * (CCPIP-493).
      */
-    public record Moderacion(String estado, String motivo, Instant solicitadaEn, Instant decididaEn) {
+    public record Moderacion(String estado, String motivo, Instant solicitadaEn, Instant decididaEn,
+                             int rechazos, int maximoRechazos, boolean bloqueada) {
     }
 
     /**

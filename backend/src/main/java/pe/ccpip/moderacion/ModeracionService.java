@@ -27,10 +27,13 @@ import pe.ccpip.moderacion.ModeracionModelos.Contadores;
 import pe.ccpip.moderacion.ModeracionModelos.Estado;
 import pe.ccpip.moderacion.ModeracionModelos.Expediente;
 import pe.ccpip.moderacion.ModeracionModelos.Fila;
+import pe.ccpip.moderacion.ModeracionModelos.Limite;
 import pe.ccpip.moderacion.ModeracionModelos.Oferta;
+import pe.ccpip.moderacion.ModeracionModelos.Reintento;
 import pe.ccpip.moderacion.ModeracionModelos.Solicitud;
 import pe.ccpip.productor.Auditoria;
 import pe.ccpip.productor.Auditoria.Accion;
+import pe.ccpip.productor.LimiteRechazos;
 import pe.ccpip.productor.ProductoModelos.ProductoEdicion;
 import pe.ccpip.productor.ProductosService;
 
@@ -44,6 +47,8 @@ import pe.ccpip.productor.ProductosService;
  *   <li>CCPIP-331 (RF-221): aprobar con motivo una oferta autorizada para la venta y completa; pasa al
  *       catalogo.</li>
  *   <li>CCPIP-332 (RF-222): rechazarla con motivo; vuelve a su estado anterior y el productor ve el motivo.</li>
+ *   <li>CCPIP-493: al tercer rechazo el productor ya no puede volver a enviarla; el subadministrador habilita
+ *       un nuevo intento con motivo, que queda en el historial del producto y reinicia la cuenta.</li>
  * </ul>
  * La revision no sustituye la evaluacion documental de la autorizacion (CCPIP-174): solo la muestra.
  */
@@ -60,10 +65,12 @@ public class ModeracionService {
     private final ProductosService productos;
     private final EvidenciasService evidencias;
     private final Auditoria auditoria;
+    private final LimiteRechazos limite;
 
     public ModeracionService(JdbcTemplate jdbc, ProductosService productos, EvidenciasService evidencias,
-                             Auditoria auditoria) {
+                             Auditoria auditoria, LimiteRechazos limite) {
         this.jdbc = jdbc;
+        this.limite = limite;
         this.productos = productos;
         this.evidencias = evidencias;
         this.auditoria = auditoria;
@@ -105,7 +112,8 @@ public class ModeracionService {
         List<String> faltan = c.estado() == Estado.PENDIENTE ? faltan(p, autorizacion) : List.of();
         boolean pendiente = c.estado() == Estado.PENDIENTE;
         return new Expediente(c.id(), c.estado(), c.solicitadaEn(), c.solicitadaPor(), c.republicacion(), oferta(p),
-                c.productor(), autorizacion, historial(c.productoId()), faltan, pendiente, pendiente && faltan.isEmpty());
+                c.productor(), autorizacion, historial(c.productoId()), faltan, pendiente, pendiente && faltan.isEmpty(),
+                limite(c));
     }
 
     /**
@@ -145,6 +153,49 @@ public class ModeracionService {
                 c.estadoAnterior(), c.productoId());
         decidir(c, usuarioId, Estado.RECHAZADA, texto, Accion.MODERACION);
         return expediente(id);
+    }
+
+    /**
+     * CCPIP-493: tras el tercer rechazo, habilita un nuevo intento con motivo. Se hace desde la ultima solicitud
+     * de la oferta; queda como constancia inmutable y en el historial del producto, y reinicia la cuenta.
+     */
+    @Transactional
+    public Expediente habilitarReintento(long id, long usuarioId, String motivo) {
+        String texto = RevisionService.motivoRequerido(motivo);
+        Cabecera c = cabecera(id, true);
+        // Bloquea el producto: dos subadministradores no habilitan dos intentos a la vez
+        jdbc.queryForObject("SELECT id FROM producto WHERE id = ? FOR UPDATE", Long.class, c.productoId());
+        if (!limite.bloqueada(c.productoId()) || !esUltima(c)) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "REINTENTO_NO_NECESARIO",
+                    "Esta oferta no llegó al máximo de rechazos: el productor ya puede volver a enviarla.");
+        }
+        Long reintento = jdbc.queryForObject("""
+                INSERT INTO reintento_publicacion (producto_id, solicitud_id, habilitado_por, motivo)
+                VALUES (?, ?, ?, ?) RETURNING id""", Long.class, c.productoId(), c.id(), usuarioId, texto);
+        Map<String, Object> cambios = new LinkedHashMap<>();
+        cambios.put("reintento", reintento);
+        cambios.put("motivo", texto);
+        auditoria.registrar(c.productoId(), usuarioId, Accion.MODERACION, cambios);
+        return expediente(id);
+    }
+
+    private Limite limite(Cabecera c) {
+        int rechazos = limite.rechazos(c.productoId());
+        boolean bloqueada = rechazos >= LimiteRechazos.MAXIMO;
+        List<Reintento> reintentos = jdbc.query("""
+                        SELECT r.id, r.motivo, u.nombre AS habilitado_por, r.habilitado_en
+                        FROM reintento_publicacion r JOIN usuario u ON u.id = r.habilitado_por
+                        WHERE r.producto_id = ? ORDER BY r.habilitado_en DESC, r.id DESC""",
+                (rs, row) -> new Reintento(rs.getLong("id"), rs.getString("motivo"), rs.getString("habilitado_por"),
+                        instante(rs, "habilitado_en")), c.productoId());
+        return new Limite(rechazos, LimiteRechazos.MAXIMO, bloqueada, bloqueada && esUltima(c), reintentos);
+    }
+
+    /** La solicitud es la mas reciente de su oferta. */
+    private boolean esUltima(Cabecera c) {
+        return Boolean.TRUE.equals(jdbc.queryForObject("""
+                SELECT NOT EXISTS (SELECT 1 FROM moderacion_publicacion x WHERE x.producto_id = ? AND x.id > ?)""",
+                Boolean.class, c.productoId(), c.id()));
     }
 
     /** Guarda la decision (una sola vez: lo asegura el trigger) y la deja en el historial del producto. */

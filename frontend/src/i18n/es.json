@@ -544,7 +544,11 @@
       "falta": "Para publicar todavía falta:",
       "irTienda": "Ir a Mi tienda",
       "volverProductos": "Volver a mis productos",
-      "noExiste": "Este producto no existe"
+      "noExiste": "Este producto no existe",
+      "bloqueada": "Llegaste al máximo de {{maximo}} rechazos",
+      "bloqueadaTexto": "La Cámara rechazó esta oferta {{maximo}} veces. Para enviarla otra vez, pide al subadministrador que habilite un nuevo intento. Último motivo: «{{motivo}}».",
+      "intentosRestantes_one": "Te queda {{count}} intento antes de que el subadministrador tenga que habilitar uno nuevo.",
+      "intentosRestantes_other": "Te quedan {{count}} intentos antes de que el subadministrador tenga que habilitar uno nuevo."
     },
     "datos": {
       "validacion": {
@@ -2560,7 +2564,9 @@
     "SOLICITUD_UNIDAD_PENDIENTE": "Ya pediste esa unidad y la Cámara aún no la revisa.",
     "CODIGO_INVALIDO": "El código usa solo letras sin tilde, números y guion bajo.",
     "SIN_TARIFA_ENVIO": "Todavía no hay tarifa de envío para ese distrito. Elige el recojo en el punto de acopio.",
-    "CAPACIDAD_AGOTADA": "Este punto de acopio ya no puede entregar más pedidos a domicilio hoy. Elige otro punto o el recojo."
+    "CAPACIDAD_AGOTADA": "Este punto de acopio ya no puede entregar más pedidos a domicilio hoy. Elige otro punto o el recojo.",
+    "MAXIMO_RECHAZOS": "Esta oferta llegó al máximo de 3 rechazos. Pide al subadministrador que habilite un nuevo intento.",
+    "REINTENTO_NO_NECESARIO": "Esta oferta no llegó al máximo de rechazos: el productor ya puede volver a enviarla."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -3851,6 +3857,19 @@
       "resuelta": {
         "APROBADA": "Esta publicación ya se aprobó.",
         "RECHAZADA": "Esta publicación se rechazó."
+      },
+      "limite": {
+        "titulo": "Rechazos",
+        "cuenta": "{{rechazos}} de {{maximo}} rechazos",
+        "bloqueada": "El productor llegó al máximo y ya no puede volver a enviar esta oferta.",
+        "motivo": "Motivo para habilitar un nuevo intento",
+        "motivoAyuda": "Queda en el historial del producto. Al habilitarlo, la cuenta de rechazos vuelve a cero.",
+        "habilitar": "Habilitar nuevo intento",
+        "errorMotivo": "Indica el motivo para habilitar el nuevo intento",
+        "hecho": "Habilitaste un nuevo intento. El productor ya puede volver a enviar la oferta.",
+        "error": "No pudimos habilitar el nuevo intento",
+        "reintentos": "Intentos habilitados",
+        "habilitadoPor": "{{nombre}} · {{fecha}}"
       }
     },
     "dialogo": {

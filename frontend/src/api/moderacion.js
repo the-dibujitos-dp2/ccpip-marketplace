@@ -16,6 +16,10 @@ export const aprobarModeracion = async (id, motivo) =>
 export const rechazarModeracion = async (id, motivo) =>
   apiFetch(`/api/admin/moderacion/${idRuta(id)}/rechazar`, { method: 'POST', body: { motivo } })
 
+/** CCPIP-493: tras el tercer rechazo, habilitar con motivo un nuevo intento. Devuelve el expediente actualizado. */
+export const habilitarReintento = async (id, motivo) =>
+  apiFetch(`/api/admin/moderacion/${idRuta(id)}/reintento`, { method: 'POST', body: { motivo } })
+
 // CCPIP-118: los videos de las tiendas pasan por la misma revision.
 /** Contadores y videos. estado: PENDIENTE (por defecto), APROBADA o RECHAZADA. */
 export const bandejaVideos = (estado = 'PENDIENTE') => apiFetch(`/api/admin/moderacion/videos?${new URLSearchParams({ estado })}`)

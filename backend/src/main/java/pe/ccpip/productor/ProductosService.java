@@ -55,10 +55,13 @@ public class ProductosService {
     private final ImagenService imagenes;
     private final Auditoria auditoria;
     private final InvalidacionTraducciones invalidacion;
+    private final LimiteRechazos limite;
 
     public ProductosService(JdbcTemplate jdbc, ImagenService imagenes, Auditoria auditoria,
-                            InvalidacionTraducciones invalidacion, PreferenciasAlerta preferencias) {
+                            InvalidacionTraducciones invalidacion, PreferenciasAlerta preferencias,
+                            LimiteRechazos limite) {
         this.jdbc = jdbc;
+        this.limite = limite;
         this.preferencias = preferencias;
         this.imagenes = imagenes;
         this.auditoria = auditoria;
@@ -171,6 +174,12 @@ public class ProductosService {
         if (p.estado() == Estado.RETIRADO && !autorizacionVigente(productorId, id)) {
             throw new ErrorNegocio(HttpStatus.UNPROCESSABLE_ENTITY, "PRODUCTO_NO_PUBLICABLE",
                     "La oferta no tiene una autorización de venta vigente.", List.of("Una autorización de venta vigente"));
+        }
+        // CCPIP-493: al tercer rechazo solo el subadministrador habilita un nuevo intento
+        if (limite.bloqueada(id)) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "MAXIMO_RECHAZOS",
+                    "Esta oferta llegó al máximo de " + LimiteRechazos.MAXIMO
+                            + " rechazos. Pide al subadministrador que habilite un nuevo intento.");
         }
         // Solo pasa si sigue en el estado que se leyo: dos clics seguidos no piden dos revisiones
         int cambiado = jdbc.update("""
@@ -305,14 +314,19 @@ public class ProductosService {
                 sinPublicable.enVenta(), publicable(productorId, sinPublicable), moderacion(id));
     }
 
-    /** CCPIP-46: la ultima solicitud de publicacion y, si ya se decidio, su motivo (CCPIP-331, CCPIP-332). */
+    /**
+     * CCPIP-46: la ultima solicitud de publicacion y, si ya se decidio, su motivo (CCPIP-331, CCPIP-332), con
+     * los rechazos que cuentan para el maximo (CCPIP-493).
+     */
     private Moderacion moderacion(long productoId) {
+        int rechazos = limite.rechazos(productoId);
         return jdbc.query("""
                         SELECT coalesce(decision, 'PENDIENTE') AS estado, motivo, solicitada_en, decidida_en
                         FROM moderacion_publicacion WHERE producto_id = ? ORDER BY solicitada_en DESC, id DESC LIMIT 1""",
                 (rs, row) -> new Moderacion(rs.getString("estado"), rs.getString("motivo"),
                         rs.getTimestamp("solicitada_en").toInstant(),
-                        rs.getTimestamp("decidida_en") == null ? null : rs.getTimestamp("decidida_en").toInstant()),
+                        rs.getTimestamp("decidida_en") == null ? null : rs.getTimestamp("decidida_en").toInstant(),
+                        rechazos, LimiteRechazos.MAXIMO, rechazos >= LimiteRechazos.MAXIMO),
                 productoId).stream().findFirst().orElse(null);
     }
 
