@@ -13,6 +13,7 @@ import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
+import MapaPunto from '../../components/MapaPunto.jsx'
 import OpcionTarjeta from '../../components/OpcionTarjeta.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
@@ -606,6 +607,8 @@ export default function CompraPage() {
                     <dd>
                       <span className="label-m">{puntoRecojo.nombre}</span>
                       <span className="caption">{[puntoRecojo.direccion, puntoRecojo.distrito, puntoRecojo.departamento].filter(Boolean).join(' · ')}</span>
+                      {/* CCPIP-444: donde queda y como llegar */}
+                      <MapaPunto punto={puntoRecojo} compacto />
                     </dd>
                   </div>
                 )}

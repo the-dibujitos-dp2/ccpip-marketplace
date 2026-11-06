@@ -4945,5 +4945,11 @@
   },
   "kpi": {
     "verDetalle": "See details"
+  },
+  "mapaPunto": {
+    "plano": "Reference map: {{nombre}}, {{direccion}}",
+    "referencial": "Reference map. Open the address to get directions.",
+    "comoLlegar": "Directions in Google Maps",
+    "nuevaPestana": "(opens in a new tab)"
   }
 }

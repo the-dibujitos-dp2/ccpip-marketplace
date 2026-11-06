@@ -4945,5 +4945,11 @@
   },
   "kpi": {
     "verDetalle": "Ver detalle"
+  },
+  "mapaPunto": {
+    "plano": "Mapa referencial: {{nombre}}, {{direccion}}",
+    "referencial": "Mapa referencial. Abre la dirección para ver cómo llegar.",
+    "comoLlegar": "Cómo llegar en Google Maps",
+    "nuevaPestana": "(se abre en otra pestaña)"
   }
 }
