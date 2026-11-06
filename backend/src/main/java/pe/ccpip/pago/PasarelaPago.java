@@ -12,6 +12,12 @@ import java.math.BigDecimal;
  */
 public interface PasarelaPago {
 
+    /**
+     * CCPIP-178 y CCPIP-370: la unica moneda que se cobra (ISO 4217). Esta version vende solo en Peru y en
+     * soles (decision del cliente del 05/11/2026, CCPIP-141); la base tampoco admite otra.
+     */
+    String SOLES = "PEN";
+
     /** Nombre que queda en {@code pago.pasarela}, por ejemplo SIMULADA, CULQI o NIUBIZ. */
     String nombre();
 
@@ -20,8 +26,9 @@ public interface PasarelaPago {
      * no responde, lanza {@link PasarelaNoDisponible} y el intento queda en ERROR.
      *
      * @param referencia identificador del cobro para la pasarela; el numero del pedido
+     * @param moneda     codigo ISO 4217 del monto; hoy siempre {@link #SOLES}
      */
-    ResultadoCobro cobrar(String referencia, BigDecimal monto, Tarjeta tarjeta);
+    ResultadoCobro cobrar(String referencia, BigDecimal monto, String moneda, Tarjeta tarjeta);
 
     /** Devuelve un cobro aprobado, cuando el stock ya no alcanzo para confirmar el pedido. */
     void devolver(String referenciaPasarela, BigDecimal monto);

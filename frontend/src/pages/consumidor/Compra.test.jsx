@@ -79,6 +79,18 @@ describe('CW-05 Entrega y pago (CCPIP-157, CCPIP-62) y confirmación (CCPIP-64)'
     expect(lineas[1]).toHaveTextContent(carrito.items[1].tienda.nombre)
   })
 
+  it('CCPIP-370: el resumen marca las líneas a precio mayorista y aclara que se paga en soles (CCPIP-178)', async () => {
+    const carrito = copia(DATOS.carrito)
+    carrito.items[0].tarifa = 'MAYORISTA'
+    servidor(rutas({ 'GET /api/carrito': [200, carrito] }))
+    abrirEn('/compra')
+    const resumen = within(await screen.findByRole('complementary', { name: 'Resumen del pedido' }))
+    const [mayorista, minorista] = resumen.getAllByRole('listitem')
+    expect(within(mayorista).getByText('Precio mayorista')).toBeInTheDocument()
+    expect(within(minorista).queryByText('Precio mayorista')).not.toBeInTheDocument()
+    expect(resumen.getByText('Pagas en soles (S/). Por ahora vendemos y entregamos solo dentro del Perú.')).toBeInTheDocument()
+  })
+
   it('CCPIP-443: en el recojo el resumen dice a qué punto ir, con su dirección', async () => {
     const CUSCO = { id: 3, nombre: 'Centro Regional Cusco', departamento: 'Cusco', provincia: 'Cusco', distrito: 'Wanchaq', direccion: 'Av. de la Cultura 1234' }
     servidor(rutas({ 'GET /api/compra/puntos': [200, [PUNTO, CUSCO]] }))
@@ -91,6 +103,10 @@ describe('CW-05 Entrega y pago (CCPIP-157, CCPIP-62) y confirmación (CCPIP-64)'
     expect(resumen.getByText('Recoges en')).toBeInTheDocument()
     expect(resumen.getByText('Centro Regional Cusco')).toBeInTheDocument()
     expect(resumen.getByText('Av. de la Cultura 1234 · Wanchaq · Cusco')).toBeInTheDocument()
+    // CCPIP-444: el plano del punto elegido y como llegar
+    expect(resumen.getByRole('img', { name: 'Mapa referencial: Centro Regional Cusco, Av. de la Cultura 1234, Wanchaq, Cusco, Cusco' })).toBeInTheDocument()
+    expect(resumen.getByRole('link', { name: /Cómo llegar en Google Maps/ })).toHaveAttribute('href',
+      'https://www.google.com/maps/search/?api=1&query=Centro%20Regional%20Cusco%2C%20Av.%20de%20la%20Cultura%201234%2C%20Wanchaq%2C%20Cusco%2C%20Cusco%2C%20Per%C3%BA')
   })
 
   it('el carrito lleva a entrega y pago', async () => {
@@ -266,10 +282,27 @@ describe('CW-05 Entrega y pago (CCPIP-157, CCPIP-62) y confirmación (CCPIP-64)'
     expect(screen.getByText('Rosa Quispe')).toBeInTheDocument()
     expect(screen.getByText('Sede central CCPIP · Lima · Lima')).toBeInTheDocument()
 
+    // CCPIP-444: en el recojo, el mapa del punto y el enlace para llegar, que se abre aparte
+    const recojo = within(screen.getByRole('region', { name: 'Recojo' }))
+    expect(recojo.getByRole('img', { name: /^Mapa referencial: Centro Nacional Lima, Sede central CCPIP/ })).toBeInTheDocument()
+    const enlace = recojo.getByRole('link', { name: 'Cómo llegar en Google Maps (se abre en otra pestaña)' })
+    expect(enlace).toHaveAttribute('target', '_blank')
+    expect(enlace).toHaveAttribute('rel', 'noopener noreferrer')
+    expect(enlace.getAttribute('href')).toContain('query=Centro%20Nacional%20Lima%2C%20Sede%20central%20CCPIP')
+
     const intentos = within(screen.getByRole('list', { name: 'Intentos de pago' })).getAllByRole('listitem')
     expect(intentos).toHaveLength(2)
     expect(intentos[0]).toHaveTextContent('Rechazado')
     expect(intentos[1]).toHaveTextContent('Aprobado')
+  })
+
+  it('CCPIP-178/370: la confirmación marca lo comprado a precio mayorista y que los montos están en soles', async () => {
+    const lineas = [{ ...PEDIDO.lineas[0], tarifa: 'MAYORISTA' }, { ...PEDIDO.lineas[1], tarifa: 'MINORISTA' }]
+    servidor(rutas({ 'GET /api/pedidos/77': [200, { ...CONFIRMADO, lineas, moneda: 'PEN' }] }))
+    abrirEn('/pedidos/77')
+    expect(await screen.findByRole('cell', { name: /Aceite de aguaje 250 ml.*Precio mayorista/ })).toBeInTheDocument()
+    expect(screen.getByRole('cell', { name: /Cacao en grano/ })).not.toHaveTextContent('Precio mayorista')
+    expect(screen.getByText('Montos en soles (S/). Por ahora vendemos y entregamos solo dentro del Perú.')).toBeInTheDocument()
   })
 
   it('un pedido ajeno o inexistente no se muestra', async () => {

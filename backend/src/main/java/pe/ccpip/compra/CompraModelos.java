@@ -61,11 +61,12 @@ public final class CompraModelos {
     }
 
     /**
-     * Linea del pedido con el precio copiado al confirmar (RNF-13), nunca el vigente. {@code noEntregada}:
-     * lo que se malogro y se reembolso en vez de entregarse (CCPIP-486); 0 si no falta nada.
+     * Linea del pedido con el precio copiado al confirmar (RNF-13), nunca el vigente. {@code tarifa}:
+     * MINORISTA o MAYORISTA, la modalidad con que se vendio (CCPIP-178, CCPIP-370), tambien copiada.
+     * {@code noEntregada}: lo que se malogro y se reembolso en vez de entregarse (CCPIP-486); 0 si no falta nada.
      */
     public record LineaPedido(long productoId, long productorId, String nombre, String tienda, BigDecimal cantidad,
-                              BigDecimal precioUnitario, BigDecimal subtotal, BigDecimal noEntregada) {
+                              BigDecimal precioUnitario, BigDecimal subtotal, String tarifa, BigDecimal noEntregada) {
     }
 
     /**
@@ -102,13 +103,15 @@ public final class CompraModelos {
      * caso {@code punto} es el punto de acopio de donde sale. {@code total} es la suma de los productos;
      * {@code costoEnvio} (CCPIP-483) es 0 en recojo y {@code totalAPagar} = total + costoEnvio.
      * CCPIP-485/486: {@code incidencias}, lo que se malogro antes de la entrega; {@code reembolsado}, lo que
-     * se devolvio por ello, y {@code totalFinal}, lo que el comprador termina pagando.
+     * se devolvio por ello, y {@code totalFinal}, lo que el comprador termina pagando. {@code moneda}: ISO
+     * 4217 de todos los montos; solo PEN, porque esta version vende solo en Peru (CCPIP-178, CCPIP-370).
      */
     public record Pedido(long id, String numero, String estado, String modalidad, BigDecimal total, Instant creadoEn,
                          Instant confirmadoEn, PuntoRecojo punto, String personaAutorizada, String celularContacto,
                          List<LineaPedido> lineas, List<IntentoPago> pagos, List<EventoPedido> historial,
                          ComisionPedido comision, Entrega entrega, BigDecimal costoEnvio, BigDecimal totalAPagar,
-                         List<IncidenciaPedido> incidencias, BigDecimal reembolsado, BigDecimal totalFinal) {
+                         List<IncidenciaPedido> incidencias, BigDecimal reembolsado, BigDecimal totalFinal,
+                         String moneda) {
     }
 
     /**

@@ -306,7 +306,11 @@
       "neto": "You'll receive",
       "sinComision": "Order confirmed before the commission was set up: no commission was calculated.",
       "historial": "Status changes",
-      "nota": "You only see your products in each order. The buyer's details and what they bought from other communities are not shown."
+      "nota": "You only see your products in each order. The buyer's details and what they bought from other communities are not shown.",
+      "tarifa": {
+        "MINORISTA": "Retail sale",
+        "MAYORISTA": "Wholesale sale"
+      }
     },
     "liquidaciones": {
       "titulo": "My settlements",
@@ -2958,7 +2962,8 @@
     },
     "productos": "Products",
     "envio": "Shipping",
-    "recogesEn": "You pick it up at"
+    "recogesEn": "You pick it up at",
+    "enSoles": "You pay in Peruvian soles (S/). For now we only sell and deliver within Peru."
   },
   "pedido": {
     "noEncontrado": "We couldn't find that order",
@@ -3013,7 +3018,9 @@
       "noEntregada": "{{cantidad}} not delivered (damaged, refunded)",
       "reembolsado": "Refunded",
       "totalFinal": "Total paid"
-    }
+    },
+    "precioMayorista": "Wholesale price",
+    "enSoles": "Amounts in Peruvian soles (S/). For now we only sell and deliver within Peru."
   },
   "misPedidos": {
     "miCuenta": "My account",
@@ -4948,5 +4955,11 @@
   },
   "kpi": {
     "verDetalle": "See details"
+  },
+  "mapaPunto": {
+    "plano": "Reference map: {{nombre}}, {{direccion}}",
+    "referencial": "Reference map. Open the address to get directions.",
+    "comoLlegar": "Directions in Google Maps",
+    "nuevaPestana": "(opens in a new tab)"
   }
 }

@@ -137,7 +137,11 @@ function Detalle({ pedido }) {
             <ImagenProducto url={l.imagen} className="tabla__miniatura" />
             <div>
               <p className="label-m">{`${l.producto} × ${unidades(l.cantidad)}`}</p>
-              <p className="caption">{`${precio(l.precioUnitario)} c/u · ${precio(l.subtotal)}`}</p>
+              <p className="caption">
+                {`${precio(l.precioUnitario)} c/u · ${precio(l.subtotal)}`}
+                {/* CCPIP-178/370: con que modalidad compro el comprador esta linea */}
+                {l.tarifa && ` · ${t(`productor.pedidos.tarifa.${l.tarifa}`)}`}
+              </p>
               {l.lotes.map((lote) => (
                 <p key={lote.codigo} className="caption">
                   {lote.fechaVencimiento

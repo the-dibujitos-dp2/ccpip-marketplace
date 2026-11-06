@@ -13,6 +13,7 @@ import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
+import MapaPunto from '../../components/MapaPunto.jsx'
 import OpcionTarjeta from '../../components/OpcionTarjeta.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
@@ -587,6 +588,8 @@ export default function CompraPage() {
                     <span>
                       {i.nombre} <span className="compra__cantidad">× {Number(i.cantidad)}</span>
                       <span className="caption compra__productor">{t('carrito.deTienda', { nombre: i.tienda.nombre })}</span>
+                      {/* CCPIP-370: la linea se compra a precio mayorista (desde el minimo de la oferta) */}
+                      {i.tarifa === 'MAYORISTA' && <span className="caption compra__mayorista">{t('pedido.precioMayorista')}</span>}
                     </span>
                     <span>{precio(i.subtotal)}</span>
                   </li>
@@ -604,6 +607,8 @@ export default function CompraPage() {
                     <dd>
                       <span className="label-m">{puntoRecojo.nombre}</span>
                       <span className="caption">{[puntoRecojo.direccion, puntoRecojo.distrito, puntoRecojo.departamento].filter(Boolean).join(' · ')}</span>
+                      {/* CCPIP-444: donde queda y como llegar */}
+                      <MapaPunto punto={puntoRecojo} compacto />
                     </dd>
                   </div>
                 )}
@@ -633,6 +638,8 @@ export default function CompraPage() {
                 {enviando ? t('compra.procesando') : t('compra.pagar', { monto: precio(aPagar) })}
               </Boton>
               <p className="caption compra__nota">{t('compra.notaStock')}</p>
+              {/* CCPIP-178/370: solo en el Peru y en soles (decision del cliente del 05/11/2026) */}
+              <p className="caption compra__nota">{t('compra.enSoles')}</p>
             </aside>
           </form>
         )}

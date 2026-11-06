@@ -8,6 +8,7 @@ import Boton from '../../components/Boton.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
+import MapaPunto from '../../components/MapaPunto.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import SeguimientoPedido, { conSeguimiento } from '../../components/SeguimientoPedido.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
@@ -147,6 +148,8 @@ function Detalle({ pedido }) {
                     <td>
                       <span className="pedido__producto">{l.nombre}</span>
                       <span className="caption">{t('carrito.deTienda', { nombre: l.tienda })}</span>
+                      {/* CCPIP-370: comprada a precio mayorista, copiado al confirmar */}
+                      {l.tarifa === 'MAYORISTA' && <span className="caption pedido__mayorista">{t('pedido.precioMayorista')}</span>}
                       {/* CCPIP-486: lo que se malogro y se reembolso en vez de entregarse */}
                       {Number(l.noEntregada) > 0 && (
                         <span className="caption pedido__no-entregada">{t('pedido.malogrado.noEntregada', { cantidad: Number(l.noEntregada) })}</span>
@@ -189,6 +192,8 @@ function Detalle({ pedido }) {
                 </div>
               </dl>
             )}
+            {/* CCPIP-178/370: todos los montos del pedido estan en soles */}
+            {pedido.moneda === 'PEN' && <p className="caption pedido__moneda">{t('pedido.enSoles')}</p>}
           </section>
           {/* CCPIP-485/486: lo que se malogro en el punto antes de la entrega y como se resolvio */}
           {pedido.incidencias?.length > 0 && (
@@ -270,6 +275,8 @@ function Detalle({ pedido }) {
                 </>
               )}
             </dl>
+            {/* CCPIP-444: en el recojo, donde queda el punto y como llegar */}
+            {!aDomicilio && <MapaPunto punto={punto} />}
           </section>
 
           <section className="pedido__tarjeta" aria-labelledby="pedido-pagos">
