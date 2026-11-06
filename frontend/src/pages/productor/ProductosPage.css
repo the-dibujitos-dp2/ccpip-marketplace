@@ -21,7 +21,12 @@
 .productos__col-precio, .productos__col-venta { width: 100px; }
 .productos__col-modalidad { width: 110px; }
 .productos__col-ubicacion { width: 200px; }
-.productos__col-estado { width: 150px; }
+.productos__col-estado { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 150px; }
+
+/* CCPIP-492: motivo del rechazo (dos lineas, el resto en el title) y el enlace para corregir */
+.productos__rechazo { display: flex; flex-direction: column; gap: 2px; max-width: 100%; }
+.productos__motivo { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.productos__corregir { font-weight: 600; color: var(--color-text-brand); }
 .productos__col-acciones { display: flex; width: 70px; gap: 8px; }
 
 .productos__icono-boton { display: inline-flex; padding: 4px; border: 0; border-radius: var(--radius-m); background: none; color: var(--color-text-secondary); cursor: pointer; }

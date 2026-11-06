@@ -226,6 +226,32 @@ describe('PW-03 Mis productos (CCPIP-160)', () => {
     expect(screen.queryByRole('menuitem', { name: /publicar/i })).not.toBeInTheDocument()
   })
 
+  it('CCPIP-492: la autorización rechazada se ve en la lista con su motivo y un acceso para corregirla', async () => {
+    const motivo = 'Falta el certificado orgánico vigente'
+    const lista = copia(DATOS.productosProductor)
+    lista.items[0] = { ...lista.items[0], alerta: 'AUTORIZACION_RECHAZADA', motivo }
+    productor({ 'GET /api/productor/productos': () => [200, lista] })
+    abrirEn('/productor/productos')
+    const fila = within((await screen.findByRole('list', { name: 'Productos' })).querySelector('li'))
+    expect(fila.getByText('Autorización rechazada')).toBeInTheDocument()
+    expect(fila.getByText(motivo)).toBeInTheDocument()
+    expect(fila.getByRole('link', { name: 'Corregir certificados' })).toHaveAttribute('href', `/productor/productos/${lista.items[0].id}/evidencias`)
+  })
+
+  it('CCPIP-492: la publicación rechazada también muestra su motivo en la lista', async () => {
+    const motivo = 'Las fotos no muestran el producto que se vende.'
+    const retirados = {
+      items: [{ ...DATOS.productosProductor.items[0], estado: 'RETIRADO', alerta: 'PUBLICACION_RECHAZADA', motivo }],
+      conteo: { PUBLICADO: 3, EN_MODERACION: 0, BORRADOR: 0, RETIRADO: 1 },
+    }
+    productor({ 'GET /api/productor/productos': () => [200, copia(retirados)] })
+    abrirEn('/productor/productos?estado=RETIRADO')
+    const fila = within((await screen.findByRole('list', { name: 'Productos' })).querySelector('li'))
+    expect(fila.getByText('Publicación rechazada')).toBeInTheDocument()
+    expect(fila.getByText(motivo)).toBeInTheDocument()
+    expect(fila.getByRole('link', { name: 'Ver y corregir' })).toHaveAttribute('href', `/productor/productos/${retirados.items[0].id}`)
+  })
+
   it('CCPIP-332: una publicación rechazada se marca y al editarla se ve el motivo', async () => {
     const retirados = {
       items: [{ ...DATOS.productosProductor.items[0], estado: 'RETIRADO', alerta: 'PUBLICACION_RECHAZADA' }],

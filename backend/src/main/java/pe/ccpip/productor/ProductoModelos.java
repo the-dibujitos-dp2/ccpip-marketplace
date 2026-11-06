@@ -55,10 +55,13 @@ public final class ProductoModelos {
     public record Ubicado(String ubicacion, String tipo, BigDecimal cantidad) {
     }
 
-    /** Fila de PW-03. {@code alerta}: LOTE_POR_VENCER, STOCK_BAJO o SIN_STOCK. */
+    /**
+     * Fila de PW-03. {@code alerta}: AUTORIZACION_RECHAZADA, PUBLICACION_RECHAZADA, LOTE_POR_VENCER, STOCK_BAJO o
+     * SIN_STOCK. {@code motivo}: por que se rechazo, solo con las dos primeras (CCPIP-492).
+     */
     public record ProductoFila(long id, String nombre, String miniatura, String lineaPrincipal, String lineaCodigo, Modalidad modalidad,
                                BigDecimal precio, BigDecimal precioMayorista, BigDecimal enVenta,
-                               List<Ubicado> stock, Estado estado, String alerta) {
+                               List<Ubicado> stock, Estado estado, String alerta, String motivo) {
     }
 
     public record ListaProductos(List<ProductoFila> items, Map<Estado, Integer> conteo) {
