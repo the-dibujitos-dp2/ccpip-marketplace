@@ -1446,7 +1446,10 @@
         "errorCatalogo": "We couldn't load the territorial catalog",
         "hecho_one": "You declared {{count}} district for {{punto}}",
         "hecho_other": "You declared {{count}} districts for {{punto}}"
-      }
+      },
+      "capacidad": "Daily capacity: {{usados}} of {{maximo}} home deliveries today. Set by the Chamber.",
+      "capacidadSinLimite_one": "No daily home-delivery limit · today: {{count}}",
+      "capacidadSinLimite_other": "No daily home-delivery limit · today: {{count}}"
     }
   },
   "admin": {
@@ -1470,7 +1473,8 @@
       "denuncias": "Reports",
       "motivosMerma": "Shrinkage causes",
       "miHistorial": "My history",
-      "tarifasEnvio": "Shipping rates"
+      "tarifasEnvio": "Shipping rates",
+      "capacidadEntrega": "Delivery capacity"
     },
     "permisos": {
       "titulo": "Permissions by role"
@@ -2024,6 +2028,38 @@
         "vacio": "Enter the rate",
         "formato": "Enter an amount from 0.00 to 999.99, with at most two decimals"
       }
+    },
+    "capacidadEntrega": {
+      "titulo": "Delivery capacity",
+      "seccion": "Home deliveries per day for each point",
+      "intro": "It is the maximum number of home-delivery orders each collection point can dispatch per day (Lima time). Once reached, the point is no longer offered for home delivery until the next day; pickup has no limit. A point without a registered capacity has no limit.",
+      "lista": "Collection points",
+      "hoy": "Today: {{usados}} of {{maximo}}",
+      "hoySinLimite_one": "Today: {{count}} home delivery",
+      "hoySinLimite_other": "Today: {{count}} home deliveries",
+      "ultimoCambio": "Last change: {{fecha}} · {{nombre}}",
+      "completa": "Full for today",
+      "sinLimite": "No limit",
+      "porDia_one": "{{count}} per day",
+      "porDia_other": "{{count}} per day",
+      "cambiar": "Change",
+      "cambiarDe": "Change the capacity of {{punto}}",
+      "dialogo": "Daily capacity of {{punto}}",
+      "guardar": "Save capacity",
+      "quitar": "Remove the limit",
+      "campo": "Home deliveries per day",
+      "ayuda": "A whole number from 1 to {{maximo}}.",
+      "rige": "Applies to new purchases from now on; existing orders do not change. The change is recorded in the audit log.",
+      "guardada_one": "{{punto}} can now dispatch {{count}} home delivery per day.",
+      "guardada_other": "{{punto}} can now dispatch {{count}} home deliveries per day.",
+      "quitada": "{{punto}} no longer has a daily home-delivery limit.",
+      "vacio": "There are no active collection points",
+      "errorCargar": "We could not load the delivery capacities",
+      "errorGuardar": "We could not save the capacity",
+      "validacion": {
+        "vacio": "Enter the daily capacity",
+        "formato": "Enter a whole number from 1 to {{maximo}}"
+      }
     }
   },
   "sello": {
@@ -2404,7 +2440,8 @@
     "UNIDAD_YA_EXISTE": "That unit is already in the catalog: choose it when publishing.",
     "SOLICITUD_UNIDAD_PENDIENTE": "You already requested that unit and the Chamber hasn't reviewed it yet.",
     "CODIGO_INVALIDO": "The code uses only letters without accents, numbers and underscore.",
-    "SIN_TARIFA_ENVIO": "There is no shipping rate for that district yet. Choose pickup at the collection point."
+    "SIN_TARIFA_ENVIO": "There is no shipping rate for that district yet. Choose pickup at the collection point.",
+    "CAPACIDAD_AGOTADA": "This collection point cannot deliver more home orders today. Choose another point or pickup."
   },
   "buscar": {
     "comunidad": "Community",
@@ -2799,7 +2836,8 @@
       "costoSegunDistrito": "Rate depends on your district",
       "envioSinDistrito": "Choose your district",
       "sinTarifa": "We do not deliver to that district yet",
-      "tarifaCambio": "The shipping rate changed: you now pay {{monto}}. Check the summary and pay again."
+      "tarifaCambio": "The shipping rate changed: you now pay {{monto}}. Check the summary and pay again.",
+      "sinCapacidad": "That point has completed its deliveries for today"
     },
     "factibilidad": {
       "titulo": "This point can no longer deliver your order",
@@ -4632,7 +4670,8 @@
       "PAGO": "Attempted a payment",
       "PERMISO_CONCEDIDO": "Granted a permission",
       "PERMISO_REVOCADO": "Revoked a permission",
-      "TARIFA_ENVIO": "Set a shipping rate"
+      "TARIFA_ENVIO": "Set a shipping rate",
+      "CAPACIDAD_ENTREGA": "Changed a delivery capacity"
     },
     "entidad": {
       "AUTORIZACION": "Authorization",
@@ -4646,7 +4685,8 @@
       "PRODUCTO_MAESTRO": "Master product",
       "PEDIDO": "Order",
       "PERMISO": "Permission",
-      "TARIFA_ENVIO": "Shipping rate"
+      "TARIFA_ENVIO": "Shipping rate",
+      "CAPACIDAD_ENTREGA": "Delivery capacity"
     },
     "resultado": {
       "EXITOSA": "Successful",

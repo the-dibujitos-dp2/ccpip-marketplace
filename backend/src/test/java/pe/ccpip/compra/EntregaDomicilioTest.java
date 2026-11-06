@@ -38,6 +38,7 @@ class EntregaDomicilioTest extends IntegrationTest {
     private static final String COMPRADOR = "comprador.domicilio@ccpip.test";
     private static final String APROBADA = "4111 1111 1111 1111";
     private static final String TARIFA = "12.00";
+    private static final String OTRO_COMPRADOR = "comprador.domicilio.otro@ccpip.test";
 
     private Cookie comprador;
     private long pedidosAntes;
@@ -67,6 +68,21 @@ class EntregaDomicilioTest extends IntegrationTest {
         creados.clear();
         jdbc.update("UPDATE cobertura_entrega SET activa = true WHERE ubigeo = ?", WANCHAQ);
         tarifaWanchaq();
+        jdbc.update("DELETE FROM capacidad_entrega WHERE ubicacion_id = ?", punto(CUSCO));
+    }
+
+    /** CCPIP-484: los pedidos a domicilio de hoy (Lima) que salen del punto, sin los cancelados. */
+    private int usadosHoy(String punto) {
+        return jdbc.queryForObject("""
+                SELECT count(*) FROM pedido WHERE ubicacion_origen_id = ? AND modalidad = 'ENVIO' AND estado <> 'CANCELADO'
+                  AND creado_en >= date_trunc('day', now() AT TIME ZONE 'America/Lima') AT TIME ZONE 'America/Lima'""",
+                Integer.class, punto(punto));
+    }
+
+    private void capacidad(String punto, int maximo) {
+        jdbc.update("""
+                INSERT INTO capacidad_entrega (ubicacion_id, maximo_diario) VALUES (?, ?)
+                ON CONFLICT (ubicacion_id) DO UPDATE SET maximo_diario = EXCLUDED.maximo_diario""", punto(punto), maximo);
     }
 
     /** Producto de productor@ccpip.test, a S/ 25.00, con {@code unidades} en un lote vigente del punto de Cusco. */
@@ -179,6 +195,58 @@ class EntregaDomicilioTest extends IntegrationTest {
         mockMvc.perform(get("/api/pedidos/" + id).cookie(comprador))
                 .andExpect(jsonPath("$.costoEnvio").value(12.0))
                 .andExpect(jsonPath("$.totalAPagar").value(37.0));
+    }
+
+    // --- Capacidad diaria del punto (CCPIP-484) ---
+
+    @Test
+    void conLaCapacidadDelDiaAlcanzadaNoSeOfreceNiSeAceptaADomicilio() throws Exception {
+        // Otro comprador ocupa el ultimo cupo de hoy con un pedido a domicilio (sin pagar tambien ocupa)
+        Cookie propio = comprador;
+        jdbc.update("""
+                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
+                SELECT ?, contrasena_hash, 'Otro Comprador a Domicilio', 1, true FROM usuario
+                WHERE correo = 'consumidor@ccpip.test' ON CONFLICT (correo) DO NOTHING""", OTRO_COMPRADOR);
+        comprador = loginAs(OTRO_COMPRADOR);
+        alCarrito(productoEnCusco(5), 1);
+        long primero = objectMapper.readTree(pedir(aDomicilio(destino(WANCHAQ))).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString()).get("id").asLong();
+        Cookie otro = comprador;
+        comprador = propio;
+        // Sin pedidos propios sin pagar de otras pruebas: confirmar los cancelaria y liberaria su cupo
+        jdbc.update("""
+                UPDATE pedido SET estado = 'CANCELADO', actualizado_en = now()
+                WHERE usuario_id = (SELECT id FROM usuario WHERE correo = ?) AND estado = 'PENDIENTE_PAGO'""", COMPRADOR);
+        capacidad(CUSCO, usadosHoy(CUSCO));
+
+        alCarrito(productoEnCusco(5), 1);
+        mockMvc.perform(get("/api/compra/distritos").cookie(comprador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.distrito.ubigeo == '" + WANCHAQ + "')]", hasSize(0)));
+        long antes = pedidosDelComprador();
+        pedir(aDomicilio(destino(WANCHAQ)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CAPACIDAD_AGOTADA"));
+        assertThat(pedidosDelComprador()).isEqualTo(antes);
+        // El pedido que ya ocupaba el cupo no cambia
+        mockMvc.perform(get("/api/pedidos/" + primero).cookie(otro)).andExpect(jsonPath("$.estado").value("PENDIENTE_PAGO"));
+
+        // Un cupo mas, o sin limite, vuelve a aceptar
+        capacidad(CUSCO, usadosHoy(CUSCO) + 1);
+        pedir(aDomicilio(destino(WANCHAQ))).andExpect(status().isCreated());
+    }
+
+    @Test
+    void laCapacidadNoLimitaElRecojoYSuPropioPedidoSinPagarNoLaOcupa() throws Exception {
+        alCarrito(productoEnCusco(5), 1);
+        pedir(aDomicilio(destino(WANCHAQ))).andExpect(status().isCreated());
+        // Su pedido sin pagar ocupa el ultimo cupo, pero al volver a confirmar se cancela y lo libera
+        capacidad(CUSCO, usadosHoy(CUSCO));
+        pedir(aDomicilio(destino(WANCHAQ))).andExpect(status().isCreated());
+        Map<String, Object> recojo = new HashMap<>();
+        recojo.put("puntoId", punto(CUSCO));
+        recojo.put("celularContacto", "987654321");
+        pedir(recojo).andExpect(status().isCreated()).andExpect(jsonPath("$.modalidad").value("RECOJO"));
     }
 
     @Test

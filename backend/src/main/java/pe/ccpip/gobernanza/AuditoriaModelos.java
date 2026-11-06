@@ -22,7 +22,9 @@ public final class AuditoriaModelos {
         /** CCPIP-296: un permiso configurable de un rol. */
         PERMISO,
         /** CCPIP-482: la tarifa de envio a domicilio de un distrito. */
-        TARIFA_ENVIO
+        TARIFA_ENVIO,
+        /** CCPIP-484: la capacidad diaria de entregas a domicilio de un punto de acopio. */
+        CAPACIDAD_ENTREGA
     }
 
     /**

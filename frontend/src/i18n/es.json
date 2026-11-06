@@ -1446,7 +1446,10 @@
         "errorCatalogo": "No pudimos cargar el catálogo territorial",
         "hecho_one": "Declaraste {{count}} distrito para {{punto}}",
         "hecho_other": "Declaraste {{count}} distritos para {{punto}}"
-      }
+      },
+      "capacidad": "Capacidad diaria: {{usados}} de {{maximo}} pedidos a domicilio hoy. La fija la Cámara.",
+      "capacidadSinLimite_one": "Sin límite diario de pedidos a domicilio · hoy: {{count}}",
+      "capacidadSinLimite_other": "Sin límite diario de pedidos a domicilio · hoy: {{count}}"
     }
   },
   "admin": {
@@ -1470,7 +1473,8 @@
       "denuncias": "Denuncias",
       "motivosMerma": "Causas de merma",
       "miHistorial": "Mi historial",
-      "tarifasEnvio": "Tarifas de envío"
+      "tarifasEnvio": "Tarifas de envío",
+      "capacidadEntrega": "Capacidad de entrega"
     },
     "permisos": {
       "titulo": "Permisos por rol"
@@ -2024,6 +2028,38 @@
         "vacio": "Indica la tarifa",
         "formato": "Escribe un monto de 0.00 a 999.99, con dos decimales como máximo"
       }
+    },
+    "capacidadEntrega": {
+      "titulo": "Capacidad de entrega",
+      "seccion": "Pedidos a domicilio por día de cada punto",
+      "intro": "Es el máximo de pedidos a domicilio que cada punto de acopio puede despachar por día (hora de Lima). Cuando lo alcanza, el punto deja de ofrecerse a domicilio hasta el día siguiente; el recojo no tiene límite. Un punto sin capacidad registrada no tiene límite.",
+      "lista": "Puntos de acopio",
+      "hoy": "Hoy: {{usados}} de {{maximo}}",
+      "hoySinLimite_one": "Hoy: {{count}} pedido a domicilio",
+      "hoySinLimite_other": "Hoy: {{count}} pedidos a domicilio",
+      "ultimoCambio": "Último cambio: {{fecha}} · {{nombre}}",
+      "completa": "Completa por hoy",
+      "sinLimite": "Sin límite",
+      "porDia_one": "{{count}} por día",
+      "porDia_other": "{{count}} por día",
+      "cambiar": "Cambiar",
+      "cambiarDe": "Cambiar la capacidad de {{punto}}",
+      "dialogo": "Capacidad diaria de {{punto}}",
+      "guardar": "Guardar capacidad",
+      "quitar": "Quitar el límite",
+      "campo": "Pedidos a domicilio por día",
+      "ayuda": "Un número entero de 1 a {{maximo}}.",
+      "rige": "Rige desde ahora para las compras nuevas; los pedidos ya creados no cambian. El cambio queda en la auditoría.",
+      "guardada_one": "{{punto}} puede despachar ahora {{count}} pedido a domicilio por día.",
+      "guardada_other": "{{punto}} puede despachar ahora {{count}} pedidos a domicilio por día.",
+      "quitada": "{{punto}} ya no tiene límite de pedidos a domicilio por día.",
+      "vacio": "No hay puntos de acopio activos",
+      "errorCargar": "No pudimos cargar las capacidades de entrega",
+      "errorGuardar": "No pudimos guardar la capacidad",
+      "validacion": {
+        "vacio": "Indica la capacidad diaria",
+        "formato": "Escribe un número entero de 1 a {{maximo}}"
+      }
     }
   },
   "sello": {
@@ -2404,7 +2440,8 @@
     "UNIDAD_YA_EXISTE": "Esa unidad ya está en el catálogo: elígela al publicar.",
     "SOLICITUD_UNIDAD_PENDIENTE": "Ya pediste esa unidad y la Cámara aún no la revisa.",
     "CODIGO_INVALIDO": "El código usa solo letras sin tilde, números y guion bajo.",
-    "SIN_TARIFA_ENVIO": "Todavía no hay tarifa de envío para ese distrito. Elige el recojo en el punto de acopio."
+    "SIN_TARIFA_ENVIO": "Todavía no hay tarifa de envío para ese distrito. Elige el recojo en el punto de acopio.",
+    "CAPACIDAD_AGOTADA": "Este punto de acopio ya no puede entregar más pedidos a domicilio hoy. Elige otro punto o el recojo."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -2799,7 +2836,8 @@
       "costoSegunDistrito": "Tarifa según tu distrito",
       "envioSinDistrito": "Elige tu distrito",
       "sinTarifa": "Aún no entregamos a domicilio en ese distrito",
-      "tarifaCambio": "La tarifa de envío cambió: ahora pagas {{monto}}. Revisa el resumen y vuelve a pagar."
+      "tarifaCambio": "La tarifa de envío cambió: ahora pagas {{monto}}. Revisa el resumen y vuelve a pagar.",
+      "sinCapacidad": "Ese punto ya completó sus entregas de hoy"
     },
     "factibilidad": {
       "titulo": "Este punto ya no puede entregar tu pedido",
@@ -4632,7 +4670,8 @@
       "PAGO": "Intentó un pago",
       "PERMISO_CONCEDIDO": "Concedió un permiso",
       "PERMISO_REVOCADO": "Revocó un permiso",
-      "TARIFA_ENVIO": "Fijó una tarifa de envío"
+      "TARIFA_ENVIO": "Fijó una tarifa de envío",
+      "CAPACIDAD_ENTREGA": "Cambió la capacidad de entrega"
     },
     "entidad": {
       "AUTORIZACION": "Autorización",
@@ -4646,7 +4685,8 @@
       "PRODUCTO_MAESTRO": "Producto maestro",
       "PEDIDO": "Pedido",
       "PERMISO": "Permiso",
-      "TARIFA_ENVIO": "Tarifa de envío"
+      "TARIFA_ENVIO": "Tarifa de envío",
+      "CAPACIDAD_ENTREGA": "Capacidad de entrega"
     },
     "resultado": {
       "EXITOSA": "Exitosa",
