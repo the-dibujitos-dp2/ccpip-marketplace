@@ -51,8 +51,10 @@ Las llaves viven solo en el servidor. Sin la llave del proveedor elegido, o si n
 la espera (`CCPIP_GEMINI_ESPERA` / `CCPIP_OPENAI_ESPERA`, 20 s), la pantalla sigue a mano (RNF-48).
 Si el proveedor esta saturado (429 o 503) se reintenta una vez, dentro de esa misma espera. Con
 OpenAI se usa Structured Outputs en modo estricto, y si el modelo no acepta temperatura (los de
-razonamiento) la consulta se repite sin ella. Al analisis de evidencias solo se envian los datos
-declarados, nunca los archivos. La IA externa es solo de texto. La validacion y la mejora de fotos
+razonamiento) la consulta se repite sin ella. Al analisis de evidencias se envian los datos
+declarados y, desde CCPIP-491 (decision del 06/11/2026), el PDF completo de cada evidencia vigente,
+para que el modelo corrobore su contenido. Solo se envia cuando el subadministrador pide el analisis,
+hasta 15 MB por consulta; las imagenes JPG/PNG no se envian. La validacion y la mejora de fotos
 usan el modelo propio (`CCPIP_IA_IMAGENES_PROVEEDOR=propio`), que corre dentro del backend: ver
 `ia/modelo-imagenes/README.md`.
 

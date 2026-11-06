@@ -139,7 +139,7 @@ public class RevisionService {
         AnalistaEvidencias.Analisis resultado;
         try {
             resultado = analista.analizar(new AnalistaEvidencias.Solicitud(c.producto(), c.productor().organizacion(),
-                    EvidenciasService.hoyLima(), vigentes.stream().map(RevisionService::paraAnalista).toList()));
+                    EvidenciasService.hoyLima(), vigentes.stream().map(this::paraAnalista).toList()));
         } catch (RuntimeException e) {
             if (!(e instanceof IaNoDisponible)) {
                 log.warn("El análisis de evidencias de la solicitud {} falló: {}", id, e.getMessage());
@@ -285,9 +285,13 @@ public class RevisionService {
                 && (e.vigenteDesde() == null || !e.vigenteDesde().isAfter(hoy)) && Objects.nonNull(e.vigenteHasta()));
     }
 
-    private static AnalistaEvidencias.Evidencia paraAnalista(Evidencia e) {
+    /** CCPIP-491: un PDF va con su archivo, para que el analisis lea su contenido. */
+    private AnalistaEvidencias.Evidencia paraAnalista(Evidencia e) {
+        byte[] pdf = "PDF".equals(e.formato())
+                ? evidencias.archivo("id = ?", e.id()).map(EvidenciasService.Archivo::contenido).orElse(null)
+                : null;
         return new AnalistaEvidencias.Evidencia(e.id(), e.tipo().name(), e.titulo(), e.emisor(), e.vigenteDesde(),
-                e.vigenteHasta(), e.formato());
+                e.vigenteHasta(), e.formato(), pdf);
     }
 
     private static void exigirPendiente(Cabecera c) {

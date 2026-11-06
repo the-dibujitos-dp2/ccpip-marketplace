@@ -219,6 +219,45 @@ class GeminiTest {
     }
 
     @Test
+    void ccpip491ElPdfDelCertificadoVaAdjuntoParaQueElModeloLoLea() throws IOException {
+        byte[] pdf = "%PDF-1.4 certificado".getBytes(StandardCharsets.UTF_8);
+        UUID sinArchivo = UUID.randomUUID();
+        Solicitud conPdf = new Solicitud("Café orgánico", "Coop. Río Ene", LocalDate.of(2026, 10, 22), List.of(
+                new Evidencia(certificado, "CERTIFICADO", "Certificado orgánico del café", "Control Union",
+                        LocalDate.of(2026, 1, 1), LocalDate.of(2027, 1, 1), "PDF", pdf),
+                new Evidencia(foto, "EVIDENCIA", "Secado del grano", null, null, null, "JPG"),
+                new Evidencia(sinArchivo, "DOCUMENTO", "Acta comunal", null, null, null, "PDF")));
+        responde("""
+                {"recomendacion": "REVISAR", "resumen": "El PDF dice otra vigencia.", "hallazgos": [
+                  {"evidencia_id": "%s", "tipo": "INCONSISTENCIA", "detalle": "El PDF vence el 01/01/2026, no el 01/01/2027."}]}
+                """.formatted(certificado));
+        Analisis a = new AnalistaGemini(cliente(Duration.ofSeconds(5))).analizar(conPdf);
+
+        assertThat(a.resumen()).startsWith("Análisis asistido por IA sobre los datos declarados y el contenido de los PDF adjuntos.");
+        JsonNode partes = pedido.get().at("/contents/0/parts");
+        // Datos, etiqueta y el unico PDF que hay: la imagen no se envia y el PDF sin archivo tampoco
+        assertThat(partes).hasSize(3);
+        assertThat(partes.get(1).path("text").asText()).isEqualTo("Archivo de la evidencia " + certificado + ":");
+        assertThat(partes.get(2).at("/inline_data/mime_type").asText()).isEqualTo("application/pdf");
+        assertThat(java.util.Base64.getDecoder().decode(partes.get(2).at("/inline_data/data").asText())).isEqualTo(pdf);
+        String datos = partes.get(0).path("text").asText();
+        assertThat(datos).contains("\"ADJUNTO\"", "\"IMAGEN_NO_ENVIADA\"", "\"NO_DISPONIBLE\"");
+        assertThat(pedido.get().at("/systemInstruction/parts/0/text").asText()).contains("No se pudo leer el PDF");
+    }
+
+    @Test
+    void ccpip491LoQueSuperaElTopeNoSeAdjunta() throws IOException {
+        byte[] grande = new byte[(int) AnalistaGemini.MAX_ADJUNTOS_BYTES + 1];
+        Solicitud enorme = new Solicitud("Café orgánico", "Coop. Río Ene", LocalDate.of(2026, 10, 22), List.of(
+                new Evidencia(certificado, "CERTIFICADO", "Certificado", "Control Union", null, LocalDate.of(2027, 1, 1), "PDF", grande)));
+        responde("""
+                {"recomendacion": "REVISAR", "resumen": "", "hallazgos": []}""");
+        new AnalistaGemini(cliente(Duration.ofSeconds(5))).analizar(enorme);
+        assertThat(pedido.get().at("/contents/0/parts")).hasSize(1);
+        assertThat(pedido.get().at("/contents/0/parts/0/text").asText()).contains("\"NO_DISPONIBLE\"");
+    }
+
+    @Test
     void siGeminiFallaLaSolicitudPasaARevisionManual() {
         estado.set(500);
         respuesta.set("{}");

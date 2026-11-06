@@ -48,12 +48,30 @@ public class OpenAiCliente extends ClienteIaHttp {
 
     @Override
     public JsonNode generar(String instrucciones, String datos, Map<String, Object> esquema, double temperatura) {
+        return generar(instrucciones, datos, List.of(), esquema, temperatura);
+    }
+
+    /** CCPIP-491: cada adjunto va como una parte "file" en base64, precedida de un texto con su etiqueta. */
+    @Override
+    public JsonNode generar(String instrucciones, String datos, List<Adjunto> adjuntos, Map<String, Object> esquema,
+                            double temperatura) {
         Instant limite = Instant.now().plus(espera);
+        Object contenido = datos;
+        if (!adjuntos.isEmpty()) {
+            List<Map<String, Object>> partes = new java.util.ArrayList<>();
+            partes.add(Map.of("type", "text", "text", datos));
+            for (Adjunto a : adjuntos) {
+                partes.add(Map.of("type", "text", "text", a.etiqueta()));
+                partes.add(Map.of("type", "file", "file", Map.of(
+                        "filename", a.nombre(), "file_data", "data:" + a.mime() + ";base64," + a.base64())));
+            }
+            contenido = partes;
+        }
         Map<String, Object> cuerpo = new LinkedHashMap<>();
         cuerpo.put("model", modelo);
         cuerpo.put("messages", List.of(
                 Map.of("role", "system", "content", instrucciones),
-                Map.of("role", "user", "content", datos)));
+                Map.of("role", "user", "content", contenido)));
         cuerpo.put("temperature", temperatura);
         cuerpo.put("response_format", Map.of(
                 "type", "json_schema",
