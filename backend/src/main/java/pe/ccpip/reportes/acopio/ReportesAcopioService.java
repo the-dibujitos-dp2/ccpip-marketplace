@@ -202,18 +202,21 @@ public class ReportesAcopioService {
 
         jdbc.query("""
                 SELECT %s AS fecha, pr.id AS producto_id, pr.nombre AS producto, %s AS productor,
-                       CASE m.tipo
-                           WHEN 'SALIDA_VENTA' THEN CASE WHEN pe.estado IN %s THEN 1 ELSE 0 END
-                           WHEN 'TRANSFERENCIA_SALIDA' THEN 2
-                           WHEN 'SALIDA' THEN 3
+                       CASE
+                           -- CCPIP-485/486: lo que vuelve de un pedido para darse de baja deja de contar como vendido
+                           WHEN m.tipo = 'SALIDA_VENTA' OR m.motivo = 'REINTEGRO_PEDIDO'
+                               THEN CASE WHEN pe.estado IN %s THEN 1 ELSE 0 END
+                           WHEN m.tipo = 'TRANSFERENCIA_SALIDA' THEN 2
+                           WHEN m.tipo = 'SALIDA' THEN 3
                            ELSE 4
                        END AS columna,
-                       sum(m.cantidad) AS cantidad
+                       sum(CASE WHEN m.motivo = 'REINTEGRO_PEDIDO' THEN -m.cantidad ELSE m.cantidad END) AS cantidad
                 FROM movimiento_inventario m
                 JOIN producto pr ON pr.id = m.producto_id
                 JOIN productor po ON po.id = pr.productor_id
                 LEFT JOIN pedido pe ON pe.id = m.pedido_id
-                WHERE m.ubicacion_id IN %s AND m.tipo IN ('SALIDA_VENTA', 'TRANSFERENCIA_SALIDA', 'SALIDA', 'MERMA')
+                WHERE m.ubicacion_id IN %s
+                  AND (m.tipo IN ('SALIDA_VENTA', 'TRANSFERENCIA_SALIDA', 'SALIDA', 'MERMA') OR m.motivo = 'REINTEGRO_PEDIDO')
                   AND %s BETWEEN :desde AND :hasta
                 """.formatted(FECHA.formatted("m.registrado_en"), NOMBRE_PRODUCTOR, POR_ENTREGAR, SUS_PUNTOS,
                 FECHA.formatted("m.registrado_en")) + c.filtros() + """
@@ -339,6 +342,15 @@ public class ReportesAcopioService {
     private static final String CON_SIGNO = """
             CASE WHEN m.tipo IN ('ENTRADA', 'TRANSFERENCIA_ENTRADA') THEN m.cantidad ELSE -m.cantidad END""";
 
+    /**
+     * CCPIP-485/486: el reintegro de un pedido a su lote (para darlo de baja como merma) no es una entrada
+     * al punto sino lo vendido que vuelve: resta de las salidas en vez de sumar a las entradas. El saldo es
+     * el mismo.
+     */
+    private static final String ENTRA =
+            "(m.tipo IN ('ENTRADA', 'TRANSFERENCIA_ENTRADA') AND m.motivo IS DISTINCT FROM 'REINTEGRO_PEDIDO')";
+    private static final String SIN_REINTEGRO = "CASE WHEN m.motivo = 'REINTEGRO_PEDIDO' THEN -m.cantidad ELSE m.cantidad END";
+
     private static final String MOVIMIENTOS_DEL_PUNTO =
             "m.tipo IN ('ENTRADA', 'TRANSFERENCIA_ENTRADA', 'SALIDA', 'SALIDA_VENTA', 'TRANSFERENCIA_SALIDA', 'MERMA')";
 
@@ -374,7 +386,7 @@ public class ReportesAcopioService {
                 });
 
         jdbc.query("SELECT " + fecha + " AS fecha, pr.id AS producto_id, pr.nombre AS producto, " + NOMBRE_PRODUCTOR
-                + " AS productor, m.tipo IN ('ENTRADA', 'TRANSFERENCIA_ENTRADA') AS entra, sum(m.cantidad) AS cantidad "
+                + " AS productor, " + ENTRA + " AS entra, sum(" + SIN_REINTEGRO + ") AS cantidad "
                 + base + " AND " + fecha + " BETWEEN :desde AND :hasta GROUP BY 1, pr.id, pr.nombre, 4, 5",
                 c.parametros(), rs -> {
             int i = tramos.posicion(rs.getObject("fecha", LocalDate.class));
@@ -391,7 +403,8 @@ public class ReportesAcopioService {
         });
 
         jdbc.query("SELECT pr.id AS producto_id, pr.nombre AS producto, " + NOMBRE_PRODUCTOR
-                + " AS productor, sum(m.cantidad) AS cantidad " + base.replace(MOVIMIENTOS_DEL_PUNTO, "m.tipo = 'SALIDA_VENTA'")
+                + " AS productor, sum(" + SIN_REINTEGRO + ") AS cantidad "
+                + base.replace(MOVIMIENTOS_DEL_PUNTO, "(m.tipo = 'SALIDA_VENTA' OR m.motivo = 'REINTEGRO_PEDIDO')")
                 + " AND " + fecha + " <= :hasta AND EXISTS (SELECT 1 FROM pedido pe WHERE pe.id = m.pedido_id AND pe.estado IN "
                 + POR_ENTREGAR + ") GROUP BY pr.id, pr.nombre, 3", c.parametros(),
                 rs -> {

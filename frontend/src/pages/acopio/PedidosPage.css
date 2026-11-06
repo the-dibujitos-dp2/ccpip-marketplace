@@ -17,3 +17,8 @@
 .pedidos__pie { margin: 0; }
 
 .pedidos__recogio { margin: 0; font-weight: 600; color: var(--color-text-primary); }
+
+/* CCPIP-485/486: productos malogrados de una linea */
+.pedidos__por-entregar { display: block; color: var(--color-status-warning-fg, inherit); }
+.pedidos__incidencias { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px;
+  color: var(--color-text-secondary); }

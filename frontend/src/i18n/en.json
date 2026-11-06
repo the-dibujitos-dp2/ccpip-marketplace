@@ -1454,6 +1454,44 @@
       "capacidad": "Daily capacity: {{usados}} of {{maximo}} home deliveries today. Set by the Chamber.",
       "capacidadSinLimite_one": "No daily home-delivery limit · today: {{count}}",
       "capacidadSinLimite_other": "No daily home-delivery limit · today: {{count}}"
+    },
+    "malogrado": {
+      "abrir": "Damaged product",
+      "abrirDe": "Register damaged {{producto}} from order {{numero}}",
+      "titulo": "Damaged {{producto}} · order {{numero}}",
+      "instrucciones": "Indicate what was damaged before delivery. First try to replace it with another batch at the point; if there is none, the available quantity is delivered and the missing part is refunded to the buyer. {{cantidad}} units of this line are still to be delivered.",
+      "lote": "Damaged batch",
+      "elegir": "Choose",
+      "cantidad": "Damaged quantity (units)",
+      "accion": "How it is resolved",
+      "accionOpcion": {
+        "REEMPLAZAR": "Replace with another batch at the point",
+        "REEMBOLSAR": "Do not deliver it and refund the buyer"
+      },
+      "sinReemplazo": "There is no other valid batch of this product at the point: it can only be refunded.",
+      "loteReemplazo": "Replacement batch",
+      "resumenReemplazo": "The new batch covers the damaged units; the order price does not change.",
+      "resumenReembolso": "{{monto}} will be refunded to the buyer and the commission drops in the same proportion.",
+      "irreversible": "The damaged units are recorded as waste of the batch and the buyer is notified. This cannot be undone.",
+      "confirmarReemplazo": "Register and replace",
+      "confirmarReembolso": "Register and refund",
+      "error": "We could not register the damaged product",
+      "errorCargar": "We could not load the batches of the line",
+      "validacion": {
+        "lote": "Choose the damaged batch",
+        "excede": "That batch covers {{cantidad}} units of the line",
+        "reemplazo": "Choose the replacement batch"
+      },
+      "reemplazado": "The damaged units of order {{numero}} were replaced",
+      "reembolsado": "{{monto}} of order {{numero}} was refunded",
+      "anulado": "Order {{numero}} was cancelled: nothing is left to deliver and {{monto}} was refunded",
+      "avisado": "The buyer gets an email and sees it in their order.",
+      "porEntregar": "To deliver: {{cantidad}} units",
+      "incidenciasDe": "Damaged products of {{producto}}",
+      "incidencia": {
+        "REEMPLAZO": "Damaged: {{cantidad}} units ({{causa}}) · replaced with batch {{lote}}",
+        "FALTANTE": "Damaged: {{cantidad}} units ({{causa}}) · not delivered, {{monto}} refunded"
+      }
     }
   },
   "admin": {
@@ -2960,7 +2998,15 @@
       "PENDIENTE": "Processing",
       "ANULADO": "Refunded"
     },
-    "seguirComprando": "Continue shopping"
+    "seguirComprando": "Continue shopping",
+    "malogrado": {
+      "titulo": "Products damaged before delivery",
+      "REEMPLAZO": "{{cantidad}} of {{producto}} were damaged at the point: we replaced them with another batch. The price does not change.",
+      "FALTANTE": "{{cantidad}} of {{producto}} were damaged at the point and are not delivered: we refunded {{monto}}.",
+      "noEntregada": "{{cantidad}} not delivered (damaged, refunded)",
+      "reembolsado": "Refunded",
+      "totalFinal": "Total paid"
+    }
   },
   "misPedidos": {
     "miCuenta": "My account",
@@ -3215,7 +3261,8 @@
       "RECEPCION": "Received from producer",
       "DEVOLUCION_PRODUCTOR": "Returned to producer",
       "PRODUCCION": "Harvest or production",
-      "RETIRO_PRODUCTOR": "Taken out by producer"
+      "RETIRO_PRODUCTOR": "Taken out by producer",
+      "REINTEGRO_PEDIDO": "Returned from an order to be written off"
     },
     "validacion": {
       "lote": "Choose the batch",

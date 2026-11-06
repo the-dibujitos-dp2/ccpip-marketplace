@@ -276,3 +276,39 @@ describe('Fecha del pago aprobado (CCPIP-440)', () => {
     expect(pagos.getByText('3 de dic. 2026 · Visa · S/ 92.50')).toBeInTheDocument()
   })
 })
+
+describe('CCPIP-485/486 Productos malogrados antes de la entrega', () => {
+  it('el comprador ve lo reemplazado, lo que no se entrega, lo reembolsado y lo que termina pagando', async () => {
+    const conIncidencias = {
+      ...DETALLE,
+      lineas: [
+        { productoId: 8, nombre: 'Aceite de aguaje 250 ml', tienda: 'Asoc. Nii Joi', cantidad: 1, precioUnitario: 92.5, subtotal: 92.5, noEntregada: 0 },
+        { productoId: 9, nombre: 'Café de altura 500 g', tienda: 'Asoc. Nii Joi', cantidad: 2, precioUnitario: 30, subtotal: 60, noEntregada: 1 },
+      ],
+      incidencias: [
+        { tipo: 'REEMPLAZO', producto: 'Aceite de aguaje 250 ml', cantidad: 1, registradaEn: '2026-10-11T14:00:00Z' },
+        { tipo: 'FALTANTE', producto: 'Café de altura 500 g', cantidad: 1, reembolsado: 30, registradaEn: '2026-10-11T15:00:00Z' },
+      ],
+      reembolsado: 30,
+      totalFinal: 122.5,
+    }
+    servidor(comoComprador({ 'GET /api/pedidos/77': [200, conIncidencias] }))
+    abrirEn('/pedidos/77')
+
+    const malogrados = within(await screen.findByRole('region', { name: 'Productos malogrados antes de la entrega' }))
+    const items = malogrados.getAllByRole('listitem').map((li) => normal(li.textContent))
+    expect(items[0]).toMatch(/^1 de Aceite de aguaje 250 ml se malograron en el punto: los reemplazamos con otro lote\. El precio no cambia\./)
+    expect(items[1]).toMatch(/^1 de Café de altura 500 g se malograron en el punto y no se entregan: te devolvimos S\/ 30\.00\./)
+    expect(screen.getByText('1 no se entrega (malogrado, reembolsado)')).toBeInTheDocument()
+    expect(normal(screen.getByText('Reembolsado').nextElementSibling.textContent)).toBe('−S/ 30.00')
+    expect(normal(screen.getByText('Total pagado').nextElementSibling.textContent)).toBe('S/ 122.50')
+  })
+
+  it('sin incidencias no muestra la sección ni el reembolso', async () => {
+    servidor(comoComprador({ 'GET /api/pedidos/77': [200, DETALLE] }))
+    abrirEn('/pedidos/77')
+    await screen.findByRole('region', { name: 'Pago' })
+    expect(screen.queryByRole('region', { name: 'Productos malogrados antes de la entrega' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Reembolsado')).not.toBeInTheDocument()
+  })
+})

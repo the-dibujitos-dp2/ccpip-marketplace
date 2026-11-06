@@ -22,7 +22,8 @@ import pe.ccpip.liquidacion.LiquidacionModelos.Resumen;
 /**
  * CCPIP-92 (RF-70): el productor consulta su liquidacion por periodo. Lee solo lo que se copio al
  * confirmar cada pedido (RNF-13) y solo sus lineas, filtradas por {@code item_pedido.productor_id} en el
- * servidor (RNF-05). Un pedido cancelado despues del pago se anulo y no se liquida.
+ * servidor (RNF-05). Un pedido cancelado despues del pago se anulo y no se liquida. CCPIP-486: lo que se
+ * malogro y se reembolso no se liquida, y su comision anulada tampoco se descuenta.
  */
 @Service
 public class LiquidacionService {
@@ -30,9 +31,11 @@ public class LiquidacionService {
     /** Lineas propias de pedidos confirmados en el periodo; {@code i} es la linea y {@code pe} su pedido. */
     private static final String SUS_LINEAS = """
             FROM item_pedido i
+            JOIN ajuste_item_pedido a ON a.item_pedido_id = i.id
             JOIN pedido pe ON pe.id = i.pedido_id
             JOIN producto pr ON pr.id = i.producto_id
             WHERE i.productor_id = :productor
+              AND i.cantidad > a.cantidad_faltante
               AND pe.confirmado_en IS NOT NULL AND pe.estado <> 'CANCELADO'
               AND (pe.confirmado_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta
             """;
@@ -56,8 +59,10 @@ public class LiquidacionService {
                 .addValue("desde", inicio).addValue("hasta", fin);
         Map<Long, List<Linea>> lineas = new HashMap<>();
         jdbc.query("""
-                SELECT i.pedido_id, i.producto_id, pr.nombre, i.cantidad, i.precio_unitario, i.subtotal,
-                       coalesce(i.comision_monto, 0) AS comision, coalesce(i.neto, i.subtotal) AS neto
+                SELECT i.pedido_id, i.producto_id, pr.nombre, i.cantidad - a.cantidad_faltante AS cantidad, i.precio_unitario,
+                       i.subtotal - a.monto_reembolsado AS subtotal,
+                       coalesce(i.comision_monto, 0) - a.comision_anulada AS comision,
+                       coalesce(i.neto, i.subtotal) - (a.monto_reembolsado - a.comision_anulada) AS neto
                 """ + SUS_LINEAS + "ORDER BY i.id", p, rs -> {
                     lineas.computeIfAbsent(rs.getLong("pedido_id"), k -> new ArrayList<>())
                             .add(new Linea(rs.getLong("producto_id"), rs.getString("nombre"), rs.getBigDecimal("cantidad"),

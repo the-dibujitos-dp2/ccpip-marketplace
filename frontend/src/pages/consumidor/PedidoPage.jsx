@@ -147,6 +147,10 @@ function Detalle({ pedido }) {
                     <td>
                       <span className="pedido__producto">{l.nombre}</span>
                       <span className="caption">{t('carrito.deTienda', { nombre: l.tienda })}</span>
+                      {/* CCPIP-486: lo que se malogro y se reembolso en vez de entregarse */}
+                      {Number(l.noEntregada) > 0 && (
+                        <span className="caption pedido__no-entregada">{t('pedido.malogrado.noEntregada', { cantidad: Number(l.noEntregada) })}</span>
+                      )}
                     </td>
                     <td>{Number(l.cantidad)}</td>
                     <td>{precio(l.precioUnitario)}</td>
@@ -172,7 +176,34 @@ function Detalle({ pedido }) {
               <span>{t('carrito.total')}</span>
               <strong>{precio(pedido.totalAPagar ?? pedido.total)}</strong>
             </p>
+            {/* CCPIP-486: lo devuelto por productos que no se entregaron y lo que se termina pagando */}
+            {Number(pedido.reembolsado) > 0 && (
+              <dl className="pedido__cifras pedido__cifras--reembolso">
+                <div>
+                  <dt>{t('pedido.malogrado.reembolsado')}</dt>
+                  <dd className="valor-negativo">{`−${precio(pedido.reembolsado)}`}</dd>
+                </div>
+                <div>
+                  <dt className="label-m">{t('pedido.malogrado.totalFinal')}</dt>
+                  <dd className="label-m">{precio(pedido.totalFinal)}</dd>
+                </div>
+              </dl>
+            )}
           </section>
+          {/* CCPIP-485/486: lo que se malogro en el punto antes de la entrega y como se resolvio */}
+          {pedido.incidencias?.length > 0 && (
+            <section className="pedido__tarjeta" aria-labelledby="pedido-malogrados">
+              <h2 id="pedido-malogrados" className="pedido__tarjeta-titulo">{t('pedido.malogrado.titulo')}</h2>
+              <ul className="pedido__incidencias">
+                {pedido.incidencias.map((i, k) => (
+                  <li key={k}>
+                    <span>{t(`pedido.malogrado.${i.tipo}`, { cantidad: Number(i.cantidad), producto: i.producto, monto: precio(i.reembolsado ?? 0) })}</span>
+                    <time dateTime={i.registradaEn} className="caption">{diaMesLargoHora(i.registradaEn)}</time>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {pedido.estado === 'ENTREGADO' && <CalificarPedido pedidoId={pedido.id} />}
           {pedido.historial?.length > 0 && (
             <section className="pedido__tarjeta" aria-labelledby="pedido-historial">
