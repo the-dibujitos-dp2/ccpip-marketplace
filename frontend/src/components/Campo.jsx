@@ -4,6 +4,7 @@ import iconoAlerta from '../assets/icons/alerta-campo.svg'
 import iconoChevron from '../assets/icons/chevron-abajo.svg'
 import iconoOjo from '../assets/icons/ojo.svg'
 import iconoOjoTachado from '../assets/icons/ojo-tachado.svg'
+import CampoFecha from './CampoFecha.jsx'
 import Icono from './Icono.jsx'
 import './Campo.css'
 
@@ -12,6 +13,8 @@ import './Campo.css'
  * tipo: texto (por defecto) | area | selector | contrasena. Para selector, `opciones`: [{ valor, etiqueta }];
  * con `placeholder={false}` no ofrece la opcion vacia (cuando siempre hay una elegida).
  * contrasena: campo oculto con un boton de ojo para mostrar u ocultar lo escrito.
+ * Con `type="date"` es una fecha dd/mm/aaaa con calendario en el idioma de la plataforma (CampoFecha,
+ * CCPIP-455): recibe y devuelve ISO como el input nativo.
  */
 export default function Campo({ etiqueta, ayuda, error, tipo = 'texto', opciones = [], placeholder, className = '', id: idPropio, ...props }) {
   const { t } = useTranslation()
@@ -46,7 +49,8 @@ export default function Campo({ etiqueta, ayuda, error, tipo = 'texto', opciones
           <Icono src={iconoChevron} tamano={20} className="campo__chevron" />
         </div>
       )}
-      {tipo === 'texto' && <input placeholder={placeholder} {...control} />}
+      {tipo === 'texto' && props.type === 'date' && <Fecha control={control} etiqueta={etiqueta} />}
+      {tipo === 'texto' && props.type !== 'date' && <input placeholder={placeholder} {...control} />}
       {tipo === 'contrasena' && (
         <div className="campo__con-accion">
           <input placeholder={placeholder} {...control} type={visible ? 'text' : 'password'} />
@@ -69,5 +73,14 @@ export default function Campo({ etiqueta, ayuda, error, tipo = 'texto', opciones
         </p>
       )}
     </div>
+  )
+}
+
+/** Separa del control lo que CampoFecha maneja (valor, cambios, limites) */
+function Fecha({ control, etiqueta }) {
+  const { type, value, onChange, onBlur, min, max, name, disabled, ...resto } = control
+  return (
+    <CampoFecha control={resto} etiqueta={etiqueta} value={value} onChange={onChange} onBlur={onBlur}
+      min={min} max={max} name={name} disabled={disabled} />
   )
 }

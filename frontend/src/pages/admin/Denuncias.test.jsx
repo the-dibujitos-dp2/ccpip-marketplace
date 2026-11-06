@@ -250,7 +250,7 @@ describe('Pestañas y filtros del expediente (CCPIP-432)', () => {
     await user.type(buscador, 'practica indebida')
     expect(denunciasVisibles()).toEqual(['Denuncia 17'])
     await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
-    await user.type(screen.getByLabelText('Desde'), '2026-09-30')
+    await user.type(screen.getByLabelText('Desde'), '30/09/2026')
     expect(denunciasVisibles()).toEqual(['Denuncia 17'])
     await user.type(buscador, 'mala calidad')
     expect(screen.getByText('Nada coincide con la búsqueda y los filtros')).toBeInTheDocument()

@@ -7,7 +7,6 @@
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-xl);
   background: var(--color-bg-surface);
-  box-shadow: var(--shadow-tarjeta);
 }
 
 .tarjeta-kpi__encabezado { display: flex; align-items: center; justify-content: space-between; color: var(--color-text-secondary); }
@@ -19,3 +18,31 @@
 /* CCPIP-426: los lotes por vencer, en el amarillo de advertencia de Badge y Alerta */
 .tarjeta-kpi__detalle--aviso { color: var(--color-status-warning-fg); }
 .tarjeta-kpi--aviso .tarjeta-kpi__icono { background: var(--color-status-warning-bg); color: var(--color-status-warning-fg); }
+
+/* CCPIP-456: la que lleva a otra pantalla se distingue de las informativas (planas): sombra, cursor,
+   se eleva al pasar y dice a donde va. El enlace cubre toda la tarjeta. */
+.tarjeta-kpi--pulsable {
+  position: relative;
+  box-shadow: var(--shadow-tarjeta);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.tarjeta-kpi--pulsable:hover { border-color: var(--color-border-brand); box-shadow: 0 6px 16px rgb(0 0 0 / 10%); transform: translateY(-1px); }
+.tarjeta-kpi--pulsable:has(.tarjeta-kpi__enlace:focus-visible) { outline: 2px solid var(--color-border-focus); outline-offset: 2px; }
+.tarjeta-kpi__enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: auto;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-text-brand);
+  text-decoration: none;
+}
+.tarjeta-kpi__enlace::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.tarjeta-kpi__enlace:focus-visible { outline: none; }
+.tarjeta-kpi--pulsable:hover .tarjeta-kpi__enlace { text-decoration: underline; }
+.tarjeta-kpi__flecha { transform: rotate(-90deg); }
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta-kpi--pulsable, .tarjeta-kpi--pulsable:hover { transition: none; transform: none; }
+}

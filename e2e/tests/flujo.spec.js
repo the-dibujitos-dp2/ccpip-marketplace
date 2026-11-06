@@ -210,7 +210,7 @@ test.describe('Productor: arma su tienda y publica su producto', () => {
     await expect(page).toHaveURL(/paso=lote/)
     await expect(page.getByLabel('Código de lote')).toHaveValue('L-0001')
     await page.getByLabel('Cantidad').fill('60')
-    await page.getByLabel('Producción').fill(enDias(-10))
+    await page.getByLabel('Producción', { exact: true }).fill(enDias(-10))
     await page.getByLabel('Vencimiento', { exact: true }).fill(enDias(200))
     await page.getByLabel('Ingresa a').selectOption({ label: 'Centro Nacional Lima · punto de acopio' })
     await page.getByRole('button', { name: 'Registrar lote' }).click()

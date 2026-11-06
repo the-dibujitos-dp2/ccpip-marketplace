@@ -71,8 +71,8 @@ describe('Auditoría de operaciones sensibles (CCPIP-97)', () => {
 
     expect(screen.queryByRole('button', { name: /editar|eliminar|borrar/i })).not.toBeInTheDocument()
     expect(screen.getByText('Registro inalterable. Las correcciones se registran como nuevas operaciones.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Desde')).toHaveValue('2026-09-30')
-    expect(screen.getByLabelText('Hasta')).toHaveValue('2026-10-29')
+    expect(screen.getByLabelText('Desde')).toHaveValue('30/09/2026')
+    expect(screen.getByLabelText('Hasta')).toHaveValue('29/10/2026')
   })
 
   it('filtra por rol, acción y resultado al elegir, y por usuario al buscar', async () => {

@@ -54,7 +54,7 @@ describe('CCPIP-35 Registrar el envio de una evidencia fisica', () => {
     await user.type(dialogo.getByLabelText('Qué se envía'), 'Muestra de 150 g de camu camu')
     await user.type(dialogo.getByLabelText('Guía o referencia (opcional)'), 'Guía 001-2345')
     await user.clear(dialogo.getByLabelText('Fecha de envío'))
-    await user.type(dialogo.getByLabelText('Fecha de envío'), '2026-11-03')
+    await user.type(dialogo.getByLabelText('Fecha de envío'), '03/11/2026')
     await user.click(dialogo.getByRole('button', { name: 'Registrar envío' }))
 
     expect(await screen.findByText('Envío registrado')).toBeInTheDocument()
@@ -117,7 +117,7 @@ describe('CCPIP-329 Registrar la recepcion de una evidencia fisica', () => {
     expect(llamadas(fetchMock, `POST ${FISICAS}/3/recepcion`)).toHaveLength(0)
 
     await user.clear(dialogo.getByLabelText('Fecha de recepción'))
-    await user.type(dialogo.getByLabelText('Fecha de recepción'), '2026-11-05')
+    await user.type(dialogo.getByLabelText('Fecha de recepción'), '05/11/2026')
     await user.type(dialogo.getByLabelText('Observaciones (opcional)'), 'El empaque llegó abierto')
     await user.click(dialogo.getByRole('button', { name: 'Registrar recepción' }))
 

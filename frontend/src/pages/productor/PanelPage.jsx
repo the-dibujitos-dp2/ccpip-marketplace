@@ -82,10 +82,14 @@ export default function PanelPage({ path }) {
           )}
 
           <div className="productor__kpis">
-            <TarjetaKpi titulo={t('productor.panel.kpi.publicados')} valor={panel.publicados} detalle={t('productor.panel.kpi.borradores', { count: panel.borradores })} icono={iconoEtiquetaGlifo} />
-            <TarjetaKpi titulo={t('productor.panel.kpi.enVenta')} valor={t('comun.und', { cantidad: unidades(panel.stockEnVenta) })} detalle={t('productor.panel.kpi.enAcopios')} icono={iconoCajaGlifo} />
-            <TarjetaKpi titulo={t('productor.panel.kpi.porVencer')} valor={panel.lotesPorVencer.length} detalle={t('productor.panel.kpi.proximos', { dias: panel.diasAviso })} tono="aviso" icono={iconoReloj} />
-            <TarjetaKpi titulo={t('productor.panel.kpi.despublicados')} valor={panel.retirados} detalle={t('productor.panel.kpi.republicar')} icono={iconoGrafico} />
+            <TarjetaKpi titulo={t('productor.panel.kpi.publicados')} valor={panel.publicados} detalle={t('productor.panel.kpi.borradores', { count: panel.borradores })} icono={iconoEtiquetaGlifo}
+              destino={`${RUTAS.productorProductos}?estado=PUBLICADO`} accion={t('productor.panel.kpi.verProductos')} />
+            <TarjetaKpi titulo={t('productor.panel.kpi.enVenta')} valor={t('comun.und', { cantidad: unidades(panel.stockEnVenta) })} detalle={t('productor.panel.kpi.enAcopios')} icono={iconoCajaGlifo}
+              destino={RUTAS.productorAlmacen} accion={t('productor.panel.kpi.verExistencias')} />
+            <TarjetaKpi titulo={t('productor.panel.kpi.porVencer')} valor={panel.lotesPorVencer.length} detalle={t('productor.panel.kpi.proximos', { dias: panel.diasAviso })} tono="aviso" icono={iconoReloj}
+              destino={RUTAS.productorAlertas} accion={t('productor.panel.kpi.verAlertas')} />
+            <TarjetaKpi titulo={t('productor.panel.kpi.despublicados')} valor={panel.retirados} detalle={t('productor.panel.kpi.republicar')} icono={iconoGrafico}
+              destino={`${RUTAS.productorProductos}?estado=RETIRADO`} accion={t('productor.panel.kpi.verDespublicados')} />
           </div>
 
           {alertaVisible && panel.lotesPorVencer.length > 0 && (

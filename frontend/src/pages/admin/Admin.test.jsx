@@ -45,6 +45,21 @@ describe('SA-01 Tablero de operación del superadministrador (CCPIP-111)', () =>
     expect(kpi('Calificación promedio').getByText('Disponible pronto')).toBeInTheDocument()
   })
 
+  it('CCPIP-456: las cifras con destino llevan a su pantalla; las informativas no aparentan ser pulsables', async () => {
+    servidor(comoSuper())
+    abrirEn('/admin')
+    await screen.findByRole('region', { name: 'Ventas brutas del mes' })
+    expect(kpi('Ventas brutas del mes').getByRole('link', { name: 'Ver reportes de ventas: Ventas brutas del mes' })).toHaveAttribute('href', '/admin/reportes')
+    expect(kpi('Comisión estimada del mes').getByRole('link', { name: 'Configurar comisión: Comisión estimada del mes' })).toHaveAttribute('href', '/admin/comision')
+    for (const nombre of ['Ventas brutas del mes', 'Comisión estimada del mes']) {
+      expect(screen.getByRole('region', { name: nombre })).toHaveClass('tarjeta-kpi--pulsable')
+    }
+    for (const nombre of ['Productores activos', 'Calificación promedio']) {
+      expect(screen.getByRole('region', { name: nombre })).not.toHaveClass('tarjeta-kpi--pulsable')
+      expect(kpi(nombre).queryByRole('link')).not.toBeInTheDocument()
+    }
+  })
+
   it('una caída de ventas se marca en rojo y sin mes anterior no hay porcentaje', async () => {
     const baja = copia(DATOS.tableroAdmin)
     baja.ventas.variacion = -12.5

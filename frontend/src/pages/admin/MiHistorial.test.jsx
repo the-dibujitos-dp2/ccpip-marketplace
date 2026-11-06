@@ -65,8 +65,8 @@ describe('S-05 Mi historial del sub administrador (CCPIP-126)', () => {
     // Solo lectura: ninguna fila ofrece editar ni borrar
     expect(screen.queryByRole('button', { name: /editar|eliminar|borrar/i })).not.toBeInTheDocument()
     expect(screen.getByText('Registro inalterable. Las correcciones se registran como nuevas acciones.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Desde')).toHaveValue('2026-10-01')
-    expect(screen.getByLabelText('Hasta')).toHaveValue('2026-10-30')
+    expect(screen.getByLabelText('Desde')).toHaveValue('01/10/2026')
+    expect(screen.getByLabelText('Hasta')).toHaveValue('30/10/2026')
   })
 
   it('filtra por tipo de acción y por periodo', async () => {
@@ -82,7 +82,7 @@ describe('S-05 Mi historial del sub administrador (CCPIP-126)', () => {
     expect(llamadas(fetchMock, `GET ${RUTA}?desde=2026-10-01&hasta=2026-10-30&tipo=PRODUCTORES`)).toHaveLength(1)
 
     await user.clear(screen.getByLabelText('Desde'))
-    await user.type(screen.getByLabelText('Desde'), '2026-09-01')
+    await user.type(screen.getByLabelText('Desde'), '01/09/2026')
     expect(llamadas(fetchMock, `GET ${RUTA}?desde=2026-09-01&hasta=2026-10-30&tipo=PRODUCTORES`)).toHaveLength(1)
   })
 
@@ -97,9 +97,9 @@ describe('S-05 Mi historial del sub administrador (CCPIP-126)', () => {
     abrirEn('/admin/mi-historial')
     await filas()
     await user.clear(screen.getByLabelText('Desde'))
-    await user.type(screen.getByLabelText('Desde'), '2026-09-01')
+    await user.type(screen.getByLabelText('Desde'), '01/09/2026')
     await user.clear(screen.getByLabelText('Desde'))
-    await user.type(screen.getByLabelText('Desde'), '2026-09-02')
+    await user.type(screen.getByLabelText('Desde'), '02/09/2026')
     expect(await screen.findByText('No registraste acciones en este periodo.')).toBeInTheDocument()
     liberarAntigua([200, copia(HISTORIAL)])
     await waitFor(() => expect(screen.getByText('No registraste acciones en este periodo.')).toBeInTheDocument())
@@ -119,9 +119,9 @@ describe('S-05 Mi historial del sub administrador (CCPIP-126)', () => {
     abrirEn('/admin/mi-historial')
     await filas()
     await user.clear(screen.getByLabelText('Desde'))
-    await user.type(screen.getByLabelText('Desde'), '2026-09-01')
+    await user.type(screen.getByLabelText('Desde'), '01/09/2026')
     await user.clear(screen.getByLabelText('Desde'))
-    await user.type(screen.getByLabelText('Desde'), '2026-09-02')
+    await user.type(screen.getByLabelText('Desde'), '02/09/2026')
     expect(await screen.findByText('No registraste acciones en este periodo.')).toBeInTheDocument()
     rechazarAntigua(new Error('fallo obsoleto'))
     await waitFor(() => expect(screen.queryByText(/fallo obsoleto/)).not.toBeInTheDocument())

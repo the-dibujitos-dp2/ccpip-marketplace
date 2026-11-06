@@ -76,10 +76,10 @@ test.describe('Mi historial del sub administrador (CCPIP-126)', () => {
     await expect(fila(page, BLOQUEO_PROPIO)).toBeVisible()
 
     // Filtro por periodo: un mes que termino hace 30 dias no las incluye
-    await page.getByLabel('Desde').fill(enDias(-60))
-    await page.getByLabel('Hasta').fill(enDias(-31))
+    await page.getByLabel('Desde', { exact: true }).fill(enDias(-60))
+    await page.getByLabel('Hasta', { exact: true }).fill(enDias(-31))
     await expect(page.getByText(BLOQUEO_PROPIO)).toHaveCount(0)
-    await page.getByLabel('Hasta').fill(enDias(0))
+    await page.getByLabel('Hasta', { exact: true }).fill(enDias(0))
     await expect(fila(page, BLOQUEO_PROPIO)).toBeVisible()
 
     // "Sobre" lleva a la ficha del productor

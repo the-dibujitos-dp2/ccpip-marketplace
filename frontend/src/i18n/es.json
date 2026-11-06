@@ -109,7 +109,11 @@
         "porVencer": "Lotes por vencer",
         "proximos": "En los próximos {{dias}} días",
         "despublicados": "Despublicados",
-        "republicar": "Puedes volver a publicarlos"
+        "republicar": "Puedes volver a publicarlos",
+        "verProductos": "Ver productos publicados",
+        "verExistencias": "Ver existencias",
+        "verAlertas": "Ver alertas de vencimiento",
+        "verDespublicados": "Ver despublicados"
       },
       "porVencer_one": "{{count}} lote vence pronto (según tu alerta de {{dias}} días)",
       "porVencer_other": "{{count}} lotes vencen pronto (según tu alerta de {{dias}} días)",
@@ -1558,7 +1562,9 @@
         "nuevos_one": "+ {{count}} nuevo este mes",
         "nuevos_other": "+ {{count}} nuevos este mes",
         "calificacion": "Calificación promedio",
-        "sinComision": "Sin comisión configurada"
+        "sinComision": "Sin comisión configurada",
+        "verReportes": "Ver reportes de ventas",
+        "verComision": "Configurar comisión"
       },
       "variacion": "{{flecha}} {{valor}} % vs. {{mes}}",
       "sinComparacion": "Sin ventas en {{mes}} para comparar",
@@ -2129,7 +2135,50 @@
   "campo": {
     "elegir": "Elige una opción",
     "ocultarContrasena": "Ocultar contraseña",
-    "mostrarContrasena": "Mostrar contraseña"
+    "mostrarContrasena": "Mostrar contraseña",
+    "fecha": {
+      "formato": "dd/mm/aaaa",
+      "abrir": "Abrir calendario: {{etiqueta}}",
+      "calendario": "Calendario: {{etiqueta}}",
+      "anterior": "Mes anterior",
+      "siguiente": "Mes siguiente",
+      "hoy": "Hoy",
+      "borrar": "Borrar",
+      "meses": [
+        "enero",
+        "febrero",
+        "marzo",
+        "abril",
+        "mayo",
+        "junio",
+        "julio",
+        "agosto",
+        "septiembre",
+        "octubre",
+        "noviembre",
+        "diciembre"
+      ],
+      "dias": [
+        "lu",
+        "ma",
+        "mi",
+        "ju",
+        "vi",
+        "sá",
+        "do"
+      ],
+      "diasLargos": [
+        "lunes",
+        "martes",
+        "miércoles",
+        "jueves",
+        "viernes",
+        "sábado",
+        "domingo"
+      ],
+      "dia": "{{diaSemana}} {{dia}} de {{mes}} de {{anio}}",
+      "mesAnio": "{{mes}} {{anio}}"
+    }
   },
   "roles": {
     "CONSUMIDOR": "Consumidor final",
@@ -4839,5 +4888,8 @@
     "errorDecidir": "No pudimos guardar la decisión",
     "aprobada": "«{{nombre}}» ({{codigo}}) ya está en el catálogo.",
     "rechazada": "Rechazaste «{{nombre}}». El productor verá el motivo."
+  },
+  "kpi": {
+    "verDetalle": "Ver detalle"
   }
 }

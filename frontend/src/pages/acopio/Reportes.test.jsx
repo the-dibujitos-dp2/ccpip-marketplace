@@ -114,8 +114,8 @@ describe('A-06 Reportes del punto de acopio', () => {
     expect(await screen.findByText('Centro Nacional Lima / Reportes')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Entradas', pressed: true })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Mensual', pressed: true })).toBeInTheDocument()
-    expect(screen.getByLabelText('Desde')).toHaveValue('2026-01-01')
-    expect(screen.getByLabelText('Hasta')).toHaveValue('2026-03-18')
+    expect(screen.getByLabelText('Desde')).toHaveValue('01/01/2026')
+    expect(screen.getByLabelText('Hasta')).toHaveValue('18/03/2026')
     expect(screen.getByLabelText('Productor')).toHaveValue('')
 
     expect(screen.getByRole('region', { name: 'Unidades recibidas' })).toHaveTextContent('92 und')

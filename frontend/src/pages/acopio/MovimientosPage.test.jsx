@@ -120,8 +120,8 @@ describe('A-03 Movimientos del punto de acopio (CCPIP-158)', () => {
 
     await user.click(screen.getByRole('tab', { name: 'Salidas' }))
     await user.type(screen.getByRole('searchbox'), 'cafe')
-    await user.type(screen.getByLabelText('Desde'), '2026-11-01')
-    await user.type(screen.getByLabelText('Hasta'), '2026-11-30')
+    await user.type(screen.getByLabelText('Desde'), '01/11/2026')
+    await user.type(screen.getByLabelText('Hasta'), '30/11/2026')
     await user.type(screen.getByLabelText('Cantidad mínima'), '1')
     await user.type(screen.getByLabelText('Cantidad máxima'), '5')
     await waitFor(() => expect(llamadas(fetchMock, FILTRADO)).toHaveLength(1))
