@@ -50,7 +50,7 @@ public class PagoService {
 
     private static final Logger log = LoggerFactory.getLogger(PagoService.class);
 
-    private record Intento(long id, long pedidoId, String numero, BigDecimal monto) {
+    private record Intento(long id, long pedidoId, String numero, BigDecimal monto, String moneda) {
     }
 
     private final NamedParameterJdbcTemplate jdbc;
@@ -93,7 +93,7 @@ public class PagoService {
 
         ResultadoCobro cobro;
         try {
-            cobro = pasarela.cobrar(intento.numero(), intento.monto(), tarjeta);
+            cobro = pasarela.cobrar(intento.numero(), intento.monto(), intento.moneda(), tarjeta);
         } catch (RuntimeException e) {
             log.warn("La pasarela {} fallo al cobrar el pedido {}: {}", pasarela.nombre(), intento.numero(), e.getMessage());
             cobro = new ResultadoCobro(Estado.ERROR, null, "PASARELA_NO_DISPONIBLE",
@@ -180,13 +180,14 @@ public class PagoService {
 
     private Intento registrar(long usuarioId, long pedidoId, UUID clave, Tarjeta.Marca marca) {
         MapSqlParameterSource p = new MapSqlParameterSource("id", pedidoId).addValue("usuario", usuarioId);
-        record Pagable(String numero, String estado, BigDecimal total) {
+        record Pagable(String numero, String estado, BigDecimal total, String moneda) {
         }
         // CCPIP-483: se cobran los productos y el envio copiado al pedido (0 en recojo)
         Pagable pedido = jdbc.query("""
-                        SELECT numero, estado, total + costo_envio AS total FROM pedido
+                        SELECT numero, estado, total + costo_envio AS total, moneda FROM pedido
                         WHERE id = :id AND usuario_id = :usuario FOR UPDATE""", p,
-                        (rs, row) -> new Pagable(rs.getString("numero"), rs.getString("estado"), rs.getBigDecimal("total")))
+                        (rs, row) -> new Pagable(rs.getString("numero"), rs.getString("estado"), rs.getBigDecimal("total"),
+                                rs.getString("moneda")))
                 .stream().findFirst()
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "No encontramos ese pedido."));
         if (!"PENDIENTE_PAGO".equals(pedido.estado())) {
@@ -196,12 +197,12 @@ public class PagoService {
             });
         }
         p.addValue("clave", clave).addValue("monto", pedido.total()).addValue("pasarela", pasarela.nombre())
-                .addValue("marca", marca.name());
+                .addValue("marca", marca.name()).addValue("moneda", pedido.moneda());
         try {
             long pagoId = jdbc.queryForObject("""
-                    INSERT INTO pago (pedido_id, clave_idempotencia, monto, pasarela, marca_tarjeta)
-                    VALUES (:id, :clave, :monto, :pasarela, :marca) RETURNING id""", p, Long.class);
-            return new Intento(pagoId, pedidoId, pedido.numero(), pedido.total());
+                    INSERT INTO pago (pedido_id, clave_idempotencia, monto, pasarela, marca_tarjeta, moneda)
+                    VALUES (:id, :clave, :monto, :pasarela, :marca, :moneda) RETURNING id""", p, Long.class);
+            return new Intento(pagoId, pedidoId, pedido.numero(), pedido.total(), pedido.moneda());
         } catch (DuplicateKeyException e) {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "PAGO_EN_CURSO",
                     "Ya hay un pago en curso para este pedido. Espera su resultado antes de reintentar.");

@@ -22,7 +22,7 @@ const CONFIRMADOS = {
       lineas: [
         {
           productoId: 9, producto: 'Aceite de sacha inchi', imagen: '/api/imagenes/a?tam=min', cantidad: 2,
-          precioUnitario: 32, subtotal: 64, comision: 6.4, neto: 57.6,
+          precioUnitario: 32, subtotal: 64, tarifa: 'MAYORISTA', comision: 6.4, neto: 57.6,
           lotes: [{ codigo: 'L-0231', cantidad: 2, fechaVencimiento: '2027-01-20' }],
         },
       ],
@@ -71,6 +71,8 @@ describe('CCPIP-66 Pedidos del productor (PW-07)', () => {
 
     const detalle = screen.getByRole('complementary', { name: 'MC-00148' })
     expect(within(detalle).getByText('Lote L-0231 · 2 und · vence 20 ene 2027')).toBeInTheDocument()
+    // CCPIP-370: con que modalidad compro el comprador
+    expect(within(detalle).getByText(/· Venta mayorista$/)).toBeInTheDocument()
     expect(within(detalle).getByText('Comisión de la Cámara')).toBeInTheDocument()
     expect(within(detalle).getByText('− S/ 6.40')).toBeInTheDocument()
     expect(within(detalle).getByText('S/ 57.60')).toBeInTheDocument()

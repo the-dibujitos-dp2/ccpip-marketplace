@@ -31,7 +31,12 @@ public class PasarelaSimulada implements PasarelaPago {
     }
 
     @Override
-    public ResultadoCobro cobrar(String referencia, BigDecimal monto, Tarjeta tarjeta) {
+    public ResultadoCobro cobrar(String referencia, BigDecimal monto, String moneda, Tarjeta tarjeta) {
+        // Como una pasarela real configurada para soles: otra moneda se rechaza sin cobrar
+        if (!SOLES.equals(moneda)) {
+            return new ResultadoCobro(Estado.RECHAZADO, null, "MONEDA_NO_ADMITIDA",
+                    "Solo podemos cobrar en soles (S/).");
+        }
         ResultadoCobro respuesta = RESPUESTAS.get(tarjeta.digitos());
         if (respuesta != null) {
             return respuesta;
