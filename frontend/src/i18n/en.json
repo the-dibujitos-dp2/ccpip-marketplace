@@ -1456,7 +1456,6 @@
       "reactivar": "Reactivate",
       "tituloReactivar": "Reactivate delivery zone",
       "confirmarReactivar": "Deliver to this district again? It will be offered at checkout from now on, if the district has a shipping rate. The change is recorded.",
-      "confirmarReactivacion": "Reactivate",
       "errorReactivar": "The zone could not be reactivated. Please try again.",
       "reactivada": "{{distrito}} is offered again for home delivery.",
       "desactivada": "{{distrito}} is no longer offered for home delivery.",

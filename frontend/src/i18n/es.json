@@ -1456,7 +1456,6 @@
       "reactivar": "Reactivar",
       "tituloReactivar": "Reactivar zona de cobertura",
       "confirmarReactivar": "¿Volver a entregar a domicilio en este distrito? Se ofrecerá en la compra desde ahora, si el distrito tiene tarifa de envío. El cambio queda registrado.",
-      "confirmarReactivacion": "Reactivar",
       "errorReactivar": "No se pudo reactivar la zona. Inténtalo nuevamente.",
       "reactivada": "{{distrito}} vuelve a ofrecerse para entregas a domicilio.",
       "desactivada": "{{distrito}} ya no se ofrece para entregas a domicilio.",
