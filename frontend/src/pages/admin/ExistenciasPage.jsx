@@ -9,9 +9,11 @@ import { existenciasAgregadas } from '../../api/admin.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Cargando from '../../components/Cargando.jsx'
+import Enlace from '../../components/Enlace.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { fechaLarga, unidades } from '../../formato.js'
+import { RUTAS } from '../../router.js'
 import '../productor/productor.css'
 import './admin.css'
 import './ExistenciasPage.css'
@@ -20,6 +22,7 @@ import './ExistenciasPage.css'
  * CCPIP-354 (RF-244): el superadministrador consulta las existencias agregadas de los puntos de acopio.
  * Solo lectura y solo cifras agregadas por punto y por linea: el detalle por productor y lote es del
  * administrador de cada punto (A-02), asi que esta pantalla no enlaza a ningun inventario (SA-08).
+ * CCPIP-451: cada punto abre su detalle, tambien agregado (por linea, sin productores ni productos).
  */
 export default function ExistenciasPage({ path }) {
   const { t } = useTranslation()
@@ -66,7 +69,8 @@ function Resultado({ datos }) {
           {paginaPuntos.filas.map((p) => (
             <div key={p.id} className="tabla__fila" role="row">
               <span className="tabla__celda tabla__celda--flex" role="cell">
-                <span className="label-m">{p.nombre}</span>
+                <Enlace to={`${RUTAS.adminExistencias}/${p.id}`} className="label-m existencias__enlace"
+                  aria-label={t('admin.existencias.verDetalle', { punto: p.nombre })}>{p.nombre}</Enlace>
                 <span className="caption existencias__lugar">{[p.provincia, p.departamento].filter(Boolean).join(', ')}</span>
               </span>
               <span className="tabla__celda existencias__conteo" role="cell">{p.productos}</span>
@@ -112,7 +116,7 @@ function Resultado({ datos }) {
 }
 
 /** Una cantidad por unidad ("200 Kilogramo"); las unidades distintas no se suman entre si. */
-function Cantidades({ lista, campo }) {
+export function Cantidades({ lista, campo }) {
   const conSaldo = lista.filter((c) => Number(c[campo]) > 0)
   if (conSaldo.length === 0) return <span className="caption">—</span>
   return (

@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
-import { copia, DATOS, PUBLICAS, servidor, SESION_SUB, SESION_SUPER } from '../../test/servidor.js'
+import { copia, DATOS, llamadas, PUBLICAS, servidor, SESION_SUB, SESION_SUPER } from '../../test/servidor.js'
 
 function abrirEn(ruta) {
   window.history.replaceState(null, '', ruta)
@@ -83,6 +83,59 @@ describe('CCPIP-354 Existencias agregadas de los puntos de acopio', () => {
   it('el sub administrador no la ve', async () => {
     servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_SUB], 'GET /api/admin/autorizaciones': () => [200, { contadores: {}, solicitudes: [] }] })
     abrirEn('/admin/existencias')
+    await screen.findByRole('navigation', { name: 'Sub administrador' })
+    expect(window.location.pathname).toBe('/admin/autorizaciones')
+  })
+})
+
+const DETALLE_LIMA = {
+  fecha: '2026-11-18',
+  diasPorVencer: 7,
+  punto: EXISTENCIAS.puntos[0],
+  lotesPorVencer: 2,
+  lineas: [
+    { codigo: 'CAFE', nombre: 'Café', productos: 2, productores: 2, lotes: 3, lotesVencidos: 1, lotesPorVencer: 2,
+      cantidades: [{ unidad: 'KG', nombreUnidad: 'Kilogramo', vigente: 120.5, vencido: 4 }] },
+    { codigo: null, nombre: null, productos: 1, productores: 1, lotes: 1, lotesVencidos: 0, lotesPorVencer: 0,
+      cantidades: [{ unidad: 'UNIDAD', nombreUnidad: 'Unidad', vigente: 30, vencido: 0 }] },
+  ],
+}
+
+describe('CCPIP-451 Detalle de existencias por punto de acopio', () => {
+  it('al pulsar un punto abre su detalle por línea, con lotes vencidos y por vencer', async () => {
+    const fetchMock = comoSuper({ 'GET /api/admin/reportes/existencias/1': () => [200, copia(DETALLE_LIMA)] })
+    const user = userEvent.setup()
+    abrirEn('/admin/existencias')
+    await user.click(await screen.findByRole('link', { name: 'Ver el detalle de existencias de Centro Nacional Lima' }))
+    expect(window.location.pathname).toBe('/admin/existencias/1')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Centro Nacional Lima' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Lotes vencidos' })).toHaveTextContent('2 lotes por vencer en 7 días')
+    expect(screen.getByRole('region', { name: 'Productores' })).toHaveTextContent('2')
+    const [, cafe, sinLinea] = within(screen.getByRole('table', { name: 'Por línea de producto' })).getAllByRole('row')
+    expect(within(cafe).getByText('Café')).toBeInTheDocument()
+    expect(within(cafe).getByText('120.5 Kilogramo')).toBeInTheDocument()
+    expect(within(sinLinea).getByText('Sin línea')).toBeInTheDocument()
+    // Sigue siendo solo consulta
+    expect(screen.queryByRole('button', { name: /editar|ajustar|registrar/i })).not.toBeInTheDocument()
+    // El menu sigue marcando Existencias
+    expect(within(screen.getByRole('navigation', { name: 'Super administrador' })).getByRole('link', { name: 'Existencias' }))
+      .toHaveAttribute('aria-current', 'page')
+
+    await user.click(screen.getByRole('link', { name: '← Volver a Existencias' }))
+    expect(window.location.pathname).toBe('/admin/existencias')
+    expect(llamadas(fetchMock, 'GET /api/admin/reportes/existencias/1')).toHaveLength(1)
+  })
+
+  it('un punto que no existe lo dice', async () => {
+    comoSuper({ 'GET /api/admin/reportes/existencias/99': () => [404, { code: 'PUNTO_NO_ENCONTRADO' }] })
+    abrirEn('/admin/existencias/99')
+    expect(await screen.findByText('No encontramos ese punto de acopio')).toBeInTheDocument()
+  })
+
+  it('el sub administrador no abre el detalle', async () => {
+    servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_SUB], 'GET /api/admin/autorizaciones': () => [200, { contadores: {}, solicitudes: [] }] })
+    abrirEn('/admin/existencias/1')
     await screen.findByRole('navigation', { name: 'Sub administrador' })
     expect(window.location.pathname).toBe('/admin/autorizaciones')
   })

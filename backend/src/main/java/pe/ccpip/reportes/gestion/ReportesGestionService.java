@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -31,6 +32,7 @@ import pe.ccpip.reportes.gestion.GestionModelos.Destino;
 import pe.ccpip.reportes.gestion.GestionModelos.Estrellas;
 import pe.ccpip.reportes.gestion.GestionModelos.Flujo;
 import pe.ccpip.reportes.gestion.GestionModelos.Indicador;
+import pe.ccpip.reportes.gestion.GestionModelos.ProductoPublicado;
 import pe.ccpip.reportes.gestion.GestionModelos.IndicadoresActividad;
 import pe.ccpip.reportes.gestion.GestionModelos.IndicadoresProductores;
 import pe.ccpip.reportes.gestion.GestionModelos.IndicadoresProductos;
@@ -417,6 +419,7 @@ public class ReportesGestionService {
                 comparar(BigDecimal.valueOf(actual.productores()), BigDecimal.valueOf(previa.productores())),
                 comparar(contar(nuevosProductores, rango), contar(nuevosProductores, anterior)));
         String nuevosProductos = "SELECT count(*) FROM producto WHERE " + PUBLICADO_EN_RANGO;
+        Map<String, List<ProductoPublicado>> productosPorLinea = productosPublicadosPorLinea();
         IndicadoresProductos productos = new IndicadoresProductos(
                 jdbc.getJdbcTemplate().queryForObject("SELECT count(*) FROM producto WHERE estado = 'PUBLICADO'", Long.class),
                 comparar(contar(nuevosProductos, rango), contar(nuevosProductos, anterior)),
@@ -427,7 +430,8 @@ public class ReportesGestionService {
                         LEFT JOIN producto p ON p.linea_id = l.id AND p.estado = 'PUBLICADO'
                         WHERE l.activo
                         GROUP BY l.id ORDER BY publicados DESC, l.nombre""",
-                        (rs, row) -> new LineaPublicados(rs.getString("codigo"), rs.getString("nombre"), rs.getLong("publicados"))));
+                        (rs, row) -> new LineaPublicados(rs.getString("codigo"), rs.getString("nombre"), rs.getLong("publicados"),
+                                productosPorLinea.getOrDefault(rs.getString("codigo"), List.of()))));
 
         String registros = """
                 SELECT count(*) FROM usuario u JOIN rol r ON r.id = u.rol_id
@@ -562,5 +566,40 @@ public class ReportesGestionService {
             return BigDecimal.ZERO;
         }
         return parte.multiply(BigDecimal.valueOf(100)).divide(todo, 1, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * CCPIP-450: los productos publicados hoy de cada linea (por codigo de linea), de mas a menos
+     * publicaciones, cada uno con los productores que lo ofrecen (por el nombre de su tienda, sin repetir).
+     * Las ofertas del mismo producto del catalogo maestro se juntan; una sin asociar cuenta por su nombre.
+     */
+    private Map<String, List<ProductoPublicado>> productosPublicadosPorLinea() {
+        record Fila(String linea, String producto, long publicaciones, String productor) {
+        }
+        List<Fila> filas = jdbc.query("""
+                SELECT l.codigo AS linea, coalesce(m.nombre, p.nombre) AS producto,
+                       coalesce(pr.nombre_tienda, pr.comunidad) AS productor, count(*) AS publicaciones
+                FROM producto p
+                JOIN linea_producto l ON l.id = p.linea_id
+                JOIN productor pr ON pr.id = p.productor_id
+                LEFT JOIN producto_maestro m ON m.id = p.producto_maestro_id
+                WHERE p.estado = 'PUBLICADO' AND l.activo
+                GROUP BY l.codigo, coalesce(m.nombre, p.nombre), coalesce(pr.nombre_tienda, pr.comunidad)
+                ORDER BY l.codigo, producto, productor""", new MapSqlParameterSource(),
+                (rs, row) -> new Fila(rs.getString("linea"), rs.getString("producto"), rs.getLong("publicaciones"),
+                        rs.getString("productor")));
+        Map<String, Map<String, List<Fila>>> agrupadas = new LinkedHashMap<>();
+        for (Fila f : filas) {
+            agrupadas.computeIfAbsent(f.linea(), k -> new LinkedHashMap<>())
+                    .computeIfAbsent(f.producto(), k -> new ArrayList<>()).add(f);
+        }
+        Map<String, List<ProductoPublicado>> porLinea = new HashMap<>();
+        agrupadas.forEach((linea, productos) -> porLinea.put(linea, productos.entrySet().stream()
+                .map(e -> new ProductoPublicado(e.getKey(), e.getValue().stream().mapToLong(Fila::publicaciones).sum(),
+                        e.getValue().stream().map(Fila::productor).toList()))
+                .sorted(Comparator.comparingLong(ProductoPublicado::publicaciones).reversed()
+                        .thenComparing(ProductoPublicado::producto))
+                .toList()));
+        return porLinea;
     }
 }

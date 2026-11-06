@@ -385,7 +385,13 @@ const INDICADORES = {
     publicados: 40,
     nuevos: indicador(6, 4, 50),
     conVentas: indicador(4, 5, -20),
-    porLinea: [{ codigo: 'CAFE', nombre: 'Café', publicados: 25 }, { codigo: 'MIEL', nombre: 'Miel y derivados', publicados: 0 }],
+    porLinea: [
+      { codigo: 'CAFE', nombre: 'Café', publicados: 25, productos: [
+        { producto: 'Café tostado en grano', publicaciones: 5, productores: ['Asháninka de Pampa Michi', 'Cacaoteros de Umukai', 'Tejedoras de Chinchero', 'Bordadoras de San Francisco'] },
+        { producto: 'Café molido', publicaciones: 1, productores: ['Asháninka de Pampa Michi'] },
+      ] },
+      { codigo: 'MIEL', nombre: 'Miel y derivados', publicados: 0, productos: [] },
+    ],
   },
   actividad: {
     compradores: indicador(4, 2, 100),
@@ -448,11 +454,34 @@ describe('CCPIP-350 Indicadores de productos (SA-10)', () => {
     expect(within(productos).getByRole('region', { name: 'Productos publicados' })).toHaveTextContent('40')
     expect(within(productos).getByRole('region', { name: 'Productos nuevos' })).toHaveTextContent('+50% frente al período anterior')
     expect(within(productos).getByRole('region', { name: 'Productos con ventas' })).toHaveTextContent('-20% frente al período anterior')
-    const lineas = within(screen.getByRole('table', { name: 'Productos publicados por línea' })).getAllByRole('row')
-    expect(lineas).toHaveLength(3)
-    // Una linea sin productos tambien aparece
-    expect(within(lineas[2]).getByText('Miel y derivados')).toBeInTheDocument()
-    expect(within(lineas[2]).getByText('0')).toBeInTheDocument()
+    const lineas = within(screen.getByRole('list', { name: 'Productos publicados por línea' })).getAllByRole('listitem')
+    expect(lineas).toHaveLength(2)
+    expect(within(lineas[0]).getByText('25 publicaciones')).toBeInTheDocument()
+    // Una linea sin productos tambien aparece, sin desplegarse
+    expect(within(lineas[1]).getByText('Miel y derivados')).toBeInTheDocument()
+    expect(within(lineas[1]).getByText('0 publicaciones')).toBeInTheDocument()
+    expect(within(lineas[1]).queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('CCPIP-450: despliega cada línea en sus productos, con publicaciones y productores', async () => {
+    comoSuper({ [`GET /api/admin/reportes/indicadores?${RANGO}&agrupacion=MES`]: () => [200, copia(INDICADORES)] })
+    const usuario = await abrirPestana('Indicadores')
+
+    const boton = await screen.findByRole('button', { name: 'Café' })
+    expect(boton).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('list', { name: 'Productos de Café' })).not.toBeInTheDocument()
+
+    await usuario.click(boton)
+    expect(boton).toHaveAttribute('aria-expanded', 'true')
+    const productos = within(screen.getByRole('list', { name: 'Productos de Café' })).getAllByRole('listitem')
+    expect(productos).toHaveLength(2)
+    expect(within(productos[0]).getByText('Café tostado en grano')).toBeInTheDocument()
+    expect(within(productos[0]).getByText('5 publicaciones de 4 productores')).toBeInTheDocument()
+    expect(within(productos[0]).getByText(/Asháninka de Pampa Michi · Cacaoteros de Umukai/)).toBeInTheDocument()
+    expect(within(productos[1]).getByText('1 publicación de 1 productor')).toBeInTheDocument()
+
+    await usuario.click(boton)
+    expect(screen.queryByRole('list', { name: 'Productos de Café' })).not.toBeInTheDocument()
   })
 })
 

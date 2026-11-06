@@ -158,8 +158,19 @@ public final class GestionModelos {
     public record IndicadoresProductores(long activos, Indicador conVentas, Indicador nuevos) {
     }
 
-    /** CCPIP-350: cuantos productos publicados hay hoy de una linea (su linea principal). */
-    public record LineaPublicados(String codigo, String nombre, long publicados) {
+    /**
+     * CCPIP-350: cuantos productos publicados hay hoy de una linea (su linea principal). CCPIP-450:
+     * {@code productos}, que productos la componen, para desplegarla.
+     */
+    public record LineaPublicados(String codigo, String nombre, long publicados, List<ProductoPublicado> productos) {
+    }
+
+    /**
+     * CCPIP-450: un producto de una linea, con cuantas publicaciones tiene hoy y que productores (por el nombre
+     * de su tienda) las ofrecen. Las publicaciones de un mismo producto del catalogo maestro se cuentan juntas;
+     * una que aun no se asocio al catalogo cuenta por su propio nombre.
+     */
+    public record ProductoPublicado(String producto, long publicaciones, List<String> productores) {
     }
 
     /**

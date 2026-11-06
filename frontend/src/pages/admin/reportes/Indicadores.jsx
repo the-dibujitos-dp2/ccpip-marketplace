@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoAlerta from '../../../assets/icons/alerta-aviso.svg'
 import iconoComunidad from '../../../assets/icons/comunidad.svg'
@@ -10,6 +11,7 @@ import iconoUsuario from '../../../assets/icons/usuario.svg'
 import { Barra, Kpis, nombrePeriodo } from '../../../components/TablaReporte.jsx'
 import { fecha, precio, unidades } from '../../../formato.js'
 import { columnas, TablaReporte } from './comun.jsx'
+import './Indicadores.css'
 
 const TEXTOS = 'admin.reportes.indicadores'
 
@@ -94,9 +96,70 @@ export default function Indicadores({ datos }) {
           { clave: 'barra', etiqueta: t('admin.reportes.col.barraVentas'), barra: true, valor: (p) => <Barra partes={[Number(p.ventas)]} mayor={mayor} /> },
           importe('ventas'), cantidad('pedidos'), cantidad('productoresConVentas'), cantidad('productosNuevos'), cantidad('compradores'),
         ]} />
-      <TablaReporte id="indicadores-lineas" titulo={t(`${TEXTOS}.productos.porLinea`)} filas={productos.porLinea}
-        clave={(l) => l.codigo} vacio={t(`${TEXTOS}.productos.sinLineas`)}
-        columnas={[texto('linea', { fuerte: true, valor: (l) => l.nombre }), cantidad('publicados')]} />
+      <LineasPublicadas lineas={productos.porLinea} />
     </>
+  )
+}
+
+/**
+ * CCPIP-350 y CCPIP-450: los productos publicados hoy por linea. Cada linea con publicaciones se despliega
+ * en sus productos, con cuantas publicaciones tiene cada uno y que productores los ofrecen.
+ */
+function LineasPublicadas({ lineas }) {
+  const { t } = useTranslation()
+  const [abiertas, setAbiertas] = useState(() => new Set())
+  const alternar = (codigo) => setAbiertas((actual) => {
+    const nuevas = new Set(actual)
+    if (nuevas.has(codigo)) nuevas.delete(codigo)
+    else nuevas.add(codigo)
+    return nuevas
+  })
+  return (
+    <section className="productor__seccion" aria-labelledby="indicadores-lineas">
+      <h2 id="indicadores-lineas" className="heading-h3">{t(`${TEXTOS}.productos.porLinea`)}</h2>
+      {lineas.length === 0 ? (
+        <p className="body-s">{t(`${TEXTOS}.productos.sinLineas`)}</p>
+      ) : (
+        <ul className="lineas-publicadas" aria-label={t(`${TEXTOS}.productos.porLinea`)}>
+          {lineas.map((l) => {
+            const abierta = abiertas.has(l.codigo)
+            const productos = l.productos ?? []
+            const idDetalle = `linea-${l.codigo}-productos`
+            return (
+              <li key={l.codigo} className="lineas-publicadas__linea">
+                <div className="lineas-publicadas__fila">
+                  {productos.length > 0 ? (
+                    <button type="button" className="lineas-publicadas__alternar label-m" aria-expanded={abierta}
+                      aria-controls={idDetalle} onClick={() => alternar(l.codigo)}>
+                      <span aria-hidden="true" className="lineas-publicadas__flecha">{abierta ? '▾' : '▸'}</span>
+                      {l.nombre}
+                    </button>
+                  ) : (
+                    <span className="lineas-publicadas__nombre label-m">{l.nombre}</span>
+                  )}
+                  <span className="lineas-publicadas__cantidad">{t(`${TEXTOS}.productos.publicaciones`, { count: Number(l.publicados) })}</span>
+                </div>
+                {abierta && (
+                  <ul id={idDetalle} className="lineas-publicadas__productos" aria-label={t(`${TEXTOS}.productos.deLinea`, { linea: l.nombre })}>
+                    {productos.map((p) => (
+                      <li key={p.producto} className="lineas-publicadas__producto">
+                        <span className="body-m">{p.producto}</span>
+                        <span className="caption">
+                          {t(`${TEXTOS}.productos.detalleProducto`, {
+                            publicaciones: t(`${TEXTOS}.productos.publicaciones`, { count: Number(p.publicaciones) }),
+                            productores: t(`${TEXTOS}.productos.productores`, { count: p.productores.length }),
+                          })}
+                        </span>
+                        <span className="caption lineas-publicadas__productores">{p.productores.join(' · ')}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </section>
   )
 }

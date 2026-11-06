@@ -3,3 +3,7 @@
 .existencias__conteo { flex: 0 0 90px; text-align: right; font-variant-numeric: tabular-nums; }
 .existencias__cantidades { flex: 0 0 160px; text-align: right; font-variant-numeric: tabular-nums; }
 .existencias__lista { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+
+/* CCPIP-451: el nombre del punto abre su detalle */
+.existencias__enlace { color: var(--color-text-link, inherit); text-decoration: underline; text-underline-offset: 2px; }
+.existencias__enlace:hover { text-decoration-thickness: 2px; }

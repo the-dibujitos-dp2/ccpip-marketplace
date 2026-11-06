@@ -71,6 +71,49 @@ class ExistenciasAgregadasTest extends IntegrationTest {
     }
 
     @Test
+    void elDetalleDeUnPuntoVaPorLineaConLosLotesPorVencerYSinNombres() throws Exception {
+        // CCPIP-451: lo que se agrega en Cusco aparece en su detalle; nada de otro punto
+        Cookie sesion = loginAs(SUPER);
+        long cusco = jdbc.queryForObject("SELECT id FROM ubicacion WHERE nombre = ?", Long.class, CUSCO);
+        JsonNode antes = detalle(sesion, cusco);
+
+        String cafe = "Cafe " + UUID.randomUUID();
+        long producto = producto(cafe, "KG", "CAFE");
+        lote(producto, CUSCO, "10", false);
+        loteQueVenceEn(producto, CUSCO, "6", 3);
+        lote(producto("Cacao " + UUID.randomUUID(), "KG", "CACAO"), CUSCO, "4", true);
+        lote(producto("Lejos " + UUID.randomUUID(), "KG", "CAFE"), "Centro Nacional Lima", "50", false);
+
+        JsonNode despues = detalle(sesion, cusco);
+        assertThat(despues.at("/punto/nombre").asText()).isEqualTo(CUSCO);
+        assertThat(despues.get("diasPorVencer").asInt()).isEqualTo(7);
+        assertThat(despues.at("/punto/lotes").asInt() - antes.at("/punto/lotes").asInt()).isEqualTo(3);
+        assertThat(despues.get("lotesPorVencer").asInt() - antes.get("lotesPorVencer").asInt()).isEqualTo(1);
+        JsonNode cafe0 = lineaDe(antes, "CAFE");
+        JsonNode cafe1 = lineaDe(despues, "CAFE");
+        assertThat(cafe1.get("lotes").asInt() - cafe0.get("lotes").asInt()).isEqualTo(2);
+        assertThat(cafe1.get("lotesPorVencer").asInt() - cafe0.get("lotesPorVencer").asInt()).isEqualTo(1);
+        // El lote de Lima no suma en Cusco
+        assertThat(diferencia(cafe0, cafe1, "KG", "vigente")).isEqualByComparingTo("16");
+        assertThat(lineaDe(despues, "CACAO").get("lotesVencidos").asInt() - lineaDe(antes, "CACAO").get("lotesVencidos").asInt())
+                .isEqualTo(1);
+        assertThat(despues.toString()).doesNotContain(cafe, "Bordadoras de San Francisco");
+    }
+
+    @Test
+    void elDetalleDeUnPuntoQueNoExisteONoEsDeAcopioEs404() throws Exception {
+        Cookie sesion = loginAs(SUPER);
+        mockMvc.perform(get(RUTA + "/999999").cookie(sesion))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("PUNTO_NO_ENCONTRADO"));
+        Long otro = jdbc.query("SELECT id FROM ubicacion WHERE tipo <> 'PUNTO_ACOPIO' LIMIT 1", (rs, row) -> rs.getLong(1))
+                .stream().findFirst().orElse(null);
+        if (otro != null) {
+            mockMvc.perform(get(RUTA + "/" + otro).cookie(sesion)).andExpect(status().isNotFound());
+        }
+    }
+
+    @Test
     void listaTodosLosPuntosAunqueNoTenganExistencias() throws Exception {
         long vacios = jdbc.queryForObject("SELECT count(*) FROM ubicacion WHERE tipo = 'PUNTO_ACOPIO' AND activo", Long.class);
         mockMvc.perform(get(RUTA).cookie(loginAs(SUPER)))
@@ -127,6 +170,33 @@ class ExistenciasAgregadasTest extends IntegrationTest {
             }
         }
         return objectMapper.createObjectNode().set("cantidades", objectMapper.createArrayNode());
+    }
+
+    private JsonNode detalle(Cookie sesion, long puntoId) throws Exception {
+        return objectMapper.readTree(mockMvc.perform(get(RUTA + "/" + puntoId).cookie(sesion))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+    }
+
+    /** La linea del detalle por codigo; si aun no tenia existencias en el punto, una vacia. */
+    private JsonNode lineaDe(JsonNode detalle, String codigo) {
+        for (JsonNode l : detalle.get("lineas")) {
+            if (codigo.equals(l.path("codigo").asText(null))) {
+                return l;
+            }
+        }
+        return objectMapper.createObjectNode().put("lotes", 0).put("lotesPorVencer", 0).put("lotesVencidos", 0)
+                .set("cantidades", objectMapper.createArrayNode());
+    }
+
+    /** Un lote vigente que vence en {@code dias} dias. */
+    private void loteQueVenceEn(long productoId, String punto, String cantidad, int dias) {
+        jdbc.update("""
+                INSERT INTO lote (producto_id, ubicacion_id, codigo, cantidad_inicial, cantidad_actual,
+                                  fecha_produccion, fecha_vencimiento)
+                SELECT ?, u.id, 'L-V' || ?, ?, ?, (now() AT TIME ZONE 'America/Lima')::date - 30,
+                       (now() AT TIME ZONE 'America/Lima')::date + ?
+                FROM ubicacion u WHERE u.nombre = ?""",
+                productoId, productoId, new BigDecimal(cantidad), new BigDecimal(cantidad), dias, punto);
     }
 
     /** Cuanto cambio {@code campo} (vigente o vencido) en esa unidad entre dos lecturas. */

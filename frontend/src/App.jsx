@@ -21,6 +21,7 @@ import MiHistorialPage from './pages/admin/MiHistorialPage.jsx'
 import ModeracionPage from './pages/admin/ModeracionPage.jsx'
 import DetalleCuentaPage from './pages/admin/DetalleCuentaPage.jsx'
 import ExistenciasPage from './pages/admin/ExistenciasPage.jsx'
+import ExistenciasPuntoPage from './pages/admin/ExistenciasPuntoPage.jsx'
 import CuentasPage from './pages/admin/CuentasPage.jsx'
 import NuevaCuentaPage from './pages/admin/NuevaCuentaPage.jsx'
 import MotivosMermaPage from './pages/admin/MotivosMermaPage.jsx'
@@ -91,6 +92,8 @@ const RUTA_EXPEDIENTE = /^\/admin\/autorizaciones\/(\d+)$/
 const RUTA_MODERACION = /^\/admin\/moderacion\/(\d+)$/
 const RUTA_VIDEO = /^\/admin\/moderacion\/videos\/(\d+)$/
 const RUTA_FICHA_PRODUCTOR = /^\/admin\/productores\/(\d+)$/
+// CCPIP-451: el detalle de existencias de un punto
+const RUTA_EXISTENCIAS_PUNTO = /^\/admin\/existencias\/(\d+)$/
 const RUTA_DENUNCIAS_PRODUCTOR = /^\/admin\/denuncias\/productores\/(\d+)$/
 const RUTA_CUENTA = /^\/admin\/cuentas\/(\d+)$/
 
@@ -305,6 +308,7 @@ export default function App() {
     else if (path === RUTAS.adminAutorizaciones) pagina = <AutorizacionesPage path={path} />
     else if (path === RUTAS.adminCatalogo) pagina = <CatalogoMaestroPage path={path} search={search} />
     else if (path === RUTAS.adminExistencias) pagina = <ExistenciasPage path={path} />
+    else if (RUTA_EXISTENCIAS_PUNTO.test(path)) pagina = <ExistenciasPuntoPage key={path} path={RUTAS.adminExistencias} id={path.match(RUTA_EXISTENCIAS_PUNTO)[1]} />
     else if (RUTA_EXPEDIENTE.test(path)) pagina = <ExpedienteAutorizacionPage path={RUTAS.adminAutorizaciones} id={path.match(RUTA_EXPEDIENTE)[1]} />
     else if (path === RUTAS.adminModeracion) pagina = <ModeracionPage path={path} />
     else if (RUTA_MODERACION.test(path)) pagina = <ExpedienteModeracionPage path={RUTAS.adminModeracion} id={path.match(RUTA_MODERACION)[1]} />
