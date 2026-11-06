@@ -5,9 +5,6 @@ import { rutaReporte } from './rutaReporte.js'
 /** CCPIP-111 (SA-01): ventas, comision, productores, lineas y puntos de acopio del mes en curso. */
 export const obtenerTablero = () => apiFetch('/api/admin/tablero')
 
-/** CCPIP-28: permisos declarados por rol, derivados de los accesos del servidor. Solo lectura. */
-export const consultarPermisos = () => apiFetch('/api/admin/permisos')
-
 /** CCPIP-296: permisos configurables de cada rol, con sus restricciones de gobernanza. */
 export const consultarPermisosConfigurables = () => apiFetch('/api/admin/permisos/configurables')
 

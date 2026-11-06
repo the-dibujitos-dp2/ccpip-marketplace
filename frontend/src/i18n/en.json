@@ -1457,15 +1457,7 @@
       "miHistorial": "My history"
     },
     "permisos": {
-      "titulo": "Permissions by role",
-      "descripcion": "Server-declared access for each role, by method and route.",
-      "error": "We couldn't load permissions",
-      "tabla": "Permissions assigned by role",
-      "rol": "Role",
-      "metodo": "Method",
-      "ruta": "Route",
-      "vacio": "This role has no declared access.",
-      "declarados": "Access declared by the server"
+      "titulo": "Permissions by role"
     },
     "configurables": {
       "titulo": "Configurable permissions",

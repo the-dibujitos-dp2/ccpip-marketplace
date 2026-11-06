@@ -1457,15 +1457,7 @@
       "miHistorial": "Mi historial"
     },
     "permisos": {
-      "titulo": "Permisos por rol",
-      "descripcion": "Accesos declarados por el servidor para cada rol, según método y ruta.",
-      "error": "No pudimos cargar los permisos",
-      "tabla": "Permisos asignados por rol",
-      "rol": "Rol",
-      "metodo": "Método",
-      "ruta": "Ruta",
-      "vacio": "Este rol no tiene accesos declarados.",
-      "declarados": "Accesos declarados por el servidor"
+      "titulo": "Permisos por rol"
     },
     "configurables": {
       "titulo": "Permisos configurables",
