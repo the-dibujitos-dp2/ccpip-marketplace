@@ -32,6 +32,7 @@ import pe.ccpip.compra.CompraModelos.AdvertenciaPerecible;
 import pe.ccpip.compra.CompraModelos.DistritoConPuntos;
 import pe.ccpip.compra.CompraModelos.EventoPedido;
 import pe.ccpip.compra.CompraModelos.Factibilidad;
+import pe.ccpip.compra.CompraModelos.IncidenciaPedido;
 import pe.ccpip.compra.CompraModelos.IntentoPago;
 import pe.ccpip.compra.CompraModelos.LineaPedido;
 import pe.ccpip.compra.CompraModelos.Pedido;
@@ -256,7 +257,9 @@ public class CompraService {
                         rs.getString("celular_contacto"), lineas(pedidoId), pagos(pedidoId),
                         historial(List.of(pedidoId)).getOrDefault(pedidoId, List.of()), comision(rs),
                         entregas.delPedido(pedidoId).orElse(null), rs.getBigDecimal("costo_envio"),
-                        rs.getBigDecimal("total").add(rs.getBigDecimal("costo_envio"))));
+                        rs.getBigDecimal("total").add(rs.getBigDecimal("costo_envio")), incidencias(pedidoId),
+                        reembolsado(pedidoId), rs.getBigDecimal("total").add(rs.getBigDecimal("costo_envio"))
+                                .subtract(reembolsado(pedidoId))));
         return encontrados.stream().findFirst()
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "No encontramos ese pedido."));
     }
@@ -305,13 +308,34 @@ public class CompraService {
     private List<LineaPedido> lineas(long pedidoId) {
         return jdbc.query("""
                 SELECT i.producto_id, i.productor_id, p.nombre, coalesce(pr.nombre_tienda, pr.comunidad) AS tienda,
-                       i.cantidad, i.precio_unitario, i.subtotal
+                       i.cantidad, i.precio_unitario, i.subtotal, a.cantidad_faltante
                 FROM item_pedido i
                 JOIN producto p ON p.id = i.producto_id
                 JOIN productor pr ON pr.id = i.productor_id
+                JOIN ajuste_item_pedido a ON a.item_pedido_id = i.id
                 WHERE i.pedido_id = :id ORDER BY i.id""", new MapSqlParameterSource("id", pedidoId),
                 (rs, row) -> new LineaPedido(rs.getLong("producto_id"), rs.getLong("productor_id"), rs.getString("nombre"), rs.getString("tienda"),
-                        rs.getBigDecimal("cantidad"), rs.getBigDecimal("precio_unitario"), rs.getBigDecimal("subtotal")));
+                        rs.getBigDecimal("cantidad"), rs.getBigDecimal("precio_unitario"), rs.getBigDecimal("subtotal"),
+                        rs.getBigDecimal("cantidad_faltante")));
+    }
+
+    /** CCPIP-485/486: los productos malogrados del pedido, en el orden en que se registraron. */
+    private List<IncidenciaPedido> incidencias(long pedidoId) {
+        return jdbc.query("""
+                SELECT f.tipo, p.nombre, f.cantidad, r.monto, f.registrado_en
+                FROM incidencia_pedido f
+                JOIN item_pedido i ON i.id = f.item_pedido_id
+                JOIN producto p ON p.id = i.producto_id
+                LEFT JOIN reembolso r ON r.id = f.reembolso_id
+                WHERE f.pedido_id = :id ORDER BY f.registrado_en, f.id""", new MapSqlParameterSource("id", pedidoId),
+                (rs, row) -> new IncidenciaPedido(rs.getString("tipo"), rs.getString("nombre"), rs.getBigDecimal("cantidad"),
+                        rs.getBigDecimal("monto"), instante(rs, "registrado_en")));
+    }
+
+    /** CCPIP-486: lo devuelto al comprador por productos que no se entregaron. */
+    private BigDecimal reembolsado(long pedidoId) {
+        return jdbc.queryForObject("SELECT coalesce(sum(monto), 0) FROM reembolso WHERE pedido_id = :id",
+                new MapSqlParameterSource("id", pedidoId), BigDecimal.class);
     }
 
     private List<IntentoPago> pagos(long pedidoId) {

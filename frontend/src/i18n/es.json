@@ -1450,6 +1450,44 @@
       "capacidad": "Capacidad diaria: {{usados}} de {{maximo}} pedidos a domicilio hoy. La fija la Cámara.",
       "capacidadSinLimite_one": "Sin límite diario de pedidos a domicilio · hoy: {{count}}",
       "capacidadSinLimite_other": "Sin límite diario de pedidos a domicilio · hoy: {{count}}"
+    },
+    "malogrado": {
+      "abrir": "Producto malogrado",
+      "abrirDe": "Registrar {{producto}} malogrado del pedido {{numero}}",
+      "titulo": "{{producto}} malogrado · pedido {{numero}}",
+      "instrucciones": "Indica qué se malogró antes de la entrega. Primero intenta reemplazarlo con otro lote del punto; si no hay, se entrega lo disponible y lo faltante se reembolsa al comprador. De esta línea quedan {{cantidad}} und por entregar.",
+      "lote": "Lote malogrado",
+      "elegir": "Elige",
+      "cantidad": "Cantidad malograda (und)",
+      "accion": "Cómo se resuelve",
+      "accionOpcion": {
+        "REEMPLAZAR": "Reemplazar con otro lote del punto",
+        "REEMBOLSAR": "No entregarlo y reembolsar al comprador"
+      },
+      "sinReemplazo": "No hay otro lote vigente de este producto en el punto: solo puede reembolsarse.",
+      "loteReemplazo": "Lote con que se reemplaza",
+      "resumenReemplazo": "El lote nuevo cubre lo malogrado; el precio del pedido no cambia.",
+      "resumenReembolso": "Se devolverá {{monto}} al comprador y la comisión bajará en la misma proporción.",
+      "irreversible": "Lo malogrado se registra como merma del lote y el comprador recibe un aviso. No podrá revertirse.",
+      "confirmarReemplazo": "Registrar y reemplazar",
+      "confirmarReembolso": "Registrar y reembolsar",
+      "error": "No pudimos registrar el producto malogrado",
+      "errorCargar": "No pudimos cargar los lotes de la línea",
+      "validacion": {
+        "lote": "Elige el lote malogrado",
+        "excede": "De ese lote la línea tiene {{cantidad}} und",
+        "reemplazo": "Elige el lote con que se reemplaza"
+      },
+      "reemplazado": "Se reemplazó lo malogrado del pedido {{numero}}",
+      "reembolsado": "Se reembolsó {{monto}} del pedido {{numero}}",
+      "anulado": "El pedido {{numero}} se anuló: no queda nada por entregar y se devolvió {{monto}}",
+      "avisado": "El comprador recibe un aviso por correo y lo ve en su pedido.",
+      "porEntregar": "Por entregar: {{cantidad}} und",
+      "incidenciasDe": "Productos malogrados de {{producto}}",
+      "incidencia": {
+        "REEMPLAZO": "Malogrado: {{cantidad}} und ({{causa}}) · reemplazado con el lote {{lote}}",
+        "FALTANTE": "Malogrado: {{cantidad}} und ({{causa}}) · no se entrega, {{monto}} reembolsado"
+      }
     }
   },
   "admin": {
@@ -2911,7 +2949,15 @@
       "PENDIENTE": "En proceso",
       "ANULADO": "Devuelto"
     },
-    "seguirComprando": "Seguir comprando"
+    "seguirComprando": "Seguir comprando",
+    "malogrado": {
+      "titulo": "Productos malogrados antes de la entrega",
+      "REEMPLAZO": "{{cantidad}} de {{producto}} se malograron en el punto: los reemplazamos con otro lote. El precio no cambia.",
+      "FALTANTE": "{{cantidad}} de {{producto}} se malograron en el punto y no se entregan: te devolvimos {{monto}}.",
+      "noEntregada": "{{cantidad}} no se entrega (malogrado, reembolsado)",
+      "reembolsado": "Reembolsado",
+      "totalFinal": "Total pagado"
+    }
   },
   "misPedidos": {
     "miCuenta": "Mi cuenta",
@@ -3166,7 +3212,8 @@
       "RECEPCION": "Recepción del productor",
       "DEVOLUCION_PRODUCTOR": "Devolución al productor",
       "PRODUCCION": "Cosecha o producción",
-      "RETIRO_PRODUCTOR": "Retiro del productor"
+      "RETIRO_PRODUCTOR": "Retiro del productor",
+      "REINTEGRO_PEDIDO": "Reintegro del pedido para darlo de baja"
     },
     "validacion": {
       "lote": "Elige el lote",

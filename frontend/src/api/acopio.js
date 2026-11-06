@@ -1,5 +1,5 @@
 // API del administrador de punto de acopio. El servidor filtra todo por los puntos de la sesion (RNF-05).
-import { apiFetch } from './http.js'
+import { apiFetch, idRuta } from './http.js'
 import { rutaReporte } from './rutaReporte.js'
 
 /** Agrega a la consulta los filtros que tienen valor, en el orden dado. */
@@ -91,3 +91,17 @@ export const consultarReporteAcopio = (reporte, filtros) => apiFetch(rutaReporte
  * 382) o Excel (CCPIP-377, 379, 381 y 383); la cookie de sesion viaja sola.
  */
 export const urlReporteAcopio = (formato, filtros, idioma) => rutaReporteAcopio(`/${formato}`, filtros, idioma)
+
+/**
+ * CCPIP-485/486: para el formulario de producto malogrado de una linea, sus lotes y los lotes vigentes
+ * del punto con que puede reemplazarse.
+ */
+export const opcionesMalogrado = async (numero, itemId) =>
+  apiFetch(`/api/acopio/pedidos/${encodeURIComponent(numero)}/lineas/${idRuta(itemId)}/malogrado`)
+
+/**
+ * CCPIP-485/486: registra lo malogrado de una linea y lo reemplaza con otro lote (REEMPLAZAR) o lo
+ * reembolsa (REEMBOLSAR). Devuelve { tipo, cantidad, reembolsado, pedidoAnulado, repetida, pedido }.
+ */
+export const registrarMalogrado = async (numero, itemId, datos) =>
+  apiFetch(`/api/acopio/pedidos/${encodeURIComponent(numero)}/lineas/${idRuta(itemId)}/malogrado`, { method: 'POST', body: datos })

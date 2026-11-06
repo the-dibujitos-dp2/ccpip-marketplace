@@ -17,6 +17,7 @@ import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
 import { coincide, diaMesHora, fecha, precio, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
+import DialogoMalogrado from './DialogoMalogrado.jsx'
 import DialogoRecojo from './DialogoRecojo.jsx'
 import '../productor/productor.css'
 import './PedidosPage.css'
@@ -52,6 +53,16 @@ const ACCIONES = {
   },
 }
 
+/** CCPIP-485/486: estados en los que el pedido sigue en el punto y un producto malogrado aun se resuelve. */
+const EN_EL_PUNTO = ['CONFIRMADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO', 'LISTO_PARA_DESPACHO']
+
+/** "Malogrado: 1 und · reemplazado con el lote L-0250" o "· no se entrega, S/ 20.00 reembolsado". */
+function textoIncidencia(t, i) {
+  return i.tipo === 'REEMPLAZO'
+    ? t('acopio.malogrado.incidencia.REEMPLAZO', { cantidad: unidades(i.cantidad), lote: i.loteNuevo, causa: i.causa })
+    : t('acopio.malogrado.incidencia.FALTANTE', { cantidad: unidades(i.cantidad), monto: precio(i.reembolsado), causa: i.causa })
+}
+
 /** "Lote L-0247 · vence 02/11/2027 · 2 und": de donde sale lo que se entrega (CCPIP-74). */
 function textoLote(lote) {
   const t = i18n.t.bind(i18n)
@@ -78,6 +89,7 @@ export default function PedidosPage({ path }) {
   const [aviso, setAviso] = useState(null)
   const [marcando, setMarcando] = useState(null)
   const [recojo, setRecojo] = useState(null)
+  const [malogrado, setMalogrado] = useState(null)
 
   const filtrando = Boolean(texto.trim() || modalidad)
   const items = (datos?.items ?? []).filter((p) => (!modalidad || p.modalidad === modalidad) && coincide(texto, ...textosPedido(p)))
@@ -114,6 +126,22 @@ export default function PedidosPage({ path }) {
     reemplazar(pedido)
     setRecojo(null)
     setAviso({ tono: 'exito', titulo: t('acopio.pedidos.entregado', { numero: pedido.numero, persona: pedido.recogidoPor }) })
+  }
+
+  /** CCPIP-485/486: el producto malogrado ya se reemplazo o reembolso; si no queda nada, el pedido se anulo. */
+  function malogradoRegistrado(r) {
+    reemplazar(r.pedido)
+    setMalogrado(null)
+    const numero = r.pedido.numero
+    let titulo = t('acopio.malogrado.reemplazado', { numero })
+    if (r.tipo === 'FALTANTE') titulo = t(r.pedidoAnulado ? 'acopio.malogrado.anulado' : 'acopio.malogrado.reembolsado', { numero, monto: precio(r.reembolsado) })
+    setAviso({ tono: 'exito', titulo, descripcion: t('acopio.malogrado.avisado') })
+  }
+
+  function malogradoDesactualizado(e) {
+    setMalogrado(null)
+    setAviso({ tono: 'error', titulo: t('acopio.malogrado.error'), descripcion: mensajeError(e) })
+    recargar()
   }
 
   /** El pedido cambio mientras se llenaba el dialogo (otra persona lo entrego) o ya no es de este punto. */
@@ -171,12 +199,18 @@ export default function PedidosPage({ path }) {
             {visibles.length === 0 && (filtrando ? <SinCoincidencias /> : <EstadoVacio titulo={t(`acopio.pedidos.columnaVacia.${estado}`)} />)}
             {visibles.length > 0 && (
               <>
-                <TablaPedidos key={`${estado}|${texto}|${modalidad}`} pedidos={paginacion.filas} accion={ACCION[estado]} marcando={marcando} onMarcar={marcar} onRecojo={setRecojo} />
+                <TablaPedidos key={`${estado}|${texto}|${modalidad}`} pedidos={paginacion.filas} accion={ACCION[estado]} marcando={marcando} onMarcar={marcar} onRecojo={setRecojo}
+                  onMalogrado={(pedido, linea) => setMalogrado({ pedido, linea })} />
                 <Paginacion {...paginacion} />
               </>
             )}
           </section>
         </>
+      )}
+
+      {malogrado && (
+        <DialogoMalogrado key={`${malogrado.pedido.numero}-${malogrado.linea.id}`} pedido={malogrado.pedido} linea={malogrado.linea}
+          onCancelar={() => setMalogrado(null)} onRegistrado={malogradoRegistrado} onDesactualizado={malogradoDesactualizado} />
       )}
 
       {recojo && (
@@ -187,7 +221,7 @@ export default function PedidosPage({ path }) {
 }
 
 /** CCPIP-419: los pedidos de la pestana elegida, uno por fila. La columna de accion solo si el estado tiene una. */
-function TablaPedidos({ pedidos, accion, marcando, onMarcar, onRecojo }) {
+function TablaPedidos({ pedidos, accion, marcando, onMarcar, onRecojo, onMalogrado }) {
   const { t } = useTranslation()
   return (
     <div className="tabla">
@@ -200,14 +234,15 @@ function TablaPedidos({ pedidos, accion, marcando, onMarcar, onRecojo }) {
       </div>
       <ul className="pedidos__lista" aria-label={t('acopio.pedidos.lista')}>
         {pedidos.map((p) => (
-          <FilaPedido key={p.numero} pedido={p} accion={accion} ocupado={marcando === p.numero} onMarcar={onMarcar} onRecojo={onRecojo} />
+          <FilaPedido key={p.numero} pedido={p} accion={accion} ocupado={marcando === p.numero} onMarcar={onMarcar} onRecojo={onRecojo}
+            onMalogrado={onMalogrado} />
         ))}
       </ul>
     </div>
   )
 }
 
-function FilaPedido({ pedido, accion, ocupado, onMarcar, onRecojo }) {
+function FilaPedido({ pedido, accion, ocupado, onMarcar, onRecojo, onMalogrado }) {
   const { t } = useTranslation()
   const cambio = [...pedido.historial].reverse().find((c) => c.estado === pedido.estado)
   const cuando = diaMesHora(cambio?.registradoEn ?? pedido.confirmadoEn)
@@ -224,14 +259,29 @@ function FilaPedido({ pedido, accion, ocupado, onMarcar, onRecojo }) {
       <div className="tabla__celda tabla__celda--flex">
         <ul className="pedidos__lineas" aria-label={t('acopio.pedidos.productosDe', { numero: pedido.numero })}>
           {pedido.lineas.map((l) => (
-            <li key={`${l.comunidad}-${l.producto}`}>
+            <li key={l.id ?? `${l.comunidad}-${l.producto}`}>
               <span className="caption">{`${l.comunidad} · ${l.producto} × ${unidades(l.cantidad)}`}</span>
+              {/* CCPIP-486: lo que aun se entrega, si algo se malogro y se reembolso */}
+              {l.porEntregar != null && Number(l.porEntregar) < Number(l.cantidad) && (
+                <span className="caption pedidos__por-entregar">{t('acopio.malogrado.porEntregar', { cantidad: unidades(l.porEntregar) })}</span>
+              )}
               <ul className="pedidos__lotes" aria-label={t('acopio.pedidos.lotesDe', { producto: l.producto })}>
                 {l.lotes.length === 0 && <li className="caption">{t('acopio.pedidos.sinLotes')}</li>}
                 {l.lotes.map((lote) => (
                   <li key={lote.codigo} className="caption">{textoLote(lote)}</li>
                 ))}
               </ul>
+              {l.incidencias?.length > 0 && (
+                <ul className="pedidos__incidencias" aria-label={t('acopio.malogrado.incidenciasDe', { producto: l.producto })}>
+                  {l.incidencias.map((i, k) => <li key={k} className="caption">{textoIncidencia(t, i)}</li>)}
+                </ul>
+              )}
+              {EN_EL_PUNTO.includes(pedido.estado) && l.id != null && l.lotes.length > 0 && (
+                <Boton tipo="terciario" tamano="S" onClick={() => onMalogrado(pedido, l)}
+                  aria-label={t('acopio.malogrado.abrirDe', { producto: l.producto, numero: pedido.numero })}>
+                  {t('acopio.malogrado.abrir')}
+                </Boton>
+              )}
             </li>
           ))}
         </ul>

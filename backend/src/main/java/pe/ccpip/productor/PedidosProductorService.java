@@ -85,11 +85,16 @@ public class PedidosProductorService {
         MapSqlParameterSource p = new MapSqlParameterSource("ids", ids).addValue("productor", productorId);
         Map<Long, List<Lote>> lotes = new HashMap<>();
         jdbc.query("""
-                SELECT m.item_pedido_id, l.codigo, m.cantidad, l.fecha_vencimiento
+                SELECT m.item_pedido_id, l.codigo, l.fecha_vencimiento,
+                       sum(CASE WHEN m.tipo = 'SALIDA_VENTA' THEN m.cantidad ELSE -m.cantidad END) AS cantidad
                 FROM movimiento_inventario m JOIN lote l ON l.id = m.lote_id
                 JOIN item_pedido i ON i.id = m.item_pedido_id
-                WHERE m.pedido_id IN (:ids) AND m.tipo = 'SALIDA_VENTA' AND i.productor_id = :productor
-                ORDER BY l.fecha_vencimiento NULLS LAST, m.id""", p,
+                WHERE m.pedido_id IN (:ids) AND i.productor_id = :productor
+                  AND (m.tipo = 'SALIDA_VENTA' OR m.motivo = 'REINTEGRO_PEDIDO')
+                GROUP BY m.item_pedido_id, l.id, l.codigo, l.fecha_vencimiento
+                -- CCPIP-485/486: lo malogrado que volvio al lote ya no cubre la linea
+                HAVING sum(CASE WHEN m.tipo = 'SALIDA_VENTA' THEN m.cantidad ELSE -m.cantidad END) > 0
+                ORDER BY l.fecha_vencimiento NULLS LAST, min(m.id)""", p,
                 rs -> {
                     lotes.computeIfAbsent(rs.getLong("item_pedido_id"), k -> new ArrayList<>())
                             .add(new Lote(rs.getString("codigo"), rs.getBigDecimal("cantidad"),
