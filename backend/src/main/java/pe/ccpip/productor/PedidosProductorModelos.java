@@ -27,11 +27,12 @@ public final class PedidosProductorModelos {
 
     /**
      * Una linea propia con los importes copiados al confirmar (RNF-13). {@code comision} y {@code neto}
-     * son nulos en pedidos confirmados antes de que hubiera comision configurada (CCPIP-91).
+     * son nulos en pedidos confirmados antes de que hubiera comision configurada (CCPIP-91). {@code tarifa}:
+     * MINORISTA o MAYORISTA, la modalidad con que el comprador compro esa linea (CCPIP-178, CCPIP-370).
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record Linea(long productoId, String producto, String imagen, BigDecimal cantidad, BigDecimal precioUnitario,
-                        BigDecimal subtotal, BigDecimal comision, BigDecimal neto, List<Lote> lotes) {
+                        BigDecimal subtotal, String tarifa, BigDecimal comision, BigDecimal neto, List<Lote> lotes) {
     }
 
     /** Cuando cambio de estado. Sin nombres: ni el comprador ni el personal del punto (RNF-05). */

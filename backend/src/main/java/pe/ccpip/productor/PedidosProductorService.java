@@ -103,7 +103,7 @@ public class PedidosProductorService {
         Map<Long, List<Linea>> lineas = new HashMap<>();
         jdbc.query("""
                 SELECT i.id, i.pedido_id, i.producto_id, pr.nombre, i.cantidad, i.precio_unitario, i.subtotal,
-                       i.comision_monto, i.neto,
+                       i.tarifa, i.comision_monto, i.neto,
                        (SELECT im.id FROM imagen im WHERE im.producto_id = i.producto_id AND im.principal) AS imagen
                 FROM item_pedido i JOIN producto pr ON pr.id = i.producto_id
                 WHERE i.pedido_id IN (:ids) AND i.productor_id = :productor ORDER BY i.id""", p,
@@ -113,7 +113,8 @@ public class PedidosProductorService {
                             .add(new Linea(rs.getLong("producto_id"), rs.getString("nombre"),
                                     imagen == null ? null : ImagenService.urlMiniatura(imagen),
                                     rs.getBigDecimal("cantidad"), rs.getBigDecimal("precio_unitario"),
-                                    rs.getBigDecimal("subtotal"), rs.getBigDecimal("comision_monto"), rs.getBigDecimal("neto"),
+                                    rs.getBigDecimal("subtotal"), rs.getString("tarifa"), rs.getBigDecimal("comision_monto"),
+                                    rs.getBigDecimal("neto"),
                                     lotes.getOrDefault(rs.getLong("id"), List.of())));
                 });
         Map<Long, List<Cambio>> historial = new HashMap<>();

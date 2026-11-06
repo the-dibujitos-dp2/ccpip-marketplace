@@ -588,6 +588,8 @@ export default function CompraPage() {
                     <span>
                       {i.nombre} <span className="compra__cantidad">× {Number(i.cantidad)}</span>
                       <span className="caption compra__productor">{t('carrito.deTienda', { nombre: i.tienda.nombre })}</span>
+                      {/* CCPIP-370: la linea se compra a precio mayorista (desde el minimo de la oferta) */}
+                      {i.tarifa === 'MAYORISTA' && <span className="caption compra__mayorista">{t('pedido.precioMayorista')}</span>}
                     </span>
                     <span>{precio(i.subtotal)}</span>
                   </li>
@@ -636,6 +638,8 @@ export default function CompraPage() {
                 {enviando ? t('compra.procesando') : t('compra.pagar', { monto: precio(aPagar) })}
               </Boton>
               <p className="caption compra__nota">{t('compra.notaStock')}</p>
+              {/* CCPIP-178/370: solo en el Peru y en soles (decision del cliente del 05/11/2026) */}
+              <p className="caption compra__nota">{t('compra.enSoles')}</p>
             </aside>
           </form>
         )}

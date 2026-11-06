@@ -219,7 +219,7 @@ class FactibilidadAntesDePagarTest extends IntegrationTest {
 
         pagar(pedido).andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("SIN_COBERTURA"));
-        verify(pasarela, never()).cobrar(any(), any(), any());
+        verify(pasarela, never()).cobrar(any(), any(), any(), any());
         assertThat(intentosDePago(pedido)).isZero();
         assertThat(estado(pedido)).isEqualTo("CANCELADO");
         assertThat(stock(producto)).isEqualByComparingTo("5");
@@ -237,7 +237,7 @@ class FactibilidadAntesDePagarTest extends IntegrationTest {
 
         pagar(pedido).andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("PUNTO_SIN_EXISTENCIAS"));
-        verify(pasarela, never()).cobrar(any(), any(), any());
+        verify(pasarela, never()).cobrar(any(), any(), any(), any());
         assertThat(intentosDePago(pedido)).isZero();
         assertThat(estado(pedido)).isEqualTo("CANCELADO");
     }
@@ -263,7 +263,7 @@ class FactibilidadAntesDePagarTest extends IntegrationTest {
             jdbc.update("UPDATE lote SET cantidad_actual = 1 WHERE producto_id = ?", producto);
             jdbc.update("UPDATE stock SET cantidad = 1 WHERE producto_id = ?", producto);
             return invocacion.callRealMethod();
-        }).when(pasarela).cobrar(any(), any(), any());
+        }).when(pasarela).cobrar(any(), any(), any(), any());
 
         pagar(pedido).andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("ANULADO"))

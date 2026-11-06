@@ -69,3 +69,5 @@
 .pedido__cifras--reembolso { margin-top: 8px; }
 .pedido__incidencias { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .pedido__incidencias li { display: flex; flex-direction: column; gap: 2px; }
+.pedido__mayorista { display: block; color: var(--color-text-brand); font-weight: 600; }
+.pedido__moneda { margin: 8px 0 0; color: var(--color-text-secondary); }

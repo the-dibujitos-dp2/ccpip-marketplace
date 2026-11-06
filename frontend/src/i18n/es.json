@@ -306,7 +306,11 @@
       "neto": "Recibirás",
       "sinComision": "Pedido confirmado antes de configurar la comisión: no tiene comisión calculada.",
       "historial": "Cambios de estado",
-      "nota": "Solo ves tus productos de cada pedido. Los datos del comprador y lo que compró a otras comunidades no se muestran."
+      "nota": "Solo ves tus productos de cada pedido. Los datos del comprador y lo que compró a otras comunidades no se muestran.",
+      "tarifa": {
+        "MINORISTA": "Venta minorista",
+        "MAYORISTA": "Venta mayorista"
+      }
     },
     "liquidaciones": {
       "titulo": "Mis liquidaciones",
@@ -2951,7 +2955,8 @@
     },
     "productos": "Productos",
     "envio": "Envío",
-    "recogesEn": "Recoges en"
+    "recogesEn": "Recoges en",
+    "enSoles": "Pagas en soles (S/). Por ahora vendemos y entregamos solo dentro del Perú."
   },
   "pedido": {
     "noEncontrado": "No encontramos ese pedido",
@@ -3006,7 +3011,9 @@
       "noEntregada": "{{cantidad}} no se entrega (malogrado, reembolsado)",
       "reembolsado": "Reembolsado",
       "totalFinal": "Total pagado"
-    }
+    },
+    "precioMayorista": "Precio mayorista",
+    "enSoles": "Montos en soles (S/). Por ahora vendemos y entregamos solo dentro del Perú."
   },
   "misPedidos": {
     "miCuenta": "Mi cuenta",

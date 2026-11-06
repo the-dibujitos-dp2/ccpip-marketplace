@@ -245,8 +245,8 @@ public class CompraService {
     public Pedido pedido(long usuarioId, long pedidoId) {
         MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId).addValue("id", pedidoId);
         List<Pedido> encontrados = jdbc.query("""
-                SELECT pe.id, pe.numero, pe.estado, pe.modalidad, pe.total, pe.costo_envio, pe.creado_en, pe.confirmado_en,
-                       pe.persona_autorizada, pe.celular_contacto,
+                SELECT pe.id, pe.numero, pe.estado, pe.modalidad, pe.total, pe.costo_envio, pe.moneda, pe.creado_en,
+                       pe.confirmado_en, pe.persona_autorizada, pe.celular_contacto,
                        pe.comision_porcentaje, pe.comision_base, pe.comision_monto,
                        u.id AS u_id, u.nombre AS u_nombre, u.departamento, u.provincia, u.distrito, u.direccion
                 FROM pedido pe JOIN ubicacion u ON u.id = pe.ubicacion_origen_id
@@ -259,7 +259,7 @@ public class CompraService {
                         entregas.delPedido(pedidoId).orElse(null), rs.getBigDecimal("costo_envio"),
                         rs.getBigDecimal("total").add(rs.getBigDecimal("costo_envio")), incidencias(pedidoId),
                         reembolsado(pedidoId), rs.getBigDecimal("total").add(rs.getBigDecimal("costo_envio"))
-                                .subtract(reembolsado(pedidoId))));
+                                .subtract(reembolsado(pedidoId)), rs.getString("moneda")));
         return encontrados.stream().findFirst()
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "No encontramos ese pedido."));
     }
@@ -308,7 +308,7 @@ public class CompraService {
     private List<LineaPedido> lineas(long pedidoId) {
         return jdbc.query("""
                 SELECT i.producto_id, i.productor_id, p.nombre, coalesce(pr.nombre_tienda, pr.comunidad) AS tienda,
-                       i.cantidad, i.precio_unitario, i.subtotal, a.cantidad_faltante
+                       i.cantidad, i.precio_unitario, i.subtotal, i.tarifa, a.cantidad_faltante
                 FROM item_pedido i
                 JOIN producto p ON p.id = i.producto_id
                 JOIN productor pr ON pr.id = i.productor_id
@@ -316,7 +316,7 @@ public class CompraService {
                 WHERE i.pedido_id = :id ORDER BY i.id""", new MapSqlParameterSource("id", pedidoId),
                 (rs, row) -> new LineaPedido(rs.getLong("producto_id"), rs.getLong("productor_id"), rs.getString("nombre"), rs.getString("tienda"),
                         rs.getBigDecimal("cantidad"), rs.getBigDecimal("precio_unitario"), rs.getBigDecimal("subtotal"),
-                        rs.getBigDecimal("cantidad_faltante")));
+                        rs.getString("tarifa"), rs.getBigDecimal("cantidad_faltante")));
     }
 
     /** CCPIP-485/486: los productos malogrados del pedido, en el orden en que se registraron. */
