@@ -465,6 +465,7 @@
         "borrador": "Draft",
         "despublicado": "Unpublished",
         "enRevision": "Under review",
+        "autorizacionRechazada": "Authorization rejected",
         "rechazada": "Publication rejected",
         "porVencer": "Batch expiring",
         "sinStock": "No stock for sale",
@@ -513,7 +514,10 @@
       "confirmarTitulo": "Unpublish this product?",
       "confirmarTexto": "will no longer appear in the catalog or in your store. It isn't deleted: it stays in orders and history, and you can publish it again whenever you want.",
       "evidencias": "Certificates and evidence",
-      "premios": "Awards"
+      "premios": "Awards",
+      "corregirCertificados": "Fix certificates",
+      "corregirPublicacion": "Review and fix",
+      "motivoDe": "Rejection reason for {{nombre}}"
     },
     "editor": {
       "nombreAntesFotos": "Enter the product name before adding photos",

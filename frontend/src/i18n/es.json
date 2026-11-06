@@ -465,6 +465,7 @@
         "borrador": "Borrador",
         "despublicado": "Despublicado",
         "enRevision": "En revisión",
+        "autorizacionRechazada": "Autorización rechazada",
         "rechazada": "Publicación rechazada",
         "porVencer": "Lote por vencer",
         "sinStock": "Sin stock en venta",
@@ -513,7 +514,10 @@
       "confirmarTitulo": "¿Despublicar este producto?",
       "confirmarTexto": "dejará de aparecer en el catálogo y en tu tienda. No se borra: sigue en los pedidos y en el historial, y puedes volver a publicarlo cuando quieras.",
       "evidencias": "Certificados y evidencias",
-      "premios": "Premios"
+      "premios": "Premios",
+      "corregirCertificados": "Corregir certificados",
+      "corregirPublicacion": "Ver y corregir",
+      "motivoDe": "Motivo del rechazo de {{nombre}}"
     },
     "editor": {
       "nombreAntesFotos": "Escribe el nombre del producto antes de agregar fotos",

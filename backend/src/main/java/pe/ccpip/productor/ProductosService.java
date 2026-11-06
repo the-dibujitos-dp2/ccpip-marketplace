@@ -78,8 +78,12 @@ public class ProductosService {
                                  AND x.fecha_vencimiento BETWEEN (now() AT TIME ZONE 'America/Lima')::date
                                      AND (now() AT TIME ZONE 'America/Lima')::date + ?) AS por_vencer,
                        coalesce((SELECT m.decision = 'RECHAZADA' FROM moderacion_publicacion m WHERE m.producto_id = p.id
-                                 ORDER BY m.solicitada_en DESC, m.id DESC LIMIT 1), false) AS rechazada
+                                 ORDER BY m.solicitada_en DESC, m.id DESC LIMIT 1), false) AS rechazada,
+                       (SELECT m.motivo FROM moderacion_publicacion m WHERE m.producto_id = p.id
+                        ORDER BY m.solicitada_en DESC, m.id DESC LIMIT 1) AS motivo_publicacion,
+                       a.estado AS autorizacion, a.motivo AS motivo_autorizacion
                 FROM producto p
+                LEFT JOIN autorizacion_producto a ON a.producto_id = p.id AND a.productor_id = p.productor_id
                 LEFT JOIN linea_producto l ON l.id = p.linea_id
                 WHERE p.productor_id = ? AND p.estado = ?
                   AND (?::text IS NULL OR lower(inmutable_unaccent(p.nombre)) LIKE lower(inmutable_unaccent(?)) ESCAPE '\\')
@@ -327,9 +331,15 @@ public class ProductosService {
         BigDecimal enVenta = rs.getBigDecimal("en_venta");
         Estado estado = Estado.valueOf(rs.getString("estado"));
         String alerta = null;
-        // CCPIP-332: la Camara no publico la oferta; el motivo esta en el editor
-        if (rs.getBoolean("rechazada") && (estado == Estado.BORRADOR || estado == Estado.RETIRADO)) {
+        String motivo = null;
+        // CCPIP-492: la autorizacion rechazada va primero, porque es lo que impide vender; se ve con su motivo
+        if ("RECHAZADA".equals(rs.getString("autorizacion"))) {
+            alerta = "AUTORIZACION_RECHAZADA";
+            motivo = rs.getString("motivo_autorizacion");
+        } else if (rs.getBoolean("rechazada") && (estado == Estado.BORRADOR || estado == Estado.RETIRADO)) {
+            // CCPIP-332: la Camara no publico la oferta
             alerta = "PUBLICACION_RECHAZADA";
+            motivo = rs.getString("motivo_publicacion");
         } else if (rs.getBoolean("por_vencer")) {
             alerta = "LOTE_POR_VENCER";
         } else if (enVenta.signum() == 0) {
@@ -342,7 +352,7 @@ public class ProductosService {
                 imagen == null ? null : ImagenService.urlMiniatura((java.util.UUID) imagen), rs.getString("linea"),
                 rs.getString("linea_codigo"),
                 Modalidad.valueOf(rs.getString("modalidad")), rs.getBigDecimal("precio"),
-                rs.getBigDecimal("precio_mayorista"), enVenta, stock, estado, alerta);
+                rs.getBigDecimal("precio_mayorista"), enVenta, stock, estado, alerta, motivo);
     }
 
     private List<Ubicado> stockPorUbicacion(long productoId) {
