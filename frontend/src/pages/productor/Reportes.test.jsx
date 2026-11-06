@@ -119,8 +119,8 @@ describe('Reportes del productor', () => {
     expect(screen.getByRole('region', { name: 'Total vendido' })).toHaveTextContent('23 unidades vendidas')
     expect(screen.getByRole('region', { name: 'B2C (minorista)' })).toHaveTextContent('S/ 180.00')
     expect(screen.getByRole('region', { name: 'B2B (mayorista)' })).toHaveTextContent('S/ 140.00')
-    expect(screen.getByLabelText('Desde')).toHaveValue('2026-01-01')
-    expect(screen.getByLabelText('Hasta')).toHaveValue('2026-03-18')
+    expect(screen.getByLabelText('Desde')).toHaveValue('01/01/2026')
+    expect(screen.getByLabelText('Hasta')).toHaveValue('18/03/2026')
     expect(screen.getByLabelText('Agrupar por')).toHaveValue('MES')
     expect(screen.getByLabelText('Producto')).toHaveValue('')
 

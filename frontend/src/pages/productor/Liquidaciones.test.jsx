@@ -50,8 +50,8 @@ describe('CCPIP-92 Liquidaciones del productor por periodo', () => {
     expect(screen.getByRole('region', { name: 'Ventas brutas' })).toHaveTextContent('2 pedidos')
     expect(screen.getByRole('region', { name: 'Comisión de la Cámara' })).toHaveTextContent('S/ 6.40')
     expect(screen.getByRole('region', { name: 'Neto a recibir' })).toHaveTextContent('S/ 97.60')
-    expect(screen.getByLabelText('Desde')).toHaveValue('2026-11-01')
-    expect(screen.getByLabelText('Hasta')).toHaveValue('2026-11-18')
+    expect(screen.getByLabelText('Desde')).toHaveValue('01/11/2026')
+    expect(screen.getByLabelText('Hasta')).toHaveValue('18/11/2026')
 
     const tabla = screen.getByRole('table', { name: 'Pedidos del periodo' })
     const [, conComision, sinComision] = within(tabla).getAllByRole('row')
@@ -68,9 +68,9 @@ describe('CCPIP-92 Liquidaciones del productor por periodo', () => {
       'GET /api/productor/liquidaciones?desde=2026-10-01&hasta=2026-11-18': () => [200, { ...copia(LIQUIDACION), desde: '2026-10-01' }],
     })
     abrirEn('/productor/liquidaciones')
-    await screen.findByDisplayValue('2026-11-01')
+    await screen.findByDisplayValue('01/11/2026')
     fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '2026-10-01' } })
-    await screen.findByDisplayValue('2026-10-01')
+    await screen.findByDisplayValue('01/10/2026')
     expect(llamadas(fetchMock, 'GET /api/productor/liquidaciones?desde=2026-10-01&hasta=2026-11-18')).not.toHaveLength(0)
   })
 

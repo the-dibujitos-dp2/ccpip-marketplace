@@ -84,7 +84,7 @@ describe('Certificados y evidencias del producto (CCPIP-36)', () => {
 
     await user.type(form.getByLabelText('Nombre del documento'), 'Registro sanitario')
     await user.type(form.getByLabelText('Quién lo emite'), 'DIGESA')
-    await user.type(form.getByLabelText('Vigente hasta'), '2027-06-30')
+    await user.type(form.getByLabelText('Vigente hasta'), '30/06/2027')
     await user.upload(form.getByLabelText('Archivo'), pdf())
     await user.click(form.getByRole('button', { name: 'Subir' }))
 

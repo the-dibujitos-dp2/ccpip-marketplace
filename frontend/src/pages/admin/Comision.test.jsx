@@ -51,7 +51,7 @@ describe('SA-02 Comisión (CCPIP-90)', () => {
     expect(base).toBeDisabled()
     expect(base).toHaveValue('PRECIO_SIN_ENVIO')
     expect(screen.getByText('Pendiente de confirmar con la Cámara (CCPIP-101).')).toBeInTheDocument()
-    expect(screen.getByLabelText('Vigente desde')).toHaveValue('2026-10-16')
+    expect(screen.getByLabelText('Vigente desde')).toHaveValue('16/10/2026')
 
     expect(normal(previa().getByText('Comisión de la Cámara').nextSibling.textContent)).toBe('S/ 10.00')
     expect(normal(previa().getByText('Recibe el productor').nextSibling.textContent)).toBe('S/ 90.00')
@@ -186,8 +186,8 @@ describe('Comisión por pedido (CCPIP-91)', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Comisión por pedido' })).toBeInTheDocument()
     // El campo existe antes de que llegue la respuesta: se espera a que traiga el rango del servidor
-    await waitFor(() => expect(screen.getByLabelText('Desde')).toHaveValue('2026-10-01'))
-    expect(screen.getByLabelText('Hasta')).toHaveValue('2026-10-16')
+    await waitFor(() => expect(screen.getByLabelText('Desde')).toHaveValue('01/10/2026'))
+    expect(screen.getByLabelText('Hasta')).toHaveValue('16/10/2026')
 
     const kpi = (nombre) => within(screen.getByRole('region', { name: nombre }))
     expect(normal(kpi('Ventas confirmadas').getByText(/^S\//).textContent)).toBe('S/ 216.70')

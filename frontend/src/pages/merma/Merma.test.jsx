@@ -255,8 +255,8 @@ describe('CCPIP-78 Reportes de merma', () => {
     await user.click(screen.getByRole('button', { name: 'Siguiente' }))
     await waitFor(() => expect(llamadas(fetchMock, 'GET /api/acopio/merma?pagina=1')).toHaveLength(1))
 
-    await user.type(screen.getByLabelText('Desde'), '2026-11-01')
-    await user.type(screen.getByLabelText('Hasta'), '2026-11-30')
+    await user.type(screen.getByLabelText('Desde'), '01/11/2026')
+    await user.type(screen.getByLabelText('Hasta'), '30/11/2026')
     await user.type(screen.getByLabelText('Lote'), 'REP-01')
     await user.type(screen.getByLabelText('Producto'), 'Harina')
     await user.type(screen.getByLabelText('Ubicación'), 'Centro Nacional Lima')

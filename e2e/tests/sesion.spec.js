@@ -25,7 +25,7 @@ test.describe('Sesion (CCPIP-27)', () => {
 
   test('tras cerrar sesion, "atras" no muestra el panel', async ({ page }) => {
     await ingresar(page, 'productor@ccpip.test')
-    await page.getByRole('link', { name: 'Productos' }).click()
+    await page.getByRole('link', { name: 'Productos', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Mis productos' })).toBeVisible()
     await page.getByRole('button', { name: 'Cerrar sesión' }).click()
     await expect(page.getByText('Cerraste sesión')).toBeVisible()

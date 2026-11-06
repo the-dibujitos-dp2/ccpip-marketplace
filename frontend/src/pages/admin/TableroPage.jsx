@@ -13,6 +13,7 @@ import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { mesAnterior, precio, unidades } from '../../formato.js'
+import { RUTAS } from '../../router.js'
 import '../productor/productor.css'
 import './admin.css'
 
@@ -71,11 +72,14 @@ function Contenido({ tablero }) {
   return (
     <>
       <div className="productor__kpis">
-        <TarjetaKpi titulo={t('admin.tablero.kpi.ventas')} valor={precio(ventas.mes)} detalle={variacion.texto} tono={variacion.tono} icono={iconoGrafico} />
+        <TarjetaKpi titulo={t('admin.tablero.kpi.ventas')} valor={precio(ventas.mes)} detalle={variacion.texto} tono={variacion.tono} icono={iconoGrafico}
+          destino={RUTAS.adminReportes} accion={t('admin.tablero.kpi.verReportes')} />
         {comision.porcentaje == null ? (
-          <TarjetaKpi titulo={t('admin.tablero.kpi.comision')} valor="—" detalle={t('admin.tablero.kpi.sinComision')} tono="neutro" icono={iconoPorcentaje} />
+          <TarjetaKpi titulo={t('admin.tablero.kpi.comision')} valor="—" detalle={t('admin.tablero.kpi.sinComision')} tono="neutro" icono={iconoPorcentaje}
+            destino={RUTAS.adminComision} accion={t('admin.tablero.kpi.verComision')} />
         ) : (
-          <TarjetaKpi titulo={t('admin.tablero.kpi.comision')} valor={precio(comision.estimada)} detalle={t('admin.tablero.kpi.vigente', { porcentaje: unidades(comision.porcentaje) })} icono={iconoPorcentaje} />
+          <TarjetaKpi titulo={t('admin.tablero.kpi.comision')} valor={precio(comision.estimada)} detalle={t('admin.tablero.kpi.vigente', { porcentaje: unidades(comision.porcentaje) })} icono={iconoPorcentaje}
+            destino={RUTAS.adminComision} accion={t('admin.tablero.kpi.verComision')} />
         )}
         <TarjetaKpi titulo={t('admin.tablero.kpi.productores')} valor={productores.activos} detalle={t('admin.tablero.kpi.nuevos', { count: productores.nuevosDelMes })} icono={iconoUsuario} />
         <TarjetaKpi titulo={t('admin.tablero.kpi.calificacion')} valor="—" detalle={t('admin.tablero.pronto')} tono="neutro" icono={iconoEstrella} />

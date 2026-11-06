@@ -109,7 +109,11 @@
         "porVencer": "Batches expiring",
         "proximos": "In the next {{dias}} days",
         "despublicados": "Unpublished",
-        "republicar": "You can publish them again"
+        "republicar": "You can publish them again",
+        "verProductos": "See published products",
+        "verExistencias": "See stock",
+        "verAlertas": "See expiry alerts",
+        "verDespublicados": "See unpublished"
       },
       "porVencer_one": "{{count}} batch expires soon (per your {{dias}}-day alert)",
       "porVencer_other": "{{count}} batches expire soon (per your {{dias}}-day alert)",
@@ -1596,7 +1600,9 @@
         "nuevos_one": "+ {{count}} new this month",
         "nuevos_other": "+ {{count}} new this month",
         "calificacion": "Average rating",
-        "sinComision": "No commission set"
+        "sinComision": "No commission set",
+        "verReportes": "See sales reports",
+        "verComision": "Set up commission"
       },
       "variacion": "{{flecha}} {{valor}} % vs. {{mes}}",
       "sinComparacion": "No sales in {{mes}} to compare",
@@ -2167,7 +2173,50 @@
   "campo": {
     "elegir": "Choose an option",
     "ocultarContrasena": "Hide password",
-    "mostrarContrasena": "Show password"
+    "mostrarContrasena": "Show password",
+    "fecha": {
+      "formato": "dd/mm/yyyy",
+      "abrir": "Open calendar: {{etiqueta}}",
+      "calendario": "Calendar: {{etiqueta}}",
+      "anterior": "Previous month",
+      "siguiente": "Next month",
+      "hoy": "Today",
+      "borrar": "Clear",
+      "meses": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ],
+      "dias": [
+        "Mo",
+        "Tu",
+        "We",
+        "Th",
+        "Fr",
+        "Sa",
+        "Su"
+      ],
+      "diasLargos": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "dia": "{{diaSemana}}, {{dia}} {{mes}} {{anio}}",
+      "mesAnio": "{{mes}} {{anio}}"
+    }
   },
   "roles": {
     "CONSUMIDOR": "Customer",
@@ -4886,5 +4935,8 @@
     "errorDecidir": "We couldn't save the decision",
     "aprobada": "“{{nombre}}” ({{codigo}}) is now in the catalog.",
     "rechazada": "You rejected “{{nombre}}”. The producer will see the reason."
+  },
+  "kpi": {
+    "verDetalle": "See details"
   }
 }

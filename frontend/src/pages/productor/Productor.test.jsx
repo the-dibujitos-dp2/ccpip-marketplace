@@ -86,6 +86,21 @@ describe('PW-01 Panel', () => {
     expect(screen.getByText(/Origen verificado desde el/)).toBeInTheDocument()
   })
 
+  it('CCPIP-456: cada cifra del panel lleva a su pantalla y se distingue como pulsable', async () => {
+    productor()
+    const user = userEvent.setup()
+    abrirEn('/productor')
+    const publicados = await screen.findByRole('region', { name: 'Productos publicados' })
+    expect(publicados).toHaveClass('tarjeta-kpi--pulsable')
+    expect(within(publicados).getByRole('link', { name: 'Ver productos publicados: Productos publicados' })).toHaveAttribute('href', '/productor/productos?estado=PUBLICADO')
+    expect(within(screen.getByRole('region', { name: 'En venta' })).getByRole('link')).toHaveAttribute('href', '/productor/almacen')
+    expect(within(screen.getByRole('region', { name: 'Lotes por vencer' })).getByRole('link')).toHaveAttribute('href', '/productor/alertas')
+    const despublicados = within(screen.getByRole('region', { name: 'Despublicados' })).getByRole('link', { name: 'Ver despublicados: Despublicados' })
+    expect(despublicados).toHaveAttribute('href', '/productor/productos?estado=RETIRADO')
+    await user.click(despublicados)
+    expect(window.location.pathname + window.location.search).toBe('/productor/productos?estado=RETIRADO')
+  })
+
   it('avisa lotes por vencer, productos sin stock y tienda sin publicar', async () => {
     const panel = {
       ...copia(DATOS.panelProductor),
@@ -279,8 +294,8 @@ describe('PW-06 Registrar lote (CCPIP-41)', () => {
     expect(screen.getByText('Este producto necesita fecha de vencimiento')).toBeInTheDocument()
     expect(screen.getByText('Elige dónde ingresa el lote')).toBeInTheDocument()
 
-    await user.type(screen.getByLabelText('Vencimiento'), '2020-01-01')
-    await user.type(screen.getByLabelText('Producción'), '2099-01-01')
+    await user.type(screen.getByLabelText('Vencimiento'), '01/01/2020')
+    await user.type(screen.getByLabelText('Producción'), '01/01/2099')
     await user.click(screen.getByRole('button', { name: 'Registrar lote' }))
     expect(screen.getByText('No puede ser anterior a hoy')).toBeInTheDocument()
     expect(screen.getByText('No puede ser posterior a hoy')).toBeInTheDocument()
@@ -295,7 +310,7 @@ describe('PW-06 Registrar lote (CCPIP-41)', () => {
     abrirEn('/productor/lotes?producto=9')
     await user.type(await screen.findByLabelText('Código de lote'), 'L-0050')
     await user.type(screen.getByLabelText('Cantidad'), '20')
-    await user.type(screen.getByLabelText('Vencimiento'), '2099-12-31')
+    await user.type(screen.getByLabelText('Vencimiento'), '31/12/2099')
     await user.selectOptions(screen.getByLabelText('Ingresa a'), '1')
     expect(screen.getByText('En un punto de acopio el lote queda en venta de inmediato.')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Registrar lote' }))
@@ -316,7 +331,7 @@ describe('PW-06 Registrar lote (CCPIP-41)', () => {
     abrirEn('/productor/lotes?producto=9')
     await user.type(await screen.findByLabelText('Código de lote'), 'L-0009')
     await user.type(screen.getByLabelText('Cantidad'), '5')
-    await user.type(screen.getByLabelText('Vencimiento'), '2099-12-31')
+    await user.type(screen.getByLabelText('Vencimiento'), '31/12/2099')
     await user.selectOptions(screen.getByLabelText('Ingresa a'), '1')
     await user.click(screen.getByRole('button', { name: 'Registrar lote' }))
     expect(await screen.findByText('Ya registraste ese código de lote')).toBeInTheDocument()

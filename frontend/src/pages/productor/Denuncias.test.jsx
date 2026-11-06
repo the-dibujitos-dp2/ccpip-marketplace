@@ -140,7 +140,7 @@ describe('Pestañas y filtros de las denuncias recibidas (CCPIP-432)', () => {
     const buscador = screen.getByRole('searchbox', { name: 'Buscar por descripción, producto, motivo o tu respuesta' })
     await user.type(buscador, 'camara')
     expect(denunciasVisibles()).toEqual(['Denuncia sobre Sobre tu comunidad del 2 oct 2026'])
-    await user.type(screen.getByLabelText('Hasta'), '2026-10-01')
+    await user.type(screen.getByLabelText('Hasta'), '01/10/2026')
     expect(denunciasVisibles()).toEqual([])
     await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
     // Y en el motivo, que no tiene selector

@@ -29,7 +29,7 @@ test('pantallas del productor y su menu', async ({ page }) => {
     await sinScrollHorizontal(page)
   }
   await page.getByRole('button', { name: 'Abrir menú' }).click()
-  await page.getByRole('link', { name: 'Productos' }).click()
+  await page.getByRole('link', { name: 'Productos', exact: true }).click()
   await expect(page).toHaveURL(/\/productor\/productos$/)
   await sinViolaciones(page)
 })
