@@ -188,7 +188,7 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
             <div className="editor__botones">
               <Boton tipo="terciario" onClick={onAtras}>{t('productor.historia.atras')}</Boton>
               <Boton tipo="secundario" icono={iconoEditar} onClick={() => setModo('manual')}>{t('productor.historia.editar')}</Boton>
-              <Boton onClick={onOmitir}>{t('productor.historia.siguienteLote')}</Boton>
+              <Boton onClick={onOmitir}>{t('productor.historia.siguienteCertificados')}</Boton>
             </div>
           </>
         )}

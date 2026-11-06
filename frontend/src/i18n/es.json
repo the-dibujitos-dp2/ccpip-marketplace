@@ -529,6 +529,7 @@
       "pasos": {
         "datos": "Datos",
         "historia": "Historia",
+        "certificados": "Certificados",
         "lote": "Primer lote"
       },
       "nuevo": "Nuevo",
@@ -548,7 +549,17 @@
       "bloqueada": "Llegaste al máximo de {{maximo}} rechazos",
       "bloqueadaTexto": "La Cámara rechazó esta oferta {{maximo}} veces. Para enviarla otra vez, pide al subadministrador que habilite un nuevo intento. Último motivo: «{{motivo}}».",
       "intentosRestantes_one": "Te queda {{count}} intento antes de que el subadministrador tenga que habilitar uno nuevo.",
-      "intentosRestantes_other": "Te quedan {{count}} intentos antes de que el subadministrador tenga que habilitar uno nuevo."
+      "intentosRestantes_other": "Te quedan {{count}} intentos antes de que el subadministrador tenga que habilitar uno nuevo.",
+      "certificados": {
+        "intro": "Sube los certificados y evidencias que sustentan el origen de tu producto. Se envían a la Cámara junto con la publicación, en el último paso.",
+        "siguiente": "Siguiente: primer lote"
+      },
+      "enviarSolicitud": "Enviar solicitud",
+      "enviarSolicitudAyuda": "Se envían juntas la solicitud de autorización (con tus certificados) y la de publicación. La Cámara las revisa antes de mostrar el producto.",
+      "faltaCertificados": "Al menos un certificado, documento o evidencia (paso Certificados)",
+      "irCertificados": "Ir a certificados",
+      "certificadosListos": "Certificados: {{estado}}",
+      "errorSolicitud": "No pudimos enviar la solicitud de autorización"
     },
     "datos": {
       "validacion": {
@@ -718,7 +729,6 @@
       "redactadaIa": "Redactada con apoyo de IA y aprobada por la comunidad.",
       "atras": "Atrás",
       "editar": "Editar historia",
-      "siguienteLote": "Siguiente: primer lote",
       "enBorrador": "Tu historia, en borrador",
       "enBorradorTexto": "Cuando tengas tus respuestas, la plataforma puede proponerte un borrador. Lo revisas, lo cambias y solo se publica cuando lo apruebas.",
       "preparando": "Preparando borrador…",
@@ -740,7 +750,8 @@
       "historiaPlaceholder": "Cuenta quiénes lo hacen, cómo y por qué importa para tu comunidad.",
       "descartar": "Descartar borrador",
       "descartada": "Descartaste el borrador de la IA",
-      "descartadaTexto": "Tus respuestas siguen aquí: pide otra versión o escribe la historia a mano."
+      "descartadaTexto": "Tus respuestas siguen aquí: pide otra versión o escribe la historia a mano.",
+      "siguienteCertificados": "Siguiente: certificados"
     },
     "tienda": {
       "categorias": {
@@ -3389,7 +3400,8 @@
       "REVOCADA": "La autorización fue revocada",
       "conMotivo": "Motivo: «{{motivo}}». Corrige tus evidencias si hace falta y vuelve a solicitarla.",
       "lineaNueva": "La autorización no cubre una línea nueva",
-      "lineaNuevaTexto": "Agregaste una línea que la Cámara no revisó: la venta está pausada. Adjunta evidencias para pedir una nueva revisión."
+      "lineaNuevaTexto": "Agregaste una línea que la Cámara no revisó: la venta está pausada. Adjunta evidencias para pedir una nueva revisión.",
+      "enEditorTexto": "Sube aquí tus evidencias. La solicitud de autorización se envía con «Enviar solicitud» en el último paso."
     },
     "tipo": {
       "CERTIFICADO": "Certificados",
