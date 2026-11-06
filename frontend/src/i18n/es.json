@@ -1935,7 +1935,6 @@
       "errorEstado": "No pudimos cambiar el estado de la causa",
       "col": {
         "nombre": "Nombre",
-        "ingles": "En inglés",
         "detalle": "Pide detalle",
         "usos": "Usos",
         "estado": "Estado",
@@ -2847,7 +2846,8 @@
       "accion": "Elige otro punto o cambia la forma de entrega para poder pagar."
     },
     "productos": "Productos",
-    "envio": "Envío"
+    "envio": "Envío",
+    "recogesEn": "Recoges en"
   },
   "pedido": {
     "noEncontrado": "No encontramos ese pedido",

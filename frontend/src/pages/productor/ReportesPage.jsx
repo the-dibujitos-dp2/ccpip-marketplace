@@ -18,7 +18,7 @@ import Pestanas from '../../components/Pestanas.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
-import { capital, fecha, mesAnio, precio, unidades } from '../../formato.js'
+import { capital, claseSigno, fecha, mesAnio, precio, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import PaginaProductor from './PaginaProductor.jsx'
 import './productor.css'
@@ -322,7 +322,7 @@ function Inventario({ datos }) {
             <div key={p.inicio} className="tabla__fila" role="row">
               <span className="tabla__celda reportes-productor__periodo label-m" role="cell">{nombrePeriodo(p, agrupacion, t)}</span>
               {COLUMNAS_INVENTARIO.map((c) => (
-                <span key={c} className={`tabla__celda reportes-productor__num reportes-productor__num--estrecha${c === 'saldoFinal' ? ' label-m' : ''}`} role="cell">{unidades(p[c])}</span>
+                <span key={c} className={`tabla__celda reportes-productor__num reportes-productor__num--estrecha${c === 'saldoFinal' ? ' label-m' : ''}${claseSigno(Number(p[c]))}`} role="cell">{unidades(p[c])}</span>
               ))}
             </div>
           ))}
@@ -346,7 +346,7 @@ function Inventario({ datos }) {
               <div key={p.productoId} className="tabla__fila" role="row">
                 <span className="tabla__celda tabla__celda--flex label-m" role="cell">{p.producto}</span>
                 {COLUMNAS_INVENTARIO_PRODUCTO.map((c) => (
-                  <span key={c} className={`tabla__celda reportes-productor__num${c === 'saldoFinal' ? ' label-m' : ''}`} role="cell">{unidades(p[c])}</span>
+                  <span key={c} className={`tabla__celda reportes-productor__num${c === 'saldoFinal' ? ' label-m' : ''}${claseSigno(Number(p[c]))}`} role="cell">{unidades(p[c])}</span>
                 ))}
               </div>
             ))}

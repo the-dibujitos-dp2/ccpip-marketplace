@@ -13,7 +13,7 @@ import FiltroFechas from '../../components/FiltroFechas.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import TarjetaKpi from '../../components/TarjetaKpi.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
-import { diaMesAnioHora, precio, unidades } from '../../formato.js'
+import { claseSigno, diaMesAnioHora, precio, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
 import './admin.css'
@@ -122,7 +122,7 @@ function Resultado({ datos, filtrado, onPagina }) {
                     ? t('admin.comisiones.sinComisionCelda')
                     : t('admin.comisiones.conPorcentaje', { monto: precio(p.comision), porcentaje: unidades(p.porcentaje) })}
                 </span>
-                <span className="tabla__celda admin__num" role="cell">{p.neto == null ? '—' : precio(p.neto)}</span>
+                <span className={`tabla__celda admin__num${p.neto == null ? '' : claseSigno(Number(p.neto))}`} role="cell">{p.neto == null ? '—' : precio(p.neto)}</span>
               </div>
             ))}
           </div>

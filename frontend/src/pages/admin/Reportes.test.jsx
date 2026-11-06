@@ -409,6 +409,9 @@ describe('CCPIP-348 Indicadores de ventas (SA-10)', () => {
     expect(ventas).toHaveTextContent('S/ 2,200.00')
     expect(ventas).toHaveTextContent('+10% frente al período anterior')
     expect(screen.getByRole('region', { name: 'Pedidos' })).toHaveTextContent('-37.5% frente al período anterior')
+    // CCPIP-454: una caida va en rojo
+    expect(screen.getByRole('region', { name: 'Pedidos' }).querySelector('.tarjeta-kpi__detalle--error')).not.toBeNull()
+    expect(ventas.querySelector('.tarjeta-kpi__detalle--exito')).not.toBeNull()
     expect(screen.getByRole('region', { name: 'Ticket promedio' })).toHaveTextContent('S/ 440.00')
     expect(screen.getByText(/del 16 oct 2025 al 31 dic 2025/)).toBeInTheDocument()
     // Los indicadores se agrupan como las metricas

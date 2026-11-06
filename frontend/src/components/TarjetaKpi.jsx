@@ -1,3 +1,4 @@
+import { claseSigno } from '../formato.js'
 import Icono from './Icono.jsx'
 import './TarjetaKpi.css'
 
@@ -16,7 +17,7 @@ export default function TarjetaKpi({ titulo, valor, detalle, icono, tono = 'exit
           </span>
         )}
       </div>
-      <p className="tarjeta-kpi__valor">{valor}</p>
+      <p className={`tarjeta-kpi__valor${claseSigno(valor)}`}>{valor}</p>
       {detalle && <p className={`tarjeta-kpi__detalle tarjeta-kpi__detalle--${tono}`}>{detalle}</p>}
     </section>
   )

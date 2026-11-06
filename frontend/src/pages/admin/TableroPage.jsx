@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoEstrella from '../../assets/icons/estrella.svg'
 import iconoGrafico from '../../assets/icons/grafico.svg'
@@ -148,10 +148,21 @@ function MermaPunto({ merma, linea }) {
   return <NivelMerma porcentaje={merma.porcentaje} nivel={merma.nivel} />
 }
 
+/**
+ * CCPIP-448: de mayor a menor merma del mes (porcentaje; a igual porcentaje, mas unidades), para ver
+ * primero las lineas con mas perdida. Una fila sin porcentaje (sin stock ni merma) va al final.
+ */
+function deMayorAMenor(filas) {
+  const pct = (m) => (m.porcentaje == null ? -1 : Number(m.porcentaje))
+  return [...filas].sort((a, b) => pct(b) - pct(a) || Number(b.unidades) - Number(a.unidades)
+    || a.punto.localeCompare(b.punto) || a.linea.localeCompare(b.linea))
+}
+
 /** CCPIP-430: merma del mes de cada linea en cada punto, solo donde hubo merma. */
 function MermaPorLinea({ filas }) {
   const { t } = useTranslation()
-  const paginacion = usePaginacionLocal(filas, 'tablero-merma-por-linea')
+  const ordenadas = useMemo(() => deMayorAMenor(filas), [filas])
+  const paginacion = usePaginacionLocal(ordenadas, 'tablero-merma-por-linea')
   return (
     <section className="productor__seccion" aria-labelledby="titulo-merma">
       <h2 id="titulo-merma" className="heading-h3">{t('admin.tablero.merma.titulo')}</h2>

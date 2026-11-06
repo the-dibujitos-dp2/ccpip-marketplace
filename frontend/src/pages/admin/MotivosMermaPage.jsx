@@ -86,7 +86,6 @@ export default function MotivosMermaPage({ path }) {
         <div className="tabla" role="table" aria-label={titulo}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('admin.motivosMerma.col.nombre')}</span>
-            <span className="tabla__celda motivos__col-ingles" role="columnheader">{t('admin.motivosMerma.col.ingles')}</span>
             <span className="tabla__celda motivos__col-detalle" role="columnheader">{t('admin.motivosMerma.col.detalle')}</span>
             <span className="tabla__celda motivos__col-usos" role="columnheader">{t('admin.motivosMerma.col.usos')}</span>
             <span className="tabla__celda motivos__col-estado" role="columnheader">{t('admin.motivosMerma.col.estado')}</span>
@@ -98,7 +97,6 @@ export default function MotivosMermaPage({ path }) {
                 <span className="label-m">{m.nombre}</span>
                 {m.sistema && <span className="caption motivos__sistema">{t('admin.motivosMerma.sistema')}</span>}
               </span>
-              <span className="tabla__celda motivos__col-ingles" role="cell">{m.nombreEn}</span>
               <span className="tabla__celda motivos__col-detalle" role="cell">{t(m.requiereDetalle ? 'admin.motivosMerma.si' : 'admin.motivosMerma.no')}</span>
               <span className="tabla__celda motivos__col-usos" role="cell">{m.usos}</span>
               <span className="tabla__celda motivos__col-estado" role="cell">

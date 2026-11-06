@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { capital, coincide, diaMes, diaMesAnio, diaMesAnioHora, diaMesAnioLargo, diaMesHora, diaMesLargoHora, fecha, fechaCorta, fechaHoraLarga, hora, mesAnio, mesAnterior, precio, primeraOracion, unidades } from './formato'
+import { capital, claseSigno, coincide, esNegativo, diaMes, diaMesAnio, diaMesAnioHora, diaMesAnioLargo, diaMesHora, diaMesLargoHora, fecha, fechaCorta, fechaHoraLarga, hora, mesAnio, mesAnterior, precio, primeraOracion, unidades } from './formato'
 import i18n from './i18n/index.js'
 
 // Intl separa la moneda con un espacio no separable (U+00A0): se normaliza para comparar
@@ -129,5 +129,31 @@ describe('formato', () => {
     it('sin una oracion corta, recorta y agrega puntos suspensivos', () => {
       expect(primeraOracion('a'.repeat(200))).toBe(`${'a'.repeat(140)}…`)
     })
+  })
+})
+
+describe('valores negativos en rojo (CCPIP-454)', () => {
+  it('reconoce numeros y textos formateados con signo menos', () => {
+    expect(esNegativo(-0.5)).toBe(true)
+    expect(esNegativo(0)).toBe(false)
+    expect(esNegativo(precio(-12))).toBe(true)
+    expect(esNegativo(unidades(-3.5))).toBe(true)
+    expect(esNegativo('−2')).toBe(true)
+    expect(esNegativo('- 4 und')).toBe(true)
+    expect(esNegativo(precio(12))).toBe(false)
+    expect(esNegativo('+100')).toBe(false)
+  })
+
+  it('no confunde fechas, guiones de texto ni valores vacios', () => {
+    expect(esNegativo('2026-10-04')).toBe(false)
+    expect(esNegativo('—')).toBe(false)
+    expect(esNegativo('Café - tostado')).toBe(false)
+    expect(esNegativo(null)).toBe(false)
+    expect(esNegativo(undefined)).toBe(false)
+  })
+
+  it('da la clase solo a los negativos', () => {
+    expect(claseSigno(precio(-1))).toBe(' valor-negativo')
+    expect(claseSigno(precio(1))).toBe('')
   })
 })

@@ -162,3 +162,16 @@ export function coincide(buscado, ...textos) {
   const b = paraBuscar(buscado)
   return !b || textos.some((x) => paraBuscar(x).includes(b))
 }
+
+/**
+ * CCPIP-454: si un valor es negativo, para mostrarlo en rojo. Acepta el numero o el texto ya formateado
+ * ("-S/ 12.00", "-3.5", "−4 und"); un texto sin cifra con signo (una fecha "2026-10-04") no lo es.
+ */
+export function esNegativo(valor) {
+  if (typeof valor === 'number') return valor < 0
+  if (typeof valor !== 'string') return false
+  return /^\s*[-−]\s*(S\/\s*)?\d/.test(valor)
+}
+
+/** CCPIP-454: la clase que pinta en rojo un valor negativo, o nada. */
+export const claseSigno = (valor) => (esNegativo(valor) ? ' valor-negativo' : '')
