@@ -247,10 +247,10 @@ public class PagoService {
 
     private Intento intentoPorClave(UUID clave) {
         return jdbc.query("""
-                SELECT pa.id, pa.pedido_id, pe.numero, pa.monto FROM pago pa JOIN pedido pe ON pe.id = pa.pedido_id
+                SELECT pa.id, pa.pedido_id, pe.numero, pa.monto, pa.moneda FROM pago pa JOIN pedido pe ON pe.id = pa.pedido_id
                 WHERE pa.clave_idempotencia = :clave""", new MapSqlParameterSource("clave", clave),
                 (rs, row) -> new Intento(rs.getLong("id"), rs.getLong("pedido_id"), rs.getString("numero"),
-                        rs.getBigDecimal("monto"))).stream().findFirst().orElse(null);
+                        rs.getBigDecimal("monto"), rs.getString("moneda"))).stream().findFirst().orElse(null);
     }
 
     /** El intento y el pedido como quedaron. Solo del comprador: un pedido ajeno no existe (RNF-05). */
