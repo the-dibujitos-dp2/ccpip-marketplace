@@ -193,6 +193,21 @@ class OpenAiTest {
         assertThat(new AnalistaGemini(cliente(Duration.ofSeconds(5))).proveedor()).isEqualTo("openai");
         assertThat(pedidos.get(0).at("/messages/1/content").asText()).contains(certificado.toString());
 
+        // CCPIP-491: con el PDF, el contenido va en partes: texto, etiqueta y el archivo en base64
+        respuestas.clear();
+        pedidos.clear();
+        responde("""
+                {"recomendacion": "REVISAR", "resumen": "", "hallazgos": []}""");
+        byte[] pdf = "%PDF-1.4 x".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        new AnalistaGemini(cliente(Duration.ofSeconds(5))).analizar(new Solicitud("Café orgánico", "Coop. Río Ene",
+                LocalDate.of(2026, 10, 22), List.of(new Evidencia(certificado, "CERTIFICADO", "Certificado orgánico",
+                        "Control Union", null, LocalDate.of(2027, 1, 1), "PDF", pdf))));
+        JsonNode partes = pedidos.get(0).at("/messages/1/content");
+        assertThat(partes.get(0).path("type").asText()).isEqualTo("text");
+        assertThat(partes.get(2).path("type").asText()).isEqualTo("file");
+        assertThat(partes.get(2).at("/file/file_data").asText())
+                .isEqualTo("data:application/pdf;base64," + java.util.Base64.getEncoder().encodeToString(pdf));
+
         respuestas.clear();
         responde("""
                 {"fueraDeAlcance": false, "terminos": ["café"], "lineas": ["CAFE"], "regiones": [],

@@ -42,9 +42,22 @@ public class GeminiCliente extends ClienteIaHttp {
 
     @Override
     public JsonNode generar(String instrucciones, String datos, Map<String, Object> esquema, double temperatura) {
+        return generar(instrucciones, datos, List.of(), esquema, temperatura);
+    }
+
+    /** CCPIP-491: cada adjunto va como inline_data, precedido de un texto con su etiqueta. */
+    @Override
+    public JsonNode generar(String instrucciones, String datos, List<Adjunto> adjuntos, Map<String, Object> esquema,
+                            double temperatura) {
+        List<Map<String, Object>> partes = new java.util.ArrayList<>();
+        partes.add(Map.of("text", datos));
+        for (Adjunto a : adjuntos) {
+            partes.add(Map.of("text", a.etiqueta()));
+            partes.add(Map.of("inline_data", Map.of("mime_type", a.mime(), "data", a.base64())));
+        }
         Map<String, Object> cuerpo = Map.of(
                 "systemInstruction", Map.of("parts", List.of(Map.of("text", instrucciones))),
-                "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", datos)))),
+                "contents", List.of(Map.of("role", "user", "parts", partes)),
                 "generationConfig", Map.of(
                         "temperature", temperatura,
                         "responseMimeType", "application/json",
