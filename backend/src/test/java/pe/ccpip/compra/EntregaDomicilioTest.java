@@ -38,6 +38,7 @@ class EntregaDomicilioTest extends IntegrationTest {
     private static final String COMPRADOR = "comprador.domicilio@ccpip.test";
     private static final String APROBADA = "4111 1111 1111 1111";
     private static final String TARIFA = "12.00";
+    private static final String OTRO_COMPRADOR = "comprador.domicilio.otro@ccpip.test";
 
     private Cookie comprador;
     private long pedidosAntes;
@@ -82,14 +83,6 @@ class EntregaDomicilioTest extends IntegrationTest {
         jdbc.update("""
                 INSERT INTO capacidad_entrega (ubicacion_id, maximo_diario) VALUES (?, ?)
                 ON CONFLICT (ubicacion_id) DO UPDATE SET maximo_diario = EXCLUDED.maximo_diario""", punto(punto), maximo);
-    }
-
-    private void pagar(long pedidoId) throws Exception {
-        Map<String, Object> tarjeta = Map.of("numero", APROBADA, "titular", "ANA QUISPE", "mes", 12, "anio", 2030, "cvv", "123");
-        mockMvc.perform(post("/api/pedidos/" + pedidoId + "/pagos").cookie(comprador).contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("claveIdempotencia", UUID.randomUUID(), "tarjeta", tarjeta))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.pedido.estado").value("CONFIRMADO"));
     }
 
     /** Producto de productor@ccpip.test, a S/ 25.00, con {@code unidades} en un lote vigente del punto de Cusco. */
@@ -208,11 +201,22 @@ class EntregaDomicilioTest extends IntegrationTest {
 
     @Test
     void conLaCapacidadDelDiaAlcanzadaNoSeOfreceNiSeAceptaADomicilio() throws Exception {
+        // Otro comprador ocupa el ultimo cupo de hoy con un pedido a domicilio (sin pagar tambien ocupa)
+        Cookie propio = comprador;
+        jdbc.update("""
+                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
+                SELECT ?, contrasena_hash, 'Otro Comprador a Domicilio', 1, true FROM usuario
+                WHERE correo = 'consumidor@ccpip.test' ON CONFLICT (correo) DO NOTHING""", OTRO_COMPRADOR);
+        comprador = loginAs(OTRO_COMPRADOR);
         alCarrito(productoEnCusco(5), 1);
         long primero = objectMapper.readTree(pedir(aDomicilio(destino(WANCHAQ))).andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString()).get("id").asLong();
-        pagar(primero);
-        // El cupo de hoy queda justo lleno con lo que ya salio del punto
+        Cookie otro = comprador;
+        comprador = propio;
+        // Sin pedidos propios sin pagar de otras pruebas: confirmar los cancelaria y liberaria su cupo
+        jdbc.update("""
+                UPDATE pedido SET estado = 'CANCELADO', actualizado_en = now()
+                WHERE usuario_id = (SELECT id FROM usuario WHERE correo = ?) AND estado = 'PENDIENTE_PAGO'""", COMPRADOR);
         capacidad(CUSCO, usadosHoy(CUSCO));
 
         alCarrito(productoEnCusco(5), 1);
@@ -224,8 +228,8 @@ class EntregaDomicilioTest extends IntegrationTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("CAPACIDAD_AGOTADA"));
         assertThat(pedidosDelComprador()).isEqualTo(antes);
-        // El pedido ya confirmado no cambia
-        mockMvc.perform(get("/api/pedidos/" + primero).cookie(comprador)).andExpect(jsonPath("$.estado").value("CONFIRMADO"));
+        // El pedido que ya ocupaba el cupo no cambia
+        mockMvc.perform(get("/api/pedidos/" + primero).cookie(otro)).andExpect(jsonPath("$.estado").value("PENDIENTE_PAGO"));
 
         // Un cupo mas, o sin limite, vuelve a aceptar
         capacidad(CUSCO, usadosHoy(CUSCO) + 1);
