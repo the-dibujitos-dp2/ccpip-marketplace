@@ -3409,7 +3409,9 @@
     "retirarTexto": "“{{titulo}}” will no longer support the request. The Chamber keeps a record of what it reviewed.",
     "form": {
       "titulo": "Document name",
+      "tituloEjemplo": "E.g.: Organic certificate 2026",
       "emisor": "Issued by",
+      "emisorEjemplo": "E.g.: Control Union Peru or SENASA",
       "opcional": "Optional",
       "opcionalCorto": "(optional)",
       "desde": "Valid from (optional)",
@@ -4828,6 +4830,7 @@
     "ultima": "Last declaration: {{fecha}}, by {{nombre}}.",
     "sinDeclaracion": "You have not declared any rule for this product yet.",
     "observaciones": "Observations (optional)",
+    "observacionesEjemplo": "E.g.: the cacao is fermented in the community’s wooden boxes.",
     "declarar": "Save declaration",
     "guardada": "You saved the declaration",
     "error": "We could not save the declaration",

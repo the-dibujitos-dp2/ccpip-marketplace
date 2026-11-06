@@ -79,7 +79,7 @@ export default function CumplimientoProducto({ productoId }) {
           )
         })}
       </ul>
-      <Campo tipo="area" etiqueta={c('observaciones')} value={observaciones} maxLength={500}
+      <Campo tipo="area" etiqueta={c('observaciones')} placeholder={c('observacionesEjemplo')} value={observaciones} maxLength={500}
         onChange={(e) => setObservaciones(e.target.value)} />
       <Boton tamano="M" onClick={guardar} cargando={guardando}>{c('declarar')}</Boton>
       <p className="caption">{c('nota')}</p>

@@ -303,8 +303,9 @@ function FormularioEvidencia({ tipo, productoId, onCancelar, onSubida }) {
   return (
     <form className="evidencias__formulario" onSubmit={enviar} noValidate aria-label={t(`evidencias.agregar.${tipo}`)}>
       {fallo && <Alerta tono="error" titulo={fallo} />}
-      <Campo etiqueta={t('evidencias.form.titulo')} value={campos.titulo} onChange={cambiar('titulo')} error={errores.titulo} maxLength={160} />
-      <Campo etiqueta={t('evidencias.form.emisor')} ayuda={t('evidencias.form.opcional')} value={campos.emisor} onChange={cambiar('emisor')} maxLength={160} />
+      {/* CCPIP-503: un ejemplo de que escribir en cada campo */}
+      <Campo etiqueta={t('evidencias.form.titulo')} placeholder={t('evidencias.form.tituloEjemplo')} value={campos.titulo} onChange={cambiar('titulo')} error={errores.titulo} maxLength={160} />
+      <Campo etiqueta={t('evidencias.form.emisor')} placeholder={t('evidencias.form.emisorEjemplo')} ayuda={t('evidencias.form.opcional')} value={campos.emisor} onChange={cambiar('emisor')} maxLength={160} />
       <div className="evidencias__fechas">
         <Campo etiqueta={t('evidencias.form.desde')} type="date" value={campos.vigenteDesde} onChange={cambiar('vigenteDesde')} />
         <Campo
