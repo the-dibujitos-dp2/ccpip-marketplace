@@ -359,7 +359,10 @@ public class ReportesProductorService {
 
         jdbc.query("""
                 SELECT (m.registrado_en AT TIME ZONE 'America/Lima')::date AS fecha, m.producto_id, pr.nombre,
-                       CASE WHEN m.tipo = 'SALIDA_VENTA' THEN 'VENTA_' || coalesce(i.tarifa, 'MINORISTA') ELSE m.tipo END AS tipo,
+                       CASE WHEN m.tipo = 'SALIDA_VENTA' THEN 'VENTA_' || coalesce(i.tarifa, 'MINORISTA')
+                            -- CCPIP-485/486: lo que vuelve de un pedido para darse de baja no se vendio
+                            WHEN m.motivo = 'REINTEGRO_PEDIDO' THEN 'REINTEGRO_' || coalesce(i.tarifa, 'MINORISTA')
+                            ELSE m.tipo END AS tipo,
                        sum(m.cantidad) AS cantidad
                 FROM movimiento_inventario m
                 JOIN producto pr ON pr.id = m.producto_id
@@ -386,6 +389,14 @@ public class ReportesProductorService {
                 case "VENTA_MINORISTA" -> {
                     b2c[i] = b2c[i].add(cantidad);
                     f[2] = f[2].add(cantidad);
+                }
+                case "REINTEGRO_MAYORISTA" -> {
+                    b2b[i] = b2b[i].subtract(cantidad);
+                    f[2] = f[2].subtract(cantidad);
+                }
+                case "REINTEGRO_MINORISTA" -> {
+                    b2c[i] = b2c[i].subtract(cantidad);
+                    f[2] = f[2].subtract(cantidad);
                 }
                 case "MERMA" -> {
                     merma[i] = merma[i].add(cantidad);

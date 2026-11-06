@@ -97,7 +97,17 @@ public final class EntregaModelos {
      * vencido nunca (RNF-14). {@code fechaVencimiento} es nula en lo que no vence, como una artesania.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record LoteAsignado(String codigo, BigDecimal cantidad, LocalDate fechaVencimiento) {
+    /** {@code id}: el lote, para marcarlo malogrado (CCPIP-485/486); {@code cantidad}, lo que aun cubre de la linea. */
+    public record LoteAsignado(long id, String codigo, BigDecimal cantidad, LocalDate fechaVencimiento) {
+    }
+
+    /**
+     * CCPIP-485/486: un producto malogrado de la linea. {@code tipo}: REEMPLAZO (otro lote lo cubre) o FALTANTE
+     * (no se entrega y se reembolsa {@code reembolsado}).
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record Incidencia(String tipo, BigDecimal cantidad, String loteOriginal, String loteNuevo, String causa,
+                             BigDecimal reembolsado, Instant registradaEn, String responsable) {
     }
 
     /**
@@ -105,7 +115,8 @@ public final class EntregaModelos {
      * los lotes asignados al confirmar la compra, mas proximo a vencer primero; esta vacia mientras
      * el pedido no descuenta existencias.
      */
-    public record Linea(String producto, String comunidad, BigDecimal cantidad, List<LoteAsignado> lotes) {
+    public record Linea(long id, String producto, String comunidad, BigDecimal cantidad, List<LoteAsignado> lotes,
+                        BigDecimal porEntregar, List<Incidencia> incidencias) {
     }
 
     /**

@@ -43,6 +43,12 @@ public class ComisionesPorPedidoService {
             pe.confirmado_en IS NOT NULL AND pe.estado <> 'CANCELADO'
             AND (pe.confirmado_en AT TIME ZONE 'America/Lima')::date BETWEEN :desde AND :hasta""";
 
+    /** CCPIP-486: lo reembolsado de productos que no se entregaron, y la comision que se anulo con ello. */
+    private static final String REEMBOLSADO =
+            "(SELECT coalesce(sum(f.monto), 0) FROM incidencia_pedido f WHERE f.pedido_id = pe.id AND f.tipo = 'FALTANTE')";
+    private static final String ANULADA =
+            "(SELECT coalesce(sum(f.comision_anulada), 0) FROM incidencia_pedido f WHERE f.pedido_id = pe.id AND f.tipo = 'FALTANTE')";
+
     private final NamedParameterJdbcTemplate jdbc;
     private final ComisionService comision;
 
@@ -84,11 +90,12 @@ public class ComisionesPorPedidoService {
 
         p.addValue("limite", TAMANO).addValue("salto", (long) pagina * TAMANO);
         List<Fila> filas = jdbc.query("""
-                SELECT pe.id, pe.numero, pe.estado, pe.confirmado_en, pe.total, pe.comision_porcentaje, pe.comision_monto
+                SELECT pe.id, pe.numero, pe.estado, pe.confirmado_en, pe.total - %s AS total, pe.comision_porcentaje,
+                       pe.comision_monto - %s AS comision_monto
                 FROM pedido pe
                 WHERE %s
                 ORDER BY pe.confirmado_en DESC, pe.id DESC
-                LIMIT :limite OFFSET :salto""".formatted(donde), p, (rs, row) -> new Fila(rs.getLong("id"),
+                LIMIT :limite OFFSET :salto""".formatted(REEMBOLSADO, ANULADA, donde), p, (rs, row) -> new Fila(rs.getLong("id"),
                 rs.getString("numero"), rs.getString("estado"), rs.getTimestamp("confirmado_en"), rs.getBigDecimal("total"),
                 rs.getBigDecimal("comision_porcentaje"), rs.getBigDecimal("comision_monto")));
 
@@ -105,12 +112,12 @@ public class ComisionesPorPedidoService {
     private Resumen resumen(String donde, MapSqlParameterSource p) {
         return jdbc.queryForObject("""
                 SELECT count(*) AS pedidos,
-                       coalesce(sum(pe.total), 0) AS ventas,
-                       coalesce(sum(pe.comision_monto), 0) AS comision,
-                       coalesce(sum(pe.total - pe.comision_monto) FILTER (WHERE pe.comision_monto IS NOT NULL), 0) AS neto,
+                       coalesce(sum(pe.total - %1$s), 0) AS ventas,
+                       coalesce(sum(pe.comision_monto - %2$s), 0) AS comision,
+                       coalesce(sum((pe.total - %1$s) - (pe.comision_monto - %2$s)) FILTER (WHERE pe.comision_monto IS NOT NULL), 0) AS neto,
                        count(*) FILTER (WHERE pe.comision_monto IS NULL) AS sin_comision
                 FROM pedido pe
-                WHERE %s""".formatted(donde), p, (rs, row) -> new Resumen(rs.getInt("pedidos"),
+                WHERE %3$s""".formatted(REEMBOLSADO, ANULADA, donde), p, (rs, row) -> new Resumen(rs.getInt("pedidos"),
                 rs.getBigDecimal("ventas"), rs.getBigDecimal("comision"), rs.getBigDecimal("neto"), rs.getInt("sin_comision")));
     }
 
@@ -122,8 +129,10 @@ public class ComisionesPorPedidoService {
         }
         jdbc.query("""
                 SELECT i.pedido_id, pr.id AS productor_id, coalesce(pr.nombre_tienda, pr.comunidad) AS productor,
-                       sum(i.subtotal) AS venta, sum(i.comision_monto) AS comision, sum(i.neto) AS neto
+                       sum(i.subtotal - a.monto_reembolsado) AS venta, sum(i.comision_monto - a.comision_anulada) AS comision,
+                       sum(i.neto - (a.monto_reembolsado - a.comision_anulada)) AS neto
                 FROM item_pedido i
+                JOIN ajuste_item_pedido a ON a.item_pedido_id = i.id
                 JOIN productor pr ON pr.id = i.productor_id
                 WHERE i.pedido_id IN (:ids)
                 GROUP BY i.pedido_id, pr.id, pr.nombre_tienda, pr.comunidad

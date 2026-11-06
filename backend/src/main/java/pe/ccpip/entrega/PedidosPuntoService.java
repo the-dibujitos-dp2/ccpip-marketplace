@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.comun.PuntosDeAcopio;
 import pe.ccpip.entrega.EntregaModelos.Cambio;
+import pe.ccpip.entrega.EntregaModelos.Incidencia;
 import pe.ccpip.entrega.EntregaModelos.Linea;
 import pe.ccpip.entrega.EntregaModelos.LoteAsignado;
 import pe.ccpip.entrega.EntregaModelos.PedidoPunto;
@@ -34,7 +35,7 @@ public class PedidosPuntoService {
     static final String HOY = "(now() AT TIME ZONE 'America/Lima')::date";
 
     /** El filtro de RNF-05: solo los pedidos de los puntos que el administrador tiene asignados. */
-    private static final String EN_SU_PUNTO =
+    static final String EN_SU_PUNTO =
             "pe.ubicacion_origen_id IN (SELECT ubicacion_id FROM usuario_ubicacion WHERE usuario_id = :usuario)";
 
     /** Los pedidos de los puntos del administrador. */
@@ -201,33 +202,69 @@ public class PedidosPuntoService {
         return pedidos(List.of(pedido.id())).get(0);
     }
 
+    /** CCPIP-485/486: el pedido del punto ya armado, despues de registrar un producto malogrado. */
+    PedidoPunto detalle(long pedidoId) {
+        return pedidos(List.of(pedidoId)).get(0);
+    }
+
+    /** CCPIP-485/486: los productos malogrados de cada linea, en el orden en que se registraron. */
+    private Map<Long, List<Incidencia>> incidencias(MapSqlParameterSource p) {
+        Map<Long, List<Incidencia>> porLinea = new HashMap<>();
+        jdbc.query("""
+                SELECT f.item_pedido_id, f.tipo, f.cantidad, lo.codigo AS original, ln.codigo AS nuevo, m.motivo_nombre,
+                       r.monto AS reembolsado, f.registrado_en, u.nombre AS responsable
+                FROM incidencia_pedido f
+                JOIN lote lo ON lo.id = f.lote_original_id
+                LEFT JOIN lote ln ON ln.id = f.lote_nuevo_id
+                JOIN merma m ON m.movimiento_id = f.merma_movimiento_id
+                LEFT JOIN reembolso r ON r.id = f.reembolso_id
+                JOIN usuario u ON u.id = f.registrado_por
+                WHERE f.pedido_id IN (:ids) ORDER BY f.registrado_en, f.id""", p,
+                rs -> {
+                    porLinea.computeIfAbsent(rs.getLong("item_pedido_id"), k -> new ArrayList<>())
+                            .add(new Incidencia(rs.getString("tipo"), rs.getBigDecimal("cantidad"), rs.getString("original"),
+                                    rs.getString("nuevo"), rs.getString("motivo_nombre"), rs.getBigDecimal("reembolsado"),
+                                    rs.getObject("registrado_en", Timestamp.class).toInstant(), rs.getString("responsable")));
+                });
+        return porLinea;
+    }
+
     /** Arma los pedidos con sus lineas e historial, en el orden de {@code ids}. */
     private List<PedidoPunto> pedidos(List<Long> ids) {
         if (ids.isEmpty()) {
             return List.of();
         }
         MapSqlParameterSource p = new MapSqlParameterSource("ids", ids);
-        // Los lotes que el descuento asigno a cada linea (CCPIP-74), el que vence antes primero
+        // Los lotes que el descuento asigno a cada linea (CCPIP-74), el que vence antes primero. Lo malogrado
+        // que volvio al lote ya no lo cubre; un reemplazo suma su lote (CCPIP-485/486)
         Map<Long, List<LoteAsignado>> lotes = new HashMap<>();
         jdbc.query("""
-                SELECT m.item_pedido_id, l.codigo, m.cantidad, l.fecha_vencimiento
+                SELECT m.item_pedido_id, l.id, l.codigo, l.fecha_vencimiento,
+                       sum(CASE WHEN m.tipo = 'SALIDA_VENTA' THEN m.cantidad ELSE -m.cantidad END) AS cantidad
                 FROM movimiento_inventario m JOIN lote l ON l.id = m.lote_id
-                WHERE m.pedido_id IN (:ids) AND m.tipo = 'SALIDA_VENTA'
-                ORDER BY l.fecha_vencimiento NULLS LAST, m.id""", p,
+                WHERE m.pedido_id IN (:ids) AND (m.tipo = 'SALIDA_VENTA' OR m.motivo = 'REINTEGRO_PEDIDO')
+                GROUP BY m.item_pedido_id, l.id, l.codigo, l.fecha_vencimiento
+                HAVING sum(CASE WHEN m.tipo = 'SALIDA_VENTA' THEN m.cantidad ELSE -m.cantidad END) > 0
+                ORDER BY l.fecha_vencimiento NULLS LAST, min(m.id)""", p,
                 rs -> {
                     lotes.computeIfAbsent(rs.getLong("item_pedido_id"), k -> new ArrayList<>())
-                            .add(new LoteAsignado(rs.getString("codigo"), rs.getBigDecimal("cantidad"),
+                            .add(new LoteAsignado(rs.getLong("id"), rs.getString("codigo"), rs.getBigDecimal("cantidad"),
                                     rs.getObject("fecha_vencimiento", LocalDate.class)));
                 });
+        Map<Long, List<Incidencia>> incidencias = incidencias(p);
         Map<Long, List<Linea>> lineas = new HashMap<>();
         jdbc.query("""
-                SELECT i.id, i.pedido_id, pr.nombre, coalesce(po.nombre_tienda, po.comunidad) AS comunidad, i.cantidad
+                SELECT i.id, i.pedido_id, pr.nombre, coalesce(po.nombre_tienda, po.comunidad) AS comunidad, i.cantidad,
+                       i.cantidad - a.cantidad_faltante AS por_entregar
                 FROM item_pedido i JOIN producto pr ON pr.id = i.producto_id JOIN productor po ON po.id = i.productor_id
+                JOIN ajuste_item_pedido a ON a.item_pedido_id = i.id
                 WHERE i.pedido_id IN (:ids) ORDER BY i.id""", p,
                 rs -> {
+                    long item = rs.getLong("id");
                     lineas.computeIfAbsent(rs.getLong("pedido_id"), k -> new ArrayList<>())
-                            .add(new Linea(rs.getString("nombre"), rs.getString("comunidad"), rs.getBigDecimal("cantidad"),
-                                    lotes.getOrDefault(rs.getLong("id"), List.of())));
+                            .add(new Linea(item, rs.getString("nombre"), rs.getString("comunidad"), rs.getBigDecimal("cantidad"),
+                                    lotes.getOrDefault(item, List.of()), rs.getBigDecimal("por_entregar"),
+                                    incidencias.getOrDefault(item, List.of())));
                 });
         // El responsable es el personal del punto; el comprador que confirmo no se nombra (RNF-05)
         Map<Long, List<Cambio>> historial = new HashMap<>();

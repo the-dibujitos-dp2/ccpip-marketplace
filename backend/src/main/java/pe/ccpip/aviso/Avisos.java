@@ -24,10 +24,11 @@ public class Avisos {
      * DECISION_AUTORIZACION y DECISION_PRODUCTOR: decisiones del subadministrador sobre la venta del productor.
      * RENOVACION_CERTIFICADO: el subadministrador pide renovar un certificado (CCPIP-321).
      * DECISION_MODERACION: la publicacion de una oferta (CCPIP-331, CCPIP-332). DECISION_VIDEO: la de un
-     * video de la tienda (CCPIP-118).
+     * video de la tienda (CCPIP-118). PRODUCTO_MALOGRADO: un producto del pedido se malogro y se reemplazo o
+     * reembolso (CCPIP-485/486).
      */
     public enum Tipo { PEDIDO_LISTO, INTERES_VENDIBLE, DECISION_AUTORIZACION, DECISION_PRODUCTOR, RENOVACION_CERTIFICADO,
-        DECISION_MODERACION, DECISION_VIDEO }
+        DECISION_MODERACION, DECISION_VIDEO, PRODUCTO_MALOGRADO }
 
     private final NamedParameterJdbcTemplate jdbc;
     private final EnvioCorreo envio;

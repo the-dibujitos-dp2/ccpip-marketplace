@@ -6,6 +6,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import pe.ccpip.comision.ComisionModelos.ComisionPedido;
 import pe.ccpip.entrega.EntregaModelos.Distrito;
 import pe.ccpip.entrega.EntregaModelos.Entrega;
@@ -58,9 +60,22 @@ public final class CompraModelos {
         }
     }
 
-    /** Linea del pedido con el precio copiado al confirmar (RNF-13), nunca el vigente. */
+    /**
+     * Linea del pedido con el precio copiado al confirmar (RNF-13), nunca el vigente. {@code noEntregada}:
+     * lo que se malogro y se reembolso en vez de entregarse (CCPIP-486); 0 si no falta nada.
+     */
     public record LineaPedido(long productoId, long productorId, String nombre, String tienda, BigDecimal cantidad,
-                              BigDecimal precioUnitario, BigDecimal subtotal) {
+                              BigDecimal precioUnitario, BigDecimal subtotal, BigDecimal noEntregada) {
+    }
+
+    /**
+     * CCPIP-485/486: un producto del pedido que se malogro en el punto antes de entregarse. REEMPLAZO: se
+     * cubrio con otro lote y el precio no cambio. FALTANTE: no se entrega y se devolvio {@code reembolsado}
+     * (con el envio, si ya no quedo nada por entregar). No dice quien lo registro.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record IncidenciaPedido(String tipo, String producto, BigDecimal cantidad, BigDecimal reembolsado,
+                                   Instant registradaEn) {
     }
 
     /**
@@ -86,11 +101,14 @@ public final class CompraModelos {
      * {@code entrega} es el destino de un pedido a domicilio (CCPIP-59), nula si es para recojo; en ese
      * caso {@code punto} es el punto de acopio de donde sale. {@code total} es la suma de los productos;
      * {@code costoEnvio} (CCPIP-483) es 0 en recojo y {@code totalAPagar} = total + costoEnvio.
+     * CCPIP-485/486: {@code incidencias}, lo que se malogro antes de la entrega; {@code reembolsado}, lo que
+     * se devolvio por ello, y {@code totalFinal}, lo que el comprador termina pagando.
      */
     public record Pedido(long id, String numero, String estado, String modalidad, BigDecimal total, Instant creadoEn,
                          Instant confirmadoEn, PuntoRecojo punto, String personaAutorizada, String celularContacto,
                          List<LineaPedido> lineas, List<IntentoPago> pagos, List<EventoPedido> historial,
-                         ComisionPedido comision, Entrega entrega, BigDecimal costoEnvio, BigDecimal totalAPagar) {
+                         ComisionPedido comision, Entrega entrega, BigDecimal costoEnvio, BigDecimal totalAPagar,
+                         List<IncidenciaPedido> incidencias, BigDecimal reembolsado, BigDecimal totalFinal) {
     }
 
     /**
