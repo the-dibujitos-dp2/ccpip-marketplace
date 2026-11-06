@@ -79,6 +79,20 @@ describe('CW-05 Entrega y pago (CCPIP-157, CCPIP-62) y confirmación (CCPIP-64)'
     expect(lineas[1]).toHaveTextContent(carrito.items[1].tienda.nombre)
   })
 
+  it('CCPIP-443: en el recojo el resumen dice a qué punto ir, con su dirección', async () => {
+    const CUSCO = { id: 3, nombre: 'Centro Regional Cusco', departamento: 'Cusco', provincia: 'Cusco', distrito: 'Wanchaq', direccion: 'Av. de la Cultura 1234' }
+    servidor(rutas({ 'GET /api/compra/puntos': [200, [PUNTO, CUSCO]] }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    const resumen = within(await screen.findByRole('complementary', { name: 'Resumen del pedido' }))
+    // Con varios puntos, hasta elegir uno no se nombra ninguno
+    expect(resumen.queryByText('Recoges en')).not.toBeInTheDocument()
+    await usuario.click(screen.getByRole('radio', { name: /Centro Regional Cusco/ }))
+    expect(resumen.getByText('Recoges en')).toBeInTheDocument()
+    expect(resumen.getByText('Centro Regional Cusco')).toBeInTheDocument()
+    expect(resumen.getByText('Av. de la Cultura 1234 · Wanchaq · Cusco')).toBeInTheDocument()
+  })
+
   it('el carrito lleva a entrega y pago', async () => {
     servidor(rutas())
     abrirEn('/carrito')

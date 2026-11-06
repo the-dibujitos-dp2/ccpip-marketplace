@@ -31,3 +31,13 @@ describe('Acciones de cada causa de merma (mejoras de laboratorio)', () => {
     expect(tabla.getByRole('button', { name: /^Desactivar/ })).toHaveClass('boton--peligro')
   })
 })
+
+describe('CCPIP-449 listado de causas de merma', () => {
+  it('no muestra la columna "En inglés"; el nombre en inglés sigue en el formulario', async () => {
+    abrir([{ id: 1, nombre: 'Golpe', nombreEn: 'Damage', activo: true, requiereDetalle: false, usos: 0, sistema: false }])
+    const tabla = within(await screen.findByRole('table'))
+    expect(await tabla.findByText('Golpe')).toBeInTheDocument()
+    expect(tabla.queryByRole('columnheader', { name: 'En inglés' })).not.toBeInTheDocument()
+    expect(tabla.queryByText('Damage')).not.toBeInTheDocument()
+  })
+})

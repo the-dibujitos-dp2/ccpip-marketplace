@@ -1931,7 +1931,6 @@
       "errorEstado": "We could not change the cause status",
       "col": {
         "nombre": "Name",
-        "ingles": "In English",
         "detalle": "Asks for detail",
         "usos": "Uses",
         "estado": "Status",
@@ -2809,7 +2808,8 @@
       "accion": "Choose another point or change the delivery method to pay."
     },
     "productos": "Products",
-    "envio": "Shipping"
+    "envio": "Shipping",
+    "recogesEn": "You pick it up at"
   },
   "pedido": {
     "noEncontrado": "We couldn't find that order",

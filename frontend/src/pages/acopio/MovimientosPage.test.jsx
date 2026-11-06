@@ -49,13 +49,14 @@ describe('A-03 Movimientos del punto de acopio (CCPIP-158)', () => {
     expect(within(filas[0]).getByText('09:12')).toBeInTheDocument()
     expect(within(filas[0]).getByText('Salida')).toBeInTheDocument()
     expect(within(filas[0]).getByText('Cafe tostado en grano 500 g · L-0010 · MC-00148')).toBeInTheDocument()
-    expect(within(filas[0]).getByText('−2')).toBeInTheDocument()
+    // CCPIP-454: la salida, con signo menos y en rojo; la entrada no
+    expect(within(filas[0]).getByText('−2')).toHaveClass('valor-negativo')
     expect(within(filas[0]).getByText('Compra en línea')).toBeInTheDocument()
 
     // La carga inicial sembrada: entrada sin lote
     expect(within(filas[1]).getByText('Entrada')).toBeInTheDocument()
     expect(within(filas[1]).getByText('Cafe tostado en grano 500 g')).toBeInTheDocument()
-    expect(within(filas[1]).getByText('+100')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('+100')).not.toHaveClass('valor-negativo')
   })
 
   it('cada pestaña pide solo ese grupo de movimientos', async () => {

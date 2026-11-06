@@ -131,3 +131,6 @@ button { font: inherit; }
 
 .comunidades { display: flex; flex-direction: column; gap: 24px; padding-top: 28px; padding-bottom: 72px; }
 .comunidades__grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+
+/* CCPIP-454: los valores negativos (perdidas, salidas) se ven en rojo; el signo sigue en el texto */
+.valor-negativo { color: var(--color-status-error-fg); }
