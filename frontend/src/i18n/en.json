@@ -529,6 +529,7 @@
       "pasos": {
         "datos": "Details",
         "historia": "Story",
+        "certificados": "Certificates",
         "lote": "First batch"
       },
       "nuevo": "New",
@@ -548,7 +549,17 @@
       "bloqueada": "You reached the maximum of {{maximo}} rejections",
       "bloqueadaTexto": "The Chamber rejected this listing {{maximo}} times. To send it again, ask the sub-administrator to enable a new attempt. Last reason: “{{motivo}}”.",
       "intentosRestantes_one": "You have {{count}} attempt left before the sub-administrator has to enable a new one.",
-      "intentosRestantes_other": "You have {{count}} attempts left before the sub-administrator has to enable a new one."
+      "intentosRestantes_other": "You have {{count}} attempts left before the sub-administrator has to enable a new one.",
+      "certificados": {
+        "intro": "Upload the certificates and evidence that support the origin of your product. They are sent to the Chamber with the publication, in the last step.",
+        "siguiente": "Next: first batch"
+      },
+      "enviarSolicitud": "Send request",
+      "enviarSolicitudAyuda": "The authorization request (with your certificates) and the publication request are sent together. The Chamber reviews them before showing the product.",
+      "faltaCertificados": "At least one certificate, document or evidence (Certificates step)",
+      "irCertificados": "Go to certificates",
+      "certificadosListos": "Certificates: {{estado}}",
+      "errorSolicitud": "We could not send the authorization request"
     },
     "datos": {
       "validacion": {
@@ -718,7 +729,6 @@
       "redactadaIa": "Written with AI support and approved by the community.",
       "atras": "Back",
       "editar": "Edit story",
-      "siguienteLote": "Next: first batch",
       "enBorrador": "Your story, in draft",
       "enBorradorTexto": "Once you have your answers, the platform can suggest a draft. You review it, change it, and it's only published when you approve it.",
       "preparando": "Preparing draft…",
@@ -740,7 +750,8 @@
       "historiaPlaceholder": "Tell who makes it, how, and why it matters to your community.",
       "descartar": "Discard draft",
       "descartada": "You discarded the AI draft",
-      "descartadaTexto": "Your answers are still here: ask for another version or write the story yourself."
+      "descartadaTexto": "Your answers are still here: ask for another version or write the story yourself.",
+      "siguienteCertificados": "Next: certificates"
     },
     "tienda": {
       "categorias": {
@@ -3389,7 +3400,8 @@
       "REVOCADA": "The authorization was revoked",
       "conMotivo": "Reason: “{{motivo}}”. Correct your evidence if needed and request it again.",
       "lineaNueva": "The authorization does not cover a new line",
-      "lineaNuevaTexto": "You added a line the Chamber did not review: the sale is paused. Attach evidence to request a new review."
+      "lineaNuevaTexto": "You added a line the Chamber did not review: the sale is paused. Attach evidence to request a new review.",
+      "enEditorTexto": "Upload your evidence here. The authorization request is sent with “Send request” in the last step."
     },
     "tipo": {
       "CERTIFICADO": "Certificates",

@@ -6,6 +6,7 @@
 .editor__precios { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
 .editor__botones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
 .editor__botones--columna { flex-direction: column; align-items: stretch; }
+.editor__certificados { display: flex; flex-direction: column; gap: 16px; }
 
 .editor__fotos { display: flex; flex-direction: column; gap: 12px; }
 .editor__miniaturas { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; padding: 0; list-style: none; }
