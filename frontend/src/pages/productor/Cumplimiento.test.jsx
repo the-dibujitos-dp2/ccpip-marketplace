@@ -47,6 +47,13 @@ describe('CCPIP-34 Declarar el cumplimiento de las reglas de origen y sostenibil
     expect(s.getByText(/No es un sello ni una aprobación/)).toBeInTheDocument()
   })
 
+  it('las observaciones traen un ejemplo de qué escribir (CCPIP-503)', async () => {
+    productor()
+    abrirEn('/productor/productos/9/evidencias')
+    const s = await seccion()
+    expect(s.getByLabelText(/Observaciones/)).toHaveAttribute('placeholder', 'Ej.: el cacao se fermenta en cajones de madera de la comunidad.')
+  })
+
   it('declara las reglas que cumple el producto con observaciones', async () => {
     const guardada = { ...copia(SIN_DECLARAR), vigente: declaracion(5, ['CERO_DEFORESTACION', 'ELABORADO_POR_COMUNIDAD'], '2026-11-03T15:00:00Z', 'Bosque en pie') }
     guardada.historial = [guardada.vigente]

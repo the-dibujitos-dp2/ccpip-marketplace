@@ -68,6 +68,18 @@ describe('Certificados y evidencias del producto (CCPIP-36)', () => {
     expect(llamadas(fetchMock, `GET ${lotePath}`)).toHaveLength(2)
   })
 
+  it('cada campo del certificado tiene un ejemplo de qué escribir (CCPIP-503)', async () => {
+    productor()
+    abrirEn('/productor/productos/9/evidencias')
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole('button', { name: 'Agregar certificado' }))
+    const form = within(screen.getByRole('form', { name: 'Agregar certificado' }))
+    expect(form.getByLabelText('Nombre del documento')).toHaveAttribute('placeholder', 'Ej.: Certificado orgánico 2026')
+    expect(form.getByLabelText('Quién lo emite')).toHaveAttribute('placeholder', 'Ej.: Control Union Perú o SENASA')
+    // El ejemplo no es un valor: el campo sigue vacío y la validación lo pide
+    expect(form.getByLabelText('Nombre del documento')).toHaveValue('')
+  })
+
   it('valida antes de subir y envía el archivo con lo que lo identifica', async () => {
     const fetchMock = productor({
       [`POST ${RUTA}`]: () => [201, { ...copia(DATOS.evidenciasProductor.evidencias[0]), id: 'aa', titulo: 'Registro sanitario' }],

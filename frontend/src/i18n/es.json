@@ -3416,7 +3416,9 @@
     "retirarTexto": "«{{titulo}}» dejará de sustentar la solicitud. La Cámara conserva el registro de lo que revisó.",
     "form": {
       "titulo": "Nombre del documento",
+      "tituloEjemplo": "Ej.: Certificado orgánico 2026",
       "emisor": "Quién lo emite",
+      "emisorEjemplo": "Ej.: Control Union Perú o SENASA",
       "opcional": "Opcional",
       "opcionalCorto": "(opcional)",
       "desde": "Vigente desde (opcional)",
@@ -4838,6 +4840,7 @@
     "ultima": "Última declaración: {{fecha}}, por {{nombre}}.",
     "sinDeclaracion": "Aún no declaraste ninguna regla para este producto.",
     "observaciones": "Observaciones (opcional)",
+    "observacionesEjemplo": "Ej.: el cacao se fermenta en cajones de madera de la comunidad.",
     "declarar": "Guardar declaración",
     "guardada": "Guardaste la declaración",
     "error": "No pudimos guardar la declaración",
