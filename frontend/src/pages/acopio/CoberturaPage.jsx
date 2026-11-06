@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { consultarCoberturasAcopio, desactivarCoberturaAcopio } from '../../api/acopioCobertura.js'
+import { activarCoberturaAcopio, consultarCoberturasAcopio, desactivarCoberturaAcopio } from '../../api/acopioCobertura.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
@@ -14,7 +14,7 @@ import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import DeclararCobertura from './DeclararCobertura.jsx'
 import './CoberturaPage.css'
 
-function ZonaPunto({ punto, c, onDesactivar, onDeclarar }) {
+function ZonaPunto({ punto, c, onCambiar: onCambiarZona, onDeclarar }) {
   const { t } = useTranslation()
   const { filas, pagina, total, totalPaginas, onCambiar } = usePaginacionLocal(punto.zonas ?? [], punto.puntoId)
   return <section className="cobertura401__punto" key={punto.puntoId} aria-labelledby={`punto-${punto.puntoId}`}>
@@ -48,9 +48,14 @@ function ZonaPunto({ punto, c, onDesactivar, onDeclarar }) {
                 <td data-label={c('distrito')}>{z.distrito}</td>
                 <td data-label={c('estado')}><Badge tono={z.activa ? 'exito' : 'neutro'}>{c(z.activa ? 'activa' : 'inactiva')}</Badge></td>
                 <td className="cobertura401__accion">
-                  {z.activa && (
-                    <Boton tipo="secundario" tamano="S" peligro aria-label={`${c('desactivar')} · ${z.distrito} · ${z.ubigeo}`} onClick={() => onDesactivar(z)}>
+                  {/* CCPIP-496, 498: una zona inactiva se reactiva sin declararla otra vez */}
+                  {z.activa ? (
+                    <Boton tipo="secundario" tamano="S" peligro aria-label={`${c('desactivar')} · ${z.distrito} · ${z.ubigeo}`} onClick={() => onCambiarZona(z, false)}>
                       {c('desactivar')}
+                    </Boton>
+                  ) : (
+                    <Boton tipo="secundario" tamano="S" aria-label={`${c('reactivar')} · ${z.distrito} · ${z.ubigeo}`} onClick={() => onCambiarZona(z, true)}>
+                      {c('reactivar')}
                     </Boton>
                   )}
                 </td>
@@ -76,20 +81,23 @@ export default function CoberturaPage({ path }) {
     setDeclarado({ punto: actualizado.punto, count: cuantos })
     setDeclarando(null)
   }
-  const [zonaSeleccionada, setZonaSeleccionada] = useState(null)
+  // { zona, activar }: la zona a desactivar (CCPIP-403) o a reactivar (CCPIP-496, 498)
+  const [cambio, setCambio] = useState(null)
+  const [cambiado, setCambiado] = useState(null)
   const [ocupado, setOcupado] = useState(false)
-  const [errorDesactivar, setErrorDesactivar] = useState(false)
+  const [errorCambio, setErrorCambio] = useState(false)
   const cargando = !datos && !error
-  const confirmarDesactivar = async () => {
-    if (ocupado || !zonaSeleccionada) return
+  const confirmarCambio = async () => {
+    if (ocupado || !cambio) return
     setOcupado(true)
-    setErrorDesactivar(false)
+    setErrorCambio(false)
     try {
-      await desactivarCoberturaAcopio(zonaSeleccionada.id)
+      await (cambio.activar ? activarCoberturaAcopio : desactivarCoberturaAcopio)(cambio.zona.id)
       await recargar()
-      setZonaSeleccionada(null)
+      setCambiado(cambio)
+      setCambio(null)
     } catch {
-      setErrorDesactivar(true)
+      setErrorCambio(true)
     } finally {
       setOcupado(false)
     }
@@ -99,15 +107,18 @@ export default function CoberturaPage({ path }) {
   else if (error?.status === 409) contenido = <EstadoVacio titulo={c('sinAsignacion')} />
   else if (error) contenido = <EstadoVacio titulo={c('error')}><Boton tipo="secundario" onClick={recargar}>{c('reintentar')}</Boton></EstadoVacio>
   else if (!datos?.length) contenido = <EstadoVacio titulo={c('sinAsignacion')} />
-  else contenido = <div className="cobertura401__puntos">{datos.map((punto) => <ZonaPunto key={punto.puntoId} punto={punto} c={c} onDesactivar={(z) => { setZonaSeleccionada(z); setErrorDesactivar(false) }} onDeclarar={(p) => { setDeclarando(p); setDeclarado(null) }} />)}</div>
+  else contenido = <div className="cobertura401__puntos">{datos.map((punto) => <ZonaPunto key={punto.puntoId} punto={punto} c={c} onCambiar={(zona, activar) => { setCambio({ zona, activar }); setErrorCambio(false); setCambiado(null) }} onDeclarar={(p) => { setDeclarando(p); setDeclarado(null); setCambiado(null) }} />)}</div>
   return <LayoutAcopio path={path} titulo={c('titulo')}><section className="cobertura401" aria-label={c('titulo')} aria-busy={cargando}>
     {declarado && <Alerta tono="exito" titulo={c('declarar.hecho', declarado)} />}
+    {cambiado && <Alerta tono="exito" titulo={c(cambiado.activar ? 'reactivada' : 'desactivada', { distrito: cambiado.zona.distrito })} />}
     {contenido}</section>
     {declarando && <DeclararCobertura punto={declarando} onDeclarado={alDeclarar} onCancelar={() => setDeclarando(null)} />}
-    <Dialogo abierto={Boolean(zonaSeleccionada)} titulo={c('tituloDialogo')} confirmar={c('confirmar')} cancelar={c('cancelar')} onConfirmar={confirmarDesactivar} onCancelar={() => !ocupado && setZonaSeleccionada(null)} ocupado={ocupado}>
-      <p>{c('confirmarDesactivar')}</p>
-      {zonaSeleccionada && <p>{zonaSeleccionada.distrito} · {zonaSeleccionada.ubigeo}</p>}
-      {errorDesactivar && <p role="alert">{c('errorDesactivar')}</p>}
+    <Dialogo abierto={Boolean(cambio)} titulo={c(cambio?.activar ? 'tituloReactivar' : 'tituloDialogo')}
+      confirmar={c(cambio?.activar ? 'confirmarReactivacion' : 'confirmar')} cancelar={c('cancelar')}
+      onConfirmar={confirmarCambio} onCancelar={() => !ocupado && setCambio(null)} ocupado={ocupado}>
+      <p>{c(cambio?.activar ? 'confirmarReactivar' : 'confirmarDesactivar')}</p>
+      {cambio && <p>{cambio.zona.distrito} · {cambio.zona.ubigeo}</p>}
+      {errorCambio && <p role="alert">{c(cambio?.activar ? 'errorReactivar' : 'errorDesactivar')}</p>}
     </Dialogo>
   </LayoutAcopio>
 }

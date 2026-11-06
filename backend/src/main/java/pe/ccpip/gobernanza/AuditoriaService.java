@@ -22,7 +22,8 @@ import pe.ccpip.gobernanza.AuditoriaModelos.Resultado;
  * lo que cada modulo ya registra con su autor desde el primer sprint: las acciones de gobernanza
  * ({@link HistorialGobernanzaService#ACCIONES}), los cambios de productos (CCPIP-47), los del catalogo
  * maestro, cada intento de pago (CCPIP-163), aprobado o no, cada cambio de permisos (CCPIP-296) y cada
- * tarifa de envio fijada o cambiada (CCPIP-482) y cada capacidad diaria de entrega de un punto (CCPIP-484).
+ * tarifa de envio fijada o cambiada (CCPIP-482), cada capacidad diaria de entrega de un punto (CCPIP-484) y
+ * cada zona de cobertura activada o desactivada (CCPIP-496, 498).
  *
  * <p>Solo lee: todas esas tablas son de solo insercion o de un unico cambio de estado, asi que ningun
  * registro se puede alterar desde aqui, y una operacion nueva de esos modulos aparece sola.
@@ -75,6 +76,15 @@ public class AuditoriaService {
                    'EXITOSA'
             FROM capacidad_entrega_cambio k
             JOIN ubicacion u ON u.id = k.ubicacion_id
+            UNION ALL
+            SELECT 'CZ-' || z.id, z.realizado_en, z.realizado_por,
+                   CASE WHEN z.activa THEN 'COBERTURA_ACTIVADA' ELSE 'COBERTURA_DESACTIVADA' END,
+                   'COBERTURA_ENTREGA', z.cobertura_id,
+                   u.nombre || ' · ' || g.distrito || ' (' || g.provincia || ', ' || g.departamento || ')', 'EXITOSA'
+            FROM cobertura_entrega_cambio z
+            JOIN cobertura_entrega c ON c.id = z.cobertura_id
+            JOIN ubicacion u ON u.id = c.ubicacion_id
+            JOIN ubigeo g ON g.codigo = c.ubigeo
             """.formatted(HistorialGobernanzaService.ACCIONES);
 
     private static final String DESDE_REGISTROS = """

@@ -26,7 +26,7 @@ import pe.ccpip.cobertura.CoberturaModelos.CoberturaPunto;
 
 /**
  * CCPIP-401: consulta la cobertura declarada de los puntos propios. CCPIP-149: declara distritos del catalogo
- * territorial. CCPIP-403: desactiva una zona.
+ * territorial. CCPIP-403: desactiva una zona. CCPIP-496, 498: la vuelve a activar.
  */
 @RolesPermitidos(Rol.ADMIN_PUNTO)
 @RestController
@@ -58,6 +58,12 @@ public class CoberturasController {
     @PatchMapping("/{zonaId}/desactivar")
     public ResponseEntity<Void> desactivar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession sesion, @PathVariable long zonaId) {
         coberturas.desactivar(sesion.userId(), zonaId);
+        return ResponseEntity.noContent().build();
+    }
+    /** CCPIP-496, 498: vuelve a ofrecer a domicilio una zona desactivada. */
+    @PatchMapping("/{zonaId}/activar")
+    public ResponseEntity<Void> activar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession sesion, @PathVariable long zonaId) {
+        coberturas.activar(sesion.userId(), zonaId);
         return ResponseEntity.noContent().build();
     }
 }
