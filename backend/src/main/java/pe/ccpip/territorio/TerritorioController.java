@@ -14,9 +14,10 @@ import pe.ccpip.entrega.EntregaModelos.Distrito;
 
 /**
  * CCPIP-61: departamentos, provincias y distritos para elegir el destino de una entrega a domicilio. Cada
- * nivel pide la eleccion del anterior; sin ella no hay nada que listar.
+ * nivel pide la eleccion del anterior; sin ella no hay nada que listar. El administrador del punto de acopio
+ * lo usa para declarar su cobertura (CCPIP-149).
  */
-@RolesPermitidos(Rol.CONSUMIDOR)
+@RolesPermitidos({Rol.CONSUMIDOR, Rol.ADMIN_PUNTO})
 @RestController
 @RequestMapping("/api/territorio")
 public class TerritorioController {

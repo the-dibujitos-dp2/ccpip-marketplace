@@ -1,6 +1,7 @@
 -- CCPIP-59: cobertura de entrega de ejemplo para la demo. Cada punto de acopio atiende distritos de su
 -- zona. Los distritos reales los declara cada punto (CCPIP-149). Idempotente (RNF-28): no repite ni
--- pisa lo que un punto ya haya declarado.
+-- pisa lo que un punto ya haya declarado. Loreto usa los codigos INEI de Punchana (160108), Belen (160112) y
+-- San Juan Bautista (160113), corregidos con el catalogo completo (CCPIP-149).
 
 INSERT INTO cobertura_entrega (ubicacion_id, ubigeo)
 SELECT u.id, c.ubigeo
@@ -11,8 +12,8 @@ JOIN (VALUES
     ('Centro Nacional Lima', '150131'), ('Centro Nacional Lima', '150140'), ('Centro Nacional Lima', '150141'),
     ('Centro Regional Cusco', '080101'), ('Centro Regional Cusco', '080104'), ('Centro Regional Cusco', '080105'),
     ('Centro Regional Cusco', '080106'), ('Centro Regional Cusco', '080108'),
-    ('Centro Regional Loreto', '160101'), ('Centro Regional Loreto', '160107'), ('Centro Regional Loreto', '160113'),
-    ('Centro Regional Loreto', '160114'),
+    ('Centro Regional Loreto', '160101'), ('Centro Regional Loreto', '160108'), ('Centro Regional Loreto', '160112'),
+    ('Centro Regional Loreto', '160113'),
     ('Centro Regional Ucayali', '250101'), ('Centro Regional Ucayali', '250105'), ('Centro Regional Ucayali', '250107'),
     ('Centro Regional San Martin', '220101'), ('Centro Regional San Martin', '220901'),
     ('Centro Regional San Martin', '220909'), ('Centro Regional San Martin', '220910'),
