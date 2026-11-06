@@ -147,22 +147,33 @@ public class ProductoMalogradoService {
                     "De ese lote la línea tiene " + texto(asignado) + ": lo malogrado no puede ser mayor.");
         }
 
+        // Todo se valida antes de escribir: un rechazo no deja reintegro ni merma a medias
+        Candidato reemplazo = d.accion() == Accion.REEMPLAZAR ? validarReemplazo(pedido, item, d, cantidad) : null;
+        Plan plan = d.accion() == Accion.REEMBOLSAR ? planearReembolso(pedido, item, cantidad) : null;
         long merma = darDeBaja(usuarioId, pedido, item, d.loteId(), cantidad, causa, d.detalle());
-        return d.accion() == Accion.REEMPLAZAR
-                ? reemplazar(usuarioId, pedido, item, d, cantidad, merma)
-                : reembolsar(usuarioId, pedido, item, d, cantidad, merma);
+        return reemplazo != null
+                ? reemplazar(usuarioId, pedido, item, d, cantidad, merma, reemplazo)
+                : reembolsar(usuarioId, pedido, item, d, cantidad, merma, plan);
     }
 
-    /** CCPIP-485: el lote nuevo cubre lo malogrado; el precio del pedido no cambia. */
-    private Resultado reemplazar(long usuarioId, Pedido pedido, Item item, Malogrado d, BigDecimal cantidad, long merma) {
+    private record Candidato(long id, long productoId, long ubicacionId, BigDecimal disponible, boolean vencido) {
+    }
+
+    private record Cobro(long id, String referencia) {
+    }
+
+    /** Lo que se devolvera: el monto de la linea, la comision anulada, si se anula el pedido y a que pago. */
+    private record Plan(BigDecimal monto, BigDecimal comision, boolean anula, BigDecimal devolver, Cobro pago) {
+    }
+
+    /** CCPIP-485: el lote de reemplazo es de este producto en el punto, vigente, otro y alcanza. */
+    private Candidato validarReemplazo(Pedido pedido, Item item, Malogrado d, BigDecimal cantidad) {
         if (d.loteReemplazoId() == null) {
             throw ErrorNegocio.invalido("LOTE_REEMPLAZO_REQUERIDO", "Elige el lote con que se reemplaza.");
         }
         MapSqlParameterSource p = new MapSqlParameterSource("lote", d.loteReemplazoId()).addValue("item", item.id())
                 .addValue("producto", item.productoId()).addValue("ubicacion", pedido.ubicacionId())
                 .addValue("cantidad", cantidad);
-        record Candidato(long id, long productoId, long ubicacionId, BigDecimal disponible, boolean vencido) {
-        }
         Candidato lote = jdbc.query("""
                 SELECT id, producto_id, ubicacion_id, cantidad_actual,
                        (fecha_vencimiento IS NOT NULL AND fecha_vencimiento < %s) AS vencido
@@ -184,14 +195,24 @@ public class ProductoMalogradoService {
                                WHERE item_pedido_id = :item AND lote_id = :lote AND tipo = 'SALIDA_VENTA')""", p, Boolean.class))) {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "LOTE_YA_EN_LINEA", "Ese lote ya cubre esta línea: elige otro.");
         }
-        // RNF-09: nunca por debajo de cero, ni en el lote ni en el stock del punto
-        if (lote.disponible().compareTo(cantidad) < 0
-                || jdbc.update("UPDATE lote SET cantidad_actual = cantidad_actual - :cantidad WHERE id = :lote AND cantidad_actual >= :cantidad", p) == 0
+        if (lote.disponible().compareTo(cantidad) < 0) {
+            throw saldoInsuficiente(lote);
+        }
+        return lote;
+    }
+
+    /** CCPIP-485: el lote nuevo cubre lo malogrado; el precio del pedido no cambia. */
+    private Resultado reemplazar(long usuarioId, Pedido pedido, Item item, Malogrado d, BigDecimal cantidad, long merma,
+                                 Candidato lote) {
+        MapSqlParameterSource p = new MapSqlParameterSource("lote", lote.id()).addValue("item", item.id())
+                .addValue("producto", item.productoId()).addValue("ubicacion", pedido.ubicacionId())
+                .addValue("cantidad", cantidad);
+        // RNF-09: nunca por debajo de cero, ni en el lote ni en el stock del punto (aun con otra venta a la vez)
+        if (jdbc.update("UPDATE lote SET cantidad_actual = cantidad_actual - :cantidad WHERE id = :lote AND cantidad_actual >= :cantidad", p) == 0
                 || jdbc.update("""
                         UPDATE stock SET cantidad = cantidad - :cantidad, actualizado_en = now()
                         WHERE producto_id = :producto AND ubicacion_id = :ubicacion AND cantidad >= :cantidad""", p) == 0) {
-            throw new ErrorNegocio(HttpStatus.CONFLICT, "SALDO_INSUFICIENTE",
-                    "Ese lote tiene " + texto(lote.disponible()) + ": no alcanza para el reemplazo.");
+            throw saldoInsuficiente(lote);
         }
         jdbc.update("""
                 INSERT INTO movimiento_inventario (producto_id, ubicacion_id, lote_id, tipo, cantidad, pedido_id,
@@ -209,7 +230,7 @@ public class ProductoMalogradoService {
      * comision baja en la misma proporcion. Si ya no se entrega nada, el pedido se anula y se devuelve el
      * resto del pago, envio incluido.
      */
-    private Resultado reembolsar(long usuarioId, Pedido pedido, Item item, Malogrado d, BigDecimal cantidad, long merma) {
+    private Plan planearReembolso(Pedido pedido, Item item, BigDecimal cantidad) {
         MapSqlParameterSource p = new MapSqlParameterSource("item", item.id()).addValue("pedido", pedido.id());
         record Previo(BigDecimal cantidad, BigDecimal monto, BigDecimal comision) {
         }
@@ -235,14 +256,20 @@ public class ProductoMalogradoService {
                 JOIN ajuste_item_pedido a ON a.item_pedido_id = i.id WHERE i.pedido_id = :pedido""", p, BigDecimal.class);
         boolean anula = porEntregar.subtract(cantidad).signum() == 0;
         BigDecimal devolver = anula ? monto.add(pedido.costoEnvio()) : monto;
-
-        record Cobro(long id, String referencia) {
-        }
         Cobro pago = jdbc.query("""
                 SELECT id, referencia_pasarela FROM pago WHERE pedido_id = :pedido AND estado = 'APROBADO' FOR UPDATE""", p,
                 (rs, row) -> new Cobro(rs.getLong("id"), rs.getString("referencia_pasarela"))).stream().findFirst()
                 .orElseThrow(() -> new ErrorNegocio(HttpStatus.CONFLICT, "SIN_PAGO_APROBADO",
                         "Este pedido no tiene un pago aprobado que reembolsar."));
+        return new Plan(monto, comision, anula, devolver, pago);
+    }
+
+    private Resultado reembolsar(long usuarioId, Pedido pedido, Item item, Malogrado d, BigDecimal cantidad, long merma,
+                                 Plan plan) {
+        MapSqlParameterSource p = new MapSqlParameterSource("item", item.id()).addValue("pedido", pedido.id());
+        Cobro pago = plan.pago();
+        BigDecimal devolver = plan.devolver();
+        boolean anula = plan.anula();
         // La pasarela simulada no mueve dinero; una real devolveria aqui y se reintentaria si falla
         pasarela.devolver(pago.referencia(), devolver);
         Long reembolso = jdbc.queryForObject("""
@@ -251,8 +278,8 @@ public class ProductoMalogradoService {
                 p.addValue("pago", pago.id()).addValue("monto", devolver).addValue("pasarela", pasarela.nombre())
                         .addValue("referencia", "R-" + pago.referencia() + "-" + UUID.randomUUID().toString().substring(0, 8))
                         .addValue("usuario", usuarioId), Long.class);
-        long id = incidencia(usuarioId, pedido, item, "FALTANTE", cantidad, d.loteId(), null, merma, monto, comision,
-                reembolso, d.clave());
+        long id = incidencia(usuarioId, pedido, item, "FALTANTE", cantidad, d.loteId(), null, merma, plan.monto(),
+                plan.comision(), reembolso, d.clave());
         if (anula) {
             MapSqlParameterSource q = new MapSqlParameterSource("id", pedido.id()).addValue("usuario", usuarioId);
             jdbc.update("UPDATE pedido SET estado = 'CANCELADO', actualizado_en = now() WHERE id = :id", q);
@@ -262,6 +289,11 @@ public class ProductoMalogradoService {
     }
 
     // ---------- Apoyo ----------
+
+    private ErrorNegocio saldoInsuficiente(Candidato lote) {
+        return new ErrorNegocio(HttpStatus.CONFLICT, "SALDO_INSUFICIENTE",
+                "Ese lote tiene " + texto(lote.disponible()) + ": no alcanza para el reemplazo.");
+    }
 
     /** Reintegro y merma del lote malogrado, juntos: el saldo del lote no cambia. Devuelve la merma. */
     private long darDeBaja(long usuarioId, Pedido pedido, Item item, long loteId, BigDecimal cantidad, Causa causa,

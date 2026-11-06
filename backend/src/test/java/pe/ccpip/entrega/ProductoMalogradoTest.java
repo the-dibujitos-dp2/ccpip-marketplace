@@ -209,7 +209,7 @@ class ProductoMalogradoTest extends IntegrationTest {
         // La liquidacion del productor ya no cuenta lo reembolsado
         mockMvc.perform(get("/api/productor/liquidaciones").cookie(loginAs("productor@ccpip.test")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.pedidos[?(@.numero == '" + NUMERO + "')].lineas[0].cantidad").value(1))
+                .andExpect(jsonPath("$.pedidos[?(@.numero == '" + NUMERO + "')].lineas[0].cantidad").value(1.0))
                 .andExpect(jsonPath("$.pedidos[?(@.numero == '" + NUMERO + "')].lineas[0].comision").value(2.0))
                 .andExpect(jsonPath("$.pedidos[?(@.numero == '" + NUMERO + "')].lineas[0].neto").value(18.0));
     }
