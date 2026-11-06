@@ -236,7 +236,7 @@ describe('PW-03 Mis productos (CCPIP-160)', () => {
       'GET /api/productor/productos': () => [200, copia(retirados)],
       'GET /api/productor/productos/9': () => [200, {
         ...copia(DATOS.edicion), estado: 'RETIRADO',
-        moderacion: { estado: 'RECHAZADA', motivo, solicitadaEn: '2026-10-25T15:00:00Z', decididaEn: '2026-10-26T15:00:00Z' },
+        moderacion: { estado: 'RECHAZADA', motivo, solicitadaEn: '2026-10-25T15:00:00Z', decididaEn: '2026-10-26T15:00:00Z', rechazos: 1, maximoRechazos: 3, bloqueada: false },
       }],
     })
     abrirEn('/productor/productos?estado=RETIRADO')
@@ -246,7 +246,21 @@ describe('PW-03 Mis productos (CCPIP-160)', () => {
     cleanup()
     abrirEn('/productor/productos/9')
     expect(await screen.findByText('La Cámara no publicó esta oferta')).toBeInTheDocument()
-    expect(screen.getByText(`Motivo: «${motivo}». Corrígela y vuelve a enviarla a revisión.`)).toBeInTheDocument()
+    expect(screen.getByText(`Motivo: «${motivo}». Corrígela y vuelve a enviarla a revisión. Te quedan 2 intentos antes de que el subadministrador tenga que habilitar uno nuevo.`)).toBeInTheDocument()
+  })
+
+  it('CCPIP-493: al tercer rechazo no se puede volver a enviar hasta que el subadministrador lo habilite', async () => {
+    const motivo = 'Las fotos siguen sin mostrar el producto.'
+    productor({
+      'GET /api/productor/productos/9': () => [200, {
+        ...copia(DATOS.edicion), estado: 'RETIRADO',
+        moderacion: { estado: 'RECHAZADA', motivo, solicitadaEn: '2026-10-25T15:00:00Z', decididaEn: '2026-10-26T15:00:00Z', rechazos: 3, maximoRechazos: 3, bloqueada: true },
+      }],
+    })
+    abrirEn('/productor/productos/9?paso=lote')
+    expect((await screen.findAllByText('Llegaste al máximo de 3 rechazos')).length).toBeGreaterThan(0)
+    expect(screen.getByText(/pide al subadministrador que habilite un nuevo intento\. Último motivo: «Las fotos siguen/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Volver a publicar/ })).not.toBeInTheDocument()
   })
 
   it('cada pestana tiene su estado vacio y la busqueda sin resultados lo dice', async () => {

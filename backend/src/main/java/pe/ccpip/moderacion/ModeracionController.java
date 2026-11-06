@@ -76,6 +76,14 @@ public class ModeracionController {
                 decision);
     }
 
+    /** CCPIP-493: tras el tercer rechazo, habilitar con motivo un nuevo intento de publicacion. */
+    @PermisoConfigurable(Permiso.MODERAR_PUBLICACIONES)
+    @PostMapping("/{id}/reintento")
+    public Expediente habilitarReintento(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                         @PathVariable long id, @Valid @RequestBody NuevaDecision decision) {
+        return service.habilitarReintento(id, s.userId(), decision.motivo());
+    }
+
     /** El servicio ya confirmo la transaccion: el aviso sale solo si la decision quedo guardada. */
     private Expediente avisar(Expediente exp, AvisoAutorizacion.Tipo tipo, NuevaDecision decision) {
         aviso.notificar(exp.productor().id(), tipo, exp.oferta().nombre(), decision.motivo().strip(), exp.id());

@@ -540,7 +540,11 @@
       "falta": "Still missing before you can publish:",
       "irTienda": "Go to My store",
       "volverProductos": "Back to my products",
-      "noExiste": "This product doesn't exist"
+      "noExiste": "This product doesn't exist",
+      "bloqueada": "You reached the maximum of {{maximo}} rejections",
+      "bloqueadaTexto": "The Chamber rejected this listing {{maximo}} times. To send it again, ask the sub-administrator to enable a new attempt. Last reason: “{{motivo}}”.",
+      "intentosRestantes_one": "You have {{count}} attempt left before the sub-administrator has to enable a new one.",
+      "intentosRestantes_other": "You have {{count}} attempts left before the sub-administrator has to enable a new one."
     },
     "datos": {
       "validacion": {
@@ -2556,7 +2560,9 @@
     "SOLICITUD_UNIDAD_PENDIENTE": "You already requested that unit and the Chamber hasn't reviewed it yet.",
     "CODIGO_INVALIDO": "The code uses only letters without accents, numbers and underscore.",
     "SIN_TARIFA_ENVIO": "There is no shipping rate for that district yet. Choose pickup at the collection point.",
-    "CAPACIDAD_AGOTADA": "This collection point cannot deliver more home orders today. Choose another point or pickup."
+    "CAPACIDAD_AGOTADA": "This collection point cannot deliver more home orders today. Choose another point or pickup.",
+    "MAXIMO_RECHAZOS": "This listing reached the maximum of 3 rejections. Ask the sub-administrator to enable a new attempt.",
+    "REINTENTO_NO_NECESARIO": "This listing has not reached the maximum of rejections: the producer can already send it again."
   },
   "buscar": {
     "comunidad": "Community",
@@ -3845,6 +3851,19 @@
       "resuelta": {
         "APROBADA": "This publication was already approved.",
         "RECHAZADA": "This publication was rejected."
+      },
+      "limite": {
+        "titulo": "Rejections",
+        "cuenta": "{{rechazos}} of {{maximo}} rejections",
+        "bloqueada": "The producer reached the maximum and can no longer send this listing again.",
+        "motivo": "Reason to enable a new attempt",
+        "motivoAyuda": "It is kept in the product history. Enabling it resets the rejection count to zero.",
+        "habilitar": "Enable new attempt",
+        "errorMotivo": "Enter the reason to enable the new attempt",
+        "hecho": "You enabled a new attempt. The producer can send the listing again.",
+        "error": "We could not enable the new attempt",
+        "reintentos": "Enabled attempts",
+        "habilitadoPor": "{{nombre}} · {{fecha}}"
       }
     },
     "dialogo": {

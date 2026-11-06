@@ -120,6 +120,8 @@
 .expediente__historial .caption { color: var(--color-text-secondary); }
 .expediente__decision { gap: 14px; }
 .expediente__decision .heading-h3 { margin: 0; }
+.expediente__limite { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 1px solid var(--color-border-default); }
+.expediente__limite h3, .expediente__limite h4, .expediente__limite p { margin: 0; }
 .expediente__checklist { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
 .expediente__checklist li { display: flex; align-items: center; gap: 8px; }
 .expediente__ia { display: flex; gap: 8px; padding: 10px 12px; border-radius: var(--radius-m); background: var(--color-bg-sand); }

@@ -136,10 +136,17 @@ export default function EditorProductoPage({ path, id, search }) {
       </div>
 
       {alerta && paso !== 2 && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
-      {rechazada(producto) && (
+      {rechazada(producto) && (producto.moderacion.bloqueada ? (
+        // CCPIP-493: al tercer rechazo solo el subadministrador habilita un nuevo intento
+        <Alerta tono="error" titulo={t('productor.editor.bloqueada', { maximo: producto.moderacion.maximoRechazos })}
+          descripcion={t('productor.editor.bloqueadaTexto', { maximo: producto.moderacion.maximoRechazos, motivo: producto.moderacion.motivo })} />
+      ) : (
         <Alerta tono="error" titulo={t('productor.editor.rechazada')}
-          descripcion={t('productor.editor.rechazadaTexto', { motivo: producto.moderacion.motivo })} />
-      )}
+          descripcion={[
+            t('productor.editor.rechazadaTexto', { motivo: producto.moderacion.motivo }),
+            producto.moderacion.maximoRechazos != null && t('productor.editor.intentosRestantes', { count: producto.moderacion.maximoRechazos - producto.moderacion.rechazos }),
+          ].filter(Boolean).join(' ')} />
+      ))}
 
       {paso === 0 && (
         <PasoDatos
@@ -189,7 +196,10 @@ export default function EditorProductoPage({ path, id, search }) {
               {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
               {producto.estado === 'PUBLICADO' && <p className="body-s">{t('productor.editor.enCatalogo')}</p>}
               {producto.estado === 'EN_MODERACION' && <p className="body-s">{t('productor.editor.enRevision')}</p>}
-              {(producto.estado === 'BORRADOR' || producto.estado === 'RETIRADO') && (producto.publicable.listo ? (
+              {producto.moderacion?.bloqueada && (producto.estado === 'BORRADOR' || producto.estado === 'RETIRADO') && (
+                <p className="body-s">{t('productor.editor.bloqueada', { maximo: producto.moderacion.maximoRechazos })}</p>
+              )}
+              {(producto.estado === 'BORRADOR' || producto.estado === 'RETIRADO') && !producto.moderacion?.bloqueada && (producto.publicable.listo ? (
                 <>
                   <p className="body-s">{t('productor.editor.todoListo')}</p>
                   <Boton onClick={publicar} cargando={publicando}>
