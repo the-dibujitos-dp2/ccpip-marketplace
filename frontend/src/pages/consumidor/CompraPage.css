@@ -82,3 +82,4 @@
 
 /* CCPIP-443: el punto de recojo elegido, con su direccion */
 .compra__cifras .compra__recojo-en dd { display: flex; flex-direction: column; gap: 2px; }
+.compra__mayorista { display: block; color: var(--color-text-brand); font-weight: 600; }
