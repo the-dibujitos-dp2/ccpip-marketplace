@@ -8,6 +8,7 @@ import Boton from '../../components/Boton.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
+import MapaPunto from '../../components/MapaPunto.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import SeguimientoPedido, { conSeguimiento } from '../../components/SeguimientoPedido.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
@@ -270,6 +271,8 @@ function Detalle({ pedido }) {
                 </>
               )}
             </dl>
+            {/* CCPIP-444: en el recojo, donde queda el punto y como llegar */}
+            {!aDomicilio && <MapaPunto punto={punto} />}
           </section>
 
           <section className="pedido__tarjeta" aria-labelledby="pedido-pagos">
