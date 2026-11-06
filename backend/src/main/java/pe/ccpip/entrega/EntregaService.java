@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.entrega.EntregaModelos.Cobertura;
+import pe.ccpip.entrega.EntregaModelos.DestinoCubierto;
 import pe.ccpip.entrega.EntregaModelos.Destino;
 import pe.ccpip.entrega.EntregaModelos.Distrito;
 import pe.ccpip.entrega.EntregaModelos.Entrega;
