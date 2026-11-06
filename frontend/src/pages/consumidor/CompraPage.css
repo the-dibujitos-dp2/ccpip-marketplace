@@ -79,3 +79,6 @@
   .compra__fila { grid-template-columns: 1fr 1fr; }
   .compra__fila--territorio { grid-template-columns: 1fr; }
 }
+
+/* CCPIP-443: el punto de recojo elegido, con su direccion */
+.compra__cifras .compra__recojo-en dd { display: flex; flex-direction: column; gap: 2px; }

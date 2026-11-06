@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -12,6 +13,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import pe.ccpip.comun.ErrorNegocio;
+import pe.ccpip.entrega.EntregaModelos.CapacidadDiaria;
 import pe.ccpip.entrega.EntregaModelos.Cobertura;
 import pe.ccpip.entrega.EntregaModelos.DestinoCubierto;
 import pe.ccpip.entrega.EntregaModelos.Destino;
@@ -56,6 +58,50 @@ public class EntregaService {
                 SELECT EXISTS (SELECT 1 FROM cobertura_entrega c JOIN tarifa_envio t ON t.ubigeo = c.ubigeo
                                WHERE c.activa AND c.ubicacion_id = :punto AND c.ubigeo = :ubigeo)""",
                 new MapSqlParameterSource("punto", puntoId).addValue("ubigeo", ubigeo), Boolean.class));
+    }
+
+    /**
+     * CCPIP-484: los pedidos a domicilio de hoy (Lima) que salen de cada punto, sin los cancelados. Un pedido
+     * que espera su pago ya ocupa su cupo; si no se paga se cancela y lo libera.
+     */
+    static final String USADOS_HOY = """
+            (SELECT count(*) FROM pedido pe
+             WHERE pe.ubicacion_origen_id = %s AND pe.modalidad = 'ENVIO' AND pe.estado <> 'CANCELADO'
+               AND pe.creado_en >= date_trunc('day', now() AT TIME ZONE 'America/Lima') AT TIME ZONE 'America/Lima')""";
+
+    /** CCPIP-484: de estos puntos, los que ya alcanzaron hoy su capacidad de entregas a domicilio. */
+    public Set<Long> sinCapacidad(Collection<Long> puntos) {
+        if (puntos.isEmpty()) {
+            return Set.of();
+        }
+        return Set.copyOf(jdbc.queryForList("""
+                SELECT k.ubicacion_id FROM capacidad_entrega k
+                WHERE k.ubicacion_id IN (:puntos) AND %s >= k.maximo_diario""".formatted(USADOS_HOY.formatted("k.ubicacion_id")),
+                new MapSqlParameterSource("puntos", puntos), Long.class));
+    }
+
+    /** CCPIP-484: la capacidad del punto y lo que ya uso hoy. */
+    public CapacidadDiaria capacidad(long puntoId) {
+        return jdbc.queryForObject("""
+                SELECT (SELECT maximo_diario FROM capacidad_entrega WHERE ubicacion_id = :punto) AS maximo, %s AS usados"""
+                        .formatted(USADOS_HOY.formatted(":punto")),
+                new MapSqlParameterSource("punto", puntoId),
+                (rs, row) -> new CapacidadDiaria((Integer) rs.getObject("maximo"), rs.getInt("usados")));
+    }
+
+    /**
+     * CCPIP-484: si el punto ya alcanzo hoy su capacidad de entregas a domicilio, 409. Bloquea la fila de la
+     * capacidad hasta el fin de la transaccion, asi dos compras simultaneas no pasan las dos por el ultimo cupo.
+     * Sin capacidad registrada no hay limite.
+     */
+    public void exigirCapacidad(long puntoId) {
+        MapSqlParameterSource p = new MapSqlParameterSource("punto", puntoId);
+        Integer maximo = jdbc.query("SELECT maximo_diario FROM capacidad_entrega WHERE ubicacion_id = :punto FOR UPDATE", p,
+                (rs, row) -> rs.getInt("maximo_diario")).stream().findFirst().orElse(null);
+        if (maximo != null && capacidad(puntoId).usadosHoy() >= maximo) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "CAPACIDAD_AGOTADA",
+                    "Este punto de acopio ya no puede entregar más pedidos a domicilio hoy. Elige otro punto o el recojo.");
+        }
     }
 
     /**

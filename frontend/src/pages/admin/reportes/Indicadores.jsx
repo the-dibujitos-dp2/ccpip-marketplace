@@ -16,16 +16,17 @@ import './Indicadores.css'
 const TEXTOS = 'admin.reportes.indicadores'
 
 /**
- * Detalle de una tarjeta frente al periodo anterior: el cambio con su signo, en verde si mejora y en rojo
- * si empeora (`inverso` cuando subir es malo). Sin anterior (cero) no hay variacion.
+ * Detalle de una tarjeta frente al periodo anterior: el cambio con su signo. Una caida (negativa) va
+ * siempre en rojo (CCPIP-454); una subida, en verde, o en rojo si subir es malo (`inverso`). Sin anterior
+ * (cero) no hay variacion.
  */
 function variacion({ variacion: cambio }, inverso = false) {
   if (cambio == null) return { detalle: 'sinAnterior' }
   const valor = Number(cambio)
   const signo = valor > 0 ? '+' : ''
-  const mejora = inverso ? valor < 0 : valor > 0
   let tono = 'neutro'
-  if (valor !== 0) tono = mejora ? 'exito' : 'error'
+  if (valor < 0) tono = 'error'
+  else if (valor > 0) tono = inverso ? 'error' : 'exito'
   return { detalle: 'variacion', vars: { valor: `${signo}${unidades(valor)}%` }, tono }
 }
 

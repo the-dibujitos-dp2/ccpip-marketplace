@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoAviso from '../../assets/icons/alerta-aviso.svg'
 import iconoBillete from '../../assets/icons/billete.svg'
+import iconoCamion from '../../assets/icons/camion.svg'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoEtiqueta from '../../assets/icons/etiqueta.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
@@ -38,6 +39,8 @@ const NAV = [
   { to: RUTAS.adminParametros, clave: 'parametros', icono: iconoReloj, roles: ['SUPER_ADMIN'] },
   // CCPIP-482: tarifa fija de envio a domicilio por distrito
   { to: RUTAS.adminTarifasEnvio, clave: 'tarifasEnvio', icono: iconoBillete, roles: ['SUPER_ADMIN'] },
+  // CCPIP-484: pedidos a domicilio por dia de cada punto de acopio
+  { to: RUTAS.adminCapacidadEntrega, clave: 'capacidadEntrega', icono: iconoCamion, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminCatalogo, clave: 'catalogo', icono: iconoEtiqueta, roles: ['SUPER_ADMIN'] },
   // CCPIP-354: existencias agregadas de los puntos de acopio (sin el detalle de A-02, SA-08)
   { to: RUTAS.adminExistencias, clave: 'existencias', icono: iconoAlmacen, roles: ['SUPER_ADMIN'] },

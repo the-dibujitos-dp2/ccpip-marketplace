@@ -107,15 +107,16 @@ describe('SA-01 Tablero de operación del superadministrador (CCPIP-111)', () =>
     const porLinea = within(screen.getByRole('table', { name: 'Merma del mes por línea' }))
     const filas = porLinea.getAllByRole('row').slice(1)
     expect(filas).toHaveLength(3)
-    expect(within(filas[0]).getByText('Centro Nacional Lima')).toBeInTheDocument()
-    expect(within(filas[0]).getByText('Superfrutos')).toBeInTheDocument()
-    expect(within(filas[0]).getByText('30 und')).toBeInTheDocument()
-    expect(within(filas[0]).getByText('9.1 % · Alerta')).toHaveClass('badge-estado--aviso')
+    // De mayor a menor merma (CCPIP-448)
+    expect(within(filas[0]).getByText('23.4 % · Crítico')).toHaveClass('badge-estado--error')
+    expect(within(filas[1]).getByText('Centro Nacional Lima')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('Superfrutos')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('30 und')).toBeInTheDocument()
+    expect(within(filas[1]).getByText('9.1 % · Alerta')).toHaveClass('badge-estado--aviso')
     // Cada línea con sus propios umbrales
-    expect(within(filas[0]).getByText('8 % · 15 %')).toBeInTheDocument()
-    expect(within(filas[1]).getByText('2.9 % · Normal')).toHaveClass('badge-estado--exito')
-    expect(within(filas[1]).getByText('5 % · 10 %')).toBeInTheDocument()
-    expect(within(filas[2]).getByText('23.4 % · Crítico')).toHaveClass('badge-estado--error')
+    expect(within(filas[1]).getByText('8 % · 15 %')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('2.9 % · Normal')).toHaveClass('badge-estado--exito')
+    expect(within(filas[2]).getByText('5 % · 10 %')).toBeInTheDocument()
   })
 
   it('con varias líneas en un punto gana la de peor nivel y, a igual nivel, la de mayor % (CCPIP-430)', async () => {
@@ -136,6 +137,25 @@ describe('SA-01 Tablero de operación del superadministrador (CCPIP-111)', () =>
     // Una línea normal no se nombra: la fila queda limpia
     expect(within(filaUcayali).getByText('1 % · Normal')).toBeInTheDocument()
     expect(within(filaUcayali).queryByText('Café')).not.toBeInTheDocument()
+  })
+
+  it('ordena la merma del mes por línea de mayor a menor, con el título en español (CCPIP-448)', async () => {
+    const varias = copia(DATOS.tableroAdmin)
+    const base = { stock: 100, umbralAlerta: 5, umbralCritico: 10, nivel: 'NORMAL' }
+    varias.mermaPorLinea = [
+      { ...base, puntoId: 1, punto: 'Centro Nacional Lima', codigo: 'CAFE', linea: 'Café', unidades: 2, porcentaje: 2.0 },
+      { ...base, puntoId: 1, punto: 'Centro Nacional Lima', codigo: 'CACAO', linea: 'Cacao y chocolates', unidades: 12, porcentaje: 10.7, nivel: 'CRITICO' },
+      { ...base, puntoId: 4, punto: 'Centro Regional Ucayali', codigo: 'ACEITES', linea: 'Aceites', unidades: 9, porcentaje: 6.5, nivel: 'ALERTA' },
+      { ...base, puntoId: 3, punto: 'Centro Regional Cusco', codigo: 'TEXTIL', linea: 'Textiles', unidades: 4, porcentaje: 6.5, nivel: 'ALERTA' },
+    ]
+    servidor(comoSuper({ [`GET ${RUTA}`]: [200, varias] }))
+    abrirEn('/admin')
+
+    const tabla = await screen.findByRole('table', { name: 'Merma del mes por línea' })
+    const filas = within(tabla).getAllByRole('row').slice(1)
+    // A igual porcentaje, primero la de más unidades
+    expect(filas.map((f) => within(f).getAllByRole('cell')[1].textContent))
+      .toEqual(['Cacao y chocolates', 'Aceites', 'Textiles', 'Café'])
   })
 
   it('sin merma en el mes lo dice, y un punto sin stock ni merma queda sin dato (CCPIP-430)', async () => {
@@ -169,7 +189,7 @@ describe('SA-01 Tablero de operación del superadministrador (CCPIP-111)', () =>
     servidor(comoSuper())
     abrirEn('/admin')
     const nav = within(await screen.findByRole('navigation', { name: 'Super administrador' }))
-    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Tablero', 'Permisos', 'Auditoría', 'Denuncias', 'Comisión', 'Comisión por pedido', 'Reportes', 'Parámetros', 'Tarifas de envío', 'Catálogo maestro', 'Existencias', 'Cuentas', 'Causas de merma'])
+    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Tablero', 'Permisos', 'Auditoría', 'Denuncias', 'Comisión', 'Comisión por pedido', 'Reportes', 'Parámetros', 'Tarifas de envío', 'Capacidad de entrega', 'Catálogo maestro', 'Existencias', 'Cuentas', 'Causas de merma'])
     expect(nav.getByRole('link', { name: 'Tablero' })).toHaveAttribute('aria-current', 'page')
   })
 

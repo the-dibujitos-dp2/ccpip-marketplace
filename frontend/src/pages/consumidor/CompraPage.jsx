@@ -362,6 +362,12 @@ export default function CompraPage() {
         setAviso({ tono: 'error', titulo: t('compra.domicilio.sinTarifa'), descripcion: mensajeError(err) })
         cargar()
         break
+      case 'CAPACIDAD_AGOTADA':
+        // CCPIP-484: el punto completo su cupo de hoy; al recargar ya no se ofrece a domicilio
+        pedido.current = null
+        setAviso({ tono: 'error', titulo: t('compra.domicilio.sinCapacidad'), descripcion: mensajeError(err) })
+        cargar()
+        break
       case 'SIN_COBERTURA':
         pedido.current = null
         setAviso({ tono: 'error', titulo: t('compra.domicilio.sinCobertura'), descripcion: mensajeError(err) })
@@ -387,6 +393,7 @@ export default function CompraPage() {
   const aDomicilio = form.modalidad === 'ENVIO'
   // A domicilio, los puntos son los que cubren el distrito elegido; para recojo, todos los que tienen el carrito
   const puntosVisibles = aDomicilio ? puntosDe(distritos, form.ubigeo) : puntos
+  const puntoRecojo = aDomicilio || !form.puntoId ? null : (puntos ?? []).find((p) => String(p.id) === String(form.puntoId)) ?? null
   const marcaTarjeta = marca(form.numero)
   // El envio se suma a lo que se paga; la comision sigue siendo solo sobre los productos
   const envio = aDomicilio ? envioDe(distritos, form.ubigeo) : 0
@@ -590,6 +597,16 @@ export default function CompraPage() {
                   <dt>{t('comunidades.titulo')}</dt>
                   <dd>{carrito.comunidades}</dd>
                 </div>
+                {/* CCPIP-443: en el recojo, a que punto de acopio ir */}
+                {!aDomicilio && puntoRecojo && (
+                  <div className="compra__recojo-en">
+                    <dt>{t('compra.recogesEn')}</dt>
+                    <dd>
+                      <span className="label-m">{puntoRecojo.nombre}</span>
+                      <span className="caption">{[puntoRecojo.direccion, puntoRecojo.distrito, puntoRecojo.departamento].filter(Boolean).join(' · ')}</span>
+                    </dd>
+                  </div>
+                )}
                 <div>
                   <dt>{t('compra.entrega')}</dt>
                   <dd>{t(aDomicilio ? 'compra.domicilio.resumen' : 'compra.recojoResumen')}</dd>

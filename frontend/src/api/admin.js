@@ -26,6 +26,17 @@ export function fijarTarifaEnvio(ubigeo, monto) {
   return apiFetch(`/api/admin/tarifas-envio/${ubigeo}`, { method: 'PUT', body: { monto } })
 }
 
+/** CCPIP-484: los puntos de acopio activos con su capacidad diaria de entregas a domicilio (nula = sin limite). */
+export const consultarCapacidadesEntrega = () => apiFetch('/api/admin/capacidades-entrega')
+
+/** CCPIP-484: fija la capacidad diaria de un punto o, con {@code maximoDiario} nulo, la quita. */
+export async function fijarCapacidadEntrega(puntoId, maximoDiario) {
+  const id = idRuta(puntoId)
+  return maximoDiario == null
+    ? apiFetch(`/api/admin/capacidades-entrega/${id}`, { method: 'DELETE' })
+    : apiFetch(`/api/admin/capacidades-entrega/${id}`, { method: 'PUT', body: { maximoDiario } })
+}
+
 const RANGO = ['desde', 'hasta']
 
 /** Los filtros de cada reporte; las metricas por periodo (SA-05) y los indicadores tambien se agrupan. */

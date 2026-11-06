@@ -15,12 +15,19 @@ import DeclararCobertura from './DeclararCobertura.jsx'
 import './CoberturaPage.css'
 
 function ZonaPunto({ punto, c, onDesactivar, onDeclarar }) {
+  const { t } = useTranslation()
   const { filas, pagina, total, totalPaginas, onCambiar } = usePaginacionLocal(punto.zonas ?? [], punto.puntoId)
   return <section className="cobertura401__punto" key={punto.puntoId} aria-labelledby={`punto-${punto.puntoId}`}>
     <div className="cobertura401__cabecera">
       <h2 id={`punto-${punto.puntoId}`}>{punto.punto}</h2>
       <Boton tipo="secundario" tamano="S" onClick={() => onDeclarar(punto)} aria-label={`${c('declarar.abrir')} · ${punto.punto}`}>{c('declarar.abrir')}</Boton>
     </div>
+    {/* CCPIP-484: la capacidad diaria la fija la Camara; aqui solo se consulta */}
+    {punto.capacidad && <p className="cobertura401__capacidad body-s">
+      {punto.capacidad.maximoDiario == null
+        ? t('acopio.cobertura401.capacidadSinLimite', { count: punto.capacidad.usadosHoy })
+        : t('acopio.cobertura401.capacidad', { usados: punto.capacidad.usadosHoy, maximo: punto.capacidad.maximoDiario })}
+    </p>}
     {!total ? <p className="cobertura401__vacio">{c('sinZonas')}</p> : <>
       {/* Columnas del mismo ancho; primero el estado y despues la accion, en su propia columna y en rojo */}
       <div className="cobertura401__tabla-scroll">

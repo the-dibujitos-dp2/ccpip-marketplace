@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import usePaginacionLocal from '../hooks/usePaginacionLocal.js'
 import Paginacion from './Paginacion.jsx'
-import { capital, fecha, mesAnio } from '../formato.js'
+import { capital, claseSigno, fecha, mesAnio } from '../formato.js'
 import EstadoVacio from './EstadoVacio.jsx'
 import TarjetaKpi from './TarjetaKpi.jsx'
 import './TablaReporte.css'
@@ -38,7 +38,7 @@ export default function TablaReporte({ id, titulo, columnas, filas, clave, vacio
           {filasVisibles.map((f) => (
             <div key={clave(f)} className="tabla__fila" role="row">
               {columnas.map((c) => (
-                <span key={c.clave} className={`${clase(c)}${c.fuerte || c.periodo ? ' label-m' : ''}`} role="cell">{c.valor(f)}</span>
+                <CeldaReporte key={c.clave} columna={c} clase={clase(c)} valor={c.valor(f)} />
               ))}
             </div>
           ))}
@@ -48,6 +48,12 @@ export default function TablaReporte({ id, titulo, columnas, filas, clave, vacio
       {nota && <p className="caption">{nota}</p>}
     </section>
   )
+}
+
+/** Una celda: las cifras negativas van en rojo (CCPIP-454); los textos y periodos no se evaluan. */
+function CeldaReporte({ columna: c, clase, valor }) {
+  const signo = c.texto || c.periodo || c.barra ? '' : claseSigno(valor)
+  return <span className={`${clase}${c.fuerte || c.periodo ? ' label-m' : ''}${signo}`} role="cell">{valor}</span>
 }
 
 /**

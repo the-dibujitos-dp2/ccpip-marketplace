@@ -12,7 +12,7 @@ import LimpiarFiltros, { SinCoincidencias } from '../../components/LimpiarFiltro
 import Paginacion from '../../components/Paginacion.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
 import LayoutAcopio from '../../components/layout/LayoutAcopio.jsx'
-import { diaMesAnio, hora, unidades } from '../../formato.js'
+import { claseSigno, diaMesAnio, hora, unidades } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { useDiferido } from '../../useDiferido.js'
 import '../productor/productor.css'
@@ -141,6 +141,8 @@ function TablaMovimientos({ items }) {
       <ul className="movimientos__lista" aria-label={t('acopio.movimientos.lista')}>
         {items.map((m) => {
           const tipo = TIPOS[m.tipo] ?? { tono: 'neutro', signo: '' }
+          // CCPIP-454: las salidas (con signo menos) en rojo
+          const cantidad = `${tipo.signo}${unidades(m.cantidad)}`
           return (
             <li key={m.id} className="tabla__fila">
               <span className="tabla__celda movimientos__col-fecha label-m">{diaMesAnio(m.registradoEn)}</span>
@@ -151,7 +153,7 @@ function TablaMovimientos({ items }) {
               <span className="tabla__celda tabla__celda--flex">
                 {[m.producto, m.lote, m.pedido, m.motivo && t(`movimiento.motivos.${m.motivo}`)].filter(Boolean).join(' · ')}
               </span>
-              <span className="tabla__celda movimientos__col-cantidad">{`${tipo.signo}${unidades(m.cantidad)}`}</span>
+              <span className={`tabla__celda movimientos__col-cantidad${claseSigno(cantidad)}`}>{cantidad}</span>
               <span className="tabla__celda movimientos__col-registro">
                 {m.registradoPor ?? (m.tipo === 'SALIDA_VENTA' ? t('acopio.movimientos.compraEnLinea') : '—')}
               </span>
