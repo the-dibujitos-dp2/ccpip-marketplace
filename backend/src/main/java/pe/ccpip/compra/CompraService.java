@@ -81,7 +81,9 @@ public class CompraService {
     @Transactional
     public List<DistritoConPuntos> distritosConEntrega(long usuarioId) {
         Map<Long, PuntoRecojo> elegibles = puntos(comprables(usuarioId), null).stream()
-                .collect(Collectors.toMap(PuntoRecojo::id, punto -> punto));
+                .collect(Collectors.toMap(PuntoRecojo::id, punto -> punto, (a, b) -> a, HashMap::new));
+        // CCPIP-484: un punto que ya alcanzo hoy su capacidad no se ofrece a domicilio (si para recojo)
+        elegibles.keySet().removeAll(entregas.sinCapacidad(elegibles.keySet()));
         Map<String, DistritoConPuntos> porDistrito = new LinkedHashMap<>();
         for (Cobertura c : entregas.coberturas(elegibles.keySet())) {
             porDistrito.computeIfAbsent(c.distrito().ubigeo(),
@@ -204,6 +206,10 @@ public class CompraService {
                     RETURNING pe.id)
                 INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id)
                 SELECT id, 'CANCELADO', :usuario FROM cancelados""", p);
+        // CCPIP-484: despues de liberar su propio pedido sin pagar, que no le quite el cupo a este
+        if (aDomicilio) {
+            entregas.exigirCapacidad(puntoId);
+        }
 
         long id = jdbc.getJdbcTemplate().queryForObject("SELECT nextval(pg_get_serial_sequence('pedido', 'id'))", Long.class);
         BigDecimal total = items.stream().map(Item::subtotal).reduce(BigDecimal.ZERO, BigDecimal::add);

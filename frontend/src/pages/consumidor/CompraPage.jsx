@@ -362,6 +362,12 @@ export default function CompraPage() {
         setAviso({ tono: 'error', titulo: t('compra.domicilio.sinTarifa'), descripcion: mensajeError(err) })
         cargar()
         break
+      case 'CAPACIDAD_AGOTADA':
+        // CCPIP-484: el punto completo su cupo de hoy; al recargar ya no se ofrece a domicilio
+        pedido.current = null
+        setAviso({ tono: 'error', titulo: t('compra.domicilio.sinCapacidad'), descripcion: mensajeError(err) })
+        cargar()
+        break
       case 'SIN_COBERTURA':
         pedido.current = null
         setAviso({ tono: 'error', titulo: t('compra.domicilio.sinCobertura'), descripcion: mensajeError(err) })

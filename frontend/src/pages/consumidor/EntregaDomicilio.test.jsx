@@ -177,6 +177,19 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     expect(llamadas(fetchMock, 'POST /api/pedidos/78/pagos')).toHaveLength(0)
   })
 
+  it('CCPIP-484: si el punto completó su capacidad del día lo explica y recarga las opciones', { timeout: 15_000 }, async () => {
+    const fetchMock = servidor(rutas({ 'POST /api/pedidos': [409, { code: 'CAPACIDAD_AGOTADA', message: 'x' }] }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await prepararDomicilio(usuario)
+    const antes = llamadas(fetchMock, 'GET /api/compra/distritos').length
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+    expect(await screen.findByText('Ese punto ya completó sus entregas de hoy')).toBeInTheDocument()
+    expect(screen.getByText('Este punto de acopio ya no puede entregar más pedidos a domicilio hoy. Elige otro punto o el recojo.')).toBeInTheDocument()
+    await waitFor(() => expect(llamadas(fetchMock, 'GET /api/compra/distritos').length).toBeGreaterThan(antes))
+    expect(llamadas(fetchMock, 'POST /api/pedidos/78/pagos')).toHaveLength(0)
+  })
+
   it('CCPIP-482: un distrito que perdió su tarifa al confirmar lo explica y recarga', { timeout: 15_000 }, async () => {
     const fetchMock = servidor(rutas({ 'POST /api/pedidos': [409, { code: 'SIN_TARIFA_ENVIO', message: 'x' }] }))
     const usuario = userEvent.setup()
