@@ -488,6 +488,14 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
     expect(llamadas(fetchMock, 'POST /api/productor/productos')).toHaveLength(0)
   })
 
+  it('pedir el borrador con IA es un boton grande del sistema de diseño (CCPIP-489)', async () => {
+    productor()
+    abrirEn('/productor/productos/9')
+    const boton = await screen.findByRole('button', { name: 'Sugerir una descripción con IA (borrador)' })
+    expect(boton).toHaveClass('boton', 'boton--secundario', 'boton--L')
+    expect(boton.querySelector('.icono, img, svg')).not.toBeNull()
+  })
+
   it('la descripcion asistida se revisa antes de aceptarse y queda marcada como IA', async () => {
     const fetchMock = productor({
       'POST /api/productor/ia/descripcion': [200, { texto: SUGERIDA }],
