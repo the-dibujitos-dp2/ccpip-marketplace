@@ -4,15 +4,6 @@ import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
 import { copia, llamadas, PUBLICAS, servidor, SESION_SUPER } from '../../test/servidor.js'
 
-const PERMISOS = [
-  { rol: 'CONSUMIDOR', permisos: [{ metodo: 'GET', ruta: '/api/carrito' }] },
-  { rol: 'PRODUCTOR', permisos: [{ metodo: 'POST', ruta: '/api/productor/productos' }] },
-  { rol: 'ADMIN_PUNTO', permisos: [{ metodo: 'GET', ruta: '/api/acopio/inventario' }] },
-  { rol: 'SUB_ADMIN', permisos: [{ metodo: 'GET', ruta: '/api/admin/cuentas' }] },
-  { rol: 'SUPER_ADMIN', permisos: [{ metodo: 'GET', ruta: '/api/admin/tablero' }] },
-  { rol: 'DISTRIBUIDOR', permisos: [{ metodo: 'GET', ruta: '/api/distribuidor/entregas' }] },
-]
-
 const restringidos = ['EDITAR_DATOS_COMPRADORES', 'EDITAR_EXISTENCIAS', 'EDITAR_PEDIDOS', 'EDITAR_PRODUCTOS', 'EDITAR_TIENDAS']
   .map((codigo) => ({ codigo, restringido: true, concedido: false, actualizadoEn: null, actualizadoPor: null }))
 
@@ -35,33 +26,28 @@ function abrirEn(ruta = '/admin/permisos') {
   return render(<App />)
 }
 
-function comoSuper(datos = PERMISOS, rutas = {}) {
+function comoSuper(rutas = {}) {
   return servidor({
     ...PUBLICAS,
     'GET /api/auth/me': [200, SESION_SUPER],
-    'GET /api/admin/permisos': [200, copia(datos)],
     'GET /api/admin/permisos/configurables': () => [200, copia(CONFIGURABLES)],
     ...rutas,
   })
 }
 
 describe('CCPIP-28 consulta de permisos', () => {
-  it('el superadministrador ve los permisos que el servidor asigna por rol', async () => {
-    comoSuper()
+  it('el superadministrador ve los permisos de cada rol, sin las rutas del servidor', async () => {
+    const fetchMock = comoSuper()
     abrirEn()
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Permisos por rol' })).toBeInTheDocument()
-    const tabla = within(await screen.findByRole('table', { name: 'Permisos asignados por rol' }))
-    expect(tabla.getByText('Productor')).toBeInTheDocument()
-    expect(tabla.getByText('POST')).toBeInTheDocument()
-    expect(tabla.getByText('/api/productor/productos')).toBeInTheDocument()
-    expect(tabla.getByText('Super administrador')).toBeInTheDocument()
-    expect(tabla.getByText('/api/admin/tablero')).toBeInTheDocument()
-    expect(tabla.queryByRole('button')).not.toBeInTheDocument()
-    expect(tabla.queryByRole('textbox')).not.toBeInTheDocument()
+    expect(await screen.findByRole('list', { name: 'Permisos configurables de Sub administrador' })).toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(screen.queryByText(/\/api\//)).not.toBeInTheDocument()
+    expect(fetchMock.mock.calls.some(([url]) => url === '/api/admin/permisos')).toBe(false)
   })
 
-  it('los otros roles no cargan la matriz de permisos', async () => {
+  it('los otros roles no cargan los permisos', async () => {
     const fetchMock = servidor({
       ...PUBLICAS,
       'GET /api/auth/me': [200, { ...SESION_SUPER, user: { ...SESION_SUPER.user, role: 'SUB_ADMIN' } }],
@@ -69,7 +55,7 @@ describe('CCPIP-28 consulta de permisos', () => {
     abrirEn()
     await screen.findByRole('heading', { level: 1 })
     expect(window.location.pathname).toBe('/admin/autorizaciones')
-    expect(fetchMock.mock.calls.some(([url]) => url === '/api/admin/permisos')).toBe(false)
+    expect(fetchMock.mock.calls.some(([url]) => String(url).startsWith('/api/admin/permisos'))).toBe(false)
   })
 })
 
@@ -93,7 +79,7 @@ describe('CCPIP-296 permisos configurables', () => {
   it('revoca con motivo y muestra el nuevo estado', async () => {
     const revocado = copia(CONFIGURABLES[0])
     revocado.permisos[1] = { ...revocado.permisos[1], concedido: false, actualizadoEn: '2026-10-29T19:00:00Z', actualizadoPor: 'Super Administrador de Prueba' }
-    const fetchMock = comoSuper(PERMISOS, { [CAMBIO]: [200, revocado] })
+    const fetchMock = comoSuper({ [CAMBIO]: [200, revocado] })
     const user = userEvent.setup()
     abrirEn()
     await user.click((await listaDe('Sub administrador')).getByRole('button', { name: 'Revocar Suspender cuentas a Sub administrador' }))
@@ -117,7 +103,7 @@ describe('CCPIP-296 permisos configurables', () => {
   })
 
   it('muestra el rechazo del servidor en el diálogo', async () => {
-    comoSuper(PERMISOS, {
+    comoSuper({
       [CAMBIO]: [422, { code: 'RESTRICCION_GOBERNANZA', error: 'La administración no puede editar productos, tiendas, pedidos, datos de compradores ni existencias.' }],
     })
     const user = userEvent.setup()
