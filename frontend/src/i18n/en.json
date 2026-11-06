@@ -1439,6 +1439,13 @@
       "confirmar": "Deactivate",
       "cancelar": "Cancel",
       "errorDesactivar": "The zone could not be deactivated. Please try again.",
+      "reactivar": "Reactivate",
+      "tituloReactivar": "Reactivate delivery zone",
+      "confirmarReactivar": "Deliver to this district again? It will be offered at checkout from now on, if the district has a shipping rate. The change is recorded.",
+      "confirmarReactivacion": "Reactivate",
+      "errorReactivar": "The zone could not be reactivated. Please try again.",
+      "reactivada": "{{distrito}} is offered again for home delivery.",
+      "desactivada": "{{distrito}} is no longer offered for home delivery.",
       "accion": "Action",
       "declarar": {
         "abrir": "Declare districts",
@@ -4791,7 +4798,9 @@
       "PERMISO_CONCEDIDO": "Granted a permission",
       "PERMISO_REVOCADO": "Revoked a permission",
       "TARIFA_ENVIO": "Set a shipping rate",
-      "CAPACIDAD_ENTREGA": "Changed a delivery capacity"
+      "CAPACIDAD_ENTREGA": "Changed a delivery capacity",
+      "COBERTURA_ACTIVADA": "Activated a coverage zone",
+      "COBERTURA_DESACTIVADA": "Deactivated a coverage zone"
     },
     "entidad": {
       "AUTORIZACION": "Authorization",
@@ -4806,7 +4815,8 @@
       "PEDIDO": "Order",
       "PERMISO": "Permission",
       "TARIFA_ENVIO": "Shipping rate",
-      "CAPACIDAD_ENTREGA": "Delivery capacity"
+      "CAPACIDAD_ENTREGA": "Delivery capacity",
+      "COBERTURA_ENTREGA": "Coverage zone"
     },
     "resultado": {
       "EXITOSA": "Successful",

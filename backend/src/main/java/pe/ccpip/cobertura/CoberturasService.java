@@ -21,6 +21,7 @@ import pe.ccpip.entrega.EntregaService;
 /**
  * CCPIP-401: lectura por asignacion, sin alterar reglas comerciales ni la consulta del comprador.
  * CCPIP-149: el punto declara los distritos que atiende, solo del catalogo territorial vigente.
+ * CCPIP-403 y CCPIP-496, 498: desactiva y reactiva una zona; cada cambio queda registrado con su autor.
  */
 @Service
 public class CoberturasService {
@@ -62,22 +63,44 @@ public class CoberturasService {
         }
         return grupos.values().stream().map(g -> g.respuesta(entregas.capacidad(g.id))).toList();
     }
+    /** CCPIP-403: deja de ofrecer la zona a domicilio. Desactivar una zona ya inactiva no cambia nada. */
     @Transactional
     public void desactivar(long usuarioId, long zonaId) {
+        cambiarEstado(usuarioId, zonaId, false);
+    }
+    /**
+     * CCPIP-496, 498: vuelve a ofrecer a domicilio un distrito que el punto desactivo, sin declararlo otra vez.
+     * Se ofrece en la compra si el distrito tiene tarifa de envio (CCPIP-482). Activar una zona ya activa no
+     * cambia nada.
+     */
+    @Transactional
+    public void activar(long usuarioId, long zonaId) {
+        cambiarEstado(usuarioId, zonaId, true);
+    }
+    /**
+     * Cambia el estado de una zona de un punto propio y registra quien lo hizo (cobertura_entrega_cambio). Una
+     * zona ajena responde igual que una inexistente, para no revelarla.
+     */
+    private void cambiarEstado(long usuarioId, long zonaId, boolean activa) {
         if (zonaId <= 0) throw ErrorNegocio.invalido("ZONA_INVALIDA", "La zona debe tener identificador positivo.");
-        int actualizadas = jdbc.update("""
-                UPDATE cobertura_entrega c SET activa=false, actualizado_en=now()
-                WHERE c.id=:zona AND c.activa=true AND EXISTS (
+        var p = new MapSqlParameterSource("zona", zonaId).addValue("usuario", usuarioId).addValue("activa", activa);
+        Boolean anterior = jdbc.query("""
+                SELECT c.activa FROM cobertura_entrega c
+                WHERE c.id=:zona AND EXISTS (
                   SELECT 1 FROM usuario_ubicacion uu WHERE uu.ubicacion_id=c.ubicacion_id AND uu.usuario_id=:usuario)
-                """, new MapSqlParameterSource("zona", zonaId).addValue("usuario", usuarioId));
-        if (actualizadas == 0) {
-            Integer existe = jdbc.queryForObject("SELECT count(*) FROM cobertura_entrega WHERE id=:zona", new MapSqlParameterSource("zona", zonaId), Integer.class);
-            if (existe != null && existe > 0) {
-                Integer propia = jdbc.queryForObject("SELECT count(*) FROM cobertura_entrega c JOIN usuario_ubicacion uu ON uu.ubicacion_id=c.ubicacion_id WHERE c.id=:zona AND uu.usuario_id=:usuario", new MapSqlParameterSource("zona", zonaId).addValue("usuario", usuarioId), Integer.class);
-                if (propia != null && propia > 0) return;
-            }
+                FOR UPDATE""", p, (rs, row) -> rs.getBoolean("activa")).stream().findFirst().orElse(null);
+        if (anterior == null) {
             throw ErrorNegocio.noEncontrado("ZONA_NO_ENCONTRADA", "La zona no existe o no está asignada a tu cuenta.");
         }
+        if (anterior == activa) return;
+        jdbc.update("UPDATE cobertura_entrega SET activa=:activa, actualizado_en=now() WHERE id=:zona", p);
+        registrar(zonaId, activa, usuarioId);
+    }
+    private void registrar(long zonaId, boolean activa, long usuarioId) {
+        jdbc.update("""
+                INSERT INTO cobertura_entrega_cambio (cobertura_id, activa, realizado_por)
+                VALUES (:zona, :activa, :usuario)""",
+                new MapSqlParameterSource("zona", zonaId).addValue("activa", activa).addValue("usuario", usuarioId));
     }
     /**
      * CCPIP-149 (RF-118): declara que el punto propio entrega en esos distritos del catalogo territorial. Un
@@ -104,10 +127,13 @@ public class CoberturasService {
                     "Algunos distritos no estan en el catalogo territorial.", faltan);
         }
         for (String ubigeo : pedidos) {
-            jdbc.update("""
+            // Solo devuelve la zona si se creo o se reactivo: esas quedan registradas (CCPIP-496)
+            jdbc.queryForList("""
                     INSERT INTO cobertura_entrega (ubicacion_id, ubigeo) VALUES (:punto, :ubigeo)
                     ON CONFLICT (ubicacion_id, ubigeo) DO UPDATE SET activa = true, actualizado_en = now()
-                    WHERE NOT cobertura_entrega.activa""", new MapSqlParameterSource(p.getValues()).addValue("ubigeo", ubigeo));
+                    WHERE NOT cobertura_entrega.activa
+                    RETURNING id""", new MapSqlParameterSource(p.getValues()).addValue("ubigeo", ubigeo), Long.class)
+                    .forEach(zona -> registrar(zona, true, usuarioId));
         }
         return listar(usuarioId, puntoId).get(0);
     }

@@ -1439,6 +1439,13 @@
       "confirmar": "Desactivar",
       "cancelar": "Cancelar",
       "errorDesactivar": "No se pudo desactivar la zona. Inténtalo nuevamente.",
+      "reactivar": "Reactivar",
+      "tituloReactivar": "Reactivar zona de cobertura",
+      "confirmarReactivar": "¿Volver a entregar a domicilio en este distrito? Se ofrecerá en la compra desde ahora, si el distrito tiene tarifa de envío. El cambio queda registrado.",
+      "confirmarReactivacion": "Reactivar",
+      "errorReactivar": "No se pudo reactivar la zona. Inténtalo nuevamente.",
+      "reactivada": "{{distrito}} vuelve a ofrecerse para entregas a domicilio.",
+      "desactivada": "{{distrito}} ya no se ofrece para entregas a domicilio.",
       "accion": "Acción",
       "declarar": {
         "abrir": "Declarar distritos",
@@ -4791,7 +4798,9 @@
       "PERMISO_CONCEDIDO": "Concedió un permiso",
       "PERMISO_REVOCADO": "Revocó un permiso",
       "TARIFA_ENVIO": "Fijó una tarifa de envío",
-      "CAPACIDAD_ENTREGA": "Cambió la capacidad de entrega"
+      "CAPACIDAD_ENTREGA": "Cambió la capacidad de entrega",
+      "COBERTURA_ACTIVADA": "Activó una zona de cobertura",
+      "COBERTURA_DESACTIVADA": "Desactivó una zona de cobertura"
     },
     "entidad": {
       "AUTORIZACION": "Autorización",
@@ -4806,7 +4815,8 @@
       "PEDIDO": "Pedido",
       "PERMISO": "Permiso",
       "TARIFA_ENVIO": "Tarifa de envío",
-      "CAPACIDAD_ENTREGA": "Capacidad de entrega"
+      "CAPACIDAD_ENTREGA": "Capacidad de entrega",
+      "COBERTURA_ENTREGA": "Zona de cobertura"
     },
     "resultado": {
       "EXITOSA": "Exitosa",
