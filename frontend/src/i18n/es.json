@@ -1815,7 +1815,13 @@
           "nuevos": "Productos nuevos",
           "conVentas": "Productos con ventas",
           "porLinea": "Productos publicados por línea",
-          "sinLineas": "No hay líneas de producto activas"
+          "sinLineas": "No hay líneas de producto activas",
+          "publicaciones_one": "{{count}} publicación",
+          "publicaciones_other": "{{count}} publicaciones",
+          "productores_one": "{{count}} productor",
+          "productores_other": "{{count}} productores",
+          "detalleProducto": "{{publicaciones}} de {{productores}}",
+          "deLinea": "Productos de {{linea}}"
         },
         "actividad": {
           "titulo": "Actividad",
@@ -1992,7 +1998,18 @@
         "vigente": "Vigente",
         "vencido": "Vencido"
       },
-      "nota": "Solo consulta: el stock se registra y corrige en cada punto. Las cantidades se muestran por unidad de medida, sin sumar unidades distintas. El detalle por productor y lote lo ve el administrador de cada punto."
+      "nota": "Solo consulta: el stock se registra y corrige en cada punto. Las cantidades se muestran por unidad de medida, sin sumar unidades distintas. El detalle por productor y lote lo ve el administrador de cada punto.",
+      "verDetalle": "Ver el detalle de existencias de {{punto}}",
+      "detalle": {
+        "titulo": "Detalle del punto",
+        "volver": "← Volver a Existencias",
+        "noExiste": "No encontramos ese punto de acopio",
+        "productoresDetalle": "Con productos en este punto",
+        "porVencer_one": "{{count}} lote por vencer en {{dias}} días",
+        "porVencer_other": "{{count}} lotes por vencer en {{dias}} días",
+        "colPorVencer": "Por vencer",
+        "vacio": "Este punto no tiene existencias."
+      }
     },
     "tarifasEnvio": {
       "titulo": "Tarifas de envío",

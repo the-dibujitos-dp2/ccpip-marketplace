@@ -1,10 +1,12 @@
 package pe.ccpip.reportes;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import pe.ccpip.auth.access.RolesPermitidos;
 import pe.ccpip.auth.model.Rol;
+import pe.ccpip.reportes.ExistenciasAgregadasService.DetallePunto;
 import pe.ccpip.reportes.ExistenciasAgregadasService.Existencias;
 
 /**
@@ -24,5 +26,11 @@ public class ExistenciasAgregadasController {
     @GetMapping("/api/admin/reportes/existencias")
     public Existencias consultar() {
         return service.consultar();
+    }
+
+    /** CCPIP-451: el detalle agregado de un punto, por linea. */
+    @GetMapping("/api/admin/reportes/existencias/{puntoId}")
+    public DetallePunto detalle(@PathVariable long puntoId) {
+        return service.detalle(puntoId);
     }
 }

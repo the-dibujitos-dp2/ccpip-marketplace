@@ -323,6 +323,16 @@ class ReportesGestionTest extends IntegrationTest {
     }
 
     @Test
+    void cadaLineaSeDespliegaEnSusProductosConSusProductores() throws Exception {
+        // CCPIP-450: el cacao en grano lo ofrecen dos comunidades del seed; se cuentan juntas
+        String cacao = "$.productos.porLinea[?(@.codigo == 'CACAO')].productos[?(@.producto == 'Cacao en grano fermentado')]";
+        mockMvc.perform(get("/api/admin/reportes/indicadores" + SEPTIEMBRE).cookie(loginAs(SUPER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(cacao + ".productores[*]", Matchers.hasItems("Asháninka de Pampa Michi", "Cacaoteros de Umukai")))
+                .andExpect(jsonPath(cacao + ".publicaciones", Matchers.hasItem(Matchers.greaterThanOrEqualTo(2))));
+    }
+
+    @Test
     void losIndicadoresDeActividadCuentanCompradoresRegistrosCalificacionesYDenuncias() throws Exception {
         ventasDePrueba();
         calificacionesDePrueba();

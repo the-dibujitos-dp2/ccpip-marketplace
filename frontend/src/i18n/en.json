@@ -1815,7 +1815,13 @@
           "nuevos": "New products",
           "conVentas": "Products with sales",
           "porLinea": "Published products by line",
-          "sinLineas": "There are no active product lines"
+          "sinLineas": "There are no active product lines",
+          "publicaciones_one": "{{count}} listing",
+          "publicaciones_other": "{{count}} listings",
+          "productores_one": "{{count}} producer",
+          "productores_other": "{{count}} producers",
+          "detalleProducto": "{{publicaciones}} from {{productores}}",
+          "deLinea": "Products in {{linea}}"
         },
         "actividad": {
           "titulo": "Activity",
@@ -1992,7 +1998,18 @@
         "vigente": "Valid",
         "vencido": "Expired"
       },
-      "nota": "View only: stock is recorded and corrected at each point. Quantities are shown per unit of measure, never adding different units. Each point's administrator sees the detail by producer and batch."
+      "nota": "View only: stock is recorded and corrected at each point. Quantities are shown per unit of measure, never adding different units. Each point's administrator sees the detail by producer and batch.",
+      "verDetalle": "See the stock detail of {{punto}}",
+      "detalle": {
+        "titulo": "Point detail",
+        "volver": "← Back to Stock",
+        "noExiste": "We could not find that collection point",
+        "productoresDetalle": "With products at this point",
+        "porVencer_one": "{{count}} batch expiring within {{dias}} days",
+        "porVencer_other": "{{count}} batches expiring within {{dias}} days",
+        "colPorVencer": "Expiring",
+        "vacio": "This point has no stock."
+      }
     },
     "tarifasEnvio": {
       "titulo": "Shipping rates",
