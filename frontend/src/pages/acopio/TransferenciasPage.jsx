@@ -162,7 +162,6 @@ export default function TransferenciasPage({ path }) {
       <Dialogo
         abierto={!!recibiendo}
         titulo={recibiendo ? t('acopio.transferencias.confirmarTitulo', { codigo: recibiendo.codigo }) : ''}
-        confirmar={t('acopio.transferencias.recibir')}
         onConfirmar={recibir}
         onCancelar={() => setRecibiendo(null)}
         ocupado={ocupado}
