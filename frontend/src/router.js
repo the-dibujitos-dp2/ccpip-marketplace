@@ -54,6 +54,8 @@ export const RUTAS = {
   adminParametros: '/admin/parametros',
   // CCPIP-482: tarifa de envio a domicilio por distrito
   adminTarifasEnvio: '/admin/tarifas-envio',
+  // CCPIP-484: capacidad diaria de entregas a domicilio por punto
+  adminCapacidadEntrega: '/admin/capacidad-entrega',
   adminMotivosMerma: '/admin/motivos-merma',
   adminAutorizaciones: '/admin/autorizaciones',
   // CCPIP-46: moderacion de la publicacion de ofertas

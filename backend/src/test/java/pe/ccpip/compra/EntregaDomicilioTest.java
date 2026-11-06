@@ -67,6 +67,29 @@ class EntregaDomicilioTest extends IntegrationTest {
         creados.clear();
         jdbc.update("UPDATE cobertura_entrega SET activa = true WHERE ubigeo = ?", WANCHAQ);
         tarifaWanchaq();
+        jdbc.update("DELETE FROM capacidad_entrega WHERE ubicacion_id = ?", punto(CUSCO));
+    }
+
+    /** CCPIP-484: los pedidos a domicilio de hoy (Lima) que salen del punto, sin los cancelados. */
+    private int usadosHoy(String punto) {
+        return jdbc.queryForObject("""
+                SELECT count(*) FROM pedido WHERE ubicacion_origen_id = ? AND modalidad = 'ENVIO' AND estado <> 'CANCELADO'
+                  AND creado_en >= date_trunc('day', now() AT TIME ZONE 'America/Lima') AT TIME ZONE 'America/Lima'""",
+                Integer.class, punto(punto));
+    }
+
+    private void capacidad(String punto, int maximo) {
+        jdbc.update("""
+                INSERT INTO capacidad_entrega (ubicacion_id, maximo_diario) VALUES (?, ?)
+                ON CONFLICT (ubicacion_id) DO UPDATE SET maximo_diario = EXCLUDED.maximo_diario""", punto(punto), maximo);
+    }
+
+    private void pagar(long pedidoId) throws Exception {
+        Map<String, Object> tarjeta = Map.of("numero", APROBADA, "titular", "ANA QUISPE", "mes", 12, "anio", 2030, "cvv", "123");
+        mockMvc.perform(post("/api/pedidos/" + pedidoId + "/pagos").cookie(comprador).contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("claveIdempotencia", UUID.randomUUID(), "tarjeta", tarjeta))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pedido.estado").value("CONFIRMADO"));
     }
 
     /** Producto de productor@ccpip.test, a S/ 25.00, con {@code unidades} en un lote vigente del punto de Cusco. */
@@ -179,6 +202,47 @@ class EntregaDomicilioTest extends IntegrationTest {
         mockMvc.perform(get("/api/pedidos/" + id).cookie(comprador))
                 .andExpect(jsonPath("$.costoEnvio").value(12.0))
                 .andExpect(jsonPath("$.totalAPagar").value(37.0));
+    }
+
+    // --- Capacidad diaria del punto (CCPIP-484) ---
+
+    @Test
+    void conLaCapacidadDelDiaAlcanzadaNoSeOfreceNiSeAceptaADomicilio() throws Exception {
+        alCarrito(productoEnCusco(5), 1);
+        long primero = objectMapper.readTree(pedir(aDomicilio(destino(WANCHAQ))).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString()).get("id").asLong();
+        pagar(primero);
+        // El cupo de hoy queda justo lleno con lo que ya salio del punto
+        capacidad(CUSCO, usadosHoy(CUSCO));
+
+        alCarrito(productoEnCusco(5), 1);
+        mockMvc.perform(get("/api/compra/distritos").cookie(comprador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.distrito.ubigeo == '" + WANCHAQ + "')]", hasSize(0)));
+        long antes = pedidosDelComprador();
+        pedir(aDomicilio(destino(WANCHAQ)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CAPACIDAD_AGOTADA"));
+        assertThat(pedidosDelComprador()).isEqualTo(antes);
+        // El pedido ya confirmado no cambia
+        mockMvc.perform(get("/api/pedidos/" + primero).cookie(comprador)).andExpect(jsonPath("$.estado").value("CONFIRMADO"));
+
+        // Un cupo mas, o sin limite, vuelve a aceptar
+        capacidad(CUSCO, usadosHoy(CUSCO) + 1);
+        pedir(aDomicilio(destino(WANCHAQ))).andExpect(status().isCreated());
+    }
+
+    @Test
+    void laCapacidadNoLimitaElRecojoYSuPropioPedidoSinPagarNoLaOcupa() throws Exception {
+        alCarrito(productoEnCusco(5), 1);
+        pedir(aDomicilio(destino(WANCHAQ))).andExpect(status().isCreated());
+        // Su pedido sin pagar ocupa el ultimo cupo, pero al volver a confirmar se cancela y lo libera
+        capacidad(CUSCO, usadosHoy(CUSCO));
+        pedir(aDomicilio(destino(WANCHAQ))).andExpect(status().isCreated());
+        Map<String, Object> recojo = new HashMap<>();
+        recojo.put("puntoId", punto(CUSCO));
+        recojo.put("celularContacto", "987654321");
+        pedir(recojo).andExpect(status().isCreated()).andExpect(jsonPath("$.modalidad").value("RECOJO"));
     }
 
     @Test

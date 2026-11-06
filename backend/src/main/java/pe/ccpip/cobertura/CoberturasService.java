@@ -15,6 +15,8 @@ import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.comun.PuntosDeAcopio;
 import pe.ccpip.cobertura.CoberturaModelos.CoberturaPunto;
 import pe.ccpip.cobertura.CoberturaModelos.Zona;
+import pe.ccpip.entrega.EntregaModelos.CapacidadDiaria;
+import pe.ccpip.entrega.EntregaService;
 
 /**
  * CCPIP-401: lectura por asignacion, sin alterar reglas comerciales ni la consulta del comprador.
@@ -24,9 +26,11 @@ import pe.ccpip.cobertura.CoberturaModelos.Zona;
 public class CoberturasService {
     private final NamedParameterJdbcTemplate jdbc;
     private final PuntosDeAcopio puntos;
-    public CoberturasService(NamedParameterJdbcTemplate jdbc, PuntosDeAcopio puntos) {
+    private final EntregaService entregas;
+    public CoberturasService(NamedParameterJdbcTemplate jdbc, PuntosDeAcopio puntos, EntregaService entregas) {
         this.jdbc = jdbc;
         this.puntos = puntos;
+        this.entregas = entregas;
     }
     @Transactional(readOnly = true)
     public List<CoberturaPunto> listar(long usuarioId, Long puntoId) {
@@ -56,7 +60,7 @@ public class CoberturasService {
         if (puntoId != null && grupos.isEmpty()) {
             throw ErrorNegocio.noEncontrado("PUNTO_NO_ENCONTRADO", "El punto no existe o no esta asignado a tu cuenta.");
         }
-        return grupos.values().stream().map(Grupo::respuesta).toList();
+        return grupos.values().stream().map(g -> g.respuesta(entregas.capacidad(g.id))).toList();
     }
     @Transactional
     public void desactivar(long usuarioId, long zonaId) {
@@ -112,6 +116,8 @@ public class CoberturasService {
         private final String nombre;
         private final List<Zona> zonas = new ArrayList<>();
         private Grupo(long id, String nombre) { this.id = id; this.nombre = nombre; }
-        private CoberturaPunto respuesta() { return new CoberturaPunto(id, nombre, List.copyOf(zonas)); }
+        private CoberturaPunto respuesta(CapacidadDiaria capacidad) {
+            return new CoberturaPunto(id, nombre, List.copyOf(zonas), capacidad);
+        }
     }
 }

@@ -36,6 +36,13 @@ public final class EntregaModelos {
     }
 
     /**
+     * CCPIP-484: la capacidad diaria de entregas a domicilio de un punto. {@code maximoDiario} es nulo si
+     * no tiene limite; {@code usadosHoy}, los pedidos a domicilio de hoy (Lima) que no se cancelaron.
+     */
+    public record CapacidadDiaria(Integer maximoDiario, int usadosHoy) {
+    }
+
+    /**
      * CCPIP-59: a donde y a quien se entrega un pedido a domicilio, tal como lo escribe el comprador.
      * {@code ubigeo} es el distrito de destino, que el punto de origen debe cubrir.
      */

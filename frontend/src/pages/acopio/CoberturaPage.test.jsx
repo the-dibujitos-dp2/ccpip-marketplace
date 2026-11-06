@@ -6,7 +6,10 @@ import i18n from '../../i18n/index.js'
 import { llamadas, PUBLICAS, SESION_ACOPIO, SESION_PRODUCTOR, servidor } from '../../test/servidor.js'
 
 const zonas = [{ id: 2, ubigeo: '150101', departamento: 'Lima', provincia: 'Lima', distrito: 'Lima', activa: true, actualizadoEn: null }, { id: 3, ubigeo: '150102', departamento: 'Lima', provincia: 'Lima', distrito: 'Ancón', activa: false, actualizadoEn: null }]
-const cuerpo = [{ puntoId: 7, punto: 'Punto Centro', zonas }, { puntoId: 8, punto: 'Punto Norte', zonas: [] }]
+const cuerpo = [
+  { puntoId: 7, punto: 'Punto Centro', zonas, capacidad: { maximoDiario: 20, usadosHoy: 5 } },
+  { puntoId: 8, punto: 'Punto Norte', zonas: [], capacidad: { maximoDiario: null, usadosHoy: 1 } },
+]
 const sesion = (s = SESION_ACOPIO) => ({ ...PUBLICAS, 'GET /api/auth/me': [200, s], 'GET /api/acopio/coberturas': [200, cuerpo] })
 const abrir = () => { window.history.replaceState(null, '', '/acopio/cobertura'); render(<App />) }
 
@@ -26,6 +29,13 @@ describe('Cobertura del punto (CCPIP-401)', () => {
     expect(within(celdas[5]).getByRole('button', { name: 'Desactivar zona · Lima · 150101' })).toHaveClass('boton--peligro')
     expect(screen.getByRole('link', { name: 'Cobertura' })).toHaveAttribute('aria-current', 'page')
     expect(fetch.mock.calls.filter(([, o]) => o?.method && o.method !== 'GET')).toHaveLength(0)
+  })
+  it('CCPIP-484: muestra la capacidad diaria de cada punto, o que no tiene límite', async () => {
+    servidor(sesion()); abrir()
+    const centro = await screen.findByRole('region', { name: 'Punto Centro' })
+    expect(within(centro).getByText('Capacidad diaria: 5 de 20 pedidos a domicilio hoy. La fija la Cámara.')).toBeInTheDocument()
+    const norte = screen.getByRole('region', { name: 'Punto Norte' })
+    expect(within(norte).getByText('Sin límite diario de pedidos a domicilio · hoy: 1')).toBeInTheDocument()
   })
   it('maneja zona vacía, falta de asignación 409 y retry de errores de servicio', async () => {
     let n = 0

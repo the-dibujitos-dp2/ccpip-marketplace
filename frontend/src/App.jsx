@@ -15,6 +15,7 @@ import ComisionPage from './pages/admin/ComisionPage.jsx'
 import DenunciasAdminPage from './pages/admin/DenunciasPage.jsx'
 import ParametrosPage from './pages/admin/ParametrosPage.jsx'
 import TarifasEnvioPage from './pages/admin/TarifasEnvioPage.jsx'
+import CapacidadEntregaPage from './pages/admin/CapacidadEntregaPage.jsx'
 import ReportesPage from './pages/admin/ReportesPage.jsx'
 import MiHistorialPage from './pages/admin/MiHistorialPage.jsx'
 import ModeracionPage from './pages/admin/ModeracionPage.jsx'
@@ -299,6 +300,7 @@ export default function App() {
     else if (path === RUTAS.adminReportes) pagina = <ReportesPage path={path} />
     else if (path === RUTAS.adminParametros) pagina = <ParametrosPage path={path} />
     else if (path === RUTAS.adminTarifasEnvio) pagina = <TarifasEnvioPage path={path} />
+    else if (path === RUTAS.adminCapacidadEntrega) pagina = <CapacidadEntregaPage path={path} />
     else if (path === RUTAS.adminMotivosMerma) pagina = <MotivosMermaPage path={path} />
     else if (path === RUTAS.adminAutorizaciones) pagina = <AutorizacionesPage path={path} />
     else if (path === RUTAS.adminCatalogo) pagina = <CatalogoMaestroPage path={path} search={search} />
