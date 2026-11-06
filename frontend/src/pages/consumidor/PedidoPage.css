@@ -36,6 +36,10 @@
 .pedido__tabla .caption { color: var(--color-text-secondary); }
 .pedido__producto { font-weight: 600; }
 
+/* CCPIP-483: productos y envio antes del total */
+.pedido__cifras { display: flex; flex-direction: column; gap: 4px; margin: 0 0 8px; }
+.pedido__cifras div { display: flex; justify-content: space-between; gap: 16px; }
+.pedido__cifras dd { margin: 0; }
 .pedido__total { display: flex; align-items: baseline; justify-content: space-between; margin: 0; padding-top: 16px; border-top: 1px solid var(--color-border-default); font-weight: 600; font-size: 18px; }
 .pedido__total strong { font-family: var(--font-display); font-size: 32px; line-height: 40px; }
 

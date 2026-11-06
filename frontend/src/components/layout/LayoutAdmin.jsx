@@ -36,6 +36,8 @@ const NAV = [
   // SA-05 (CCPIP-345): reportes agregados de la plataforma
   { to: RUTAS.adminReportes, clave: 'reportes', icono: iconoGrafico, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminParametros, clave: 'parametros', icono: iconoReloj, roles: ['SUPER_ADMIN'] },
+  // CCPIP-482: tarifa fija de envio a domicilio por distrito
+  { to: RUTAS.adminTarifasEnvio, clave: 'tarifasEnvio', icono: iconoBillete, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminCatalogo, clave: 'catalogo', icono: iconoEtiqueta, roles: ['SUPER_ADMIN'] },
   // CCPIP-354: existencias agregadas de los puntos de acopio (sin el detalle de A-02, SA-08)
   { to: RUTAS.adminExistencias, clave: 'existencias', icono: iconoAlmacen, roles: ['SUPER_ADMIN'] },

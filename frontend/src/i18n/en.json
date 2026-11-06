@@ -1454,7 +1454,8 @@
       "existencias": "Stock",
       "denuncias": "Reports",
       "motivosMerma": "Shrinkage causes",
-      "miHistorial": "My history"
+      "miHistorial": "My history",
+      "tarifasEnvio": "Shipping rates"
     },
     "permisos": {
       "titulo": "Permissions by role"
@@ -1977,6 +1978,38 @@
         "vencido": "Expired"
       },
       "nota": "View only: stock is recorded and corrected at each point. Quantities are shown per unit of measure, never adding different units. Each point's administrator sees the detail by producer and batch."
+    },
+    "tarifasEnvio": {
+      "titulo": "Shipping rates",
+      "seccion": "Home delivery rate per district",
+      "intro": "The rate is fixed per destination district and is added to what the buyer pays; pickup at the point is free. The commission is charged on products only. A district without a rate is not offered for home delivery.",
+      "lista": "Districts with coverage",
+      "ubicacion": "{{provincia}}, {{departamento}}",
+      "puntos_one": "covered by {{count}} point",
+      "puntos_other": "covered by {{count}} points",
+      "ultimoCambio": "Last change: {{fecha}} · {{nombre}}",
+      "sinTarifa": "No rate",
+      "fijar": "Set rate",
+      "cambiar": "Change",
+      "fijarDe": "Set the rate for {{distrito}}",
+      "cambiarDe": "Change the rate for {{distrito}}",
+      "dialogo": "Shipping rate to {{distrito}}",
+      "guardar": "Save rate",
+      "monto": "Rate (S/)",
+      "montoAyuda": "From 0.00 to 999.99, with at most two decimals.",
+      "rige": "Applies to new orders: existing orders keep the rate they were bought with. The change is recorded in the audit log.",
+      "guardada": "The shipping rate to {{distrito}} is now {{monto}}.",
+      "pendientes_one": "{{count}} district with coverage has no rate yet",
+      "pendientes_other": "{{count}} districts with coverage have no rate yet",
+      "pendientesTexto": "Until they do, buyers cannot ask for home delivery there.",
+      "vacio": "No districts with coverage yet",
+      "vacioTexto": "They appear here when a collection point declares its delivery coverage.",
+      "errorCargar": "We could not load the shipping rates",
+      "errorGuardar": "We could not save the rate",
+      "validacion": {
+        "vacio": "Enter the rate",
+        "formato": "Enter an amount from 0.00 to 999.99, with at most two decimals"
+      }
     }
   },
   "sello": {
@@ -2356,7 +2389,8 @@
     "FAVORITO_NO_ENCONTRADO": "It's no longer in your favorites.",
     "UNIDAD_YA_EXISTE": "That unit is already in the catalog: choose it when publishing.",
     "SOLICITUD_UNIDAD_PENDIENTE": "You already requested that unit and the Chamber hasn't reviewed it yet.",
-    "CODIGO_INVALIDO": "The code uses only letters without accents, numbers and underscore."
+    "CODIGO_INVALIDO": "The code uses only letters without accents, numbers and underscore.",
+    "SIN_TARIFA_ENVIO": "There is no shipping rate for that district yet. Choose pickup at the collection point."
   },
   "buscar": {
     "comunidad": "Community",
@@ -2710,7 +2744,7 @@
     "recojoTexto": "We'll let you know when it's ready.",
     "sinCosto": "No cost",
     "entrega": "Delivery",
-    "recojoResumen": "Pickup · S/ 0.00",
+    "recojoResumen": "Pickup at the point",
     "gratis": "Free",
     "procesando": "Processing payment…",
     "pagar": "Pay {{monto}}",
@@ -2719,9 +2753,8 @@
       "comoRecibir": "1. How do you want to receive it?",
       "etiquetaModalidad": "How you want to receive your order",
       "opcion": "Home delivery",
-      "opcionTexto": "The collection point delivers it in your district.",
-      "costoPorConfirmar": "Cost to be confirmed",
-      "ayuda": "Choose your district and the collection point that delivers it. The shipping cost is still to be defined and is not added to the total.",
+      "opcionTexto": "The collection point delivers it in your district, at a flat rate per district.",
+      "ayuda": "Choose your district and the collection point that delivers it. Shipping is a flat rate per district and is added to the total.",
       "distrito": "Delivery district",
       "eligeDistrito": "Choose your district",
       "departamento": "Department",
@@ -2742,19 +2775,26 @@
       "quienRecibe": "Name of the person receiving",
       "celular": "Mobile number of the person receiving",
       "celularAyuda": "9 digits. We use it to coordinate the delivery.",
-      "resumen": "Home delivery · to be confirmed",
+      "resumen": "Home delivery",
       "sinCobertura": "That point does not deliver to your district",
       "guardadas": "My saved addresses",
       "otraDireccion": "Enter another address",
       "guardadaOpcion": "{{alias}} · {{direccion}}, {{distrito}}",
-      "guardadaSinEntrega": "{{alias}} · {{direccion}}, {{distrito}} (no delivery with your cart)"
+      "guardadaSinEntrega": "{{alias}} · {{direccion}}, {{distrito}} (no delivery with your cart)",
+      "costoDesde": "From {{monto}}",
+      "costoSegunDistrito": "Rate depends on your district",
+      "envioSinDistrito": "Choose your district",
+      "sinTarifa": "We do not deliver to that district yet",
+      "tarifaCambio": "The shipping rate changed: you now pay {{monto}}. Check the summary and pay again."
     },
     "factibilidad": {
       "titulo": "This point can no longer deliver your order",
       "PUNTO_SIN_EXISTENCIAS": "It no longer has stock for your whole cart.",
       "SIN_COBERTURA": "It does not deliver to the district you chose.",
       "accion": "Choose another point or change the delivery method to pay."
-    }
+    },
+    "productos": "Products",
+    "envio": "Shipping"
   },
   "pedido": {
     "noEncontrado": "We couldn't find that order",
@@ -4576,7 +4616,8 @@
       "CATALOGO_REACTIVAR": "Reactivated in master catalog",
       "PAGO": "Attempted a payment",
       "PERMISO_CONCEDIDO": "Granted a permission",
-      "PERMISO_REVOCADO": "Revoked a permission"
+      "PERMISO_REVOCADO": "Revoked a permission",
+      "TARIFA_ENVIO": "Set a shipping rate"
     },
     "entidad": {
       "AUTORIZACION": "Authorization",
@@ -4589,7 +4630,8 @@
       "LINEA_MAESTRA": "Master line",
       "PRODUCTO_MAESTRO": "Master product",
       "PEDIDO": "Order",
-      "PERMISO": "Permission"
+      "PERMISO": "Permission",
+      "TARIFA_ENVIO": "Shipping rate"
     },
     "resultado": {
       "EXITOSA": "Successful",

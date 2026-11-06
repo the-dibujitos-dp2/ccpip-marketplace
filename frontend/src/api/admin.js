@@ -17,6 +17,15 @@ export function cambiarPermisoConfigurable(rol, codigo, { concedido, motivo }) {
   return apiFetch(`/api/admin/permisos/configurables/${rol}/${codigo}`, { method: 'PUT', body: { concedido, motivo } })
 }
 
+/** CCPIP-482: los distritos con cobertura y su tarifa de envio (nula si aun no tiene). */
+export const consultarTarifasEnvio = () => apiFetch('/api/admin/tarifas-envio')
+
+/** CCPIP-482: fija o cambia la tarifa de envio de un distrito (ubigeo de 6 digitos), en soles. */
+export function fijarTarifaEnvio(ubigeo, monto) {
+  if (!/^\d{6}$/.test(String(ubigeo))) return Promise.reject(new Error(`Distrito inválido: ${ubigeo}`))
+  return apiFetch(`/api/admin/tarifas-envio/${ubigeo}`, { method: 'PUT', body: { monto } })
+}
+
 const RANGO = ['desde', 'hasta']
 
 /** Los filtros de cada reporte; las metricas por periodo (SA-05) y los indicadores tambien se agrupan. */

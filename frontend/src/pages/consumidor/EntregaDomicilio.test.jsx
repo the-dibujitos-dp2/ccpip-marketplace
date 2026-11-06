@@ -9,7 +9,8 @@ function abrirEn(ruta) {
   return render(<App />)
 }
 
-const PAGAR = /^Pagar S\/\s812\.00$/
+// CCPIP-483: el monto depende del envio del distrito elegido (812 en productos, mas 12 a Wanchaq o 10 a Miraflores)
+const PAGAR = /^Pagar S\/\s8(12|22|24)\.00$/
 
 const LIMA = { id: 1, nombre: 'Centro Nacional Lima', departamento: 'Lima', provincia: 'Lima', distrito: 'Lima', direccion: 'Sede central CCPIP' }
 const CUSCO = { id: 3, nombre: 'Centro Regional Cusco', departamento: 'Cusco', provincia: 'Cusco', distrito: 'Cusco', direccion: 'Centro regional andino' }
@@ -18,8 +19,8 @@ const WANCHAQ = { ubigeo: '080108', departamento: 'Cusco', provincia: 'Cusco', d
 const MIRAFLORES = { ubigeo: '150122', departamento: 'Lima', provincia: 'Lima', distrito: 'Miraflores' }
 // Wanchaq lo cubre solo Cusco; Miraflores lo cubren dos puntos
 const DISTRITOS = [
-  { distrito: WANCHAQ, puntos: [CUSCO] },
-  { distrito: MIRAFLORES, puntos: [LIMA, CUSCO] },
+  { distrito: WANCHAQ, envio: 12, puntos: [CUSCO] },
+  { distrito: MIRAFLORES, envio: 10, puntos: [LIMA, CUSCO] },
 ]
 
 const SURCO = { ubigeo: '150140', departamento: 'Lima', provincia: 'Lima', distrito: 'Santiago de Surco' }
@@ -48,6 +49,8 @@ const PEDIDO = {
   estado: 'PENDIENTE_PAGO',
   modalidad: 'ENVIO',
   total: 812,
+  costoEnvio: 12,
+  totalAPagar: 824,
   creadoEn: '2026-10-23T15:00:00Z',
   confirmadoEn: null,
   punto: CUSCO,
@@ -66,7 +69,7 @@ const CONFIRMADO = {
   ...PEDIDO,
   estado: 'CONFIRMADO',
   confirmadoEn: '2026-10-23T15:01:02Z',
-  pagos: [{ id: 1, estado: 'APROBADO', monto: 812, marca: 'VISA', referencia: 'SIM-123', mensaje: null, creadoEn: '2026-10-23T15:01:00Z', resueltoEn: '2026-10-23T15:01:02Z' }],
+  pagos: [{ id: 1, estado: 'APROBADO', monto: 824, marca: 'VISA', referencia: 'SIM-123', mensaje: null, creadoEn: '2026-10-23T15:01:00Z', resueltoEn: '2026-10-23T15:01:02Z' }],
   historial: [{ estado: 'CONFIRMADO', registradoEn: '2026-10-23T15:01:02Z' }],
 }
 
@@ -135,10 +138,54 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     expect(screen.queryByLabelText('Otra persona recogerá el pedido')).not.toBeInTheDocument()
     // Hasta elegir el distrito no hay puntos que ofrecer
     expect(screen.queryByRole('radio', { name: /Centro Regional Cusco/ })).not.toBeInTheDocument()
-    // El costo del envio aun no esta definido: se muestra por confirmar, en la tarjeta y en el resumen
-    expect(screen.getByRole('radio', { name: /Costo por confirmar/ })).toBeChecked()
+    // CCPIP-482: la tarjeta dice desde cuanto cuesta el envio; el resumen pide elegir el distrito
+    expect(screen.getByRole('radio', { name: /Desde S\/\s10\.00/ })).toBeChecked()
     const resumen = screen.getByRole('complementary', { name: 'Resumen del pedido' })
-    expect(within(resumen).getByText('A domicilio · por confirmar')).toBeInTheDocument()
+    expect(within(resumen).getByText('A domicilio')).toBeInTheDocument()
+    expect(within(resumen).getByText('Elige tu distrito')).toBeInTheDocument()
+  })
+
+  it('CCPIP-483: suma la tarifa del distrito elegido al total y al botón de pagar', async () => {
+    servidor(rutas())
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await elegirDomicilio(usuario)
+    const resumen = within(screen.getByRole('complementary', { name: 'Resumen del pedido' }))
+    expect(screen.getByRole('button', { name: /^Pagar S\/\s812\.00$/ })).toBeInTheDocument()
+
+    await elegirDestino(usuario, 'Cusco', 'Cusco', '080108')
+    expect(resumen.getByText('Envío').nextElementSibling).toHaveTextContent(/S\/\s12\.00/)
+    expect(resumen.getByText('Productos').nextElementSibling).toHaveTextContent(/S\/\s812\.00/)
+    expect(screen.getByRole('button', { name: /^Pagar S\/\s824\.00$/ })).toBeInTheDocument()
+
+    await elegirDestino(usuario, 'Lima', 'Lima', '150122')
+    expect(screen.getByRole('button', { name: /^Pagar S\/\s822\.00$/ })).toBeInTheDocument()
+
+    // El recojo no tiene costo de envio
+    await usuario.click(screen.getByRole('radio', { name: /^Recojo en punto de acopio/ }))
+    expect(resumen.getByText('Envío').nextElementSibling).toHaveTextContent(/S\/\s0\.00/)
+    expect(screen.getByRole('button', { name: /^Pagar S\/\s812\.00$/ })).toBeInTheDocument()
+  })
+
+  it('CCPIP-483: si la tarifa cambió al crear el pedido, no cobra y avisa el nuevo monto', { timeout: 15_000 }, async () => {
+    const fetchMock = servidor(rutas({ 'POST /api/pedidos': [201, { ...PEDIDO, costoEnvio: 15, totalAPagar: 827 }] }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await prepararDomicilio(usuario)
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+    expect(await screen.findByText(/^La tarifa de envío cambió: ahora pagas S\/\s827\.00\./)).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/pedidos/78/pagos')).toHaveLength(0)
+  })
+
+  it('CCPIP-482: un distrito que perdió su tarifa al confirmar lo explica y recarga', { timeout: 15_000 }, async () => {
+    const fetchMock = servidor(rutas({ 'POST /api/pedidos': [409, { code: 'SIN_TARIFA_ENVIO', message: 'x' }] }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await prepararDomicilio(usuario)
+    const antes = llamadas(fetchMock, 'GET /api/compra/distritos').length
+    await usuario.click(screen.getByRole('button', { name: PAGAR }))
+    expect(await screen.findByText('Aún no entregamos a domicilio en ese distrito')).toBeInTheDocument()
+    await waitFor(() => expect(llamadas(fetchMock, 'GET /api/compra/distritos').length).toBeGreaterThan(antes))
   })
 
   it('el destino se elige por niveles: cada uno se habilita con el anterior y cambiarlo vacía los de abajo', async () => {
@@ -484,7 +531,7 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     await usuario.click(screen.getByRole('radio', { name: /^Recojo en punto de acopio/ }))
     expect(screen.getByRole('radio', { name: /Sin costo/ })).toBeChecked()
     expect(screen.getByLabelText('Otra persona recogerá el pedido')).toBeInTheDocument()
-    expect(within(screen.getByRole('complementary', { name: 'Resumen del pedido' })).getByText('Recojo · S/ 0.00')).toBeInTheDocument()
+    expect(within(screen.getByRole('complementary', { name: 'Resumen del pedido' })).getByText('Recojo en el punto')).toBeInTheDocument()
     expect(screen.getByLabelText('Celular de contacto')).toBeInTheDocument()
   })
 })
@@ -509,6 +556,9 @@ describe('CW-06 Pedido a domicilio (CCPIP-59)', () => {
     expect(etapas.map((e) => e.querySelector('.seguimiento__nombre').textContent))
       .toEqual(['Pago confirmado', 'En preparación', 'Listo para despacho', 'En camino', 'Entregado'])
     expect(screen.queryByText('Disponible en acopio')).not.toBeInTheDocument()
+    // CCPIP-483: el envio va aparte de los productos y se suma al total pagado
+    expect(screen.getByText('Envío').nextElementSibling).toHaveTextContent(/S\/\s12\.00/)
+    expect(screen.getByText('Total').nextElementSibling).toHaveTextContent(/S\/\s824\.00/)
   })
 })
 

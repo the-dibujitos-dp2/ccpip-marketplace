@@ -155,9 +155,22 @@ function Detalle({ pedido }) {
                 ))}
               </tbody>
             </table>
+            {/* CCPIP-483: a domicilio, el envio que copio el pedido va aparte de los productos y se suma al total */}
+            {pedido.modalidad === 'ENVIO' && pedido.costoEnvio != null && (
+              <dl className="pedido__cifras">
+                <div>
+                  <dt>{t('compra.productos')}</dt>
+                  <dd>{precio(pedido.total)}</dd>
+                </div>
+                <div>
+                  <dt>{t('compra.envio')}</dt>
+                  <dd>{precio(pedido.costoEnvio)}</dd>
+                </div>
+              </dl>
+            )}
             <p className="pedido__total">
               <span>{t('carrito.total')}</span>
-              <strong>{precio(pedido.total)}</strong>
+              <strong>{precio(pedido.totalAPagar ?? pedido.total)}</strong>
             </p>
           </section>
           {pedido.estado === 'ENTREGADO' && <CalificarPedido pedidoId={pedido.id} />}

@@ -50,7 +50,8 @@ public class ReportesService {
     /**
      * CCPIP-93 (RF-71): ingresos de la plataforma, lo cobrado a los compradores: los pagos aprobados por la
      * fecha en que la pasarela los aprobo. Un pago anulado (devuelto al comprador) no es un ingreso. El
-     * monto de cada pago es el total de su pedido, asi que se reparte en B2C y B2B por sus lineas.
+     * monto de cada pago es el total de su pedido mas el envio (CCPIP-483); aqui se cuentan sus lineas,
+     * repartidas en B2C y B2B, y el envio, que no es de ninguna de las dos, queda fuera.
      */
     static final String INGRESOS = """
             SELECT (pa.resuelto_en AT TIME ZONE 'America/Lima')::date AS fecha, i.tarifa, i.subtotal AS monto

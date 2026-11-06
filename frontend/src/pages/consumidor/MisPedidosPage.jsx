@@ -128,7 +128,7 @@ function Resumen({ pedido }) {
   const contenido = pedido.comunidades > 1 ? t('misPedidos.deComunidades', { productos, count: pedido.comunidades }) : productos
   return (
     <p className="mis-pedidos__resumen">
-      {[diaMesAnio(pedido.creadoEn), contenido, precio(pedido.total)].join(' · ')}
+      {[diaMesAnio(pedido.creadoEn), contenido, precio(pedido.totalAPagar ?? pedido.total)].join(' · ')}
     </p>
   )
 }
@@ -197,7 +197,7 @@ function ListaPedidos({ pedidos }) {
               <span className="caption">
                 {p.estado === 'ENTREGADO' && entregado ? t('misPedidos.entregadoEl', { fecha: diaMes(entregado) }) : diaMes(p.creadoEn)}
                 {' · '}
-                {t('misPedidos.productos', { count: p.productos })} · {precio(p.total)}
+                {t('misPedidos.productos', { count: p.productos })} · {precio(p.totalAPagar ?? p.total)}
               </span>
             </span>
             <EstadoPedido estado={p.estado} />

@@ -39,7 +39,7 @@ import pe.ccpip.compra.CompraModelos.PuntoRecojo;
 import pe.ccpip.compra.CompraModelos.ResumenPedido;
 import pe.ccpip.entrega.EntregaModelos.Cobertura;
 import pe.ccpip.entrega.EntregaModelos.Destino;
-import pe.ccpip.entrega.EntregaModelos.Distrito;
+import pe.ccpip.entrega.EntregaModelos.DestinoCubierto;
 import pe.ccpip.entrega.EntregaService;
 
 /**
@@ -84,7 +84,8 @@ public class CompraService {
                 .collect(Collectors.toMap(PuntoRecojo::id, punto -> punto));
         Map<String, DistritoConPuntos> porDistrito = new LinkedHashMap<>();
         for (Cobertura c : entregas.coberturas(elegibles.keySet())) {
-            porDistrito.computeIfAbsent(c.distrito().ubigeo(), k -> new DistritoConPuntos(c.distrito(), new ArrayList<>()))
+            porDistrito.computeIfAbsent(c.distrito().ubigeo(),
+                            k -> new DistritoConPuntos(c.distrito(), c.envio(), new ArrayList<>()))
                     .puntos().add(elegibles.get(c.puntoId()));
         }
         return List.copyOf(porDistrito.values());
@@ -130,7 +131,8 @@ public class CompraService {
     /**
      * CCPIP-60 (RF-41, RNF-45): si el carrito se puede entregar desde el punto elegido, para avisar al
      * comprador antes de que pague. Sin {@code ubigeo} es recojo y solo cuentan las existencias; con
-     * {@code ubigeo} el punto ademas debe cubrir ese distrito con una zona activa. Es la misma regla que
+     * {@code ubigeo} el punto ademas debe cubrir ese distrito con una zona activa y con tarifa de envio
+     * (CCPIP-482). Es la misma regla que
      * aplican {@link #confirmar} y el pago, asi que lo factible aqui no necesita una aprobacion posterior.
      * No es de solo lectura por la misma razon que {@link #puntosElegibles}.
      */
@@ -172,7 +174,8 @@ public class CompraService {
      *
      * <p>Sin {@code destino} es recojo en el punto. Con {@code destino} (CCPIP-59) es entrega a domicilio:
      * el punto debe cubrir ese distrito, el pedido registra su entrega y no hay persona autorizada porque
-     * lo recibe quien indica el destino. El total no incluye costo de envio (CCPIP-101, pendiente del cliente).
+     * lo recibe quien indica el destino. El pedido copia la tarifa de envio del distrito (CCPIP-483); el
+     * total sigue siendo la suma de los productos, base de la comision, y el comprador paga total + envio.
      */
     @Transactional
     public Pedido confirmar(long usuarioId, long puntoId, Destino destino, String personaAutorizada, String celular) {
@@ -190,7 +193,7 @@ public class CompraService {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "PUNTO_SIN_EXISTENCIAS",
                     "Este punto de acopio ya no tiene existencias para todo tu carrito. Elige otro punto.");
         }
-        Distrito distrito = aDomicilio ? entregas.exigirCobertura(puntoId, destino.ubigeo()) : null;
+        DestinoCubierto cubierto = aDomicilio ? entregas.exigirCobertura(puntoId, destino.ubigeo()) : null;
 
         MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId);
         jdbc.update("""
@@ -206,11 +209,13 @@ public class CompraService {
         BigDecimal total = items.stream().map(Item::subtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
         p.addValue("id", id).addValue("numero", "CCP-%06d".formatted(id)).addValue("punto", puntoId)
                 .addValue("total", total).addValue("autorizada", autorizada).addValue("celular", celularContacto)
-                .addValue("modalidad", aDomicilio ? "ENVIO" : "RECOJO");
+                .addValue("modalidad", aDomicilio ? "ENVIO" : "RECOJO")
+                .addValue("envio", aDomicilio ? cubierto.envio() : BigDecimal.ZERO);
         jdbc.update("""
                 INSERT INTO pedido (id, numero, usuario_id, modalidad, ubicacion_origen_id, estado, total, confirmado_en,
-                                    persona_autorizada, celular_contacto)
-                VALUES (:id, :numero, :usuario, :modalidad, :punto, 'PENDIENTE_PAGO', :total, NULL, :autorizada, :celular)""", p);
+                                    persona_autorizada, celular_contacto, costo_envio)
+                VALUES (:id, :numero, :usuario, :modalidad, :punto, 'PENDIENTE_PAGO', :total, NULL, :autorizada, :celular,
+                        :envio)""", p);
         for (Item item : items) {
             jdbc.update("""
                     INSERT INTO item_pedido (pedido_id, producto_id, productor_id, cantidad, precio_unitario, subtotal, tarifa)
@@ -222,7 +227,7 @@ public class CompraService {
                             .addValue("tarifa", item.tarifa() == null ? Tarifa.MINORISTA.name() : item.tarifa().name()));
         }
         if (aDomicilio) {
-            entregas.registrar(id, distrito, destino, celularEntrega);
+            entregas.registrar(id, cubierto.distrito(), destino, celularEntrega);
         }
         jdbc.update("INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (:id, 'PENDIENTE_PAGO', :usuario)", p);
         return pedido(usuarioId, id);
@@ -233,7 +238,7 @@ public class CompraService {
     public Pedido pedido(long usuarioId, long pedidoId) {
         MapSqlParameterSource p = new MapSqlParameterSource("usuario", usuarioId).addValue("id", pedidoId);
         List<Pedido> encontrados = jdbc.query("""
-                SELECT pe.id, pe.numero, pe.estado, pe.modalidad, pe.total, pe.creado_en, pe.confirmado_en,
+                SELECT pe.id, pe.numero, pe.estado, pe.modalidad, pe.total, pe.costo_envio, pe.creado_en, pe.confirmado_en,
                        pe.persona_autorizada, pe.celular_contacto,
                        pe.comision_porcentaje, pe.comision_base, pe.comision_monto,
                        u.id AS u_id, u.nombre AS u_nombre, u.departamento, u.provincia, u.distrito, u.direccion
@@ -244,7 +249,8 @@ public class CompraService {
                         instante(rs, "confirmado_en"), punto(rs, "u_"), rs.getString("persona_autorizada"),
                         rs.getString("celular_contacto"), lineas(pedidoId), pagos(pedidoId),
                         historial(List.of(pedidoId)).getOrDefault(pedidoId, List.of()), comision(rs),
-                        entregas.delPedido(pedidoId).orElse(null)));
+                        entregas.delPedido(pedidoId).orElse(null), rs.getBigDecimal("costo_envio"),
+                        rs.getBigDecimal("total").add(rs.getBigDecimal("costo_envio"))));
         return encontrados.stream().findFirst()
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "No encontramos ese pedido."));
     }
@@ -256,7 +262,7 @@ public class CompraService {
     @Transactional(readOnly = true)
     public List<ResumenPedido> misPedidos(long usuarioId) {
         List<ResumenPedido> sinHistorial = jdbc.query("""
-                SELECT pe.id, pe.numero, pe.estado, pe.modalidad, pe.total, pe.creado_en, pe.confirmado_en,
+                SELECT pe.id, pe.numero, pe.estado, pe.modalidad, pe.total, pe.costo_envio, pe.creado_en, pe.confirmado_en,
                        u.id AS u_id, u.nombre AS u_nombre, u.departamento, u.provincia, u.distrito, u.direccion,
                        (SELECT count(*) FROM item_pedido i WHERE i.pedido_id = pe.id) AS productos,
                        (SELECT count(DISTINCT i.productor_id) FROM item_pedido i WHERE i.pedido_id = pe.id) AS comunidades
@@ -266,14 +272,15 @@ public class CompraService {
                 (rs, row) -> new ResumenPedido(rs.getLong("id"), rs.getString("numero"), rs.getString("estado"),
                         rs.getString("modalidad"), rs.getBigDecimal("total"), instante(rs, "creado_en"),
                         instante(rs, "confirmado_en"), punto(rs, "u_"), rs.getInt("productos"),
-                        rs.getInt("comunidades"), List.of()));
+                        rs.getInt("comunidades"), List.of(), rs.getBigDecimal("costo_envio"),
+                        rs.getBigDecimal("total").add(rs.getBigDecimal("costo_envio"))));
         if (sinHistorial.isEmpty()) {
             return sinHistorial;
         }
         Map<Long, List<EventoPedido>> historiales = historial(sinHistorial.stream().map(ResumenPedido::id).toList());
         return sinHistorial.stream().map(r -> new ResumenPedido(r.id(), r.numero(), r.estado(), r.modalidad(), r.total(),
                 r.creadoEn(), r.confirmadoEn(), r.punto(), r.productos(), r.comunidades(),
-                historiales.getOrDefault(r.id(), List.of()))).toList();
+                historiales.getOrDefault(r.id(), List.of()), r.costoEnvio(), r.totalAPagar())).toList();
     }
 
     /** CCPIP-340: los estados de cada pedido en orden cronologico, sin quien los registro. */

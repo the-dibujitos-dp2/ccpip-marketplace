@@ -28,6 +28,7 @@ import pe.ccpip.support.IntegrationTest;
  * entrega depende de la cobertura del punto en el distrito de destino y de las existencias para todo el
  * carrito; el pedido registra su entrega y sale del punto de acopio, no del productor. Como en
  * {@link CompraFlujoTest}, la base es compartida: comprador propio, productos en Cusco y retirados al terminar.
+ * CCPIP-482 y 483: el distrito debe tener tarifa de envio; el pedido la copia y se cobra total + envio.
  */
 class EntregaDomicilioTest extends IntegrationTest {
 
@@ -36,6 +37,7 @@ class EntregaDomicilioTest extends IntegrationTest {
     private static final String MIRAFLORES = "150122";
     private static final String COMPRADOR = "comprador.domicilio@ccpip.test";
     private static final String APROBADA = "4111 1111 1111 1111";
+    private static final String TARIFA = "12.00";
 
     private Cookie comprador;
     private long pedidosAntes;
@@ -50,6 +52,13 @@ class EntregaDomicilioTest extends IntegrationTest {
         jdbc.update("DELETE FROM item_carrito WHERE carrito_id IN (SELECT c.id FROM carrito c JOIN usuario u ON u.id = c.usuario_id WHERE u.correo = ?)", COMPRADOR);
         comprador = loginAs(COMPRADOR);
         pedidosAntes = pedidosDelComprador();
+        tarifaWanchaq();
+    }
+
+    /** La tarifa de envio de Wanchaq que esperan estas pruebas, aunque otra prueba la haya cambiado. */
+    private void tarifaWanchaq() {
+        jdbc.update("INSERT INTO tarifa_envio (ubigeo, monto) VALUES (?, CAST(? AS numeric)) "
+                + "ON CONFLICT (ubigeo) DO UPDATE SET monto = EXCLUDED.monto", WANCHAQ, TARIFA);
     }
 
     @AfterEach
@@ -57,6 +66,7 @@ class EntregaDomicilioTest extends IntegrationTest {
         creados.forEach(id -> jdbc.update("UPDATE producto SET estado = 'RETIRADO' WHERE id = ?", id));
         creados.clear();
         jdbc.update("UPDATE cobertura_entrega SET activa = true WHERE ubigeo = ?", WANCHAQ);
+        tarifaWanchaq();
     }
 
     /** Producto de productor@ccpip.test, a S/ 25.00, con {@code unidades} en un lote vigente del punto de Cusco. */
@@ -132,6 +142,7 @@ class EntregaDomicilioTest extends IntegrationTest {
                 .andExpect(jsonPath("$[?(@.distrito.ubigeo == '" + WANCHAQ + "')].distrito.distrito").value("Wanchaq"))
                 .andExpect(jsonPath("$[?(@.distrito.ubigeo == '" + WANCHAQ + "')].distrito.departamento").value("Cusco"))
                 .andExpect(jsonPath("$[?(@.distrito.ubigeo == '" + WANCHAQ + "')].puntos[0].nombre").value(CUSCO))
+                .andExpect(jsonPath("$[?(@.distrito.ubigeo == '" + WANCHAQ + "')].envio").value(12.0))
                 .andExpect(jsonPath("$[?(@.distrito.ubigeo == '" + MIRAFLORES + "')]", hasSize(0)));
     }
 
@@ -145,6 +156,29 @@ class EntregaDomicilioTest extends IntegrationTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("SIN_COBERTURA"));
         assertThat(pedidosDelComprador()).isEqualTo(pedidosAntes);
+    }
+
+    @Test
+    void unDistritoSinTarifaDeEnvioNoSeOfreceNiSeAcepta() throws Exception {
+        alCarrito(productoEnCusco(5), 1);
+        jdbc.update("DELETE FROM tarifa_envio WHERE ubigeo = ?", WANCHAQ);
+        mockMvc.perform(get("/api/compra/distritos").cookie(comprador))
+                .andExpect(jsonPath("$[?(@.distrito.ubigeo == '" + WANCHAQ + "')]", hasSize(0)));
+        pedir(aDomicilio(destino(WANCHAQ)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("SIN_TARIFA_ENVIO"));
+        assertThat(pedidosDelComprador()).isEqualTo(pedidosAntes);
+    }
+
+    @Test
+    void cambiarLaTarifaNoAlteraUnPedidoYaCreado() throws Exception {
+        alCarrito(productoEnCusco(5), 1);
+        long id = objectMapper.readTree(pedir(aDomicilio(destino(WANCHAQ))).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString()).get("id").asLong();
+        jdbc.update("UPDATE tarifa_envio SET monto = 30.00 WHERE ubigeo = ?", WANCHAQ);
+        mockMvc.perform(get("/api/pedidos/" + id).cookie(comprador))
+                .andExpect(jsonPath("$.costoEnvio").value(12.0))
+                .andExpect(jsonPath("$.totalAPagar").value(37.0));
     }
 
     @Test
@@ -187,8 +221,10 @@ class EntregaDomicilioTest extends IntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.modalidad").value("ENVIO"))
                 .andExpect(jsonPath("$.estado").value("PENDIENTE_PAGO"))
-                // El total son las lineas: el costo del envio esta pendiente del cliente (CCPIP-101)
+                // El total son las lineas (base de la comision); el envio va aparte y se suma al cobro
                 .andExpect(jsonPath("$.total").value(50.0))
+                .andExpect(jsonPath("$.costoEnvio").value(12.0))
+                .andExpect(jsonPath("$.totalAPagar").value(62.0))
                 .andExpect(jsonPath("$.entrega.ubigeo").value(WANCHAQ))
                 .andExpect(jsonPath("$.entrega.departamento").value("Cusco"))
                 .andExpect(jsonPath("$.entrega.provincia").value("Cusco"))
@@ -218,7 +254,8 @@ class EntregaDomicilioTest extends IntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.pedido.estado").value("CONFIRMADO"))
                 .andExpect(jsonPath("$.pedido.modalidad").value("ENVIO"))
-                .andExpect(jsonPath("$.pedido.pagos[0].monto").value(50.0))
+                .andExpect(jsonPath("$.pedido.pagos[0].monto").value(62.0))
+                .andExpect(jsonPath("$.pedido.total").value(50.0))
                 .andExpect(jsonPath("$.pedido.entrega.distrito").value("Wanchaq"));
     }
 
@@ -302,6 +339,8 @@ class EntregaDomicilioTest extends IntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.modalidad").value("RECOJO"))
                 .andExpect(jsonPath("$.total").value(50.0))
+                .andExpect(jsonPath("$.costoEnvio").value(0.0))
+                .andExpect(jsonPath("$.totalAPagar").value(50.0))
                 .andExpect(jsonPath("$.entrega").value(nullValue()))
                 .andExpect(jsonPath("$.personaAutorizada").value("Rosa Quispe"));
     }

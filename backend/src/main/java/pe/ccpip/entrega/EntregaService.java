@@ -21,6 +21,7 @@ import pe.ccpip.entrega.EntregaModelos.Entrega;
  * CCPIP-59 (RF-40): la entrega a domicilio de un pedido ENVIO. El pedido sale de un punto de acopio y
  * solo llega a distritos que ese punto cubre (cobertura activa); el productor no entrega al comprador. La
  * declaracion de la cobertura por parte del punto es de CCPIP-149 y el reparto, de CCPIP-107 a 110.
+ * CCPIP-482: un distrito solo se ofrece a domicilio si la Camara le fijo una tarifa de envio.
  */
 @Service
 public class EntregaService {
@@ -31,38 +32,51 @@ public class EntregaService {
         this.jdbc = jdbc;
     }
 
-    /** La cobertura activa de los puntos, ordenada por distrito para elegirlo en una lista. */
+    /** La cobertura activa (con tarifa) de los puntos, ordenada por distrito para elegirlo en una lista. */
     public List<Cobertura> coberturas(Collection<Long> puntos) {
         if (puntos.isEmpty()) {
             return List.of();
         }
         return jdbc.query("""
-                SELECT g.codigo, g.departamento, g.provincia, g.distrito, c.ubicacion_id
-                FROM cobertura_entrega c JOIN ubigeo g ON g.codigo = c.ubigeo
+                SELECT g.codigo, g.departamento, g.provincia, g.distrito, c.ubicacion_id, t.monto
+                FROM cobertura_entrega c JOIN ubigeo g ON g.codigo = c.ubigeo JOIN tarifa_envio t ON t.ubigeo = c.ubigeo
                 WHERE c.activa AND c.ubicacion_id IN (:puntos)
-                ORDER BY g.departamento, g.provincia, g.distrito, c.ubicacion_id""".replace('"', '"'),
+                ORDER BY g.departamento, g.provincia, g.distrito, c.ubicacion_id""",
                 new MapSqlParameterSource("puntos", puntos),
-                (rs, row) -> new Cobertura(distrito(rs), rs.getLong("ubicacion_id")));
+                (rs, row) -> new Cobertura(distrito(rs), rs.getLong("ubicacion_id"), rs.getBigDecimal("monto")));
     }
 
-    /** CCPIP-60: si el punto cubre hoy el distrito con una zona activa. Un ubigeo inexistente no esta cubierto. */
+    /**
+     * CCPIP-60: si el punto cubre hoy el distrito con una zona activa y con tarifa de envio (CCPIP-482). Un
+     * ubigeo inexistente no esta cubierto.
+     */
     public boolean cubre(long puntoId, String ubigeo) {
         return Boolean.TRUE.equals(jdbc.queryForObject("""
-                SELECT EXISTS (SELECT 1 FROM cobertura_entrega c
+                SELECT EXISTS (SELECT 1 FROM cobertura_entrega c JOIN tarifa_envio t ON t.ubigeo = c.ubigeo
                                WHERE c.activa AND c.ubicacion_id = :punto AND c.ubigeo = :ubigeo)""",
                 new MapSqlParameterSource("punto", puntoId).addValue("ubigeo", ubigeo), Boolean.class));
     }
 
-    /** El distrito de destino debe existir y estar en la cobertura activa del punto, si no 409. */
-    public Distrito exigirCobertura(long puntoId, String ubigeo) {
-        return jdbc.query("""
-                SELECT g.codigo, g.departamento, g.provincia, g.distrito
+    /**
+     * El distrito de destino debe existir, estar en la cobertura activa del punto y tener tarifa de envio
+     * (CCPIP-482); si no, 409. Devuelve la tarifa, que el pedido copia (CCPIP-483).
+     */
+    public DestinoCubierto exigirCobertura(long puntoId, String ubigeo) {
+        DestinoCubierto cubierto = jdbc.query("""
+                SELECT g.codigo, g.departamento, g.provincia, g.distrito, t.monto
                 FROM cobertura_entrega c JOIN ubigeo g ON g.codigo = c.ubigeo
+                LEFT JOIN tarifa_envio t ON t.ubigeo = c.ubigeo
                 WHERE c.activa AND c.ubicacion_id = :punto AND c.ubigeo = :ubigeo""",
-                new MapSqlParameterSource("punto", puntoId).addValue("ubigeo", ubigeo), (rs, row) -> distrito(rs))
+                new MapSqlParameterSource("punto", puntoId).addValue("ubigeo", ubigeo),
+                (rs, row) -> new DestinoCubierto(distrito(rs), rs.getBigDecimal("monto")))
                 .stream().findFirst()
                 .orElseThrow(() -> new ErrorNegocio(HttpStatus.CONFLICT, "SIN_COBERTURA",
                         "Este punto de acopio no entrega a domicilio en ese distrito. Elige otro punto o el recojo."));
+        if (cubierto.envio() == null) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "SIN_TARIFA_ENVIO",
+                    "Todavía no hay tarifa de envío para ese distrito. Elige el recojo en el punto de acopio.");
+        }
+        return cubierto;
     }
 
     /**
