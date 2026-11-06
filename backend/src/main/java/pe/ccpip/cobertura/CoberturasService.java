@@ -1,9 +1,11 @@
 package pe.ccpip.cobertura;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -14,7 +16,10 @@ import pe.ccpip.comun.PuntosDeAcopio;
 import pe.ccpip.cobertura.CoberturaModelos.CoberturaPunto;
 import pe.ccpip.cobertura.CoberturaModelos.Zona;
 
-/** CCPIP-401: lectura por asignacion, sin alterar reglas comerciales ni la consulta del comprador. */
+/**
+ * CCPIP-401: lectura por asignacion, sin alterar reglas comerciales ni la consulta del comprador.
+ * CCPIP-149: el punto declara los distritos que atiende, solo del catalogo territorial vigente.
+ */
 @Service
 public class CoberturasService {
     private final NamedParameterJdbcTemplate jdbc;
@@ -69,6 +74,38 @@ public class CoberturasService {
             }
             throw ErrorNegocio.noEncontrado("ZONA_NO_ENCONTRADA", "La zona no existe o no está asignada a tu cuenta.");
         }
+    }
+    /**
+     * CCPIP-149 (RF-118): declara que el punto propio entrega en esos distritos del catalogo territorial. Un
+     * distrito ya declarado e inactivo se reactiva; uno activo queda igual. No toca pedidos ni entregas: cada
+     * entrega guarda su propio distrito, asi que declarar no altera lo ya vendido. Solo Peru: el destino
+     * internacional sigue pendiente (C9). La capacidad aprobada aun no esta definida por la Camara.
+     */
+    @Transactional
+    public CoberturaPunto declarar(long usuarioId, long puntoId, Collection<String> ubigeos) {
+        puntos.nombres(usuarioId);
+        var p = new MapSqlParameterSource("usuario", usuarioId).addValue("punto", puntoId);
+        Integer propio = jdbc.queryForObject("""
+                SELECT count(*) FROM ubicacion u JOIN usuario_ubicacion uu ON uu.ubicacion_id=u.id
+                WHERE u.id=:punto AND uu.usuario_id=:usuario AND u.tipo='PUNTO_ACOPIO'""", p, Integer.class);
+        if (propio == null || propio == 0) {
+            throw ErrorNegocio.noEncontrado("PUNTO_NO_ENCONTRADO", "El punto no existe o no esta asignado a tu cuenta.");
+        }
+        List<String> pedidos = ubigeos.stream().map(String::strip).distinct().toList();
+        List<String> conocidos = jdbc.queryForList("SELECT codigo FROM ubigeo WHERE codigo IN (:codigos)",
+                new MapSqlParameterSource("codigos", pedidos), String.class);
+        List<String> faltan = pedidos.stream().filter(c -> !conocidos.contains(c)).toList();
+        if (!faltan.isEmpty()) {
+            throw new ErrorNegocio(HttpStatus.UNPROCESSABLE_ENTITY, "UBIGEO_NO_CATALOGADO",
+                    "Algunos distritos no estan en el catalogo territorial.", faltan);
+        }
+        for (String ubigeo : pedidos) {
+            jdbc.update("""
+                    INSERT INTO cobertura_entrega (ubicacion_id, ubigeo) VALUES (:punto, :ubigeo)
+                    ON CONFLICT (ubicacion_id, ubigeo) DO UPDATE SET activa = true, actualizado_en = now()
+                    WHERE NOT cobertura_entrega.activa""", new MapSqlParameterSource(p.getValues()).addValue("ubigeo", ubigeo));
+        }
+        return listar(usuarioId, puntoId).get(0);
     }
     private static final class Grupo {
         private final long id;
