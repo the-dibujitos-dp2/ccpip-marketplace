@@ -24,8 +24,15 @@ public final class EntregaModelos {
     public record Distrito(String ubigeo, String departamento, String provincia, String distrito) {
     }
 
-    /** CCPIP-59: un punto de acopio que cubre un distrito con cobertura activa. */
-    public record Cobertura(Distrito distrito, long puntoId) {
+    /**
+     * CCPIP-59: un punto de acopio que cubre un distrito con cobertura activa. {@code envio}: la tarifa del
+     * distrito (CCPIP-482); sin tarifa el distrito no se ofrece a domicilio.
+     */
+    public record Cobertura(Distrito distrito, long puntoId, BigDecimal envio) {
+    }
+
+    /** CCPIP-483: el distrito de destino que el punto cubre y lo que cuesta llevar el pedido hasta alli. */
+    public record DestinoCubierto(Distrito distrito, BigDecimal envio) {
     }
 
     /**

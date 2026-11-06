@@ -38,6 +38,12 @@ const VACIO = {
 
 /** Los puntos que cubren el distrito de destino (CCPIP-59), entre los que tienen todo el carrito. */
 const puntosDe = (distritos, ubigeo) => distritos.find((d) => d.distrito.ubigeo === ubigeo)?.puntos ?? []
+// CCPIP-482 y 483: la tarifa de envio que la Camara fijo para el distrito; nula si aun no se elige uno con entrega
+const envioDe = (distritos, ubigeo) => {
+  const envio = distritos.find((d) => d.distrito.ubigeo === ubigeo)?.envio
+  return envio == null ? null : Number(envio)
+}
+const centimos = (monto) => Math.round(Number(monto) * 100) / 100
 
 /** Los campos del destino: escribir en uno deja de usar la direccion guardada elegida. */
 const DEL_DESTINO = ['departamento', 'provincia', 'ubigeo', 'direccion', 'referencia']
@@ -293,6 +299,12 @@ export default function CompraPage() {
         const nuevo = await confirmarCompra(recojo)
         pedido.current = { id: nuevo.id, firma }
         clave.current = null
+        // CCPIP-483: si la Camara cambio la tarifa mientras elegia, no se cobra un monto distinto al que vio
+        if (nuevo.totalAPagar != null && centimos(nuevo.totalAPagar) !== aPagar) {
+          setAviso({ tono: 'aviso', titulo: t('compra.domicilio.tarifaCambio', { monto: precio(nuevo.totalAPagar) }) })
+          cargar()
+          return
+        }
       }
       clave.current ??= crypto.randomUUID()
       const tarjeta = { numero: form.numero, titular: form.titular.trim(), mes: Number(form.mes), anio: Number(form.anio), cvv: form.cvv }
@@ -345,6 +357,11 @@ export default function CompraPage() {
         // Los detalles llegan del servidor en espanol: en ingles basta el mensaje del code
         setAviso({ tono: 'error', titulo: mensajeError(err), descripcion: i18n.resolvedLanguage === 'es' ? (err.body?.detalles ?? []).join(' ') : undefined })
         break
+      case 'SIN_TARIFA_ENVIO':
+        pedido.current = null
+        setAviso({ tono: 'error', titulo: t('compra.domicilio.sinTarifa'), descripcion: mensajeError(err) })
+        cargar()
+        break
       case 'SIN_COBERTURA':
         pedido.current = null
         setAviso({ tono: 'error', titulo: t('compra.domicilio.sinCobertura'), descripcion: mensajeError(err) })
@@ -371,6 +388,10 @@ export default function CompraPage() {
   // A domicilio, los puntos son los que cubren el distrito elegido; para recojo, todos los que tienen el carrito
   const puntosVisibles = aDomicilio ? puntosDe(distritos, form.ubigeo) : puntos
   const marcaTarjeta = marca(form.numero)
+  // El envio se suma a lo que se paga; la comision sigue siendo solo sobre los productos
+  const envio = aDomicilio ? envioDe(distritos, form.ubigeo) : 0
+  const envioMinimo = distritos.length ? Math.min(...distritos.map((d) => Number(d.envio ?? 0))) : null
+  const aPagar = carrito ? centimos(Number(carrito.total) + (envio ?? 0)) : 0
 
   return (
     <LayoutTienda>
@@ -431,7 +452,9 @@ export default function CompraPage() {
                           <span className="compra__modalidad">
                             <span className="compra__modalidad-titulo"><Icono src={iconoCamion} tamano={20} />{t('compra.domicilio.opcion')}</span>
                             <span className="compra__modalidad-texto">{t('compra.domicilio.opcionTexto')}</span>
-                            <Badge tono="aviso">{t('compra.domicilio.costoPorConfirmar')}</Badge>
+                            <Badge tono="aviso">
+                              {envioMinimo == null ? t('compra.domicilio.costoSegunDistrito') : t('compra.domicilio.costoDesde', { monto: precio(envioMinimo) })}
+                            </Badge>
                           </span>
                         ),
                       },
@@ -571,10 +594,18 @@ export default function CompraPage() {
                   <dt>{t('compra.entrega')}</dt>
                   <dd>{t(aDomicilio ? 'compra.domicilio.resumen' : 'compra.recojoResumen')}</dd>
                 </div>
+                <div>
+                  <dt>{t('compra.productos')}</dt>
+                  <dd>{precio(carrito.total)}</dd>
+                </div>
+                <div>
+                  <dt>{t('compra.envio')}</dt>
+                  <dd>{envio == null ? t('compra.domicilio.envioSinDistrito') : precio(envio)}</dd>
+                </div>
               </dl>
               <p className="compra__total">
                 <span>{t('carrito.total')}</span>
-                <strong>{precio(carrito.total)}</strong>
+                <strong>{precio(aPagar)}</strong>
               </p>
               {aviso && (
                 <div ref={refAviso} className="compra__aviso">
@@ -582,7 +613,7 @@ export default function CompraPage() {
                 </div>
               )}
               <Boton tipo="acento" anchoCompleto type="submit" cargando={enviando} disabled={noFactible}>
-                {enviando ? t('compra.procesando') : t('compra.pagar', { monto: precio(carrito.total) })}
+                {enviando ? t('compra.procesando') : t('compra.pagar', { monto: precio(aPagar) })}
               </Boton>
               <p className="caption compra__nota">{t('compra.notaStock')}</p>
             </aside>

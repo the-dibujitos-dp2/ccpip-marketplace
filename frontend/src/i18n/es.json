@@ -1469,7 +1469,8 @@
       "existencias": "Existencias",
       "denuncias": "Denuncias",
       "motivosMerma": "Causas de merma",
-      "miHistorial": "Mi historial"
+      "miHistorial": "Mi historial",
+      "tarifasEnvio": "Tarifas de envío"
     },
     "permisos": {
       "titulo": "Permisos por rol"
@@ -1992,6 +1993,38 @@
         "vencido": "Vencido"
       },
       "nota": "Solo consulta: el stock se registra y corrige en cada punto. Las cantidades se muestran por unidad de medida, sin sumar unidades distintas. El detalle por productor y lote lo ve el administrador de cada punto."
+    },
+    "tarifasEnvio": {
+      "titulo": "Tarifas de envío",
+      "seccion": "Tarifa de envío a domicilio por distrito",
+      "intro": "La tarifa es fija por distrito de destino y se suma al total que paga el comprador; el recojo en el punto no tiene costo. La comisión se calcula solo sobre los productos. Un distrito sin tarifa no se ofrece a domicilio.",
+      "lista": "Distritos con cobertura",
+      "ubicacion": "{{provincia}}, {{departamento}}",
+      "puntos_one": "{{count}} punto lo cubre",
+      "puntos_other": "{{count}} puntos lo cubren",
+      "ultimoCambio": "Último cambio: {{fecha}} · {{nombre}}",
+      "sinTarifa": "Sin tarifa",
+      "fijar": "Fijar tarifa",
+      "cambiar": "Cambiar",
+      "fijarDe": "Fijar la tarifa de {{distrito}}",
+      "cambiarDe": "Cambiar la tarifa de {{distrito}}",
+      "dialogo": "Tarifa de envío a {{distrito}}",
+      "guardar": "Guardar tarifa",
+      "monto": "Tarifa (S/)",
+      "montoAyuda": "De 0.00 a 999.99, con dos decimales como máximo.",
+      "rige": "Rige para los pedidos nuevos: los ya creados conservan la tarifa con la que se compraron. El cambio queda en la auditoría.",
+      "guardada": "La tarifa de envío a {{distrito}} es ahora {{monto}}.",
+      "pendientes_one": "{{count}} distrito con cobertura aún no tiene tarifa",
+      "pendientes_other": "{{count}} distritos con cobertura aún no tienen tarifa",
+      "pendientesTexto": "Mientras no la tengan, los compradores no pueden pedir entrega a domicilio en ellos.",
+      "vacio": "Aún no hay distritos con cobertura",
+      "vacioTexto": "Aparecen aquí cuando un punto de acopio declara su cobertura de entrega.",
+      "errorCargar": "No pudimos cargar las tarifas de envío",
+      "errorGuardar": "No pudimos guardar la tarifa",
+      "validacion": {
+        "vacio": "Indica la tarifa",
+        "formato": "Escribe un monto de 0.00 a 999.99, con dos decimales como máximo"
+      }
     }
   },
   "sello": {
@@ -2371,7 +2404,8 @@
     "FAVORITO_NO_ENCONTRADO": "Ya no está entre tus favoritos.",
     "UNIDAD_YA_EXISTE": "Esa unidad ya está en el catálogo: elígela al publicar.",
     "SOLICITUD_UNIDAD_PENDIENTE": "Ya pediste esa unidad y la Cámara aún no la revisa.",
-    "CODIGO_INVALIDO": "El código usa solo letras sin tilde, números y guion bajo."
+    "CODIGO_INVALIDO": "El código usa solo letras sin tilde, números y guion bajo.",
+    "SIN_TARIFA_ENVIO": "Todavía no hay tarifa de envío para ese distrito. Elige el recojo en el punto de acopio."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -2725,7 +2759,7 @@
     "recojoTexto": "Te avisamos cuando esté listo.",
     "sinCosto": "Sin costo",
     "entrega": "Entrega",
-    "recojoResumen": "Recojo · S/ 0.00",
+    "recojoResumen": "Recojo en el punto",
     "gratis": "Gratis",
     "procesando": "Procesando pago…",
     "pagar": "Pagar {{monto}}",
@@ -2734,9 +2768,8 @@
       "comoRecibir": "1. ¿Cómo quieres recibirlo?",
       "etiquetaModalidad": "Cómo quieres recibir tu pedido",
       "opcion": "Entrega a domicilio",
-      "opcionTexto": "La entrega el punto de acopio en tu distrito.",
-      "costoPorConfirmar": "Costo por confirmar",
-      "ayuda": "Elige tu distrito y el punto de acopio que te lo entrega. El costo del envío está por definir y no se suma al total.",
+      "opcionTexto": "La entrega el punto de acopio en tu distrito, con una tarifa fija por distrito.",
+      "ayuda": "Elige tu distrito y el punto de acopio que te lo entrega. La tarifa de envío es fija por distrito y se suma al total.",
       "distrito": "Distrito de entrega",
       "eligeDistrito": "Elige tu distrito",
       "departamento": "Departamento",
@@ -2757,19 +2790,26 @@
       "quienRecibe": "Nombre de quien recibe",
       "celular": "Celular de quien recibe",
       "celularAyuda": "9 dígitos. Lo usamos para coordinar la entrega.",
-      "resumen": "A domicilio · por confirmar",
+      "resumen": "A domicilio",
       "sinCobertura": "Ese punto no entrega en tu distrito",
       "guardadas": "Mis direcciones guardadas",
       "otraDireccion": "Escribir otra dirección",
       "guardadaOpcion": "{{alias}} · {{direccion}}, {{distrito}}",
-      "guardadaSinEntrega": "{{alias}} · {{direccion}}, {{distrito}} (sin entrega con tu carrito)"
+      "guardadaSinEntrega": "{{alias}} · {{direccion}}, {{distrito}} (sin entrega con tu carrito)",
+      "costoDesde": "Desde {{monto}}",
+      "costoSegunDistrito": "Tarifa según tu distrito",
+      "envioSinDistrito": "Elige tu distrito",
+      "sinTarifa": "Aún no entregamos a domicilio en ese distrito",
+      "tarifaCambio": "La tarifa de envío cambió: ahora pagas {{monto}}. Revisa el resumen y vuelve a pagar."
     },
     "factibilidad": {
       "titulo": "Este punto ya no puede entregar tu pedido",
       "PUNTO_SIN_EXISTENCIAS": "Ya no tiene existencias para todo tu carrito.",
       "SIN_COBERTURA": "No entrega a domicilio en el distrito que elegiste.",
       "accion": "Elige otro punto o cambia la forma de entrega para poder pagar."
-    }
+    },
+    "productos": "Productos",
+    "envio": "Envío"
   },
   "pedido": {
     "noEncontrado": "No encontramos ese pedido",
@@ -4591,7 +4631,8 @@
       "CATALOGO_REACTIVAR": "Reactivó en el catálogo maestro",
       "PAGO": "Intentó un pago",
       "PERMISO_CONCEDIDO": "Concedió un permiso",
-      "PERMISO_REVOCADO": "Revocó un permiso"
+      "PERMISO_REVOCADO": "Revocó un permiso",
+      "TARIFA_ENVIO": "Fijó una tarifa de envío"
     },
     "entidad": {
       "AUTORIZACION": "Autorización",
@@ -4604,7 +4645,8 @@
       "LINEA_MAESTRA": "Línea maestra",
       "PRODUCTO_MAESTRO": "Producto maestro",
       "PEDIDO": "Pedido",
-      "PERMISO": "Permiso"
+      "PERMISO": "Permiso",
+      "TARIFA_ENVIO": "Tarifa de envío"
     },
     "resultado": {
       "EXITOSA": "Exitosa",

@@ -52,6 +52,8 @@ export const RUTAS = {
   adminComisiones: '/admin/comisiones',
   adminReportes: '/admin/reportes',
   adminParametros: '/admin/parametros',
+  // CCPIP-482: tarifa de envio a domicilio por distrito
+  adminTarifasEnvio: '/admin/tarifas-envio',
   adminMotivosMerma: '/admin/motivos-merma',
   adminAutorizaciones: '/admin/autorizaciones',
   // CCPIP-46: moderacion de la publicacion de ofertas

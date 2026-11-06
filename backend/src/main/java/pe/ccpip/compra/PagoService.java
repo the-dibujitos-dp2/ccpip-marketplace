@@ -182,7 +182,10 @@ public class PagoService {
         MapSqlParameterSource p = new MapSqlParameterSource("id", pedidoId).addValue("usuario", usuarioId);
         record Pagable(String numero, String estado, BigDecimal total) {
         }
-        Pagable pedido = jdbc.query("SELECT numero, estado, total FROM pedido WHERE id = :id AND usuario_id = :usuario FOR UPDATE", p,
+        // CCPIP-483: se cobran los productos y el envio copiado al pedido (0 en recojo)
+        Pagable pedido = jdbc.query("""
+                        SELECT numero, estado, total + costo_envio AS total FROM pedido
+                        WHERE id = :id AND usuario_id = :usuario FOR UPDATE""", p,
                         (rs, row) -> new Pagable(rs.getString("numero"), rs.getString("estado"), rs.getBigDecimal("total")))
                 .stream().findFirst()
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "No encontramos ese pedido."));

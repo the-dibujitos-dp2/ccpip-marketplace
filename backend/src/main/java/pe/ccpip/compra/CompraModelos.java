@@ -26,9 +26,9 @@ public final class CompraModelos {
 
     /**
      * CCPIP-59: un distrito al que se entrega a domicilio todo el carrito y los puntos de acopio que lo
-     * cubren con existencias para todas sus lineas.
+     * cubren con existencias para todas sus lineas. {@code envio}: la tarifa de envio a ese distrito (CCPIP-482).
      */
-    public record DistritoConPuntos(Distrito distrito, List<PuntoRecojo> puntos) {
+    public record DistritoConPuntos(Distrito distrito, BigDecimal envio, List<PuntoRecojo> puntos) {
     }
 
     /**
@@ -84,12 +84,13 @@ public final class CompraModelos {
      * cronologico (CCPIP-340). {@code comision}: la vigente al confirmar, ya incluida en el total
      * (CCPIP-167); nula mientras espera su pago o si se confirmo sin comision configurada.
      * {@code entrega} es el destino de un pedido a domicilio (CCPIP-59), nula si es para recojo; en ese
-     * caso {@code punto} es el punto de acopio de donde sale.
+     * caso {@code punto} es el punto de acopio de donde sale. {@code total} es la suma de los productos;
+     * {@code costoEnvio} (CCPIP-483) es 0 en recojo y {@code totalAPagar} = total + costoEnvio.
      */
     public record Pedido(long id, String numero, String estado, String modalidad, BigDecimal total, Instant creadoEn,
                          Instant confirmadoEn, PuntoRecojo punto, String personaAutorizada, String celularContacto,
                          List<LineaPedido> lineas, List<IntentoPago> pagos, List<EventoPedido> historial,
-                         ComisionPedido comision, Entrega entrega) {
+                         ComisionPedido comision, Entrega entrega, BigDecimal costoEnvio, BigDecimal totalAPagar) {
     }
 
     /**
@@ -98,7 +99,8 @@ public final class CompraModelos {
      */
     public record ResumenPedido(long id, String numero, String estado, String modalidad, BigDecimal total,
                                 Instant creadoEn, Instant confirmadoEn, PuntoRecojo punto, int productos,
-                                int comunidades, List<EventoPedido> historial) {
+                                int comunidades, List<EventoPedido> historial, BigDecimal costoEnvio,
+                                BigDecimal totalAPagar) {
     }
 
     /** Resultado de un intento de pago y el pedido como quedo. */

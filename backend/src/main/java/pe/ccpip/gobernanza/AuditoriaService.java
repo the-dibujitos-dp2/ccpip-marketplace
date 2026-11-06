@@ -21,7 +21,8 @@ import pe.ccpip.gobernanza.AuditoriaModelos.Resultado;
  * CCPIP-97 (RF-84): auditoria de operaciones sensibles para el superadministrador. Junta, con UNION ALL,
  * lo que cada modulo ya registra con su autor desde el primer sprint: las acciones de gobernanza
  * ({@link HistorialGobernanzaService#ACCIONES}), los cambios de productos (CCPIP-47), los del catalogo
- * maestro, cada intento de pago (CCPIP-163), aprobado o no, y cada cambio de permisos (CCPIP-296).
+ * maestro, cada intento de pago (CCPIP-163), aprobado o no, cada cambio de permisos (CCPIP-296) y cada
+ * tarifa de envio fijada o cambiada (CCPIP-482).
  *
  * <p>Solo lee: todas esas tablas son de solo insercion o de un unico cambio de estado, asi que ningun
  * registro se puede alterar desde aqui, y una operacion nueva de esos modulos aparece sola.
@@ -60,6 +61,13 @@ public class AuditoriaService {
                    r.codigo || ' · ' || c.codigo, 'EXITOSA'
             FROM permiso_configurable_cambio c
             JOIN rol r ON r.id = c.rol_id
+            UNION ALL
+            SELECT 'TE-' || t.id, t.realizado_en, t.realizado_por, 'TARIFA_ENVIO', 'TARIFA_ENVIO', t.id,
+                   g.distrito || ' (' || g.provincia || ', ' || g.departamento || ') · '
+                       || coalesce('S/ ' || t.monto_anterior::text || ' → ', '') || 'S/ ' || t.monto_nuevo::text,
+                   'EXITOSA'
+            FROM tarifa_envio_cambio t
+            JOIN ubigeo g ON g.codigo = t.ubigeo
             """.formatted(HistorialGobernanzaService.ACCIONES);
 
     private static final String DESDE_REGISTROS = """
