@@ -24,14 +24,16 @@ class TerritorioTest extends IntegrationTest {
         mockMvc.perform(get(BASE + "/departamentos").cookie(loginAs("consumidor@ccpip.test")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasItems("Cusco", "Junín", "Lima", "Loreto", "San Martín", "Ucayali")))
-                .andExpect(jsonPath("$[0]").value("Cusco"));
+                // CCPIP-149: el catalogo INEI completo, 25 departamentos (con el Callao)
+                .andExpect(jsonPath("$", hasSize(25)))
+                .andExpect(jsonPath("$[0]").value("Amazonas"));
     }
 
     @Test
     void listaLasProvinciasDelDepartamento() throws Exception {
         mockMvc.perform(get(BASE + "/provincias").param("departamento", "Ucayali").cookie(loginAs("consumidor@ccpip.test")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", contains("Coronel Portillo")));
+                .andExpect(jsonPath("$", contains("Atalaya", "Coronel Portillo", "Padre Abad", "Purús")));
         // Un departamento que no existe no tiene provincias
         mockMvc.perform(get(BASE + "/provincias").param("departamento", "Atlantida").cookie(loginAs("consumidor@ccpip.test")))
                 .andExpect(status().isOk())
