@@ -465,6 +465,7 @@
         "borrador": "Draft",
         "despublicado": "Unpublished",
         "enRevision": "Under review",
+        "autorizacionRechazada": "Authorization rejected",
         "rechazada": "Publication rejected",
         "porVencer": "Batch expiring",
         "sinStock": "No stock for sale",
@@ -513,7 +514,10 @@
       "confirmarTitulo": "Unpublish this product?",
       "confirmarTexto": "will no longer appear in the catalog or in your store. It isn't deleted: it stays in orders and history, and you can publish it again whenever you want.",
       "evidencias": "Certificates and evidence",
-      "premios": "Awards"
+      "premios": "Awards",
+      "corregirCertificados": "Fix certificates",
+      "corregirPublicacion": "Review and fix",
+      "motivoDe": "Rejection reason for {{nombre}}"
     },
     "editor": {
       "nombreAntesFotos": "Enter the product name before adding photos",
@@ -525,6 +529,7 @@
       "pasos": {
         "datos": "Details",
         "historia": "Story",
+        "certificados": "Certificates",
         "lote": "First batch"
       },
       "nuevo": "New",
@@ -540,7 +545,21 @@
       "falta": "Still missing before you can publish:",
       "irTienda": "Go to My store",
       "volverProductos": "Back to my products",
-      "noExiste": "This product doesn't exist"
+      "noExiste": "This product doesn't exist",
+      "bloqueada": "You reached the maximum of {{maximo}} rejections",
+      "bloqueadaTexto": "The Chamber rejected this listing {{maximo}} times. To send it again, ask the sub-administrator to enable a new attempt. Last reason: “{{motivo}}”.",
+      "intentosRestantes_one": "You have {{count}} attempt left before the sub-administrator has to enable a new one.",
+      "intentosRestantes_other": "You have {{count}} attempts left before the sub-administrator has to enable a new one.",
+      "certificados": {
+        "intro": "Upload the certificates and evidence that support the origin of your product. They are sent to the Chamber with the publication, in the last step.",
+        "siguiente": "Next: first batch"
+      },
+      "enviarSolicitud": "Send request",
+      "enviarSolicitudAyuda": "The authorization request (with your certificates) and the publication request are sent together. The Chamber reviews them before showing the product.",
+      "faltaCertificados": "At least one certificate, document or evidence (Certificates step)",
+      "irCertificados": "Go to certificates",
+      "certificadosListos": "Certificates: {{estado}}",
+      "errorSolicitud": "We could not send the authorization request"
     },
     "datos": {
       "validacion": {
@@ -710,7 +729,6 @@
       "redactadaIa": "Written with AI support and approved by the community.",
       "atras": "Back",
       "editar": "Edit story",
-      "siguienteLote": "Next: first batch",
       "enBorrador": "Your story, in draft",
       "enBorradorTexto": "Once you have your answers, the platform can suggest a draft. You review it, change it, and it's only published when you approve it.",
       "preparando": "Preparing draft…",
@@ -732,7 +750,8 @@
       "historiaPlaceholder": "Tell who makes it, how, and why it matters to your community.",
       "descartar": "Discard draft",
       "descartada": "You discarded the AI draft",
-      "descartadaTexto": "Your answers are still here: ask for another version or write the story yourself."
+      "descartadaTexto": "Your answers are still here: ask for another version or write the story yourself.",
+      "siguienteCertificados": "Next: certificates"
     },
     "tienda": {
       "categorias": {
@@ -2569,7 +2588,9 @@
     "SOLICITUD_UNIDAD_PENDIENTE": "You already requested that unit and the Chamber hasn't reviewed it yet.",
     "CODIGO_INVALIDO": "The code uses only letters without accents, numbers and underscore.",
     "SIN_TARIFA_ENVIO": "There is no shipping rate for that district yet. Choose pickup at the collection point.",
-    "CAPACIDAD_AGOTADA": "This collection point cannot deliver more home orders today. Choose another point or pickup."
+    "CAPACIDAD_AGOTADA": "This collection point cannot deliver more home orders today. Choose another point or pickup.",
+    "MAXIMO_RECHAZOS": "This listing reached the maximum of 3 rejections. Ask the sub-administrator to enable a new attempt.",
+    "REINTENTO_NO_NECESARIO": "This listing has not reached the maximum of rejections: the producer can already send it again."
   },
   "buscar": {
     "comunidad": "Community",
@@ -3392,7 +3413,8 @@
       "REVOCADA": "The authorization was revoked",
       "conMotivo": "Reason: “{{motivo}}”. Correct your evidence if needed and request it again.",
       "lineaNueva": "The authorization does not cover a new line",
-      "lineaNuevaTexto": "You added a line the Chamber did not review: the sale is paused. Attach evidence to request a new review."
+      "lineaNuevaTexto": "You added a line the Chamber did not review: the sale is paused. Attach evidence to request a new review.",
+      "enEditorTexto": "Upload your evidence here. The authorization request is sent with “Send request” in the last step."
     },
     "tipo": {
       "CERTIFICADO": "Certificates",
@@ -3429,7 +3451,9 @@
     "retirarTexto": "“{{titulo}}” will no longer support the request. The Chamber keeps a record of what it reviewed.",
     "form": {
       "titulo": "Document name",
+      "tituloEjemplo": "E.g.: Organic certificate 2026",
       "emisor": "Issued by",
+      "emisorEjemplo": "E.g.: Control Union Peru or SENASA",
       "opcional": "Optional",
       "opcionalCorto": "(optional)",
       "desde": "Valid from (optional)",
@@ -3858,6 +3882,19 @@
       "resuelta": {
         "APROBADA": "This publication was already approved.",
         "RECHAZADA": "This publication was rejected."
+      },
+      "limite": {
+        "titulo": "Rejections",
+        "cuenta": "{{rechazos}} of {{maximo}} rejections",
+        "bloqueada": "The producer reached the maximum and can no longer send this listing again.",
+        "motivo": "Reason to enable a new attempt",
+        "motivoAyuda": "It is kept in the product history. Enabling it resets the rejection count to zero.",
+        "habilitar": "Enable new attempt",
+        "errorMotivo": "Enter the reason to enable the new attempt",
+        "hecho": "You enabled a new attempt. The producer can send the listing again.",
+        "error": "We could not enable the new attempt",
+        "reintentos": "Enabled attempts",
+        "habilitadoPor": "{{nombre}} · {{fecha}}"
       }
     },
     "dialogo": {
@@ -4851,6 +4888,7 @@
     "ultima": "Last declaration: {{fecha}}, by {{nombre}}.",
     "sinDeclaracion": "You have not declared any rule for this product yet.",
     "observaciones": "Observations (optional)",
+    "observacionesEjemplo": "E.g.: the cacao is fermented in the community’s wooden boxes.",
     "declarar": "Save declaration",
     "guardada": "You saved the declaration",
     "error": "We could not save the declaration",

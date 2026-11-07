@@ -16,8 +16,16 @@ const PRODUCTO = unico('Aceite de sacha inchi Nauta')
 const CERTIFICADO_PDF = '%PDF-1.4\n1 0 obj << >> endobj\n%%EOF\n'
 let productoId
 
-/** La Cámara aprueba una evidencia vigente del producto antes de probar su republicación. */
-async function autorizarProducto(page, id) {
+/**
+ * La Cámara aprueba una evidencia vigente del producto antes de probar su republicación. Con
+ * `yaSolicitada`, el productor ya la envió desde el editor (CCPIP-502) y solo falta la decisión.
+ */
+async function autorizarProducto(page, id, { yaSolicitada = false } = {}) {
+  if (!yaSolicitada) await adjuntarYSolicitar(page, id)
+  await decidirAutorizacion(page, id)
+}
+
+async function adjuntarYSolicitar(page, id) {
   const evidencia = await page.evaluate(async ([productoId, certificado, vigenteHasta]) => {
     const datos = new FormData()
     datos.append('archivo', new File([certificado], 'certificado-organico.pdf', { type: 'application/pdf' }))
@@ -36,7 +44,9 @@ async function autorizarProducto(page, id) {
   const enviada = await api(page, 'POST', `/api/productor/productos/${id}/autorizacion/solicitar`)
   expect(enviada.status).toBe(200)
   expect(enviada.cuerpo.autorizacion.estado).toBe('SOLICITADA')
+}
 
+async function decidirAutorizacion(page, id) {
   expect((await api(page, 'POST', '/api/auth/logout')).status).toBe(204)
   await ingresar(page, 'sub_admin@ccpip.test')
   const solicitudes = (await api(page, 'GET', '/api/admin/autorizaciones')).cuerpo.solicitudes
@@ -206,6 +216,21 @@ test.describe('Productor: arma su tienda y publica su producto', () => {
     await sinViolaciones(page)
     await page.getByRole('button', { name: 'Aprobar historia' }).click()
 
+    // CCPIP-490: los certificados son un paso del editor; se envían con la publicación al final
+    await expect(page).toHaveURL(/paso=certificados/)
+    await page.getByRole('button', { name: 'Agregar certificado' }).click()
+    const certificado = page.getByRole('form', { name: 'Agregar certificado' })
+    await certificado.getByLabel('Nombre del documento').fill('Certificado orgánico para venta')
+    await certificado.getByLabel('Quién lo emite').fill('Entidad certificadora de prueba')
+    const [anio, mes, dia] = enDias(365).split('-')
+    await certificado.getByRole('textbox', { name: 'Vigente hasta' }).fill(`${dia}/${mes}/${anio}`)
+    await certificado.getByLabel('Archivo').setInputFiles({ name: 'certificado-organico.pdf', mimeType: 'application/pdf', buffer: Buffer.from(CERTIFICADO_PDF) })
+    await certificado.getByRole('button', { name: 'Subir' }).click()
+    await expect(page.getByText('Subiste «Certificado orgánico para venta».')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Solicitar autorización' })).toHaveCount(0)
+    await sinViolaciones(page)
+    await page.getByRole('button', { name: 'Siguiente: primer lote' }).click()
+
     // Primer lote en un punto de acopio (PW-06, CCPIP-41)
     await expect(page).toHaveURL(/paso=lote/)
     await expect(page.getByLabel('Código de lote')).toHaveValue('L-0001')
@@ -218,8 +243,8 @@ test.describe('Productor: arma su tienda y publica su producto', () => {
     await expect(page.getByRole('list', { name: 'Lotes de este producto' }).getByText('L-0001')).toBeVisible()
     await sinViolaciones(page)
 
-    // CCPIP-46: publicar pide la revision de la Camara; mientras tanto no esta en el catalogo
-    await page.getByRole('button', { name: 'Publicar producto' }).click()
+    // CCPIP-46 y CCPIP-502: "Enviar solicitud" pide la autorizacion y la publicacion; mientras tanto no esta en el catalogo
+    await page.getByRole('button', { name: 'Enviar solicitud' }).click()
     await expect(page).toHaveURL(/\/productor\/productos\?estado=EN_MODERACION&enviado=1/)
     await expect(page.getByText('Enviado a revisión')).toBeVisible()
     const fila = page.getByRole('list', { name: 'Productos' }).getByRole('listitem').filter({ hasText: PRODUCTO })
@@ -229,7 +254,7 @@ test.describe('Productor: arma su tienda y publica su producto', () => {
     // Por fuera de la pagina: un 404 pedido desde ella saldria como error en la consola que se vigila
     expect((await page.request.get(`/api/productos/${productoId}`)).status()).toBe(404)
     // La Camara autoriza la venta y aprueba la publicacion (CCPIP-331)
-    await autorizarProducto(page, productoId)
+    await autorizarProducto(page, productoId, { yaSolicitada: true })
     await page.goto('/productor/productos')
     await expect(page.getByRole('list', { name: 'Productos' }).getByRole('listitem').filter({ hasText: PRODUCTO }))
       .toContainText('Publicado')

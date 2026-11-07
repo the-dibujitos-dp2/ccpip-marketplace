@@ -63,11 +63,23 @@ public final class ModeracionModelos {
     /**
      * CCPIP-46: el expediente de una solicitud. {@code faltan} dice por que no se podria aprobar ahora (sin
      * autorizacion vigente, sin stock, datos incompletos); {@code historial}, todas las solicitudes de la
-     * oferta, de la mas reciente a la mas antigua.
+     * oferta, de la mas reciente a la mas antigua; {@code limite}, sus rechazos frente al maximo (CCPIP-493).
      */
     public record Expediente(long id, Estado estado, Instant solicitadaEn, String solicitadaPor, boolean republicacion,
                              Oferta oferta, Productor productor, AutorizacionVenta autorizacion, List<Solicitud> historial,
-                             List<String> faltan, boolean puedeDecidir, boolean puedeAprobar) {
+                             List<String> faltan, boolean puedeDecidir, boolean puedeAprobar, Limite limite) {
+    }
+
+    /**
+     * CCPIP-493: los rechazos que cuentan para el maximo y los intentos que ya se habilitaron. Con
+     * {@code bloqueada} el productor no puede volver a enviar la oferta; {@code puedeHabilitar} dice si el
+     * subadministrador puede habilitar un nuevo intento desde este expediente (la ultima solicitud).
+     */
+    public record Limite(int rechazos, int maximo, boolean bloqueada, boolean puedeHabilitar, List<Reintento> reintentos) {
+    }
+
+    /** CCPIP-493: un nuevo intento habilitado, con quien lo habilito, cuando y por que. */
+    public record Reintento(long id, String motivo, String habilitadoPor, Instant habilitadoEn) {
     }
 
     /** Toda decision lleva motivo, que el productor ve (CCPIP-331, CCPIP-332). */

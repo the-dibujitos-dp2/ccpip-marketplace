@@ -226,6 +226,32 @@ describe('PW-03 Mis productos (CCPIP-160)', () => {
     expect(screen.queryByRole('menuitem', { name: /publicar/i })).not.toBeInTheDocument()
   })
 
+  it('CCPIP-492: la autorización rechazada se ve en la lista con su motivo y un acceso para corregirla', async () => {
+    const motivo = 'Falta el certificado orgánico vigente'
+    const lista = copia(DATOS.productosProductor)
+    lista.items[0] = { ...lista.items[0], alerta: 'AUTORIZACION_RECHAZADA', motivo }
+    productor({ 'GET /api/productor/productos': () => [200, lista] })
+    abrirEn('/productor/productos')
+    const fila = within((await screen.findByRole('list', { name: 'Productos' })).querySelector('li'))
+    expect(fila.getByText('Autorización rechazada')).toBeInTheDocument()
+    expect(fila.getByText(motivo)).toBeInTheDocument()
+    expect(fila.getByRole('link', { name: 'Corregir certificados' })).toHaveAttribute('href', `/productor/productos/${lista.items[0].id}/evidencias`)
+  })
+
+  it('CCPIP-492: la publicación rechazada también muestra su motivo en la lista', async () => {
+    const motivo = 'Las fotos no muestran el producto que se vende.'
+    const retirados = {
+      items: [{ ...DATOS.productosProductor.items[0], estado: 'RETIRADO', alerta: 'PUBLICACION_RECHAZADA', motivo }],
+      conteo: { PUBLICADO: 3, EN_MODERACION: 0, BORRADOR: 0, RETIRADO: 1 },
+    }
+    productor({ 'GET /api/productor/productos': () => [200, copia(retirados)] })
+    abrirEn('/productor/productos?estado=RETIRADO')
+    const fila = within((await screen.findByRole('list', { name: 'Productos' })).querySelector('li'))
+    expect(fila.getByText('Publicación rechazada')).toBeInTheDocument()
+    expect(fila.getByText(motivo)).toBeInTheDocument()
+    expect(fila.getByRole('link', { name: 'Ver y corregir' })).toHaveAttribute('href', `/productor/productos/${retirados.items[0].id}`)
+  })
+
   it('CCPIP-332: una publicación rechazada se marca y al editarla se ve el motivo', async () => {
     const retirados = {
       items: [{ ...DATOS.productosProductor.items[0], estado: 'RETIRADO', alerta: 'PUBLICACION_RECHAZADA' }],
@@ -236,7 +262,7 @@ describe('PW-03 Mis productos (CCPIP-160)', () => {
       'GET /api/productor/productos': () => [200, copia(retirados)],
       'GET /api/productor/productos/9': () => [200, {
         ...copia(DATOS.edicion), estado: 'RETIRADO',
-        moderacion: { estado: 'RECHAZADA', motivo, solicitadaEn: '2026-10-25T15:00:00Z', decididaEn: '2026-10-26T15:00:00Z' },
+        moderacion: { estado: 'RECHAZADA', motivo, solicitadaEn: '2026-10-25T15:00:00Z', decididaEn: '2026-10-26T15:00:00Z', rechazos: 1, maximoRechazos: 3, bloqueada: false },
       }],
     })
     abrirEn('/productor/productos?estado=RETIRADO')
@@ -246,7 +272,21 @@ describe('PW-03 Mis productos (CCPIP-160)', () => {
     cleanup()
     abrirEn('/productor/productos/9')
     expect(await screen.findByText('La Cámara no publicó esta oferta')).toBeInTheDocument()
-    expect(screen.getByText(`Motivo: «${motivo}». Corrígela y vuelve a enviarla a revisión.`)).toBeInTheDocument()
+    expect(screen.getByText(`Motivo: «${motivo}». Corrígela y vuelve a enviarla a revisión. Te quedan 2 intentos antes de que el subadministrador tenga que habilitar uno nuevo.`)).toBeInTheDocument()
+  })
+
+  it('CCPIP-493: al tercer rechazo no se puede volver a enviar hasta que el subadministrador lo habilite', async () => {
+    const motivo = 'Las fotos siguen sin mostrar el producto.'
+    productor({
+      'GET /api/productor/productos/9': () => [200, {
+        ...copia(DATOS.edicion), estado: 'RETIRADO',
+        moderacion: { estado: 'RECHAZADA', motivo, solicitadaEn: '2026-10-25T15:00:00Z', decididaEn: '2026-10-26T15:00:00Z', rechazos: 3, maximoRechazos: 3, bloqueada: true },
+      }],
+    })
+    abrirEn('/productor/productos/9?paso=lote')
+    expect((await screen.findAllByText('Llegaste al máximo de 3 rechazos')).length).toBeGreaterThan(0)
+    expect(screen.getByText(/pide al subadministrador que habilite un nuevo intento\. Último motivo: «Las fotos siguen/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Volver a publicar/ })).not.toBeInTheDocument()
   })
 
   it('cada pestana tiene su estado vacio y la busqueda sin resultados lo dice', async () => {
@@ -486,6 +526,14 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
     await user.click(await screen.findByRole('button', { name: 'Siguiente: historia' }))
     expect(screen.getByText('Revisa los datos marcados')).toBeInTheDocument()
     expect(llamadas(fetchMock, 'POST /api/productor/productos')).toHaveLength(0)
+  })
+
+  it('pedir el borrador con IA es un boton grande del sistema de diseño (CCPIP-489)', async () => {
+    productor()
+    abrirEn('/productor/productos/9')
+    const boton = await screen.findByRole('button', { name: 'Sugerir una descripción con IA (borrador)' })
+    expect(boton).toHaveClass('boton', 'boton--secundario', 'boton--L')
+    expect(boton.querySelector('.icono, img, svg')).not.toBeNull()
   })
 
   it('la descripcion asistida se revisa antes de aceptarse y queda marcada como IA', async () => {
@@ -827,7 +875,7 @@ describe('PW-05 Historia asistida (CCPIP-49)', () => {
     await user.click(screen.getByRole('button', { name: 'Listo' }))
     await user.click(screen.getByRole('button', { name: 'Aprobar historia' }))
 
-    await waitFor(() => expect(window.location.search).toBe('?paso=lote'))
+    await waitFor(() => expect(window.location.search).toBe('?paso=certificados'))
     expect(cuerpo(fetchMock, 'POST /api/productor/productos/9/historia/aprobar')).toEqual({ titulo: 'Camu camu de las cochas', textoFinal: texto, asistida: true })
   })
 
@@ -879,7 +927,7 @@ describe('PW-05 Historia asistida (CCPIP-49)', () => {
     const user = userEvent.setup()
     abrirEn('/productor/productos/9?paso=historia')
     await user.click(await screen.findByRole('button', { name: 'Guardar respuestas y seguir después' }))
-    await waitFor(() => expect(window.location.search).toBe('?paso=lote'))
+    await waitFor(() => expect(window.location.search).toBe('?paso=certificados'))
     expect(llamadas(fetchMock, 'PUT /api/productor/productos/9/historia')).toHaveLength(1)
   })
 
@@ -902,7 +950,7 @@ describe('Paso 3 · primer lote y publicacion (CCPIP-40)', () => {
     })
     const user = userEvent.setup()
     abrirEn('/productor/productos/9?paso=lote')
-    await user.click(await screen.findByRole('button', { name: 'Publicar producto' }))
+    await user.click(await screen.findByRole('button', { name: 'Enviar solicitud' }))
     await waitFor(() => expect(window.location.pathname).toBe('/productor/productos'))
     expect(llamadas(fetchMock, 'POST /api/productor/productos/9/publicar')).toHaveLength(1)
   })
@@ -923,8 +971,72 @@ describe('Paso 3 · primer lote y publicacion (CCPIP-40)', () => {
     })
     const user = userEvent.setup()
     abrirEn('/productor/productos/9?paso=lote')
-    await user.click(await screen.findByRole('button', { name: 'Publicar producto' }))
+    await user.click(await screen.findByRole('button', { name: 'Enviar solicitud' }))
     expect(await screen.findByText('El lote venció')).toBeInTheDocument()
+  })
+
+  it('CCPIP-490: los certificados son un paso del editor, sin su propio botón de solicitud', async () => {
+    productor({ 'GET /api/productor/productos/9/evidencias': () => [200, { ...copia(DATOS.evidenciasProductor), puedeSolicitar: true }] })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9?paso=certificados')
+    const paso = await screen.findByRole('region', { name: 'Certificados' })
+    expect(await within(paso).findByText(/Se envían a la Cámara junto con la publicación/)).toBeInTheDocument()
+    expect(within(paso).queryByRole('button', { name: 'Solicitar autorización' })).not.toBeInTheDocument()
+    await user.click(within(paso).getByRole('button', { name: 'Siguiente: primer lote' }))
+    expect(window.location.search).toBe('?paso=lote')
+  })
+
+  it('CCPIP-502: "Enviar solicitud" pide la autorización con los certificados y luego la publicación', async () => {
+    const borrador = { ...copia(DATOS.edicion), estado: 'BORRADOR' }
+    const orden = []
+    const fetchMock = productor({
+      'GET /api/productor/productos/9': () => [200, copia(borrador)],
+      'GET /api/productor/productos/9/evidencias': () => [200, { ...copia(DATOS.evidenciasProductor), autorizacion: { ...DATOS.evidenciasProductor.autorizacion, estado: 'BORRADOR' }, puedeSolicitar: true }],
+      'POST /api/productor/productos/9/autorizacion/solicitar': () => {
+        orden.push('autorizacion')
+        return [200, { ...copia(DATOS.evidenciasProductor), autorizacion: { ...DATOS.evidenciasProductor.autorizacion, estado: 'SOLICITADA' }, puedeSolicitar: false }]
+      },
+      'POST /api/productor/productos/9/publicar': () => {
+        orden.push('publicacion')
+        return [200, {}]
+      },
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9?paso=lote')
+    expect(await screen.findByText(/Se envían juntas la solicitud de autorización/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }))
+    await waitFor(() => expect(window.location.pathname).toBe('/productor/productos'))
+    expect(orden).toEqual(['autorizacion', 'publicacion'])
+    expect(llamadas(fetchMock, 'POST /api/productor/productos/9/publicar')).toHaveLength(1)
+  })
+
+  it('CCPIP-502: si la autorización no se pudo pedir, no se envía la publicación', async () => {
+    const borrador = { ...copia(DATOS.edicion), estado: 'BORRADOR' }
+    const fetchMock = productor({
+      'GET /api/productor/productos/9': () => [200, copia(borrador)],
+      'GET /api/productor/productos/9/evidencias': () => [200, { ...copia(DATOS.evidenciasProductor), autorizacion: { ...DATOS.evidenciasProductor.autorizacion, estado: 'BORRADOR' }, puedeSolicitar: true }],
+      'POST /api/productor/productos/9/autorizacion/solicitar': [422, { code: 'SIN_EVIDENCIAS', error: 'Adjunta al menos una evidencia del producto antes de solicitar su autorización.' }],
+      'POST /api/productor/productos/9/publicar': [200, {}],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9?paso=lote')
+    await user.click(await screen.findByRole('button', { name: 'Enviar solicitud' }))
+    expect(await screen.findByText('Adjunta al menos una evidencia del producto antes de solicitar su autorización.')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/productor/productos/9/publicar')).toHaveLength(0)
+  })
+
+  it('CCPIP-490: sin certificados no se envía y lleva al paso Certificados', async () => {
+    const borrador = { ...copia(DATOS.edicion), estado: 'BORRADOR' }
+    productor({
+      'GET /api/productor/productos/9': () => [200, copia(borrador)],
+      'GET /api/productor/productos/9/evidencias': () => [200, { ...copia(DATOS.evidenciasProductor), evidencias: [], autorizacion: { ...DATOS.evidenciasProductor.autorizacion, estado: 'SIN_SOLICITUD' }, puedeSolicitar: false }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9?paso=lote')
+    expect(await screen.findByText('Al menos un certificado, documento o evidencia (paso Certificados)')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Enviar solicitud' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Ir a certificados' }))
+    expect(window.location.search).toBe('?paso=certificados')
   })
 
   it('los pasos ya hechos se pueden revisar', async () => {

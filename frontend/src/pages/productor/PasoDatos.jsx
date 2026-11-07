@@ -446,10 +446,10 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
 
         <div className="editor__ia" aria-live="polite">
           {['inicial', 'aceptada', 'descartada'].includes(ia.estado) ? (
-            <button type="button" className="editor__ia-boton" onClick={sugerir}>
-              <Icono src={iconoIa} tamano={18} />
+            // CCPIP-489: un boton del sistema de diseño (48 px de alto), no un enlace de texto
+            <Boton tipo="secundario" icono={iconoIa} className="editor__ia-boton" onClick={sugerir}>
               {ia.estado === 'aceptada' ? t('productor.datos.ia.otra') : t('productor.datos.ia.sugerir')}
-            </button>
+            </Boton>
           ) : null}
           {ia.estado === 'descartada' && <p className="caption">{t('productor.datos.ia.descartada')}</p>}
           {ia.estado === 'cargando' && <Cargando texto={t('productor.datos.ia.preparando')} />}

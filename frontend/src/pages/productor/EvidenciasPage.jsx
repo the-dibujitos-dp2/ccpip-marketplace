@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoCandado from '../../assets/icons/candado.svg'
 import iconoCheck from '../../assets/icons/check-circulo.svg'
@@ -50,7 +50,8 @@ export function VigenciaYArchivo({ evidencia }) {
   )
 }
 
-function alertaEstado(autorizacion, t) {
+/** Sin {@code conSolicitar} (paso del editor), lo que aun no se pidio sale con "Enviar solicitud" (CCPIP-502). */
+function alertaEstado(autorizacion, t, conSolicitar = true) {
   const { estado, motivo, vigenteHasta, cubreLineas } = autorizacion
   // CCPIP-292: una linea nueva no la cubre la autorizacion anterior; se pide otra revision
   if (estado === 'APROBADA' && cubreLineas === false) {
@@ -66,30 +67,66 @@ function alertaEstado(autorizacion, t) {
   if (estado === 'RECHAZADA' || estado === 'REVOCADA') {
     return { tono: 'error', titulo: t(`evidencias.estado.${estado}`), descripcion: t('evidencias.estado.conMotivo', { motivo }) }
   }
-  return { tono: 'info', titulo: t(`evidencias.estado.${estado}`), descripcion: t(`evidencias.estado.${estado}Texto`) }
+  const porEnviar = !conSolicitar && (estado === 'SIN_SOLICITUD' || estado === 'BORRADOR')
+  return {
+    tono: 'info',
+    titulo: t(`evidencias.estado.${estado}`),
+    descripcion: porEnviar ? t('evidencias.estado.enEditorTexto') : t(`evidencias.estado.${estado}Texto`),
+  }
 }
 
 /**
  * CCPIP-36 (RF-13), adaptada de PW-14: el productor adjunta certificados, documentos y evidencias a
  * cada producto cuya autorizacion solicita. Solo el productor y la Camara las ven (RNF-08). Mientras
  * la autorizacion esta vigente, sus evidencias no se cambian. CCPIP-29: adjuntar la prepara y el
- * productor la envia a la Camara con "Solicitar autorizacion".
+ * productor la envia a la Camara con "Solicitar autorizacion". CCPIP-490: lo mismo es un paso del
+ * editor del producto (PanelCertificados), donde la solicitud sale con "Enviar solicitud" al final.
  */
 export default function EvidenciasPage({ path, productoId }) {
   const { t } = useTranslation()
-  const [datos, setDatos] = useState(null)
+  const [producto, setProducto] = useState(null)
   const [error, setError] = useState(null)
+  const titulo = t('evidencias.titulo')
+  const seccion = `${t('productor.nav.productos')}${producto ? ` / ${producto}` : ''}`
+  if (error) {
+    return (
+      <PaginaProductor path={RUTAS.productorProductos} seccion={seccion} titulo={titulo}>
+        <Alerta tono="error" titulo={mensajeError(error, 'evidencias.error')} />
+        <Boton tipo="secundario" tamano="M" to={RUTAS.productorProductos}>{t('evidencias.volver')}</Boton>
+      </PaginaProductor>
+    )
+  }
+  return (
+    <PaginaProductor path={path ?? RUTAS.productorProductos} seccion={seccion} titulo={titulo}>
+      <PanelCertificados productoId={productoId} onCargado={(d) => setProducto(d.producto)} onError={setError} />
+    </PaginaProductor>
+  )
+}
+
+/**
+ * Los certificados, documentos y evidencias del producto, con su declaracion de cumplimiento. Con
+ * {@code conSolicitar} muestra el boton "Solicitar autorizacion" (pantalla propia); en el editor no,
+ * porque la solicitud sale con "Enviar solicitud" en el ultimo paso (CCPIP-490, CCPIP-502).
+ */
+export function PanelCertificados({ productoId, conSolicitar = true, onCargado, onError }) {
+  const { t } = useTranslation()
+  const [datos, setDatos] = useState(null)
   const [aviso, setAviso] = useState(null)
   const [retirar, setRetirar] = useState(null)
   const [ocupado, setOcupado] = useState(false)
   const [solicitando, setSolicitando] = useState(false)
+  // Los avisos al contenedor no vuelven a disparar la carga
+  const avisos = useRef({ onCargado, onError })
+  avisos.current = { onCargado, onError }
 
   const cargar = useCallback(async () => {
     try {
-      setDatos(await listarEvidencias(productoId))
-      setError(null)
+      const d = await listarEvidencias(productoId)
+      setDatos(d)
+      avisos.current.onCargado?.(d)
     } catch (e) {
-      setError(e)
+      if (avisos.current.onError) avisos.current.onError(e)
+      else setAviso({ tono: 'error', titulo: mensajeError(e, 'evidencias.error') })
     }
   }, [productoId])
 
@@ -124,24 +161,16 @@ export default function EvidenciasPage({ path, productoId }) {
     }
   }
 
-  const titulo = t('evidencias.titulo')
-  const seccion = `${t('productor.nav.productos')}${datos ? ` / ${datos.producto}` : ''}`
-  if (error && !datos) {
-    return (
-      <PaginaProductor path={RUTAS.productorProductos} seccion={seccion} titulo={titulo}>
-        <Alerta tono="error" titulo={mensajeError(error, 'evidencias.error')} />
-        <Boton tipo="secundario" tamano="M" to={RUTAS.productorProductos}>{t('evidencias.volver')}</Boton>
-      </PaginaProductor>
-    )
-  }
-  if (!datos) return <PaginaProductor path={RUTAS.productorProductos} seccion={seccion} titulo={titulo}><Cargando /></PaginaProductor>
+  if (!datos) return aviso ? <Alerta {...aviso} /> : <Cargando />
 
   const editable = datos.autorizacion.estado !== 'APROBADA' || datos.puedeAdjuntar
   return (
-    <PaginaProductor path={path ?? RUTAS.productorProductos} seccion={seccion} titulo={titulo}>
-      <p className="body-m evidencias__intro">{t('evidencias.intro', { producto: datos.producto })}</p>
-      <Alerta {...alertaEstado(datos.autorizacion, t)} />
-      {datos.puedeSolicitar && (
+    <>
+      <p className="body-m evidencias__intro">
+        {conSolicitar ? t('evidencias.intro', { producto: datos.producto }) : t('productor.editor.certificados.intro')}
+      </p>
+      <Alerta {...alertaEstado(datos.autorizacion, t, conSolicitar)} />
+      {conSolicitar && datos.puedeSolicitar && (
         <div className="evidencias__solicitar">
           <Boton tamano="M" icono={iconoEscudo} onClick={solicitar} cargando={solicitando}>{t('evidencias.solicitar.boton')}</Boton>
           <p className="caption">{t('evidencias.solicitar.ayuda')}</p>
@@ -200,7 +229,7 @@ export default function EvidenciasPage({ path, productoId }) {
       >
         <p>{t('evidencias.retirarTexto', { titulo: retirar?.titulo })}</p>
       </Dialogo>
-    </PaginaProductor>
+    </>
   )
 }
 
@@ -303,8 +332,9 @@ function FormularioEvidencia({ tipo, productoId, onCancelar, onSubida }) {
   return (
     <form className="evidencias__formulario" onSubmit={enviar} noValidate aria-label={t(`evidencias.agregar.${tipo}`)}>
       {fallo && <Alerta tono="error" titulo={fallo} />}
-      <Campo etiqueta={t('evidencias.form.titulo')} value={campos.titulo} onChange={cambiar('titulo')} error={errores.titulo} maxLength={160} />
-      <Campo etiqueta={t('evidencias.form.emisor')} ayuda={t('evidencias.form.opcional')} value={campos.emisor} onChange={cambiar('emisor')} maxLength={160} />
+      {/* CCPIP-503: un ejemplo de que escribir en cada campo */}
+      <Campo etiqueta={t('evidencias.form.titulo')} placeholder={t('evidencias.form.tituloEjemplo')} value={campos.titulo} onChange={cambiar('titulo')} error={errores.titulo} maxLength={160} />
+      <Campo etiqueta={t('evidencias.form.emisor')} placeholder={t('evidencias.form.emisorEjemplo')} ayuda={t('evidencias.form.opcional')} value={campos.emisor} onChange={cambiar('emisor')} maxLength={160} />
       <div className="evidencias__fechas">
         <Campo etiqueta={t('evidencias.form.desde')} type="date" value={campos.vigenteDesde} onChange={cambiar('vigenteDesde')} />
         <Campo

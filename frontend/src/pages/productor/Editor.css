@@ -6,6 +6,7 @@
 .editor__precios { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
 .editor__botones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
 .editor__botones--columna { flex-direction: column; align-items: stretch; }
+.editor__certificados { display: flex; flex-direction: column; gap: 16px; }
 
 .editor__fotos { display: flex; flex-direction: column; gap: 12px; }
 .editor__miniaturas { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; padding: 0; list-style: none; }
@@ -93,8 +94,8 @@
 .editor__comparacion img { width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: var(--radius-l); background: var(--color-bg-surface-alt); }
 
 .editor__ia { display: flex; flex-direction: column; gap: 10px; }
-.editor__ia-boton { display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; padding: 0; border: 0; background: none; font-weight: 600; font-size: 14px; color: var(--color-text-brand); cursor: pointer; }
-.editor__ia-boton:hover { text-decoration: underline; }
+/* CCPIP-489: boton de 48 px que en movil parte su texto en vez de desbordar */
+.editor__ia .editor__ia-boton { align-self: flex-start; max-width: 100%; height: auto; min-height: 48px; white-space: normal; text-align: left; }
 .editor__ia-panel { display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: var(--radius-l); background: var(--color-bg-accent-subtle); }
 .editor__ia-titulo { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; color: var(--color-text-accent); }
 .editor__ia-texto { color: var(--color-text-primary); }

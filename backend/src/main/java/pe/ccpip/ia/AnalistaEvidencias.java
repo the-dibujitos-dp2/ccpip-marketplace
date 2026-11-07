@@ -12,9 +12,33 @@ import java.util.UUID;
  */
 public interface AnalistaEvidencias {
 
-    /** Lo que se declara de cada evidencia vigente. El formato es PDF, JPG o PNG. */
+    /**
+     * Lo que se declara de cada evidencia vigente. El formato es PDF, JPG o PNG. CCPIP-491: {@code pdf} es el
+     * archivo cuando es un PDF que se pudo leer del almacenamiento (nulo si no), para que el modelo corrobore
+     * su contenido contra lo declarado.
+     */
     record Evidencia(UUID id, String tipo, String titulo, String emisor, LocalDate vigenteDesde,
-                     LocalDate vigenteHasta, String formato) {
+                     LocalDate vigenteHasta, String formato, byte[] pdf) {
+
+        public Evidencia(UUID id, String tipo, String titulo, String emisor, LocalDate vigenteDesde,
+                         LocalDate vigenteHasta, String formato) {
+            this(id, tipo, titulo, emisor, vigenteDesde, vigenteHasta, formato, null);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof Evidencia e && id.equals(e.id) && java.util.Arrays.equals(pdf, e.pdf);
+        }
+
+        @Override
+        public int hashCode() {
+            return id.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "Evidencia[" + id + ", " + tipo + ", " + titulo + ", pdf=" + (pdf == null ? 0 : pdf.length) + " bytes]";
+        }
     }
 
     record Solicitud(String producto, String organizacion, LocalDate hoy, List<Evidencia> evidencias) {

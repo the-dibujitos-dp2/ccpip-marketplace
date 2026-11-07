@@ -5,14 +5,15 @@ import iconoCheck from '../../assets/icons/check-circulo.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import iconoProhibido from '../../assets/icons/prohibido.svg'
 import iconoReloj from '../../assets/icons/reloj.svg'
-import { aprobarModeracion, expedienteModeracion, rechazarModeracion } from '../../api/moderacion.js'
+import { aprobarModeracion, expedienteModeracion, habilitarReintento, rechazarModeracion } from '../../api/moderacion.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
+import Campo from '../../components/Campo.jsx'
 import Icono from '../../components/Icono.jsx'
 import LayoutAdmin from '../../components/layout/LayoutAdmin.jsx'
 import { diaMes, fechaCorta, precio, unidades } from '../../formato.js'
-import { traducirFaltante } from '../../i18n/errores.js'
+import { mensajeError, traducirFaltante } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import { BadgeAutorizacion } from './ModeracionPage.jsx'
 import { CabeceraSolicitud, CampoMotivo, DialogoDecision, FilaEvidencia, SinExpediente, useDecision } from './revision.jsx'
@@ -28,8 +29,8 @@ const RECARGAR_SI = ['MODERACION_YA_RESUELTA', 'OFERTA_NO_APROBABLE']
  * CCPIP-46 (RF-21): el expediente de una oferta que el productor pide publicar. El sub administrador ve
  * la oferta como se publicaria, su autorizacion de venta con las evidencias vigentes (que no se decide
  * aqui) y las solicitudes anteriores. Aprueba con motivo (CCPIP-331) si la oferta cumple todo lo de la
- * lista, o la rechaza con motivo (CCPIP-332), que el productor ve. No hay pantalla en Figma: sigue el
- * formato de S-02.
+ * lista, o la rechaza con motivo (CCPIP-332), que el productor ve. Tras el tercer rechazo habilita con
+ * motivo un nuevo intento (CCPIP-493). No hay pantalla en Figma: sigue el formato de S-02.
  */
 export default function ExpedienteModeracionPage({ path, id }) {
   const { t } = useTranslation()
@@ -144,11 +145,79 @@ export default function ExpedienteModeracionPage({ path, id }) {
           ) : (
             <p className="body-s">{t(`moderacion.expediente.resuelta.${exp.estado}`)}</p>
           )}
+          {exp.limite && (exp.limite.rechazos > 0 || exp.limite.reintentos.length > 0) && (
+            <LimiteRechazos id={id} limite={exp.limite} alHabilitar={(nuevo) => {
+              setExp(nuevo)
+              decision.setAviso({ tono: 'exito', titulo: t('moderacion.expediente.limite.hecho') })
+            }} />
+          )}
         </aside>
       </div>
 
       <DialogoDecision decision={decision} producto={oferta.nombre} organizacion={exp.productor.organizacion} />
     </LayoutAdmin>
+  )
+}
+
+/**
+ * CCPIP-493: cuantos rechazos lleva la oferta frente al maximo. Al llegar a el, el productor ya no puede
+ * volver a enviarla y el sub administrador habilita un nuevo intento con motivo, que reinicia la cuenta.
+ */
+function LimiteRechazos({ id, limite, alHabilitar }) {
+  const { t } = useTranslation()
+  const [motivo, setMotivo] = useState('')
+  const [error, setError] = useState(null)
+  const [enviando, setEnviando] = useState(false)
+
+  async function habilitar() {
+    if (!motivo.trim()) {
+      setError(t('moderacion.expediente.limite.errorMotivo'))
+      return
+    }
+    setEnviando(true)
+    try {
+      alHabilitar(await habilitarReintento(id, motivo.trim()))
+      setMotivo('')
+      setError(null)
+    } catch (e) {
+      setError(mensajeError(e, 'moderacion.expediente.limite.error'))
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  return (
+    <section className="expediente__limite" aria-labelledby="moderacion-limite">
+      <div className="expediente__titulo-seccion">
+        <h3 id="moderacion-limite" className="label-m">{t('moderacion.expediente.limite.titulo')}</h3>
+        <Badge tono={limite.bloqueada ? 'error' : 'neutro'}>
+          {t('moderacion.expediente.limite.cuenta', { rechazos: limite.rechazos, maximo: limite.maximo })}
+        </Badge>
+      </div>
+      {limite.bloqueada && <p className="body-s">{t('moderacion.expediente.limite.bloqueada')}</p>}
+      {limite.puedeHabilitar && (
+        <>
+          <Campo tipo="area" etiqueta={t('moderacion.expediente.limite.motivo')} ayuda={t('moderacion.expediente.limite.motivoAyuda')}
+            error={error} value={motivo} maxLength={500} onChange={(e) => setMotivo(e.target.value)} />
+          <Boton tipo="secundario" tamano="M" anchoCompleto onClick={habilitar} cargando={enviando} disabled={enviando}>
+            {t('moderacion.expediente.limite.habilitar')}
+          </Boton>
+        </>
+      )}
+      {limite.reintentos.length > 0 && (
+        <>
+          <h4 className="caption">{t('moderacion.expediente.limite.reintentos')}</h4>
+          <ul className="expediente__historial">
+            {limite.reintentos.map((r) => (
+              <li key={r.id}>
+                <span className="body-s">«{r.motivo}»</span>
+                <span className="caption">{t('moderacion.expediente.limite.habilitadoPor', { nombre: r.habilitadoPor, fecha: diaMes(r.habilitadoEn) })}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
   )
 }
 

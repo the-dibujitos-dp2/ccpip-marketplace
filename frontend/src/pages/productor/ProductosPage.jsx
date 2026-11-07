@@ -30,7 +30,9 @@ import './ProductosPage.css'
 const ESTADOS = ['PUBLICADO', 'EN_MODERACION', 'BORRADOR', 'RETIRADO']
 
 function badge(fila, t) {
-  // CCPIP-332: la Camara no publico la oferta; el motivo se ve al editarla
+  // CCPIP-492: la autorizacion rechazada va primero, porque impide vender
+  if (fila.alerta === 'AUTORIZACION_RECHAZADA') return <Badge tono="error">{t('productor.productos.badge.autorizacionRechazada')}</Badge>
+  // CCPIP-332: la Camara no publico la oferta
   if (fila.alerta === 'PUBLICACION_RECHAZADA') return <Badge tono="error">{t('productor.productos.badge.rechazada')}</Badge>
   if (fila.estado === 'BORRADOR') return <Badge tono="neutro">{t('productor.productos.badge.borrador')}</Badge>
   if (fila.estado === 'RETIRADO') return <Badge tono="neutro">{t('productor.productos.badge.despublicado')}</Badge>
@@ -39,6 +41,22 @@ function badge(fila, t) {
   if (fila.alerta === 'SIN_STOCK') return <Badge tono="error">{t('productor.productos.badge.sinStock')}</Badge>
   if (fila.alerta === 'STOCK_BAJO') return <Badge tono="error">{t('productor.productos.badge.stockBajo')}</Badge>
   return <Badge tono="exito">{t('productor.productos.badge.publicado')}</Badge>
+}
+
+/** CCPIP-492: por que se rechazo y donde se corrige, sin entrar a "Certificaciones y revisiones". */
+function Rechazo({ fila, t }) {
+  if (!fila.motivo) return null
+  const autorizacion = fila.alerta === 'AUTORIZACION_RECHAZADA'
+  return (
+    <span className="productos__rechazo">
+      <span className="caption productos__motivo" title={fila.motivo} aria-label={`${t('productor.productos.motivoDe', { nombre: fila.nombre })}: ${fila.motivo}`}>
+        {fila.motivo}
+      </span>
+      <Enlace to={autorizacion ? `${RUTAS.productorProductos}/${fila.id}/evidencias` : `${RUTAS.productorProductos}/${fila.id}`} className="caption productos__corregir">
+        {t(autorizacion ? 'productor.productos.corregirCertificados' : 'productor.productos.corregirPublicacion')}
+      </Enlace>
+    </span>
+  )
 }
 
 function ubicaciones(stock, t) {
@@ -193,7 +211,7 @@ export default function ProductosPage({ path, search }) {
                 <span className="tabla__celda productos__col-venta">{t('comun.und', { cantidad: unidades(f.enVenta) })}</span>
                 <span className="tabla__celda productos__col-modalidad">{t(`modalidad.${f.modalidad}`)}</span>
                 <span className="tabla__celda productos__col-ubicacion">{ubicaciones(f.stock, t)}</span>
-                <span className="tabla__celda productos__col-estado">{badge(f, t)}</span>
+                <span className="tabla__celda productos__col-estado">{badge(f, t)}<Rechazo fila={f} t={t} /></span>
                 <span className="tabla__celda productos__col-acciones">
                   <Enlace to={`${RUTAS.productorProductos}/${f.id}`} className="productos__icono-boton" aria-label={t('productor.productos.editar', { nombre: f.nombre })}>
                     <Icono src={iconoEditar} tamano={18} />

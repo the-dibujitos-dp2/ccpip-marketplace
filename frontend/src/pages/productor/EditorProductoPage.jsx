@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { listarEvidencias, solicitarAutorizacion } from '../../api/autorizaciones.js'
 import { crearProducto, editarProducto, listarLotes, obtenerProducto, publicarProducto } from '../../api/productor.js'
 import { useTiendaActual } from '../../api/tiendaActual.js'
 import Alerta from '../../components/Alerta.jsx'
@@ -11,6 +12,7 @@ import Pasos from '../../components/Pasos.jsx'
 import { esFaltanteDeTienda, mensajeError, traducirFaltante } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import { navigate, RUTAS } from '../../router.js'
+import { PanelCertificados } from './EvidenciasPage.jsx'
 import { FormularioLote, TablaLotes } from './Lotes.jsx'
 import PaginaProductor from './PaginaProductor.jsx'
 import PanelTraduccion from './PanelTraduccion.jsx'
@@ -19,14 +21,17 @@ import PasoHistoria from './PasoHistoria.jsx'
 import './productor.css'
 import './Editor.css'
 
-const CLAVES = ['datos', 'historia', 'lote']
+const CLAVES = ['datos', 'historia', 'certificados', 'lote']
+const LOTE = 3
 const ESTADO = {
   BORRADOR: ['neutro', 'borrador'], EN_MODERACION: ['info', 'enRevision'], PUBLICADO: ['exito', 'publicado'], RETIRADO: ['neutro', 'despublicado'],
 }
 
 /**
- * PW-04, PW-05 y PW-06 como un asistente de 3 pasos: datos, historia y primer lote. El mismo
- * asistente sirve para editar (CCPIP-47). El producto nace en borrador al primer guardado.
+ * PW-04, PW-05 y PW-06 como un asistente de 4 pasos: datos, historia, certificados (CCPIP-490) y primer
+ * lote. El mismo asistente sirve para editar (CCPIP-47). El producto nace en borrador al primer guardado.
+ * Al final, "Enviar solicitud" pide a la vez la autorizacion con los certificados y la publicacion
+ * (CCPIP-502); la Camara decide cada una por separado.
  */
 export default function EditorProductoPage({ path, id, search }) {
   const { t } = useTranslation()
@@ -35,6 +40,7 @@ export default function EditorProductoPage({ path, id, search }) {
   const paso = pasoUrl < 0 ? 0 : pasoUrl
   const [producto, setProducto] = useState(null)
   const [lotes, setLotes] = useState(null)
+  const [certificados, setCertificados] = useState(null)
   const [error, setError] = useState(null)
   const [publicando, setPublicando] = useState(false)
   const [alerta, setAlerta] = useState(null)
@@ -57,7 +63,10 @@ export default function EditorProductoPage({ path, id, search }) {
   }, [id, cargar])
 
   useEffect(() => {
-    if (id && paso === 2) listarLotes(id).then(setLotes).catch(() => setLotes(null))
+    if (id && paso === LOTE) {
+      listarLotes(id).then(setLotes).catch(() => setLotes(null))
+      listarEvidencias(id).then(setCertificados).catch(() => setCertificados(null))
+    }
   }, [id, paso])
 
   function irA(n, nuevoId = id) {
@@ -89,6 +98,15 @@ export default function EditorProductoPage({ path, id, search }) {
     setPublicando(true)
     setAlerta(null)
     try {
+      // CCPIP-502: la autorizacion sale con la publicacion si aun no se pidio
+      if (certificados?.puedeSolicitar) {
+        try {
+          setCertificados(await solicitarAutorizacion(id))
+        } catch (e) {
+          setAlerta({ tono: 'error', titulo: mensajeError(e, 'productor.editor.errorSolicitud') })
+          return
+        }
+      }
       await publicarProducto(id)
       // CCPIP-46: queda en revision de la Camara; la lista abre en esa pestana
       navigate(`${RUTAS.productorProductos}?estado=EN_MODERACION&enviado=1`)
@@ -135,11 +153,18 @@ export default function EditorProductoPage({ path, id, search }) {
         )}
       </div>
 
-      {alerta && paso !== 2 && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
-      {rechazada(producto) && (
+      {alerta && paso !== LOTE && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
+      {rechazada(producto) && (producto.moderacion.bloqueada ? (
+        // CCPIP-493: al tercer rechazo solo el subadministrador habilita un nuevo intento
+        <Alerta tono="error" titulo={t('productor.editor.bloqueada', { maximo: producto.moderacion.maximoRechazos })}
+          descripcion={t('productor.editor.bloqueadaTexto', { maximo: producto.moderacion.maximoRechazos, motivo: producto.moderacion.motivo })} />
+      ) : (
         <Alerta tono="error" titulo={t('productor.editor.rechazada')}
-          descripcion={t('productor.editor.rechazadaTexto', { motivo: producto.moderacion.motivo })} />
-      )}
+          descripcion={[
+            t('productor.editor.rechazadaTexto', { motivo: producto.moderacion.motivo }),
+            producto.moderacion.maximoRechazos != null && t('productor.editor.intentosRestantes', { count: producto.moderacion.maximoRechazos - producto.moderacion.rechazos }),
+          ].filter(Boolean).join(' ')} />
+      ))}
 
       {paso === 0 && (
         <PasoDatos
@@ -167,6 +192,16 @@ export default function EditorProductoPage({ path, id, search }) {
       )}
 
       {paso === 2 && producto && (
+        <section className="editor__certificados" aria-label={t('productor.editor.pasos.certificados')}>
+          <PanelCertificados productoId={producto.id} conSolicitar={false} />
+          <div className="editor__botones">
+            <Boton tipo="terciario" onClick={() => irA(1)}>{t('productor.historia.atras')}</Boton>
+            <Boton onClick={() => irA(LOTE)}>{t('productor.editor.certificados.siguiente')}</Boton>
+          </div>
+        </section>
+      )}
+
+      {paso === LOTE && producto && (
         <div className="editor__lote">
           <div className="editor__lote-columna">
             <FormularioLote
@@ -189,11 +224,15 @@ export default function EditorProductoPage({ path, id, search }) {
               {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
               {producto.estado === 'PUBLICADO' && <p className="body-s">{t('productor.editor.enCatalogo')}</p>}
               {producto.estado === 'EN_MODERACION' && <p className="body-s">{t('productor.editor.enRevision')}</p>}
-              {(producto.estado === 'BORRADOR' || producto.estado === 'RETIRADO') && (producto.publicable.listo ? (
+              {producto.moderacion?.bloqueada && (producto.estado === 'BORRADOR' || producto.estado === 'RETIRADO') && (
+                <p className="body-s">{t('productor.editor.bloqueada', { maximo: producto.moderacion.maximoRechazos })}</p>
+              )}
+              {(producto.estado === 'BORRADOR' || producto.estado === 'RETIRADO') && !producto.moderacion?.bloqueada && (producto.publicable.listo && certificadosListos(certificados) ? (
                 <>
                   <p className="body-s">{t('productor.editor.todoListo')}</p>
+                  {certificados?.puedeSolicitar && <p className="caption">{t('productor.editor.enviarSolicitudAyuda')}</p>}
                   <Boton onClick={publicar} cargando={publicando}>
-                    {publicando ? t('productor.editor.publicando') : producto.estado === 'RETIRADO' ? t('productor.productos.volverPublicar') : t('productor.panel.publicarProducto')}
+                    {publicando ? t('productor.editor.publicando') : producto.estado === 'RETIRADO' ? t('productor.productos.volverPublicar') : t('productor.editor.enviarSolicitud')}
                   </Boton>
                 </>
               ) : (
@@ -203,7 +242,11 @@ export default function EditorProductoPage({ path, id, search }) {
                     {producto.publicable.faltan.map((f) => (
                       <li key={f}>{traducirFaltante(f)}</li>
                     ))}
+                    {!certificadosListos(certificados) && <li>{t('productor.editor.faltaCertificados')}</li>}
                   </ul>
+                  {!certificadosListos(certificados) && (
+                    <Boton tipo="secundario" tamano="M" onClick={() => irA(2)}>{t('productor.editor.irCertificados')}</Boton>
+                  )}
                   {producto.publicable.faltan.some(esFaltanteDeTienda) && (
                     <Boton tipo="secundario" tamano="M" to={RUTAS.productorTienda}>{t('productor.editor.irTienda')}</Boton>
                   )}
@@ -218,6 +261,17 @@ export default function EditorProductoPage({ path, id, search }) {
       )}
     </PaginaProductor>
   )
+}
+
+/**
+ * CCPIP-490: la oferta se envia con sus certificados. Basta con que ya este autorizada o en revision, o
+ * que tenga al menos una evidencia para pedir la autorizacion. Mientras no se sabe, no se bloquea: el
+ * servidor vuelve a validar.
+ */
+function certificadosListos(certificados) {
+  if (!certificados) return true
+  const { estado } = certificados.autorizacion
+  return certificados.puedeSolicitar || estado === 'APROBADA' || estado === 'SOLICITADA'
 }
 
 /** El titulo de la tarjeta de publicacion segun el estado de la oferta (CCPIP-46). */

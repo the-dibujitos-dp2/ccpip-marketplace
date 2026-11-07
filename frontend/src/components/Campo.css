@@ -22,8 +22,10 @@
   color: var(--color-text-primary);
 }
 
+/* CCPIP-503: Firefox baja la opacidad del placeholder a ~0.54; con 1 se mantiene el contraste AA (5.4:1) */
 .campo__control::placeholder {
   color: var(--color-text-tertiary);
+  opacity: 1;
 }
 
 /* Foco: borde verde de 2px. Se compensa el padding para que el texto no salte. */

@@ -457,6 +457,45 @@ class EvidenciasRevisionTest extends IntegrationTest {
                 .andExpect(jsonPath("$.decisiones[0].conAnalisis").value(false));
     }
 
+    @Test
+    void ccpip491ElAnalisisRecibeElPdfDeCadaCertificadoYNoLasImagenes() throws Exception {
+        String pdf = json(subir(productor, miel, PDF, "c.pdf", "CERTIFICADO", "Certificado de miel", "Control Unión", EN_UN_ANIO))
+                .get("id").asText();
+        String foto = json(subir(productor, miel, Imagenes.jpg(20, 20), "f.jpg", "EVIDENCIA", "Fotos", null, null))
+                .get("id").asText();
+        long solicitud = solicitud(miel);
+        RevisionService objetivo = AopTestUtils.getTargetObject(revision);
+        AnalistaEvidencias original = (AnalistaEvidencias) ReflectionTestUtils.getField(objetivo, "analista");
+        java.util.concurrent.atomic.AtomicReference<AnalistaEvidencias.Solicitud> recibida = new java.util.concurrent.atomic.AtomicReference<>();
+        ReflectionTestUtils.setField(objetivo, "analista", new AnalistaEvidencias() {
+            @Override
+            public Analisis analizar(Solicitud s) {
+                recibida.set(s);
+                return new Analisis(Recomendacion.REVISAR, "Capturado", java.util.List.of());
+            }
+
+            @Override
+            public String proveedor() {
+                return "captura";
+            }
+
+            @Override
+            public boolean simulado() {
+                return true;
+            }
+        });
+        try {
+            mockMvc.perform(post("/api/admin/autorizaciones/{id}/analisis", solicitud).cookie(subAdmin))
+                    .andExpect(status().isOk());
+        } finally {
+            ReflectionTestUtils.setField(objetivo, "analista", original);
+        }
+        var porId = recibida.get().evidencias().stream()
+                .collect(java.util.stream.Collectors.toMap(e -> e.id().toString(), e -> e));
+        assertThat(porId.get(pdf).pdf()).isEqualTo(PDF);
+        assertThat(porId.get(foto).pdf()).isNull();
+    }
+
     // --- Apoyo ---
 
     private ResultActions subir(Cookie cookie, long producto, byte[] contenido, String nombre, String tipo, String titulo,

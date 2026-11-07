@@ -50,6 +50,7 @@ const EXP = {
   faltan: [],
   puedeDecidir: true,
   puedeAprobar: true,
+  limite: { rechazos: 0, maximo: 3, bloqueada: false, puedeHabilitar: false, reintentos: [] },
 }
 
 const comoSub = (rutas = {}) =>
@@ -275,6 +276,57 @@ describe('CCPIP-46 Moderación de publicaciones', () => {
     expect(anterior.getByText('Hoy se ve en la tienda «Cosecha de cacao 2025». Si apruebas, este lo reemplaza.')).toBeInTheDocument()
     expect(anterior.getByLabelText('Cosecha de cacao 2025')).toHaveAttribute('src', '/api/videos/4')
     expect(screen.getByText(/Reemplazo$/)).toBeInTheDocument()
+  })
+
+  it('CCPIP-493: al tercer rechazo habilita con motivo un nuevo intento', async () => {
+    const rechazo = (id, motivo) => ({ ...EXP.historial[0], id, estado: 'RECHAZADA', motivo, decididaPor: 'Lucía Paredes', decididaEn: '2026-10-26T15:00:00Z' })
+    const bloqueada = {
+      ...copia(EXP), estado: 'RECHAZADA', puedeDecidir: false, puedeAprobar: false,
+      historial: [rechazo(7, 'Tercera'), rechazo(6, 'Segunda'), rechazo(5, 'Primera')],
+      limite: { rechazos: 3, maximo: 3, bloqueada: true, puedeHabilitar: true, reintentos: [] },
+    }
+    const habilitada = {
+      ...bloqueada,
+      limite: { rechazos: 0, maximo: 3, bloqueada: false, puedeHabilitar: false, reintentos: [{ id: 1, motivo: 'Cambió las fotos', habilitadoPor: 'Lucía Paredes', habilitadoEn: '2026-10-27T15:00:00Z' }] },
+    }
+    const fetchMock = comoSub({
+      [`GET ${EXPEDIENTE}`]: () => [200, copia(bloqueada)],
+      [`POST ${EXPEDIENTE}/reintento`]: () => [200, copia(habilitada)],
+    })
+    const user = userEvent.setup()
+    abrirEn('/admin/moderacion/7')
+    const d = await decision()
+    expect(d.getByText('3 de 3 rechazos')).toBeInTheDocument()
+    expect(d.getByText(/llegó al máximo y ya no puede volver a enviar/)).toBeInTheDocument()
+
+    // Sin motivo no se habilita
+    await user.click(d.getByRole('button', { name: 'Habilitar nuevo intento' }))
+    expect(d.getByText('Indica el motivo para habilitar el nuevo intento')).toBeInTheDocument()
+    expect(llamadas(fetchMock, `POST ${EXPEDIENTE}/reintento`)).toHaveLength(0)
+
+    await user.type(d.getByLabelText('Motivo para habilitar un nuevo intento'), 'Cambió las fotos')
+    await user.click(d.getByRole('button', { name: 'Habilitar nuevo intento' }))
+    expect(await screen.findByText('Habilitaste un nuevo intento. El productor ya puede volver a enviar la oferta.')).toBeInTheDocument()
+    const [[, opciones]] = llamadas(fetchMock, `POST ${EXPEDIENTE}/reintento`)
+    expect(JSON.parse(opciones.body)).toEqual({ motivo: 'Cambió las fotos' })
+    const despues = await decision()
+    expect(despues.getByText('0 de 3 rechazos')).toBeInTheDocument()
+    expect(despues.queryByRole('button', { name: 'Habilitar nuevo intento' })).not.toBeInTheDocument()
+    expect(despues.getByText('«Cambió las fotos»')).toBeInTheDocument()
+  })
+
+  it('CCPIP-493: si el servidor no lo habilita, dice por qué', async () => {
+    const bloqueada = { ...copia(EXP), estado: 'RECHAZADA', puedeDecidir: false, limite: { rechazos: 3, maximo: 3, bloqueada: true, puedeHabilitar: true, reintentos: [] } }
+    comoSub({
+      [`GET ${EXPEDIENTE}`]: () => [200, bloqueada],
+      [`POST ${EXPEDIENTE}/reintento`]: () => [409, { code: 'REINTENTO_NO_NECESARIO', error: 'Esta oferta no llegó al máximo de rechazos: el productor ya puede volver a enviarla.' }],
+    })
+    const user = userEvent.setup()
+    abrirEn('/admin/moderacion/7')
+    const d = await decision()
+    await user.type(d.getByLabelText('Motivo para habilitar un nuevo intento'), 'Ok')
+    await user.click(d.getByRole('button', { name: 'Habilitar nuevo intento' }))
+    expect(await d.findByText(/no llegó al máximo de rechazos/)).toBeInTheDocument()
   })
 
   it('el superadministrador no modera', async () => {

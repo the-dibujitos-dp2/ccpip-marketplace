@@ -212,7 +212,9 @@ class ModeracionTest extends IntegrationTest {
                 .andExpect(jsonPath("$.moderacion.estado").value("RECHAZADA"))
                 .andExpect(jsonPath("$.moderacion.motivo").value("Las fotos no muestran el producto que se vende."));
         mockMvc.perform(get("/api/productor/productos").param("estado", "RETIRADO").cookie(productor))
-                .andExpect(jsonPath("$.items[?(@.id == %d)].alerta".formatted(oferta)).value("PUBLICACION_RECHAZADA"));
+                .andExpect(jsonPath("$.items[?(@.id == %d)].alerta".formatted(oferta)).value("PUBLICACION_RECHAZADA"))
+                // CCPIP-492: el motivo tambien se ve en la lista
+                .andExpect(jsonPath("$.items[?(@.id == %d)].motivo".formatted(oferta)).value("Las fotos no muestran el producto que se vende."));
         mockMvc.perform(get("/api/productos/{id}", oferta)).andExpect(status().isNotFound());
         assertThat(jdbc.queryForObject("SELECT accion FROM producto_auditoria WHERE producto_id = ? ORDER BY id DESC LIMIT 1",
                 String.class, oferta)).isEqualTo("MODERACION");
