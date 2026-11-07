@@ -102,6 +102,38 @@ describe('Auditoría de operaciones sensibles (CCPIP-97)', () => {
     expect(llamadas(fetchMock, `GET ${RUTA}?${PERIODO}&usuario=ana&rol=CONSUMIDOR&accion=PAGO&resultado=RECHAZADO`)).toHaveLength(1)
   })
 
+  it('CCPIP-504: muestra la operación del punto de acopio y del distribuidor y filtra por movimiento', async () => {
+    const operacion = {
+      ...copia(AUDITORIA), total: 3, acciones: ['ENTREGA_ASUMIDA', 'MOVIMIENTO_ENTRADA', 'PEDIDO_EN_PREPARACION'],
+      registros: [
+        { clave: 'MI-9', fecha: '2026-10-29T15:00:00Z', usuarioId: 3, usuario: 'Admin Acopio', correo: 'admin_acopio@ccpip.test',
+          rol: 'ADMIN_PUNTO', accion: 'MOVIMIENTO_ENTRADA', entidad: 'MOVIMIENTO', entidadId: 9,
+          detalle: 'Miel de abeja nativa · lote L-01 · 3 und · Centro Nacional Lima', resultado: 'EXITOSA' },
+        { clave: 'PH-5', fecha: '2026-10-29T14:00:00Z', usuarioId: 3, usuario: 'Admin Acopio', correo: 'admin_acopio@ccpip.test',
+          rol: 'ADMIN_PUNTO', accion: 'PEDIDO_EN_PREPARACION', entidad: 'PEDIDO', entidadId: 40, detalle: 'CCPIP-000040', resultado: 'EXITOSA' },
+        { clave: 'EA-2', fecha: '2026-10-29T13:00:00Z', usuarioId: 8, usuario: 'Distribuidor de Prueba', correo: 'distribuidor@ccpip.test',
+          rol: 'DISTRIBUIDOR', accion: 'ENTREGA_ASUMIDA', entidad: 'PEDIDO', entidadId: 40, detalle: 'CCPIP-000040', resultado: 'EXITOSA' },
+      ],
+    }
+    const soloMovimiento = { ...copia(operacion), total: 1, registros: [copia(operacion.registros[0])] }
+    const fetchMock = comoSuper({
+      [`GET ${RUTA}`]: [200, operacion],
+      [`GET ${RUTA}?${PERIODO}&entidad=MOVIMIENTO`]: [200, soloMovimiento],
+    })
+    const user = userEvent.setup()
+    abrirEn('/admin/auditoria')
+    const [movimiento, preparo, asumio] = await filas()
+    expect(within(movimiento).getByText('Registró entrada de inventario')).toBeInTheDocument()
+    expect(within(movimiento).getByText('Movimiento de inventario')).toBeInTheDocument()
+    expect(within(movimiento).getByText('Miel de abeja nativa · lote L-01 · 3 und · Centro Nacional Lima')).toBeInTheDocument()
+    expect(within(preparo).getByText('Preparó pedido')).toBeInTheDocument()
+    expect(within(asumio).getByText('Tomó entrega')).toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('Entidad'), 'Movimiento de inventario')
+    expect(await filas()).toHaveLength(1)
+    expect(llamadas(fetchMock, `GET ${RUTA}?${PERIODO}&entidad=MOVIMIENTO`)).toHaveLength(1)
+  })
+
   it('pagina en el servidor', async () => {
     const pagina2 = { ...copia(AUDITORIA), pagina: 1, total: 30, totalPaginas: 2, registros: [copia(AUDITORIA.registros[3])] }
     const fetchMock = comoSuper({

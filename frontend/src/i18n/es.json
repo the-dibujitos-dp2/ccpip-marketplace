@@ -4820,7 +4820,7 @@
       "PRODUCTO_RETIRAR": "Retiró producto",
       "PRODUCTO_REPUBLICAR": "Republicó producto",
       "PRODUCTO_HISTORIA": "Cambió historia del producto",
-      "PRODUCTO_LOTE": "Registró lote",
+      "PRODUCTO_LOTE": "Registró o editó lote",
       "PRODUCTO_IMAGEN": "Cambió imagen del producto",
       "PRODUCTO_EVIDENCIA": "Subió evidencia del producto",
       "PRODUCTO_AUTORIZACION": "Cambió autorización del producto",
@@ -4837,7 +4837,25 @@
       "TARIFA_ENVIO": "Fijó una tarifa de envío",
       "CAPACIDAD_ENTREGA": "Cambió la capacidad de entrega",
       "COBERTURA_ACTIVADA": "Activó una zona de cobertura",
-      "COBERTURA_DESACTIVADA": "Desactivó una zona de cobertura"
+      "COBERTURA_DESACTIVADA": "Desactivó una zona de cobertura",
+      "MOVIMIENTO_ENTRADA": "Registró entrada de inventario",
+      "MOVIMIENTO_SALIDA": "Registró salida de inventario",
+      "MOVIMIENTO_TRANSFERENCIA_ENTRADA": "Recibió transferencia",
+      "MOVIMIENTO_TRANSFERENCIA_SALIDA": "Envió transferencia",
+      "MOVIMIENTO_AJUSTE": "Ajustó inventario",
+      "MOVIMIENTO_MERMA": "Registró merma",
+      "PEDIDO_PENDIENTE_PAGO": "Dejó pedido pendiente de pago",
+      "PEDIDO_CONFIRMADO": "Confirmó pedido",
+      "PEDIDO_EN_PREPARACION": "Preparó pedido",
+      "PEDIDO_LISTO_PARA_RECOJO": "Dejó pedido listo para recojo",
+      "PEDIDO_LISTO_PARA_DESPACHO": "Dejó pedido listo para despacho",
+      "PEDIDO_EN_CAMINO": "Despachó pedido",
+      "PEDIDO_ENTREGADO": "Entregó pedido",
+      "PEDIDO_CANCELADO": "Canceló pedido",
+      "ENTREGA_ASUMIDA": "Tomó entrega",
+      "ENTREGA_RETIRADA": "Retiró pedido del punto",
+      "PRODUCTO_MALOGRADO_REEMPLAZO": "Reemplazó producto malogrado",
+      "PRODUCTO_MALOGRADO_FALTANTE": "Registró producto malogrado sin reemplazo"
     },
     "entidad": {
       "AUTORIZACION": "Autorización",
@@ -4853,7 +4871,8 @@
       "PERMISO": "Permiso",
       "TARIFA_ENVIO": "Tarifa de envío",
       "CAPACIDAD_ENTREGA": "Capacidad de entrega",
-      "COBERTURA_ENTREGA": "Zona de cobertura"
+      "COBERTURA_ENTREGA": "Zona de cobertura",
+      "MOVIMIENTO": "Movimiento de inventario"
     },
     "resultado": {
       "EXITOSA": "Exitosa",
