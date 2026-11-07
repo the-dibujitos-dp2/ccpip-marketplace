@@ -21,6 +21,7 @@ export const quitarDelCarrito = async (productoId) =>
 // para no consultar el carrito en cada una; quien lo cambia avisa con recargarUnidadesCarrito().
 let unidades = null
 const oyentes = new Set()
+let versionUnidades = 0
 
 function publicar(valor) {
   unidades = valor
@@ -29,8 +30,9 @@ function publicar(valor) {
 
 /** Vuelve a pedir el carrito y actualiza la cabecera. */
 export function recargarUnidadesCarrito() {
+  const version = versionUnidades
   return consultarCarrito()
-    .then((c) => publicar(Number(c.unidades)))
+    .then((c) => { if (version === versionUnidades) publicar(Number(c.unidades)) })
     .catch(() => {})
 }
 
@@ -41,6 +43,7 @@ export function fijarUnidadesCarrito(valor) {
 
 /** Al cerrar sesion: la siguiente sesion parte de cero. */
 export function olvidarUnidadesCarrito() {
+  versionUnidades += 1
   publicar(null)
 }
 
