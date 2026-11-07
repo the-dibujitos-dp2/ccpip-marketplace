@@ -4999,5 +4999,11 @@
     "referencial": "Mapa referencial. Abre la dirección para ver cómo llegar.",
     "comoLlegar": "Cómo llegar en Google Maps",
     "nuevaPestana": "(se abre en otra pestaña)"
+  },
+  "mapaRuta": {
+    "plano": "Mapa referencial de la ruta: sale de {{salida}} y llega a {{llegada}}",
+    "salida": "Salida",
+    "destino": "Entrega",
+    "verRuta": "Ver la ruta en Google Maps"
   }
 }

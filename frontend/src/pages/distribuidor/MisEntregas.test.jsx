@@ -49,6 +49,31 @@ function reparto(entregas, respuestas = {}) {
 const comoDistribuidor = (rutas) => ({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_DISTRIBUIDOR], ...rutas })
 const tarjeta = (numero) => screen.getByRole('article', { name: new RegExp(`^${numero} ·`) })
 
+describe('CCPIP-499 mapa con el destino en las ubicaciones', () => {
+  it('muestra la salida y la entrega en un mapa y abre la ruta aparte', async () => {
+    const rutas = reparto([entrega('MC-11003', 'Surco', '150140', 'RETIRADA')])
+    rutas['GET /api/distribuidor/pedidos/MC-11003/ubicaciones'] = () => [200, {
+      numero: 'MC-11003',
+      origen: { id: 1, nombre: 'Centro Nacional Lima', distrito: 'Lima', direccion: 'Sede central CCPIP' },
+      destino: { territorio: { ubigeo: '150140', departamento: 'Lima', provincia: 'Lima', distrito: 'Surco' }, direccion: 'Av. Primavera 120', referencia: null },
+    }]
+    servidor(comoDistribuidor(rutas))
+    const user = userEvent.setup()
+    abrirEn('/distribuidor/entregas')
+    await user.click(within(await screen.findByRole('article', { name: /^MC-11003/ })).getByRole('button', { name: 'Ver ubicaciones' }))
+    const dialogo = within(await screen.findByRole('dialog'))
+    expect(await dialogo.findByRole('img', {
+      name: 'Mapa referencial de la ruta: sale de Centro Nacional Lima, Sede central CCPIP, Lima y llega a Av. Primavera 120, Surco, Lima',
+    })).toBeInTheDocument()
+    const ruta = dialogo.getByRole('link', { name: 'Ver la ruta en Google Maps (se abre en otra pestaña)' })
+    expect(ruta).toHaveAttribute('target', '_blank')
+    const url = new URL(ruta.getAttribute('href'))
+    expect(url.origin + url.pathname).toBe('https://www.google.com/maps/dir/')
+    expect(url.searchParams.get('origin')).toBe('Sede central CCPIP, Lima, Perú')
+    expect(url.searchParams.get('destination')).toBe('Av. Primavera 120, Surco, Lima, Lima, Perú')
+  })
+})
+
 describe('CCPIP-110 ubicaciones', () => {
   it('consulta y muestra ubicaciones registradas, referencia opcional, errores reintentables y limpia al cambiar pedido', async () => {
     const rutas = reparto([entrega('MC-11001', 'Lince', '150116', 'ASIGNADA'), entrega('MC-11002', 'Surco', '150140', 'ASIGNADA')])

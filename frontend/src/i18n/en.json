@@ -4999,5 +4999,11 @@
     "referencial": "Reference map. Open the address to get directions.",
     "comoLlegar": "Directions in Google Maps",
     "nuevaPestana": "(opens in a new tab)"
+  },
+  "mapaRuta": {
+    "plano": "Reference map of the route: leaves from {{salida}} and arrives at {{llegada}}",
+    "salida": "Departure",
+    "destino": "Delivery",
+    "verRuta": "See the route in Google Maps"
   }
 }
