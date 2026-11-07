@@ -18,3 +18,15 @@
 }
 
 .inicio__acciones { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.layout-tienda .inicio__panel {
+  border-color: var(--editorial-line);
+  border-radius: var(--editorial-radius-large);
+  background: var(--editorial-white);
+  box-shadow: none;
+}
+.layout-tienda .inicio__contenido :is(h1, h2) {
+  font-family: var(--editorial-serif);
+  font-weight: 400;
+  color: var(--editorial-ink);
+}

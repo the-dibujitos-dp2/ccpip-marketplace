@@ -64,7 +64,7 @@ function Detalle({ datos }) {
         {lineas.length === 0 ? (
           <p className="body-s">{t('admin.existencias.detalle.vacio')}</p>
         ) : (
-          <div className="tabla" role="table" aria-labelledby="existencias-punto-lineas">
+          <div className="tabla" role="table" aria-labelledby="existencias-punto-lineas" tabIndex={0}>
             <div className="tabla__fila tabla__fila--encabezado" role="row">
               <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('admin.existencias.col.linea')}</span>
               <span className="tabla__celda existencias__conteo" role="columnheader">{t('admin.existencias.col.productos')}</span>

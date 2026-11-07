@@ -129,7 +129,7 @@ export default function MovimientosPage({ path }) {
 function TablaMovimientos({ items }) {
   const { t } = useTranslation()
   return (
-    <div className="tabla tabla--espaciada">
+    <div className="tabla tabla--espaciada" tabIndex={0} role="region" aria-label={t('acopio.movimientos.lista')}>
       <div className="tabla__fila tabla__fila--encabezado" aria-hidden="true">
         <span className="tabla__celda movimientos__col-fecha">{t('acopio.movimientos.col.fecha')}</span>
         <span className="tabla__celda movimientos__col-hora">{t('comun.hora')}</span>

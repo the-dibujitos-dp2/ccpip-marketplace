@@ -1,5 +1,5 @@
 /* CCPIP-450: productos publicados por linea, desplegables */
-.lineas-publicadas { list-style: none; margin: 0; padding: 0; border: 1px solid var(--color-border-default); border-radius: 8px; }
+.lineas-publicadas { list-style: none; margin: 0; padding: 0; border: 1px solid var(--color-border-default); border-radius: var(--editorial-radius-large); }
 .lineas-publicadas__linea + .lineas-publicadas__linea { border-top: 1px solid var(--color-border-default); }
 .lineas-publicadas__fila { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; }
 .lineas-publicadas__alternar { display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none;
@@ -11,3 +11,16 @@
 .lineas-publicadas__cantidad { font-variant-numeric: tabular-nums; flex-shrink: 0; }
 .lineas-publicadas__productos { list-style: none; margin: 0; padding: 0 16px 12px calc(16px + 1em + 8px); display: flex; flex-direction: column; gap: 10px; }
 .lineas-publicadas__producto { display: flex; flex-direction: column; gap: 2px; }
+
+.layout-productor [aria-labelledby^='indicadores-'] > .productor__kpis {
+  border-block: 1px solid var(--editorial-line);
+  padding-block: 20px;
+}
+.layout-productor [aria-labelledby^='indicadores-'] > .productor__kpis > .tarjeta-kpi {
+  border: 0;
+  border-inline-end: 1px solid var(--editorial-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.layout-productor [aria-labelledby^='indicadores-'] > .productor__kpis > .tarjeta-kpi:last-child { border-inline-end: 0; }

@@ -1,5 +1,5 @@
 /* Reportes operativos — dirección editorial v2 */
-.reportes-productor__filtros, .reportes-acopio__filtros, .reportes__filtros { margin: 22px 0 28px; padding: 18px 0; border-block: 1px solid var(--color-border-default, #d9ded0); }
+.reportes-productor__filtros, .reportes-acopio__filtros, .reportes__filtros { margin: 22px 0 28px; padding: 18px 0; border-block: 1px solid var(--editorial-line); }
 .reportes-productor__filtros, .reportes-acopio__filtros, .reportes__filtros { row-gap: 18px; }
 .reportes-productor__filtros .campo, .reportes-acopio__filtros .campo, .reportes__filtros .campo { min-width: 150px; }
 .reportes-productor__exportar, .reportes-acopio__exportar, .reportes__exportar { align-self: end; }
@@ -30,7 +30,7 @@
 @media print {
   .reportes-productor__filtros, .reportes-acopio__filtros, .reportes__filtros { display: none !important; }
   .reportes-productor__filtros ~ .productor__kpis, .reportes-acopio__filtros ~ .productor__kpis, .reportes__filtros ~ .productor__kpis { break-inside: avoid; }
-  .tabla[role='table'] { overflow: visible; }
+  .layout-productor .layout-productor__contenido .tabla[role='table'] { overflow: visible; }
   .tabla__fila--encabezado { position: static !important; }
 }
 

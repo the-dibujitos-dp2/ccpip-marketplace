@@ -11,6 +11,7 @@ import './LayoutProductor.css'
 import '../../assets/editorial/fonts.css'
 import '../../assets/editorial/EditorialTokens.css'
 import './PanelEditorial.css'
+import './OperationalEditorial.css'
 
 /**
  * Estructura web de los paneles de gestion (productor PW, punto de acopio A): sidebar de 264 px

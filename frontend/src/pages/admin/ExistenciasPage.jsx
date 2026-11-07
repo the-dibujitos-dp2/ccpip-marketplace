@@ -57,7 +57,7 @@ function Resultado({ datos }) {
 
       <section className="productor__seccion" aria-labelledby="existencias-puntos">
         <h2 id="existencias-puntos" className="heading-h3">{t('admin.existencias.porPunto')}</h2>
-        <div className="tabla" role="table" aria-labelledby="existencias-puntos">
+        <div className="tabla" role="table" aria-labelledby="existencias-puntos" tabIndex={0}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('admin.existencias.col.punto')}</span>
             <span className="tabla__celda existencias__conteo" role="columnheader">{t('admin.existencias.col.productos')}</span>
@@ -89,7 +89,7 @@ function Resultado({ datos }) {
         {lineas.length === 0 ? (
           <p className="body-s">{t('admin.existencias.vacio')}</p>
         ) : (
-          <div className="tabla" role="table" aria-labelledby="existencias-lineas">
+          <div className="tabla" role="table" aria-labelledby="existencias-lineas" tabIndex={0}>
             <div className="tabla__fila tabla__fila--encabezado" role="row">
               <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('admin.existencias.col.linea')}</span>
               <span className="tabla__celda existencias__conteo" role="columnheader">{t('admin.existencias.col.productos')}</span>

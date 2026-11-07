@@ -6,6 +6,6 @@
 /* Tablas sin barra: las cifras parten mas angostas y se reparten el ancho disponible */
 .tabla-reporte__num--estrecha { flex: 1 0 92px; }
 .tabla-reporte__barra-celda { min-width: 120px; flex-basis: 120px; }
-.tabla-reporte__barra { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--color-bg-surface-alt); }
-.tabla-reporte__barra-0 { background: var(--color-bg-brand); }
-.tabla-reporte__barra-1 { background: var(--color-bg-accent); }
+.tabla-reporte__barra { display: flex; height: 8px; border-radius: 0; overflow: hidden; background: var(--editorial-sage); }
+.tabla-reporte__barra-0 { background: var(--editorial-forest); }
+.tabla-reporte__barra-1 { background: var(--editorial-seed); }

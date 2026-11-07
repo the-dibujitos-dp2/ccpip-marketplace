@@ -72,7 +72,7 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
 
       {!error && datos?.items.length > 0 && (
         <>
-          <div className="tabla tabla--espaciada" role="table" aria-label={titulo}>
+          <div className="tabla tabla--espaciada" role="table" aria-label={titulo} tabIndex={0}>
             <div className="tabla__fila tabla__fila--encabezado" role="row">
               <span className="tabla__celda merma__col-fecha" role="columnheader">{t('merma.lista.col.fecha')}</span>
               <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('merma.lista.col.producto')}</span>
