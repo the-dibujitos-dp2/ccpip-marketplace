@@ -1601,7 +1601,8 @@
       "motivosMerma": "Causas de merma",
       "miHistorial": "Mi historial",
       "tarifasEnvio": "Tarifas de envío",
-      "capacidadEntrega": "Capacidad de entrega"
+      "capacidadEntrega": "Capacidad de entrega",
+      "revisionesMerma": "Revisión de merma"
     },
     "permisos": {
       "titulo": "Permisos por rol"
@@ -2206,6 +2207,55 @@
         "vacio": "Indica la capacidad diaria",
         "formato": "Escribe un número entero de 1 a {{maximo}}"
       }
+    },
+    "revisionesMerma": {
+      "titulo": "Revisión de merma",
+      "intro": "Los puntos de acopio piden revisar una merma que registraron por error. Al aprobar, las unidades vuelven a su lote con un movimiento nuevo de corrección; la merma registrada no cambia.",
+      "pestana": {
+        "PENDIENTE": "Pendientes",
+        "APROBADA": "Aprobadas",
+        "RECHAZADA": "Rechazadas"
+      },
+      "vacio": {
+        "PENDIENTE": "No hay revisiones pendientes",
+        "APROBADA": "Aún no hay revisiones aprobadas",
+        "RECHAZADA": "Aún no hay revisiones rechazadas"
+      },
+      "errorCargar": "No pudimos cargar las revisiones de merma",
+      "col": {
+        "fecha": "Pedida",
+        "merma": "Merma",
+        "pedido": "Lo que pide el punto",
+        "estado": "Estado"
+      },
+      "merma": "Baja de {{cantidad}} · {{causa}} · {{fecha}}",
+      "devolver": "Devolver {{cantidad}} al lote",
+      "pidio": "Pidió {{nombre}}",
+      "estado": {
+        "PENDIENTE": "Pendiente",
+        "APROBADA": "Aprobada",
+        "RECHAZADA": "Rechazada"
+      },
+      "aprobar": "Aprobar",
+      "rechazar": "Rechazar",
+      "aprobarDe": "Aprobar la revisión del lote {{lote}}",
+      "rechazarDe": "Rechazar la revisión del lote {{lote}}",
+      "aprobarTitulo": "Aprobar la revisión del lote {{lote}}",
+      "rechazarTitulo": "Rechazar la revisión del lote {{lote}}",
+      "aprobarTexto": "El punto pide devolver {{cantidad}} de {{producto}} a su lote. Puedes aprobar esa cantidad o una menor.",
+      "rechazarTexto": "La merma queda como se registró y el inventario no cambia. El punto verá tu respuesta.",
+      "cantidad": "Unidades que vuelven al lote",
+      "respuesta": "Respuesta para el punto",
+      "respuestaOpcional": "Respuesta para el punto (opcional)",
+      "validacion": {
+        "cantidad": "Indica entre 1 y {{maximo}}",
+        "respuesta": "Explica al punto por qué se rechaza"
+      },
+      "errorResolver": "No pudimos resolver la revisión",
+      "aprobadaOk": "Revisión aprobada: las unidades volvieron al lote {{lote}}",
+      "rechazadaOk": "Revisión del lote {{lote}} rechazada",
+      "reintegradas": "Volvieron {{cantidad}} al lote",
+      "resolvio": "{{nombre}} · {{fecha}}"
     }
   },
   "sello": {
@@ -2632,7 +2682,11 @@
     "SIN_TARIFA_ENVIO": "Todavía no hay tarifa de envío para ese distrito. Elige el recojo en el punto de acopio.",
     "CAPACIDAD_AGOTADA": "Este punto de acopio ya no puede entregar más pedidos a domicilio hoy. Elige otro punto o el recojo.",
     "MAXIMO_RECHAZOS": "Esta oferta llegó al máximo de 3 rechazos. Pide al subadministrador que habilite un nuevo intento.",
-    "REINTENTO_NO_NECESARIO": "Esta oferta no llegó al máximo de rechazos: el productor ya puede volver a enviarla."
+    "REINTENTO_NO_NECESARIO": "Esta oferta no llegó al máximo de rechazos: el productor ya puede volver a enviarla.",
+    "REVISION_EXISTENTE": "Esta merma ya tiene una revisión pendiente o aprobada.",
+    "MERMA_AUTOMATICA": "La merma por vencimiento la registra el sistema: no se revisa.",
+    "REVISION_RESUELTA": "Esta revisión ya se resolvió.",
+    "SUPERA_LOTE": "Con esa cantidad el lote superaría lo que ingresó."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -3354,7 +3408,8 @@
       "DEVOLUCION_PRODUCTOR": "Devolución al productor",
       "PRODUCCION": "Cosecha o producción",
       "RETIRO_PRODUCTOR": "Retiro del productor",
-      "REINTEGRO_PEDIDO": "Reintegro del pedido para darlo de baja"
+      "REINTEGRO_PEDIDO": "Reintegro del pedido para darlo de baja",
+      "CORRECCION_MERMA": "Corrección de merma aprobada"
     },
     "validacion": {
       "lote": "Elige el lote",
@@ -4784,6 +4839,26 @@
         "sinResultados": "Ninguna merma coincide con los filtros",
         "sinResultadosTexto": "Cambia o limpia los filtros para ver más registros."
       }
+    },
+    "revision": {
+      "pedir": "Solicitar revisión",
+      "pedirDe": "Solicitar revisión de la merma del lote {{lote}}",
+      "titulo": "Revisar la merma del lote {{lote}}",
+      "intro": "Se dieron de baja {{cantidad}} de {{producto}}. Si se registraron por error, la Cámara revisa la merma y, si la aprueba, las unidades vuelven al lote.",
+      "cantidad": "Unidades que no debieron darse de baja",
+      "motivo": "Qué se registró por error",
+      "motivoEjemplo": "Por ejemplo: se marcaron 10 unidades en vez de 1 al digitar",
+      "aviso": "La merma registrada no se modifica. Si la Cámara aprueba, se registra un movimiento nuevo de corrección.",
+      "enviar": "Enviar solicitud",
+      "error": "No pudimos enviar la solicitud de revisión",
+      "pedida": "Solicitud de revisión enviada para el lote {{lote}}",
+      "pendiente": "Revisión pendiente",
+      "aprobada": "Corregida: vuelven {{cantidad}}",
+      "rechazada": "Revisión rechazada: {{respuesta}}",
+      "validacion": {
+        "cantidad": "Indica entre 1 y {{maximo}}",
+        "motivo": "Explica en al menos 10 caracteres qué se registró por error"
+      }
     }
   },
   "asistente": {
@@ -4912,7 +4987,10 @@
       "ENTREGA_ASUMIDA": "Tomó entrega",
       "ENTREGA_RETIRADA": "Retiró pedido del punto",
       "PRODUCTO_MALOGRADO_REEMPLAZO": "Reemplazó producto malogrado",
-      "PRODUCTO_MALOGRADO_FALTANTE": "Registró producto malogrado sin reemplazo"
+      "PRODUCTO_MALOGRADO_FALTANTE": "Registró producto malogrado sin reemplazo",
+      "REVISION_MERMA_SOLICITADA": "Pidió revisar una merma",
+      "REVISION_MERMA_APROBADA": "Aprobó la revisión de una merma",
+      "REVISION_MERMA_RECHAZADA": "Rechazó la revisión de una merma"
     },
     "entidad": {
       "AUTORIZACION": "Autorización",

@@ -48,3 +48,24 @@ export const modificarMotivo = (id, datos) => apiFetch(`${catalogo}/${idRuta(id)
 export const desactivarMotivo = (id) => apiFetch(`${catalogo}/${idRuta(id)}/desactivar`, { method: 'POST' })
 
 export const activarMotivo = (id) => apiFetch(`${catalogo}/${idRuta(id)}/activar`, { method: 'POST' })
+
+// ---------- CCPIP-120: revision de una merma registrada por error ----------
+
+/** El punto pide revisar una merma manual de sus puntos: { cantidad, motivo }. Pedirla no toca el inventario. */
+export const solicitarRevisionMerma = (mermaId, datos) =>
+  apiFetch(`/api/acopio/merma/${idRuta(mermaId)}/revision`, { method: 'POST', body: datos })
+
+/** Las revisiones de la merma de sus puntos, la mas reciente primero. */
+export const listarRevisionesPunto = () => apiFetch('/api/acopio/merma/revisiones')
+
+/** El subadministrador: las revisiones, pendientes primero; `estado` filtra (PENDIENTE, APROBADA, RECHAZADA). */
+export const listarRevisionesMerma = (estado) =>
+  apiFetch(`/api/admin/merma/revisiones${estado ? `?estado=${encodeURIComponent(estado)}` : ''}`)
+
+/** Aprueba: { cantidad, respuesta } (cantidad por defecto la pedida); las unidades vuelven al lote. */
+export const aprobarRevisionMerma = (id, datos) =>
+  apiFetch(`/api/admin/merma/revisiones/${idRuta(id)}/aprobar`, { method: 'POST', body: datos })
+
+/** Rechaza con una respuesta para el punto: { respuesta }. El inventario no cambia. */
+export const rechazarRevisionMerma = (id, datos) =>
+  apiFetch(`/api/admin/merma/revisiones/${idRuta(id)}/rechazar`, { method: 'POST', body: datos })

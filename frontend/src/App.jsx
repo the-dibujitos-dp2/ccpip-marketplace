@@ -9,6 +9,7 @@ import LayoutTienda from './components/layout/LayoutTienda.jsx'
 import CuentaPage from './pages/CuentaPage.jsx'
 import AccesoRestringidoPage from './pages/admin/AccesoRestringidoPage.jsx'
 import AutorizacionesPage from './pages/admin/AutorizacionesPage.jsx'
+import RevisionesMermaPage from './pages/admin/RevisionesMermaPage.jsx'
 import CatalogoMaestroPage from './pages/admin/CatalogoMaestroPage.jsx'
 import ComisionesPage from './pages/admin/ComisionesPage.jsx'
 import ComisionPage from './pages/admin/ComisionPage.jsx'
@@ -107,6 +108,7 @@ const delModuloSub = (path) =>
   path === RUTAS.adminAutorizaciones || RUTA_EXPEDIENTE.test(path) || path === RUTAS.adminProductores || RUTA_FICHA_PRODUCTOR.test(path)
   || path === RUTAS.adminMiHistorial || path === RUTAS.adminModeracion || RUTA_MODERACION.test(path)
   || path === RUTAS.adminModeracionVideos || RUTA_VIDEO.test(path) || path === RUTAS.adminCertificados
+  || path === RUTAS.adminRevisionesMerma
 
 /** CCPIP-84: denuncias contra productores; el sub administrador las gestiona y el super las consulta. */
 const deDenuncias = (path) => path === RUTAS.adminDenuncias || RUTA_DENUNCIAS_PRODUCTOR.test(path)
@@ -320,6 +322,7 @@ export default function App() {
     else if (RUTA_VIDEO.test(path)) pagina = <ExpedienteVideoPage path={RUTAS.adminModeracion} id={path.match(RUTA_VIDEO)[1]} />
     else if (path === RUTAS.adminProductores) pagina = <ProductoresPage path={path} />
     else if (path === RUTAS.adminCertificados) pagina = <CertificadosPage path={path} />
+    else if (path === RUTAS.adminRevisionesMerma) pagina = <RevisionesMermaPage path={path} />
     else if (RUTA_FICHA_PRODUCTOR.test(path)) pagina = <FichaProductorPage path={RUTAS.adminProductores} id={path.match(RUTA_FICHA_PRODUCTOR)[1]} />
     else if (path === RUTAS.adminDenuncias) pagina = <DenunciasAdminPage path={path} />
     else if (path === RUTAS.adminMiHistorial) pagina = <MiHistorialPage path={path} />
