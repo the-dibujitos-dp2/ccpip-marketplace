@@ -40,3 +40,5 @@
   .mis-pedidos__cabecera, .mis-pedidos__fila { flex-wrap: wrap; }
   .mis-pedidos__fila-datos { flex-basis: 100%; }
 }
+/* CCPIP-501: el nombre de lo que se compro, debajo del numero */
+.mis-pedidos__productos { display: block; margin: 0 0 4px; font-weight: 600; color: var(--color-text-primary); }

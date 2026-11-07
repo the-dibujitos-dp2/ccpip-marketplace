@@ -15,6 +15,7 @@ import SelloOrigen from '../../components/SelloOrigen.jsx'
 import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { capital, fecha, mesAnio, precio, primeraOracion } from '../../formato.js'
+import { porUnidad, precioPorUnidad, unidadDeVenta } from '../../precioUnidad.js'
 import { RUTAS } from '../../router.js'
 import { desplazarHasta } from '../../desplazar.js'
 import { idiomaSegun, textoSegun } from '../../traduccion.js'
@@ -114,7 +115,7 @@ export default function ProductoPage({ id }) {
   const actual = imagenes[foto]
   const conMayorista = producto.modalidad !== 'MINORISTA'
   const conMinorista = producto.modalidad !== 'MAYORISTA'
-  const unidad = producto.contenido ?? producto.unidad?.nombre?.toLowerCase()
+  const unidad = producto.contenido || producto.unidad ? unidadDeVenta(t, producto) : null
   // CCPIP-134 (Figma CW-03c): desde el minimo el mayorista se aplica solo, aunque se haya elegido el minorista
   const activa = resolverTarifa(producto, cantidad).tarifa === 'MAYORISTA' ? 'MAYORISTA' : modo
   function elegirMinorista() {
@@ -200,7 +201,7 @@ export default function ProductoPage({ id }) {
             <div className="ficha__compra">
               <div className="ficha__precios" role={conMinorista && conMayorista ? 'radiogroup' : undefined} aria-label={t('producto.precioSegunModalidad')}>
                 {conMinorista && (
-                  <PrecioOpcion activo={activa === 'MINORISTA'} interactivo={conMayorista} onElegir={elegirMinorista} titulo={t('producto.precioMinorista')} monto={producto.precio} detalle={unidad ? t('producto.porUnidadDe', { unidad }) : t('producto.porUnidad')} />
+                  <PrecioOpcion activo={activa === 'MINORISTA'} interactivo={conMayorista} onElegir={elegirMinorista} titulo={t('producto.precioMinorista')} monto={producto.precio} detalle={porUnidad(t, producto)} />
                 )}
                 {conMayorista && (
                   <PrecioOpcion
@@ -209,7 +210,7 @@ export default function ProductoPage({ id }) {
                     onElegir={() => setModo('MAYORISTA')}
                     titulo={t('producto.precioMayorista')}
                     monto={producto.precioMayorista}
-                    detalle={t('producto.desdeUnidades', { count: producto.cantidadMinimaMayorista })}
+                    detalle={`${porUnidad(t, producto)} · ${t('producto.desdeUnidades', { count: producto.cantidadMinimaMayorista })}`}
                   />
                 )}
               </div>
@@ -326,7 +327,7 @@ export default function ProductoPage({ id }) {
                   </div>
                   <div>
                     <dt>{t('producto.volumen.precioUnidad')}</dt>
-                    <dd>{precio(producto.precioMayorista)}</dd>
+                    <dd>{precioPorUnidad(t, producto.precioMayorista, producto)}</dd>
                   </div>
                 </dl>
               </section>

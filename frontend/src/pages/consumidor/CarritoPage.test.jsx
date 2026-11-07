@@ -58,8 +58,9 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
     const filas = within(screen.getByRole('region', { name: 'Productos en tu carrito' })).getAllByRole('listitem')
     expect(filas).toHaveLength(2)
     expect(within(filas[0]).getByRole('link', { name: 'Aceite de aguaje 250 ml' })).toHaveAttribute('href', '/productos/8')
-    expect(within(filas[0]).getByText('mililitro · cosecha de setiembre 2026')).toBeInTheDocument()
-    expect(within(filas[0]).getByText('S/ 52.00 c/u')).toBeInTheDocument()
+    expect(within(filas[0]).getByText('cosecha de setiembre 2026')).toBeInTheDocument()
+    // CCPIP-494: el precio con su unidad de venta, como en la ficha
+    expect(within(filas[0]).getByText('S/ 52.00 por mililitro')).toBeInTheDocument()
     expect(within(filas[0]).getByLabelText('Cantidad de Aceite de aguaje 250 ml')).toHaveValue('14')
     expect(within(filas[0]).getByText('S/ 728.00')).toBeInTheDocument()
     // Sin foto del productor, cada oferta muestra la ilustracion de su linea (Figma CW-05)
@@ -81,7 +82,8 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
     servidor(conSesion(carrito))
     abrirEn('/carrito')
     const fila = (await screen.findByRole('link', { name: 'Aceite de aguaje 250 ml' })).closest('li')
-    expect(within(fila).getByText('mililitro')).toBeInTheDocument()
+    expect(within(fila).getByText('S/ 52.00 por mililitro')).toBeInTheDocument()
+    expect(within(fila).queryByText(/cosecha/)).not.toBeInTheDocument()
   })
 
   it('lo que ya no se puede comprar se marca, avisa y no cuenta en el resumen', async () => {
@@ -387,14 +389,14 @@ describe('CW-05 Tarifa mayorista en el carrito (CCPIP-134)', () => {
     abrirEn('/carrito')
     const cantidad = await screen.findByLabelText('Cantidad de Cacao en grano fermentado 1 kg')
     const fila = cantidad.closest('li')
-    expect(within(fila).getByText('S/ 42.00 c/u')).toBeInTheDocument()
-    expect(within(fila).getByText('Agrega 10 unidades más para acceder al precio mayorista (S/ 35.00 c/u)')).toBeInTheDocument()
+    expect(within(fila).getByText('S/ 42.00 por kilogramo')).toBeInTheDocument()
+    expect(within(fila).getByText('Agrega 10 unidades más para acceder al precio mayorista (S/ 35.00 por kilogramo)')).toBeInTheDocument()
     expect(within(fila).getByText('2 de 12 und · el precio cambia solo al llegar al mínimo que definió C.N. Yarina')).toBeInTheDocument()
 
     // Un solo cambio: borrar y teclear bajo carga puede cruzarse con la espera antes de guardar
     fireEvent.change(cantidad, { target: { value: '12' } })
-    expect(await within(fila).findByText('S/ 35.00 c/u · precio mayorista')).toBeInTheDocument()
-    expect(within(fila).getByText('Precio mayorista aplicado: S/ 35.00 c/u')).toBeInTheDocument()
+    expect(await within(fila).findByText('S/ 35.00 por kilogramo · precio mayorista')).toBeInTheDocument()
+    expect(within(fila).getByText('Precio mayorista aplicado: S/ 35.00 por kilogramo')).toBeInTheDocument()
     expect(within(fila).getByText('Ahorras S/ 84.00 frente al precio minorista')).toBeInTheDocument()
     expect(within(fila).getByText('S/ 420.00')).toBeInTheDocument()
     expect(within(fila).queryByText(/para acceder al precio mayorista/)).not.toBeInTheDocument()
