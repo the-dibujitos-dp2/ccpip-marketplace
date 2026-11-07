@@ -16,7 +16,9 @@ import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import TarjetaTienda from '../../components/TarjetaTienda.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { RUTAS } from '../../router.js'
+import '../../assets/editorial/fonts.css'
 import './InicioPage.css'
+import fotoArtesana from '../../assets/editorial/artesana.jpg'
 
 const VALORES = [
   { icono: iconoArbol, clave: 'deforestacion' },
@@ -31,6 +33,7 @@ const PERIODOS = ['ULTIMOS_30_DIAS', 'ULTIMOS_3_MESES', 'ESTE_ANIO']
 /** CW-01: inicio de la tienda web. */
 export default function InicioPage() {
   const { t, i18n } = useTranslation()
+  const { t: te } = useTranslation('editorial')
   const [datos, setDatos] = useState(null)
   const [error, setError] = useState(false)
   const [pestana, setPestana] = useState('destacados')
@@ -59,11 +62,7 @@ export default function InicioPage() {
               </Boton>
             </div>
           </div>
-          <div className="hero__mosaico" aria-hidden="true">
-            <ImagenProducto linea="CACAO" className="hero__img hero__img--alta" />
-            <ImagenProducto linea="SUPERFRUTOS" className="hero__img" />
-            <ImagenProducto linea="COMUNIDAD" className="hero__img" />
-          </div>
+          <img className="hero__fotografia" src={fotoArtesana} alt={te('fotoArtesana')} />
         </section>
 
         <ul className="valores" aria-label={t('inicio.valores.etiqueta')}>

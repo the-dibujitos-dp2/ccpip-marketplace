@@ -69,3 +69,18 @@
 @media (max-width: 720px) {
   .mas-vendidos__periodo { width: 100%; }
 }
+
+/* CCPIP-127: identidad editorial acotada a la tienda y sus vistas. */
+.layout-tienda { --consumer-paper:#f7f5ee; --consumer-forest:#163d2c; --consumer-ink:#193529; --consumer-seed:#ebc66b; --consumer-muted:#5b665a; --consumer-line:#d9ded0; background:var(--consumer-paper); color:var(--consumer-ink); }
+.layout-tienda .hero { position:relative; isolation:isolate; display:flex; min-height:620px; align-items:flex-end; overflow:hidden; padding:64px max(7vw,24px); border-radius:0; background:var(--consumer-forest); color:#fff; }
+.layout-tienda .inicio-tienda { max-width:none; padding:0 0 72px; gap:56px; }
+.layout-tienda .hero__fotografia { position:absolute; z-index:-2; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 38%; }
+.layout-tienda .hero::after { position:absolute; z-index:-1; inset:0; content:""; background:linear-gradient(0deg,rgba(13,37,26,.82),rgba(13,37,26,.05) 78%); }
+.layout-tienda .hero__texto { max-width:820px; }
+.layout-tienda .hero__titulo { max-width:800px; font-family:Fraunces,Georgia,serif; font-size:clamp(54px,6.12vw,88px); font-weight:400; line-height:.99; letter-spacing:-1.8px; }
+.layout-tienda .hero__descripcion { max-width:680px; }
+.layout-tienda .hero__acciones .boton--acento { background:var(--consumer-seed); color:#193529; border-color:var(--consumer-seed); }
+.layout-tienda .valores,.layout-tienda .seccion,.layout-tienda .mayorista { margin-inline:auto; width:min(1200px,calc(100% - 48px)); }
+.layout-tienda .valor { border-radius:2px; background:#e4e9d9; }
+.layout-tienda .mayorista { border-radius:3px; }
+@media(max-width:600px) { .layout-tienda .hero { min-height:620px; padding:36px 24px; } .layout-tienda .hero__titulo { font-size:clamp(48px,13vw,64px); line-height:1; } }

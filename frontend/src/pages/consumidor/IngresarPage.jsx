@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import '../../assets/editorial/fonts.css'
 import { useTranslation } from 'react-i18next'
 import { login } from '../../api/auth.js'
 import { ApiError } from '../../api/http.js'

@@ -5,6 +5,8 @@ import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import en from './en.json'
 import es from './es.json'
+import editorialEs from './editorial/es.json'
+import editorialEn from './editorial/en.json'
 
 export const IDIOMAS = ['es', 'en']
 export const IDIOMA_POR_DEFECTO = 'es'
@@ -41,7 +43,7 @@ export function localeFechas() {
 }
 
 i18n.use(initReactI18next).init({
-  resources: { es: { translation: es }, en: { translation: en } },
+  resources: { es: { translation: es, editorial: editorialEs }, en: { translation: en, editorial: editorialEn } },
   lng: idiomaGuardado() ?? IDIOMA_POR_DEFECTO,
   fallbackLng: IDIOMA_POR_DEFECTO,
   supportedLngs: IDIOMAS,
