@@ -4,6 +4,9 @@ import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
 import { abrirPestana, copia, DATOS, llamadas, panel, PUBLICAS, servidor, SESION, SESION_ACOPIO } from '../../test/servidor.js'
 
+/** CCPIP-497: los cambios de estado se confirman en un dialogo */
+const confirmarAccion = (user) => user.click(screen.getByRole('button', { name: 'Confirmar' }))
+
 function abrirEn(ruta) {
   window.history.replaceState(null, '', ruta)
   return render(<App />)
@@ -42,6 +45,7 @@ const comoAcopio = (rutas = {}) => ({
 /** El boton de salida esta en la pestana "En preparacion", que se abre primero. */
 async function registrarSalida(user) {
   await user.click((await abrirPestana(user, 'En preparación')).getByRole('button', { name: BOTON }))
+  await confirmarAccion(user)
 }
 
 describe('A-05 Salida de un pedido a domicilio (CCPIP-320)', () => {
