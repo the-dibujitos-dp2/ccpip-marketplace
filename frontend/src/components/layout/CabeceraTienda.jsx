@@ -10,7 +10,7 @@ import BarraConfianza from '../BarraConfianza.jsx'
 import Enlace from '../Enlace.jsx'
 import Giro from '../Giro.jsx'
 import Icono from '../Icono.jsx'
-import Logotipo from '../Logotipo.jsx'
+import MarcaEditorial from './MarcaEditorial.jsx'
 import './CabeceraTienda.css'
 
 /**
@@ -60,7 +60,7 @@ export default function CabeceraTienda({ user, onCerrarSesion, cerrando, termino
       <BarraConfianza />
       <div className="cabecera-tienda__principal contenedor">
         <Enlace to={RUTAS.catalogo} className="cabecera-tienda__marca" aria-label={t('marca.irAlInicio')}>
-          <Logotipo />
+          <MarcaEditorial className="consumer-editorial-logo" />
         </Enlace>
         <form className="cabecera-tienda__busqueda" role="search" onSubmit={buscar}>
           <Icono src={iconoBuscar} tamano={20} />

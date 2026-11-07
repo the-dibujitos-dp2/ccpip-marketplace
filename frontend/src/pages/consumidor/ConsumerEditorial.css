@@ -1,0 +1,39 @@
+@import url('../../assets/editorial/fonts.css');
+/* Consumer-only editorial system. */
+.layout-tienda, .ingresar { --consumer-paper:#f7f5ee; --consumer-white:#fffef9; --consumer-forest:#163d2c; --consumer-deep:#102c21; --consumer-seed:#ebc66b; --consumer-ink:#193529; --consumer-muted:#5b665a; --consumer-line:#d9ded0; --consumer-sage:#e4e9d9; --consumer-serif:'Fraunces',Georgia,serif; --consumer-sans:'DM Sans',Arial,sans-serif; color:var(--consumer-ink); background:var(--consumer-paper); font-family:var(--consumer-sans); }
+.layout-tienda :is(h1,h2,h3),.ingresar :is(h1,h2,h3) { font-family:var(--consumer-serif);font-weight:400;letter-spacing:-.025em }
+.layout-tienda :is(button,input,select),.ingresar :is(button,input,select) { font-family:var(--consumer-sans) }
+.layout-tienda :is(input,select,textarea),.ingresar :is(input,select,textarea) { border-radius:2px }
+.layout-tienda :focus-visible,.ingresar :focus-visible { outline:2px solid #8a6421;outline-offset:4px }
+.layout-tienda .cabecera-tienda { background:var(--consumer-paper) }
+.layout-tienda .barra-confianza { min-height:31px }
+.layout-tienda .cabecera-tienda__principal { min-height:91px }
+.layout-tienda .cabecera-tienda__lineas { background:var(--consumer-paper);border-color:var(--consumer-line) }
+.layout-tienda .pie { background:var(--consumer-deep) }
+.layout-tienda .contenedor { max-width:1440px }
+.consumer-editorial-logo { display:block;width:116px;height:auto }
+.consumer-editorial-logo--inverse { filter:brightness(0) invert(1) }
+.consumer-editorial-credits { padding:10px 0;color:#bdccb7;font-size:11px }
+.consumer-editorial-credits summary { cursor:pointer;text-decoration:underline;text-underline-offset:3px }
+.consumer-editorial-credits p { max-width:760px;margin-top:7px;line-height:1.5 }
+.layout-tienda :is(.tarjeta-producto,.producto-card,.carrito-resumen,.cuenta-panel) { border-radius:2px }
+.layout-tienda .inicio-tienda { display:flex;flex-direction:column;gap:56px;max-width:none;padding:0 0 72px }
+.layout-tienda .hero { position:relative;isolation:isolate;display:flex;min-height:620px;align-items:flex-end;overflow:hidden;padding:64px max(7vw,24px);border-radius:0;background:var(--consumer-forest);color:#fff }
+.layout-tienda .hero__fotografia { position:absolute;z-index:-2;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 38% }
+.layout-tienda .hero::after { position:absolute;z-index:-1;inset:0;content:"";background:linear-gradient(0deg,rgba(13,37,26,.82),rgba(13,37,26,.05) 78%) }
+.layout-tienda .hero__texto { max-width:820px }
+.layout-tienda .hero__titulo { max-width:800px;font-size:clamp(54px,6.12vw,88px);line-height:.99 }
+.layout-tienda .hero__descripcion { max-width:680px }
+.layout-tienda .hero__acciones .boton--acento { background:var(--consumer-seed);color:var(--consumer-ink);border-color:var(--consumer-seed) }
+.layout-tienda .valores,.layout-tienda .seccion,.layout-tienda .mayorista { margin-inline:auto;width:min(1200px,calc(100% - 48px)) }
+.layout-tienda .valor { border-radius:2px;background:var(--consumer-sage) }
+.layout-tienda .mayorista { border-radius:3px }
+.ingresar { min-height:100vh;grid-template-columns:51% 49%;background:var(--consumer-paper) }
+.ingresar__marca { position:relative;isolation:isolate;background:#163d2c }
+.ingresar__marca::before { background:linear-gradient(0deg,rgba(13,37,26,.83),rgba(13,37,26,.13)) }
+.ingresar__titular { font-family:var(--consumer-serif);font-size:43px;font-weight:400;line-height:1.08 }
+.ingresar__formulario-zona { background:var(--consumer-paper) }
+.ingresar__tarjeta { max-width:430px }
+@media(max-width:860px) { .layout-tienda .cabecera-tienda__principal{min-height:78px}.ingresar{grid-template-columns:minmax(0,1fr)}.ingresar__marca{min-height:263px;padding:14px 24px}.ingresar__retrato{display:block;width:100%;height:185px;object-fit:cover;object-position:center 38%}.ingresar__mensaje{display:none} }
+@media(min-width:861px) { .ingresar__retrato{position:absolute;inset:0;z-index:-2;width:100%;height:100%;object-fit:cover;object-position:center 42%} }
+@media(max-width:600px) { .layout-tienda .hero{min-height:620px;padding:36px 24px}.layout-tienda .hero__titulo{font-size:clamp(48px,13vw,64px);line-height:1} }

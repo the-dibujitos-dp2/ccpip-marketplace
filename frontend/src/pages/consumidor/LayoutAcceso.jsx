@@ -2,10 +2,12 @@ import { useTranslation } from 'react-i18next'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import Enlace from '../../components/Enlace.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
-import Logotipo from '../../components/Logotipo.jsx'
+import MarcaEditorial from '../../components/layout/MarcaEditorial.jsx'
 import SelectorIdioma from '../../components/SelectorIdioma.jsx'
 import { RUTAS } from '../../router.js'
 import './IngresarPage.css'
+import './ConsumerEditorial.css'
+import retrato from '../../assets/editorial/retrato.jpg'
 
 /**
  * Marco de las pantallas de acceso (CW-08 y CW-14): la marca a la izquierda y el formulario a
@@ -16,8 +18,9 @@ export default function LayoutAcceso({ bajada, etiqueta, children }) {
   return (
     <div className="ingresar">
       <aside className="ingresar__marca">
+        <img className="ingresar__retrato" src={retrato} alt={t('editorial:fotoArtesana')} />
         <Enlace to={RUTAS.catalogo} aria-label={t('marca.irAlInicio')} className="ingresar__logo">
-          <Logotipo inverso />
+          <MarcaEditorial className="consumer-editorial-logo consumer-editorial-logo--inverse" />
         </Enlace>
         <div className="ingresar__mensaje">
           <p className="ingresar__titular">{t('ingresar.titular')}</p>
