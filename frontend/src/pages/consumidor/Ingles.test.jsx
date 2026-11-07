@@ -58,7 +58,7 @@ describe('Tienda en inglés (CCPIP-98)', () => {
     })
     const user = userEvent.setup()
     abrirEn('/productos/1')
-    expect(await screen.findByText('From 12 units you pay S/ 35.00 each (wholesale price).')).toBeInTheDocument()
+    expect(await screen.findByText(/^From 12 units you pay S\/ 35\.00 per .+ \(wholesale price\)\.$/)).toBeInTheDocument()
     // CCPIP-411: el bloque del productor tambien en ingles
     const { tienda } = DATOS.detalle
     const productor = screen.getByRole('region', { name: 'Who makes it' })
@@ -69,7 +69,7 @@ describe('Tienda en inglés (CCPIP-98)', () => {
     const cantidad = screen.getByLabelText('Quantity')
     await user.clear(cantidad)
     await user.type(cantidad, '12')
-    expect(screen.getByText('Wholesale price applied: S/ 35.00 each')).toBeInTheDocument()
+    expect(screen.getByText(/^Wholesale price applied: S\/ 35\.00 per .+$/)).toBeInTheDocument()
     expect(screen.getByText('You save S/ 84.00 compared with the retail price')).toBeInTheDocument()
   })
 

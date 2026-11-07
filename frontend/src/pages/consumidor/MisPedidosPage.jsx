@@ -121,6 +121,20 @@ function Historial({ pedidos }) {
   )
 }
 
+/**
+ * CCPIP-501: "Aceite de aguaje 250 ml y 2 más": el pedido se reconoce por lo que se compro, sin abrirlo.
+ * Sin el nombre (una respuesta antigua) no muestra nada.
+ */
+function NombreProductos({ pedido, className }) {
+  const { t } = useTranslation()
+  if (!pedido.primerProducto) return null
+  return (
+    <span className={className}>
+      {t('misPedidos.nombreProductos', { nombre: pedido.primerProducto, mas: pedido.productos - 1, count: pedido.productos })}
+    </span>
+  )
+}
+
 /** "15 oct 2026 · 4 productos de 3 comunidades · S/ 92.50" */
 function Resumen({ pedido }) {
   const { t } = useTranslation()
@@ -147,6 +161,7 @@ function TarjetaPedido({ pedido }) {
       <header className="mis-pedidos__cabecera">
         <div>
           <h2 id={`pedido-${pedido.id}`} className="mis-pedidos__numero">{t('pedido.titulo', { numero: pedido.numero })}</h2>
+          <NombreProductos pedido={pedido} className="mis-pedidos__productos" />
           <Resumen pedido={pedido} />
         </div>
         <EstadoPedido estado={pedido.estado} />
@@ -194,6 +209,7 @@ function ListaPedidos({ pedidos }) {
           <li key={p.id} className="mis-pedidos__fila">
             <span className="mis-pedidos__fila-datos">
               <span className="label-m">{t('pedido.titulo', { numero: p.numero })}</span>
+              <NombreProductos pedido={p} className="body-s mis-pedidos__productos" />
               <span className="caption">
                 {p.estado === 'ENTREGADO' && entregado ? t('misPedidos.entregadoEl', { fecha: diaMes(entregado) }) : diaMes(p.creadoEn)}
                 {' · '}

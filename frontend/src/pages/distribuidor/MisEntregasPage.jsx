@@ -14,6 +14,7 @@ import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import LayoutDistribuidor from '../../components/layout/LayoutDistribuidor.jsx'
+import MapaRuta from '../../components/MapaRuta.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import { diaMesHora, hora } from '../../formato.js'
@@ -115,6 +116,13 @@ function DialogoUbicaciones({ numero, onCerrar }) {
             </dl>
           </section>
         </div>
+      )}
+      {/* CCPIP-499: el punto de salida y la direccion de entrega en un mapa, con la ruta para abrir aparte */}
+      {datos && (
+        <MapaRuta
+          origen={datos.origen}
+          destino={{ direccion: datos.destino.direccion, ...datos.destino.territorio }}
+        />
       )}
     </dialog>
   )

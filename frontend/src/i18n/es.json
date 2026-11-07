@@ -199,7 +199,19 @@
         "AGOTADO": "Agotado",
         "VENCIDO": "Vencido"
       },
-      "ubicacionPlaceholder": "Elige tu almacén o un punto de acopio"
+      "ubicacionPlaceholder": "Elige tu almacén o un punto de acopio",
+      "editar": {
+        "titulo": "Editar lote {{codigo}}",
+        "boton": "Editar",
+        "abrir": "Editar lote {{codigo}}",
+        "guardar": "Guardar cambios",
+        "guardando": "Guardando…",
+        "cancelar": "Cancelar",
+        "fijo": "Ingresaron {{inicial}} und y quedan {{actual}} und en {{lugar}}. La cantidad y el lugar no se editan: cambian con movimientos o transferencias.",
+        "vencido": "Este lote ya venció: su vencimiento no se puede cambiar.",
+        "guardado": "Lote {{codigo}} actualizado",
+        "error": "No pudimos guardar el lote"
+      }
     },
     "almacen": {
       "titulo": "Mi almacén",
@@ -1026,6 +1038,7 @@
     "rol": "Distribuidor",
     "migas": "Reparto",
     "nav": {
+      "inicio": "Inicio",
       "pedidos": "Pedidos disponibles",
       "entregas": "Mis entregas"
     },
@@ -1139,6 +1152,35 @@
       "enCaminoEn": "Salió en camino el {{fecha}}",
       "entregadaEn": "Lo entregaste el {{fecha}}",
       "momentos": "Momentos de la entrega {{numero}}"
+    },
+    "inicio": {
+      "titulo": "Inicio",
+      "cargando": "Cargando tu reparto…",
+      "error": "No pudimos cargar tu reparto",
+      "reintentar": "Reintentar",
+      "kpi": {
+        "disponibles": "Pedidos para tomar",
+        "disponiblesDetalle": "Listos en los puntos de acopio",
+        "verDisponibles": "Ver pedidos disponibles",
+        "porRetirar": "Por retirar",
+        "porRetirarDetalle": "Tomados, aún en el punto de acopio",
+        "enCamino": "En camino",
+        "enCaminoDetalle": "Retirados o en traslado",
+        "verEntregas": "Ver mis entregas",
+        "entregadas": "Entregados hoy",
+        "entregadasDetalle": "Entregas registradas hoy"
+      },
+      "siguiente": "Tu siguiente entrega",
+      "ruta": "De {{origen}} a {{destino}}",
+      "tomadaEn": "tomado el {{fecha}}",
+      "continuar": "Continuar en Mis entregas",
+      "sinEnCurso": "No tienes entregas en curso.",
+      "tomarPedidos": "Tomar pedidos",
+      "estado": {
+        "ASIGNADA": "Por retirar del punto",
+        "RETIRADA": "Retirado del punto",
+        "EN_CAMINO": "En camino al destino"
+      }
     }
   },
   "acopio": {
@@ -2796,7 +2838,7 @@
       "soloMayorista": "Este producto se vende solo por mayor: mínimo {{minimo}} und",
       "faltaParaAgregar_one": "Agrega {{count}} und más para poder agregarlo al carrito",
       "faltaParaAgregar_other": "Agrega {{count}} und más para poder agregarlo al carrito",
-      "desdeMayorista": "Desde {{minimo}} und pagas {{precio}} c/u (precio mayorista).",
+      "desdeMayorista": "Desde {{minimo}} und pagas {{precio}} (precio mayorista).",
       "resumenMinorista": "{{precio}} minorista",
       "resumenMayorista": "{{precio}} desde {{minimo}} und",
       "avisoLateral": "Agregaste «{{producto}}» al carrito",
@@ -2836,16 +2878,16 @@
     "noReservaTexto": "La disponibilidad se confirma al pagar y el stock se descuenta en ese momento.",
     "cosechaDe": "cosecha de {{mes}}",
     "deTienda": "de {{nombre}}",
-    "precioCadaUno": "{{precio}} c/u",
-    "precioMayoristaCadaUno": "{{precio}} c/u · precio mayorista",
+    "precioCadaUno": "{{precio}}",
+    "precioMayoristaCadaUno": "{{precio}} · precio mayorista",
     "mayorista": {
       "falta_one": "Agrega {{count}} unidad más para acceder al precio mayorista",
       "falta_other": "Agrega {{count}} unidades más para acceder al precio mayorista",
-      "faltaConPrecio_one": "Agrega {{count}} unidad más para acceder al precio mayorista ({{precio}} c/u)",
-      "faltaConPrecio_other": "Agrega {{count}} unidades más para acceder al precio mayorista ({{precio}} c/u)",
+      "faltaConPrecio_one": "Agrega {{count}} unidad más para acceder al precio mayorista ({{precio}})",
+      "faltaConPrecio_other": "Agrega {{count}} unidades más para acceder al precio mayorista ({{precio}})",
       "avance": "{{cantidad}} de {{minimo}} und · el precio cambia solo al llegar al mínimo",
       "avanceTienda": "{{cantidad}} de {{minimo}} und · el precio cambia solo al llegar al mínimo que definió {{tienda}}",
-      "aplicado": "Precio mayorista aplicado: {{precio}} c/u",
+      "aplicado": "Precio mayorista aplicado: {{precio}}",
       "ahorro": "Ahorras {{monto}} frente al precio minorista",
       "faltaParaComprar_one": "Agrega {{count}} und más para poder comprarlo",
       "faltaParaComprar_other": "Agrega {{count}} und más para poder comprarlo"
@@ -3111,7 +3153,9 @@
       "ENTREGADO": "Entregado",
       "CANCELADO": "Pedido cancelado",
       "EN_CAMINO": "En camino a tu domicilio"
-    }
+    },
+    "nombreProductos_one": "{{nombre}}",
+    "nombreProductos_other": "{{nombre}} y {{mas}} más"
   },
   "misDirecciones": {
     "titulo": "Mis direcciones",
@@ -5031,5 +5075,17 @@
     "referencial": "Mapa referencial. Abre la dirección para ver cómo llegar.",
     "comoLlegar": "Cómo llegar en Google Maps",
     "nuevaPestana": "(se abre en otra pestaña)"
+  },
+  "precioUnidad": {
+    "completo": "{{precio}} por {{unidad}}",
+    "sufijo": "por {{unidad}}",
+    "und": "{{cantidad}} und",
+    "unidad": "unidad"
+  },
+  "mapaRuta": {
+    "plano": "Mapa referencial de la ruta: sale de {{salida}} y llega a {{llegada}}",
+    "salida": "Salida",
+    "destino": "Entrega",
+    "verRuta": "Ver la ruta en Google Maps"
   }
 }

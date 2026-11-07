@@ -10,6 +10,7 @@ import ImagenProducto from '../../components/ImagenProducto.jsx'
 import MinimoMayorista from '../../components/MinimoMayorista.jsx'
 import SelectorCantidad from '../../components/SelectorCantidad.jsx'
 import { precio } from '../../formato.js'
+import { precioPorUnidad } from '../../precioUnidad.js'
 import { mensajeError } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import { navigate, RUTAS } from '../../router.js'
@@ -171,7 +172,7 @@ function AvisoTarifa({ producto, unidades, tarifa, modo, faltaParaAgregar }) {
     return (
       <MinimoMayorista
         estado="alcanzado"
-        titulo={t('carrito.mayorista.aplicado', { precio: precio(producto.precioMayorista) })}
+        titulo={t('carrito.mayorista.aplicado', { precio: precioPorUnidad(t, producto.precioMayorista, producto) })}
         detalle={t('carrito.mayorista.ahorro', { monto: precio(ahorro) })}
         cantidad={unidades}
         minimo={minimo}
@@ -189,7 +190,7 @@ function AvisoTarifa({ producto, unidades, tarifa, modo, faltaParaAgregar }) {
       />
     )
   }
-  return <p className="caption">{t('carrito.agregar.desdeMayorista', { minimo, precio: precio(producto.precioMayorista) })}</p>
+  return <p className="caption">{t('carrito.agregar.desdeMayorista', { minimo, precio: precioPorUnidad(t, producto.precioMayorista, producto) })}</p>
 }
 
 /** "C.N. Yarina · S/ 18.00 minorista · S/ 14.50 desde 24 und", como en CW-03b. */

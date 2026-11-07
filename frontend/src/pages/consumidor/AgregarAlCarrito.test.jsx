@@ -231,7 +231,7 @@ describe('CW-03c Tarifa mayorista en el panel de compra (CCPIP-134)', () => {
     servidor({ ...conSesion, ...ambas })
     const user = userEvent.setup()
     abrirEn('/productos/1')
-    expect(await screen.findByText('Desde 12 und pagas S/ 35.00 c/u (precio mayorista).')).toBeInTheDocument()
+    expect(await screen.findByText(/^Desde 12 und pagas S\/ 35\.00 por .+ \(precio mayorista\)\.$/)).toBeInTheDocument()
     const minorista = screen.getByRole('radio', { name: /Precio minorista/ })
     const mayorista = screen.getByRole('radio', { name: /Precio mayorista/ })
     expect(minorista).toHaveAttribute('aria-checked', 'true')
@@ -245,7 +245,7 @@ describe('CW-03c Tarifa mayorista en el panel de compra (CCPIP-134)', () => {
     expect(screen.getByText('Agrega 1 unidad más para acceder al precio mayorista')).toBeInTheDocument()
 
     await escribirCantidad(user, '12')
-    expect(screen.getByText('Precio mayorista aplicado: S/ 35.00 c/u')).toBeInTheDocument()
+    expect(screen.getByText(/^Precio mayorista aplicado: S\/ 35\.00 por .+$/)).toBeInTheDocument()
     expect(screen.getByText('Ahorras S/ 84.00 frente al precio minorista')).toBeInTheDocument()
     expect(screen.queryByText(/para acceder al precio mayorista/)).not.toBeInTheDocument()
 
@@ -253,7 +253,7 @@ describe('CW-03c Tarifa mayorista en el panel de compra (CCPIP-134)', () => {
     await user.click(minorista)
     expect(minorista).toHaveAttribute('aria-checked', 'true')
     expect(screen.getByLabelText('Cantidad')).toHaveValue('1')
-    expect(screen.getByText('Desde 12 und pagas S/ 35.00 c/u (precio mayorista).')).toBeInTheDocument()
+    expect(screen.getByText(/^Desde 12 und pagas S\/ 35\.00 por .+ \(precio mayorista\)\.$/)).toBeInTheDocument()
   })
 
   it('llegar al minimo con el selector marca el precio mayorista aunque se haya elegido el minorista', async () => {
