@@ -2,8 +2,8 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import App from '../../App.jsx'
-import ilustracionAceites from '../../assets/lineas/aceites.svg'
-import ilustracionCacao from '../../assets/lineas/cacao.svg'
+import ilustracionAceites from '../../assets/editorial/feria.jpg'
+import ilustracionCacao from '../../assets/editorial/home/cacao.webp'
 import { copia, DATOS, llamadas, PUBLICAS, servidor as servidorBase, SESION, SESION_PRODUCTOR, SIN_SESION } from '../../test/servidor.js'
 
 /**
