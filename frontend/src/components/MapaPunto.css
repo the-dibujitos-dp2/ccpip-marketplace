@@ -21,3 +21,13 @@
 .mapa-punto__pie .caption { color: var(--color-text-secondary); }
 .mapa-punto__enlace { font-weight: 600; font-size: 14px; color: var(--color-text-brand); }
 .mapa-punto__enlace:focus-visible { outline: 2px solid var(--color-border-focus); outline-offset: 2px; border-radius: 2px; }
+
+/* CCPIP-499: ruta del punto de acopio a la direccion de entrega */
+.mapa-ruta__trayecto { fill: none; stroke: var(--color-bg-brand); stroke-width: 4; stroke-dasharray: 8 6; stroke-linecap: round; stroke-linejoin: round; }
+.mapa-ruta__salida circle:first-child { fill: var(--color-text-secondary); stroke: var(--color-bg-surface); stroke-width: 2; }
+.mapa-ruta__leyenda { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
+.mapa-ruta__clave { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.mapa-ruta__nota { flex-basis: 100%; order: 3; }
+.mapa-ruta__marca { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.mapa-ruta__marca--salida { background: var(--color-text-secondary); }
+.mapa-ruta__marca--destino { background: var(--color-bg-brand); }

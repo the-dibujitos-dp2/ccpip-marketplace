@@ -5062,5 +5062,11 @@
     "sufijo": "por {{unidad}}",
     "und": "{{cantidad}} und",
     "unidad": "unidad"
+  },
+  "mapaRuta": {
+    "plano": "Mapa referencial de la ruta: sale de {{salida}} y llega a {{llegada}}",
+    "salida": "Salida",
+    "destino": "Entrega",
+    "verRuta": "Ver la ruta en Google Maps"
   }
 }

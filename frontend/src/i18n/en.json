@@ -5062,5 +5062,11 @@
     "sufijo": "per {{unidad}}",
     "und": "{{cantidad}} units",
     "unidad": "unit"
+  },
+  "mapaRuta": {
+    "plano": "Reference map of the route: leaves from {{salida}} and arrives at {{llegada}}",
+    "salida": "Departure",
+    "destino": "Delivery",
+    "verRuta": "See the route in Google Maps"
   }
 }
