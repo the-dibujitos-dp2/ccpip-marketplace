@@ -57,6 +57,8 @@ export const RUTAS = {
   // CCPIP-484: capacidad diaria de entregas a domicilio por punto
   adminCapacidadEntrega: '/admin/capacidad-entrega',
   adminMotivosMerma: '/admin/motivos-merma',
+  // CCPIP-120: revisiones de merma registrada por error, que resuelve el subadministrador
+  adminRevisionesMerma: '/admin/merma/revisiones',
   adminAutorizaciones: '/admin/autorizaciones',
   // CCPIP-46: moderacion de la publicacion de ofertas
   adminModeracion: '/admin/moderacion',

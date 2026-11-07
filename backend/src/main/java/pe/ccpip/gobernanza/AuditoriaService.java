@@ -131,6 +131,26 @@ public class AuditoriaService {
             JOIN pedido pe ON pe.id = ip.pedido_id
             JOIN item_pedido it ON it.id = ip.item_pedido_id
             JOIN producto pr ON pr.id = it.producto_id
+            UNION ALL
+            SELECT 'SR-' || sr.id, sr.registrada_en, sr.solicitante_id, 'REVISION_MERMA_SOLICITADA', 'MOVIMIENTO',
+                   sr.merma_movimiento_id,
+                   pr.nombre || ' · lote ' || l.codigo || ' · ' || trim(to_char(sr.cantidad, 'FM999999990.###')) || ' und',
+                   'EXITOSA'
+            FROM solicitud_revision_merma sr
+            JOIN merma m ON m.movimiento_id = sr.merma_movimiento_id
+            JOIN lote l ON l.id = m.lote_id
+            JOIN producto pr ON pr.id = l.producto_id
+            UNION ALL
+            SELECT 'RR-' || sr.id, sr.resuelta_en, sr.resuelta_por, 'REVISION_MERMA_' || sr.estado, 'MOVIMIENTO',
+                   sr.merma_movimiento_id,
+                   pr.nombre || ' · lote ' || l.codigo
+                       || coalesce(' · ' || trim(to_char(sr.cantidad_aprobada, 'FM999999990.###')) || ' und', ''),
+                   'EXITOSA'
+            FROM solicitud_revision_merma sr
+            JOIN merma m ON m.movimiento_id = sr.merma_movimiento_id
+            JOIN lote l ON l.id = m.lote_id
+            JOIN producto pr ON pr.id = l.producto_id
+            WHERE sr.resuelta_en IS NOT NULL
             """.formatted(HistorialGobernanzaService.ACCIONES);
 
     private static final String DESDE_REGISTROS = """

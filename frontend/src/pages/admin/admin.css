@@ -251,3 +251,13 @@
 .catalogo-maestro__solicitud p { margin: 0; }
 .catalogo-maestro__acciones-solicitud { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .catalogo-maestro__form { display: flex; flex-direction: column; gap: 16px; }
+
+/* CCPIP-120: revisiones de merma */
+.revisiones-merma__col-fecha { flex: 0 0 100px; }
+.revisiones-merma__col-estado { flex: 0 0 200px; }
+.revisiones-merma__bloque { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.revisiones-merma__bloque .caption { color: var(--color-text-secondary); display: flex; flex-direction: column; gap: 2px; }
+.revisiones-merma__acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.revisiones-merma__respuesta { color: var(--color-text-primary); }
+.revisiones-merma__dialogo { display: flex; flex-direction: column; gap: 12px; }
+.revisiones-merma__dialogo p { margin: 0; }

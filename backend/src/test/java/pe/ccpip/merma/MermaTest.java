@@ -61,6 +61,185 @@ class MermaTest extends IntegrationTest {
     @Autowired
     private MermaPorVencimiento automatica;
 
+    // --- CCPIP-120: revision de una merma registrada por error ---
+
+    private static final String SUB = "sub_admin@ccpip.test";
+
+    /** Una merma manual de {@code cantidad} en un lote nuevo de 10 und del punto de Lima. */
+    private long[] mermaEnLima(String nombre, String cantidad) throws Exception {
+        long producto = producto(nombre);
+        long punto = ubicacion("Centro Nacional Lima");
+        long lote = lote(producto, "L-RM-" + UUID.randomUUID().toString().substring(0, 8), punto, "10", HOY.plusDays(60));
+        marcar(loginAs(ADMIN), ACOPIO, cuerpo(lote, cantidad, causa("Daño"), null, true)).andExpect(status().isCreated());
+        long merma = jdbc.queryForObject("SELECT movimiento_id FROM merma WHERE lote_id = ?", Long.class, lote);
+        return new long[] {merma, lote, producto, punto};
+    }
+
+    private ResultActions pedirRevision(Cookie quien, long merma, Object cantidad, String motivo) throws Exception {
+        Map<String, Object> c = new HashMap<>();
+        c.put("cantidad", cantidad);
+        c.put("motivo", motivo);
+        return mockMvc.perform(post(ACOPIO + "/" + merma + "/revision").cookie(quien)
+                .contentType(MediaType.APPLICATION_JSON).content(json(c)));
+    }
+
+    private ResultActions resolver(Cookie quien, long revision, String accion, Map<String, Object> cuerpo) throws Exception {
+        return mockMvc.perform(post("/api/admin/merma/revisiones/" + revision + "/" + accion).cookie(quien)
+                .contentType(MediaType.APPLICATION_JSON).content(json(cuerpo)));
+    }
+
+    private long revisionDe(long merma) {
+        return contar("SELECT max(id) FROM solicitud_revision_merma WHERE merma_movimiento_id = ?", merma);
+    }
+
+    @Test
+    void ccpip120PedirLaRevisionNoTocaElInventarioYSoloHayUnaAbierta() throws Exception {
+        long[] m = mermaEnLima("Arroz revisión", "4");
+        Cookie admin = loginAs(ADMIN);
+        var loteAntes = jdbc.queryForList("SELECT * FROM lote WHERE id = ?", m[1]);
+        var stockAntes = stock(m[2], m[3]);
+        long movimientosAntes = contar("SELECT count(*) FROM movimiento_inventario WHERE lote_id = ?", m[1]);
+
+        pedirRevision(admin, m[0], "3", "Se registraron 4 en vez de 1 por error de digitación")
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.mermaId").value(m[0]))
+                .andExpect(jsonPath("$.estado").value("PENDIENTE"))
+                .andExpect(jsonPath("$.cantidad").value(3))
+                .andExpect(jsonPath("$.cantidadMerma").value(4))
+                .andExpect(jsonPath("$.solicitante").value("Administrador de Acopio de Prueba"))
+                .andExpect(jsonPath("$.punto").value("Centro Nacional Lima"));
+
+        assertThat(jdbc.queryForList("SELECT * FROM lote WHERE id = ?", m[1])).isEqualTo(loteAntes);
+        assertThat(stock(m[2], m[3])).isEqualByComparingTo(stockAntes);
+        assertThat(contar("SELECT count(*) FROM movimiento_inventario WHERE lote_id = ?", m[1])).isEqualTo(movimientosAntes);
+        mockMvc.perform(get(ACOPIO + "/revisiones").cookie(admin)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.mermaId == " + m[0] + ")].estado").value(hasItem("PENDIENTE")));
+
+        // Una sola abierta por merma; y nunca por mas de lo que se dio de baja ni sin explicar por que
+        pedirRevision(admin, m[0], "1", "Otra solicitud sobre la misma merma")
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("REVISION_EXISTENTE"));
+        long[] otra = mermaEnLima("Arroz revisión cantidad", "2");
+        pedirRevision(admin, otra[0], "3", "Más de lo que se dio de baja")
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("CANTIDAD_INVALIDA"));
+        pedirRevision(admin, otra[0], "0", "Cero unidades no tiene sentido")
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("CANTIDAD_INVALIDA"));
+        pedirRevision(admin, otra[0], "1", "corto")
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("MOTIVO_REQUERIDO"));
+    }
+
+    @Test
+    void ccpip120SoloElPuntoDeLaMermaPideRevisionYLaAutomaticaNoSeRevisa() throws Exception {
+        long[] m = mermaEnLima("Papa revisión alcance", "2");
+        jdbc.update("""
+                INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
+                SELECT 'admin_otro_punto_rm@ccpip.test', contrasena_hash, 'Admin de otro punto', rol_id, true
+                FROM usuario WHERE correo = ?""", ADMIN);
+        long otro = contar("SELECT id FROM usuario WHERE correo = 'admin_otro_punto_rm@ccpip.test'");
+        jdbc.update("INSERT INTO usuario_ubicacion (usuario_id, ubicacion_id) VALUES (?, ?)", otro, ubicacion("Centro Regional Loreto"));
+        pedirRevision(loginAs("admin_otro_punto_rm@ccpip.test"), m[0], "1", "No es de mi punto pero lo intento")
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("MERMA_NO_ENCONTRADA"));
+        mockMvc.perform(get(ACOPIO + "/revisiones").cookie(loginAs("admin_otro_punto_rm@ccpip.test"))).andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].mermaId", not(hasItem((int) m[0]))));
+        pedirRevision(loginAs(ADMIN), 987654321L, "1", "Una merma que no existe")
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("MERMA_NO_ENCONTRADA"));
+
+        for (String correo : new String[] {"consumidor@ccpip.test", PRODUCTOR, SUB, SUPER, "distribuidor@ccpip.test"}) {
+            pedirRevision(loginAs(correo), m[0], "1", "Un rol que no pide revisiones").andExpect(status().isForbidden());
+        }
+
+        long producto = producto("Leche revisión vencida");
+        long lote = lote(producto, "L-RMA-" + UUID.randomUUID().toString().substring(0, 8), ubicacion("Centro Nacional Lima"), "3", HOY.minusDays(1));
+        automatica.revisar();
+        long auto = jdbc.queryForObject("SELECT movimiento_id FROM merma WHERE lote_id = ? AND automatica", Long.class, lote);
+        pedirRevision(loginAs(ADMIN), auto, "1", "La merma por vencimiento fue un error")
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("MERMA_AUTOMATICA"));
+    }
+
+    @Test
+    void ccpip120AlAprobarLasUnidadesVuelvenAlLoteConUnMovimientoNuevoYLaMermaNoCambia() throws Exception {
+        long[] m = mermaEnLima("Café revisión aprobada", "5");
+        pedirRevision(loginAs(ADMIN), m[0], "4", "Se marcaron 5 pero solo se dañó 1").andExpect(status().isCreated());
+        long revision = revisionDe(m[0]);
+        var mermaAntes = jdbc.queryForList("SELECT * FROM merma WHERE movimiento_id = ?", m[0]);
+        var movMermaAntes = jdbc.queryForList("SELECT * FROM movimiento_inventario WHERE id = ?", m[0]);
+        BigDecimal saldoAntes = saldo(m[1]);
+        BigDecimal stockAntes = stock(m[2], m[3]);
+        Cookie sub = loginAs(SUB);
+
+        mockMvc.perform(get("/api/admin/merma/revisiones").param("estado", "PENDIENTE").cookie(sub)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + revision + ")].producto").value(hasItem(org.hamcrest.Matchers.startsWith("Café revisión aprobada"))));
+        // El punto no resuelve su propia revision
+        resolver(loginAs(ADMIN), revision, "aprobar", Map.of()).andExpect(status().isForbidden());
+        // Nunca mas de lo pedido
+        resolver(sub, revision, "aprobar", Map.of("cantidad", "5")).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("CANTIDAD_INVALIDA"));
+
+        resolver(sub, revision, "aprobar", Map.of("cantidad", "3", "respuesta", "Se comprobó con el conteo"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("APROBADA"))
+                .andExpect(jsonPath("$.cantidadAprobada").value(3))
+                .andExpect(jsonPath("$.respuesta").value("Se comprobó con el conteo"))
+                .andExpect(jsonPath("$.resueltaPor").isString());
+
+        assertThat(saldo(m[1])).isEqualByComparingTo(saldoAntes.add(new BigDecimal("3")));
+        assertThat(stock(m[2], m[3])).isEqualByComparingTo(stockAntes.add(new BigDecimal("3")));
+        long subId = contar("SELECT id FROM usuario WHERE correo = ?", SUB);
+        assertThat(contar("""
+                SELECT count(*) FROM movimiento_inventario
+                WHERE lote_id = ? AND tipo = 'ENTRADA' AND motivo = 'CORRECCION_MERMA' AND cantidad = 3 AND usuario_id = ?""",
+                m[1], subId)).isOne();
+        assertThat(jdbc.queryForList("SELECT * FROM merma WHERE movimiento_id = ?", m[0])).isEqualTo(mermaAntes);
+        assertThat(jdbc.queryForList("SELECT * FROM movimiento_inventario WHERE id = ?", m[0])).isEqualTo(movMermaAntes);
+
+        // Ya resuelta: no se aprueba ni se rechaza otra vez, y la merma no admite otra revision
+        resolver(sub, revision, "aprobar", Map.of()).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("REVISION_RESUELTA"));
+        resolver(sub, revision, "rechazar", Map.of("respuesta", "Tarde")).andExpect(status().isConflict());
+        pedirRevision(loginAs(ADMIN), m[0], "1", "Pido otra revisión de lo mismo")
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("REVISION_EXISTENTE"));
+        mockMvc.perform(get(ACOPIO + "/revisiones").cookie(loginAs(ADMIN))).andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + revision + ")].estado").value(hasItem("APROBADA")));
+
+        // Queda en la auditoria: quien la pidio y quien la resolvio
+        mockMvc.perform(get("/api/admin/auditoria").param("entidad", "MOVIMIENTO").cookie(loginAs(SUPER))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.registros[?(@.clave == 'SR-" + revision + "')].accion").value(hasItem("REVISION_MERMA_SOLICITADA")))
+                .andExpect(jsonPath("$.registros[?(@.clave == 'RR-" + revision + "')].accion").value(hasItem("REVISION_MERMA_APROBADA")));
+    }
+
+    @Test
+    void ccpip120AlRechazarElInventarioNoCambiaYSePuedeVolverAPedir() throws Exception {
+        long[] m = mermaEnLima("Quinua revisión rechazada", "2");
+        pedirRevision(loginAs(ADMIN), m[0], "2", "Creo que no se dañaron, revisar").andExpect(status().isCreated());
+        long revision = revisionDe(m[0]);
+        BigDecimal saldoAntes = saldo(m[1]);
+        long movimientosAntes = contar("SELECT count(*) FROM movimiento_inventario WHERE lote_id = ?", m[1]);
+        Cookie sub = loginAs(SUB);
+
+        resolver(sub, revision, "rechazar", Map.of("respuesta", " ")).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("RESPUESTA_REQUERIDA"));
+        resolver(sub, revision, "rechazar", Map.of("respuesta", "Las fotos muestran el daño"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("RECHAZADA"))
+                .andExpect(jsonPath("$.respuesta").value("Las fotos muestran el daño"));
+        assertThat(saldo(m[1])).isEqualByComparingTo(saldoAntes);
+        assertThat(contar("SELECT count(*) FROM movimiento_inventario WHERE lote_id = ?", m[1])).isEqualTo(movimientosAntes);
+
+        pedirRevision(loginAs(ADMIN), m[0], "1", "Con nueva evidencia del conteo").andExpect(status().isCreated());
+        resolver(sub, 987654321L, "rechazar", Map.of("respuesta", "No existe")).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("REVISION_NO_ENCONTRADA"));
+    }
+
+    @Test
+    void ccpip120NoSeReintegraAUnLoteVencido() throws Exception {
+        long[] m = mermaEnLima("Yogur revisión lote vencido", "2");
+        pedirRevision(loginAs(ADMIN), m[0], "2", "Se registró en el lote equivocado").andExpect(status().isCreated());
+        jdbc.update("UPDATE lote SET fecha_vencimiento = ?, fecha_produccion = ? WHERE id = ?", HOY.minusDays(1), HOY.minusDays(90), m[1]);
+        BigDecimal saldoAntes = saldo(m[1]);
+        resolver(loginAs(SUB), revisionDe(m[0]), "aprobar", Map.of()).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("LOTE_VENCIDO"));
+        assertThat(saldo(m[1])).isEqualByComparingTo(saldoAntes);
+    }
+
     // --- CCPIP-76: marcar merma ---
 
     @Test

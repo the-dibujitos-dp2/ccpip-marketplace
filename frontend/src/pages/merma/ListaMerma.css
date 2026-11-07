@@ -4,7 +4,12 @@
 .merma__col-causa { display: flex; flex: 0 0 180px; flex-direction: column; gap: 2px; }
 .merma__col-cantidad { flex: 0 0 80px; font-variant-numeric: tabular-nums; }
 .merma__col-registro { flex: 0 0 140px; color: var(--color-text-secondary); }
-.merma__col-estado { flex: 0 0 140px; }
+.merma__col-estado { display: flex; flex: 0 0 160px; flex-direction: column; align-items: flex-start; gap: 6px; }
+/* CCPIP-120: el estado de la revision de la merma y el boton para pedirla */
+.merma__revision { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.merma__revision .caption { color: var(--color-text-secondary); }
+.merma__dialogo-revision { display: flex; flex-direction: column; gap: 12px; }
+.merma__dialogo-revision p { margin: 0; }
 .merma__detalle { color: var(--color-text-secondary); }
 .merma__pie { display: flex; justify-content: flex-end; }
 /* CCPIP-422: los filtros y sus botones (aplicar, limpiar) se reparten una fila */

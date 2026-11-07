@@ -1,11 +1,13 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useConsulta } from '../../api/useConsulta.js'
+import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import { nombreCausa } from '../../components/DialogoMerma.jsx'
 import Cargando from '../../components/Cargando.jsx'
+import DialogoFormulario from '../../components/DialogoFormulario.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LimpiarFiltros from '../../components/LimpiarFiltros.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
@@ -21,8 +23,10 @@ const SIN_FILTROS = { desde: '', hasta: '', lote: '', producto: '', ubicacion: '
  * mas reciente primero. `consultar(pagina)` llama al API del rol; `conUbicacion` muestra donde
  * estaba el lote (el productor tiene lotes en su almacen y en los puntos). `ir` ({ ruta, texto }) lleva a
  * donde se marca la merma, con `irTexto` que lo explica. `onDatos` recibe cada pagina.
+ * CCPIP-120: con `revision` ({ listar, solicitar }) el punto ve el estado de la revision de cada merma
+ * manual y la pide si se registro por error.
  */
-export default function ListaMerma({ consultar, exportar, conUbicacion = false, conProductor = false, ir, irTexto, onDatos }) {
+export default function ListaMerma({ consultar, exportar, conUbicacion = false, conProductor = false, ir, irTexto, onDatos, revision }) {
   const { t, i18n } = useTranslation()
   const [pagina, setPagina] = useState(0)
   const [escritos, setEscritos] = useState(SIN_FILTROS)
@@ -30,6 +34,7 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
   const [filtrosAplicados, setFiltrosAplicados] = useState(false)
   const cargar = useCallback(() => consultar(pagina, filtros).then((d) => { onDatos?.(d); return d }), [consultar, pagina, filtros, onDatos])
   const { datos, error, recargar } = useConsulta(cargar)
+  const { revisiones, pidiendo, setPidiendo, alPedir, aviso, setAviso } = useRevisiones(revision)
   const titulo = t('merma.lista.titulo')
   const cambiar = (campo) => (e) => setEscritos((actual) => ({ ...actual, [campo]: e.target.value }))
   const aplicar = () => { setPagina(0); setFiltros(escritos); setFiltrosAplicados(true) }
@@ -62,6 +67,7 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
         <LimpiarFiltros activos={filtrosAplicados || Object.values(escritos).some(Boolean)} onLimpiar={limpiar} />
       </section>
 
+      {aviso && <Alerta tono="exito" titulo={aviso} onCerrar={() => setAviso(null)} />}
       {error && (
         <EstadoVacio titulo={t('merma.lista.errorCargar')} descripcion={mensajeError(error, 'comun.errorConexion')}>
           <Boton tamano="M" tipo="secundario" onClick={recargar}>{t('carrito.reintentar')}</Boton>
@@ -99,6 +105,7 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
                 </span>
                 <span className="tabla__celda merma__col-estado" role="cell">
                   <Badge tono={m.automatica ? 'info' : 'error'}>{t(m.automatica ? 'merma.lista.automatica' : 'merma.lista.confirmada')}</Badge>
+                  {revision && !m.automatica && <EstadoRevision merma={m} revision={revisiones[m.id]} onPedir={() => setPidiendo(m)} />}
                 </span>
               </div>
             ))}
@@ -108,6 +115,92 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
           </div>
         </>
       )}
+      {pidiendo && <DialogoRevision merma={pidiendo} solicitar={revision.solicitar} onPedida={alPedir} onCancelar={() => setPidiendo(null)} />}
     </>
+  )
+}
+
+/** CCPIP-120: la revision mas reciente de cada merma, por id de merma. Sin `revision` no consulta nada. */
+function useRevisiones(revision) {
+  const { t } = useTranslation()
+  const listar = useCallback(() => (revision ? revision.listar() : Promise.resolve([])), [revision])
+  const { datos, setDatos } = useConsulta(listar)
+  const [pidiendo, setPidiendo] = useState(null)
+  const [aviso, setAviso] = useState(null)
+  // La lista llega de la mas reciente a la mas antigua: la primera de cada merma es la vigente
+  const revisiones = useMemo(() => {
+    const porMerma = {}
+    for (const r of datos ?? []) if (!porMerma[r.mermaId]) porMerma[r.mermaId] = r
+    return porMerma
+  }, [datos])
+  const alPedir = (r) => {
+    setPidiendo(null)
+    setDatos((lista) => [r, ...(lista ?? [])])
+    setAviso(t('merma.revision.pedida', { lote: r.lote }))
+  }
+  return { revisiones, pidiendo, setPidiendo, alPedir, aviso, setAviso }
+}
+
+function EstadoRevision({ merma, revision, onPedir }) {
+  const { t } = useTranslation()
+  if (revision?.estado === 'PENDIENTE') return <Badge tono="aviso">{t('merma.revision.pendiente')}</Badge>
+  if (revision?.estado === 'APROBADA') {
+    return <Badge tono="exito">{t('merma.revision.aprobada', { cantidad: unidades(revision.cantidadAprobada) })}</Badge>
+  }
+  return (
+    <span className="merma__revision">
+      {revision?.estado === 'RECHAZADA' && (
+        <span className="caption">{t('merma.revision.rechazada', { respuesta: revision.respuesta })}</span>
+      )}
+      <Boton tipo="terciario" tamano="S" onClick={onPedir} aria-label={t('merma.revision.pedirDe', { lote: merma.lote })}>
+        {t('merma.revision.pedir')}
+      </Boton>
+    </span>
+  )
+}
+
+/** Pedir la revision: cuantas unidades no debieron darse de baja y por que. */
+function DialogoRevision({ merma, solicitar, onPedida, onCancelar }) {
+  const { t } = useTranslation()
+  const [cantidad, setCantidad] = useState('')
+  const [motivo, setMotivo] = useState('')
+  const [errores, setErrores] = useState({})
+  const [error, setError] = useState(null)
+  const [enviando, setEnviando] = useState(false)
+  const maximo = Number(merma.cantidad)
+
+  const enviar = (e) => {
+    e?.preventDefault?.()
+    const n = Number(cantidad)
+    const faltan = {}
+    if (!cantidad || !(n > 0) || n > maximo) faltan.cantidad = t('merma.revision.validacion.cantidad', { maximo: unidades(maximo) })
+    if (motivo.trim().length < 10) faltan.motivo = t('merma.revision.validacion.motivo')
+    setErrores(faltan)
+    if (Object.keys(faltan).length) return
+    setEnviando(true)
+    setError(null)
+    solicitar(merma.id, { cantidad, motivo: motivo.trim() })
+      .then(onPedida)
+      .catch((err) => { setError(err); setEnviando(false) })
+  }
+
+  return (
+    <DialogoFormulario
+      titulo={t('merma.revision.titulo', { lote: merma.lote })}
+      confirmar={t('merma.revision.enviar')}
+      enviando={enviando}
+      onEnviar={enviar}
+      onCancelar={onCancelar}
+      className="merma__dialogo-revision"
+      error={error}
+      tituloError={t('merma.revision.error')}
+    >
+      <p className="body-s">{t('merma.revision.intro', { producto: merma.producto, cantidad: unidades(merma.cantidad) })}</p>
+      <Campo etiqueta={t('merma.revision.cantidad')} type="number" min="1" max={maximo} step="any" inputMode="decimal"
+        value={cantidad} error={errores.cantidad} onChange={(e) => setCantidad(e.target.value)} />
+      <Campo etiqueta={t('merma.revision.motivo')} tipo="area" maxLength={500} placeholder={t('merma.revision.motivoEjemplo')}
+        value={motivo} error={errores.motivo} onChange={(e) => setMotivo(e.target.value)} />
+      <p className="caption">{t('merma.revision.aviso')}</p>
+    </DialogoFormulario>
   )
 }

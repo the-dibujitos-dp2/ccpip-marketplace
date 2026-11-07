@@ -1601,7 +1601,8 @@
       "motivosMerma": "Shrinkage causes",
       "miHistorial": "My history",
       "tarifasEnvio": "Shipping rates",
-      "capacidadEntrega": "Delivery capacity"
+      "capacidadEntrega": "Delivery capacity",
+      "revisionesMerma": "Loss reviews"
     },
     "permisos": {
       "titulo": "Permissions by role"
@@ -2206,6 +2207,55 @@
         "vacio": "Enter the daily capacity",
         "formato": "Enter a whole number from 1 to {{maximo}}"
       }
+    },
+    "revisionesMerma": {
+      "titulo": "Loss reviews",
+      "intro": "Collection points ask to review a loss they recorded by mistake. When approved, the units go back to their batch with a new correction movement; the recorded loss does not change.",
+      "pestana": {
+        "PENDIENTE": "Pending",
+        "APROBADA": "Approved",
+        "RECHAZADA": "Rejected"
+      },
+      "vacio": {
+        "PENDIENTE": "No pending reviews",
+        "APROBADA": "No approved reviews yet",
+        "RECHAZADA": "No rejected reviews yet"
+      },
+      "errorCargar": "We could not load the loss reviews",
+      "col": {
+        "fecha": "Requested",
+        "merma": "Loss",
+        "pedido": "What the point asks",
+        "estado": "Status"
+      },
+      "merma": "{{cantidad}} written off · {{causa}} · {{fecha}}",
+      "devolver": "Return {{cantidad}} to the batch",
+      "pidio": "Requested by {{nombre}}",
+      "estado": {
+        "PENDIENTE": "Pending",
+        "APROBADA": "Approved",
+        "RECHAZADA": "Rejected"
+      },
+      "aprobar": "Approve",
+      "rechazar": "Reject",
+      "aprobarDe": "Approve the review for batch {{lote}}",
+      "rechazarDe": "Reject the review for batch {{lote}}",
+      "aprobarTitulo": "Approve the review for batch {{lote}}",
+      "rechazarTitulo": "Reject the review for batch {{lote}}",
+      "aprobarTexto": "The point asks to return {{cantidad}} of {{producto}} to its batch. You can approve that amount or less.",
+      "rechazarTexto": "The loss stays as recorded and stock does not change. The point will see your answer.",
+      "cantidad": "Units that go back to the batch",
+      "respuesta": "Answer for the point",
+      "respuestaOpcional": "Answer for the point (optional)",
+      "validacion": {
+        "cantidad": "Enter between 1 and {{maximo}}",
+        "respuesta": "Explain to the point why it is rejected"
+      },
+      "errorResolver": "We could not resolve the review",
+      "aprobadaOk": "Review approved: the units went back to batch {{lote}}",
+      "rechazadaOk": "Review for batch {{lote}} rejected",
+      "reintegradas": "{{cantidad}} returned to the batch",
+      "resolvio": "{{nombre}} · {{fecha}}"
     }
   },
   "sello": {
@@ -2632,7 +2682,11 @@
     "SIN_TARIFA_ENVIO": "There is no shipping rate for that district yet. Choose pickup at the collection point.",
     "CAPACIDAD_AGOTADA": "This collection point cannot deliver more home orders today. Choose another point or pickup.",
     "MAXIMO_RECHAZOS": "This listing reached the maximum of 3 rejections. Ask the sub-administrator to enable a new attempt.",
-    "REINTENTO_NO_NECESARIO": "This listing has not reached the maximum of rejections: the producer can already send it again."
+    "REINTENTO_NO_NECESARIO": "This listing has not reached the maximum of rejections: the producer can already send it again.",
+    "REVISION_EXISTENTE": "This loss already has a pending or approved review.",
+    "MERMA_AUTOMATICA": "Expiry losses are recorded by the system and cannot be reviewed.",
+    "REVISION_RESUELTA": "This review has already been resolved.",
+    "SUPERA_LOTE": "With that amount the batch would exceed what came in."
   },
   "buscar": {
     "comunidad": "Community",
@@ -3354,7 +3408,8 @@
       "DEVOLUCION_PRODUCTOR": "Returned to producer",
       "PRODUCCION": "Harvest or production",
       "RETIRO_PRODUCTOR": "Taken out by producer",
-      "REINTEGRO_PEDIDO": "Returned from an order to be written off"
+      "REINTEGRO_PEDIDO": "Returned from an order to be written off",
+      "CORRECCION_MERMA": "Approved loss correction"
     },
     "validacion": {
       "lote": "Choose the batch",
@@ -4784,6 +4839,26 @@
         "sinResultados": "No shrinkage matches the filters",
         "sinResultadosTexto": "Change or clear the filters to see more records."
       }
+    },
+    "revision": {
+      "pedir": "Request review",
+      "pedirDe": "Request review of the loss for batch {{lote}}",
+      "titulo": "Review the loss for batch {{lote}}",
+      "intro": "{{cantidad}} of {{producto}} were written off. If that was a mistake, the Chamber reviews the loss and, if approved, the units go back to the batch.",
+      "cantidad": "Units that should not have been written off",
+      "motivo": "What was recorded by mistake",
+      "motivoEjemplo": "For example: 10 units were entered instead of 1",
+      "aviso": "The recorded loss is not changed. If the Chamber approves, a new correction movement is recorded.",
+      "enviar": "Send request",
+      "error": "We could not send the review request",
+      "pedida": "Review request sent for batch {{lote}}",
+      "pendiente": "Review pending",
+      "aprobada": "Corrected: {{cantidad}} returned",
+      "rechazada": "Review rejected: {{respuesta}}",
+      "validacion": {
+        "cantidad": "Enter between 1 and {{maximo}}",
+        "motivo": "Explain in at least 10 characters what was recorded by mistake"
+      }
     }
   },
   "asistente": {
@@ -4912,7 +4987,10 @@
       "ENTREGA_ASUMIDA": "Took delivery",
       "ENTREGA_RETIRADA": "Picked up order at the point",
       "PRODUCTO_MALOGRADO_REEMPLAZO": "Replaced damaged product",
-      "PRODUCTO_MALOGRADO_FALTANTE": "Recorded damaged product without replacement"
+      "PRODUCTO_MALOGRADO_FALTANTE": "Recorded damaged product without replacement",
+      "REVISION_MERMA_SOLICITADA": "Requested a loss review",
+      "REVISION_MERMA_APROBADA": "Approved a loss review",
+      "REVISION_MERMA_RECHAZADA": "Rejected a loss review"
     },
     "entidad": {
       "AUTORIZACION": "Authorization",

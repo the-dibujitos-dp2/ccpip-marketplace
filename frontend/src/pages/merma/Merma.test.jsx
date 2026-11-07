@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
 import i18n from '../../i18n/index.js'
-import { copia, DATOS, llamadas, PUBLICAS, servidor, SESION_ACOPIO, SESION_PRODUCTOR, SESION_SUPER } from '../../test/servidor.js'
+import { copia, DATOS, llamadas, PUBLICAS, servidor, SESION_ACOPIO, SESION_PRODUCTOR, SESION_SUB, SESION_SUPER } from '../../test/servidor.js'
 
 function abrirEn(ruta) {
   window.history.replaceState(null, '', ruta)
@@ -54,6 +54,7 @@ function acopio(rutas = {}) {
     'GET /api/acopio/inventario': () => [200, copia(INVENTARIO)],
     'GET /api/merma/causas': [200, CAUSAS],
     'POST /api/acopio/merma': [201, MARCADA],
+    'GET /api/acopio/merma/revisiones': [200, []],
     ...rutas,
   })
 }
@@ -431,5 +432,139 @@ describe('Causas de merma del superadministrador (CCPIP-77, 298, 299, 300)', () 
     expect(await screen.findByText('Causa «Daño» desactivada')).toBeInTheDocument()
     expect(llamadas(fetchMock, 'POST /api/admin/motivos-merma/2/desactivar')).toHaveLength(1)
     expect(screen.getByRole('button', { name: 'Activar Daño' })).toBeInTheDocument()
+  })
+})
+
+// RevisionMermaService.Revision
+function revision(r) {
+  return {
+    id: 70, mermaId: 900, estado: 'PENDIENTE', cantidad: 3, motivo: 'Se marcaron 5 en vez de 2 al digitar',
+    solicitante: 'Admin Acopio', registradaEn: '2026-11-16T15:00:00Z', producto: 'Harina de aguaje', lote: 'L-0240',
+    punto: 'Centro Nacional Lima', productor: 'C.N. Puerto Alegre', cantidadMerma: 5, causa: 'Daño',
+    mermaRegistradaEn: '2026-11-15T15:00:00Z', resueltaPor: null, resueltaEn: null, respuesta: null, cantidadAprobada: null, ...r,
+  }
+}
+
+describe('CCPIP-120 Revisión de una merma registrada por error', () => {
+  const PAGINA = {
+    ubicacion: 'Centro Nacional Lima', pagina: 0, tamano: 20, total: 5, totalPaginas: 1,
+    items: [
+      merma({ id: 900, lote: 'L-0240' }),
+      merma({ id: 901, lote: 'L-0236', motivo: 'Vencimiento', motivoEn: 'Expiry', automatica: true, registradoPor: undefined }),
+      merma({ id: 902, lote: 'L-0250' }),
+      merma({ id: 903, lote: 'L-0260' }),
+      merma({ id: 904, lote: 'L-0270' }),
+    ],
+  }
+
+  it('el punto ve el estado de cada revisión y pide una sin tocar la merma', async () => {
+    const pedida = revision({ id: 75, mermaId: 900 })
+    const fetchMock = acopio({
+      'GET /api/acopio/merma': [200, PAGINA],
+      'GET /api/acopio/merma/revisiones': [200, [
+        revision({ id: 71, mermaId: 902, lote: 'L-0250' }),
+        revision({ id: 72, mermaId: 903, lote: 'L-0260', estado: 'APROBADA', cantidadAprobada: 2 }),
+        revision({ id: 73, mermaId: 904, lote: 'L-0270', estado: 'RECHAZADA', respuesta: 'Las fotos muestran el daño' }),
+      ]],
+      'POST /api/acopio/merma/900/revision': [201, pedida],
+    })
+    const user = userEvent.setup()
+    abrirEn('/acopio/merma')
+
+    const tabla = await screen.findByRole('table', { name: 'Merma registrada' })
+    const [nueva, automatica, pendiente, aprobada, rechazada] = within(tabla).getAllByRole('row').slice(1)
+    expect(await within(pendiente).findByText('Revisión pendiente')).toBeInTheDocument()
+    expect(within(aprobada).getByText(/^Corregida: vuelven 2/)).toBeInTheDocument()
+    expect(within(rechazada).getByText('Revisión rechazada: Las fotos muestran el daño')).toBeInTheDocument()
+    // Tras un rechazo se puede volver a pedir; la merma automatica no se revisa
+    expect(within(rechazada).getByRole('button', { name: 'Solicitar revisión de la merma del lote L-0270' })).toBeInTheDocument()
+    expect(within(automatica).queryByRole('button', { name: /Solicitar revisión/ })).not.toBeInTheDocument()
+    expect(within(pendiente).queryByRole('button', { name: /Solicitar revisión/ })).not.toBeInTheDocument()
+
+    await user.click(within(nueva).getByRole('button', { name: 'Solicitar revisión de la merma del lote L-0240' }))
+    const dialogo = await screen.findByRole('dialog', { name: 'Revisar la merma del lote L-0240' })
+    expect(within(dialogo).getByText(/La merma registrada no se modifica/)).toBeInTheDocument()
+    await user.click(within(dialogo).getByRole('button', { name: 'Enviar solicitud' }))
+    expect(within(dialogo).getByText(/^Indica entre 1 y 5/)).toBeInTheDocument()
+    expect(within(dialogo).getByText('Explica en al menos 10 caracteres qué se registró por error')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/acopio/merma/900/revision')).toHaveLength(0)
+
+    await user.type(within(dialogo).getByLabelText('Unidades que no debieron darse de baja'), '3')
+    await user.type(within(dialogo).getByLabelText('Qué se registró por error'), 'Se marcaron 5 en vez de 2 al digitar')
+    await user.click(within(dialogo).getByRole('button', { name: 'Enviar solicitud' }))
+
+    expect(await screen.findByText('Solicitud de revisión enviada para el lote L-0240')).toBeInTheDocument()
+    expect(cuerpo(fetchMock, 'POST /api/acopio/merma/900/revision')).toEqual({ cantidad: '3', motivo: 'Se marcaron 5 en vez de 2 al digitar' })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(within(nueva).getByText('Revisión pendiente')).toBeInTheDocument()
+    // Pedirla no registra merma ni movimiento
+    expect(llamadas(fetchMock, 'POST /api/acopio/merma')).toHaveLength(0)
+  })
+
+  function sub(rutas = {}) {
+    return servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_SUB], ...rutas })
+  }
+
+  it('el subadministrador aprueba una cantidad igual o menor a la pedida', async () => {
+    let pendientes = [revision({})]
+    const fetchMock = sub({
+      'GET /api/admin/merma/revisiones?estado=PENDIENTE': () => [200, pendientes],
+      'POST /api/admin/merma/revisiones/70/aprobar': () => {
+        pendientes = []
+        return [200, revision({ estado: 'APROBADA', cantidadAprobada: 2, resueltaPor: 'Sub Admin', resueltaEn: '2026-11-16T16:00:00Z' })]
+      },
+    })
+    const user = userEvent.setup()
+    abrirEn('/admin/merma/revisiones')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Revisión de merma' })).toBeInTheDocument()
+    expect(within(screen.getByRole('navigation', { name: 'Sub administrador' })).getByRole('link', { name: 'Revisión de merma' })).toHaveAttribute('aria-current', 'page')
+    const tabla = await screen.findByRole('table', { name: 'Revisión de merma' })
+    const fila = within(tabla).getAllByRole('row')[1]
+    expect(fila).toHaveTextContent('Harina de aguaje · L-0240')
+    expect(fila).toHaveTextContent(/Baja de 5.* · Daño/)
+    expect(fila).toHaveTextContent(/Devolver 3.* al lote/)
+    expect(fila).toHaveTextContent('Se marcaron 5 en vez de 2 al digitar')
+    expect(fila).toHaveTextContent('Pidió Admin Acopio')
+
+    await user.click(within(fila).getByRole('button', { name: 'Aprobar la revisión del lote L-0240' }))
+    const dialogo = await screen.findByRole('dialog', { name: 'Aprobar la revisión del lote L-0240' })
+    const cantidad = within(dialogo).getByLabelText('Unidades que vuelven al lote')
+    expect(cantidad).toHaveValue(3)
+    await user.clear(cantidad)
+    await user.type(cantidad, '4')
+    await user.click(within(dialogo).getByRole('button', { name: 'Aprobar' }))
+    expect(within(dialogo).getByText(/^Indica entre 1 y 3/)).toBeInTheDocument()
+    await user.clear(cantidad)
+    await user.type(cantidad, '2')
+    await user.click(within(dialogo).getByRole('button', { name: 'Aprobar' }))
+
+    expect(await screen.findByText('Revisión aprobada: las unidades volvieron al lote L-0240')).toBeInTheDocument()
+    expect(cuerpo(fetchMock, 'POST /api/admin/merma/revisiones/70/aprobar')).toEqual({ cantidad: '2', respuesta: null })
+    expect(await screen.findByText('No hay revisiones pendientes')).toBeInTheDocument()
+  })
+
+  it('rechazar exige una respuesta para el punto', async () => {
+    const fetchMock = sub({
+      'GET /api/admin/merma/revisiones?estado=PENDIENTE': [200, [revision({})]],
+      'GET /api/admin/merma/revisiones?estado=RECHAZADA': [200, [revision({ id: 73, estado: 'RECHAZADA', respuesta: 'Las fotos muestran el daño', resueltaPor: 'Sub Admin', resueltaEn: '2026-11-16T16:00:00Z' })]],
+      'POST /api/admin/merma/revisiones/70/rechazar': [200, revision({ estado: 'RECHAZADA', respuesta: 'Las fotos muestran el daño' })],
+    })
+    const user = userEvent.setup()
+    abrirEn('/admin/merma/revisiones')
+
+    await user.click(await screen.findByRole('button', { name: 'Rechazar la revisión del lote L-0240' }))
+    const dialogo = await screen.findByRole('dialog', { name: 'Rechazar la revisión del lote L-0240' })
+    await user.click(within(dialogo).getByRole('button', { name: 'Rechazar' }))
+    expect(within(dialogo).getByText('Explica al punto por qué se rechaza')).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/admin/merma/revisiones/70/rechazar')).toHaveLength(0)
+    await user.type(within(dialogo).getByLabelText('Respuesta para el punto'), 'Las fotos muestran el daño')
+    await user.click(within(dialogo).getByRole('button', { name: 'Rechazar' }))
+    expect(await screen.findByText('Revisión del lote L-0240 rechazada')).toBeInTheDocument()
+    expect(cuerpo(fetchMock, 'POST /api/admin/merma/revisiones/70/rechazar')).toEqual({ respuesta: 'Las fotos muestran el daño' })
+
+    await user.click(screen.getByRole('tab', { name: 'Rechazadas' }))
+    expect(await screen.findByText('Las fotos muestran el daño')).toBeInTheDocument()
+    expect(screen.getByText(/^Sub Admin · /)).toBeInTheDocument()
   })
 })

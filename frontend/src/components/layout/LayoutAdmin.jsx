@@ -31,6 +31,8 @@ const NAV = [
   { to: RUTAS.adminProductores, clave: 'productores', icono: iconoComunidad, roles: ['SUB_ADMIN'], prefijo: true },
   // CCPIP-184: la vigencia de los certificados de los productos autorizados
   { to: RUTAS.adminCertificados, clave: 'certificados', icono: iconoReloj, roles: ['SUB_ADMIN'] },
+  // CCPIP-120: revisiones de merma registrada por error
+  { to: RUTAS.adminRevisionesMerma, clave: 'revisionesMerma', icono: iconoMerma, roles: ['SUB_ADMIN'] },
   { to: RUTAS.adminDenuncias, clave: 'denuncias', icono: iconoAviso, roles: ['SUB_ADMIN', 'SUPER_ADMIN'], prefijo: true },
   { to: RUTAS.adminComision, clave: 'comision', icono: iconoPorcentaje, roles: ['SUPER_ADMIN'] },
   { to: RUTAS.adminComisiones, clave: 'comisiones', icono: iconoBillete, roles: ['SUPER_ADMIN', 'SUB_ADMIN'] },
