@@ -93,7 +93,7 @@ describe('DW-01 Pedidos disponibles del distribuidor (CCPIP-107)', () => {
     servidor(comoDistribuidor())
     abrirEn('/distribuidor/pedidos')
     const menu = within(await screen.findByRole('navigation', { name: 'Distribuidor' }))
-    expect(menu.getAllByRole('link').map((l) => l.textContent)).toEqual(['Pedidos disponibles', 'Mis entregas'])
+    expect(menu.getAllByRole('link').map((l) => l.textContent)).toEqual(['Inicio', 'Pedidos disponibles', 'Mis entregas'])
     expect(menu.getByRole('link', { name: 'Pedidos disponibles' })).toHaveAttribute('aria-current', 'page')
     expect(menu.getByRole('link', { name: 'Mis entregas' })).toHaveAttribute('href', '/distribuidor/entregas')
   })
@@ -253,9 +253,9 @@ describe('DW-01 Pedidos disponibles del distribuidor (CCPIP-107)', () => {
 })
 
 describe('Acceso al reparto y su inicio (CCPIP-107)', () => {
-  it('/distribuidor lleva a los pedidos disponibles', async () => {
+  it('una ruta desconocida del reparto lleva a los pedidos disponibles', async () => {
     servidor(comoDistribuidor())
-    abrirEn('/distribuidor')
+    abrirEn('/distribuidor/otra')
     expect(await screen.findByRole('heading', { level: 1, name: 'Pedidos disponibles' })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/distribuidor/pedidos')
   })
@@ -279,11 +279,11 @@ describe('Acceso al reparto y su inicio (CCPIP-107)', () => {
     expect(window.location.search).toContain('volver=%2Fdistribuidor%2Fpedidos')
   })
 
-  it('el inicio del distribuidor lo presenta como responsable de las entregas y lleva a los pedidos', async () => {
-    servidor(comoDistribuidor({ 'GET /api/panel/distribuidor': [200, { titulo: 'Tus entregas', descripcion: 'Aqui veras los pedidos listos para repartir y los que asumas.' }] }))
+  it('CCPIP-500: el inicio general del distribuidor es su resumen del reparto, no un texto', async () => {
+    servidor(comoDistribuidor({ 'GET /api/distribuidor/pedidos': [200, []] }))
     abrirEn('/inicio')
-    expect(await screen.findByRole('heading', { name: 'Tus entregas' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Ver pedidos disponibles' })).toHaveAttribute('href', '/distribuidor/pedidos')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Inicio' })).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/distribuidor')
     expect(screen.queryByText(/compras mayoristas/)).not.toBeInTheDocument()
   })
 })

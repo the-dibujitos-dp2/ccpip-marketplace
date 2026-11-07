@@ -125,7 +125,7 @@ describe('Inicio de sesion (CCPIP-27)', () => {
     expect(llamadas(fetchMock, 'GET /api/inicio')).toHaveLength(0)
   })
 
-  it('el distribuidor conserva el inicio y el aviso de inactividad', async () => {
+  it('CCPIP-500: el distribuidor entra a su inicio con el resumen del reparto', async () => {
     let conSesion = false
     const sesionDistribuidor = { user: { id: 6, email: 'distribuidor@ccpip.test', fullName: 'Distribuidor', role: 'DISTRIBUIDOR', roleName: 'Distribuidor' }, expiresInSeconds: 120 }
     servidor({
@@ -135,14 +135,15 @@ describe('Inicio de sesion (CCPIP-27)', () => {
         conSesion = true
         return [200, sesionDistribuidor]
       },
-      'GET /api/distribuidor/pedidos': [200, { items: [] }],
+      'GET /api/distribuidor/pedidos': [200, []],
+      'GET /api/distribuidor/pedidos/disponibles': [200, { items: [], siguiente: null, total: 3, puntos: [] }],
     })
     const user = userEvent.setup()
     abrirEn('/ingresar')
     await ingresar(user, 'distribuidor@ccpip.test')
 
-    expect(await screen.findByText(/se cierra tras 2 minutos sin actividad/)).toBeInTheDocument()
-    expect(window.location.pathname).toBe('/inicio')
+    expect(await screen.findByRole('region', { name: 'Pedidos para tomar' })).toHaveTextContent('3')
+    expect(window.location.pathname).toBe('/distribuidor')
   })
 
   it('vuelve a la pagina que pidio antes de ingresar, solo si es interna', async () => {

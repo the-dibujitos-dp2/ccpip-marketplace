@@ -42,6 +42,7 @@ import PedidosPage from './pages/acopio/PedidosPage.jsx'
 import TransferenciasPuntoPage from './pages/acopio/TransferenciasPage.jsx'
 import AlertasPuntoPage from './pages/acopio/AlertasPage.jsx'
 import MermaPuntoPage from './pages/acopio/MermaPage.jsx'
+import InicioDistribuidorPage from './pages/distribuidor/InicioDistribuidorPage.jsx'
 import MisEntregasPage from './pages/distribuidor/MisEntregasPage.jsx'
 import PedidosDisponiblesPage from './pages/distribuidor/PedidosDisponiblesPage.jsx'
 import ReportesPuntoPage from './pages/acopio/ReportesPage.jsx'
@@ -129,6 +130,8 @@ function destinoPorRol(user) {
   if (user?.role === 'CONSUMIDOR') return RUTAS.catalogo
   if (user?.role === 'SUPER_ADMIN') return RUTAS.admin
   if (user?.role === 'SUB_ADMIN') return RUTAS.adminAutorizaciones
+  // CCPIP-500: el distribuidor entra a su inicio con el resumen del reparto
+  if (user?.role === 'DISTRIBUIDOR') return RUTAS.distribuidor
   return RUTAS.inicio
 }
 
@@ -229,6 +232,7 @@ export default function App() {
   useEffect(() => {
     if (cargando) return
     if (sesion && path === RUTAS.inicio && user?.role === 'ADMIN_PUNTO') navigate(RUTAS.acopioPedidos, { replace: true })
+    else if (sesion && path === RUTAS.inicio && user?.role === 'DISTRIBUIDOR') navigate(RUTAS.distribuidor, { replace: true })
     else if (sesion && (path === RUTAS.ingresar || path === RUTAS.registro)) navigate(volver, { replace: true })
     else if (!sesion && protegida) navigate(`${RUTAS.ingresar}?volver=${encodeURIComponent(path + search)}`, { replace: true })
     else if (restringida) return
@@ -378,9 +382,10 @@ export default function App() {
       pagina = null
     }
   } else if (delDistribuidor) {
-    // Por ahora el distribuidor tiene Pedidos disponibles (DW-01, CCPIP-107) y Mis entregas (DW-03, CCPIP-317);
-    // el mapa y el historial llegan con CCPIP-110 y CCPIP-319
+    // Inicio con el resumen del reparto (CCPIP-500), Pedidos disponibles (DW-01, CCPIP-107) y Mis entregas
+    // (DW-03, CCPIP-317)
     if (user.role !== 'DISTRIBUIDOR') pagina = null
+    else if (path === RUTAS.distribuidor) pagina = <InicioDistribuidorPage path={path} />
     else if (path === RUTAS.distribuidorPedidos) pagina = <PedidosDisponiblesPage path={path} />
     else if (path === RUTAS.distribuidorEntregas) pagina = <MisEntregasPage path={path} />
     else {
