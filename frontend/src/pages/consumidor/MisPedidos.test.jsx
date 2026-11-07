@@ -133,6 +133,24 @@ describe('CW-09 Mis pedidos (CCPIP-112, CCPIP-70, CCPIP-340)', () => {
   })
 })
 
+describe('CCPIP-501 Nombre del producto en Mis pedidos', () => {
+  it('cada pedido muestra su primer producto y cuántos más lleva', async () => {
+    servidor(comoComprador())
+    abrirEn('/cuenta/pedidos')
+    const enCurso = await screen.findByRole('article', { name: 'Pedido CCP-000077' })
+    expect(within(enCurso).getByText('Aceite de aguaje 250 ml y 3 más')).toBeInTheDocument()
+    expect(within(screen.getByRole('article', { name: 'Pedido CCP-000081' })).getByText('Aceite de aguaje 250 ml')).toBeInTheDocument()
+  })
+
+  it('sin el nombre (respuesta antigua) no muestra nada extra', async () => {
+    const sinNombre = copia(DATOS.misPedidos).map(({ primerProducto, ...p }) => p)
+    servidor(comoComprador({ 'GET /api/pedidos': [200, sinNombre] }))
+    abrirEn('/cuenta/pedidos')
+    const enCurso = await screen.findByRole('article', { name: 'Pedido CCP-000077' })
+    expect(within(enCurso).queryByText(/Aceite de aguaje/)).not.toBeInTheDocument()
+  })
+})
+
 describe('Detalle del pedido con seguimiento e historial (CCPIP-70, CCPIP-340)', () => {
   it('muestra la etapa actual y el historial del más antiguo al más reciente', async () => {
     servidor(comoComprador({ 'GET /api/pedidos/77': [200, DETALLE] }))

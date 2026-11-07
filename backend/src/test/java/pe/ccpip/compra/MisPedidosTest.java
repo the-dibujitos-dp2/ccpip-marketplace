@@ -66,6 +66,9 @@ class MisPedidosTest extends IntegrationTest {
                 .andExpect(jsonPath("$[0].total").value(80.0))
                 .andExpect(jsonPath("$[0].productos").value(2))
                 .andExpect(jsonPath("$[0].comunidades").value(1))
+                // CCPIP-501: el primer producto del pedido, para reconocerlo sin abrirlo
+                .andExpect(jsonPath("$[0].primerProducto").value("Cacao de mis pedidos"))
+                .andExpect(jsonPath("$[1].primerProducto").value("Aguaje de mis pedidos"))
                 .andExpect(jsonPath("$[0].punto.nombre").value(LIMA))
                 .andExpect(jsonPath("$[1].numero").value("MP-0001"))
                 .andExpect(jsonPath("$[1].estado").value("ENTREGADO"))
