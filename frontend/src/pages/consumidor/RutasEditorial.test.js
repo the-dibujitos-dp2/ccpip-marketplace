@@ -18,7 +18,7 @@ describe('RutasEditorial (presentational scope)', () => {
       '.ficha__productor', '.ficha__cita', '.historia', '.tienda-publica__contenido', '.tienda-publica__historia',
       '.carrito__grupo', '.carrito__resumen', '.compra__seccion', '.compra__resumen', '.pedido__tarjeta',
       '.mis-pedidos__lateral', '.mis-pedidos__lista', '.mis-datos', '.mis-direcciones__tarjeta', '.mis-favoritos__item',
-      '.tarjeta-producto__media', '.tarjeta-tienda', '.boton--primario', '.campo__control',
+      '.tarjeta-producto__media', '.tarjeta-tienda', '.boton--secundario', '.campo__control',
     ]) expect(css).toMatch(new RegExp(`${selector.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}[^{}]*\\{`))
   })
 

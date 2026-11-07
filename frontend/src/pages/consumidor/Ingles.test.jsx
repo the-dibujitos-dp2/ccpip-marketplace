@@ -21,7 +21,7 @@ describe('Tienda en inglés (CCPIP-98)', () => {
   it('el inicio usa los textos en inglés', async () => {
     servidor(sinSesion)
     abrirEn('/')
-    expect(await screen.findByRole('heading', { name: 'Products with a story, straight from the Amazon' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /Everything has\s*an origin/ })).toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: 'Explore products' }).length).toBeGreaterThan(0)
     expect(screen.queryByText('Explorar productos')).not.toBeInTheDocument()
   })

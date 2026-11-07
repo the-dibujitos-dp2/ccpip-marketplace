@@ -62,13 +62,3 @@
   .ingresar__fila, .revisa__acciones { grid-template-columns: minmax(0, 1fr); }
 }
 .ingresar__olvido { align-self: flex-end; margin-top: -8px; font-size: 14px; }
-
-/* CCPIP-127: panel de acceso documental, sin alterar formulario/API ni otros roles. */
-.ingresar { --consumer-paper:#f7f5ee; --consumer-forest:#163d2c; grid-template-columns:51% 49%; background:var(--consumer-paper); }
-.ingresar__marca { position:relative; isolation:isolate; justify-content:space-between; overflow:hidden; background:#163d2c url('../../assets/editorial/feria.jpg') center/cover no-repeat; }
-.ingresar__marca::before { position:absolute; z-index:-1; inset:0; content:""; background:linear-gradient(0deg,rgba(13,37,26,.8),rgba(13,37,26,.18)); }
-.ingresar__titular { font-family:Fraunces,Georgia,serif; font-size:43px; font-weight:400; line-height:1.08; }
-.ingresar__fotos { display:none; }
-.ingresar__formulario-zona { background:#f7f5ee; }
-.ingresar__tarjeta { max-width:430px; }
-@media(max-width:860px) { .ingresar { grid-template-columns:minmax(0,1fr); } .ingresar__marca { min-height:185px; padding:16px 24px; background-position:center 42%; } .ingresar__logo,.ingresar__confianza { position:relative; } .ingresar__mensaje { display:none; } .ingresar__formulario-zona { padding-top:28px; } }

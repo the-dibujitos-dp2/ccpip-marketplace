@@ -1,43 +1,6 @@
-/* Editorial skin for existing consumer routes only. No markup, data or behavior changes. */
-.layout-tienda {
-  --color-text-primary: #193529;
-  --color-text-secondary: #5b665a;
-  --color-text-tertiary: #5b665a;
-  --color-text-disabled: #5b665a;
-  --color-text-brand: #163d2c;
-  --color-text-accent: #704710;
-  --color-text-accent-inverse: #ebc66b;
-  --color-text-on-brand: #fffef9;
-  --color-bg-canvas: #f7f5ee;
-  --color-bg-surface: #fffef9;
-  --color-bg-disabled: #e4e9d9;
-  --color-bg-brand: #163d2c;
-  --color-bg-brand-subtle: #e4e9d9;
-  --color-bg-inverse: #102c21;
-  --color-bg-accent: #ebc66b;
-  --color-bg-accent-subtle: #f5edda;
-  --color-bg-surface-alt: #e4e9d9;
-  --color-bg-sand: #eeecdf;
-  --color-border-default: #d9ded0;
-  --color-border-strong: #879487;
-  --color-border-focus: #163d2c;
-  --color-border-brand: #163d2c;
-  --color-status-info-bg: #e4e9d9;
-  --color-status-info-fg: #193529;
-  --color-status-success-bg: #e4e9d9;
-  --color-status-success-fg: #102c21;
-  --color-status-warning-bg: #f5edda;
-  --color-status-warning-fg: #704710;
-  --color-status-error-bg: #f5e7e1;
-  --color-status-error-fg: #8a3025;
-  --radius-m: 2px;
-  --radius-l: 3px;
-  --radius-xl: 3px;
-  --radius-pill: 999px;
-  --shadow-tarjeta: none;
-}
+/* CCPIP-127: piel editorial de las rutas del consumidor. Sin cambios de marcado, datos ni comportamiento. */
 
-/* Catalogue: keep the real filter controls and API result grid; flatten the old app shells. */
+/* Catalogo: filtros y grilla reales de la API; superficies planas, sin tarjetas redondeadas. */
 .layout-tienda .buscar,
 .layout-tienda .ficha,
 .layout-tienda .tienda-publica,
@@ -72,20 +35,21 @@
 .layout-tienda .tarjeta-producto__media { aspect-ratio: 4 / 3; border-radius: 0; background: var(--color-bg-surface-alt); }
 .layout-tienda .tarjeta-producto__info { gap: 5px; }
 .layout-tienda .tarjeta-producto__nombre { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-size: 18px; line-height: 1.25; font-weight: 400; }
-.layout-tienda .tarjeta-producto__precio strong { font-size: 17px; color: var(--color-text-brand); }
+.layout-tienda .tarjeta-producto__precio { align-self: stretch; margin-top: 8px; padding-top: 12px; border-top: 1px solid #cbd3bf; }
+.layout-tienda .tarjeta-producto__precio strong { font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--color-text-primary); }
+.layout-tienda .tarjeta-producto:hover .tarjeta-producto__nombre { text-decoration: underline; text-underline-offset: 4px; }
 .layout-tienda .etiqueta-producto { border-radius: 2px; }
-.layout-tienda .tarjeta-tienda { border-radius: 2px; border-color: var(--color-border-default); box-shadow: none; }
-.layout-tienda .tarjeta-tienda__portada { border-radius: 0; }
-.layout-tienda .tarjeta-tienda__nombre { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-weight: 400; }
-.layout-tienda .tarjeta-tienda__cita { color: var(--color-text-secondary); }
-.layout-tienda .boton { border-radius: 2px; font-family: var(--consumer-sans, 'DM Sans', Arial, sans-serif); }
-.layout-tienda .boton--primario { background: var(--color-bg-brand); color: #fffef9; }
-.layout-tienda .boton--acento { background: #ebc66b; color: #193529; }
+.layout-tienda .tarjeta-tienda { overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.layout-tienda .tarjeta-tienda__portada { width: 100%; height: auto; aspect-ratio: 1.3; border-radius: 0; object-fit: cover; overflow: hidden; }
+.layout-tienda .tarjeta-tienda__cuerpo { gap: 6px; padding: 17px 0 0; }
+.layout-tienda .tarjeta-tienda__nombre { font: 400 22px/1.3 var(--consumer-serif, 'Fraunces', Georgia, serif); }
+.layout-tienda .tarjeta-tienda__cita { color: var(--color-text-secondary); font-size: 15px; }
+.layout-tienda .tarjeta-tienda__enlace { margin-top: 10px; padding-top: 12px; width: 100%; border-top: 1px solid #cbd3bf; font-size: 13px; font-weight: 500; text-decoration: none; }
 .layout-tienda .boton--secundario { border-color: var(--color-border-brand); background: transparent; color: var(--color-text-brand); }
 .layout-tienda .boton--terciario { color: var(--color-text-brand); }
 .layout-tienda .boton--destructivo { background: #8a3025; color: #fffef9; }
 
-/* Product detail keeps operational fields and DOM/focus order intact. The authentic origin block gains weight. */
+/* Ficha: campos de compra y orden de foco intactos; el bloque de origen gana protagonismo. */
 .layout-tienda .ficha { gap: 42px; }
 .layout-tienda .ficha__principal { grid-template-columns: minmax(0, 1.12fr) minmax(340px, .88fr); gap: clamp(28px, 4vw, 60px); }
 .layout-tienda .ficha__foto { aspect-ratio: 4 / 3; border-radius: 0; background: var(--color-bg-surface-alt); }
@@ -127,7 +91,7 @@
 .layout-tienda .tienda-publica__galeria img,
 .layout-tienda .tienda-publica__videos video { border-radius: 0; }
 
-/* Basket, payment, order history and profile surfaces retain all live controls and states. */
+/* Carrito, pago, pedidos y cuenta: mismos controles y estados, misma gramatica visual. */
 .layout-tienda .carrito__grupo,
 .layout-tienda .carrito__resumen,
 .layout-tienda .compra__seccion,

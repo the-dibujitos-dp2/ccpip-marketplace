@@ -26,5 +26,14 @@
     "sinCita": "Learn more about this community and its work.",
     "conocer": "Meet the community",
     "fotoTienda": "Photograph from {{nombre}}"
+  },
+  "pie": {
+    "creditos": "Photographs and sources",
+    "fotosDocumentales": "Documentary photographs: Infobae, “Cacao, café, arte textil y más” (27-11-2024). They are visual references and do not identify market producers. Commercial use permissions pending.",
+    "fotosReferencia": "Reference photographs by product line: Unsplash (Ly Le Minh, Ryan Zamboni, Denise Chan, Boshoku) and Wikimedia Commons (Luke Hancock, CC0; LeRoc, CC BY-SA 3.0). They are not photos of the offers.",
+    "tipografias": "DM Sans and Fraunces typefaces (Google Fonts). CCPIP logo published by Amanatari."
+  },
+  "origen": {
+    "titulo": "The value lies in the origin."
   }
 }

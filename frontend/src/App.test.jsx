@@ -101,7 +101,7 @@ describe('Inicio de sesion (CCPIP-27)', () => {
     abrirEn('/ingresar')
     await ingresar(user)
 
-    expect(await screen.findByRole('heading', { name: /Productos con historia/ })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /Todo tiene\s*un origen/ })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/')
     expect(screen.getByRole('button', { name: 'Mi cuenta' })).toBeInTheDocument()
   })

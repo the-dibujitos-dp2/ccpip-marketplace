@@ -22,7 +22,7 @@ describe('CW-01 Inicio de la tienda', () => {
   it('muestra comunidades, lineas con su total y productos para descubrir', async () => {
     servidor(sinSesion)
     abrirEn('/')
-    expect(await screen.findByRole('heading', { name: /Productos con historia/ })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /Todo tiene\s*un origen/ })).toBeInTheDocument()
     expect(await screen.findByRole('heading', { name: 'Conoce a quienes lo hacen' })).toBeInTheDocument()
     for (const t of DATOS.inicio.tiendas) expect(screen.getAllByText(t.nombre).length).toBeGreaterThan(0)
     expect(screen.getByRole('heading', { name: 'Explora por línea' })).toBeInTheDocument()
@@ -438,7 +438,9 @@ describe('Cabecera con sesion', () => {
     const fetchMock = servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION] })
     const user = userEvent.setup()
     abrirEn('/')
-    const lineas = await screen.findByRole('navigation', { name: 'Líneas de producto' })
+    // CCPIP-127: las lineas viven en un panel que se abre desde la cabecera
+    await user.click(await screen.findByRole('button', { name: 'Líneas de producto', expanded: false }))
+    const lineas = screen.getByRole('navigation', { name: 'Líneas de producto' })
     await user.click(within(lineas).getByRole('link', { name: 'Café' }))
     await waitFor(() => expect(ultimaBusqueda(fetchMock).getAll('linea')).toEqual(['CAFE']))
     expect(llamadas(fetchMock, 'GET /api/catalogos').length).toBeGreaterThan(0)

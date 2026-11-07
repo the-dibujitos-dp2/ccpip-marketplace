@@ -16,12 +16,14 @@ import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import TarjetaTienda from '../../components/TarjetaTienda.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { RUTAS } from '../../router.js'
-import '../../assets/editorial/fonts.css'
 import './InicioPage.css'
 import fotoArtesana from '../../assets/editorial/artesana.jpg'
 import fotoCacao from '../../assets/editorial/home/cacao.webp'
 import fotoCafe from '../../assets/editorial/home/cafe.webp'
 import fotoAmazonia from '../../assets/editorial/home/amazonia.webp'
+
+/** Fotos de referencia de las tres primeras lineas; otra linea usa el paisaje amazonico. */
+const FOTO_CATEGORIA = { CACAO: fotoCacao, CAFE: fotoCafe, SUPERFRUTOS: fotoAmazonia }
 
 const VALORES = [
   { icono: iconoArbol, clave: 'deforestacion' },
@@ -47,6 +49,7 @@ export default function InicioPage() {
   }, [])
 
   const destacados = datos?.destacados ?? []
+  const relato = datos?.tiendas?.[0]
 
   return (
     <LayoutTienda>
@@ -62,41 +65,66 @@ export default function InicioPage() {
             </div>
           </div>
         </section>
+        <div className="inicio-origen">
+          <p className="inicio-origen__titulo">{te('origen.titulo')}</p>
+          <ul className="valores" aria-label={t('inicio.valores.etiqueta')}>
+            {VALORES.map((v) => (
+              <li key={v.clave} className="valor">
+                <span className="valor__icono">
+                  <img src={v.icono} width="20" height="20" alt="" />
+                </span>
+                <span>
+                  <span className="label-m">{t(`inicio.valores.${v.clave}.titulo`)}</span>
+                  <span className="caption valor__texto">{t(`inicio.valores.${v.clave}.texto`)}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
         <section className="seccion inicio-categorias" aria-labelledby="inicio-categorias-titulo">
-          <div className="seccion__encabezado"><h2 id="inicio-categorias-titulo" className="seccion__titulo">{te('categorias.titulo')}</h2></div>
+          <div className="seccion__encabezado">
+            <h2 id="inicio-categorias-titulo" className="seccion__titulo">{te('categorias.titulo')}</h2>
+          </div>
           <div className="inicio-categorias__grid">
-            {(datos?.lineas ?? []).slice(0, 3).map((item) => {
-              const linea = item.codigo
-              const foto = ({ CACAO: fotoCacao, CAFE: fotoCafe, SUPERFRUTOS: fotoAmazonia })[linea] ?? fotoAmazonia
-              return <Enlace key={linea} to={`${RUTAS.buscar}?linea=${linea}`} className="inicio-categoria">
-                <img src={foto} alt={te(`categorias.${linea}.foto`)} />
-                <span><strong>{item.nombre}</strong><small>{te('categorias.referencia')}</small></span>
+            {(datos?.lineas ?? []).slice(0, 3).map((item) => (
+              <Enlace key={item.codigo} to={`${RUTAS.buscar}?linea=${item.codigo}`} className="inicio-categoria">
+                <img src={FOTO_CATEGORIA[item.codigo] ?? fotoAmazonia} alt={te(`categorias.${item.codigo}.foto`, { defaultValue: '' })} />
+                <span className="inicio-categoria__texto">
+                  <strong>{item.nombre}</strong>
+                  <small>{te('categorias.referencia')}</small>
+                </span>
+                <span className="inicio-categoria__flecha" aria-hidden="true">→</span>
               </Enlace>
-            })}
+            ))}
           </div>
         </section>
 
-        {datos?.tiendas?.[0] && <section className="inicio-relato" aria-label={te('relato.titulo')}><div className="inicio-relato__foto"><img src={datos.tiendas[0].portada || fotoArtesana} alt={datos.tiendas[0].portada ? te('relato.fotoTienda', { nombre: datos.tiendas[0].nombre }) : te('fotoArtesana')} /></div><div className="inicio-relato__texto"><h2>{te('relato.titulo')}</h2>{datos.tiendas[0].cita ? <blockquote>“{datos.tiendas[0].cita}”</blockquote> : <p>{te('relato.sinCita')}</p>}<p className="inicio-relato__nombre">{datos.tiendas[0].nombre}</p><Enlace to={`/tiendas/${datos.tiendas[0].id}`}>{te('relato.conocer')}</Enlace></div></section>}
-
-        <ul className="valores" aria-label={t('inicio.valores.etiqueta')}>
-          {VALORES.map((v) => (
-            <li key={v.clave} className="valor">
-              <span className="valor__icono">
-                <img src={v.icono} width="20" height="20" alt="" />
-              </span>
-              <span>
-                <span className="label-m">{t(`inicio.valores.${v.clave}.titulo`)}</span>
-                <span className="caption valor__texto">{t(`inicio.valores.${v.clave}.texto`)}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
+        {/* El relato sale de la primera tienda de la API; sin cita propia no se inventa una */}
+        {relato && (
+          <section className="inicio-relato" aria-labelledby="inicio-relato-titulo">
+            <div className="inicio-relato__foto">
+              <img
+                src={relato.portada || fotoArtesana}
+                alt={relato.portada ? te('relato.fotoTienda', { nombre: relato.nombre }) : te('fotoArtesana')}
+              />
+            </div>
+            <div className="inicio-relato__texto">
+              <h2 id="inicio-relato-titulo">{te('relato.titulo')}</h2>
+              {relato.cita ? <blockquote>“{relato.cita}”</blockquote> : <p>{te('relato.sinCita')}</p>}
+              <p className="inicio-relato__nombre">
+                {relato.nombre}
+                {relato.pueblo && <small>{[relato.pueblo, relato.region].filter(Boolean).join(' · ')}</small>}
+              </p>
+              <Boton tipo="acento" to={`/tiendas/${relato.id}`}>{te('relato.conocer')}</Boton>
+            </div>
+          </section>
+        )}
 
         {error && <Alerta tono="error" titulo={t('inicio.error')} descripcion={t('comun.errorConexion')} />}
         {!datos && !error && <Cargando />}
 
         {datos?.tiendas.length > 0 && (
-          <section className="seccion" aria-labelledby="titulo-comunidades">
+          <section className="seccion inicio-comunidades" aria-labelledby="titulo-comunidades">
             <div className="seccion__encabezado">
               <h2 id="titulo-comunidades" className="seccion__titulo">{t('inicio.comunidades')}</h2>
               <Enlace to={RUTAS.comunidades} className="enlace-marca">{t('comun.verTodas')}</Enlace>
@@ -110,7 +138,7 @@ export default function InicioPage() {
         )}
 
         {datos?.lineas.length > 0 && (
-          <section className="seccion" aria-labelledby="titulo-lineas">
+          <section className="seccion inicio-lineas" aria-labelledby="titulo-lineas">
             <div className="seccion__encabezado">
               <h2 id="titulo-lineas" className="seccion__titulo">{t('inicio.lineas')}</h2>
               <Enlace to={RUTAS.buscar} className="enlace-marca">{t('comun.verTodas')}</Enlace>
@@ -130,7 +158,7 @@ export default function InicioPage() {
         )}
 
         {datos && (
-          <section className="seccion" aria-labelledby="titulo-descubrir">
+          <section className="seccion inicio-ofertas" aria-labelledby="titulo-descubrir">
             <div className="seccion__encabezado">
               <div>
                 <h2 id="titulo-descubrir" className="seccion__titulo">{t('inicio.descubrir.titulo')}</h2>

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import '../../assets/editorial/fonts.css'
 import { useTranslation } from 'react-i18next'
 import { login } from '../../api/auth.js'
 import { ApiError } from '../../api/http.js'
@@ -8,7 +7,6 @@ import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import { localeFechas } from '../../i18n/index.js'
-import './nuevoAccesoEditorial.css'
 import { navigate, RUTAS } from '../../router.js'
 import { CORREO_VALIDO } from './acceso.js'
 import LayoutAcceso from './LayoutAcceso.jsx'
@@ -176,7 +174,6 @@ export default function IngresarPage({ modo = 'ingresar', search = '', correoIni
         </Enlace>
       </nav>
       {contenido}
-      <p className="caption ingresar__pie">{t('pie.legal')}</p>
     </LayoutAcceso>
   )
 }

@@ -26,5 +26,14 @@
     "sinCita": "Conoce más sobre esta comunidad y su trabajo.",
     "conocer": "Conocer la comunidad",
     "fotoTienda": "Fotografía de la tienda {{nombre}}"
+  },
+  "pie": {
+    "creditos": "Fotografías y fuentes",
+    "fotosDocumentales": "Fotografías documentales: Infobae, «Cacao, café, arte textil y más» (27-11-2024). Son referencias visuales y no identifican a productores del mercado. Permisos para uso comercial pendientes.",
+    "fotosReferencia": "Fotografías de referencia por línea: Unsplash (Ly Le Minh, Ryan Zamboni, Denise Chan, Boshoku) y Wikimedia Commons (Luke Hancock, CC0; LeRoc, CC BY-SA 3.0). No son fotos de las ofertas.",
+    "tipografias": "Tipografías DM Sans y Fraunces (Google Fonts). Logotipo CCPIP publicado por Amanatari."
+  },
+  "origen": {
+    "titulo": "El valor está en el origen."
   }
 }
