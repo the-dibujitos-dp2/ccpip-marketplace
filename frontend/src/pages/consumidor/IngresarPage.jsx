@@ -8,6 +8,7 @@ import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import { localeFechas } from '../../i18n/index.js'
+import './nuevoAccesoEditorial.css'
 import { navigate, RUTAS } from '../../router.js'
 import { CORREO_VALIDO } from './acceso.js'
 import LayoutAcceso from './LayoutAcceso.jsx'
@@ -105,7 +106,7 @@ export default function IngresarPage({ modo = 'ingresar', search = '', correoIni
   } else {
     contenido = (
       <>
-        <h1 id="titulo-acceso" className="heading-h2 ingresar__titulo">{t('ingresar.titulo')}</h1>
+        <h1 id="titulo-acceso" className="heading-h2 ingresar__titulo">{t('accessEditorial:titulo')}</h1>
 
         {alertaVisible && (
           <Alerta

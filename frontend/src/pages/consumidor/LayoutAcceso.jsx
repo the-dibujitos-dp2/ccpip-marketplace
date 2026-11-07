@@ -3,10 +3,12 @@ import iconoEscudo from '../../assets/icons/escudo-check.svg'
 import Enlace from '../../components/Enlace.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import MarcaEditorial from '../../components/layout/MarcaEditorial.jsx'
-import SelectorIdioma from '../../components/SelectorIdioma.jsx'
+import CabeceraTienda from '../../components/layout/CabeceraTienda.jsx'
+import { useSesion } from '../../sesion.js'
 import { RUTAS } from '../../router.js'
 import './IngresarPage.css'
 import './ConsumerEditorial.css'
+import './nuevoAccesoEditorial.css'
 import retrato from '../../assets/editorial/retrato.jpg'
 
 /**
@@ -15,8 +17,11 @@ import retrato from '../../assets/editorial/retrato.jpg'
  */
 export default function LayoutAcceso({ bajada, etiqueta, children }) {
   const { t } = useTranslation()
+  const { user, cerrarSesion, cerrando } = useSesion()
   return (
-    <div className="ingresar">
+    <div className="ingresar-shell">
+      <CabeceraTienda user={user} onCerrarSesion={cerrarSesion} cerrando={cerrando} editorialAccess />
+      <div className="ingresar">
       <aside className="ingresar__marca">
         <img className="ingresar__retrato" src={retrato} alt={t('editorial:fotoArtesana')} />
         <Enlace to={RUTAS.catalogo} aria-label={t('marca.irAlInicio')} className="ingresar__logo">
@@ -38,11 +43,15 @@ export default function LayoutAcceso({ bajada, etiqueta, children }) {
       </aside>
 
       <main className="ingresar__formulario-zona">
-        <SelectorIdioma className="ingresar__idioma" />
         <section className="ingresar__tarjeta" aria-labelledby={etiqueta}>
           {children}
         </section>
       </main>
+      </div>
+      <footer className="ingresar-shell__pie" aria-label="Mercado CCPIP">
+        <MarcaEditorial className="consumer-editorial-logo" />
+        <span>Mercado CCPIP</span>
+      </footer>
     </div>
   )
 }

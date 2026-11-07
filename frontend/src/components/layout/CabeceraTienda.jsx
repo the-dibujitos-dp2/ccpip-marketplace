@@ -18,11 +18,12 @@ import './CabeceraTienda.css'
  * navegacion y cuenta. Con sesion, el menu de cuenta siempre ofrece "Cerrar sesion" (CCPIP-27).
  * El boton "Carrito · N" llega con CCPIP-155; el selector de idioma, con CCPIP-265; favoritos, con su historia.
  */
-export default function CabeceraTienda({ user, onCerrarSesion, cerrando, termino = '' }) {
+export default function CabeceraTienda({ user, onCerrarSesion, cerrando, termino = '', editorialAccess = false }) {
   const { t } = useTranslation()
   const [busqueda, setBusqueda] = useState(termino)
   const [lineas, setLineas] = useState([])
   const [menu, setMenu] = useState(false)
+  const [busquedaAbierta, setBusquedaAbierta] = useState(false)
   const menuRef = useRef(null)
 
   useEffect(() => setBusqueda(termino), [termino])
@@ -61,9 +62,12 @@ export default function CabeceraTienda({ user, onCerrarSesion, cerrando, termino
       <div className="cabecera-tienda__principal contenedor">
         <Enlace to={RUTAS.catalogo} className="cabecera-tienda__marca" aria-label={t('marca.irAlInicio')}>
           <MarcaEditorial className="consumer-editorial-logo" />
+          {editorialAccess && <span className="cabecera-tienda__palabra">Mercado<small>Todo tiene un origen</small></span>}
         </Enlace>
-        <form className="cabecera-tienda__busqueda" role="search" onSubmit={buscar}>
-          <Icono src={iconoBuscar} tamano={20} />
+        <form className={`cabecera-tienda__busqueda${editorialAccess && busquedaAbierta ? ' cabecera-tienda__busqueda--abierta' : ''}`} role="search" onSubmit={buscar}>
+          {editorialAccess ? (
+            <button type="button" className="cabecera-tienda__buscar-toggle" aria-label={t('cabecera.buscarEtiqueta')} aria-expanded={busquedaAbierta} onClick={() => setBusquedaAbierta((v) => !v)}><Icono src={iconoBuscar} tamano={20} /></button>
+          ) : <Icono src={iconoBuscar} tamano={20} />}
           <label className="visually-hidden" htmlFor="busqueda">{t('cabecera.buscarEtiqueta')}</label>
           <input
             id="busqueda"

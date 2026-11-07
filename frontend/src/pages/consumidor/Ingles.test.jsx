@@ -37,10 +37,33 @@ describe('Tienda en inglés (CCPIP-98)', () => {
     expect(screen.getByRole('option', { name: 'Sort: Relevance' })).toBeInTheDocument()
   })
 
+  it('el shell editorial ofrece búsqueda compacta operable y un solo selector de idioma', async () => {
+    servidor(sinSesion)
+    const user = userEvent.setup()
+    abrirEn('/ingresar')
+    expect(await screen.findByRole('heading', { name: 'It’s good to see you here' })).toBeInTheDocument()
+    const search = screen.getByRole('search')
+    const expandir = within(search).getByRole('button', { name: 'Search products' })
+    expect(expandir).toHaveAttribute('aria-expanded', 'false')
+    await user.click(expandir)
+    expect(expandir).toHaveAttribute('aria-expanded', 'true')
+    const campoBusqueda = within(search).getByRole('searchbox', { name: 'Search products' })
+    await user.type(campoBusqueda, 'cacao')
+    expect(campoBusqueda).toHaveValue('cacao')
+    const idioma = screen.getAllByRole('button', { name: 'Language: English. Change language' })
+    expect(idioma).toHaveLength(1)
+    await user.click(idioma[0])
+    expect(screen.getByRole('menuitemradio', { name: 'Español' })).toBeInTheDocument()
+    await user.click(screen.getByRole('menuitemradio', { name: 'Español' }))
+    expect(await screen.findByRole('heading', { name: 'Qué bueno encontrarte aquí' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /crear cuenta/i })).toHaveAttribute('href', '/registro')
+  })
+
   it('el inicio de sesión valida y explica los errores en inglés', async () => {
     servidor({ ...sinSesion, 'POST /api/auth/login': [401, { code: 'CREDENCIALES_INVALIDAS', error: 'Correo o contrasena incorrectos' }] })
     const user = userEvent.setup()
     abrirEn('/ingresar')
+    expect(await screen.findByRole('heading', { name: 'It’s good to see you here' })).toBeInTheDocument()
     await user.click(await screen.findByRole('button', { name: 'Log in' }))
     expect(screen.getByText('Enter a valid email, for example name@email.com')).toBeInTheDocument()
 

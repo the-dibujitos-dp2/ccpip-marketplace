@@ -155,7 +155,7 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
   it('sin sesion pide ingresar y vuelve al carrito', async () => {
     const fetchMock = servidor({ ...PUBLICAS, 'GET /api/auth/me': SIN_SESION })
     abrirEn('/carrito')
-    expect(await screen.findByRole('heading', { name: /Ingresa/ })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Qué bueno encontrarte aquí' })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/ingresar')
     expect(new URLSearchParams(window.location.search).get('volver')).toBe('/carrito')
     expect(llamadas(fetchMock, 'GET /api/carrito')).toHaveLength(0)
