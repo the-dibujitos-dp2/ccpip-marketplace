@@ -120,11 +120,11 @@ class MermaTest extends IntegrationTest {
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("REVISION_EXISTENTE"));
         long[] otra = mermaEnLima("Arroz revisión cantidad", "2");
         pedirRevision(admin, otra[0], "3", "Más de lo que se dio de baja")
-                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("CANTIDAD_INVALIDA"));
+                .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("CANTIDAD_INVALIDA"));
         pedirRevision(admin, otra[0], "0", "Cero unidades no tiene sentido")
-                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("CANTIDAD_INVALIDA"));
+                .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("CANTIDAD_INVALIDA"));
         pedirRevision(admin, otra[0], "1", "corto")
-                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("MOTIVO_REQUERIDO"));
+                .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("MOTIVO_REQUERIDO"));
     }
 
     @Test
@@ -171,7 +171,7 @@ class MermaTest extends IntegrationTest {
         // El punto no resuelve su propia revision
         resolver(loginAs(ADMIN), revision, "aprobar", Map.of()).andExpect(status().isForbidden());
         // Nunca mas de lo pedido
-        resolver(sub, revision, "aprobar", Map.of("cantidad", "5")).andExpect(status().isBadRequest())
+        resolver(sub, revision, "aprobar", Map.of("cantidad", "5")).andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value("CANTIDAD_INVALIDA"));
 
         resolver(sub, revision, "aprobar", Map.of("cantidad", "3", "respuesta", "Se comprobó con el conteo"))
@@ -215,7 +215,7 @@ class MermaTest extends IntegrationTest {
         long movimientosAntes = contar("SELECT count(*) FROM movimiento_inventario WHERE lote_id = ?", m[1]);
         Cookie sub = loginAs(SUB);
 
-        resolver(sub, revision, "rechazar", Map.of("respuesta", " ")).andExpect(status().isBadRequest())
+        resolver(sub, revision, "rechazar", Map.of("respuesta", " ")).andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value("RESPUESTA_REQUERIDA"));
         resolver(sub, revision, "rechazar", Map.of("respuesta", "Las fotos muestran el daño"))
                 .andExpect(status().isOk())

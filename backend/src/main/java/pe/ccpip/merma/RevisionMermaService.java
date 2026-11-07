@@ -107,6 +107,13 @@ public class RevisionMermaService {
             throw ErrorNegocio.invalido("CANTIDAD_INVALIDA",
                     "Indica entre 1 y " + cantidadMerma.stripTrailingZeros().toPlainString() + " unidades.");
         }
+        // La merma se bloquea para que dos pedidos simultaneos no abran dos revisiones; el indice unico es el respaldo
+        jdbc.query("SELECT 1 FROM merma WHERE movimiento_id = :merma FOR UPDATE", p, rs -> null);
+        if (Boolean.TRUE.equals(jdbc.queryForObject("""
+                SELECT EXISTS (SELECT 1 FROM solicitud_revision_merma
+                               WHERE merma_movimiento_id = :merma AND estado IN ('PENDIENTE', 'APROBADA'))""", p, Boolean.class))) {
+            throw yaRevisada();
+        }
         Long id;
         try {
             id = jdbc.queryForObject("""
