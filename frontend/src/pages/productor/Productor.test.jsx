@@ -461,6 +461,17 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
     expect(aCuerpo({ ...base, nombre: ' Cafe ', unidad: '', precio: '', precioMayorista: '27.5' })).toMatchObject({ nombre: 'Cafe', unidad: null, precio: null, precioMayorista: 27.5, cantidadMinimaMayorista: 1 })
   })
 
+  it('CCPIP-488: el formulario pide primero el nombre, luego la línea y después las fotos', async () => {
+    productor()
+    abrirEn('/productor/productos/nuevo')
+    const nombre = await screen.findByLabelText('Nombre del producto')
+    const linea = screen.getByText('Línea de producto')
+    const fotos = screen.getByRole('heading', { name: 'Fotos' })
+    const antes = (a, b) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(antes(nombre, linea)).toBe(true)
+    expect(antes(linea, fotos)).toBe(true)
+  })
+
   it('crea el borrador con lineas, unidad sugerida y precios mayorista y minorista', async () => {
     const creado = { ...copia(DATOS.edicion), id: 30, estado: 'BORRADOR', nombre: 'Aceite de sacha inchi', imagenes: [], historia: null }
     const fetchMock = productor({

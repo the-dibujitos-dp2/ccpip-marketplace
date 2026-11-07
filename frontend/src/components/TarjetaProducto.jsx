@@ -3,6 +3,7 @@ import iconoBolsa from '../assets/icons/bolsa-marca.svg'
 import iconoPaquete from '../assets/icons/paquete.svg'
 import iconoReloj from '../assets/icons/reloj.svg'
 import { precio } from '../formato.js'
+import { porUnidad } from '../precioUnidad.js'
 import Enlace from './Enlace.jsx'
 import Icono from './Icono.jsx'
 import ImagenProducto from './ImagenProducto.jsx'
@@ -54,9 +55,10 @@ export default function TarjetaProducto({ producto, puesto }) {
             {t(`modalidad.${clave}`)}
           </span>
         </span>
+        {/* CCPIP-494: el precio con su unidad de venta, en el mismo formato que la ficha y el carrito */}
         <span className="tarjeta-producto__precio">
           {monto != null && <strong>{precio(monto)}</strong>}
-          {producto.contenido && <span className="caption">· {producto.contenido}</span>}
+          {monto != null && <span className="caption">{porUnidad(t, producto)}</span>}
         </span>
       </span>
     </Enlace>

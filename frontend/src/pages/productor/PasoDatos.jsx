@@ -350,6 +350,17 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
       <div className="tarjeta-panel editor__formulario">
         {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
 
+        {/* CCPIP-488: de lo general a lo particular: nombre, linea y despues las fotos */}
+        <Campo etiqueta={t('productor.datos.nombre')} value={d.nombre} onChange={set('nombre')} error={errores.nombre} maxLength={200} placeholder={t('productor.datos.nombreEjemplo')} />
+
+        <Chips
+          etiqueta={t('buscar.linea')}
+          opciones={catalogos.lineas.map((l) => ({ valor: l.codigo, etiqueta: l.nombre }))}
+          seleccion={d.lineas}
+          onCambiar={elegirLineas}
+          error={errores.lineas}
+        />
+
         <section className="editor__fotos" aria-labelledby="titulo-fotos">
           <h2 id="titulo-fotos" className="heading-h4">{t('productor.datos.fotos')}</h2>
           <ul className="editor__miniaturas">
@@ -433,16 +444,6 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
             onCerrar={() => setComparacion(null)}
           />
         </section>
-
-        <Campo etiqueta={t('productor.datos.nombre')} value={d.nombre} onChange={set('nombre')} error={errores.nombre} maxLength={200} placeholder={t('productor.datos.nombreEjemplo')} />
-
-        <Chips
-          etiqueta={t('buscar.linea')}
-          opciones={catalogos.lineas.map((l) => ({ valor: l.codigo, etiqueta: l.nombre }))}
-          seleccion={d.lineas}
-          onCambiar={elegirLineas}
-          error={errores.lineas}
-        />
 
         <div className="editor__ia" aria-live="polite">
           {['inicial', 'aceptada', 'descartada'].includes(ia.estado) ? (

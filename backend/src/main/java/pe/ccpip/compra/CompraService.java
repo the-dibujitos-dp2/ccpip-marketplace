@@ -274,7 +274,9 @@ public class CompraService {
                 SELECT pe.id, pe.numero, pe.estado, pe.modalidad, pe.total, pe.costo_envio, pe.creado_en, pe.confirmado_en,
                        u.id AS u_id, u.nombre AS u_nombre, u.departamento, u.provincia, u.distrito, u.direccion,
                        (SELECT count(*) FROM item_pedido i WHERE i.pedido_id = pe.id) AS productos,
-                       (SELECT count(DISTINCT i.productor_id) FROM item_pedido i WHERE i.pedido_id = pe.id) AS comunidades
+                       (SELECT count(DISTINCT i.productor_id) FROM item_pedido i WHERE i.pedido_id = pe.id) AS comunidades,
+                       (SELECT pr.nombre FROM item_pedido i JOIN producto pr ON pr.id = i.producto_id
+                        WHERE i.pedido_id = pe.id ORDER BY i.id LIMIT 1) AS primer_producto
                 FROM pedido pe JOIN ubicacion u ON u.id = pe.ubicacion_origen_id
                 WHERE pe.usuario_id = :usuario
                 ORDER BY pe.creado_en DESC, pe.id DESC""", new MapSqlParameterSource("usuario", usuarioId),
@@ -282,14 +284,14 @@ public class CompraService {
                         rs.getString("modalidad"), rs.getBigDecimal("total"), instante(rs, "creado_en"),
                         instante(rs, "confirmado_en"), punto(rs, "u_"), rs.getInt("productos"),
                         rs.getInt("comunidades"), List.of(), rs.getBigDecimal("costo_envio"),
-                        rs.getBigDecimal("total").add(rs.getBigDecimal("costo_envio"))));
+                        rs.getBigDecimal("total").add(rs.getBigDecimal("costo_envio")), rs.getString("primer_producto")));
         if (sinHistorial.isEmpty()) {
             return sinHistorial;
         }
         Map<Long, List<EventoPedido>> historiales = historial(sinHistorial.stream().map(ResumenPedido::id).toList());
         return sinHistorial.stream().map(r -> new ResumenPedido(r.id(), r.numero(), r.estado(), r.modalidad(), r.total(),
                 r.creadoEn(), r.confirmadoEn(), r.punto(), r.productos(), r.comunidades(),
-                historiales.getOrDefault(r.id(), List.of()), r.costoEnvio(), r.totalAPagar())).toList();
+                historiales.getOrDefault(r.id(), List.of()), r.costoEnvio(), r.totalAPagar(), r.primerProducto())).toList();
     }
 
     /** CCPIP-340: los estados de cada pedido en orden cronologico, sin quien los registro. */
