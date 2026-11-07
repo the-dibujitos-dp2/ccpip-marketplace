@@ -106,6 +106,63 @@ class AuditoriaTest extends IntegrationTest {
     }
 
     @Test
+    void ccpip504IncluyeLaOperacionDelPuntoDeAcopioYDelDistribuidorYSeFiltraPorRol() throws Exception {
+        sudo = loginAs("sudo@ccpip.test");
+        long admin = usuario("admin_acopio@ccpip.test");
+        long distribuidor = usuario("distribuidor@ccpip.test");
+        long lote = jdbc.queryForObject("SELECT id FROM lote WHERE producto_id = ? LIMIT 1", Long.class, miel);
+        long lima = jdbc.queryForObject("SELECT ubicacion_id FROM lote WHERE id = ?", Long.class, lote);
+        String punto = jdbc.queryForObject("SELECT nombre FROM ubicacion WHERE id = ?", String.class, lima);
+
+        // El punto registra una entrada de mercaderia; una venta automatica no es operacion del punto
+        long entrada = jdbc.queryForObject("""
+                INSERT INTO movimiento_inventario (producto_id, ubicacion_id, tipo, cantidad, usuario_id, lote_id, motivo)
+                VALUES (?, ?, 'ENTRADA', 3, ?, ?, 'RECEPCION') RETURNING id""", Long.class, miel, lima, admin, lote);
+        // El punto prepara un pedido a domicilio; el distribuidor lo asume, lo retira y lo entrega
+        long pedido = jdbc.queryForObject("""
+                INSERT INTO pedido (numero, usuario_id, modalidad, ubicacion_origen_id, total, estado, confirmado_en)
+                SELECT ?, u.id, 'ENVIO', ?, 20.00, 'CONFIRMADO', now() FROM usuario u WHERE u.correo = 'consumidor@ccpip.test'
+                RETURNING id""", Long.class, "AUD5-" + UUID.randomUUID().toString().substring(0, 8), lima);
+        String numero = jdbc.queryForObject("SELECT numero FROM pedido WHERE id = ?", String.class, pedido);
+        long preparo = jdbc.queryForObject("""
+                INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (?, 'EN_PREPARACION', ?)
+                RETURNING id""", Long.class, pedido, admin);
+        long entrega = jdbc.queryForObject("""
+                INSERT INTO entrega (pedido_id, distribuidor_id, ubigeo, direccion, contacto_nombre, contacto_celular,
+                                     estado, asignada_en, retirada_en)
+                VALUES (?, ?, '150101', 'Jr. Uno 123', 'Ana Quispe', '987654321', 'RETIRADA', now(), now())
+                RETURNING id""", Long.class, pedido, distribuidor);
+        long entrego = jdbc.queryForObject("""
+                INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (?, 'ENTREGADO', ?)
+                RETURNING id""", Long.class, pedido, distribuidor);
+        // El estado que deja el comprador o el sistema no es de esos roles
+        long delComprador = jdbc.queryForObject("""
+                INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id)
+                SELECT ?, 'CONFIRMADO', id FROM usuario WHERE correo = 'consumidor@ccpip.test' RETURNING id""", Long.class, pedido);
+
+        auditoria("?rol=ADMIN_PUNTO")
+                .andExpect(campo("MI-" + entrada, "accion").value(hasItem("MOVIMIENTO_ENTRADA")))
+                .andExpect(campo("MI-" + entrada, "entidad").value(hasItem("MOVIMIENTO")))
+                .andExpect(campo("MI-" + entrada, "detalle").value(hasItem(org.hamcrest.Matchers.startsWith(nombreMiel + " · lote "))))
+                .andExpect(campo("MI-" + entrada, "detalle").value(hasItem(org.hamcrest.Matchers.endsWith(" · 3 und · " + punto))))
+                .andExpect(campo("PH-" + preparo, "accion").value(hasItem("PEDIDO_EN_PREPARACION")))
+                .andExpect(campo("PH-" + preparo, "detalle").value(hasItem(numero)))
+                .andExpect(jsonPath("$.registros[*].clave", not(hasItem("EA-" + entrega))));
+        auditoria("?rol=DISTRIBUIDOR")
+                .andExpect(campo("EA-" + entrega, "accion").value(hasItem("ENTREGA_ASUMIDA")))
+                .andExpect(campo("ER-" + entrega, "accion").value(hasItem("ENTREGA_RETIRADA")))
+                .andExpect(campo("PH-" + entrego, "accion").value(hasItem("PEDIDO_ENTREGADO")))
+                .andExpect(campo("PH-" + entrego, "usuario").value(hasItem(org.hamcrest.Matchers.notNullValue())))
+                .andExpect(jsonPath("$.registros[*].clave", not(hasItem("PH-" + preparo))));
+        auditoria("?entidad=PEDIDO")
+                .andExpect(jsonPath("$.registros[*].clave", not(hasItem("PH-" + delComprador))));
+        auditoria("?accion=MOVIMIENTO_ENTRADA&entidad=MOVIMIENTO")
+                .andExpect(jsonPath("$.registros[*].clave", hasItem("MI-" + entrada)));
+        auditoria("").andExpect(jsonPath("$.acciones", hasItems("MOVIMIENTO_ENTRADA", "PEDIDO_EN_PREPARACION",
+                "ENTREGA_ASUMIDA", "ENTREGA_RETIRADA", "PEDIDO_ENTREGADO")));
+    }
+
+    @Test
     void losFiltrosSeCombinanYExcluyenLoQueNoCumple() throws Exception {
         sudo = loginAs("sudo@ccpip.test");
         auditoria("?accion=PAGO&resultado=APROBADO")

@@ -4877,7 +4877,7 @@
       "PRODUCTO_RETIRAR": "Withdrew product",
       "PRODUCTO_REPUBLICAR": "Republished product",
       "PRODUCTO_HISTORIA": "Changed product story",
-      "PRODUCTO_LOTE": "Registered batch",
+      "PRODUCTO_LOTE": "Registered or edited batch",
       "PRODUCTO_IMAGEN": "Changed product image",
       "PRODUCTO_EVIDENCIA": "Uploaded product evidence",
       "PRODUCTO_AUTORIZACION": "Changed product authorization",
@@ -4894,7 +4894,25 @@
       "TARIFA_ENVIO": "Set a shipping rate",
       "CAPACIDAD_ENTREGA": "Changed a delivery capacity",
       "COBERTURA_ACTIVADA": "Activated a coverage zone",
-      "COBERTURA_DESACTIVADA": "Deactivated a coverage zone"
+      "COBERTURA_DESACTIVADA": "Deactivated a coverage zone",
+      "MOVIMIENTO_ENTRADA": "Recorded stock entry",
+      "MOVIMIENTO_SALIDA": "Recorded stock exit",
+      "MOVIMIENTO_TRANSFERENCIA_ENTRADA": "Received transfer",
+      "MOVIMIENTO_TRANSFERENCIA_SALIDA": "Sent transfer",
+      "MOVIMIENTO_AJUSTE": "Adjusted stock",
+      "MOVIMIENTO_MERMA": "Recorded loss",
+      "PEDIDO_PENDIENTE_PAGO": "Left order awaiting payment",
+      "PEDIDO_CONFIRMADO": "Confirmed order",
+      "PEDIDO_EN_PREPARACION": "Prepared order",
+      "PEDIDO_LISTO_PARA_RECOJO": "Marked order ready for pickup",
+      "PEDIDO_LISTO_PARA_DESPACHO": "Marked order ready for dispatch",
+      "PEDIDO_EN_CAMINO": "Dispatched order",
+      "PEDIDO_ENTREGADO": "Delivered order",
+      "PEDIDO_CANCELADO": "Cancelled order",
+      "ENTREGA_ASUMIDA": "Took delivery",
+      "ENTREGA_RETIRADA": "Picked up order at the point",
+      "PRODUCTO_MALOGRADO_REEMPLAZO": "Replaced damaged product",
+      "PRODUCTO_MALOGRADO_FALTANTE": "Recorded damaged product without replacement"
     },
     "entidad": {
       "AUTORIZACION": "Authorization",
@@ -4910,7 +4928,8 @@
       "PERMISO": "Permission",
       "TARIFA_ENVIO": "Shipping rate",
       "CAPACIDAD_ENTREGA": "Delivery capacity",
-      "COBERTURA_ENTREGA": "Coverage zone"
+      "COBERTURA_ENTREGA": "Coverage zone",
+      "MOVIMIENTO": "Stock movement"
     },
     "resultado": {
       "EXITOSA": "Successful",
