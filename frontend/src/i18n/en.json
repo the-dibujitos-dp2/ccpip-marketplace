@@ -199,7 +199,19 @@
         "AGOTADO": "Sold out",
         "VENCIDO": "Expired"
       },
-      "ubicacionPlaceholder": "Choose your warehouse or a collection point"
+      "ubicacionPlaceholder": "Choose your warehouse or a collection point",
+      "editar": {
+        "titulo": "Edit batch {{codigo}}",
+        "boton": "Edit",
+        "abrir": "Edit batch {{codigo}}",
+        "guardar": "Save changes",
+        "guardando": "Saving…",
+        "cancelar": "Cancel",
+        "fijo": "{{inicial}} units came in and {{actual}} units remain at {{lugar}}. Quantity and place are not edited: they change with movements or transfers.",
+        "vencido": "This batch has expired: its expiry date cannot be changed.",
+        "guardado": "Batch {{codigo}} updated",
+        "error": "We could not save the batch"
+      }
     },
     "almacen": {
       "titulo": "My warehouse",

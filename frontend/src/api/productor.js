@@ -91,6 +91,12 @@ export const urlReporteProductor = (formato, filtros, idioma) => rutaReporteProd
 export const listarTodosLosLotes = () => apiFetch(`${base}/lotes`)
 export const listarLotes = async (id) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`)
 export const registrarLote = async (id, datos) => apiFetch(`${base}/productos/${idRuta(id)}/lotes`, { method: 'POST', body: datos })
+/**
+ * CCPIP-495: corrige el codigo y las fechas de un lote `{ codigo, fechaProduccion, fechaVencimiento }`; devuelve los
+ * lotes del producto. La cantidad y la ubicacion no se editan (movimientos y transferencias).
+ */
+export const editarLote = async (id, loteId, datos) =>
+  apiFetch(`${base}/productos/${idRuta(id)}/lotes/${idRuta(loteId)}`, { method: 'PUT', body: datos })
 
 export const marcarPrincipal = async (imagenId) => apiFetch(`${base}/imagenes/${idRuta(imagenId)}/principal`, { method: 'PUT' })
 /** Una foto de producto se retira y se conserva para el historial (CCPIP-389); portada y galeria se borran. */

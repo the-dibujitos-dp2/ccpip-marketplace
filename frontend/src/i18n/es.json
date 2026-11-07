@@ -199,7 +199,19 @@
         "AGOTADO": "Agotado",
         "VENCIDO": "Vencido"
       },
-      "ubicacionPlaceholder": "Elige tu almacén o un punto de acopio"
+      "ubicacionPlaceholder": "Elige tu almacén o un punto de acopio",
+      "editar": {
+        "titulo": "Editar lote {{codigo}}",
+        "boton": "Editar",
+        "abrir": "Editar lote {{codigo}}",
+        "guardar": "Guardar cambios",
+        "guardando": "Guardando…",
+        "cancelar": "Cancelar",
+        "fijo": "Ingresaron {{inicial}} und y quedan {{actual}} und en {{lugar}}. La cantidad y el lugar no se editan: cambian con movimientos o transferencias.",
+        "vencido": "Este lote ya venció: su vencimiento no se puede cambiar.",
+        "guardado": "Lote {{codigo}} actualizado",
+        "error": "No pudimos guardar el lote"
+      }
     },
     "almacen": {
       "titulo": "Mi almacén",

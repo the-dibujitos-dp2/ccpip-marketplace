@@ -365,6 +365,67 @@ describe('PW-06 Registrar lote (CCPIP-41)', () => {
     expect(within(screen.getByRole('list', { name: 'Lotes de este producto' })).getByText('L-0050')).toBeInTheDocument()
   })
 
+  it('CCPIP-495: editar un lote trae sus datos actuales y solo envía lo que se corrige', async () => {
+    const editado = copia(DATOS.lotes)
+    Object.assign(editado.items[0], { codigo: 'L-0009-B', fechaVencimiento: '2027-12-31' })
+    const fetchMock = productor({ 'PUT /api/productor/productos/9/lotes/9': [200, editado] })
+    const user = userEvent.setup()
+    abrirEn('/productor/lotes?producto=9')
+    const lista = await screen.findByRole('list', { name: 'Lotes de este producto' })
+    await user.click(within(lista).getByRole('button', { name: 'Editar lote L-0009' }))
+
+    const form = within(screen.getByRole('form', { name: 'Editar lote L-0009' }))
+    expect(form.getByLabelText('Código de lote')).toHaveValue('L-0009')
+    expect(form.getByLabelText('Producción')).toHaveValue('04/09/2026')
+    expect(form.getByLabelText('Vencimiento')).toHaveValue('04/10/2027')
+    expect(form.getByText(/Ingresaron 100 und y quedan 100 und en Centro Nacional Lima\. La cantidad y el lugar no se editan/)).toBeInTheDocument()
+    expect(form.queryByLabelText('Cantidad')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Nuevo lote' })).not.toBeInTheDocument()
+
+    await user.clear(form.getByLabelText('Código de lote'))
+    await user.type(form.getByLabelText('Código de lote'), 'L-0009-B')
+    await user.clear(form.getByLabelText('Vencimiento'))
+    await user.type(form.getByLabelText('Vencimiento'), '31/12/2027')
+    await user.click(form.getByRole('button', { name: 'Guardar cambios' }))
+
+    expect(await screen.findByText('Lote L-0009-B actualizado')).toBeInTheDocument()
+    expect(cuerpo(fetchMock, 'PUT /api/productor/productos/9/lotes/9')).toEqual({
+      codigo: 'L-0009-B', fechaProduccion: '2026-09-04', fechaVencimiento: '2027-12-31',
+    })
+    expect(within(screen.getByRole('list', { name: 'Lotes de este producto' })).getByText('L-0009-B')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Nuevo lote' })).toBeInTheDocument()
+    expect(llamadas(fetchMock, 'POST /api/productor/productos/9/lotes')).toHaveLength(0)
+  })
+
+  it('CCPIP-495: sin cambios no envía nada; un lote vencido no deja cambiar su vencimiento', async () => {
+    const conVencido = copia(DATOS.lotes)
+    conVencido.items.push({ ...conVencido.items[0], id: 7, codigo: 'L-0007', fechaVencimiento: '2026-01-10', estado: 'VENCIDO' })
+    const fetchMock = productor({ 'GET /api/productor/productos/9/lotes': () => [200, copia(conVencido)] })
+    const user = userEvent.setup()
+    abrirEn('/productor/lotes?producto=9')
+    const lista = await screen.findByRole('list', { name: 'Lotes de este producto' })
+    await user.click(within(lista).getByRole('button', { name: 'Editar lote L-0009' }))
+    await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+    expect(screen.getByRole('heading', { name: 'Nuevo lote' })).toBeInTheDocument()
+
+    await user.click(within(lista).getByRole('button', { name: 'Editar lote L-0007' }))
+    const form = within(screen.getByRole('form', { name: 'Editar lote L-0007' }))
+    expect(form.getByLabelText('Vencimiento')).toBeDisabled()
+    expect(form.getByText('Este lote ya venció: su vencimiento no se puede cambiar.')).toBeInTheDocument()
+    await user.click(form.getByRole('button', { name: 'Cancelar' }))
+    expect(llamadas(fetchMock, 'PUT /api/productor/productos/9/lotes/7')).toHaveLength(0)
+    expect(llamadas(fetchMock, 'PUT /api/productor/productos/9/lotes/9')).toHaveLength(0)
+  })
+
+  it('CCPIP-495: al editar un producto publicado, su paso de lote permite corregir el lote existente', async () => {
+    productor()
+    const user = userEvent.setup()
+    abrirEn('/productor/productos/9?paso=lote')
+    const lista = await screen.findByRole('list', { name: 'Lotes de este producto' })
+    await user.click(within(lista).getByRole('button', { name: 'Editar lote L-0009' }))
+    expect(within(screen.getByRole('form', { name: 'Editar lote L-0009' })).getByLabelText('Código de lote')).toHaveValue('L-0009')
+  })
+
   it('muestra el rechazo del servidor (p. ej. codigo repetido)', async () => {
     productor({ 'POST /api/productor/productos/9/lotes': [409, { code: 'LOTE_DUPLICADO', error: 'Ya registraste ese código de lote', campos: { codigo: 'Ya existe' } }] })
     const user = userEvent.setup()
