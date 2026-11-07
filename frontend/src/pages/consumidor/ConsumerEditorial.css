@@ -1,19 +1,20 @@
 @import url('../../assets/editorial/fonts.css');
+@import url('../../assets/editorial/EditorialTokens.css');
 
-/* CCPIP-127: unica frontera de tokens del consumidor. Los paneles de otros roles conservan su sistema. */
+/* CCPIP-127: los tokens compartidos viven en EditorialTokens.css. */
 .layout-tienda,
 .ingresar-shell {
-  --consumer-paper: #f7f5ee;
-  --consumer-white: #fffef9;
-  --consumer-forest: #163d2c;
-  --consumer-deep: #102c21;
-  --consumer-seed: #ebc66b;
-  --consumer-ink: #193529;
-  --consumer-muted: #5b665a;
-  --consumer-line: #d9ded0;
-  --consumer-sage: #e4e9d9;
-  --consumer-serif: 'Fraunces', Georgia, serif;
-  --consumer-sans: 'DM Sans', Arial, sans-serif;
+  --consumer-paper: var(--editorial-paper);
+  --consumer-white: var(--editorial-white);
+  --consumer-forest: var(--editorial-forest);
+  --consumer-deep: var(--editorial-deep);
+  --consumer-seed: var(--editorial-seed);
+  --consumer-ink: var(--editorial-ink);
+  --consumer-muted: var(--editorial-muted);
+  --consumer-line: var(--editorial-line);
+  --consumer-sage: var(--editorial-sage);
+  --consumer-serif: var(--editorial-serif);
+  --consumer-sans: var(--editorial-sans);
   --font-display: var(--consumer-serif);
   --font-body: var(--consumer-sans);
   --color-text-primary: var(--consumer-ink);

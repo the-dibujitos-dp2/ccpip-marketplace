@@ -1,0 +1,67 @@
+/* CCPIP-127 · Gramática contextual para interfaces internas; no introduce contenido ni interacción. */
+.layout-productor {
+  --color-bg-canvas: var(--editorial-paper);
+  --color-bg-surface: var(--editorial-white);
+  --color-bg-brand: var(--editorial-forest);
+  --color-bg-brand-subtle: var(--editorial-sage);
+  --color-border-default: var(--editorial-line);
+  --color-text-primary: var(--editorial-ink);
+  --color-text-secondary: var(--editorial-muted);
+  --color-text-tertiary: var(--editorial-muted);
+  --color-text-brand: var(--editorial-forest);
+  --color-status-error-fg: var(--editorial-error);
+  --color-status-error-bg: var(--editorial-error-bg);
+  color: var(--editorial-ink);
+  background: var(--editorial-paper);
+  font-family: var(--editorial-sans);
+  -webkit-font-smoothing: antialiased;
+}
+.layout-productor :is(h1, h2, h3, .heading-h1, .heading-h2, .heading-h3) {
+  color: var(--editorial-ink);
+  font-family: var(--editorial-serif);
+  font-weight: 400;
+  letter-spacing: -.025em;
+}
+.layout-productor :is(button, input, select, textarea) { font-family: var(--editorial-sans); }
+.layout-productor :is(input, select, textarea) {
+  border-radius: var(--editorial-radius);
+  border-color: var(--editorial-line);
+  background-color: var(--editorial-white);
+  color: var(--editorial-ink);
+}
+.layout-productor :focus-visible { outline: 2px solid var(--editorial-focus); outline-offset: 3px; }
+.layout-productor ::selection { background: var(--editorial-forest); color: var(--editorial-white); }
+.layout-productor :is(table) { border-collapse: collapse; background: var(--editorial-white); }
+.layout-productor :is(th) {
+  background: var(--editorial-sage);
+  color: var(--editorial-ink);
+  font-family: var(--editorial-sans);
+  font-weight: 600;
+  text-align: left;
+}
+.layout-productor :is(td, th) { border-bottom: 1px solid var(--editorial-line); }
+.layout-productor :is(.boton, button[class*='boton']) { border-radius: var(--editorial-radius); box-shadow: none; }
+.layout-productor :is(.boton--primario, .boton--primary) {
+  border-color: var(--editorial-forest);
+  background: var(--editorial-forest);
+  color: var(--editorial-white);
+}
+.layout-productor :is([role='dialog'], dialog) {
+  border: 1px solid var(--editorial-line);
+  border-radius: var(--editorial-radius-large);
+  box-shadow: none;
+  background: var(--editorial-white);
+  color: var(--editorial-ink);
+}
+.layout-productor__sidebar { background: var(--editorial-white); }
+.layout-productor__nav { border-radius: var(--editorial-radius); }
+.layout-productor__usuario { border-radius: var(--editorial-radius-large); }
+.layout-productor__sidebar--abierto { border-right-color: var(--editorial-forest); }
+.layout-productor__contenido { min-width: 0; }
+@media (max-width: 580px) {
+  .layout-productor__barra { gap: 8px; min-width: 0; }
+  .layout-productor__titulos { overflow-wrap: anywhere; }
+  .layout-productor__barra > :not(.layout-productor__menu):not(.layout-productor__titulos) { min-width: 0; }
+  .layout-productor__contenido { overflow-x: hidden; }
+  .layout-productor__contenido :is(table) { display: block; max-width: 100%; overflow-x: auto; }
+}

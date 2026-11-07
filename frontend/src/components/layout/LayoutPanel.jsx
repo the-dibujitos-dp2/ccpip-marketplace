@@ -8,6 +8,9 @@ import Icono from '../Icono.jsx'
 import Logotipo from '../Logotipo.jsx'
 import SelectorIdioma from '../SelectorIdioma.jsx'
 import './LayoutProductor.css'
+import '../../assets/editorial/fonts.css'
+import '../../assets/editorial/EditorialTokens.css'
+import './PanelEditorial.css'
 
 /**
  * Estructura web de los paneles de gestion (productor PW, punto de acopio A): sidebar de 264 px
