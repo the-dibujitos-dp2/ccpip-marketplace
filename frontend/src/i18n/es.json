@@ -1026,6 +1026,7 @@
     "rol": "Distribuidor",
     "migas": "Reparto",
     "nav": {
+      "inicio": "Inicio",
       "pedidos": "Pedidos disponibles",
       "entregas": "Mis entregas"
     },
@@ -1139,6 +1140,35 @@
       "enCaminoEn": "Salió en camino el {{fecha}}",
       "entregadaEn": "Lo entregaste el {{fecha}}",
       "momentos": "Momentos de la entrega {{numero}}"
+    },
+    "inicio": {
+      "titulo": "Inicio",
+      "cargando": "Cargando tu reparto…",
+      "error": "No pudimos cargar tu reparto",
+      "reintentar": "Reintentar",
+      "kpi": {
+        "disponibles": "Pedidos para tomar",
+        "disponiblesDetalle": "Listos en los puntos de acopio",
+        "verDisponibles": "Ver pedidos disponibles",
+        "porRetirar": "Por retirar",
+        "porRetirarDetalle": "Tomados, aún en el punto de acopio",
+        "enCamino": "En camino",
+        "enCaminoDetalle": "Retirados o en traslado",
+        "verEntregas": "Ver mis entregas",
+        "entregadas": "Entregados hoy",
+        "entregadasDetalle": "Entregas registradas hoy"
+      },
+      "siguiente": "Tu siguiente entrega",
+      "ruta": "De {{origen}} a {{destino}}",
+      "tomadaEn": "tomado el {{fecha}}",
+      "continuar": "Continuar en Mis entregas",
+      "sinEnCurso": "No tienes entregas en curso.",
+      "tomarPedidos": "Tomar pedidos",
+      "estado": {
+        "ASIGNADA": "Por retirar del punto",
+        "RETIRADA": "Retirado del punto",
+        "EN_CAMINO": "En camino al destino"
+      }
     }
   },
   "acopio": {
