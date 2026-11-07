@@ -153,7 +153,7 @@ function Ventas({ datos }) {
       </div>
       <section className="productor__seccion" aria-labelledby="reportes-ventas-periodo">
         <h2 id="reportes-ventas-periodo" className="heading-h3">{t('productor.reportes.ventas.porPeriodo')}</h2>
-        <div className="tabla" role="table" aria-labelledby="reportes-ventas-periodo">
+        <div className="tabla" role="table" aria-labelledby="reportes-ventas-periodo" tabIndex={0}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda reportes-productor__periodo" role="columnheader">{t('productor.reportes.col.periodo')}</span>
             <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.reportes.col.barraVentas')}</span>
@@ -185,7 +185,7 @@ function Ventas({ datos }) {
         {porProducto.length === 0 ? (
           <EstadoVacio titulo={t('productor.reportes.ventas.vacio')} descripcion={t('productor.reportes.vacioTexto')} />
         ) : (
-          <div className="tabla" role="table" aria-labelledby="reportes-ventas-producto">
+          <div className="tabla" role="table" aria-labelledby="reportes-ventas-producto" tabIndex={0}>
             <div className="tabla__fila tabla__fila--encabezado" role="row">
               <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.reportes.col.producto')}</span>
               <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.unidades')}</span>
@@ -230,7 +230,7 @@ function Produccion({ datos }) {
       </div>
       <section className="productor__seccion" aria-labelledby="reportes-produccion-periodo">
         <h2 id="reportes-produccion-periodo" className="heading-h3">{t('productor.reportes.produccion.porPeriodo')}</h2>
-        <div className="tabla" role="table" aria-labelledby="reportes-produccion-periodo">
+        <div className="tabla" role="table" aria-labelledby="reportes-produccion-periodo" tabIndex={0}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda reportes-productor__periodo" role="columnheader">{t('productor.reportes.col.periodo')}</span>
             <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.reportes.col.barraProduccion')}</span>
@@ -258,7 +258,7 @@ function Produccion({ datos }) {
         {porProducto.length === 0 ? (
           <EstadoVacio titulo={t('productor.reportes.produccion.vacio')} descripcion={t('productor.reportes.vacioTexto')} />
         ) : (
-          <div className="tabla" role="table" aria-labelledby="reportes-produccion-producto">
+          <div className="tabla" role="table" aria-labelledby="reportes-produccion-producto" tabIndex={0}>
             <div className="tabla__fila tabla__fila--encabezado" role="row">
               <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.reportes.col.producto')}</span>
               <span className="tabla__celda reportes-productor__num" role="columnheader">{t('productor.reportes.col.ingresadas')}</span>
@@ -311,7 +311,7 @@ function Inventario({ datos }) {
       </div>
       <section className="productor__seccion" aria-labelledby="reportes-inventario-periodo">
         <h2 id="reportes-inventario-periodo" className="heading-h3">{t('productor.reportes.inventario.porPeriodo')}</h2>
-        <div className="tabla" role="table" aria-labelledby="reportes-inventario-periodo">
+        <div className="tabla" role="table" aria-labelledby="reportes-inventario-periodo" tabIndex={0}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda reportes-productor__periodo" role="columnheader">{t('productor.reportes.col.periodo')}</span>
             {COLUMNAS_INVENTARIO.map((c) => (
@@ -335,7 +335,7 @@ function Inventario({ datos }) {
         {porProducto.length === 0 ? (
           <EstadoVacio titulo={t('productor.reportes.inventario.vacio')} descripcion={t('productor.reportes.vacioTexto')} />
         ) : (
-          <div className="tabla" role="table" aria-labelledby="reportes-inventario-producto">
+          <div className="tabla" role="table" aria-labelledby="reportes-inventario-producto" tabIndex={0}>
             <div className="tabla__fila tabla__fila--encabezado" role="row">
               <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.reportes.col.producto')}</span>
               {COLUMNAS_INVENTARIO_PRODUCTO.map((c) => (
@@ -388,7 +388,7 @@ function Consumo({ datos }) {
       </div>
       <section className="productor__seccion" aria-labelledby="reportes-consumo-periodo">
         <h2 id="reportes-consumo-periodo" className="heading-h3">{t('productor.reportes.consumo.porPeriodo')}</h2>
-        <div className="tabla" role="table" aria-labelledby="reportes-consumo-periodo">
+        <div className="tabla" role="table" aria-labelledby="reportes-consumo-periodo" tabIndex={0}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda reportes-productor__periodo" role="columnheader">{t('productor.reportes.col.periodo')}</span>
             <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.reportes.col.barraVentas')}</span>
@@ -420,7 +420,7 @@ function Consumo({ datos }) {
         {totales.compradores === 0 ? (
           <EstadoVacio titulo={t('productor.reportes.consumo.vacio')} descripcion={t('productor.reportes.vacioTexto')} />
         ) : (
-          <div className="tabla" role="table" aria-labelledby="reportes-consumo-frecuencia">
+          <div className="tabla" role="table" aria-labelledby="reportes-consumo-frecuencia" tabIndex={0}>
             <div className="tabla__fila tabla__fila--encabezado" role="row">
               <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.reportes.col.compras')}</span>
               {COLUMNAS_FRECUENCIA.map((c) => (
