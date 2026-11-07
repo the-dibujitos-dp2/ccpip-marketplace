@@ -3,6 +3,7 @@ import CabeceraTienda from './CabeceraTienda.jsx'
 import PieDePagina from './PieDePagina.jsx'
 import DecoracionBotanica from './DecoracionBotanica.jsx'
 import '../../pages/consumidor/ConsumerEditorial.css'
+import '../../pages/consumidor/RutasEditorial.css'
 
 /** Estructura de toda pagina publica de la tienda web (CW): cabecera, contenido y pie. */
 export default function LayoutTienda({ termino, children }) {
