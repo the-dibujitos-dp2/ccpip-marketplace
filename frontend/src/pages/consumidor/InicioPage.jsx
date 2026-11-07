@@ -19,6 +19,9 @@ import { RUTAS } from '../../router.js'
 import '../../assets/editorial/fonts.css'
 import './InicioPage.css'
 import fotoArtesana from '../../assets/editorial/artesana.jpg'
+import fotoCacao from '../../assets/editorial/home/cacao.webp'
+import fotoCafe from '../../assets/editorial/home/cafe.webp'
+import fotoAmazonia from '../../assets/editorial/home/amazonia.webp'
 
 const VALORES = [
   { icono: iconoArbol, clave: 'deforestacion' },
@@ -47,23 +50,33 @@ export default function InicioPage() {
 
   return (
     <LayoutTienda>
-      <main className="inicio-tienda contenedor">
+      <main className="inicio-tienda">
         <section className="hero" aria-labelledby="titulo-hero">
+          <img className="hero__fotografia" src={fotoArtesana} alt={te('fotoArtesana')} />
           <div className="hero__texto">
-            <p className="overline hero__overline">{t('inicio.hero.overline')}</p>
-            <h1 id="titulo-hero" className="hero__titulo">{t('inicio.hero.titulo')}</h1>
-            <p className="hero__descripcion">{t('inicio.hero.descripcion')}</p>
+            <h1 id="titulo-hero" className="hero__titulo">{te('hero.linea1')}<br />{te('hero.linea2')} <em>{te('hero.origen')}</em></h1>
+            <p className="hero__descripcion">{te('hero.descripcion')}</p>
             <div className="hero__acciones">
-              <Boton tipo="acento" to={RUTAS.buscar}>
-                {t('inicio.hero.explorar')}
-              </Boton>
-              <Boton tipo="secundario" to={RUTAS.comunidades}>
-                {t('inicio.hero.conocer')}
-              </Boton>
+              <Boton tipo="acento" to={RUTAS.buscar}>{te('hero.explorar')}</Boton>
+              <Enlace to={RUTAS.comunidades} className="hero__enlace">{te('hero.comunidades')}</Enlace>
             </div>
           </div>
-          <img className="hero__fotografia" src={fotoArtesana} alt={te('fotoArtesana')} />
         </section>
+        <section className="seccion inicio-categorias" aria-labelledby="inicio-categorias-titulo">
+          <div className="seccion__encabezado"><h2 id="inicio-categorias-titulo" className="seccion__titulo">{te('categorias.titulo')}</h2></div>
+          <div className="inicio-categorias__grid">
+            {(datos?.lineas ?? []).slice(0, 3).map((item) => {
+              const linea = item.codigo
+              const foto = ({ CACAO: fotoCacao, CAFE: fotoCafe, SUPERFRUTOS: fotoAmazonia })[linea] ?? fotoAmazonia
+              return <Enlace key={linea} to={`${RUTAS.buscar}?linea=${linea}`} className="inicio-categoria">
+                <img src={foto} alt={te(`categorias.${linea}.foto`)} />
+                <span><strong>{item.nombre}</strong><small>{te('categorias.referencia')}</small></span>
+              </Enlace>
+            })}
+          </div>
+        </section>
+
+        {datos?.tiendas?.[0] && <section className="inicio-relato" aria-label={te('relato.titulo')}><div className="inicio-relato__foto"><img src={datos.tiendas[0].portada || fotoArtesana} alt={datos.tiendas[0].portada ? te('relato.fotoTienda', { nombre: datos.tiendas[0].nombre }) : te('fotoArtesana')} /></div><div className="inicio-relato__texto"><h2>{te('relato.titulo')}</h2>{datos.tiendas[0].cita ? <blockquote>“{datos.tiendas[0].cita}”</blockquote> : <p>{te('relato.sinCita')}</p>}<p className="inicio-relato__nombre">{datos.tiendas[0].nombre}</p><Enlace to={`/tiendas/${datos.tiendas[0].id}`}>{te('relato.conocer')}</Enlace></div></section>}
 
         <ul className="valores" aria-label={t('inicio.valores.etiqueta')}>
           {VALORES.map((v) => (

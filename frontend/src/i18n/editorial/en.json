@@ -1,1 +1,30 @@
-{"fotoArtesana":"Documentary photograph of an Indigenous craftswoman working at a bio-entrepreneur fair; illustrative image, not a platform producer."}
+{
+  "fotoArtesana": "Documentary photograph of an Indigenous craftswoman working at a bio-entrepreneur fair; illustrative image, not a platform producer.",
+  "hero": {
+    "linea1": "Everything has",
+    "linea2": "an",
+    "origen": "origin.",
+    "descripcion": "Every product carries a story of place, work and care. Discover what grows with Amazonian communities.",
+    "explorar": "Explore products",
+    "comunidades": "Meet communities"
+  },
+  "categorias": {
+    "titulo": "From the land to your hands",
+    "referencia": "Illustrative photograph",
+    "CACAO": {
+      "foto": "Illustrative cacao photograph, not attributed to a community."
+    },
+    "CAFE": {
+      "foto": "Illustrative coffee photograph, not attributed to a community."
+    },
+    "SUPERFRUTOS": {
+      "foto": "Illustrative Amazon photograph, not attributed to a community."
+    }
+  },
+  "relato": {
+    "titulo": "A story from the community",
+    "sinCita": "Learn more about this community and its work.",
+    "conocer": "Meet the community",
+    "fotoTienda": "Photograph from {{nombre}}"
+  }
+}

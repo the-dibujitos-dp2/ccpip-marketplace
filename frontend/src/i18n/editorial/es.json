@@ -1,1 +1,30 @@
-{"fotoArtesana":"Fotografía documental de una artesana indígena trabajando en una feria de bioemprendimientos; imagen referencial, no representa a una productora de la plataforma."}
+{
+  "fotoArtesana": "Fotografía documental de una artesana indígena trabajando en una feria de bioemprendimientos; imagen referencial, no representa a una productora de la plataforma.",
+  "hero": {
+    "linea1": "Todo tiene",
+    "linea2": "un",
+    "origen": "origen.",
+    "descripcion": "Cada producto guarda una historia de territorio, trabajo y cuidado. Descubre lo que nace de comunidades amazónicas.",
+    "explorar": "Explorar productos",
+    "comunidades": "Conocer comunidades"
+  },
+  "categorias": {
+    "titulo": "De la tierra a tus manos",
+    "referencia": "Fotografía referencial",
+    "CACAO": {
+      "foto": "Fotografía referencial de cacao, no atribuida a una comunidad."
+    },
+    "CAFE": {
+      "foto": "Fotografía referencial de café, no atribuida a una comunidad."
+    },
+    "SUPERFRUTOS": {
+      "foto": "Fotografía referencial de la Amazonía, no atribuida a una comunidad."
+    }
+  },
+  "relato": {
+    "titulo": "Una historia desde la comunidad",
+    "sinCita": "Conoce más sobre esta comunidad y su trabajo.",
+    "conocer": "Conocer la comunidad",
+    "fotoTienda": "Fotografía de la tienda {{nombre}}"
+  }
+}
