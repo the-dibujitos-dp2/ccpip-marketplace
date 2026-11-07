@@ -1218,7 +1218,21 @@
       "preparacionEtiqueta": "Record the preparation of order {{numero}}",
       "registrandoPreparacion": "Recording…",
       "marcando": "Marking…",
-      "recojoEtiqueta": "Record pickup for order {{numero}}"
+      "recojoEtiqueta": "Record pickup for order {{numero}}",
+      "confirmar": {
+        "PREPARACION": {
+          "titulo": "Mark order {{numero}} as being prepared?",
+          "texto": "The order moves to “Being prepared” with your name and the time, and can no longer go back to “Confirmed”."
+        },
+        "LISTO": {
+          "titulo": "Mark order {{numero}} as ready for pickup?",
+          "texto": "The order moves to “Ready for pickup” and we email the buyer that they can now pick it up at the point."
+        },
+        "DESPACHO": {
+          "titulo": "Record order {{numero}} leaving the point?",
+          "texto": "The order leaves the point and becomes “Ready for dispatch”: a distributor can pick it up and take it to the buyer's address."
+        }
+      }
     },
     "recojo": {
       "validacion": {
@@ -1453,15 +1467,14 @@
       "activa": "Active",
       "inactiva": "Inactive",
       "desactivar": "Deactivate zone",
-      "confirmarDesactivar": "Deactivate this coverage zone?",
+      "confirmarDesactivar": "This district will no longer be offered for home delivery on new purchases. Orders and deliveries already recorded do not change.",
       "tituloDialogo": "Deactivate delivery zone",
-      "confirmar": "Deactivate",
+      "confirmar": "Confirm",
       "cancelar": "Cancel",
       "errorDesactivar": "The zone could not be deactivated. Please try again.",
       "reactivar": "Reactivate",
       "tituloReactivar": "Reactivate delivery zone",
       "confirmarReactivar": "Deliver to this district again? It will be offered at checkout from now on, if the district has a shipping rate. The change is recorded.",
-      "confirmarReactivacion": "Reactivate",
       "errorReactivar": "The zone could not be reactivated. Please try again.",
       "reactivada": "{{distrito}} is offered again for home delivery.",
       "desactivada": "{{distrito}} is no longer offered for home delivery.",

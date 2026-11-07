@@ -114,7 +114,7 @@ export default function CoberturaPage({ path }) {
     {contenido}</section>
     {declarando && <DeclararCobertura punto={declarando} onDeclarado={alDeclarar} onCancelar={() => setDeclarando(null)} />}
     <Dialogo abierto={Boolean(cambio)} titulo={c(cambio?.activar ? 'tituloReactivar' : 'tituloDialogo')}
-      confirmar={c(cambio?.activar ? 'confirmarReactivacion' : 'confirmar')} cancelar={c('cancelar')}
+      confirmar={c('confirmar')} cancelar={c('cancelar')}
       onConfirmar={confirmarCambio} onCancelar={() => !ocupado && setCambio(null)} ocupado={ocupado}>
       <p>{c(cambio?.activar ? 'confirmarReactivar' : 'confirmarDesactivar')}</p>
       {cambio && <p>{cambio.zona.distrito} · {cambio.zona.ubigeo}</p>}
