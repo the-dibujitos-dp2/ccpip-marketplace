@@ -31,6 +31,7 @@ import pe.ccpip.productor.PedidosProductorModelos.Pedidos;
 import pe.ccpip.productor.ProductoModelos.AprobarHistoria;
 import pe.ccpip.productor.ProductoModelos.DatosHistoria;
 import pe.ccpip.productor.ProductoModelos.DatosLote;
+import pe.ccpip.productor.ProductoModelos.EdicionLote;
 import pe.ccpip.productor.ProductoModelos.DatosProducto;
 import pe.ccpip.productor.ProductoModelos.Estado;
 import pe.ccpip.productor.ProductoModelos.Historia;
@@ -179,6 +180,13 @@ public class ProductorController {
     @GetMapping("/productos/{id}/lotes")
     public Lotes lotes(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s, @PathVariable long id) {
         return lotes.listar(actual.id(s), id);
+    }
+
+    /** CCPIP-495: corrige el codigo y las fechas de un lote; la cantidad y la ubicacion no se editan. */
+    @PutMapping("/productos/{id}/lotes/{loteId}")
+    public Lotes editarLote(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                            @PathVariable long id, @PathVariable long loteId, @Valid @RequestBody EdicionLote datos) {
+        return lotes.editar(actual.id(s), s.userId(), id, loteId, datos);
     }
 
     @PostMapping("/productos/{id}/lotes")

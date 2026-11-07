@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoCheck from '../../assets/icons/check.svg'
-import { listarUbicaciones, registrarLote } from '../../api/productor.js'
+import { editarLote, listarUbicaciones, registrarLote } from '../../api/productor.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
@@ -112,6 +112,92 @@ export function FormularioLote({ productoId, requiereVencimiento, onRegistrado, 
 }
 
 /**
+ * CCPIP-495: corrige un lote ya registrado con sus datos actuales cargados; solo se envia lo que el productor
+ * cambia. La cantidad y el lugar se muestran pero no se editan: cambian con movimientos o transferencias. Un
+ * lote vencido conserva su vencimiento (lo vencido ya no se vende).
+ */
+export function FormularioEditarLote({ productoId, lote, requiereVencimiento, onGuardado, onCancelar }) {
+  const { t } = useTranslation()
+  const inicial = {
+    codigo: lote.codigo,
+    fechaProduccion: lote.fechaProduccion ?? '',
+    fechaVencimiento: lote.fechaVencimiento ?? '',
+  }
+  const [datos, setDatos] = useState(inicial)
+  const [errores, setErrores] = useState({})
+  const [alerta, setAlerta] = useState(null)
+  const [enviando, setEnviando] = useState(false)
+  const hoy = diaLima()
+  const vencido = lote.estado === 'VENCIDO'
+  const cambio = Object.keys(inicial).some((k) => datos[k].trim() !== inicial[k])
+  const cambiar = (campo) => (e) => setDatos({ ...datos, [campo]: e.target.value })
+
+  async function enviar(e) {
+    e.preventDefault()
+    const nuevos = {}
+    if (!datos.codigo.trim()) nuevos.codigo = t('productor.lote.validacion.codigo')
+    if (requiereVencimiento && !datos.fechaVencimiento) nuevos.fechaVencimiento = t('productor.lote.validacion.vencimiento')
+    if (datos.fechaVencimiento !== inicial.fechaVencimiento && datos.fechaVencimiento && datos.fechaVencimiento < hoy) {
+      nuevos.fechaVencimiento = t('productor.lote.validacion.anteriorHoy')
+    }
+    if (datos.fechaProduccion !== inicial.fechaProduccion && datos.fechaProduccion > hoy) {
+      nuevos.fechaProduccion = t('productor.lote.validacion.posteriorHoy')
+    }
+    setErrores(nuevos)
+    if (Object.keys(nuevos).length) return
+    if (!cambio) {
+      onCancelar?.()
+      return
+    }
+    setEnviando(true)
+    setAlerta(null)
+    try {
+      onGuardado(await editarLote(productoId, lote.id, {
+        codigo: datos.codigo.trim(),
+        fechaProduccion: datos.fechaProduccion || null,
+        fechaVencimiento: datos.fechaVencimiento || null,
+      }))
+    } catch (err) {
+      const campos = i18n.resolvedLanguage === 'es' && err.body?.campos ? Object.values(err.body.campos).join(' · ') : undefined
+      setAlerta({ tono: 'error', titulo: mensajeError(err, 'productor.lote.editar.error'), descripcion: campos })
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  const lugar = lote.tipoUbicacion === 'ALMACEN_PRODUCTOR' ? t('productor.lote.miAlmacen') : lote.ubicacion
+  return (
+    <form className="formulario-lote" onSubmit={enviar} noValidate aria-labelledby="titulo-editar-lote">
+      <h2 id="titulo-editar-lote" className="heading-h2">{t('productor.lote.editar.titulo', { codigo: lote.codigo })}</h2>
+      {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
+      <Campo etiqueta={t('productor.lote.codigo')} value={datos.codigo} onChange={cambiar('codigo')} error={errores.codigo} maxLength={40} />
+      <div className="formulario-lote__fila">
+        <Campo etiqueta={t('productor.lote.produccion')} type="date" max={hoy} value={datos.fechaProduccion} onChange={cambiar('fechaProduccion')} error={errores.fechaProduccion} />
+        <Campo
+          etiqueta={requiereVencimiento ? t('productor.lote.vencimiento') : t('productor.lote.vencimientoOpcional')}
+          type="date"
+          min={hoy}
+          value={datos.fechaVencimiento}
+          onChange={cambiar('fechaVencimiento')}
+          error={errores.fechaVencimiento}
+          disabled={vencido}
+          ayuda={vencido ? t('productor.lote.editar.vencido') : undefined}
+        />
+      </div>
+      <p className="caption formulario-lote__fijo">
+        {t('productor.lote.editar.fijo', { inicial: unidades(lote.cantidadInicial), actual: unidades(lote.cantidadActual), lugar })}
+      </p>
+      <div className="formulario-lote__acciones">
+        <Boton type="button" tipo="terciario" onClick={onCancelar}>{t('productor.lote.editar.cancelar')}</Boton>
+        <Boton type="submit" icono={iconoCheck} cargando={enviando}>
+          {enviando ? t('productor.lote.editar.guardando') : t('productor.lote.editar.guardar')}
+        </Boton>
+      </div>
+    </form>
+  )
+}
+
+/**
  * CCPIP-161: todos sus lotes, de todos sus productos, en el orden del servidor (primero el que vence
  * antes). Cada fila lleva a los lotes de su producto para registrar otro.
  */
@@ -156,8 +242,11 @@ export function TablaTodosLosLotes({ lotes }) {
   )
 }
 
-/** "Lotes de este producto" de PW-06. El codigo solo lo ve el productor. */
-export function TablaLotes({ lotes }) {
+/**
+ * "Lotes de este producto" de PW-06. El codigo solo lo ve el productor. Con `onEditar(lote)` cada lote
+ * tiene su boton Editar (CCPIP-495); `editando` es el id del que se esta corrigiendo.
+ */
+export function TablaLotes({ lotes, onEditar, editando }) {
   const { t } = useTranslation()
   const paginacion = usePaginacionLocal(lotes?.items ?? [], lotes?.productoId ?? '')
   if (!lotes?.items.length) {
@@ -165,13 +254,14 @@ export function TablaLotes({ lotes }) {
   }
   return (
     <>
-    <div className="tabla tabla--lotes">
+    <div className={`tabla tabla--lotes${onEditar ? ' tabla--lotes-editable' : ''}`}>
       <div className="tabla__fila tabla__fila--encabezado" aria-hidden="true">
         <span className="tabla__celda lotes__col">{t('productor.lote.tabla.lote')}</span>
         <span className="tabla__celda lotes__col">{t('productor.lote.tabla.vence')}</span>
         <span className="tabla__celda lotes__col-corta">{t('productor.lote.tabla.stock')}</span>
         <span className="tabla__celda tabla__celda--flex">{t('productor.lote.tabla.punto')}</span>
         <span className="tabla__celda lotes__col-estado">{t('productor.lote.tabla.estado')}</span>
+        {onEditar && <span className="tabla__celda lotes__col-accion" />}
       </div>
       <ul className="productos__lista" aria-label={t('productor.lotes.deEsteProducto')}>
         {paginacion.filas.map((l) => (
@@ -183,6 +273,14 @@ export function TablaLotes({ lotes }) {
             <span className="tabla__celda lotes__col-estado">
               <Badge tono={TONO[l.estado]}>{t(`productor.lote.estado.${l.estado}`)}</Badge>
             </span>
+            {onEditar && (
+              <span className="tabla__celda lotes__col-accion">
+                <Boton tipo="terciario" tamano="S" onClick={() => onEditar(l)} disabled={editando === l.id}
+                  aria-label={t('productor.lote.editar.abrir', { codigo: l.codigo })}>
+                  {t('productor.lote.editar.boton')}
+                </Boton>
+              </span>
+            )}
           </li>
         ))}
       </ul>
