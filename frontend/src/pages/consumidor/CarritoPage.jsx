@@ -20,6 +20,7 @@ import SelectorCantidad from '../../components/SelectorCantidad.jsx'
 import SelloOrigen from '../../components/SelloOrigen.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { fechaHoraLarga, mesAnio, precio } from '../../formato.js'
+import { precioPorUnidad } from '../../precioUnidad.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
 import './CarritoPage.css'
@@ -253,7 +254,6 @@ function GrupoProductor({ grupo, onCambiarCantidad, onQuitar }) {
 function ItemCarrito({ item, onCambiarCantidad, onQuitar }) {
   const { t } = useTranslation()
   const problema = PROBLEMAS[item.estado]?.(item, t)
-  const presentacion = item.contenido ?? item.unidad?.toLowerCase()
   const cantidad = Number(item.cantidad)
   return (
     <li className={`carrito__item${problema ? ' carrito__item--inactivo' : ''}`}>
@@ -264,13 +264,12 @@ function ItemCarrito({ item, onCambiarCantidad, onQuitar }) {
         </Enlace>
         <p className="caption">
           {/* La tienda ya esta en la cabecera del grupo (CCPIP-63) */}
-          {[presentacion, item.cosecha && t('carrito.cosechaDe', { mes: cosecha(item.cosecha) })]
-            .filter(Boolean)
-            .join(' · ')}
+          {item.cosecha && t('carrito.cosechaDe', { mes: cosecha(item.cosecha) })}
         </p>
+        {/* CCPIP-494: "S/ 20.00 por 5 und", igual que en la ficha y el catalogo */}
         {item.precio != null && (
           <p className="body-s">
-            {t(item.tarifa === 'MAYORISTA' ? 'carrito.precioMayoristaCadaUno' : 'carrito.precioCadaUno', { precio: precio(item.precio) })}
+            {t(item.tarifa === 'MAYORISTA' ? 'carrito.precioMayoristaCadaUno' : 'carrito.precioCadaUno', { precio: precioPorUnidad(t, item.precio, item) })}
           </p>
         )}
       </div>
@@ -309,13 +308,13 @@ function AvisoMayorista({ item }) {
   } else if (faltante > 0) {
     aviso = {
       estado: 'falta',
-      titulo: t('carrito.mayorista.faltaConPrecio', { count: faltante, precio: precio(item.precioMayorista) }),
+      titulo: t('carrito.mayorista.faltaConPrecio', { count: faltante, precio: precioPorUnidad(t, item.precioMayorista, item) }),
       detalle: t('carrito.mayorista.avanceTienda', { cantidad, minimo, tienda: item.tienda.nombre }),
     }
   } else if (item.precioMinorista != null) {
     aviso = {
       estado: 'alcanzado',
-      titulo: t('carrito.mayorista.aplicado', { precio: precio(item.precio) }),
+      titulo: t('carrito.mayorista.aplicado', { precio: precioPorUnidad(t, item.precio, item) }),
       detalle: t('carrito.mayorista.ahorro', { monto: precio(cantidad * (Number(item.precioMinorista) - Number(item.precio))) }),
     }
   } else {

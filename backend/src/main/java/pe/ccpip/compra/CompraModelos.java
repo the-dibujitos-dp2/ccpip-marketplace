@@ -117,11 +117,12 @@ public final class CompraModelos {
     /**
      * CCPIP-112 y CCPIP-70 (CW-09): un pedido en la lista del comprador, con su estado actual, el total
      * que pago (no el precio vigente), cuantos productos y comunidades incluye y su historial.
+     * {@code primerProducto}: el nombre del primer producto del pedido, para reconocerlo sin abrirlo (CCPIP-501).
      */
     public record ResumenPedido(long id, String numero, String estado, String modalidad, BigDecimal total,
                                 Instant creadoEn, Instant confirmadoEn, PuntoRecojo punto, int productos,
                                 int comunidades, List<EventoPedido> historial, BigDecimal costoEnvio,
-                                BigDecimal totalAPagar) {
+                                BigDecimal totalAPagar, String primerProducto) {
     }
 
     /** Resultado de un intento de pago y el pedido como quedo. */

@@ -32,3 +32,11 @@
 .lotes__miniatura { width: 48px; height: 48px; }
 .lotes__producto-nombre { font-weight: 600; font-size: 16px; line-height: 24px; color: var(--color-text-primary); }
 .tabla__fila--encabezado .tabla__celda--flex { color: inherit; }
+
+/* CCPIP-495: editar un lote */
+.lotes__col-accion { width: 72px; display: flex; justify-content: flex-end; }
+.formulario-lote__fijo { margin: 0; color: var(--color-text-secondary); }
+.formulario-lote__acciones { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+@media (min-width: 640px) {
+  .tabla--lotes-editable .tabla__fila { grid-template-columns: 84px 92px 52px minmax(96px, 1fr) 128px 72px; }
+}

@@ -199,7 +199,7 @@ describe('CW-03 Ficha del producto (CCPIP-53, 152)', () => {
     const mayorista = screen.getByRole('radio', { name: /Precio mayorista/ })
     await user.click(mayorista)
     expect(mayorista).toHaveAttribute('aria-checked', 'true')
-    expect(screen.getByText('desde 12 und')).toBeInTheDocument()
+    expect(screen.getByText(/· desde 12 und$/)).toBeInTheDocument()
 
     expect(screen.getByRole('heading', { name: 'Del bosque a tu mesa' })).toBeInTheDocument()
     expect(within(screen.getByRole('region', { name: 'Del bosque a tu mesa' })).getByText('Somos 20 familias')).toBeInTheDocument()

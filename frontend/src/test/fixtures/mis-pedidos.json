@@ -4,6 +4,7 @@
     "creadoEn": "2026-10-15T20:05:00Z", "confirmadoEn": null,
     "punto": { "id": 1, "nombre": "Centro Nacional Lima", "departamento": "Lima", "provincia": "Lima", "distrito": "Lima", "direccion": "Sede central CCPIP" },
     "productos": 1, "comunidades": 1,
+    "primerProducto": "Aceite de aguaje 250 ml",
     "historial": [{ "estado": "PENDIENTE_PAGO", "registradoEn": "2026-10-15T20:05:00Z" }]
   },
   {
@@ -11,6 +12,7 @@
     "creadoEn": "2026-10-10T15:40:00Z", "confirmadoEn": "2026-10-10T15:42:00Z",
     "punto": { "id": 1, "nombre": "Centro Nacional Lima", "departamento": "Lima", "provincia": "Lima", "distrito": "Lima", "direccion": "Sede central CCPIP" },
     "productos": 4, "comunidades": 3,
+    "primerProducto": "Aceite de aguaje 250 ml",
     "historial": [
       { "estado": "PENDIENTE_PAGO", "registradoEn": "2026-10-10T15:40:00Z" },
       { "estado": "CONFIRMADO", "registradoEn": "2026-10-10T15:42:00Z" },
@@ -22,6 +24,7 @@
     "creadoEn": "2026-10-01T16:00:00Z", "confirmadoEn": "2026-10-01T16:01:00Z",
     "punto": { "id": 3, "nombre": "Centro Regional Cusco", "departamento": "Cusco", "provincia": "Cusco", "distrito": "Cusco", "direccion": "Centro regional andino" },
     "productos": 1, "comunidades": 1,
+    "primerProducto": "Cacao en grano 500 g",
     "historial": [
       { "estado": "PENDIENTE_PAGO", "registradoEn": "2026-10-01T16:00:00Z" },
       { "estado": "CONFIRMADO", "registradoEn": "2026-10-01T16:01:00Z" },
@@ -34,6 +37,7 @@
     "creadoEn": "2026-09-28T17:00:00Z", "confirmadoEn": null,
     "punto": { "id": 3, "nombre": "Centro Regional Cusco", "departamento": "Cusco", "provincia": "Cusco", "distrito": "Cusco", "direccion": "Centro regional andino" },
     "productos": 1, "comunidades": 1,
+    "primerProducto": "Miel de abeja nativa 300 g",
     "historial": [
       { "estado": "PENDIENTE_PAGO", "registradoEn": "2026-09-28T17:00:00Z" },
       { "estado": "CANCELADO", "registradoEn": "2026-09-28T17:20:00Z" }

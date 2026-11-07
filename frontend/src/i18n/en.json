@@ -199,7 +199,19 @@
         "AGOTADO": "Sold out",
         "VENCIDO": "Expired"
       },
-      "ubicacionPlaceholder": "Choose your warehouse or a collection point"
+      "ubicacionPlaceholder": "Choose your warehouse or a collection point",
+      "editar": {
+        "titulo": "Edit batch {{codigo}}",
+        "boton": "Edit",
+        "abrir": "Edit batch {{codigo}}",
+        "guardar": "Save changes",
+        "guardando": "Saving…",
+        "cancelar": "Cancel",
+        "fijo": "{{inicial}} units came in and {{actual}} units remain at {{lugar}}. Quantity and place are not edited: they change with movements or transfers.",
+        "vencido": "This batch has expired: its expiry date cannot be changed.",
+        "guardado": "Batch {{codigo}} updated",
+        "error": "We could not save the batch"
+      }
     },
     "almacen": {
       "titulo": "My warehouse",
@@ -1026,6 +1038,7 @@
     "rol": "Distributor",
     "migas": "Delivery",
     "nav": {
+      "inicio": "Home",
       "pedidos": "Available orders",
       "entregas": "My deliveries"
     },
@@ -1139,6 +1152,35 @@
       "enCaminoEn": "Left for delivery on {{fecha}}",
       "entregadaEn": "You delivered it on {{fecha}}",
       "momentos": "Delivery {{numero}} milestones"
+    },
+    "inicio": {
+      "titulo": "Home",
+      "cargando": "Loading your deliveries…",
+      "error": "We could not load your deliveries",
+      "reintentar": "Try again",
+      "kpi": {
+        "disponibles": "Orders to take",
+        "disponiblesDetalle": "Ready at the collection points",
+        "verDisponibles": "See available orders",
+        "porRetirar": "To pick up",
+        "porRetirarDetalle": "Taken, still at the collection point",
+        "enCamino": "On the way",
+        "enCaminoDetalle": "Picked up or in transit",
+        "verEntregas": "See my deliveries",
+        "entregadas": "Delivered today",
+        "entregadasDetalle": "Deliveries recorded today"
+      },
+      "siguiente": "Your next delivery",
+      "ruta": "From {{origen}} to {{destino}}",
+      "tomadaEn": "taken on {{fecha}}",
+      "continuar": "Continue in My deliveries",
+      "sinEnCurso": "You have no deliveries in progress.",
+      "tomarPedidos": "Take orders",
+      "estado": {
+        "ASIGNADA": "To pick up at the point",
+        "RETIRADA": "Picked up from the point",
+        "EN_CAMINO": "On the way to the destination"
+      }
     }
   },
   "acopio": {
@@ -2796,7 +2838,7 @@
       "soloMayorista": "This product is sold wholesale only: minimum {{minimo}} units",
       "faltaParaAgregar_one": "Add {{count}} more unit to be able to add it to your cart",
       "faltaParaAgregar_other": "Add {{count}} more units to be able to add it to your cart",
-      "desdeMayorista": "From {{minimo}} units you pay {{precio}} each (wholesale price).",
+      "desdeMayorista": "From {{minimo}} units you pay {{precio}} (wholesale price).",
       "resumenMinorista": "{{precio}} retail",
       "resumenMayorista": "{{precio}} from {{minimo}} units",
       "avisoLateral": "You added “{{producto}}” to your cart",
@@ -2836,16 +2878,16 @@
     "noReservaTexto": "Availability is confirmed at payment, and stock is deducted at that moment.",
     "cosechaDe": "{{mes}} harvest",
     "deTienda": "from {{nombre}}",
-    "precioCadaUno": "{{precio}} each",
-    "precioMayoristaCadaUno": "{{precio}} each · wholesale price",
+    "precioCadaUno": "{{precio}}",
+    "precioMayoristaCadaUno": "{{precio}} · wholesale price",
     "mayorista": {
       "falta_one": "Add {{count}} more unit to get the wholesale price",
       "falta_other": "Add {{count}} more units to get the wholesale price",
-      "faltaConPrecio_one": "Add {{count}} more unit to get the wholesale price ({{precio}} each)",
-      "faltaConPrecio_other": "Add {{count}} more units to get the wholesale price ({{precio}} each)",
+      "faltaConPrecio_one": "Add {{count}} more unit to get the wholesale price ({{precio}})",
+      "faltaConPrecio_other": "Add {{count}} more units to get the wholesale price ({{precio}})",
       "avance": "{{cantidad}} of {{minimo}} units · the price changes only when you reach the minimum",
       "avanceTienda": "{{cantidad}} of {{minimo}} units · the price changes only when you reach the minimum set by {{tienda}}",
-      "aplicado": "Wholesale price applied: {{precio}} each",
+      "aplicado": "Wholesale price applied: {{precio}}",
       "ahorro": "You save {{monto}} compared with the retail price",
       "faltaParaComprar_one": "Add {{count}} more unit to be able to buy it",
       "faltaParaComprar_other": "Add {{count}} more units to be able to buy it"
@@ -3111,7 +3153,9 @@
       "ENTREGADO": "Delivered",
       "CANCELADO": "Order cancelled",
       "EN_CAMINO": "On the way to your address"
-    }
+    },
+    "nombreProductos_one": "{{nombre}}",
+    "nombreProductos_other": "{{nombre}} and {{mas}} more"
   },
   "misDirecciones": {
     "titulo": "My addresses",
@@ -5012,6 +5056,12 @@
     "referencial": "Reference map. Open the address to get directions.",
     "comoLlegar": "Directions in Google Maps",
     "nuevaPestana": "(opens in a new tab)"
+  },
+  "precioUnidad": {
+    "completo": "{{precio}} per {{unidad}}",
+    "sufijo": "per {{unidad}}",
+    "und": "{{cantidad}} units",
+    "unidad": "unit"
   },
   "mapaRuta": {
     "plano": "Reference map of the route: leaves from {{salida}} and arrives at {{llegada}}",

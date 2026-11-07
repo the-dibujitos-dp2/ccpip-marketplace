@@ -125,6 +125,16 @@ public final class ProductoModelos {
     /** Estados de PW-06. El codigo del lote solo lo ve su productor, nunca el consumidor. */
     public enum EstadoLote { VENDE_PRIMERO, DISPONIBLE, EN_ALMACEN, AGOTADO, VENCIDO }
 
+    /**
+     * CCPIP-495: lo que se puede corregir de un lote ya registrado. La cantidad y la ubicacion no: cambian
+     * solo con movimientos o transferencias, que dejan su rastro (RNF-15).
+     */
+    public record EdicionLote(
+            @NotBlank(message = "Escribe el código del lote") @Size(max = 40, message = "Máximo 40 caracteres") String codigo,
+            LocalDate fechaProduccion,
+            LocalDate fechaVencimiento) {
+    }
+
     public record Lote(long id, String codigo, BigDecimal cantidadInicial, BigDecimal cantidadActual,
                        LocalDate fechaProduccion, LocalDate fechaVencimiento, long ubicacionId, String ubicacion,
                        String tipoUbicacion, EstadoLote estado) {
