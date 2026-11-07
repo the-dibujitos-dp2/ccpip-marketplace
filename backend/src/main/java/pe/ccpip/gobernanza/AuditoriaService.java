@@ -25,6 +25,12 @@ import pe.ccpip.gobernanza.AuditoriaModelos.Resultado;
  * tarifa de envio fijada o cambiada (CCPIP-482), cada capacidad diaria de entrega de un punto (CCPIP-484) y
  * cada zona de cobertura activada o desactivada (CCPIP-496, 498).
  *
+ * <p>CCPIP-504: tambien la operacion de los administradores de punto de acopio y de los distribuidores: los
+ * movimientos de inventario que registra el punto (entradas, salidas, transferencias, ajustes y mermas), cada
+ * cambio de estado de un pedido que hizo uno de esos roles (preparacion, listo, recojo, en camino, entrega),
+ * cada entrega que un distribuidor asumio o retiro del punto y cada producto malogrado que el punto resolvio
+ * (CCPIP-485, 486). Las ventas automaticas no entran: no las hace nadie del punto.
+ *
  * <p>Solo lee: todas esas tablas son de solo insercion o de un unico cambio de estado, asi que ningun
  * registro se puede alterar desde aqui, y una operacion nueva de esos modulos aparece sola.
  */
@@ -85,6 +91,46 @@ public class AuditoriaService {
             JOIN cobertura_entrega c ON c.id = z.cobertura_id
             JOIN ubicacion u ON u.id = c.ubicacion_id
             JOIN ubigeo g ON g.codigo = c.ubigeo
+            UNION ALL
+            SELECT 'MI-' || m.id, m.registrado_en, m.usuario_id, 'MOVIMIENTO_' || m.tipo, 'MOVIMIENTO', m.id,
+                   pr.nombre || coalesce(' · lote ' || l.codigo, '') || ' · ' || trim(to_char(m.cantidad, 'FM999999990.###'))
+                       || ' und · ' || ub.nombre,
+                   'EXITOSA'
+            FROM movimiento_inventario m
+            JOIN usuario mu ON mu.id = m.usuario_id
+            JOIN rol mr ON mr.id = mu.rol_id AND mr.codigo = 'ADMIN_PUNTO'
+            JOIN producto pr ON pr.id = m.producto_id
+            JOIN ubicacion ub ON ub.id = m.ubicacion_id
+            LEFT JOIN lote l ON l.id = m.lote_id
+            WHERE m.tipo <> 'SALIDA_VENTA'
+            UNION ALL
+            SELECT 'PH-' || h.id, h.registrado_en, h.usuario_id, 'PEDIDO_' || h.estado, 'PEDIDO', h.pedido_id,
+                   pe.numero, 'EXITOSA'
+            FROM pedido_estado_historial h
+            JOIN pedido pe ON pe.id = h.pedido_id
+            JOIN usuario hu ON hu.id = h.usuario_id
+            JOIN rol hr ON hr.id = hu.rol_id AND hr.codigo IN ('ADMIN_PUNTO', 'DISTRIBUIDOR')
+            UNION ALL
+            SELECT 'EA-' || e.id, e.asignada_en, e.distribuidor_id, 'ENTREGA_ASUMIDA', 'PEDIDO', e.pedido_id, pe.numero,
+                   'EXITOSA'
+            FROM entrega e
+            JOIN pedido pe ON pe.id = e.pedido_id
+            WHERE e.asignada_en IS NOT NULL AND e.distribuidor_id IS NOT NULL
+            UNION ALL
+            SELECT 'ER-' || e.id, e.retirada_en, e.distribuidor_id, 'ENTREGA_RETIRADA', 'PEDIDO', e.pedido_id, pe.numero,
+                   'EXITOSA'
+            FROM entrega e
+            JOIN pedido pe ON pe.id = e.pedido_id
+            WHERE e.retirada_en IS NOT NULL AND e.distribuidor_id IS NOT NULL
+            UNION ALL
+            SELECT 'IP-' || ip.id, ip.registrado_en, ip.registrado_por, 'PRODUCTO_MALOGRADO_' || ip.tipo, 'PEDIDO',
+                   ip.pedido_id,
+                   pe.numero || ' · ' || pr.nombre || ' · ' || trim(to_char(ip.cantidad, 'FM999999990.###')) || ' und',
+                   'EXITOSA'
+            FROM incidencia_pedido ip
+            JOIN pedido pe ON pe.id = ip.pedido_id
+            JOIN item_pedido it ON it.id = ip.item_pedido_id
+            JOIN producto pr ON pr.id = it.producto_id
             """.formatted(HistorialGobernanzaService.ACCIONES);
 
     private static final String DESDE_REGISTROS = """

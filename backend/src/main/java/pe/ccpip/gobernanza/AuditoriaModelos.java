@@ -26,7 +26,9 @@ public final class AuditoriaModelos {
         /** CCPIP-484: la capacidad diaria de entregas a domicilio de un punto de acopio. */
         CAPACIDAD_ENTREGA,
         /** CCPIP-496, 498: una zona de cobertura (distrito de entrega) de un punto de acopio. */
-        COBERTURA_ENTREGA
+        COBERTURA_ENTREGA,
+        /** CCPIP-504: un movimiento de inventario que registro el administrador de un punto de acopio. */
+        MOVIMIENTO
     }
 
     /**
