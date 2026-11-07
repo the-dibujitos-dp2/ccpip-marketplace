@@ -4,6 +4,9 @@ import { describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
 import { abrirPestana, copia, DATOS, llamadas, panel, PUBLICAS, servidor, SESION, SESION_ACOPIO, SIN_SESION } from '../../test/servidor.js'
 
+/** CCPIP-497: los cambios de estado se confirman en un dialogo */
+const confirmarAccion = (user) => user.click(screen.getByRole('button', { name: 'Confirmar' }))
+
 function abrirEn(ruta) {
   window.history.replaceState(null, '', ruta)
   return render(<App />)
@@ -145,6 +148,7 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     const user = userEvent.setup()
     abrirEn('/acopio/pedidos')
     await user.click(await screen.findByRole('button', { name: 'Registrar la preparación del pedido MC-00155' }))
+    await confirmarAccion(user)
 
     expect(await screen.findByText('El pedido MC-00155 está en preparación')).toBeInTheDocument()
     expect(llamadas(fetchMock, PREPARACION)).toHaveLength(1)
@@ -231,12 +235,14 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     const user = userEvent.setup()
     abrirEn('/acopio/pedidos')
     await user.click(await screen.findByRole('button', { name: 'Registrar la preparación del pedido MC-00155' }))
+    await confirmarAccion(user)
 
     expect(await screen.findByText('El pedido MC-00155 está en preparación')).toBeInTheDocument()
     // El pedido deja la pestana abierta y pasa a la de su nuevo estado
     expect((await panel('Confirmado')).getByText('No hay pedidos por preparar.')).toBeInTheDocument()
     const preparacion = await abrirPestana(user, 'En preparación')
     await user.click(preparacion.getByRole('button', { name: 'Marcar el pedido MC-00155 como listo para recojo' }))
+    await confirmarAccion(user)
     expect(await screen.findByText('El pedido MC-00155 está listo para recojo')).toBeInTheDocument()
     expect(llamadas(fetchMock, PREPARACION)).toHaveLength(1)
     expect(llamadas(fetchMock, LISTO)).toHaveLength(1)
@@ -268,6 +274,7 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     const user = userEvent.setup()
     abrirEn('/acopio/pedidos')
     await user.click(await screen.findByRole('button', { name: 'Registrar la preparación del pedido MC-00155' }))
+    await confirmarAccion(user)
 
     const alerta = await screen.findByRole('alert')
     expect(alerta).toHaveTextContent('No pudimos registrar la preparación')
@@ -293,6 +300,7 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     const user = userEvent.setup()
     abrirEn('/acopio/pedidos')
     await user.click((await abrirPestana(user, 'En preparación')).getByRole('button', { name: 'Marcar el pedido MC-00155 como listo para recojo' }))
+    await confirmarAccion(user)
 
     const alerta = await screen.findByRole('alert')
     expect(alerta).toHaveTextContent('No pudimos marcar el pedido')
@@ -310,6 +318,7 @@ describe('A-05 Pedidos del punto de acopio (CCPIP-159)', () => {
     const user = userEvent.setup()
     abrirEn('/acopio/pedidos')
     await user.click(await screen.findByRole('button', { name: 'Registrar la preparación del pedido MC-00155' }))
+    await confirmarAccion(user)
     expect(screen.getByRole('button', { name: 'Registrar la preparación del pedido MC-00155' })).toBeDisabled()
     terminar()
     expect(await screen.findByText('El pedido MC-00155 está en preparación')).toBeInTheDocument()

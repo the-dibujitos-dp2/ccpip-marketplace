@@ -1248,7 +1248,21 @@
       "preparacionEtiqueta": "Registrar la preparación del pedido {{numero}}",
       "registrandoPreparacion": "Registrando…",
       "marcando": "Marcando…",
-      "recojoEtiqueta": "Registrar el recojo del pedido {{numero}}"
+      "recojoEtiqueta": "Registrar el recojo del pedido {{numero}}",
+      "confirmar": {
+        "PREPARACION": {
+          "titulo": "¿Registrar el pedido {{numero}} en preparación?",
+          "texto": "El pedido pasa a «En preparación» con tu nombre y la hora, y ya no se puede volver a «Confirmado»."
+        },
+        "LISTO": {
+          "titulo": "¿Marcar el pedido {{numero}} como listo para recojo?",
+          "texto": "El pedido pasa a «Listo para recojo» y le avisamos por correo al comprador que ya puede recogerlo en el punto."
+        },
+        "DESPACHO": {
+          "titulo": "¿Registrar la salida del pedido {{numero}}?",
+          "texto": "El pedido sale del punto y queda «Listo para despacho»: un distribuidor podrá retirarlo para llevarlo al domicilio del comprador."
+        }
+      }
     },
     "recojo": {
       "validacion": {
@@ -1483,15 +1497,14 @@
       "activa": "Activa",
       "inactiva": "Inactiva",
       "desactivar": "Desactivar zona",
-      "confirmarDesactivar": "¿Desactivar esta zona de cobertura?",
+      "confirmarDesactivar": "Este distrito dejará de ofrecerse para entregas a domicilio en las compras nuevas. Los pedidos y entregas ya registrados no cambian.",
       "tituloDialogo": "Desactivar zona de cobertura",
-      "confirmar": "Desactivar",
+      "confirmar": "Confirmar",
       "cancelar": "Cancelar",
       "errorDesactivar": "No se pudo desactivar la zona. Inténtalo nuevamente.",
       "reactivar": "Reactivar",
       "tituloReactivar": "Reactivar zona de cobertura",
       "confirmarReactivar": "¿Volver a entregar a domicilio en este distrito? Se ofrecerá en la compra desde ahora, si el distrito tiene tarifa de envío. El cambio queda registrado.",
-      "confirmarReactivacion": "Reactivar",
       "errorReactivar": "No se pudo reactivar la zona. Inténtalo nuevamente.",
       "reactivada": "{{distrito}} vuelve a ofrecerse para entregas a domicilio.",
       "desactivada": "{{distrito}} ya no se ofrece para entregas a domicilio.",

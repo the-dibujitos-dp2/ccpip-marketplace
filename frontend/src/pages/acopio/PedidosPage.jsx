@@ -10,6 +10,7 @@ import Boton from '../../components/Boton.jsx'
 import Buscador from '../../components/Buscador.jsx'
 import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
+import Dialogo from '../../components/Dialogo.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
 import LimpiarFiltros, { SinCoincidencias } from '../../components/LimpiarFiltros.jsx'
 import Pestanas from '../../components/Pestanas.jsx'
@@ -78,7 +79,8 @@ function textoLote(lote) {
  * entregar. CCPIP-71: el pedido listo se entrega con "Registrar recojo", que pide y valida en el
  * servidor quien recoge y su celular. CCPIP-419: los pedidos se ven en una tabla, con una pestana por
  * estado. CCPIP-417: se buscan por texto y se filtran por modalidad; los conteos de las pestanas son los
- * de lo encontrado.
+ * de lo encontrado. CCPIP-497: cada cambio de estado se confirma en un dialogo que dice lo que va a pasar;
+ * cancelar no cambia nada.
  */
 export default function PedidosPage({ path }) {
   const { t } = useTranslation()
@@ -88,6 +90,8 @@ export default function PedidosPage({ path }) {
   const [modalidad, setModalidad] = useState('')
   const [aviso, setAviso] = useState(null)
   const [marcando, setMarcando] = useState(null)
+  // CCPIP-497: { pedido, accion } que espera confirmacion
+  const [confirmando, setConfirmando] = useState(null)
   const [recojo, setRecojo] = useState(null)
   const [malogrado, setMalogrado] = useState(null)
 
@@ -119,6 +123,7 @@ export default function PedidosPage({ path }) {
       if (e.status === 404 || e.status === 409) recargar()
     } finally {
       setMarcando(null)
+      setConfirmando(null)
     }
   }
 
@@ -199,7 +204,7 @@ export default function PedidosPage({ path }) {
             {visibles.length === 0 && (filtrando ? <SinCoincidencias /> : <EstadoVacio titulo={t(`acopio.pedidos.columnaVacia.${estado}`)} />)}
             {visibles.length > 0 && (
               <>
-                <TablaPedidos key={`${estado}|${texto}|${modalidad}`} pedidos={paginacion.filas} accion={ACCION[estado]} marcando={marcando} onMarcar={marcar} onRecojo={setRecojo}
+                <TablaPedidos key={`${estado}|${texto}|${modalidad}`} pedidos={paginacion.filas} accion={ACCION[estado]} marcando={marcando} onMarcar={(pedido, accion) => setConfirmando({ pedido, accion })} onRecojo={setRecojo}
                   onMalogrado={(pedido, linea) => setMalogrado({ pedido, linea })} />
                 <Paginacion {...paginacion} />
               </>
@@ -207,6 +212,16 @@ export default function PedidosPage({ path }) {
           </section>
         </>
       )}
+
+      <Dialogo
+        abierto={Boolean(confirmando)}
+        titulo={confirmando ? t(`acopio.pedidos.confirmar.${confirmando.accion}.titulo`, { numero: confirmando.pedido.numero }) : ''}
+        onConfirmar={() => !marcando && marcar(confirmando.pedido.numero, confirmando.accion)}
+        onCancelar={() => !marcando && setConfirmando(null)}
+        ocupado={Boolean(marcando)}
+      >
+        {confirmando && <p>{t(`acopio.pedidos.confirmar.${confirmando.accion}.texto`, { numero: confirmando.pedido.numero })}</p>}
+      </Dialogo>
 
       {malogrado && (
         <DialogoMalogrado key={`${malogrado.pedido.numero}-${malogrado.linea.id}`} pedido={malogrado.pedido} linea={malogrado.linea}
@@ -303,7 +318,7 @@ function FilaPedido({ pedido, accion, ocupado, onMarcar, onRecojo, onMalogrado }
               anchoCompleto
               cargando={ocupado}
               aria-label={t(`acopio.pedidos.${boton.etiqueta}`, { numero: pedido.numero })}
-              onClick={() => onMarcar(pedido.numero, accionFila)}
+              onClick={() => onMarcar(pedido, accionFila)}
             >
               {t(`acopio.pedidos.${ocupado ? boton.ocupado : boton.texto}`)}
             </Boton>
