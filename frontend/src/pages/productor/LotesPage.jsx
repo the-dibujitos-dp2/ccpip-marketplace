@@ -9,7 +9,7 @@ import EstadoVacio from '../../components/EstadoVacio.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
 import { unidades } from '../../formato.js'
 import { navigate, RUTAS } from '../../router.js'
-import { FormularioLote, TablaLotes, TablaTodosLosLotes } from './Lotes.jsx'
+import { FormularioEditarLote, FormularioLote, TablaLotes, TablaTodosLosLotes } from './Lotes.jsx'
 import PaginaProductor from './PaginaProductor.jsx'
 import './productor.css'
 import './Lotes.css'
@@ -24,6 +24,9 @@ export default function LotesPage({ path, search }) {
   const [noEncontrado, setNoEncontrado] = useState(false)
   const [todos, setTodos] = useState(null)
   const [errorTodos, setErrorTodos] = useState(false)
+  // CCPIP-495: el lote que se esta corrigiendo y el aviso de que se guardo
+  const [editando, setEditando] = useState(null)
+  const [guardado, setGuardado] = useState(null)
 
   useEffect(() => {
     // Todos sus productos, sin importar el estado: tambien se reponen los despublicados
@@ -111,10 +114,30 @@ export default function LotesPage({ path, search }) {
             </Boton>
           </div>
           <div className="lotes__cuerpo">
-            <FormularioLote productoId={lotes.productoId} requiereVencimiento={lotes.requiereVencimiento} onRegistrado={setLotes} />
+            {editando ? (
+              <FormularioEditarLote
+                key={editando.id}
+                productoId={lotes.productoId}
+                lote={editando}
+                requiereVencimiento={lotes.requiereVencimiento}
+                onCancelar={() => setEditando(null)}
+                onGuardado={(l) => {
+                  setLotes(l)
+                  setGuardado(l.items.find((x) => x.id === editando.id)?.codigo ?? editando.codigo)
+                  setEditando(null)
+                }}
+              />
+            ) : (
+              <FormularioLote productoId={lotes.productoId} requiereVencimiento={lotes.requiereVencimiento} onRegistrado={setLotes} />
+            )}
             <section className="productor__seccion" aria-labelledby="titulo-lotes">
               <h2 id="titulo-lotes" className="heading-h4">{t('productor.lotes.deEsteProducto')}</h2>
-              <TablaLotes lotes={lotes} />
+              {guardado && <Alerta tono="exito" titulo={t('productor.lote.editar.guardado', { codigo: guardado })} onCerrar={() => setGuardado(null)} />}
+              <TablaLotes lotes={lotes} editando={editando?.id}
+                onEditar={(l) => {
+                  setGuardado(null)
+                  setEditando(l)
+                }} />
               <Alerta tono="info" titulo={t('productor.lotes.fefo')} descripcion={t('productor.lotes.fefoTexto')} />
             </section>
           </div>
