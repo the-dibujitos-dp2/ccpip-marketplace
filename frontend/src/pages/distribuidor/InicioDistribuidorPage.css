@@ -1,0 +1,18 @@
+/* CCPIP-500: inicio del distribuidor */
+.inicio-distribuidor { display: flex; flex-direction: column; gap: 24px; }
+.inicio-distribuidor__kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.inicio-distribuidor__siguiente { display: flex; flex-direction: column; gap: 12px; }
+.inicio-distribuidor__siguiente h2 { margin: 0; }
+.inicio-distribuidor__tarjeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-m);
+  background: var(--color-bg-surface);
+}
+.inicio-distribuidor__tarjeta p { margin: 0; }
+.inicio-distribuidor__tarjeta .caption { color: var(--color-text-secondary); }
+.inicio-distribuidor__tarjeta .boton { margin-top: 6px; }

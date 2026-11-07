@@ -13,7 +13,7 @@ import { esFaltanteDeTienda, mensajeError, traducirFaltante } from '../../i18n/e
 import i18n from '../../i18n/index.js'
 import { navigate, RUTAS } from '../../router.js'
 import { PanelCertificados } from './EvidenciasPage.jsx'
-import { FormularioLote, TablaLotes } from './Lotes.jsx'
+import { FormularioEditarLote, FormularioLote, TablaLotes } from './Lotes.jsx'
 import PaginaProductor from './PaginaProductor.jsx'
 import PanelTraduccion from './PanelTraduccion.jsx'
 import PasoDatos from './PasoDatos.jsx'
@@ -44,6 +44,9 @@ export default function EditorProductoPage({ path, id, search }) {
   const [error, setError] = useState(null)
   const [publicando, setPublicando] = useState(false)
   const [alerta, setAlerta] = useState(null)
+  // CCPIP-495: el lote que se esta corrigiendo y el aviso de que se guardo
+  const [editandoLote, setEditandoLote] = useState(null)
+  const [loteGuardado, setLoteGuardado] = useState(null)
 
   // `cual` permite recargar un borrador recien creado aunque este render aun tenga id null
   const cargar = useCallback(async (cual = id) => {
@@ -204,20 +207,42 @@ export default function EditorProductoPage({ path, id, search }) {
       {paso === LOTE && producto && (
         <div className="editor__lote">
           <div className="editor__lote-columna">
-            <FormularioLote
-              productoId={producto.id}
-              requiereVencimiento={lotes?.requiereVencimiento ?? true}
-              sugerencia={lotes && lotes.items.length === 0 ? 'L-0001' : undefined}
-              onRegistrado={async (l) => {
-                setLotes(l)
-                await cargar()
-              }}
-            />
+            {editandoLote ? (
+              <FormularioEditarLote
+                key={editandoLote.id}
+                productoId={producto.id}
+                lote={editandoLote}
+                requiereVencimiento={lotes?.requiereVencimiento ?? true}
+                onCancelar={() => setEditandoLote(null)}
+                onGuardado={(l) => {
+                  setLotes(l)
+                  setLoteGuardado(l.items.find((x) => x.id === editandoLote.id)?.codigo ?? editandoLote.codigo)
+                  setEditandoLote(null)
+                }}
+              />
+            ) : (
+              <FormularioLote
+                productoId={producto.id}
+                requiereVencimiento={lotes?.requiereVencimiento ?? true}
+                sugerencia={lotes && lotes.items.length === 0 ? 'L-0001' : undefined}
+                onRegistrado={async (l) => {
+                  setLotes(l)
+                  await cargar()
+                }}
+              />
+            )}
           </div>
           <div className="editor__lote-columna">
             <section className="productor__seccion" aria-labelledby="titulo-lotes-producto">
               <h2 id="titulo-lotes-producto" className="heading-h4">{t('productor.lotes.deEsteProducto')}</h2>
-              <TablaLotes lotes={lotes} />
+              {loteGuardado && (
+                <Alerta tono="exito" titulo={t('productor.lote.editar.guardado', { codigo: loteGuardado })} onCerrar={() => setLoteGuardado(null)} />
+              )}
+              <TablaLotes lotes={lotes} editando={editandoLote?.id}
+                onEditar={(l) => {
+                  setLoteGuardado(null)
+                  setEditandoLote(l)
+                }} />
             </section>
             <section className="tarjeta-panel" aria-labelledby="titulo-publicar">
               <h2 id="titulo-publicar" className="heading-h4">{tituloPublicar(producto.estado, t)}</h2>

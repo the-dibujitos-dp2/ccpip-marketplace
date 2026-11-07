@@ -199,7 +199,19 @@
         "AGOTADO": "Agotado",
         "VENCIDO": "Vencido"
       },
-      "ubicacionPlaceholder": "Elige tu almacén o un punto de acopio"
+      "ubicacionPlaceholder": "Elige tu almacén o un punto de acopio",
+      "editar": {
+        "titulo": "Editar lote {{codigo}}",
+        "boton": "Editar",
+        "abrir": "Editar lote {{codigo}}",
+        "guardar": "Guardar cambios",
+        "guardando": "Guardando…",
+        "cancelar": "Cancelar",
+        "fijo": "Ingresaron {{inicial}} und y quedan {{actual}} und en {{lugar}}. La cantidad y el lugar no se editan: cambian con movimientos o transferencias.",
+        "vencido": "Este lote ya venció: su vencimiento no se puede cambiar.",
+        "guardado": "Lote {{codigo}} actualizado",
+        "error": "No pudimos guardar el lote"
+      }
     },
     "almacen": {
       "titulo": "Mi almacén",
@@ -1026,6 +1038,7 @@
     "rol": "Distribuidor",
     "migas": "Reparto",
     "nav": {
+      "inicio": "Inicio",
       "pedidos": "Pedidos disponibles",
       "entregas": "Mis entregas"
     },
@@ -1139,6 +1152,35 @@
       "enCaminoEn": "Salió en camino el {{fecha}}",
       "entregadaEn": "Lo entregaste el {{fecha}}",
       "momentos": "Momentos de la entrega {{numero}}"
+    },
+    "inicio": {
+      "titulo": "Inicio",
+      "cargando": "Cargando tu reparto…",
+      "error": "No pudimos cargar tu reparto",
+      "reintentar": "Reintentar",
+      "kpi": {
+        "disponibles": "Pedidos para tomar",
+        "disponiblesDetalle": "Listos en los puntos de acopio",
+        "verDisponibles": "Ver pedidos disponibles",
+        "porRetirar": "Por retirar",
+        "porRetirarDetalle": "Tomados, aún en el punto de acopio",
+        "enCamino": "En camino",
+        "enCaminoDetalle": "Retirados o en traslado",
+        "verEntregas": "Ver mis entregas",
+        "entregadas": "Entregados hoy",
+        "entregadasDetalle": "Entregas registradas hoy"
+      },
+      "siguiente": "Tu siguiente entrega",
+      "ruta": "De {{origen}} a {{destino}}",
+      "tomadaEn": "tomado el {{fecha}}",
+      "continuar": "Continuar en Mis entregas",
+      "sinEnCurso": "No tienes entregas en curso.",
+      "tomarPedidos": "Tomar pedidos",
+      "estado": {
+        "ASIGNADA": "Por retirar del punto",
+        "RETIRADA": "Retirado del punto",
+        "EN_CAMINO": "En camino al destino"
+      }
     }
   },
   "acopio": {

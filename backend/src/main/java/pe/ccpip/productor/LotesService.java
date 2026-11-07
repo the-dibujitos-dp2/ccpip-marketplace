@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.productor.Auditoria.Accion;
 import pe.ccpip.productor.ProductoModelos.DatosLote;
+import pe.ccpip.productor.ProductoModelos.EdicionLote;
 import pe.ccpip.productor.ProductoModelos.EstadoLote;
 import pe.ccpip.productor.ProductoModelos.Lote;
 import pe.ccpip.productor.ProductoModelos.LoteDelProductor;
@@ -159,6 +160,79 @@ public class LotesService {
                 productoId, d.ubicacionId(), d.cantidad());
         auditoria.registrar(productoId, usuarioId, Accion.LOTE, Map.of("codigo", codigo, "cantidad", d.cantidad()));
         return listar(productorId, productoId);
+    }
+
+    /**
+     * CCPIP-495: corrige el codigo y las fechas de un lote suyo; solo cambia lo que el productor modifico y la
+     * auditoria guarda el antes y el despues. La cantidad y la ubicacion no se editan (movimientos y
+     * transferencias). Un lote vencido no se "revive" cambiando su vencimiento: lo vencido ya no se vende.
+     */
+    @Transactional
+    public Lotes editar(long productorId, long usuarioId, long productoId, long loteId, EdicionLote d) {
+        productos.obtener(productorId, productoId);
+        record Actual(String codigo, LocalDate produccion, LocalDate vencimiento) {
+        }
+        Actual actual = jdbc.query(
+                "SELECT codigo, fecha_produccion, fecha_vencimiento FROM lote WHERE id = ? AND producto_id = ? FOR UPDATE",
+                (rs, row) -> new Actual(rs.getString("codigo"), rs.getObject("fecha_produccion", LocalDate.class),
+                        rs.getObject("fecha_vencimiento", LocalDate.class)), loteId, productoId)
+                .stream().findFirst()
+                .orElseThrow(() -> ErrorNegocio.noEncontrado("LOTE_NO_ENCONTRADO", "Ese lote no existe en este producto."));
+        LocalDate hoy = LocalDate.now(LIMA);
+        String codigo = d.codigo().trim().toUpperCase(java.util.Locale.ROOT);
+        boolean cambiaVencimiento = !java.util.Objects.equals(actual.vencimiento(), d.fechaVencimiento());
+        boolean cambiaProduccion = !java.util.Objects.equals(actual.produccion(), d.fechaProduccion());
+
+        if (requiereVencimiento(productoId) && d.fechaVencimiento() == null) {
+            throw ErrorNegocio.invalido("FALTA_VENCIMIENTO", "Este producto necesita fecha de vencimiento.");
+        }
+        if (cambiaVencimiento && actual.vencimiento() != null && actual.vencimiento().isBefore(hoy)) {
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "LOTE_VENCIDO",
+                    "Este lote ya venció: su vencimiento no se puede cambiar.");
+        }
+        if (cambiaVencimiento && d.fechaVencimiento() != null && d.fechaVencimiento().isBefore(hoy)) {
+            throw ErrorNegocio.invalido("VENCIMIENTO_PASADO", "La fecha de vencimiento no puede ser anterior a hoy.");
+        }
+        if (cambiaProduccion && d.fechaProduccion() != null && d.fechaProduccion().isAfter(hoy)) {
+            throw ErrorNegocio.invalido("PRODUCCION_FUTURA", "La fecha de producción no puede ser posterior a hoy.");
+        }
+        if (d.fechaProduccion() != null && d.fechaVencimiento() != null && !d.fechaVencimiento().isAfter(d.fechaProduccion())) {
+            throw ErrorNegocio.invalido("FECHAS_INVALIDAS", "El vencimiento debe ser posterior a la producción.");
+        }
+        if (!codigo.equals(actual.codigo())) {
+            Integer repetido = jdbc.queryForObject("SELECT count(*) FROM lote WHERE producto_id = ? AND codigo = ? AND id <> ?",
+                    Integer.class, productoId, codigo, loteId);
+            if (repetido != null && repetido > 0) {
+                throw new ErrorNegocio(HttpStatus.CONFLICT, "LOTE_REPETIDO", "Ya registraste un lote con el código " + codigo + ".");
+            }
+        }
+
+        Map<String, Object> cambios = new java.util.LinkedHashMap<>();
+        if (!codigo.equals(actual.codigo())) {
+            cambios.put("codigo", antesDespues(actual.codigo(), codigo));
+        }
+        if (cambiaProduccion) {
+            cambios.put("fechaProduccion", antesDespues(actual.produccion(), d.fechaProduccion()));
+        }
+        if (cambiaVencimiento) {
+            cambios.put("fechaVencimiento", antesDespues(actual.vencimiento(), d.fechaVencimiento()));
+        }
+        if (!cambios.isEmpty()) {
+            jdbc.update("UPDATE lote SET codigo = ?, fecha_produccion = ?, fecha_vencimiento = ? WHERE id = ?",
+                    codigo, d.fechaProduccion(), d.fechaVencimiento(), loteId);
+            Map<String, Object> registro = new java.util.LinkedHashMap<>();
+            registro.put("loteId", loteId);
+            registro.put("editado", cambios);
+            auditoria.registrar(productoId, usuarioId, Accion.LOTE, registro);
+        }
+        return listar(productorId, productoId);
+    }
+
+    private static Map<String, Object> antesDespues(Object antes, Object despues) {
+        Map<String, Object> m = new HashMap<>();
+        m.put("antes", antes == null ? null : antes.toString());
+        m.put("despues", despues == null ? null : despues.toString());
+        return m;
     }
 
     private boolean requiereVencimiento(long productoId) {

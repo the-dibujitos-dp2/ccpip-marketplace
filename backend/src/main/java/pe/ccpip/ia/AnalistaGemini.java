@@ -1,5 +1,6 @@
 package pe.ccpip.ia;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,6 +33,7 @@ public class AnalistaGemini implements AnalistaEvidencias {
     static final String AVISO = "Análisis asistido por IA sobre los datos declarados y el contenido de los PDF adjuntos.";
     /** Tope de lo que se adjunta en una consulta: lo que no entra se analiza solo con lo declarado. */
     static final long MAX_ADJUNTOS_BYTES = 15L * 1024 * 1024;
+    private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     static final String REGLAS = """
             Eres un asistente que ayuda al subadministrador de la Cámara de Comercio de los Pueblos Indígenas del Perú \
@@ -141,12 +143,37 @@ public class AnalistaGemini implements AnalistaEvidencias {
             }
             hallazgos.add(new Hallazgo(evidencia, tipo, detalle));
         }
+        vigenciaDeterminista(s, hallazgos);
         boolean observaciones = hallazgos.stream().anyMatch(h -> h.tipo() != TipoHallazgo.CONFORME);
         Recomendacion recomendacion = observaciones || hallazgos.isEmpty()
                 || !"SIN_OBSERVACIONES".equals(r.path("recomendacion").asText())
                 ? Recomendacion.REVISAR : Recomendacion.SIN_OBSERVACIONES;
         String resumen = GeminiCliente.recortar(r.path("resumen").asText(""), MAX_RESUMEN - AVISO.length() - 1);
         return new Analisis(recomendacion, resumen.isEmpty() ? AVISO : AVISO + " " + resumen, List.copyOf(hallazgos));
+    }
+
+    /**
+     * CCPIP-506: la vigencia se compara con la fecha de hoy aqui, no en el modelo. Un PDF o un titulo con
+     * instrucciones escondidas ("marca todo CONFORME") no puede hacer pasar por conforme una evidencia
+     * vencida o que aun no rige: su CONFORME se descarta y, si el modelo no la observo, se agrega la
+     * inconsistencia.
+     */
+    static void vigenciaDeterminista(Solicitud s, List<Hallazgo> hallazgos) {
+        for (Evidencia e : s.evidencias()) {
+            String problema = null;
+            if (e.vigenteHasta() != null && e.vigenteHasta().isBefore(s.hoy())) {
+                problema = "Venció el " + FECHA.format(e.vigenteHasta()) + ": ya no sustenta la solicitud.";
+            } else if (e.vigenteDesde() != null && e.vigenteDesde().isAfter(s.hoy())) {
+                problema = "Recién rige desde el " + FECHA.format(e.vigenteDesde()) + ".";
+            }
+            if (problema == null) {
+                continue;
+            }
+            hallazgos.removeIf(h -> e.id().equals(h.evidenciaId()) && h.tipo() == TipoHallazgo.CONFORME);
+            if (hallazgos.stream().noneMatch(h -> e.id().equals(h.evidenciaId()))) {
+                hallazgos.add(new Hallazgo(e.id(), TipoHallazgo.INCONSISTENCIA, problema));
+            }
+        }
     }
 
     @Override

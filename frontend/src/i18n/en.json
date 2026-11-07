@@ -199,7 +199,19 @@
         "AGOTADO": "Sold out",
         "VENCIDO": "Expired"
       },
-      "ubicacionPlaceholder": "Choose your warehouse or a collection point"
+      "ubicacionPlaceholder": "Choose your warehouse or a collection point",
+      "editar": {
+        "titulo": "Edit batch {{codigo}}",
+        "boton": "Edit",
+        "abrir": "Edit batch {{codigo}}",
+        "guardar": "Save changes",
+        "guardando": "Saving…",
+        "cancelar": "Cancel",
+        "fijo": "{{inicial}} units came in and {{actual}} units remain at {{lugar}}. Quantity and place are not edited: they change with movements or transfers.",
+        "vencido": "This batch has expired: its expiry date cannot be changed.",
+        "guardado": "Batch {{codigo}} updated",
+        "error": "We could not save the batch"
+      }
     },
     "almacen": {
       "titulo": "My warehouse",
@@ -1026,6 +1038,7 @@
     "rol": "Distributor",
     "migas": "Delivery",
     "nav": {
+      "inicio": "Home",
       "pedidos": "Available orders",
       "entregas": "My deliveries"
     },
@@ -1139,6 +1152,35 @@
       "enCaminoEn": "Left for delivery on {{fecha}}",
       "entregadaEn": "You delivered it on {{fecha}}",
       "momentos": "Delivery {{numero}} milestones"
+    },
+    "inicio": {
+      "titulo": "Home",
+      "cargando": "Loading your deliveries…",
+      "error": "We could not load your deliveries",
+      "reintentar": "Try again",
+      "kpi": {
+        "disponibles": "Orders to take",
+        "disponiblesDetalle": "Ready at the collection points",
+        "verDisponibles": "See available orders",
+        "porRetirar": "To pick up",
+        "porRetirarDetalle": "Taken, still at the collection point",
+        "enCamino": "On the way",
+        "enCaminoDetalle": "Picked up or in transit",
+        "verEntregas": "See my deliveries",
+        "entregadas": "Delivered today",
+        "entregadasDetalle": "Deliveries recorded today"
+      },
+      "siguiente": "Your next delivery",
+      "ruta": "From {{origen}} to {{destino}}",
+      "tomadaEn": "taken on {{fecha}}",
+      "continuar": "Continue in My deliveries",
+      "sinEnCurso": "You have no deliveries in progress.",
+      "tomarPedidos": "Take orders",
+      "estado": {
+        "ASIGNADA": "To pick up at the point",
+        "RETIRADA": "Picked up from the point",
+        "EN_CAMINO": "On the way to the destination"
+      }
     }
   },
   "acopio": {
