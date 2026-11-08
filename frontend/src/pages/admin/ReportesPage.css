@@ -4,6 +4,10 @@
 .reportes__filtros .campo { width: 200px; }
 .reportes__periodo { flex: 0 0 190px; }
 
+@media print {
+  .pestanas:has(+ .reportes__filtros) { display: none; }
+}
+
 @media (max-width: 720px) {
   .reportes__filtros .campo { width: 100%; }
   .reportes__exportar { margin-left: 0; }
