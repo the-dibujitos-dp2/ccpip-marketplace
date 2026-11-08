@@ -4,7 +4,7 @@ DECLARE n jsonb := to_jsonb(NEW); o jsonb := CASE WHEN TG_OP='UPDATE' THEN to_js
  uid bigint; accion text; ent text; ref text; fecha timestamptz; det jsonb := '{}'::jsonb; clave text; corr text; resultado text := 'EXITOSA';
 BEGIN
  IF TG_TABLE_NAME='denuncia_evento' THEN
-  uid:=NEW.usuario_id; ent:='DENUNCIA'; ref:=NEW.denuncia_id::text; fecha:=NEW.registrado_en;
+  uid:=NEW.usuario_id; ent:='DENUNCIAS'; ref:=NEW.denuncia_id::text; fecha:=NEW.registrado_en;
   accion:=CASE NEW.tipo WHEN 'REGISTRADA' THEN 'DENUNCIA_REGISTRADA' WHEN 'RESPUESTA' THEN 'DENUNCIA_RESPONDIDA' ELSE 'DENUNCIA_'||NEW.estado END;
   det:=jsonb_build_object('estado',NEW.estado); clave:='DE-'||NEW.id;
  ELSIF TG_TABLE_NAME='calificacion' THEN

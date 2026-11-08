@@ -18,7 +18,7 @@ BEGIN
  WHEN 'moderacion_publicacion' THEN
   IF NEW.decision IS NULL OR (TG_OP='UPDATE' AND OLD.decision IS NOT NULL) THEN RETURN NEW; END IF;
   uid:=NEW.decidida_por; ref:=NEW.id::text; clave:='MP-'||NEW.id; accion:='PUBLICACION_'||NEW.decision; entidad:='MODERACION'; detalle:=jsonb_build_object('decision',NEW.decision,'productoId',NEW.producto_id);
- WHEN 'renovacion_certificado' THEN uid:=NEW.solicitada_por; ref:=NEW.autorizacion_id::text; clave:='RC-'||NEW.id; accion:='RENOVACION_SOLICITADA'; entidad:='RENOVACION'; detalle:='{}'::jsonb;
+ WHEN 'renovacion_certificado' THEN uid:=NEW.solicitada_por; ref:=NEW.autorizacion_id::text; clave:='RC-'||NEW.id; accion:='RENOVACION_SOLICITADA'; entidad:='AUTORIZACION'; detalle:='{}'::jsonb;
  WHEN 'comision_configuracion' THEN
   IF TG_OP='UPDATE' AND NEW.cancelado_en IS NOT DISTINCT FROM OLD.cancelado_en THEN RETURN NEW; END IF;
   IF NEW.cancelado_en IS NULL THEN uid:=NEW.registrado_por; clave:='CC-'||NEW.id; accion:='COMISION_PROGRAMADA'; detalle:=jsonb_build_object('porcentaje',NEW.porcentaje);

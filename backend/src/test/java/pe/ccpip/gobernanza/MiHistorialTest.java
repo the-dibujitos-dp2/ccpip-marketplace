@@ -83,6 +83,11 @@ class MiHistorialTest extends IntegrationTest {
                 .andExpect(jsonPath("$.acciones[?(@.accion == 'BLOQUEAR_VENTA')].motivo").value(hasItem("Denuncias reiteradas sin respuesta")))
                 .andExpect(jsonPath("$.acciones[?(@.accion == 'CUENTA_SUSPENDER')].tipo").value(hasItem("CUENTAS")))
                 .andExpect(jsonPath("$.acciones[?(@.accion == 'CUENTA_SUSPENDER')].objetoId").value(hasItem((int) consumidor)));
+        // CCPIP-509: las mismas operaciones reales también deben ser legibles en Auditoría global.
+        mockMvc.perform(get("/api/admin/auditoria").cookie(loginAs("sudo@ccpip.test")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.registros[?(@.accion == 'DENUNCIA_REGISTRADA')].entidad").value(hasItem("DENUNCIAS")))
+                .andExpect(jsonPath("$.registros[?(@.accion == 'RENOVACION_SOLICITADA')].entidad").value(hasItem("AUTORIZACION")));
     }
 
     @Test
