@@ -151,7 +151,13 @@ export function BarrasComparativas({ titulo, items = [], unidad = '', onSelect, 
   const locale = useLocale(explicitLocale)
   const uid = useId()
   const [selection, setSelection] = useState(null)
-  const normal = items.map((item) => ({ ...item, valor: numero(item.valor) }))
+  const normal = items.map((item) => {
+    const valor = numero(item.valor)
+    const segmentos = Array.isArray(item.segmentos) ? item.segmentos.map((segmento) => ({ ...segmento, valor: numero(segmento.valor) })) : null
+    const suma = segmentos?.reduce((total, segmento) => total + (segmento.valor ?? 0), 0)
+    const apilable = segmentos?.length > 0 && valor !== null && valor >= 0 && segmentos.every((segmento) => segmento.valor !== null && segmento.valor >= 0) && Math.abs(suma - valor) < 0.000001
+    return { ...item, valor, segmentos: apilable ? segmentos : null }
+  })
   const keyFor = (item) => item.id ?? item.etiqueta
   const selected = normal.find((item) => keyFor(item) === selection)
   const lower = Math.min(0, ...normal.map((item) => item.valor ?? 0))
@@ -161,16 +167,19 @@ export function BarrasComparativas({ titulo, items = [], unidad = '', onSelect, 
   return <section className={`rv rv-bars ${className}`} aria-labelledby={`${uid}-title`}>
     <h3 id={`${uid}-title`}>{titulo}</h3>
     {!items.length ? <p className="rv-empty">{textos(locale).empty}</p> : <ul>{normal.map((item, index) => <li key={keyFor(item)}>
-      <button type="button" aria-label={`${item.etiqueta}: ${formato(item.valor, unidad, locale)}`} disabled={item.valor === null} aria-pressed={keyFor(selected || {}) === keyFor(item)} onClick={() => {
+      <button type="button" aria-label={`${item.etiqueta}: ${formato(item.valor, unidad, locale)}${item.segmentos ? `, ${item.segmentos.map((segmento) => `${segmento.etiqueta}: ${formato(segmento.valor, unidad, locale)}`).join(', ')}` : ''}`} disabled={item.valor === null} aria-pressed={keyFor(selected || {}) === keyFor(item)} onClick={() => {
         setSelection(keyFor(item))
-        onSelect?.({ id: item.id, etiqueta: item.etiqueta, valor: item.valor, unidad })
+        onSelect?.({ id: item.id, etiqueta: item.etiqueta, valor: item.valor, unidad, ...(item.segmentos ? { segmentos: item.segmentos } : {}) })
       }}>
         <span>{item.etiqueta}</span>
-        <span className="rv-bar-track" aria-hidden="true" style={{ '--rv-zero': `${zero}%` }}><span className="rv-bar-fill" style={{ left: `${Math.min(zero, position(item.valor ?? 0))}%`, width: `${Math.abs(position(item.valor ?? 0) - zero)}%`, background: color(index) }} /></span>
+        <span className="rv-bar-track" aria-hidden="true" style={{ '--rv-zero': `${zero}%` }}>{item.segmentos
+          ? item.segmentos.map((segmento, segmentIndex) => <span key={segmento.id ?? segmentIndex} className="rv-bar-fill" style={{ left: `${segmentIndex ? item.segmentos.slice(0, segmentIndex).reduce((sum, part) => sum + part.valor, 0) / (upper - lower) * 100 : 0}%`, width: `${upper === 0 ? 0 : segmento.valor / (upper - lower) * 100}%`, background: segmentIndex === 0 ? 'var(--editorial-forest, #163d2c)' : 'var(--editorial-focus, #8a6421)' }} />)
+          : <span className="rv-bar-fill" style={{ left: `${Math.min(zero, position(item.valor ?? 0))}%`, width: `${Math.abs(position(item.valor ?? 0) - zero)}%`, background: color(index) }} />}</span>
         <strong>{formato(item.valor, unidad, locale)}</strong>
       </button>
     </li>)}</ul>}
-    {selected && <p className="rv-detail" aria-live="polite">{selected.etiqueta}: {formato(selected.valor, unidad, locale)}</p>}
+    {normal.some((item) => item.segmentos) && <ul className="rv-legend rv-bars__legend" aria-label="B2C/B2B"><li><span className="rv-swatch" style={{ '--rv-swatch': 'var(--editorial-forest, #163d2c)' }} />B2C</li><li><span className="rv-swatch" style={{ '--rv-swatch': 'var(--editorial-focus, #8a6421)' }} />B2B</li></ul>}
+    {selected && <p className="rv-detail" aria-live="polite">{selected.etiqueta}: {formato(selected.valor, unidad, locale)}{selected.segmentos?.map((segmento) => ` · ${segmento.etiqueta}: ${formato(segmento.valor, unidad, locale)}`)}</p>}
   </section>
 }
 

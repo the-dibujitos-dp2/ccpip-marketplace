@@ -150,6 +150,19 @@ describe('fundación de visualizaciones para reportes', () => {
     expect(container.querySelector('.rv-detail')).toBeNull()
   })
 
+  it('apila segmentos B2C/B2B dentro del total y expone valores exactos accesibles', () => {
+    const onSelect = vi.fn()
+    render(<BarrasComparativas titulo="Ranking" unidad="S/" onSelect={onSelect} items={[{
+      id: 'p1', etiqueta: 'Productor', valor: 1300,
+      segmentos: [{ id: 'b2c', etiqueta: 'B2C', valor: 400 }, { id: 'b2b', etiqueta: 'B2B', valor: 900 }],
+    }]} />)
+    expect(screen.getByText('B2C')).toBeInTheDocument()
+    expect(screen.getByText('B2B')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Productor/ }))
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1', segmentos: expect.any(Array) }))
+    expect(screen.getByText(/Productor: S\/ 1,300/)).toBeInTheDocument()
+  })
+
   it('conserva cada valor de composición, con proporciones válidas y sin aporte ficticio para cero/null', () => {
     const { container } = render(<Composicion titulo="Composición" partes={[
       { id: 'a', etiqueta: 'A', valor: 25 }, { id: 'b', etiqueta: 'B', valor: 75 },

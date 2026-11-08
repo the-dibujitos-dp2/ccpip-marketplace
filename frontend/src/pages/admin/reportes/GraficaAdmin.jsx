@@ -72,6 +72,10 @@ export function GraficaAdmin({ tipo, datos, titulo }) {
       id: tipo === 'productores' ? fila.productorId : fila.puntoId,
       etiqueta: tipo === 'productores' ? fila.productor : fila.punto,
       valor: numero(fila.total),
+      segmentos: [
+        { id: 'b2c', etiqueta: texto.b2c, valor: numero(fila.b2c) },
+        { id: 'b2b', etiqueta: texto.b2b, valor: numero(fila.b2b) },
+      ],
     }))
     return <section className="reportes-visual" key={dataset} aria-label={titulo}>
       <BarrasComparativas key={`barras-${dataset}`} titulo={titulo} items={items} unidad="S/" />

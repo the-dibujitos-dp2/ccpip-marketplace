@@ -503,6 +503,29 @@ describe('CCPIP-94 Indicadores de actividad (SA-10)', () => {
   })
 })
 
+describe('selección de gráficos de reportes en la página', () => {
+  it('productores y puntos exponen desglose exacto de la tabla sin solicitar datos nuevos al seleccionar', async () => {
+    const fetchMock = comoSuper({
+      [`GET /api/admin/reportes/productores?${RANGO}`]: () => [200, copia(PRODUCTORES)],
+      [`GET /api/admin/reportes/puntos?${RANGO}`]: () => [200, copia(PUNTOS)],
+    })
+    const user = await abrirPestana('Productores')
+    const graficaProductor = await screen.findByRole('button', { name: /Tienda Asháninka: S\/ 1,300\.00, B2C: S\/ 400\.00, B2B: S\/ 900\.00/ })
+    const tablaProductores = within(screen.getByRole('table', { name: 'Productores que más venden' })).getAllByRole('row')[1]
+    expect(tablaProductores).toHaveTextContent('S/ 1,300.00')
+    await user.click(graficaProductor)
+    expect(screen.getByText(/Tienda Asháninka: S\/ 1,300\.00 · B2C: S\/ 400\.00 · B2B: S\/ 900\.00/)).toBeInTheDocument()
+    expect(llamadas(fetchMock, `GET /api/admin/reportes/productores?${RANGO}`)).toHaveLength(1)
+    await user.click(screen.getByRole('tab', { name: 'Puntos de acopio' }))
+    const graficaPunto = await screen.findByRole('button', { name: /Satipo: S\/ 2,200\.00, B2C: S\/ 1,300\.00, B2B: S\/ 900\.00/ })
+    const tablaPuntos = within(screen.getByRole('table', { name: 'Ventas por punto de acopio' })).getAllByRole('row')[1]
+    expect(tablaPuntos).toHaveTextContent('S/ 2,200.00')
+    await user.click(graficaPunto)
+    expect(screen.getByText(/Satipo: S\/ 2,200\.00 · B2C: S\/ 1,300\.00 · B2B: S\/ 900\.00/)).toBeInTheDocument()
+    expect(llamadas(fetchMock, `GET /api/admin/reportes/puntos?${RANGO}`)).toHaveLength(1)
+  })
+})
+
 describe('Exportar los reportes de gestion (SA-10)', () => {
   it('las metricas por periodo no se descargan', async () => {
     comoSuper()
