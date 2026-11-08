@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { RUTAS } from '../../router.js'
 import Enlace from '../Enlace.jsx'
+import Logotipo from '../Logotipo.jsx'
 import './PieDePagina.css'
 
 /** Pie de pagina de la tienda (CCPIP-127, v2). Solo enlaces a paginas que ya existen. */
@@ -12,7 +13,7 @@ export default function PieDePagina() {
       <div className="contenedor">
         <div className="pie__columnas">
           <div className="pie__marca">
-            <p className="pie__nombre">{t('marca.nombre')}</p>
+            <Logotipo inverso />
             <p className="pie__descripcion">{t('pie.descripcion')}</p>
           </div>
           <nav className="pie__enlaces" aria-label={t('pie.comprar')}>

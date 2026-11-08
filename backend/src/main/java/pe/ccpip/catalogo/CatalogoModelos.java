@@ -118,8 +118,13 @@ public final class CatalogoModelos {
     public record GaleriaItem(String id, String categoria, String url, String miniatura) {
     }
 
-    /** CW-01. Las novedades y los mas vendidos se piden aparte, por periodo (CCPIP-338, CCPIP-339). */
-    public record Inicio(List<TiendaTarjeta> tiendas, List<Faceta> lineas, List<ProductoResumen> destacados) {
+    /**
+     * CW-01. Las novedades y los mas vendidos se piden aparte, por periodo (CCPIP-338, CCPIP-339).
+     * {@code fotosLineas}: por codigo de linea, la miniatura de un producto real de esa linea, para
+     * mostrar cada linea con una foto verdadera y no con una ilustracion (CCPIP-127).
+     */
+    public record Inicio(List<TiendaTarjeta> tiendas, List<Faceta> lineas, List<ProductoResumen> destacados,
+                         Map<String, String> fotosLineas) {
     }
 
     public record LineaCatalogo(String codigo, String nombre, boolean requiereVencimiento, String unidadSugerida) {

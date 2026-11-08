@@ -18,12 +18,7 @@ import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { RUTAS } from '../../router.js'
 import './InicioPage.css'
 import fotoArtesana from '../../assets/editorial/artesana.jpg'
-import fotoCacao from '../../assets/editorial/home/cacao.webp'
-import fotoCafe from '../../assets/editorial/home/cafe.webp'
-import fotoAmazonia from '../../assets/editorial/home/amazonia.webp'
 
-/** Fotos de referencia de las tres primeras lineas; otra linea usa el paisaje amazonico. */
-const FOTO_CATEGORIA = { CACAO: fotoCacao, CAFE: fotoCafe, SUPERFRUTOS: fotoAmazonia }
 
 const VALORES = [
   { icono: iconoArbol, clave: 'deforestacion' },
@@ -88,10 +83,11 @@ export default function InicioPage() {
           <div className="inicio-categorias__grid">
             {(datos?.lineas ?? []).slice(0, 3).map((item) => (
               <Enlace key={item.codigo} to={`${RUTAS.buscar}?linea=${item.codigo}`} className="inicio-categoria">
-                <img src={FOTO_CATEGORIA[item.codigo] ?? fotoAmazonia} alt={te(`categorias.${item.codigo}.foto`, { defaultValue: '' })} />
+                {datos.fotosLineas?.[item.codigo]
+                  ? <img src={datos.fotosLineas[item.codigo]} alt="" />
+                  : <span className="inicio-categoria__sin-foto" aria-hidden="true" />}
                 <span className="inicio-categoria__texto">
                   <strong>{item.nombre}</strong>
-                  <small>{te('categorias.referencia')}</small>
                 </span>
                 <span className="inicio-categoria__flecha" aria-hidden="true">→</span>
               </Enlace>
@@ -147,7 +143,7 @@ export default function InicioPage() {
               {datos.lineas.map((l) => (
                 <li key={l.codigo}>
                   <Enlace to={`${RUTAS.buscar}?linea=${l.codigo}`} className="linea-tienda">
-                    <ImagenProducto linea={l.codigo} className="linea-tienda__img" />
+                    <ImagenProducto url={datos.fotosLineas?.[l.codigo]} linea={l.codigo} className="linea-tienda__img" />
                     <span className="label-m">{l.nombre}</span>
                     <span className="caption">{t('comun.producto', { count: l.total })}</span>
                   </Enlace>

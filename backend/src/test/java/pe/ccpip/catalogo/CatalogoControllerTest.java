@@ -12,11 +12,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.UUID;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
+import pe.ccpip.imagenes.ImagenService;
 import pe.ccpip.support.IntegrationTest;
 
 /**
@@ -360,6 +362,28 @@ class CatalogoControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.destacados.length()").value(3))
                 // CCPIP-338: las novedades se piden aparte, por periodo
                 .andExpect(jsonPath("$.novedades").doesNotExist());
+    }
+
+    @Test
+    void cadaLineaDelInicioLlevaLaFotoDeUnProductoRealDeEsaLinea() throws Exception {
+        UUID foto = UUID.randomUUID();
+        UUID retirada = UUID.randomUUID();
+        jdbc.update("""
+                INSERT INTO imagen (id, productor_id, producto_id, tipo, clave, clave_miniatura, ancho, alto, bytes, principal)
+                SELECT ?, productor_id, id, 'PRODUCTO', ?, ?, 800, 600, 1000, true FROM producto WHERE id = ?""",
+                foto, "prueba/" + foto, "prueba/m-" + foto, idDe("Cafe tostado en grano 500 g"));
+        // Una foto retirada ya no representa a la linea
+        jdbc.update("""
+                INSERT INTO imagen (id, productor_id, producto_id, tipo, clave, clave_miniatura, ancho, alto, bytes,
+                                    retirada_en, retirada_por)
+                SELECT ?, p.productor_id, p.id, 'PRODUCTO', ?, ?, 800, 600, 1000, now(), pr.usuario_id
+                FROM producto p JOIN productor pr ON pr.id = p.productor_id WHERE p.id = ?""",
+                retirada, "prueba/" + retirada, "prueba/m-" + retirada, idDe("Pasta de cacao 500 g"));
+
+        mockMvc.perform(get("/api/inicio"))
+                .andExpect(jsonPath("$.fotosLineas.CAFE").value(ImagenService.urlMiniatura(foto)))
+                // Sin foto vigente la linea no se inventa una
+                .andExpect(jsonPath("$.fotosLineas.CACAO").doesNotExist());
     }
 
     @Test
