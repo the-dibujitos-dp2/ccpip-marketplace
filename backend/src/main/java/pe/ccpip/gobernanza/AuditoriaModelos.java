@@ -55,7 +55,7 @@ public final class AuditoriaModelos {
     public record Registro(String clave, Instant fecha, Long usuarioId, String usuario, String correo, Rol rol,
                            String accion, Entidad entidad, long entidadId, String detalle, Resultado resultado,
                            Actor actor, Long ubicacionId, String referencia, String correlacion, String decision,
-                           boolean rolHistorico) {
+                           boolean rolHistorico, String metadatos) {
     }
 
     /** Filtros, todos opcionales y combinables. {@code usuario} busca en el nombre y el correo. */

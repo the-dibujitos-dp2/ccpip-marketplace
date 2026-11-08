@@ -181,7 +181,7 @@ public class AuditoriaService {
             SELECT l.*, CASE WHEN l.usuario_id IS NULL THEN 'SISTEMA' ELSE 'USUARIO' END AS actor_tipo,
                    NULL::bigint AS ubicacion_id, l.entidad_id::text AS referencia, NULL::text AS correlacion,
                    NULL::text AS decision, false AS rol_historico,
-                   u.nombre AS actor_nombre, ro.codigo AS actor_rol, u.correo AS actor_correo
+                   u.nombre AS actor_nombre, ro.codigo AS actor_rol, u.correo AS actor_correo, NULL::text AS metadatos
             FROM (%s) AS l (clave, fecha, usuario_id, accion, entidad, entidad_id, detalle, resultado)
             LEFT JOIN usuario u ON u.id = l.usuario_id
             LEFT JOIN rol ro ON ro.id = u.rol_id
@@ -191,7 +191,7 @@ public class AuditoriaService {
             SELECT coalesce(e.clave_evento, 'AE-' || e.id), e.registrado_en, e.usuario_id, e.accion,
                    e.entidad, CASE WHEN e.referencia ~ '^[0-9]{1,18}$' THEN e.referencia::bigint ELSE e.id END,
                    coalesce(contexto.detalle, e.detalle::text), e.resultado, e.actor_tipo, e.ubicacion_id, e.referencia,
-                   e.correlacion, e.detalle ->> 'decision', true, e.usuario_nombre, e.rol, eu.correo
+                   e.correlacion, e.detalle ->> 'decision', true, e.usuario_nombre, e.rol, eu.correo, e.detalle::text
             FROM auditoria_evento e
             LEFT JOIN usuario eu ON eu.id = e.usuario_id
             LEFT JOIN (%s) AS contexto (clave, fecha, usuario_id, accion, entidad, entidad_id, detalle, resultado)
@@ -255,7 +255,7 @@ public class AuditoriaService {
                         Entidad.valueOf(rs.getString("entidad")), rs.getLong("entidad_id"), rs.getString("detalle"),
                         Resultado.valueOf(rs.getString("resultado")), Actor.valueOf(rs.getString("actor_tipo")),
                         rs.getObject("ubicacion_id", Long.class), rs.getString("referencia"), rs.getString("correlacion"),
-                        rs.getString("decision"), rs.getBoolean("rol_historico")));
+                        rs.getString("decision"), rs.getBoolean("rol_historico"), rs.getString("metadatos")));
         List<String> acciones = jdbc.queryForList(
                 "SELECT DISTINCT r.accion " + DESDE_REGISTROS + "ORDER BY r.accion", p, String.class);
         long cuantos = total == null ? 0 : total;

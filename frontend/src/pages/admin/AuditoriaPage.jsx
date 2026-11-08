@@ -128,7 +128,9 @@ export default function AuditoriaPage({ path }) {
               <span className="tabla__celda auditoria__accion body-s" role="cell">{nombreAccion(r.accion)}</span>
               <span className="tabla__celda tabla__celda--flex auditoria__entidad" role="cell">
                 <span className="body-s">{t(`auditoria.entidad.${r.entidad}`)}</span>
-                {detalleAuditoria(r.detalle, t).map((texto, indice) => <span key={indice} className="caption">{texto}</span>)}
+                {r.metadatos && r.detalle && !r.detalle.trim().startsWith('{') && r.entidad !== 'PARAMETRO'
+                  && <span className="caption">{r.detalle}</span>}
+                {detalleAuditoria(r.metadatos ?? r.detalle, t).map((texto, indice) => <span key={indice} className="caption">{texto}</span>)}
                 {r.referencia && <span className="caption">{t('auditoria.referencia')}: {r.referencia}</span>}
                 {r.ubicacionId != null && <span className="caption">{t('auditoria.ubicacion')}: {r.ubicacionId}</span>}
                 {r.decision && <span className="caption">{t('auditoria.decision')}: {t(`auditoria.decisionValor.${r.decision}`)}</span>}

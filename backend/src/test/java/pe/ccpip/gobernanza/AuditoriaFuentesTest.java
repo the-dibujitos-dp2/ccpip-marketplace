@@ -69,6 +69,14 @@ class AuditoriaFuentesTest extends IntegrationTest {
                 .andExpect(jsonPath("$.registros[?(@.entidadId == " + id + ")].detalle").value(hasItem("Unidad auditada")));
     }
 
+    @Test
+    void conservaMetadatosAunqueHayaContextoLegado() throws Exception {
+        long id = jdbc.queryForObject("INSERT INTO parametro_plataforma (clave, valor, registrado_por) VALUES ('CARRITO_VIGENCIA_HORAS', 73, ?) RETURNING id", Long.class, usuario("sudo@ccpip.test"));
+        mockMvc.perform(get("/api/admin/auditoria?accion=PARAMETRO_CAMBIADO").cookie(loginAs("sudo@ccpip.test")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.registros[?(@.clave == 'PP-" + id + "')].metadatos").value(hasItem(org.hamcrest.Matchers.containsString("CARRITO_VIGENCIA_HORAS"))));
+    }
+
     private long usuario(String correo) {
         return jdbc.queryForObject("SELECT id FROM usuario WHERE correo = ?", Long.class, correo);
     }

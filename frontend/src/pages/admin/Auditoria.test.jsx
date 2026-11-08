@@ -163,6 +163,16 @@ describe('Auditoría de operaciones sensibles (CCPIP-97)', () => {
     expect(within(fila).getByText('Rechazado')).toBeInTheDocument()
   })
 
+  it('CCPIP-509: conserva contexto humano y metadatos del mismo evento', async () => {
+    const registro = { ...copia(AUDITORIA.registros[1]), detalle: 'Miel de abeja nativa',
+      metadatos: JSON.stringify({ cantidad: 4, productoId: 17 }) }
+    comoSuper({ [`GET ${RUTA}`]: [200, { ...copia(AUDITORIA), registros: [registro] }] })
+    abrirEn('/admin/auditoria')
+    const [fila] = await filas()
+    expect(within(fila).getByText('Miel de abeja nativa')).toBeInTheDocument()
+    expect(within(fila).getByText('Cantidad: 4')).toBeInTheDocument()
+  })
+
   it.each(['es', 'en'])('CCPIP-509: catálogo de nuevas acciones traducido en %s', async (idioma) => {
     await i18n.changeLanguage(idioma)
     const acciones = ['LOGIN_EXITOSO', 'LOGIN_FALLIDO', 'LOGIN_BLOQUEADO', 'LOGIN_DENEGADO', 'LOGOUT',
