@@ -46,13 +46,14 @@ describe('gráficas administrativas con respuestas reales de pruebas', () => {
     render(<GraficaAdmin tipo="finanzas" datos={finanzas} titulo="Ventas" />)
     expect(screen.queryByRole('button', { name: 'Acumulado' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'B2C' }))
-    expect(screen.getByRole('button', { name: /S\/ 500/ })).toBeInTheDocument()
+    expect(within(screen.getByRole('group', { name: 'Ventas — Gráfico interactivo' })).getByRole('button', { name: /S\/ 500/ })).toBeInTheDocument()
   })
   it('indicadores mapea productoresConVentas y representa observaciones', () => {
     render(<GraficaAdmin tipo="indicadores" datos={indicadores} titulo="Por periodo" />)
     fireEvent.click(screen.getByRole('button', { name: 'Productores con ventas' }))
-    expect(screen.getByRole('button', { name: /1$/ })).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Por periodo' })).toBeInTheDocument()
+    const grafica = screen.getByRole('group', { name: 'Por periodo — Gráfico interactivo' })
+    expect(within(grafica).getByRole('button', { name: /1$/ })).toBeInTheDocument()
+    expect(grafica).toBeInTheDocument()
   })
   it.each([['productores', productores, 'Tienda Asháninka'], ['puntos', puntos, 'Satipo']])(
     '%s representa ventas reales en el ranking', (tipo, datos, etiqueta) => {
@@ -92,7 +93,7 @@ describe('gráficas administrativas con respuestas reales de pruebas', () => {
     ] }
     rerender(<GraficaAdmin tipo="indicadores" datos={nuevos} titulo="Por periodo" />)
     expect(screen.getByRole('button', { name: 'Ventas' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: /S\/ 1,700/ })).toBeInTheDocument()
+    expect(within(screen.getByRole('group', { name: 'Por periodo — Gráfico interactivo' })).getByRole('button', { name: /S\/ 1,700/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /S\/ 500/ })).not.toBeInTheDocument()
   })
 })
