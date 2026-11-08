@@ -29,6 +29,18 @@ async function salir(page) {
   expect((await api(page, 'POST', '/api/auth/logout')).status).toBe(204)
 }
 
+async function idiomaActual(page) {
+  const respuesta = await api(page, 'GET', '/api/auth/me')
+  expect(respuesta.status).toBe(200)
+  return respuesta.cuerpo.user.language || 'es'
+}
+
+async function restaurarIdioma(page) {
+  const respuesta = await api(page, 'PUT', '/api/auth/me/language', { language: 'es' })
+  expect(respuesta.status).toBe(204)
+  expect(await idiomaActual(page)).toBe('es')
+}
+
 async function cambiarIdioma(page, idioma) {
   const selector = page.getByRole('button', { name: /^(Idioma|Language):/ })
   await selector.click()
@@ -60,6 +72,8 @@ test('la autenticación real produce una fila filtrable y visible en español e 
   await salir(page)
   const consola = vigilarConsola(page)
   await ingresar(page, 'sudo@ccpip.test', CLAVE)
+  await restaurarIdioma(page)
+  try {
   const listado = await api(page, 'GET', URL_AUDITORIA)
   expect(listado.status).toBe(200)
   expect(listado.cuerpo.registros).toBeInstanceOf(Array)
@@ -97,6 +111,9 @@ test('la autenticación real produce una fila filtrable y visible en español e 
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await page.screenshot({ path: test.info().outputPath('auditoria-desktop-en.png'), fullPage: true })
   expect(consola).toEqual([])
+  } finally {
+    await restaurarIdioma(page)
+  }
 })
 
 test('cambio real de parámetro conserva actor histórico y referencia sin duplicar', async ({ page }) => {
@@ -121,6 +138,8 @@ test('interfaz móvil en ES/EN: captura y sin overflow horizontal de página', a
   await page.goto('/')
   await cambiarIdioma(page, 'es')
   await ingresar(page, 'sudo@ccpip.test', CLAVE)
+  await restaurarIdioma(page)
+  try {
   await page.goto('/admin/auditoria')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   const medir = () => page.evaluate(() => ({
@@ -138,4 +157,7 @@ test('interfaz móvil en ES/EN: captura y sin overflow horizontal de página', a
   expect(dimensionesEN.scrollX).toBe(0)
   await page.screenshot({ path: test.info().outputPath('auditoria-mobile-en.png'), fullPage: true })
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  } finally {
+    await restaurarIdioma(page)
+  }
 })
