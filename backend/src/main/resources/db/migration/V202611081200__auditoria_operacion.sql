@@ -4,7 +4,7 @@ DECLARE uid bigint; ref text; act text; entidad text; loc bigint; corr text; fec
 BEGIN
   IF TG_TABLE_NAME='movimiento_inventario' THEN
     uid:=CASE WHEN NEW.tipo='SALIDA_VENTA' THEN NULL ELSE NEW.usuario_id END;
-    PERFORM registrar_evento_auditoria(uid,'MI-'||NEW.id,'MOVIMIENTO_'||NEW.tipo,'MOVIMIENTO_INVENTARIO',NEW.id::text,NEW.registrado_en,NEW.ubicacion_id,NULL,
+    PERFORM registrar_evento_auditoria(uid,'MI-'||NEW.id,'MOVIMIENTO_'||NEW.tipo,'MOVIMIENTO',NEW.id::text,NEW.registrado_en,NEW.ubicacion_id,NULL,
       jsonb_build_object('cantidad',NEW.cantidad,'productoId',NEW.producto_id,'loteId',NEW.lote_id,'pedidoId',NEW.pedido_id,'transfItemId',NEW.transferencia_item_id));
   ELSIF TG_TABLE_NAME='pedido_estado_historial' THEN
     SELECT ubicacion_origen_id INTO loc FROM pedido WHERE id=NEW.pedido_id;
@@ -26,10 +26,11 @@ BEGIN
     PERFORM registrar_evento_auditoria(NEW.registrado_por,'IP-'||NEW.id,'PRODUCTO_MALOGRADO_'||NEW.tipo,'PEDIDO',NEW.pedido_id::text,NEW.registrado_en,loc,'PEDIDO-'||NEW.pedido_id,jsonb_build_object('cantidad',NEW.cantidad,'monto',NEW.monto,'comisionAnulada',NEW.comision_anulada,'loteId',NEW.lote_original_id));
   ELSIF TG_TABLE_NAME='solicitud_revision_merma' THEN
     IF TG_OP='INSERT' THEN
-      SELECT lote_id,producto_id INTO mid,uid FROM merma WHERE movimiento_id=NEW.merma_movimiento_id;
-      PERFORM registrar_evento_auditoria(NEW.solicitante_id,'SR-'||NEW.id,'REVISION_MERMA_SOLICITADA','MERMA',NEW.merma_movimiento_id::text,NEW.registrada_en,NULL,NULL,jsonb_build_object('cantidad',NEW.cantidad,'loteId',mid,'productoId',uid));
+      SELECT lote_id INTO mid FROM merma WHERE movimiento_id=NEW.merma_movimiento_id;
+      SELECT producto_id INTO uid FROM movimiento_inventario WHERE id=NEW.merma_movimiento_id;
+      PERFORM registrar_evento_auditoria(NEW.solicitante_id,'SR-'||NEW.id,'REVISION_MERMA_SOLICITADA','MOVIMIENTO',NEW.merma_movimiento_id::text,NEW.registrada_en,NULL,NULL,jsonb_build_object('cantidad',NEW.cantidad,'loteId',mid,'productoId',uid));
     ELSIF OLD.resuelta_en IS NULL AND NEW.resuelta_en IS NOT NULL THEN
-      PERFORM registrar_evento_auditoria(NEW.resuelta_por,'RR-'||NEW.id,'REVISION_MERMA_RESUELTA','MERMA',NEW.merma_movimiento_id::text,NEW.resuelta_en,NULL,NULL,jsonb_build_object('cantidad',NEW.cantidad,'cantidadAprobada',NEW.cantidad_aprobada,'decision',NEW.estado));
+      PERFORM registrar_evento_auditoria(NEW.resuelta_por,'RR-'||NEW.id,'REVISION_MERMA_'||NEW.estado,'MOVIMIENTO',NEW.merma_movimiento_id::text,NEW.resuelta_en,NULL,NULL,jsonb_build_object('cantidad',NEW.cantidad,'cantidadAprobada',NEW.cantidad_aprobada,'decision',NEW.estado));
     END IF;
   END IF;
   RETURN NEW;

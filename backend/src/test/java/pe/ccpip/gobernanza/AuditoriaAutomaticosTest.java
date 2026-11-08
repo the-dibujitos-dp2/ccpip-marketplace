@@ -41,9 +41,11 @@ class AuditoriaAutomaticosTest extends IntegrationTest {
         var sesion=loginAs("consumidor@ccpip.test");
         long uid=jdbc.queryForObject("SELECT id FROM usuario WHERE correo='consumidor@ccpip.test'",Long.class);
         jdbc.update("UPDATE usuario SET contrasena_hash='hash-no-se-guarda' WHERE id=?",uid);
-        jdbc.update("DELETE FROM sesion WHERE usuario_id=?",uid);
+        long anteriores=jdbc.queryForObject("SELECT count(*) FROM auditoria_evento WHERE accion='SESION_INVALIDADA' AND referencia=?",Long.class,""+uid);
+        int eliminadas=jdbc.update("DELETE FROM sesion WHERE usuario_id=?",uid);
+        assertThat(eliminadas).isPositive();
         assertThat(jdbc.queryForObject("SELECT count(*) FROM auditoria_evento WHERE accion='CONTRASENA_RESTABLECIDA' AND usuario_id=?",Long.class,uid)).isEqualTo(1);
-        assertThat(jdbc.queryForObject("SELECT count(*) FROM auditoria_evento WHERE accion='SESION_INVALIDADA' AND referencia=?",Long.class,""+uid)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM auditoria_evento WHERE accion='SESION_INVALIDADA' AND referencia=?",Long.class,""+uid)).isEqualTo(anteriores+eliminadas);
         assertThat(jdbc.queryForObject("SELECT string_agg(detalle::text,'') FROM auditoria_evento WHERE accion IN ('CONTRASENA_RESTABLECIDA','SESION_INVALIDADA')",String.class))
             .doesNotContain("hash-no-se-guarda",sesion.getValue());
     }

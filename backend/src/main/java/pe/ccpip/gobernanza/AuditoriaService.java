@@ -111,7 +111,9 @@ public class AuditoriaService {
                    'MOTIVO_MERMA', m.motivo_id, m.nombre, 'EXITOSA'
             FROM motivo_merma_cambio m
             UNION ALL
-            SELECT 'MI-' || m.id, m.registrado_en, m.usuario_id, 'MOVIMIENTO_' || m.tipo, 'MOVIMIENTO', m.id,
+            SELECT 'MI-' || m.id, m.registrado_en,
+                   CASE WHEN m.tipo='SALIDA_VENTA' THEN NULL::bigint ELSE m.usuario_id END,
+                   'MOVIMIENTO_' || m.tipo, 'MOVIMIENTO', m.id,
                    pr.nombre || coalesce(' · lote ' || l.codigo, '') || ' · ' || trim(to_char(m.cantidad, 'FM999999990.###'))
                        || ' und · ' || ub.nombre,
                    'EXITOSA'

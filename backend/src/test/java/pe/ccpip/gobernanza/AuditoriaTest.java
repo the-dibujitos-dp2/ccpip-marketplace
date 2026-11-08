@@ -154,8 +154,10 @@ class AuditoriaTest extends IntegrationTest {
                 .andExpect(campo("PH-" + entrego, "accion").value(hasItem("PEDIDO_ENTREGADO")))
                 .andExpect(campo("PH-" + entrego, "usuario").value(hasItem(org.hamcrest.Matchers.notNullValue())))
                 .andExpect(jsonPath("$.registros[*].clave", not(hasItem("PH-" + preparo))));
-        auditoria("?entidad=PEDIDO")
-                .andExpect(jsonPath("$.registros[*].clave", not(hasItem("PH-" + delComprador))));
+        // CCPIP-509 incluye también la operación del comprador, sin atribuirla a los roles operativos.
+        auditoria("?entidad=PEDIDO&rol=CONSUMIDOR")
+                .andExpect(campo("PH-" + delComprador, "accion").value(hasItem("PEDIDO_CONFIRMADO")))
+                .andExpect(jsonPath("$.registros[*].clave", not(hasItem("PH-" + preparo))));
         auditoria("?accion=MOVIMIENTO_ENTRADA&entidad=MOVIMIENTO")
                 .andExpect(jsonPath("$.registros[*].clave", hasItem("MI-" + entrada)));
         auditoria("").andExpect(jsonPath("$.acciones", hasItems("MOVIMIENTO_ENTRADA", "PEDIDO_EN_PREPARACION",
