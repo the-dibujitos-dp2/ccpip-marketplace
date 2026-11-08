@@ -3,6 +3,7 @@ import iconoCaja from '../../../assets/icons/caja.svg'
 import iconoMovimientos from '../../../assets/icons/movimientos.svg'
 import iconoReloj from '../../../assets/icons/reloj.svg'
 import { unidades } from '../../../formato.js'
+import { SerieTemporal } from '../../../components/reportes-visuales/index.jsx'
 import { columnas, Kpis, pendiente, Tablas } from './comun.jsx'
 
 /**
@@ -21,6 +22,11 @@ export default function Salidas({ datos }) {
         { clave: 'total', valor: und(totales.total), icono: iconoMovimientos, vars: detalle },
         { clave: 'entregadas', valor: und(totales.ventasEntregadas), icono: iconoCaja, tono: 'exito' },
         { clave: 'porEntregar', valor: und(totales.ventasPorEntregar), icono: iconoReloj, tono: pendiente(totales.ventasPorEntregar) },
+      ]} />
+      <SerieTemporal titulo={t('acopio.reportes.salidas.porPeriodo')} unidad="und" series={[
+        ...['ventasEntregadas', 'ventasPorEntregar', 'transferencias', 'devoluciones', 'merma'].map((id) => ({
+          id, nombre: t(`acopio.reportes.col.${id}`), unidad: 'und', puntos: datos.periodos.map((p) => ({ etiqueta: p.inicio, valor: p[id] })),
+        })),
       ]} />
       <Tablas id="salidas" textos="acopio.reportes.salidas" datos={datos} estrecha={{ periodo: true }}
         porPeriodo={[col.periodo, ...['ventasEntregadas', 'ventasPorEntregar', 'transferencias', 'devoluciones', 'merma', 'total']

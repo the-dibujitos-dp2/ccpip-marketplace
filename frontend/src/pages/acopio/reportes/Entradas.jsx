@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import iconoMovimientos from '../../../assets/icons/movimientos.svg'
 import iconoReloj from '../../../assets/icons/reloj.svg'
 import { unidades } from '../../../formato.js'
+import { SerieTemporal, Composicion } from '../../../components/reportes-visuales/index.jsx'
 import { Barra, columnas, Kpis, pendiente, Tablas } from './comun.jsx'
 
 /**
@@ -23,6 +24,17 @@ export default function Entradas({ datos }) {
         { clave: 'porLlegar', valor: und(totales.unidadesPendientes), icono: iconoReloj, tono: pendiente(pendientes),
           vars: { count: pendientes } },
       ]} />
+      <div className="acopio-visualizaciones">
+        <SerieTemporal titulo={t('acopio.reportes.entradas.porPeriodo')} unidad="und" series={[
+          { id: 'recepcion', nombre: t('acopio.reportes.col.recepcion'), unidad: 'und', puntos: periodos.map((p) => ({ etiqueta: p.inicio, valor: p.recepcion })) },
+          { id: 'transferencias', nombre: t('acopio.reportes.col.transferencias'), unidad: 'und', puntos: periodos.map((p) => ({ etiqueta: p.inicio, valor: p.transferencias })) },
+        ]} />
+        <Composicion titulo={t('acopio.reportes.entradas.total')} unidad="und" partes={[
+          { id: 'recepcion', etiqueta: t('acopio.reportes.col.recepcion'), valor: totales.recepcion },
+          { id: 'transferencias', etiqueta: t('acopio.reportes.col.transferencias'), valor: totales.transferencias },
+          { id: 'pendientes', etiqueta: t('acopio.reportes.entradas.porLlegar'), valor: totales.unidadesPendientes },
+        ]} />
+      </div>
       <Tablas id="entradas" textos="acopio.reportes.entradas" datos={datos}
         porPeriodo={[
           col.periodo,

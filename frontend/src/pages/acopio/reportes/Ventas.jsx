@@ -3,6 +3,7 @@ import iconoCaja from '../../../assets/icons/caja.svg'
 import iconoGrafico from '../../../assets/icons/grafico.svg'
 import iconoReloj from '../../../assets/icons/reloj.svg'
 import { precio, unidades } from '../../../formato.js'
+import { SerieTemporal } from '../../../components/reportes-visuales/index.jsx'
 import { columnas, Kpis, pendiente, Tablas } from './comun.jsx'
 
 /**
@@ -20,6 +21,12 @@ export default function Ventas({ datos }) {
         { clave: 'total', valor: precio(totales.total), icono: iconoGrafico, vars: resumen },
         { clave: 'atendidos', valor: unidades(totales.pedidosAtendidos), icono: iconoCaja, tono: 'exito', vars: { count: totales.pedidos } },
         { clave: 'porEntregar', valor: unidades(totales.pedidosPorEntregar), icono: iconoReloj, tono: pendiente(totales.pedidosPorEntregar) },
+      ]} />
+      <SerieTemporal titulo={t('acopio.reportes.ventas.total')} unidad="S/" series={[
+        { id: 'b2c', nombre: t('acopio.reportes.col.b2c'), unidad: 'S/', puntos: datos.periodos.map((p) => ({ etiqueta: p.inicio, valor: p.b2c })) },
+        { id: 'b2b', nombre: t('acopio.reportes.col.b2b'), unidad: 'S/', puntos: datos.periodos.map((p) => ({ etiqueta: p.inicio, valor: p.b2b })) },
+        { id: 'total', nombre: t('acopio.reportes.col.total'), unidad: 'S/', puntos: datos.periodos.map((p) => ({ etiqueta: p.inicio, valor: p.total })) },
+        { id: 'acumulado', nombre: t('acopio.reportes.col.acumulado'), unidad: 'S/', puntos: datos.periodos.map((p) => ({ etiqueta: p.inicio, valor: p.acumulado })) },
       ]} />
       <Tablas id="ventas" textos="acopio.reportes.ventas" datos={datos} estrecha={{ periodo: true }}
         porPeriodo={[col.periodo, ...['pedidos', 'pedidosAtendidos', 'pedidosPorEntregar', 'unidades'].map((c) => col.cantidad(c)),

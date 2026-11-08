@@ -3,6 +3,7 @@ import iconoAlmacen from '../../../assets/icons/almacen.svg'
 import iconoMovimientos from '../../../assets/icons/movimientos.svg'
 import iconoReloj from '../../../assets/icons/reloj.svg'
 import { unidades } from '../../../formato.js'
+import { SerieTemporal } from '../../../components/reportes-visuales/index.jsx'
 import { columnas, Kpis, pendiente, Tablas } from './comun.jsx'
 
 const SALDOS = ['saldoInicial', 'entradas', 'salidas']
@@ -26,6 +27,11 @@ export default function Inventario({ datos }) {
         { clave: 'saldoFinal', valor: und(totales.saldoFinal), icono: iconoAlmacen, detalle: 'alFinal' },
         { clave: 'porEntregar', valor: und(totales.porEntregar), icono: iconoReloj, tono: pendiente(totales.porEntregar),
           vars: { cantidad: und(totales.existenciaFisica) } },
+      ]} />
+      <SerieTemporal titulo={t('acopio.reportes.inventario.porPeriodo')} unidad="und" series={[
+        ...['saldoInicial', 'entradas', 'salidas', 'saldoFinal'].map((id) => ({
+          id, nombre: t(`acopio.reportes.col.${id}`), unidad: 'und', puntos: datos.periodos.map((p) => ({ etiqueta: p.inicio, valor: p[id] })),
+        })),
       ]} />
       <Tablas id="inventario" textos="acopio.reportes.inventario" datos={datos} estrecha={{ periodo: true, producto: true }}
         porPeriodo={[col.periodo, ...SALDOS.map((c) => col.cantidad(c)), col.cantidad('saldoFinal', { fuerte: true })]}

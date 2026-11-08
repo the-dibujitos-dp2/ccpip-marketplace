@@ -14,3 +14,8 @@
   .reportes-acopio__filtros .reportes-acopio__selector { width: 100%; }
   .reportes-acopio__exportar { margin-left: 0; }
 }
+
+/* Las series ocupan el primer plano; detalle tabular permanece íntegro debajo. */
+.acopio-visualizaciones { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr); gap: 20px; margin: 0 0 28px; }
+.acopio-visualizaciones > .rv { min-width: 0; }
+@media (max-width: 760px) { .acopio-visualizaciones { grid-template-columns: minmax(0, 1fr); } }
