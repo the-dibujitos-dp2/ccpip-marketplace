@@ -5033,6 +5033,7 @@
       "SOLICITUD_UNIDAD_DECIDIDA": "Resolved unit request",
       "ANALISIS_SOLICITADO": "Requested evidence analysis",
       "ANALISIS_RESULTADO": "Recorded analysis result",
+      "TRANSFERENCIA_INICIADA": "Started transfer",
       "TRANSFERENCIA_SOLICITADA": "Requested transfer",
       "TRANSFERENCIA_PENDIENTE": "Registered pending transfer",
       "TRANSFERENCIA_PREPARADA": "Prepared transfer",

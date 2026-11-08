@@ -163,6 +163,27 @@ describe('Auditoría de operaciones sensibles (CCPIP-97)', () => {
     expect(within(fila).getByText('Rechazado')).toBeInTheDocument()
   })
 
+  it.each(['es', 'en'])('CCPIP-509: catálogo de nuevas acciones traducido en %s', async (idioma) => {
+    await i18n.changeLanguage(idioma)
+    const acciones = ['LOGIN_EXITOSO', 'LOGIN_FALLIDO', 'LOGIN_BLOQUEADO', 'LOGIN_DENEGADO', 'LOGOUT',
+      'SESION_INVALIDADA', 'CONTRASENA_RESTABLECIDA', 'RECUPERACION_SOLICITADA', 'ACCESO_DENEGADO',
+      'REPORTE_DESCARGADO', 'CUENTA_BANCARIA_CREADA', 'CUENTA_BANCARIA_ACTUALIZADA',
+      'CUENTA_BANCARIA_DESACTIVADA', 'CUENTA_BANCARIA_REACTIVADA', 'PERFIL_ACTUALIZADO',
+      'DIRECCION_CREADA', 'DIRECCION_ACTUALIZADA', 'DIRECCION_RETIRADA', 'INTERES_REGISTRADO',
+      'INTERES_ACTUALIZADO', 'INTERES_RETIRADO', 'TIENDA_PUBLICADA', 'TIENDA_ACTUALIZADA',
+      'TIENDA_DESTACADO_CAMBIADO', 'TRADUCCION_APROBADA', 'VIDEO_SUBIDO', 'VIDEO_REEMPLAZADO',
+      'VIDEO_RETIRADO', 'GALERIA_IMAGEN_SUBIDA', 'GALERIA_IMAGEN_RETIRADA', 'GALERIA_IMAGEN_REEMPLAZADA',
+      'DENUNCIA_REGISTRADA', 'DENUNCIA_RESPONDIDA', 'CALIFICACION_REGISTRADA', 'SOLICITUD_UNIDAD_CREADA',
+      'SOLICITUD_UNIDAD_DECIDIDA', 'ANALISIS_SOLICITADO', 'ANALISIS_RESULTADO', 'TRANSFERENCIA_INICIADA',
+      'TRANSFERENCIA_SOLICITADA', 'TRANSFERENCIA_PREPARADA', 'TRANSFERENCIA_DESPACHADA', 'TRANSFERENCIA_RECIBIDA',
+      'MOVIMIENTO_SALIDA_VENTA', 'CARRITO_VENCIDO', 'AVISO_PENDIENTE', 'AVISO_ENVIADO', 'AVISO_FALLIDO',
+      'ALERTA_PENDIENTE', 'ALERTA_ENVIADO', 'ALERTA_FALLIDO', 'ALERTA_NO_APLICA', 'ALERTA_RESUELTA']
+    for (const accion of acciones) {
+      expect(i18n.exists(`auditoria.accion.${accion}`)).toBe(true)
+      expect(i18n.t(`auditoria.accion.${accion}`)).not.toContain(accion)
+    }
+  })
+
   it.each([
     ['es', 'Auditoría de operaciones sensibles', 'Inició sesión', 'Cantidad: 3', 'Decisión: Revocada'],
     ['en', 'Audit of sensitive operations', 'Signed in', 'Quantity: 3', 'Decision: Revoked'],
