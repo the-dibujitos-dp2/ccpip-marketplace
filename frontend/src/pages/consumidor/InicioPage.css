@@ -24,6 +24,9 @@
 .inicio-tienda .hero__acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 26px; margin-top: 24px; }
 .inicio-tienda .hero__enlace { display: inline-flex; align-items: center; min-height: 44px; border-bottom: 1px solid currentColor; color: #fff; font-size: 12px; text-decoration: none; }
 
+.inicio-tienda .hero__credito { display: inline-flex; align-items: center; min-height: 32px; margin-top: 12px; color: #fffef9; font-size: 12px; line-height: 1.5; text-underline-offset: 3px; }
+.inicio-tienda .hero__credito:focus-visible { outline: 2px solid var(--editorial-seed); outline-offset: 4px; }
+
 /* Franja de origen: los cuatro compromisos, sin tarjetas */
 .inicio-origen { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 32px; padding-block: 26px; border-bottom: 1px solid var(--color-border-default); }
 .inicio-origen__titulo { font: 400 23px/1.2 var(--font-display); white-space: nowrap; }

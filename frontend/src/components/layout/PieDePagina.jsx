@@ -26,7 +26,7 @@ export default function PieDePagina() {
           <p className="pie__legal">{t('pie.legal')}</p>
           <details className="pie__creditos">
             <summary>{te('pie.creditos')}</summary>
-            <p>{te('pie.fotosDocumentales')}</p>
+            <p>{te('pie.fotosDocumentales')} <a href="https://www.infobae.com/peru/2024/11/27/cacao-cafe-arte-textil-y-mas-emprendedores-indigenas-ofreceran-mas-de-100-productos-libres-de-deforestacion/" target="_blank" rel="noopener noreferrer">Infobae · 2024-11-27</a></p>
             <p>{te('pie.fotosReferencia')}</p>
             <p>{te('pie.tipografias')}</p>
           </details>

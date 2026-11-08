@@ -12,6 +12,7 @@ describe('home editorial autorizada', () => {
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Todo tieneun origen.')
     expect(screen.getByRole('heading', { level: 1 }).querySelector('em')).toHaveTextContent('origen.')
     expect(screen.getByRole('link', { name: /explorar productos/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /fotografías y fuentes.*infobae/i })).toHaveAttribute('href', 'https://www.infobae.com/peru/2024/11/27/cacao-cafe-arte-textil-y-mas-emprendedores-indigenas-ofreceran-mas-de-100-productos-libres-de-deforestacion/')
     expect(screen.queryByText(/origen responsable/i)).not.toBeInTheDocument()
   })
 
@@ -20,6 +21,7 @@ describe('home editorial autorizada', () => {
     render(<InicioPage />)
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Everything hasan origin.')
     expect(screen.getByRole('link', { name: /explore products/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /photographs and sources.*infobae/i })).toHaveAttribute('rel', 'noopener noreferrer')
     await i18n.changeLanguage('es')
   })
 

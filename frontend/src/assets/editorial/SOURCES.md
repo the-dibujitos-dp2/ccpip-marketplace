@@ -4,6 +4,8 @@ Fotografía `artesana.jpg`: captura documental servida por Infobae para «Cacao,
 
 Fotografía `retrato.jpg`: imagen documental de referencia del artículo de Infobae enlazado arriba; no representa a productores CCPIP.
 
+La nota del 27-11-2024 anuncia la Feria de Bioemprendedores Indígenas organizada por CCPIP, del 29 de noviembre al 1 de diciembre de 2024. El usuario revisó ambas fotografías y pidió conservarlas con referencia visible como en el prototipo v2. Inicio, acceso y pie enlazan a esa fuente; no se atribuye a las retratadas identidad de ofertantes del catálogo. El crédito identifica procedencia, no certifica una licencia abierta: la fuente consultada no identifica fotógrafo ni términos de reutilización específicos.
+
 Logotipo `logo-ccpip.png`: marca publicada por Amanatari, referencia institucional https://ccpip.pe/; derechos de reproducción comercial y manual de marca pendientes de confirmar.
 
 Fuentes `fonts/`: DM Sans y Fraunces, descargadas de Google Fonts: https://fonts.google.com/specimen/DM+Sans y https://fonts.google.com/specimen/Fraunces. Verificar licencia y metadatos antes de redistribución comercial.

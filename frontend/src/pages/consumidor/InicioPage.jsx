@@ -58,6 +58,9 @@ export default function InicioPage() {
               <Boton tipo="acento" to={RUTAS.buscar}>{te('hero.explorar')}</Boton>
               <Enlace to={RUTAS.comunidades} className="hero__enlace">{te('hero.comunidades')}</Enlace>
             </div>
+            <a className="hero__credito" href="https://www.infobae.com/peru/2024/11/27/cacao-cafe-arte-textil-y-mas-emprendedores-indigenas-ofreceran-mas-de-100-productos-libres-de-deforestacion/" target="_blank" rel="noopener noreferrer">
+              {te('pie.creditos')} · Infobae · 2024-11-27
+            </a>
           </div>
         </section>
         <div className="inicio-origen">
