@@ -6,6 +6,7 @@ import iconoPaquete from '../../../assets/icons/paquete.svg'
 import { Kpis } from '../../../components/TablaReporte.jsx'
 import { precio, unidades } from '../../../formato.js'
 import { columnas, rango, TablaReporte } from './comun.jsx'
+import { GraficaAdmin } from './GraficaAdmin.jsx'
 
 const TEXTOS = 'admin.reportes.origen-destino'
 
@@ -29,6 +30,7 @@ export default function OrigenDestino({ datos }) {
   const destinos = datos.porDestino.filter((d) => d.departamento != null).length
   return (
     <>
+      <GraficaAdmin tipo="origen-destino" datos={datos} titulo={t(`${TEXTOS}.porDestino`)} />
       <Kpis textos={TEXTOS} tarjetas={[
         { clave: 'ventas', valor: precio(datos.total), icono: iconoGrafico, vars: rango(datos) },
         { clave: 'pedidos', valor: unidades(datos.pedidos), icono: iconoPaquete },

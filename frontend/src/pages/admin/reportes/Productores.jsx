@@ -5,6 +5,7 @@ import iconoPorcentaje from '../../../assets/icons/porcentaje.svg'
 import { Kpis } from '../../../components/TablaReporte.jsx'
 import { precio, unidades } from '../../../formato.js'
 import { columnas, porcentaje, rango, TablaReporte } from './comun.jsx'
+import { GraficaAdmin } from './GraficaAdmin.jsx'
 
 const TEXTOS = 'admin.reportes.productores'
 
@@ -18,6 +19,7 @@ export default function Productores({ datos }) {
   const [lider] = datos.productores
   return (
     <>
+      <GraficaAdmin tipo="productores" datos={datos} titulo={t(`${TEXTOS}.tabla`)} />
       <Kpis textos={TEXTOS} tarjetas={[
         { clave: 'ventas', valor: precio(datos.totales.total), icono: iconoGrafico, vars: rango(datos) },
         { clave: 'conVentas', valor: unidades(datos.productoresConVentas), icono: iconoComunidad, vars: { limite: datos.limite } },

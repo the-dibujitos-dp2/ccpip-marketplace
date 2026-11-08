@@ -12,6 +12,7 @@ import { Barra, Kpis, nombrePeriodo } from '../../../components/TablaReporte.jsx
 import { fecha, precio, unidades } from '../../../formato.js'
 import { columnas, TablaReporte } from './comun.jsx'
 import './Indicadores.css'
+import { GraficaAdmin } from './GraficaAdmin.jsx'
 
 const TEXTOS = 'admin.reportes.indicadores'
 
@@ -61,6 +62,7 @@ export default function Indicadores({ datos }) {
   const mayor = Math.max(...datos.periodos.map((p) => Number(p.ventas)), 0)
   return (
     <>
+      <GraficaAdmin tipo="indicadores" datos={datos} titulo={t(`${TEXTOS}.porPeriodo`)} />
       <p className="caption">{t(`${TEXTOS}.frente`, {
         desde: fecha(datos.desde), hasta: fecha(datos.hasta), anteriorDesde: fecha(datos.anteriorDesde), anteriorHasta: fecha(datos.anteriorHasta),
       })}</p>

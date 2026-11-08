@@ -6,6 +6,7 @@ import Badge from '../../../components/Badge.jsx'
 import { Barra, Kpis } from '../../../components/TablaReporte.jsx'
 import { fecha, unidades } from '../../../formato.js'
 import { columnas, rango, TablaReporte } from './comun.jsx'
+import { GraficaAdmin } from './GraficaAdmin.jsx'
 
 const TEXTOS = 'admin.reportes.calificaciones'
 
@@ -34,6 +35,7 @@ export default function Calificaciones({ datos }) {
   const enCaida = datos.productos.filter((p) => p.tendencia === 'BAJA').length
   return (
     <>
+      <GraficaAdmin tipo="calificaciones" datos={datos} titulo={t(`${TEXTOS}.distribucion`)} />
       <Kpis textos={TEXTOS} tarjetas={[
         resumen.promedio == null
           ? { clave: 'promedio', valor: '—', icono: iconoEstrella, detalle: 'sinPromedio', vars: { minimo } }

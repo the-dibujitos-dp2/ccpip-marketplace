@@ -1,0 +1,8 @@
+.reportes-visual { margin: 1rem 0 1.5rem; min-width: 0; }
+.reportes-visual__controls { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .75rem; }
+.reportes-visual__controls button { border: 1px solid var(--editorial-muted); border-radius: var(--editorial-radius); background: transparent; color: var(--editorial-ink); padding: .5rem .8rem; font: inherit; cursor: pointer; }
+.reportes-visual__controls button[aria-pressed="true"] { background: var(--editorial-forest); border-color: var(--editorial-forest); color: var(--editorial-white); }
+.reportes-visual__controls button:hover:not([aria-pressed="true"]) { background: var(--editorial-sage); }
+.reportes-visual__controls button:focus-visible { outline: 3px solid var(--editorial-focus); outline-offset: 3px; }
+.reportes-visual > .rv + .rv { margin-top: 1rem; }
+@media (max-width: 600px) { .reportes-visual__controls button { flex: 1 1 auto; } }

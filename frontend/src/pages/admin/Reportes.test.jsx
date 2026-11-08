@@ -503,6 +503,29 @@ describe('CCPIP-94 Indicadores de actividad (SA-10)', () => {
   })
 })
 
+describe('selección de gráficos de reportes en la página', () => {
+  it('productores y puntos exponen desglose exacto de la tabla sin solicitar datos nuevos al seleccionar', async () => {
+    const fetchMock = comoSuper({
+      [`GET /api/admin/reportes/productores?${RANGO}`]: () => [200, copia(PRODUCTORES)],
+      [`GET /api/admin/reportes/puntos?${RANGO}`]: () => [200, copia(PUNTOS)],
+    })
+    const user = await abrirPestana('Productores')
+    const graficaProductor = await screen.findByRole('button', { name: /Tienda Asháninka: S\/ 1,300\.00, B2C: S\/ 400\.00, B2B: S\/ 900\.00/ })
+    const tablaProductores = within(screen.getByRole('table', { name: 'Productores que más venden' })).getAllByRole('row')[1]
+    expect(tablaProductores).toHaveTextContent('S/ 1,300.00')
+    await user.click(graficaProductor)
+    expect(screen.getByText(/Tienda Asháninka: S\/ 1,300\.00 · B2C: S\/ 400\.00 · B2B: S\/ 900\.00/)).toBeInTheDocument()
+    expect(llamadas(fetchMock, `GET /api/admin/reportes/productores?${RANGO}`)).toHaveLength(1)
+    await user.click(screen.getByRole('tab', { name: 'Puntos de acopio' }))
+    const graficaPunto = await screen.findByRole('button', { name: /Satipo: S\/ 2,200\.00, B2C: S\/ 1,300\.00, B2B: S\/ 900\.00/ })
+    const tablaPuntos = within(screen.getByRole('table', { name: 'Ventas por punto de acopio' })).getAllByRole('row')[1]
+    expect(tablaPuntos).toHaveTextContent('S/ 2,200.00')
+    await user.click(graficaPunto)
+    expect(screen.getByText(/Satipo: S\/ 2,200\.00 · B2C: S\/ 1,300\.00 · B2B: S\/ 900\.00/)).toBeInTheDocument()
+    expect(llamadas(fetchMock, `GET /api/admin/reportes/puntos?${RANGO}`)).toHaveLength(1)
+  })
+})
+
 describe('Exportar los reportes de gestion (SA-10)', () => {
   it('las metricas por periodo no se descargan', async () => {
     comoSuper()
@@ -549,5 +572,140 @@ describe('Las descargas de gestion siguen los filtros que se ven', () => {
     soltar()
     expect(await screen.findByRole('link', { name: 'Descargar Excel' }))
       .toHaveAttribute('href', '/api/admin/reportes/productores/xlsx?desde=2026-02-01&hasta=2026-03-18&lang=es')
+  })
+})
+
+
+// Fixtures de presentación: los importes de cada métrica son distintos, sin inferir una tasa de negocio.
+function financieroParaParidad(metrica, canales) {
+  const dto = copia(VENTAS)
+  let acumulado = 0
+  dto.metrica = metrica
+  dto.periodos = dto.periodos.map((periodo, index) => {
+    const [b2c, b2b] = canales[index]
+    const total = b2c + b2b
+    acumulado += total
+    return { ...periodo, b2c, b2b, total, acumulado }
+  })
+  dto.totales = dto.periodos.reduce((total, periodo) => ({
+    b2c: total.b2c + periodo.b2c, b2b: total.b2b + periodo.b2b, total: total.total + periodo.total,
+  }), { b2c: 0, b2b: 0, total: 0 })
+  return dto
+}
+
+describe('paridad de selección gráfica en cada pestaña de reportes', () => {
+  it('ventas: una selección reproduce el importe de la fila sin otra consulta', async () => {
+    const dto = financieroParaParidad('VENTAS', [[510, 5], [20, 30], [810, 910]])
+    const fetchMock = comoSuper({ 'GET /api/admin/reportes/ventas': () => [200, dto] })
+    const user = await abrirPestana('Ventas')
+    await screen.findByRole('table', { name: 'Ventas por periodo' })
+    const grafica = screen.getByRole('group', { name: 'Ventas por periodo — Gráfico interactivo' })
+    const puntos = within(screen.getByLabelText('Puntos de la serie'))
+    const fila = within(screen.getAllByRole('row')[1])
+    expect(fila.getByText('S/ 510.00')).toBeInTheDocument()
+    expect(fila.getAllByRole('cell')[4]).toHaveTextContent('S/ 515.00')
+    expect(dto.periodos[0].total).toBe(515)
+    const antes = fetchMock.mock.calls.length
+    await user.click(puntos.getByRole('button', { name: /S\/ 510/ }))
+    expect(grafica).toBeInTheDocument()
+    expect(await screen.findByText(/B2C: 2026-01-01 — S\/ 510\.00/)).toBeInTheDocument()
+    expect(fetchMock.mock.calls.length).toBe(antes)
+  })
+
+  it('comisiones: una selección reproduce el importe de la fila sin otra consulta', async () => {
+    const dto = financieroParaParidad('COMISIONES', [[61, 6], [2, 3], [83, 94]])
+    const fetchMock = comoSuper({ 'GET /api/admin/reportes/comisiones?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES': () => [200, dto] })
+    const user = await abrirPestana('Comisiones')
+    await screen.findByRole('table', { name: 'Comisiones por periodo' })
+    const fila = within(screen.getAllByRole('row')[1])
+    expect(fila.getByText('S/ 61.00')).toBeInTheDocument()
+    expect(fila.getAllByRole('cell')[4]).toHaveTextContent('S/ 67.00')
+    expect(dto.periodos[0].total).toBe(67)
+    const antes = fetchMock.mock.calls.length
+    await user.click(within(screen.getByLabelText('Puntos de la serie')).getByRole('button', { name: /S\/ 61/ }))
+    expect(await screen.findByText(/B2C: 2026-01-01 — S\/ 61\.00/)).toBeInTheDocument()
+    expect(fetchMock.mock.calls.length).toBe(antes)
+  })
+
+  it('ingresos: una selección reproduce el importe de la fila sin otra consulta', async () => {
+    const dto = financieroParaParidad('INGRESOS', [[71, 7], [4, 5], [95, 105]])
+    const fetchMock = comoSuper({ 'GET /api/admin/reportes/ingresos?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES': () => [200, dto] })
+    const user = await abrirPestana('Ingresos')
+    await screen.findByRole('table', { name: 'Ingresos por periodo' })
+    const fila = within(screen.getAllByRole('row')[1])
+    expect(fila.getByText('S/ 71.00')).toBeInTheDocument()
+    expect(fila.getAllByRole('cell')[4]).toHaveTextContent('S/ 78.00')
+    expect(dto.periodos[0].total).toBe(78)
+    const antes = fetchMock.mock.calls.length
+    await user.click(within(screen.getByLabelText('Puntos de la serie')).getByRole('button', { name: /S\/ 71/ }))
+    expect(await screen.findByText(/B2C: 2026-01-01 — S\/ 71\.00/)).toBeInTheDocument()
+    expect(fetchMock.mock.calls.length).toBe(antes)
+  })
+
+  it('indicadores: selección de ventas coincide con la fila del periodo', async () => {
+    const fetchMock = comoSuper({ [`GET /api/admin/reportes/indicadores?${RANGO}&agrupacion=MES`]: () => [200, copia(INDICADORES)] })
+    const user = await abrirPestana('Indicadores')
+    const tabla = await screen.findByRole('table', { name: 'Indicadores por período' })
+    const fila = within(within(tabla).getAllByRole('row')[1])
+    expect(fila.getByText('S/ 500.00')).toBeInTheDocument()
+    expect(INDICADORES.periodos[0].ventas).toBe(500)
+    const antes = fetchMock.mock.calls.length
+    await user.click(within(screen.getByLabelText('Puntos de la serie')).getByRole('button', { name: /S\/ 500/ }))
+    expect(await screen.findByText(/Ventas: 2026-01-01 — S\/ 500\.00/)).toBeInTheDocument()
+    expect(fetchMock.mock.calls.length).toBe(antes)
+  })
+
+  it('productores: selección reproduce ventas y componentes de la fila', async () => {
+    const fetchMock = comoSuper({ [`GET /api/admin/reportes/productores?${RANGO}`]: () => [200, copia(PRODUCTORES)] })
+    const user = await abrirPestana('Productores')
+    const tabla = await screen.findByRole('table', { name: 'Productores que más venden' })
+    const fila = within(within(tabla).getAllByRole('row')[1])
+    expect(fila.getByText('S/ 1,300.00')).toBeInTheDocument()
+    expect(fila.getByText('S/ 400.00')).toBeInTheDocument()
+    expect(fila.getByText('S/ 900.00')).toBeInTheDocument()
+    const antes = fetchMock.mock.calls.length
+    await user.click(screen.getByRole('button', { name: /Tienda Asháninka: S\/ 1,300/ }))
+    expect(await screen.findByText(/Tienda Asháninka: S\/ 1,300\.00 · B2C: S\/ 400\.00 · B2B: S\/ 900\.00/)).toBeInTheDocument()
+    expect(fetchMock.mock.calls.length).toBe(antes)
+  })
+
+  it('puntos: selección reproduce ventas y componentes de la fila', async () => {
+    const fetchMock = comoSuper({ [`GET /api/admin/reportes/puntos?${RANGO}`]: () => [200, copia(PUNTOS)] })
+    const user = await abrirPestana('Puntos de acopio')
+    const tabla = await screen.findByRole('table', { name: 'Ventas por punto de acopio' })
+    const fila = within(within(tabla).getAllByRole('row')[1])
+    expect(fila.getByText('S/ 2,200.00')).toBeInTheDocument()
+    expect(fila.getByText('S/ 1,300.00')).toBeInTheDocument()
+    expect(fila.getByText('S/ 900.00')).toBeInTheDocument()
+    const antes = fetchMock.mock.calls.length
+    await user.click(screen.getByRole('button', { name: /Satipo: S\/ 2,200/ }))
+    expect(await screen.findByText(/Satipo: S\/ 2,200\.00 · B2C: S\/ 1,300\.00 · B2B: S\/ 900\.00/)).toBeInTheDocument()
+    expect(fetchMock.mock.calls.length).toBe(antes)
+  })
+
+  it('calificaciones: producto con promedio de DTO coincide con tabla y detalle', async () => {
+    const fetchMock = comoSuper({ [`GET /api/admin/reportes/calificaciones?${RANGO}`]: () => [200, copia(CALIFICACIONES)] })
+    const user = await abrirPestana('Calificaciones')
+    const tabla = await screen.findByRole('table', { name: 'Calificaciones por producto' })
+    expect(CALIFICACIONES.productos[0].promedio).not.toBeNull()
+    expect(within(within(tabla).getAllByRole('row')[1]).getByText('4.8')).toBeInTheDocument()
+    const antes = fetchMock.mock.calls.length
+    await user.click(screen.getByRole('button', { name: 'Café de altura: 4.8' }))
+    expect(await screen.findByText('Café de altura: 4.8')).toBeInTheDocument()
+    expect(fetchMock.mock.calls.length).toBe(antes)
+  })
+
+  it('origen y destino: destino seleccionado coincide con fila y DTO', async () => {
+    const fetchMock = comoSuper({ [`GET /api/admin/reportes/origen-destino?${RANGO}`]: () => [200, copia(ORIGEN_DESTINO)] })
+    const user = await abrirPestana('Origen y destino')
+    const tabla = await screen.findByRole('table', { name: 'Destino por departamento' })
+    const fila = within(within(tabla).getAllByRole('row')[1])
+    expect(fila.getByText('Lima')).toBeInTheDocument()
+    expect(fila.getByText('S/ 1,500.00')).toBeInTheDocument()
+    expect(ORIGEN_DESTINO.porDestino[0].total).toBe(1500)
+    const antes = fetchMock.mock.calls.length
+    await user.click(screen.getByRole('button', { name: 'Lima: S/ 1,500.00' }))
+    expect(await screen.findByText('Lima: S/ 1,500.00')).toBeInTheDocument()
+    expect(fetchMock.mock.calls.length).toBe(antes)
   })
 })
