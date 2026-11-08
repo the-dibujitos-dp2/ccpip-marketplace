@@ -41,6 +41,10 @@
 .inicio-categoria { position: relative; display: block; height: 355px; overflow: hidden; color: #fff; background: #163d2c; text-decoration: none; }
 .inicio-categoria::after { content: ''; position: absolute; inset: 30% 0 0; background: linear-gradient(0deg, #0a211bdb, transparent); }
 .inicio-categoria img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s cubic-bezier(.2, .8, .2, 1); }
+.inicio-categoria__imagen { position: absolute; inset: 0; display: block; }
+.inicio-categoria__imagen > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.inicio-categoria__imagen .imagen-producto-referencial__caption { position: absolute; z-index: 2; left: 25px; right: 78px; bottom: 74px; color: #fff; font-size: 11px; line-height: 1.4; text-shadow: 0 1px 5px #000; }
+.inicio-categoria__sin-foto { position: absolute; inset: 0; background: linear-gradient(145deg, #163d2c, #254b38); }
 .inicio-categoria:hover img { transform: scale(1.035); }
 .inicio-categoria__texto { position: absolute; z-index: 1; left: 25px; right: 80px; bottom: 23px; display: flex; flex-direction: column; gap: 9px; }
 .inicio-categoria strong { font: 400 31px/1.1 var(--font-display); }

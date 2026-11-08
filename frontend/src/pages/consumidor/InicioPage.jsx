@@ -11,6 +11,7 @@ import Campo from '../../components/Campo.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import Enlace from '../../components/Enlace.jsx'
 import ImagenProducto from '../../components/ImagenProducto.jsx'
+import { FOTOGRAFIAS_REFERENCIA } from '../../components/fotografiasEditoriales.js'
 import Pestanas from '../../components/Pestanas.jsx'
 import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import TarjetaTienda from '../../components/TarjetaTienda.jsx'
@@ -86,8 +87,8 @@ export default function InicioPage() {
           <div className="inicio-categorias__grid">
             {(datos?.lineas ?? []).slice(0, 3).map((item) => (
               <Enlace key={item.codigo} to={`${RUTAS.buscar}?linea=${item.codigo}`} className="inicio-categoria">
-                {datos.fotosLineas?.[item.codigo]
-                  ? <img src={datos.fotosLineas[item.codigo]} alt="" />
+                {datos.fotosLineas?.[item.codigo] || Object.hasOwn(FOTOGRAFIAS_REFERENCIA, item.codigo)
+                  ? <ImagenProducto url={datos.fotosLineas?.[item.codigo]} linea={item.codigo} className="inicio-categoria__imagen" />
                   : <span className="inicio-categoria__sin-foto" aria-hidden="true" />}
                 <span className="inicio-categoria__texto">
                   <strong>{item.nombre}</strong>
