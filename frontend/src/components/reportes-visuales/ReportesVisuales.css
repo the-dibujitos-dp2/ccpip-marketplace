@@ -40,10 +40,11 @@
 .rv-points button:hover:not(:disabled), .rv-bars button:hover:not(:disabled) { background: var(--editorial-paper, #f7f5ee); border-color: var(--editorial-muted, #5b665a); }
 .rv-points button span, .rv-bars button > span:first-child { font-size: .8125rem; overflow-wrap: anywhere; }
 .rv-points strong, .rv-bars strong, .rv-legend strong { font-variant-numeric: tabular-nums; font-weight: 600; }
+.rv-bars strong { overflow-wrap: anywhere; text-align: right; }
 .rv-detail { border-top: 1px solid var(--editorial-line, #d9ded0); padding-top: .75rem; margin: 1rem 0 0; font-weight: 600; font-variant-numeric: tabular-nums; }
 .rv-empty { margin: .5rem 0; }
 .rv-bars li + li { margin-top: .4rem; }
-.rv-bars li button { display: grid; grid-template-columns: minmax(7rem, 1fr) minmax(5rem, 2fr) auto; align-items: center; gap: .75rem; width: 100%; text-align: left; color: inherit; background: transparent; border: 1px solid transparent; border-radius: 2px; padding: .5rem; font: inherit; cursor: pointer; }
+.rv-bars li button { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 2fr) minmax(0, 1fr); align-items: center; gap: .75rem; width: 100%; text-align: left; color: inherit; background: transparent; border: 1px solid transparent; border-radius: 2px; padding: .5rem; font: inherit; cursor: pointer; }
 .rv-bar-track { position: relative; display: block; height: .75rem; background: var(--editorial-paper, #f7f5ee); }
 .rv-bar-track::after { content: ''; position: absolute; left: var(--rv-zero); top: -.2rem; bottom: -.2rem; width: 1px; background: var(--editorial-muted, #5b665a); }
 .rv-bar-fill { position: absolute; display: block; height: 100%; }
@@ -55,7 +56,7 @@
 @media (max-width: 560px) {
   .rv { padding: .85rem; }
   .rv-points > div { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 14rem; }
-  .rv-bars li button { grid-template-columns: minmax(5rem, 1fr) minmax(3rem, 1fr) auto; gap: .4rem; padding: .45rem .2rem; }
+  .rv-bars li button { gap: .4rem; padding: .45rem .2rem; }
   .rv-bars strong { font-size: .8125rem; }
 }
 @media (prefers-reduced-motion: reduce) {
