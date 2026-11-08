@@ -32,6 +32,7 @@ import pe.ccpip.auth.service.LoginAttemptService;
 import pe.ccpip.auth.service.SessionService;
 import pe.ccpip.auth.service.UserStore;
 import pe.ccpip.comun.Idioma;
+import pe.ccpip.gobernanza.AuditoriaEventos;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -60,17 +61,19 @@ public class AuthController {
     private final LoginAttemptService loginAttemptService;
     private final SessionService sessionService;
     private final SessionCookies cookies;
+    private final AuditoriaEventos auditoriaEventos;
     /** Para que un correo inexistente tarde lo mismo que una clave incorrecta. */
     private final String dummyHash;
 
     public AuthController(UserStore userStore, PasswordEncoder passwordEncoder,
                           LoginAttemptService loginAttemptService, SessionService sessionService,
-                          SessionCookies cookies) {
+                          SessionCookies cookies, AuditoriaEventos auditoriaEventos) {
         this.userStore = userStore;
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
         this.sessionService = sessionService;
         this.cookies = cookies;
+        this.auditoriaEventos = auditoriaEventos;
         this.dummyHash = passwordEncoder.encode("ccpip-sin-cuenta");
     }
 
@@ -80,12 +83,14 @@ public class AuthController {
         Optional<AuthUser> found = userStore.findByEmail(request.email());
         if (found.isEmpty()) {
             passwordEncoder.matches(request.password(), dummyHash);
+            auditoriaEventos.anonimo("LOGIN_FALLIDO", "SEGURIDAD", "LOGIN", "ERROR", Map.of());
             return invalidCredentials();
         }
         AuthUser user = found.get();
 
         Optional<Instant> lockedUntil = loginAttemptService.lockedUntil(user);
         if (lockedUntil.isPresent()) {
+            auditoriaEventos.anonimo("LOGIN_BLOQUEADO", "SEGURIDAD", "LOGIN", "RECHAZADO", Map.of());
             return ResponseEntity.status(HttpStatus.LOCKED).body(Map.of(
                     "code", "CUENTA_BLOQUEADA",
                     "error", "Cuenta bloqueada temporalmente por intentos fallidos",
@@ -94,18 +99,22 @@ public class AuthController {
 
         if (!passwordEncoder.matches(request.password(), user.passwordHash())) {
             loginAttemptService.loginFailed(user);
+            auditoriaEventos.anonimo("LOGIN_FALLIDO", "SEGURIDAD", "LOGIN", "ERROR", Map.of());
             return invalidCredentials();
         }
         loginAttemptService.loginSucceeded(user);
 
         // Estos chequeos van despues de la contrasena para no revelar el estado de cuentas ajenas
         if (!user.active()) {
+            auditoriaEventos.anonimo("LOGIN_DENEGADO", "SEGURIDAD", "LOGIN", "RECHAZADO", Map.of());
             return forbidden("CUENTA_INACTIVA", "Tu cuenta esta desactivada. Contacta a la CCPIP.");
         }
         if (!user.emailConfirmed()) {
+            auditoriaEventos.anonimo("LOGIN_DENEGADO", "SEGURIDAD", "LOGIN", "RECHAZADO", Map.of());
             return forbidden("CORREO_NO_CONFIRMADO", "Confirma tu correo antes de ingresar.");
         }
 
+        auditoriaEventos.registrar(user.id(), "LOGIN_EXITOSO", "SEGURIDAD", "LOGIN", "EXITOSA", Map.of());
         String token = sessionService.create(user.id());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookies.create(token).toString())
@@ -117,6 +126,10 @@ public class AuthController {
     @Publico
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
+        Object session = request.getAttribute(SessionAuthFilter.SESSION_ATTRIBUTE);
+        if (session instanceof AuthenticatedSession authenticated) {
+            auditoriaEventos.registrar(authenticated.userId(), "LOGOUT", "SEGURIDAD", "LOGOUT", "EXITOSA", Map.of());
+        }
         sessionService.invalidate(SessionCookies.read(request));
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, cookies.clear().toString())
