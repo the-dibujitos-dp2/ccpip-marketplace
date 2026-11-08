@@ -576,9 +576,26 @@ describe('Las descargas de gestion siguen los filtros que se ven', () => {
 })
 
 
+// Fixtures de presentación: los importes de cada métrica son distintos, sin inferir una tasa de negocio.
+function financieroParaParidad(metrica, canales) {
+  const dto = copia(VENTAS)
+  let acumulado = 0
+  dto.metrica = metrica
+  dto.periodos = dto.periodos.map((periodo, index) => {
+    const [b2c, b2b] = canales[index]
+    const total = b2c + b2b
+    acumulado += total
+    return { ...periodo, b2c, b2b, total, acumulado }
+  })
+  dto.totales = dto.periodos.reduce((total, periodo) => ({
+    b2c: total.b2c + periodo.b2c, b2b: total.b2b + periodo.b2b, total: total.total + periodo.total,
+  }), { b2c: 0, b2b: 0, total: 0 })
+  return dto
+}
+
 describe('paridad de selección gráfica en cada pestaña de reportes', () => {
   it('ventas: una selección reproduce el importe de la fila sin otra consulta', async () => {
-    const dto = { ...copia(VENTAS), periodos: VENTAS.periodos.map((p, i) => ({ ...p, b2c: [510, 20, 810][i], b2b: [5, 30, 910][i], total: [515, 50, 1720][i] })) }
+    const dto = financieroParaParidad('VENTAS', [[510, 5], [20, 30], [810, 910]])
     const fetchMock = comoSuper({ 'GET /api/admin/reportes/ventas': () => [200, dto] })
     const user = await abrirPestana('Ventas')
     await screen.findByRole('table', { name: 'Ventas por periodo' })
@@ -586,7 +603,7 @@ describe('paridad de selección gráfica en cada pestaña de reportes', () => {
     const puntos = within(screen.getByLabelText('Puntos de la serie'))
     const fila = within(screen.getAllByRole('row')[1])
     expect(fila.getByText('S/ 510.00')).toBeInTheDocument()
-    expect(fila.getByText('S/ 515.00')).toBeInTheDocument()
+    expect(fila.getAllByRole('cell')[4]).toHaveTextContent('S/ 515.00')
     expect(dto.periodos[0].total).toBe(515)
     const antes = fetchMock.mock.calls.length
     await user.click(puntos.getByRole('button', { name: /S\/ 510/ }))
@@ -596,13 +613,13 @@ describe('paridad de selección gráfica en cada pestaña de reportes', () => {
   })
 
   it('comisiones: una selección reproduce el importe de la fila sin otra consulta', async () => {
-    const dto = { ...copia(VENTAS), metrica: 'COMISIONES', periodos: VENTAS.periodos.map((p, i) => ({ ...p, b2c: [61, 2, 83][i], b2b: [6, 3, 94][i], total: [67, 5, 177][i] })) }
+    const dto = financieroParaParidad('COMISIONES', [[61, 6], [2, 3], [83, 94]])
     const fetchMock = comoSuper({ 'GET /api/admin/reportes/comisiones?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES': () => [200, dto] })
     const user = await abrirPestana('Comisiones')
     await screen.findByRole('table', { name: 'Comisiones por periodo' })
     const fila = within(screen.getAllByRole('row')[1])
     expect(fila.getByText('S/ 61.00')).toBeInTheDocument()
-    expect(fila.getByText('S/ 67.00')).toBeInTheDocument()
+    expect(fila.getAllByRole('cell')[4]).toHaveTextContent('S/ 67.00')
     expect(dto.periodos[0].total).toBe(67)
     const antes = fetchMock.mock.calls.length
     await user.click(within(screen.getByLabelText('Puntos de la serie')).getByRole('button', { name: /S\/ 61/ }))
@@ -611,13 +628,13 @@ describe('paridad de selección gráfica en cada pestaña de reportes', () => {
   })
 
   it('ingresos: una selección reproduce el importe de la fila sin otra consulta', async () => {
-    const dto = { ...copia(VENTAS), metrica: 'INGRESOS', periodos: VENTAS.periodos.map((p, i) => ({ ...p, b2c: [71, 4, 95][i], b2b: [7, 5, 105][i], total: [78, 9, 200][i] })) }
+    const dto = financieroParaParidad('INGRESOS', [[71, 7], [4, 5], [95, 105]])
     const fetchMock = comoSuper({ 'GET /api/admin/reportes/ingresos?desde=2026-01-01&hasta=2026-03-18&agrupacion=MES': () => [200, dto] })
     const user = await abrirPestana('Ingresos')
     await screen.findByRole('table', { name: 'Ingresos por periodo' })
     const fila = within(screen.getAllByRole('row')[1])
     expect(fila.getByText('S/ 71.00')).toBeInTheDocument()
-    expect(fila.getByText('S/ 78.00')).toBeInTheDocument()
+    expect(fila.getAllByRole('cell')[4]).toHaveTextContent('S/ 78.00')
     expect(dto.periodos[0].total).toBe(78)
     const antes = fetchMock.mock.calls.length
     await user.click(within(screen.getByLabelText('Puntos de la serie')).getByRole('button', { name: /S\/ 71/ }))
