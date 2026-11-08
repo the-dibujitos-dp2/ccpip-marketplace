@@ -97,12 +97,15 @@ public class AuditoriaService {
                        || ' und · ' || ub.nombre,
                    'EXITOSA'
             FROM movimiento_inventario m
-            JOIN usuario mu ON mu.id = m.usuario_id
-            JOIN rol mr ON mr.id = mu.rol_id AND mr.codigo = 'ADMIN_PUNTO'
+            LEFT JOIN usuario mu ON mu.id = m.usuario_id
+            LEFT JOIN rol mr ON mr.id = mu.rol_id
             JOIN producto pr ON pr.id = m.producto_id
             JOIN ubicacion ub ON ub.id = m.ubicacion_id
             LEFT JOIN lote l ON l.id = m.lote_id
             WHERE m.tipo <> 'SALIDA_VENTA'
+              AND (mr.codigo = 'ADMIN_PUNTO' OR (m.usuario_id IS NULL AND EXISTS (
+                  SELECT 1 FROM merma ma WHERE ma.movimiento_id = m.id AND ma.automatica
+              )))
             UNION ALL
             SELECT 'PH-' || h.id, h.registrado_en, h.usuario_id, 'PEDIDO_' || h.estado, 'PEDIDO', h.pedido_id,
                    pe.numero, 'EXITOSA'
