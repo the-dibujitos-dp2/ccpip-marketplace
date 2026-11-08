@@ -203,7 +203,7 @@ function TablaInventario({ items, resaltado, onMovimiento, onMerma }) {
     fila.current?.scrollIntoView?.({ block: 'center' })
   }, [idResaltado])
   return (
-    <div className="tabla tabla--ajustada" role="table" aria-label={titulo}>
+    <div className="tabla tabla--ajustada" role="table" aria-label={titulo} tabIndex={0}>
       <div className="tabla__fila tabla__fila--encabezado" role="row">
         <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('productor.tabla.producto')}</span>
         <span className="tabla__celda inventario__col-productor" role="columnheader">{t('acopio.inventario.productor')}</span>

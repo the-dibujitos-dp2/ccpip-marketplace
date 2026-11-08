@@ -39,6 +39,7 @@ describe('A-03 Movimientos del punto de acopio (CCPIP-158)', () => {
     // El nombre del punto llega con los movimientos
     expect(await screen.findByText('Centro Nacional Lima / Movimientos')).toBeInTheDocument()
     const filas = within(screen.getByRole('list', { name: 'Movimientos del punto' })).getAllByRole('listitem')
+    expect(screen.getByRole('region', { name: 'Movimientos del punto' })).toHaveAttribute('tabindex', '0')
     expect(filas).toHaveLength(4)
     // Primero el buscador y los filtros; las pestanas por tipo, justo sobre la tabla (mejoras de laboratorio)
     const buscador = screen.getByRole('searchbox')

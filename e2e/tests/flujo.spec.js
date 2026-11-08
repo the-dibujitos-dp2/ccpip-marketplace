@@ -267,7 +267,7 @@ test.describe('Consumidor: encuentra el producto y lee su historia', () => {
   test('lo busca, filtra, abre la ficha y llega a la tienda (CCPIP-52, 53, 54, 152, 165)', async ({ page }) => {
     const errores = vigilarConsola(page)
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: /Productos con historia/ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Todo tiene un origen\./ })).toBeVisible()
     await sinViolaciones(page)
 
     await page.getByRole('searchbox', { name: 'Buscar productos' }).fill('sacha inchi nauta')

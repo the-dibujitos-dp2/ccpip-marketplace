@@ -15,16 +15,25 @@ export default function Dialogo({ abierto, titulo, children, confirmar, tipoConf
   ocupadoEn = 'confirmar', cancelar, tipoCancelar = 'terciario', onCerrar, etiquetaCerrar, ancho }) {
   const { t } = useTranslation()
   const ref = useRef(null)
+  const disparadorRef = useRef(null)
   useEffect(() => {
     const d = ref.current
     if (!d) return
     if (abierto && !d.open) {
+      disparadorRef.current = document.activeElement
       if (typeof d.showModal === 'function') d.showModal()
       else d.setAttribute('open', '')
     }
     if (!abierto && d.open) {
       if (typeof d.close === 'function') d.close()
       else d.removeAttribute('open')
+    }
+    return () => {
+      if (abierto && d.open) {
+        if (typeof d.close === 'function') d.close()
+        else d.removeAttribute('open')
+      }
+      if (abierto && disparadorRef.current?.isConnected) disparadorRef.current.focus()
     }
   }, [abierto])
   return (

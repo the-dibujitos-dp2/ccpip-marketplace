@@ -2,8 +2,8 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import App from '../../App.jsx'
-import ilustracionAceites from '../../assets/lineas/aceites.svg'
-import ilustracionCacao from '../../assets/lineas/cacao.svg'
+import ilustracionAceites from '../../assets/editorial/referencias/aceites.webp'
+import ilustracionCacao from '../../assets/editorial/home/cacao.webp'
 import { copia, DATOS, llamadas, PUBLICAS, servidor as servidorBase, SESION, SESION_PRODUCTOR, SIN_SESION } from '../../test/servidor.js'
 
 /**
@@ -157,7 +157,7 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
   it('sin sesion pide ingresar y vuelve al carrito', async () => {
     const fetchMock = servidor({ ...PUBLICAS, 'GET /api/auth/me': SIN_SESION })
     abrirEn('/carrito')
-    expect(await screen.findByRole('heading', { name: /Ingresa/ })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Qué bueno encontrarte aquí' })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/ingresar')
     expect(new URLSearchParams(window.location.search).get('volver')).toBe('/carrito')
     expect(llamadas(fetchMock, 'GET /api/carrito')).toHaveLength(0)

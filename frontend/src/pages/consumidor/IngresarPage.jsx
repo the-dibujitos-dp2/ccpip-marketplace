@@ -104,7 +104,7 @@ export default function IngresarPage({ modo = 'ingresar', search = '', correoIni
   } else {
     contenido = (
       <>
-        <h1 id="titulo-acceso" className="heading-h2 ingresar__titulo">{t('ingresar.titulo')}</h1>
+        <h1 id="titulo-acceso" className="heading-h2 ingresar__titulo">{t('accessEditorial:titulo')}</h1>
 
         {alertaVisible && (
           <Alerta
@@ -174,7 +174,6 @@ export default function IngresarPage({ modo = 'ingresar', search = '', correoIni
         </Enlace>
       </nav>
       {contenido}
-      <p className="caption ingresar__pie">{t('pie.legal')}</p>
     </LayoutAcceso>
   )
 }

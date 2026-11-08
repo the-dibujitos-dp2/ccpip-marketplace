@@ -1,0 +1,21 @@
+/* CCPIP-127 · Sistema editorial compartido: consumidor y paneles operativos. */
+:root {
+  --editorial-paper: #f7f5ee;
+  --editorial-white: #fffef9;
+  --editorial-forest: #163d2c;
+  --editorial-deep: #102c21;
+  --editorial-seed: #ebc66b;
+  --editorial-ink: #193529;
+  --editorial-muted: #5b665a;
+  --editorial-line: #d9ded0;
+  --editorial-sage: #e4e9d9;
+  --editorial-error: #8a3025;
+  --editorial-error-bg: #f5e7e1;
+  --editorial-warning: #704710;
+  --editorial-warning-bg: #f5edda;
+  --editorial-focus: #8a6421;
+  --editorial-serif: 'Fraunces', Georgia, serif;
+  --editorial-sans: 'DM Sans', Arial, sans-serif;
+  --editorial-radius: 2px;
+  --editorial-radius-large: 3px;
+}

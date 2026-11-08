@@ -1,0 +1,53 @@
+/* CCPIP-127: acceso documental 51/49. La cabecera es la misma de la tienda; una sola foto, sin fondos duplicados. */
+.ingresar-shell { min-height:100vh; display:flex; flex-direction:column; }
+.ingresar-shell .ingresar { flex:1; display:grid; grid-template-columns:51% 49%; min-height:740px; }
+.ingresar-shell .ingresar__marca { position:relative; isolation:isolate; display:block; min-height:740px; margin:0; padding:0; overflow:hidden; background:#163d2c; color:#fffef9; }
+.ingresar-shell .ingresar__marca::before { content:none; }
+.ingresar-shell .ingresar__marca::after { content:''; position:absolute; inset:0; z-index:0; background:linear-gradient(0deg,#102c21ed,transparent 78%); pointer-events:none; }
+.ingresar-shell .ingresar__retrato { position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:cover; object-position:47% center; }
+.ingresar-shell .ingresar__mensaje { position:absolute; left:clamp(25px,4.5vw,72px); right:40px; bottom:45px; z-index:1; display:block; max-width:500px; }
+.ingresar-shell .ingresar__titular { font:400 57px/1.06 'Fraunces',Georgia,serif; letter-spacing:-.025em; text-wrap:balance; }
+.ingresar-shell .ingresar__bajada { max-width:370px; margin-top:21px; color:#ebedde; opacity:1; font:400 13px/1.7 'DM Sans',Arial,sans-serif; }
+.ingresar-shell .ingresar__credito { display:inline-block; margin-top:23px; color:#d9e2cf; font:400 9px/1.6 'DM Sans',Arial,sans-serif; text-underline-offset:3px; }
+.ingresar-shell .ingresar__formulario-zona { display:flex; align-items:center; justify-content:center; padding:35px clamp(28px,6vw,95px) 40px; background:#f7f5ee; }
+.ingresar__contenido { width:100%; max-width:430px; }
+.ingresar-shell .ingresar__volver { display:inline-flex; align-items:center; min-height:35px; margin-bottom:30px; color:#163d2c; font-size:12px; text-decoration:none; }
+.ingresar-shell .ingresar__volver::before { content:'←'; padding-right:10px; }
+.ingresar-shell .ingresar__tarjeta { display:flex; flex-direction:column; gap:0; width:100%; max-width:430px; }
+.ingresar-shell .ingresar__titulo,
+.ingresar-shell .ingresar__tarjeta > h1 { order:-3; margin:0; font:400 43px/1.12 'Fraunces',Georgia,serif; letter-spacing:-.025em; color:#193529; }
+.ingresar-shell .ingresar__introduccion { order:-2; margin:15px 0 0; max-width:390px; color:#5b665a; font:400 14px/1.65 'DM Sans',Arial,sans-serif; }
+.ingresar-shell .pestanas { order:-1; display:flex; gap:28px; margin:25px 0 23px; border-bottom:1px solid #d9ded0; }
+.ingresar-shell .pestanas__item { min-height:45px; padding:12px 0; border-radius:0; border-bottom:2px solid transparent; color:#5b665a; font:400 12px/1.6 'DM Sans',Arial,sans-serif; background:none; text-decoration:none; }
+.ingresar-shell .pestanas__item--activa { color:#163d2c; border-bottom-color:#163d2c; font-weight:600; }
+.ingresar-shell .ingresar__formulario { gap:18px; }
+.ingresar-shell .campo__etiqueta { margin-bottom:9px; color:#193529; font-size:12px; font-weight:500; }
+.ingresar-shell .campo__control { min-height:49px; border:1px solid #aebba0; border-radius:2px; background:#fffef9; color:#193529; font-size:14px; }
+.ingresar-shell .campo__control::placeholder { color:#6c7564; }
+.ingresar-shell .ingresar__olvido { margin-top:-3px; min-height:31px; color:#163d2c; font-size:12px; font-weight:400; }
+.ingresar-shell .alerta { margin-bottom:18px; }
+.ingresar-shell .revisa { gap:16px; }
+@media(max-width:1100px) {
+  .ingresar-shell .ingresar__formulario-zona { padding-inline:36px; }
+  .ingresar-shell .ingresar__titular { font-size:49px; }
+}
+@media(max-width:800px) {
+  .ingresar-shell .ingresar { grid-template-columns:44% 56%; }
+  .ingresar-shell .ingresar__mensaje { left:25px; right:22px; }
+  .ingresar-shell .ingresar__titular { font-size:42px; }
+  .ingresar-shell .ingresar__formulario-zona { padding-inline:28px; }
+  .ingresar-shell .ingresar__titulo,.ingresar-shell .ingresar__tarjeta > h1 { font-size:35px; }
+}
+@media(max-width:580px) {
+  .ingresar-shell .ingresar { display:flex; flex-direction:column; min-height:0; }
+  .ingresar-shell .ingresar__marca { flex:none; height:185px; min-height:185px; }
+  .ingresar-shell .ingresar__retrato { object-position:50% 32%; }
+  .ingresar-shell .ingresar__mensaje { left:24px; right:23px; bottom:12px; }
+  .ingresar-shell .ingresar__titular,.ingresar-shell .ingresar__bajada { display:none; }
+  .ingresar-shell .ingresar__credito { margin:0; font-size:8px; }
+  .ingresar-shell .ingresar__formulario-zona { display:block; padding:27px 25px 40px; }
+  .ingresar-shell .ingresar__volver { display:none; }
+  .ingresar-shell .ingresar__titulo,.ingresar-shell .ingresar__tarjeta > h1 { font-size:34px; }
+  .ingresar-shell .ingresar__introduccion { font-size:13px; }
+  .ingresar-shell .pestanas { margin-block:20px; }
+}

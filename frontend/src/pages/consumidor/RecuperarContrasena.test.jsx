@@ -18,6 +18,7 @@ describe('CCPIP-33 Recuperar la contraseña', () => {
     const fetchMock = sinSesion({ 'POST /api/auth/recuperar-contrasena': [202, null] })
     const user = userEvent.setup()
     abrirEn('/ingresar')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Qué bueno encontrarte aquí' })).toBeInTheDocument()
 
     await user.type(await screen.findByLabelText('Correo electrónico'), 'rosa@correo.com')
     await user.click(screen.getByRole('link', { name: '¿Olvidaste tu contraseña?' }))

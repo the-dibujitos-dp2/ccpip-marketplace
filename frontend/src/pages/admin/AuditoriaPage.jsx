@@ -93,7 +93,7 @@ export default function AuditoriaPage({ path }) {
       {!datos && !error && <Cargando />}
       {datos && datos.registros.length === 0 && <EstadoVacio titulo={t('auditoria.vacio')} />}
       {datos?.registros.length > 0 && (
-        <div className="tabla tabla--espaciada auditoria__tabla" role="table" aria-label={t('auditoria.titulo')}>
+        <div className="tabla tabla--espaciada auditoria__tabla" role="table" aria-label={t('auditoria.titulo')} tabIndex={0}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda auditoria__fecha" role="columnheader">{t('auditoria.col.fecha')}</span>
             <span className="tabla__celda auditoria__hora" role="columnheader">{t('comun.hora')}</span>

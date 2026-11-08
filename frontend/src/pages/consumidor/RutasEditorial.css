@@ -1,0 +1,202 @@
+/* CCPIP-127: piel editorial de las rutas del consumidor. Sin cambios de marcado, datos ni comportamiento. */
+
+/* Catalogo: filtros y grilla reales de la API; superficies planas, sin tarjetas redondeadas. */
+.layout-tienda .buscar,
+.layout-tienda .ficha,
+.layout-tienda .tienda-publica,
+.layout-tienda .carrito,
+.layout-tienda .compra,
+.layout-tienda .pedido,
+.layout-tienda .mis-pedidos { color: var(--color-text-primary); }
+.layout-tienda .buscar__encabezado { border-bottom: 1px solid var(--color-border-default); padding-bottom: 18px; }
+.layout-tienda .buscar__encabezado h1,
+.layout-tienda .carrito__titulo,
+.layout-tienda .compra__titulo,
+.layout-tienda .pedido__titulo,
+.layout-tienda .mis-pedidos__titulo { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-weight: 400; letter-spacing: -.025em; }
+.layout-tienda .buscar__cuerpo { gap: 32px; }
+.layout-tienda .filtros,
+.layout-tienda .carrito__resumen,
+.layout-tienda .compra__resumen,
+.layout-tienda .mis-pedidos__lateral { border-radius: 2px; border-color: var(--color-border-default); background: var(--color-bg-surface); box-shadow: none; }
+.layout-tienda .filtros { padding: 20px 18px; }
+.layout-tienda .filtros__grupo { border-color: var(--color-border-default); }
+.layout-tienda .filtros__grupo legend,
+.layout-tienda .filtros__leyenda { color: var(--color-text-primary); font-size: 14px; font-weight: 600; }
+.layout-tienda .casilla { min-height: 30px; color: var(--color-text-primary); }
+.layout-tienda .casilla input,
+.layout-tienda .compra__check input { accent-color: var(--color-bg-brand); }
+.layout-tienda .casilla__total { color: var(--color-text-secondary); }
+.layout-tienda .filtros__precio input,
+.layout-tienda .buscar__orden select,
+.layout-tienda .campo__control { border-color: var(--color-border-strong); border-radius: 2px; background: var(--color-bg-surface); color: var(--color-text-primary); }
+.layout-tienda .buscar__grilla { column-gap: 24px; row-gap: 32px; }
+.layout-tienda .tarjeta-producto { gap: 10px; }
+.layout-tienda .tarjeta-producto__media { aspect-ratio: 4 / 3; border-radius: 0; background: var(--color-bg-surface-alt); }
+.layout-tienda .tarjeta-producto__info { gap: 5px; }
+.layout-tienda .tarjeta-producto__nombre { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-size: 18px; line-height: 1.25; font-weight: 400; }
+.layout-tienda .tarjeta-producto__precio { align-self: stretch; margin-top: 8px; padding-top: 12px; border-top: 1px solid #cbd3bf; }
+.layout-tienda .tarjeta-producto__precio strong { font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--color-text-primary); }
+.layout-tienda .tarjeta-producto:hover .tarjeta-producto__nombre { text-decoration: underline; text-underline-offset: 4px; }
+.layout-tienda .etiqueta-producto { border-radius: 2px; }
+.layout-tienda .tarjeta-tienda { overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.layout-tienda .tarjeta-tienda__portada { width: 100%; height: auto; aspect-ratio: 1.3; border-radius: 0; object-fit: cover; overflow: hidden; }
+.layout-tienda .tarjeta-tienda__cuerpo { gap: 6px; padding: 17px 0 0; }
+.layout-tienda .tarjeta-tienda__nombre { font: 400 22px/1.3 var(--consumer-serif, 'Fraunces', Georgia, serif); }
+.layout-tienda .tarjeta-tienda__cita { color: var(--color-text-secondary); font-size: 15px; }
+.layout-tienda .tarjeta-tienda__enlace { margin-top: 10px; padding-top: 12px; width: 100%; border-top: 1px solid #cbd3bf; font-size: 13px; font-weight: 500; text-decoration: none; }
+.layout-tienda .boton--secundario { border-color: var(--color-border-brand); background: transparent; color: var(--color-text-brand); }
+.layout-tienda .boton--terciario { color: var(--color-text-brand); }
+.layout-tienda .boton--destructivo { background: #8a3025; color: #fffef9; }
+
+/* Ficha: campos de compra y orden de foco intactos; el bloque de origen gana protagonismo. */
+.layout-tienda .ficha { gap: 42px; }
+.layout-tienda .ficha__principal { grid-template-columns: minmax(0, 1.12fr) minmax(340px, .88fr); gap: clamp(28px, 4vw, 60px); }
+.layout-tienda .ficha__foto { aspect-ratio: 4 / 3; border-radius: 0; background: var(--color-bg-surface-alt); }
+.layout-tienda .ficha__miniatura { border-radius: 0; }
+.layout-tienda .ficha__contador { border-radius: 2px; }
+.layout-tienda .ficha__titulo { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-size: clamp(34px, 3.3vw, 48px); font-weight: 400; line-height: 1.08; letter-spacing: -.025em; }
+.layout-tienda .ficha__productor { border: 0; border-left: 3px solid #ebc66b; border-radius: 0; background: #e4e9d9; padding: 20px 22px; }
+.layout-tienda .ficha__productor-nombre { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-size: 23px; font-weight: 400; }
+.layout-tienda .ficha__productor-relato { color: #193529; -webkit-line-clamp: unset; line-clamp: unset; }
+.layout-tienda .ficha__cita { border-left: 2px solid #ebc66b; border-radius: 0; background: #eeecdf; }
+.layout-tienda .ficha__cita p { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); color: #193529; }
+.layout-tienda .ficha__datos div,
+.layout-tienda .ficha__compra,
+.layout-tienda .ficha__precio,
+.layout-tienda .ficha__cosecha,
+.layout-tienda .ficha__volumen { border-radius: 2px; box-shadow: none; }
+.layout-tienda .ficha__datos div { background: transparent; }
+.layout-tienda .ficha__compra { border-color: var(--color-border-default); background: var(--color-bg-surface); }
+.layout-tienda .ficha__monto { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-weight: 400; }
+.layout-tienda .historia { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(28px, 4vw, 56px); padding: clamp(28px, 5vw, 64px); border-radius: 2px; background: #163d2c; }
+.layout-tienda .historia__img { border-radius: 0; }
+.layout-tienda .historia__titulo { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-size: clamp(32px, 3vw, 44px); font-weight: 400; line-height: 1.08; }
+.layout-tienda .historia__paso { border-radius: 2px; }
+.layout-tienda .historia__paso:nth-child(2) { background: #28533e; }
+.layout-tienda .historia__relato { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-size: 19px; line-height: 1.55; }
+.layout-tienda .ficha__confianza { gap: 24px; }
+.layout-tienda .ficha__cosecha,
+.layout-tienda .ficha__volumen { background: var(--color-bg-surface); }
+
+/* Community/store profiles: use real API photography and existing story only. */
+.layout-tienda .tienda-publica__portada { background: #163d2c; }
+.layout-tienda .tienda-publica__contenido { gap: 40px; }
+.layout-tienda .tienda-publica__cabecera { align-items: flex-end; padding-bottom: 24px; border-bottom: 1px solid var(--color-border-default); }
+.layout-tienda .tienda-publica__avatar { border: 0; border-radius: 0; box-shadow: none; }
+.layout-tienda .tienda-publica__identidad h1 { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-weight: 400; font-size: clamp(32px, 4vw, 48px); line-height: 1.08; }
+.layout-tienda .tienda-publica__cifras { border-radius: 2px; background: transparent; }
+.layout-tienda .tienda-publica__historia { gap: 36px; }
+.layout-tienda .tienda-publica__cita { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-size: 22px; line-height: 1.45; color: var(--color-text-brand); }
+.layout-tienda .tienda-publica__galeria img,
+.layout-tienda .tienda-publica__videos video { border-radius: 0; }
+
+/* Estados vacíos de carrito, pedidos y cuenta: plan editorial, scoped al consumidor. */
+.layout-tienda .estado-vacio {
+  border-color: var(--color-border-default);
+  border-radius: var(--editorial-radius);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  box-shadow: none;
+}
+.layout-tienda .estado-vacio__icono {
+  border-radius: var(--editorial-radius);
+  background: var(--color-bg-brand-subtle);
+  color: var(--color-text-brand);
+}
+.layout-tienda .estado-vacio__titulo {
+  color: var(--color-text-primary);
+  font-family: var(--consumer-serif, 'Fraunces', Georgia, serif);
+  font-weight: 400;
+}
+.layout-tienda .estado-vacio__descripcion { color: var(--color-text-secondary); }
+
+/* Carrito, pago, pedidos y cuenta: mismos controles y estados, misma gramatica visual. */
+.layout-tienda .carrito__grupo,
+.layout-tienda .carrito__resumen,
+.layout-tienda .compra__seccion,
+.layout-tienda .compra__resumen,
+.layout-tienda .pedido__tarjeta,
+.layout-tienda .mis-pedidos__tarjeta,
+.layout-tienda .mis-pedidos__lista,
+.layout-tienda .mis-datos,
+.layout-tienda .mis-direcciones__tarjeta,
+.layout-tienda .mis-direcciones__editor,
+.layout-tienda .mis-favoritos__item { border-radius: 2px; box-shadow: none; }
+.layout-tienda .carrito__grupo,
+.layout-tienda .carrito__resumen,
+.layout-tienda .compra__seccion,
+.layout-tienda .compra__resumen,
+.layout-tienda .pedido__tarjeta,
+.layout-tienda .mis-pedidos__tarjeta,
+.layout-tienda .mis-pedidos__lista,
+.layout-tienda .mis-datos,
+.layout-tienda .mis-direcciones__tarjeta,
+.layout-tienda .mis-favoritos__item { border-color: var(--color-border-default); background: var(--color-bg-surface); }
+.layout-tienda .carrito__grupo-cabecera,
+.layout-tienda .carrito__nota,
+.layout-tienda .mis-pedidos__pie { border-radius: 0; background: #eeecdf; }
+.layout-tienda .carrito__imagen { border-radius: 0; }
+.layout-tienda .carrito__total strong,
+.layout-tienda .compra__total strong,
+.layout-tienda .pedido__total strong { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-weight: 400; }
+.layout-tienda .compra__seccion-titulo,
+.layout-tienda .compra__resumen-titulo,
+.layout-tienda .carrito__resumen-titulo,
+.layout-tienda .pedido__tarjeta-titulo { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-weight: 400; font-size: 23px; }
+.layout-tienda .mis-pedidos__lateral { padding: 20px 14px; }
+.layout-tienda .mis-pedidos__nav { border-radius: 2px; }
+.layout-tienda .mis-pedidos__nav--activo { background: #e4e9d9; }
+.layout-tienda .mis-pedidos__numero,
+.layout-tienda .mis-datos__titulo,
+.layout-tienda .mis-direcciones__titulo,
+.layout-tienda .mis-favoritos__titulo { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-weight: 400; }
+.layout-tienda .mis-direcciones__tarjeta { padding: 22px; }
+.layout-tienda .mis-favoritos__item { padding: 14px; }
+.layout-tienda .mis-favoritos__item .tarjeta-tienda { border: 0; }
+.layout-tienda .mis-favoritos__item .tarjeta-tienda__cuerpo { padding: 12px 0 0; }
+.layout-tienda :is(.campo__etiqueta, .campo__ayuda, .campo__error, label) { color: inherit; }
+.layout-tienda .campo__control { color: var(--color-text-primary); }
+.layout-tienda .campo__etiqueta { font-size: 14px; font-weight: 600; }
+.layout-tienda :is(input, select, textarea) { border-radius: 2px; }
+
+@media (max-width: 960px) {
+  .layout-tienda .ficha__principal { grid-template-columns: minmax(0, 1fr); }
+  .layout-tienda .historia { grid-template-columns: minmax(0, 1fr); }
+  .layout-tienda .tienda-publica__historia--galeria { grid-template-columns: minmax(0, 1fr); }
+  .layout-tienda .carrito__cuerpo,
+  .layout-tienda .compra__cuerpo,
+  .layout-tienda .pedido__cuerpo { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  .layout-tienda .ficha__principal { gap: 20px; }
+  .layout-tienda .tienda-publica__cifras { flex-wrap: wrap; gap: 12px 20px; margin-left: 0; padding: 10px 0; }
+  .layout-tienda .mis-datos__campos { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .layout-tienda .buscar,
+  .layout-tienda .ficha,
+  .layout-tienda .carrito,
+  .layout-tienda .compra,
+  .layout-tienda .pedido,
+  .layout-tienda .mis-pedidos { padding-top: 22px; }
+  .layout-tienda .buscar__grilla { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 12px; }
+  .layout-tienda .buscar__encabezado { align-items: stretch; }
+  .layout-tienda .buscar__orden select { width: 100%; }
+  .layout-tienda .filtros { padding: 16px; }
+  .layout-tienda .ficha__titulo { font-size: 34px; }
+  .layout-tienda .historia { padding: 22px; }
+  .layout-tienda .tienda-publica__cabecera { margin-top: 24px; }
+  .layout-tienda .tienda-publica__galeria { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .layout-tienda .compra__seccion,
+  .layout-tienda .compra__resumen,
+  .layout-tienda .carrito__resumen,
+  .layout-tienda .pedido__tarjeta { padding: 16px; }
+}
+@media (max-width: 380px) {
+  .layout-tienda .carrito__item { gap: 10px; padding: 12px; }
+  .layout-tienda .carrito__nombre { overflow-wrap: anywhere; }
+  .layout-tienda .pedido__tabla { font-size: 13px; }
+  .layout-tienda .pedido__tabla th,
+  .layout-tienda .pedido__tabla td { padding-inline: 3px; }
+}

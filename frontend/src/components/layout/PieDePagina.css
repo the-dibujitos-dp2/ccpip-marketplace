@@ -1,12 +1,24 @@
-.pie { margin-top: auto; padding: 56px 0 32px; background: var(--color-bg-inverse); color: var(--color-text-on-brand); }
-.pie__columnas { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr)); gap: 32px; }
-.pie__marca { display: flex; flex-direction: column; gap: 20px; max-width: 380px; font-size: 14px; line-height: 20px; }
-.pie nav { display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
-.pie nav a { text-decoration: none; }
-.pie nav a:hover { text-decoration: underline; }
-.pie__titulo { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
-.pie__legal { margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.15); font-size: 12px; }
+/* Pie de la tienda segun v2 (CCPIP-127): marca tipografica, enlaces subrayados y franja inferior de creditos. */
+.pie { margin-top: auto; padding: 44px 0 24px; background: #102c21; color: #e3e9d9; font-family: 'DM Sans', Arial, sans-serif; }
+.pie__columnas { display: flex; justify-content: space-between; align-items: flex-start; gap: 35px; padding-bottom: 33px; }
+.pie__nombre { margin: 0; color: #fffef9; font: 400 31px/1.15 'Fraunces', Georgia, serif; letter-spacing: -.02em; }
+.pie__descripcion { max-width: 380px; margin: 12px 0 0; color: #bdccb7; font-size: 12px; line-height: 1.65; }
+.pie__enlaces { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 32px; padding-top: 6px; font-size: 12px; }
+.pie__enlaces a { display: inline-flex; align-items: center; min-height: 32px; color: #e3e9d9; text-decoration: underline; text-underline-offset: 4px; }
+.pie__enlaces a:hover { color: #fffef9; }
+.pie__inferior { display: flex; justify-content: space-between; align-items: flex-start; gap: 30px; padding-top: 20px; border-top: 1px solid #54705a; color: #bdccb7; font-size: 11px; line-height: 1.6; }
+.pie__legal { margin: 0; }
+.pie__creditos { max-width: 620px; text-align: right; }
+.pie__creditos summary { display: inline-flex; align-items: center; min-height: 28px; color: #e3e9d9; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; list-style: none; }
+.pie__creditos summary::-webkit-details-marker { display: none; }
+.pie__creditos p { margin: 8px 0 0; text-align: left; }
+.pie :focus-visible { outline-color: #ebc66b; }
 
-@media (max-width: 640px) {
-  .pie__columnas { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 720px) {
+  .pie { padding-top: 36px; }
+  .pie__columnas { flex-direction: column; gap: 20px; padding-bottom: 26px; }
+  .pie__nombre { font-size: 27px; }
+  .pie__enlaces { gap: 4px 24px; padding-top: 0; }
+  .pie__inferior { flex-direction: column; gap: 10px; }
+  .pie__creditos { text-align: left; }
 }

@@ -1,4 +1,18 @@
-/* Reportes del productor (CCPIP-114 y siguientes), con el formato de SA-05 */
+/* Reportes operativos — dirección editorial v2 */
+.reportes-productor__filtros, .reportes-acopio__filtros, .reportes__filtros { margin: 22px 0 28px; padding: 18px 0; border-block: 1px solid var(--editorial-line); }
+.reportes-productor__filtros, .reportes-acopio__filtros, .reportes__filtros { row-gap: 18px; }
+.reportes-productor__filtros .campo, .reportes-acopio__filtros .campo, .reportes__filtros .campo { min-width: 150px; }
+.reportes-productor__exportar, .reportes-acopio__exportar, .reportes__exportar { align-self: end; }
+.reportes-productor__periodo, .reportes__periodo { flex-basis: 190px; }
+.reportes-productor__num, .admin__num { font-variant-numeric: tabular-nums; text-align: right; }
+.reportes-productor__filtros ~ .productor__kpis, .reportes-acopio__filtros ~ .productor__kpis, .reportes__filtros ~ .productor__kpis { border-block: 1px solid var(--editorial-line); padding: 20px 0; }
+.reportes-productor__filtros ~ .productor__kpis > *, .reportes-acopio__filtros ~ .productor__kpis > *, .reportes__filtros ~ .productor__kpis > * { border: 0; border-right: 1px solid var(--editorial-line); border-radius: 0; box-shadow: none; background: transparent; }
+.reportes-productor__filtros ~ .productor__kpis > *:last-child, .reportes-acopio__filtros ~ .productor__kpis > *:last-child, .reportes__filtros ~ .productor__kpis > *:last-child { border-right: 0; }
+.reportes-productor__filtros ~ .productor__kpis .tarjeta-kpi__valor, .reportes-acopio__filtros ~ .productor__kpis .tarjeta-kpi__valor, .reportes__filtros ~ .productor__kpis .tarjeta-kpi__valor { font-family: var(--editorial-serif); }
+.reportes-productor__filtros ~ .productor__seccion, .reportes-acopio__filtros ~ .productor__seccion, .reportes__filtros ~ .productor__seccion { margin-top: 28px; }
+.reportes-productor__filtros ~ .productor__seccion .tabla, .reportes-acopio__filtros ~ .productor__seccion .tabla, .reportes__filtros ~ .productor__seccion .tabla { overflow-x: auto; }
+.reportes-productor__filtros ~ .productor__seccion .tabla__fila--encabezado, .reportes-acopio__filtros ~ .productor__seccion .tabla__fila--encabezado, .reportes__filtros ~ .productor__seccion .tabla__fila--encabezado { position: sticky; top: 0; z-index: 1; background: var(--editorial-paper); }
+.reportes-productor__filtros ~ .productor__seccion .tabla__fila:not(.tabla__fila--encabezado):last-child, .reportes-acopio__filtros ~ .productor__seccion .tabla__fila:not(.tabla__fila--encabezado):last-child, .reportes__filtros ~ .productor__seccion .tabla__fila:not(.tabla__fila--encabezado):last-child { border-bottom: 2px solid var(--editorial-forest); }
 .reportes-productor__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
 .reportes-productor__filtros .campo { width: 190px; }
 /* Producto y modalidad necesitan mas ancho para leer su opcion */
@@ -8,9 +22,17 @@
 .reportes-productor__num { flex: 0 0 110px; text-align: right; font-variant-numeric: tabular-nums; }
 /* El inventario tiene siete columnas de cifras: mas angostas para que quepan sin desplazar */
 .reportes-productor__num--estrecha { flex-basis: 96px; }
-.reportes-productor__barra { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--color-bg-surface-alt); }
-.reportes-productor__barra-0 { background: var(--color-bg-brand); }
-.reportes-productor__barra-1 { background: var(--color-bg-accent); }
+.reportes-productor__barra, .tabla-reporte__barra { display: flex; height: 8px; border-radius: 0; overflow: hidden; background: var(--editorial-sage); }
+.reportes-productor__barra-0, .tabla-reporte__barra-0 { background: var(--editorial-forest); }
+.reportes-productor__barra-1, .tabla-reporte__barra-1 { background: var(--editorial-seed); }
+.tabla[role='table'] { overflow-x: auto; }
+.tabla[role='table']:focus-visible { outline: 2px solid var(--editorial-focus); outline-offset: 2px; }
+@media print {
+  .reportes-productor__filtros, .reportes-acopio__filtros, .reportes__filtros { display: none !important; }
+  .reportes-productor__filtros ~ .productor__kpis, .reportes-acopio__filtros ~ .productor__kpis, .reportes__filtros ~ .productor__kpis { break-inside: avoid; }
+  .layout-productor .layout-productor__contenido .tabla[role='table'] { overflow: visible; }
+  .tabla__fila--encabezado { position: static !important; }
+}
 
 @media (max-width: 720px) {
   .reportes-productor__filtros .campo { width: 100%; }
