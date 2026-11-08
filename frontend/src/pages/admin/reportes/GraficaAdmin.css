@@ -1,0 +1,6 @@
+.reportes-visual { margin: 1rem 0 1.5rem; padding: 1rem; border: 1px solid var(--borde, #d8d4c8); background: var(--papel, #fffdf7); }
+.reportes-visual__controls { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.75rem }
+.reportes-visual__controls button { border:1px solid currentColor; background:transparent; color:inherit; padding:.45rem .7rem; cursor:pointer }
+.reportes-visual__controls button[aria-pressed="true"] { background:var(--rv-color-1, #356b47); color:white }
+.reportes-visual__detail { font-weight:600 }
+@media(max-width:600px) { .reportes-visual { padding:.65rem; overflow:hidden } .reportes-visual__controls button { flex:1 1 auto } }

@@ -6,6 +6,7 @@ import Badge from '../../../components/Badge.jsx'
 import { Barra, Kpis } from '../../../components/TablaReporte.jsx'
 import { fecha, unidades } from '../../../formato.js'
 import { columnas, rango, TablaReporte } from './comun.jsx'
+import { GraficaAdmin } from './GraficaAdmin.jsx'
 
 const TEXTOS = 'admin.reportes.calificaciones'
 
@@ -41,6 +42,7 @@ export default function Calificaciones({ datos }) {
         { clave: 'resenas', valor: unidades(resumen.resenas), icono: iconoUsuario, vars: rango(datos) },
         { clave: 'enCaida', valor: unidades(enCaida), icono: iconoAlerta, vars: anterior, tono: enCaida > 0 ? 'aviso' : 'neutro' },
       ]} />
+      <GraficaAdmin tipo="calificaciones" datos={datos} titulo={t(`${TEXTOS}.distribucion`)} />
       <TablaReporte id="reportes-distribucion" titulo={t(`${TEXTOS}.distribucion`)} filas={resumen.distribucion}
         clave={(e) => e.estrellas}
         columnas={[

@@ -26,6 +26,7 @@ import Indicadores from './reportes/Indicadores.jsx'
 import OrigenDestino from './reportes/OrigenDestino.jsx'
 import Productores from './reportes/Productores.jsx'
 import Puntos from './reportes/Puntos.jsx'
+import { GraficaAdmin } from './reportes/GraficaAdmin.jsx'
 
 /** Metricas de SA-05, en el orden de las pestanas. Cada una es un endpoint /api/admin/reportes/{clave}. */
 const METRICAS = ['ventas', 'comisiones', 'ingresos']
@@ -137,6 +138,7 @@ function Resultado({ datos }) {
   const paginacion = usePaginacionLocal(periodos, JSON.stringify([datos.desde, datos.hasta, agrupacion, datos.metrica]))
   return (
     <>
+      <GraficaAdmin tipo="finanzas" datos={datos} titulo={t(`admin.reportes.metrica.${datos.metrica.toLowerCase()}.tabla`)} />
       <Kpis textos="admin.reportes" tarjetas={[
         { clave: `${metrica}.total`, valor: precio(totales.total), icono: iconoGrafico, detalle: 'rango', vars: rango(datos) },
         { clave: 'b2c', valor: precio(totales.b2c), icono: iconoTienda },

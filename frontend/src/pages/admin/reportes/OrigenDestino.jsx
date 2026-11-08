@@ -6,6 +6,7 @@ import iconoPaquete from '../../../assets/icons/paquete.svg'
 import { Kpis } from '../../../components/TablaReporte.jsx'
 import { precio, unidades } from '../../../formato.js'
 import { columnas, rango, TablaReporte } from './comun.jsx'
+import { GraficaAdmin } from './GraficaAdmin.jsx'
 
 const TEXTOS = 'admin.reportes.origen-destino'
 
@@ -36,6 +37,7 @@ export default function OrigenDestino({ datos }) {
         { clave: 'envios', valor: unidades(suma(datos.porDestino, 'envios')), icono: iconoCamion,
           vars: { recojos: suma(datos.porDestino, 'recojos') } },
       ]} />
+      <GraficaAdmin tipo="origen-destino" datos={datos} titulo={t(`${TEXTOS}.porDestino`)} />
       <TablaReporte id="reportes-origen-punto" titulo={t(`${TEXTOS}.porPunto`)} filas={datos.porPunto} clave={claveOrigen}
         vacio={t(`${TEXTOS}.vacio`)} columnas={origen('punto', 'departamento')} />
       <TablaReporte id="reportes-origen-productor" titulo={t(`${TEXTOS}.porProductor`)} filas={datos.porProductor} clave={claveOrigen}

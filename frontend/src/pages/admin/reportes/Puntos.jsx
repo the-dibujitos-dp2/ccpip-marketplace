@@ -6,6 +6,7 @@ import iconoPaquete from '../../../assets/icons/paquete.svg'
 import { Kpis } from '../../../components/TablaReporte.jsx'
 import { precio, unidades } from '../../../formato.js'
 import { columnas, rango, TablaReporte } from './comun.jsx'
+import { GraficaAdmin } from './GraficaAdmin.jsx'
 
 const TEXTOS = 'admin.reportes.puntos'
 
@@ -29,6 +30,7 @@ export default function Puntos({ datos }) {
         { clave: 'denuncias', valor: unidades(datos.denuncias.total), icono: iconoAlerta, vars: datos.denuncias,
           tono: datos.denuncias.abiertas > 0 ? 'aviso' : 'neutro' },
       ]} />
+      <GraficaAdmin tipo="puntos" datos={datos} titulo={t(`${TEXTOS}.tabla`)} />
       <TablaReporte id="reportes-puntos" titulo={t(`${TEXTOS}.tabla`)} filas={datos.puntos} clave={(p) => p.puntoId}
         vacio={t(`${TEXTOS}.vacio`)} nota={`${t(`${TEXTOS}.nota`)} ${t(`${TEXTOS}.notaDenuncias`)}`}
         columnas={[

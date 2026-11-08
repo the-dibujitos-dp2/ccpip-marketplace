@@ -12,6 +12,7 @@ import { Barra, Kpis, nombrePeriodo } from '../../../components/TablaReporte.jsx
 import { fecha, precio, unidades } from '../../../formato.js'
 import { columnas, TablaReporte } from './comun.jsx'
 import './Indicadores.css'
+import { GraficaAdmin } from './GraficaAdmin.jsx'
 
 const TEXTOS = 'admin.reportes.indicadores'
 
@@ -89,6 +90,7 @@ export default function Indicadores({ datos }) {
         // Mas denuncias es peor
         { clave: 'denuncias', valor: unidades(actividad.denuncias.valor), icono: iconoAlerta, ...variacion(actividad.denuncias, true) },
       ]} />
+      <GraficaAdmin tipo="indicadores" datos={datos} titulo={t(`${TEXTOS}.porPeriodo`)} />
       <TablaReporte id="indicadores-periodos" titulo={t(`${TEXTOS}.porPeriodo`)} filas={datos.periodos} clave={(p) => p.inicio}
         nota={t(`${TEXTOS}.nota`)}
         columnas={[
