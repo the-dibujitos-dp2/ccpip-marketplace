@@ -1,61 +1,187 @@
-import { useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import './ReportesVisuales.css'
 
-const numero = (v) => Number.isFinite(Number(v)) && v !== null ? Number(v) : null
-const fmt = (v, unidad = '') => v == null || !Number.isFinite(Number(v)) ? 'Sin dato' : `${unidad ? `${unidad} ` : ''}${new Intl.NumberFormat('es-PE', { maximumFractionDigits: 2 }).format(Number(v))}`
-const token = (i) => `var(--rv-color-${(i % 6) + 1})`
+const numero = (value) => {
+  if (value == null || typeof value === 'boolean' || String(value).trim() === '') return null
+  return Number.isFinite(Number(value)) ? Number(value) : null
+}
+const color = (index) => `var(--rv-color-${index % 6 + 1})`
 
-function contenedor(el, props) { return <section className="rv" aria-label={props.titulo} {...props}>{el}</section> }
+function useLocale(explicit) {
+  const { i18n } = useTranslation()
+  return explicit || ((i18n.resolvedLanguage || i18n.language || 'es').startsWith('en') ? 'en-GB' : 'es-PE')
+}
 
-/** series: [{id,nombre,unidad?,puntos:[{etiqueta,valor}]}]. onSelect recibirá {serieId,serie,etiqueta,valor,unidad}. */
-export function SerieTemporal({ titulo, series = [], unidad, onSelect, seleccionInicial = null, className = '' }) {
+function textos(locale) {
+  return locale.startsWith('en') ? {
+    empty: 'No data to display.', missing: 'No data', points: 'Data points',
+    keyboard: 'Select a point for its exact value. Use the arrow keys to explore the chart.',
+    negative: 'Negative values are shown separately; they are not parts of a whole.',
+    chart: 'Interactive chart', units: 'units', series: 'Series',
+  } : {
+    empty: 'Sin datos para mostrar.', missing: 'Sin dato', points: 'Puntos de la serie',
+    keyboard: 'Selecciona un punto para ver su valor exacto. Usa las flechas para recorrer el gráfico.',
+    negative: 'Los valores negativos se muestran por separado; no son partes de un total.',
+    chart: 'Gráfico interactivo', units: 'und', series: 'Series',
+  }
+}
+
+function formato(value, unit, locale) {
+  if (value == null) return textos(locale).missing
+  const label = ['und', 'ud'].includes(unit) ? textos(locale).units : unit
+  return `${label ? `${label} ` : ''}${new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(value)}`
+}
+
+function useChartWidth() {
+  const ref = useRef(null)
+  const [width, setWidth] = useState(760)
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return undefined
+    const measure = () => {
+      const next = element.getBoundingClientRect().width
+      if (next > 0) setWidth(Math.max(260, Math.round(next)))
+    }
+    measure()
+    if (typeof ResizeObserver === 'undefined') return undefined
+    const observer = new ResizeObserver(measure)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+  return [ref, width]
+}
+
+/** Series keep their own units; selecting a mark never changes the report filters. */
+export function SerieTemporal({ titulo, series = [], unidad, onSelect, seleccionInicial = null, className = '', locale: explicitLocale }) {
+  const locale = useLocale(explicitLocale)
+  const copy = textos(locale)
   const uid = useId()
+  const [chartRef, width] = useChartWidth()
+  const [selection, setSelection] = useState(seleccionInicial)
   const normal = useMemo(() => {
-    const us = new Set(series.map(s => s.unidad ?? unidad ?? ''))
-    if (us.size > 1) throw new Error('SerieTemporal no admite series con distinta unidad')
-    return series.map((s, si) => ({ ...s, puntos: (s.puntos ?? []).map((p, i) => ({ ...p, valor: numero(p.valor), _i: i, _serie: si })) }))
+    const units = new Set(series.map((serie) => serie.unidad ?? unidad ?? ''))
+    if (units.size > 1) throw new Error('SerieTemporal no admite series con distinta unidad')
+    return series.map((serie, index) => ({
+      ...serie, color: color(index), unidad: serie.unidad ?? unidad ?? '',
+      puntos: (serie.puntos ?? []).map((point) => ({ ...point, valor: numero(point.valor) })),
+    }))
   }, [series, unidad])
-  const [sel, setSel] = useState(seleccionInicial)
-  const puntos = normal.flatMap(s => s.puntos)
-  const maxAbs = Math.max(1, ...puntos.map(p => Math.abs(p.valor ?? 0)))
-  const w = 760, h = 228, pad = 28
-  const escoger = (s, p) => { const detail = { serieId: s.id, serie: s.nombre, etiqueta: p.etiqueta, valor: p.valor, unidad: s.unidad ?? unidad ?? '' }; setSel(detail); onSelect?.(detail) }
+  const labels = [...new Set(normal.flatMap((serie) => serie.puntos.map((point) => point.etiqueta)))]
+  if (labels.every((label) => /^\d{4}-\d{2}-\d{2}/.test(label))) labels.sort()
+  const marks = normal.flatMap((serie) => serie.puntos.filter((point) => point.valor !== null).map((point) => ({
+    serieId: serie.id, serie: serie.nombre, etiqueta: point.etiqueta, valor: point.valor, unidad: serie.unidad,
+  })))
+  // Store identity, not an old report's numeric payload. A refresh always displays current values.
+  const selected = marks.find((mark) => mark.serieId === selection?.serieId && mark.etiqueta === selection?.etiqueta)
+  const select = (detail) => {
+    setSelection({ serieId: detail.serieId, etiqueta: detail.etiqueta })
+    onSelect?.(detail)
+  }
+  const navigate = (event) => {
+    const current = marks.indexOf(selected)
+    let next
+    if (['ArrowRight', 'ArrowDown'].includes(event.key)) next = (current + 1) % marks.length
+    if (['ArrowLeft', 'ArrowUp'].includes(event.key)) next = (current < 0 ? marks.length - 1 : current - 1 + marks.length) % marks.length
+    if (event.key === 'Home') next = 0
+    if (event.key === 'End') next = marks.length - 1
+    if (next === undefined || !marks.length) return
+    event.preventDefault()
+    select(marks[next])
+  }
+  const values = marks.map((mark) => mark.valor)
+  const lower = Math.min(0, ...values)
+  const upper = Math.max(0, ...values) || (lower < 0 ? 0 : 1)
+  const height = 240, left = 60, right = width - 16, top = 20, bottom = height - 45
+  const xFor = (label) => labels.length < 2 ? (left + right) / 2 : left + labels.indexOf(label) * (right - left) / (labels.length - 1)
+  const yFor = (value) => top + (upper - value) / (upper - lower) * (bottom - top)
+  const ticks = [...new Set([lower, (lower + upper) / 2, upper])]
+  const visibleLabels = labels.filter((_, index) => index === 0 || index === labels.length - 1 || index === Math.floor(labels.length / 2))
+  const unit = normal[0]?.unidad
+
   return <section className={`rv rv-temporal ${className}`} aria-labelledby={`${uid}-title`}>
     <h3 id={`${uid}-title`}>{titulo}</h3>
-    {!puntos.length ? <p className="rv-empty">Sin datos para mostrar.</p> : <>
-      <svg className="rv-chart" viewBox={`0 0 ${w} ${h}`} role="img" aria-label={titulo} preserveAspectRatio="xMidYMid meet">
-        <line x1={pad} x2={w-pad} y1={h/2} y2={h/2} className="rv-axis" />
-        {normal.map((s, si) => {
-          const valid = s.puntos.filter(p => p.valor != null)
-          const coords = valid.map(p => ({ x: pad + (s.puntos.length < 2 ? (w-pad*2)/2 : p._i*(w-pad*2)/(s.puntos.length-1)), y: h/2 - p.valor/maxAbs*(h/2-pad) }))
-          return <g key={s.id} className="rv-series"><polyline points={coords.map(c => `${c.x},${c.y}`).join(' ')} fill="none" stroke={token(si)} strokeWidth="3" />
-            {valid.map((p,j) => { const c=coords[j]; return <circle key={`${s.id}-${p._i}`} cx={c.x} cy={c.y} r="5" fill={token(si)} /> })}</g>
-        })}
-      </svg>
-      <div className="rv-legend" aria-label="Series"><ul>{normal.map((s,i)=><li key={s.id}><span className="rv-swatch" style={{'--rv-swatch':token(i)}} />{s.nombre}</li>)}</ul></div>
-      <div className="rv-points" aria-label="Puntos de la serie">{normal.flatMap(s => s.puntos.map((p) => <button key={`${s.id}-${p._i}`} type="button" aria-pressed={sel?.serieId===s.id && sel?.etiqueta===p.etiqueta} onClick={() => escoger(s,p)}>
-        <span>{p.etiqueta}</span><span>{s.nombre}</span><strong>{fmt(p.valor,s.unidad ?? unidad)}</strong></button>))}</div>
-      {sel && <p className="rv-detail" aria-live="polite">{sel.serie}: {sel.etiqueta} — {fmt(sel.valor,sel.unidad)}</p>}
-    </>}
+    <div ref={chartRef} className="rv-plot">
+      {!marks.length ? <p className="rv-empty">{copy.empty}</p> : <>
+        <p id={`${uid}-help`} className="rv-help">{copy.keyboard}</p>
+        {unit && <span className="rv-unit">{['ud', 'und'].includes(unit) ? copy.units : unit}</span>}
+        <svg className="rv-chart" viewBox={`0 0 ${width} ${height}`} role="group" aria-label={`${titulo} — ${copy.chart}`} aria-describedby={`${uid}-help`} tabIndex={0} onKeyDown={navigate}>
+          {ticks.map((tick) => <g key={tick}>
+            <line x1={left} x2={right} y1={yFor(tick)} y2={yFor(tick)} className={`rv-axis${tick === 0 ? ' rv-axis--zero' : ''}`} />
+            <text x={left - 9} y={yFor(tick) + 4} textAnchor="end" className="rv-label">{new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(tick)}</text>
+          </g>)}
+          {normal.map((serie) => {
+            const lookup = new Map(serie.puntos.map((point) => [point.etiqueta, point]))
+            const segments = []
+            let segment = []
+            labels.forEach((label) => {
+              const point = lookup.get(label)
+              if (!point || point.valor === null) {
+                if (segment.length) segments.push(segment)
+                segment = []
+              } else segment.push(point)
+            })
+            if (segment.length) segments.push(segment)
+            return <g key={serie.id} className="rv-series">
+              {segments.map((part, index) => <polyline key={index} points={part.map((point) => `${xFor(point.etiqueta)},${yFor(point.valor)}`).join(' ')} fill="none" stroke={serie.color} strokeWidth="2.5" />)}
+              {marks.filter((mark) => mark.serieId === serie.id).map((mark) => <circle key={mark.etiqueta} cx={xFor(mark.etiqueta)} cy={yFor(mark.valor)} r={selected === mark ? 6 : 4.5} fill={serie.color} className="rv-mark" role="button" tabIndex={-1} aria-pressed={selected === mark} aria-label={`${mark.serie}, ${mark.etiqueta}: ${formato(mark.valor, mark.unidad, locale)}`} onClick={() => select(mark)} onKeyDown={(event) => {
+                if (['Enter', ' '].includes(event.key)) { event.preventDefault(); select(mark) }
+              }}><title>{`${mark.serie}, ${mark.etiqueta}: ${formato(mark.valor, mark.unidad, locale)}`}</title></circle>)}
+            </g>
+          })}
+          {visibleLabels.map((label, index) => <text key={label} x={xFor(label)} y={height - 17} textAnchor={labels.length === 1 ? 'middle' : index === 0 ? 'start' : index === visibleLabels.length - 1 ? 'end' : 'middle'} className="rv-label">{label}</text>)}
+        </svg>
+      </>}
+    </div>
+    {normal.length > 0 && <div className="rv-legend" aria-label={copy.series}><ul>{normal.map((serie) => <li key={serie.id}><span className="rv-swatch" style={{ '--rv-swatch': serie.color }} />{serie.nombre}</li>)}</ul></div>}
+    {labels.length > 0 && <details className="rv-points" aria-label={copy.points}>
+      <summary>{copy.points}</summary>
+      <div>{normal.flatMap((serie) => serie.puntos.map((point) => <button key={`${serie.id}-${point.etiqueta}`} type="button" disabled={point.valor === null} aria-pressed={selected?.serieId === serie.id && selected?.etiqueta === point.etiqueta} onClick={() => select({ serieId: serie.id, serie: serie.nombre, etiqueta: point.etiqueta, valor: point.valor, unidad: serie.unidad })}>
+        <span>{point.etiqueta}</span><span>{serie.nombre}</span><strong>{formato(point.valor, serie.unidad, locale)}</strong>
+      </button>))}</div>
+    </details>}
+    {selected && <p className="rv-detail" aria-live="polite">{selected.serie}: {selected.etiqueta} — {formato(selected.valor, selected.unidad, locale)}</p>}
   </section>
 }
 
-/** items: [{id,etiqueta,valor}], valor numérico real; onSelect({id,etiqueta,valor,unidad}). */
-export function BarrasComparativas({ titulo, items = [], unidad = '', onSelect, className = '' }) {
-  const uid=useId(), [sel,setSel]=useState(null), max=Math.max(1,...items.map(x=>Math.abs(numero(x.valor) ?? 0)))
-  return <section className={`rv rv-bars ${className}`} aria-labelledby={`${uid}-title`}><h3 id={`${uid}-title`}>{titulo}</h3>
-    {!items.length ? <p className="rv-empty">Sin datos para mostrar.</p> : <ul>{items.map((x,i)=>{const v=numero(x.valor), d={id:x.id,etiqueta:x.etiqueta,valor:v,unidad};return <li key={x.id ?? x.etiqueta}><button type="button" aria-pressed={sel?.id===x.id} onClick={()=>{setSel(d);onSelect?.(d)}}><span>{x.etiqueta}</span><span className="rv-bar-track"><span className="rv-bar-fill" style={{'--rv-width':`${v===null?0:Math.abs(v)/max*100}%`,'--rv-color':token(i)}} /></span><strong>{fmt(v,unidad)}</strong></button></li>})}</ul>}
-    {sel && <p className="rv-detail" aria-live="polite">{sel.etiqueta}: {fmt(sel.valor,unidad)}</p>}
+/** Signed values share a zero baseline; labels and exact values never depend on bar width. */
+export function BarrasComparativas({ titulo, items = [], unidad = '', onSelect, className = '', locale: explicitLocale }) {
+  const locale = useLocale(explicitLocale)
+  const uid = useId()
+  const [selection, setSelection] = useState(null)
+  const normal = items.map((item) => ({ ...item, valor: numero(item.valor) }))
+  const keyFor = (item) => item.id ?? item.etiqueta
+  const selected = normal.find((item) => keyFor(item) === selection)
+  const lower = Math.min(0, ...normal.map((item) => item.valor ?? 0))
+  const upper = Math.max(0, ...normal.map((item) => item.valor ?? 0)) || (lower < 0 ? 0 : 1)
+  const position = (value) => (value - lower) / (upper - lower) * 100
+  const zero = position(0)
+  return <section className={`rv rv-bars ${className}`} aria-labelledby={`${uid}-title`}>
+    <h3 id={`${uid}-title`}>{titulo}</h3>
+    {!items.length ? <p className="rv-empty">{textos(locale).empty}</p> : <ul>{normal.map((item, index) => <li key={keyFor(item)}>
+      <button type="button" aria-label={`${item.etiqueta}: ${formato(item.valor, unidad, locale)}`} disabled={item.valor === null} aria-pressed={keyFor(selected || {}) === keyFor(item)} onClick={() => {
+        setSelection(keyFor(item))
+        onSelect?.({ id: item.id, etiqueta: item.etiqueta, valor: item.valor, unidad })
+      }}>
+        <span>{item.etiqueta}</span>
+        <span className="rv-bar-track" aria-hidden="true" style={{ '--rv-zero': `${zero}%` }}><span className="rv-bar-fill" style={{ left: `${Math.min(zero, position(item.valor ?? 0))}%`, width: `${Math.abs(position(item.valor ?? 0) - zero)}%`, background: color(index) }} /></span>
+        <strong>{formato(item.valor, unidad, locale)}</strong>
+      </button>
+    </li>)}</ul>}
+    {selected && <p className="rv-detail" aria-live="polite">{selected.etiqueta}: {formato(selected.valor, unidad, locale)}</p>}
   </section>
 }
 
-/** partes: [{id,etiqueta,valor}], valores individuales conservados; sin total inferido. */
-export function Composicion({ titulo, partes = [], unidad = '', className = '' }) {
-  const uid=useId()
-  return <section className={`rv rv-composition ${className}`} aria-labelledby={`${uid}-title`}><h3 id={`${uid}-title`}>{titulo}</h3>
-    {!partes.length ? <p className="rv-empty">Sin datos para mostrar.</p> : <>
-      <div className="rv-composition__strip" aria-hidden="true">{partes.map((p,i)=>{const v=numero(p.valor);return <span key={p.id ?? i} style={{'--rv-color':token(i),'--rv-share':`${v===null?0:Math.max(0,v)}fr`}} />})}</div>
-      <ul className="rv-legend">{partes.map((p,i)=><li key={p.id ?? p.etiqueta}><span className="rv-swatch" style={{'--rv-swatch':token(i)}} /><span>{p.etiqueta}</span><strong>{fmt(numero(p.valor),unidad)}</strong></li>)}</ul>
+/** Positive parts only: negative signed metrics must not be normalized into a whole. */
+export function Composicion({ titulo, partes = [], unidad = '', className = '', locale: explicitLocale }) {
+  const locale = useLocale(explicitLocale)
+  const uid = useId()
+  const hasNegative = partes.some((part) => (numero(part.valor) ?? 0) < 0)
+  return <section className={`rv rv-composition ${className}`} aria-labelledby={`${uid}-title`}>
+    <h3 id={`${uid}-title`}>{titulo}</h3>
+    {!partes.length ? <p className="rv-empty">{textos(locale).empty}</p> : <>
+      {hasNegative ? <p className="rv-help">{textos(locale).negative}</p> : <div className="rv-composition__strip" aria-hidden="true">{partes.map((part, index) => <span key={part.id ?? index} style={{ '--rv-color': color(index), flexGrow: numero(part.valor) ?? 0 }} />)}</div>}
+      <ul className="rv-legend">{partes.map((part, index) => <li key={part.id ?? part.etiqueta}><span className="rv-swatch" style={{ '--rv-swatch': color(index) }} /><span>{part.etiqueta}</span><strong>{formato(numero(part.valor), unidad, locale)}</strong></li>)}</ul>
     </>}
   </section>
 }

@@ -1,56 +1,180 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
-import { BarrasComparativas, Composicion, SerieTemporal } from './index.jsx'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
+import i18n from '../../i18n/index.js'
+import { BarrasComparativas, Composicion, SerieTemporal } from './index.jsx'
+
+const serie = (puntos, extra = {}) => [{ id: 'ventas', nombre: 'Ventas', puntos, ...extra }]
+const punto = (etiqueta, valor) => ({ etiqueta, valor })
+const graph = (container) => container.querySelector('.rv-chart')
+
+afterEach(async () => { await act(async () => i18n.changeLanguage('es')) })
 
 describe('fundación de visualizaciones para reportes', () => {
-  it('presenta serie temporal y selecciona un punto con ratón y teclado', async () => {
+  it('selecciona marcas reales con ratón y recorre puntos con teclado desde una sola parada', () => {
     const onSelect = vi.fn()
-    render(<SerieTemporal titulo="Ventas por periodo" unidad="S/" series={[{ id: 'ventas', nombre: 'Ventas', puntos: [{ etiqueta: 'Enero', valor: 12.5 }, { etiqueta: 'Febrero', valor: 0 }] }]} onSelect={onSelect} />)
-    expect(screen.getByRole('img', { name: /Ventas por periodo/ })).toBeTruthy()
-    expect(screen.getByText('Enero')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: /Febrero/ }))
-    expect(onSelect).toHaveBeenLastCalledWith(expect.objectContaining({ serieId: 'ventas', etiqueta: 'Febrero', valor: 0 }))
-    screen.getByRole('button', { name: /Enero/ }).focus()
-    await userEvent.keyboard('{Enter}')
-    expect(onSelect).toHaveBeenLastCalledWith(expect.objectContaining({ serieId: 'ventas', valor: 12.5 }))
+    const { container } = render(<SerieTemporal titulo="Ventas por periodo" unidad="S/" series={serie([punto('Enero', 12.5), punto('Febrero', 0)])} onSelect={onSelect} />)
+    const chart = graph(container)
+    expect(chart.getAttribute('role')).toBe('group')
+    expect(chart.getAttribute('tabindex')).toBe('0')
+    expect(chart.querySelectorAll('[tabindex="0"]')).toHaveLength(0)
+    fireEvent.click(within(chart).getByRole('button', { name: /Febrero/ }))
+    expect(onSelect).toHaveBeenLastCalledWith({ serieId: 'ventas', serie: 'Ventas', etiqueta: 'Febrero', valor: 0, unidad: 'S/' })
+    fireEvent.keyDown(chart, { key: 'ArrowLeft' })
+    expect(onSelect).toHaveBeenLastCalledWith(expect.objectContaining({ etiqueta: 'Enero', valor: 12.5 }))
+    expect(container.querySelector('.rv-detail').textContent).toContain('S/ 12.5')
+    fireEvent.keyDown(chart, { key: 'End' })
+    expect(onSelect).toHaveBeenLastCalledWith(expect.objectContaining({ etiqueta: 'Febrero', valor: 0 }))
+    fireEvent.keyDown(chart, { key: 'Home' })
+    expect(onSelect).toHaveBeenLastCalledWith(expect.objectContaining({ etiqueta: 'Enero', valor: 12.5 }))
   })
 
-  it('mantiene el detalle exacto seleccionable en comparativas y ranking', () => {
-    const onSelect = vi.fn()
-    render(<BarrasComparativas titulo="Ventas por productor" unidad="S/" items={[{ id: 'p1', etiqueta: 'Productor A', valor: -2.75 }]} onSelect={onSelect} />)
-    fireEvent.click(screen.getByRole('button', { name: /Productor A/ }))
-    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1', valor: -2.75 }))
-    expect(screen.getAllByText((_, el) => el.textContent.includes('-2.75')).length).toBeGreaterThan(0)
+  it('mantiene una alternativa HTML de valores exactos, incluyendo datos ausentes explícitos', () => {
+    render(<SerieTemporal titulo="Alternativa" series={serie([punto('Enero', 12.5), punto('Febrero', null)])} />)
+    const alternative = screen.getByLabelText('Puntos de la serie')
+    expect(alternative.tagName).toBe('DETAILS')
+    expect(within(alternative).getByRole('button', { name: /Enero/ }).textContent).toContain('12.5')
+    expect(within(alternative).getByRole('button', { name: /Febrero/ }).disabled).toBe(true)
+    expect(within(alternative).getByText('Sin dato')).toBeTruthy()
   })
 
-  it('expone valores de composición sin ocultarlos en gráficos', () => {
-    render(<Composicion titulo="Ventas por canal" unidad="S/" partes={[{ id: 'b2c', etiqueta: 'B2C', valor: 10.25 }, { id: 'b2b', etiqueta: 'B2B', valor: null }]} />)
-    expect(screen.getByRole('region', { name: 'Ventas por canal' })).toBeTruthy()
-    expect(screen.getByText('B2C')).toBeTruthy()
-    expect(screen.getByText(/10\.25/)).toBeTruthy()
-    expect(screen.getByText(/sin dato/i)).toBeTruthy()
+  it('no conserva números obsoletos al refrescar la serie y elimina detalle al salir del rango', () => {
+    const { container, rerender } = render(<SerieTemporal titulo="Ventas" series={serie([punto('Enero', 100)])} />)
+    fireEvent.click(within(graph(container)).getByRole('button', { name: /Enero/ }))
+    rerender(<SerieTemporal titulo="Ventas" series={serie([punto('Enero', 9)])} />)
+    expect(container.querySelector('.rv-detail').textContent).toContain('9')
+    expect(container.querySelector('.rv-detail').textContent).not.toContain('100')
+    rerender(<SerieTemporal titulo="Ventas" series={serie([punto('Marzo', 3)])} />)
+    expect(container.querySelector('.rv-detail')).toBeNull()
   })
 
-  it('maneja sin datos, punto único, cero, negativo y series largas sin valores no numéricos', () => {
-    const { rerender, container } = render(<SerieTemporal titulo="Vacío" series={[]} />)
-    expect(screen.getByText(/sin datos/i)).toBeTruthy()
-    const puntos = Array.from({ length: 180 }, (_, i) => ({ etiqueta: `P${i}`, valor: i % 7 === 0 ? null : i - 40 }))
-    rerender(<SerieTemporal titulo="Larga" series={[{ id: 'x', nombre: 'Cantidad', puntos }]} />)
+  it('conserva la selección frente a un rerender equivalente, sin depender de identidad del array', () => {
+    const { container, rerender } = render(<SerieTemporal titulo="Ventas" series={serie([punto('Enero', 7)])} />)
+    fireEvent.keyDown(graph(container), { key: 'ArrowRight' })
+    rerender(<SerieTemporal titulo="Ventas" series={serie([punto('Enero', 7)])} />)
+    expect(container.querySelector('.rv-detail').textContent).toContain('Enero — 7')
+  })
+
+  it('corta la línea ante null, sin interpolar una evolución inexistente', () => {
+    const { container } = render(<SerieTemporal titulo="Huecos" series={serie([punto('Enero', 1), punto('Febrero', null), punto('Marzo', 2)])} />)
+    const lines = graph(container).querySelectorAll('polyline')
+    expect(lines).toHaveLength(2)
+    for (const line of lines) expect(line.getAttribute('points').split(' ')).toHaveLength(1)
+    expect(graph(container).querySelectorAll('circle')).toHaveLength(2)
+  })
+
+  it('alinea fechas entre series y no conecta períodos omitidos', () => {
+    const { container } = render(<SerieTemporal titulo="Fechas" series={[
+      { id: 'a', nombre: 'A', puntos: [punto('2026-01-01', 1), punto('2026-03-01', 2)] },
+      { id: 'b', nombre: 'B', puntos: [punto('2026-02-01', 3), punto('2026-03-01', 4)] },
+    ]} />)
+    const a = graph(container).querySelector('.rv-series')
+    expect(a.querySelectorAll('polyline')).toHaveLength(2)
+    const circles = graph(container).querySelectorAll('circle')
+    expect(circles[1].getAttribute('cx')).toBe(circles[3].getAttribute('cx'))
+  })
+
+  it('usa toda la altura positiva y distingue los valores negativos de cero', () => {
+    const { container, rerender } = render(<SerieTemporal titulo="Escala" series={serie([punto('A', 0), punto('B', 100)])} />)
+    let circles = graph(container).querySelectorAll('circle')
+    expect(Number(circles[0].getAttribute('cy')) - Number(circles[1].getAttribute('cy'))).toBe(175)
+    rerender(<SerieTemporal titulo="Escala" series={serie([punto('A', -10), punto('B', 0), punto('C', 10)])} />)
+    circles = graph(container).querySelectorAll('circle')
+    expect(Number(circles[0].getAttribute('cy'))).toBeGreaterThan(Number(circles[1].getAttribute('cy')))
+    expect(Number(circles[1].getAttribute('cy'))).toBeGreaterThan(Number(circles[2].getAttribute('cy')))
+  })
+
+  it('maneja vacío, todos null, punto cero único y decimales sin datos numéricos inventados', () => {
+    const { container, rerender } = render(<SerieTemporal titulo="Vacío" series={[]} />)
+    expect(screen.getByText('Sin datos para mostrar.')).toBeTruthy()
+    rerender(<SerieTemporal titulo="Ausentes" series={serie([punto('Hoy', null), punto('Mañana', '')])} />)
+    expect(graph(container)).toBeNull()
     expect(container.textContent).not.toMatch(/NaN|Infinity/)
-    rerender(<SerieTemporal titulo="Único" series={[{ id: 'x', nombre: 'Importe', puntos: [{ etiqueta: 'Hoy', valor: 0 }] }]} />)
-    expect(screen.getByText('Hoy')).toBeTruthy()
+    rerender(<SerieTemporal titulo="Cero" series={serie([punto('Hoy', 0)])} />)
+    expect(within(graph(container)).getByRole('button', { name: /Hoy: 0/ })).toBeTruthy()
+    expect(graph(container).querySelectorAll('circle')).toHaveLength(1)
   })
 
-  it('respeta preferencias de movimiento reducido y ofrece reglas de impresión', () => {
-    const estilos = readFileSync('src/components/reportes-visuales/ReportesVisuales.css', 'utf8')
-    expect(estilos).toContain('prefers-reduced-motion:reduce')
-    expect(estilos).toMatch(/@media print/)
-    expect(estilos).toMatch(/rv-points[^}]*max-height:none/)
+  it('ofrece series largas sin saturar la secuencia de tabulación ni producir NaN', () => {
+    const puntos = Array.from({ length: 180 }, (_, index) => punto(`P${index}`, index % 7 === 0 ? null : index - 40.25))
+    const { container } = render(<SerieTemporal titulo="Larga" series={serie(puntos)} />)
+    expect(container.textContent).not.toMatch(/NaN|Infinity/)
+    expect(graph(container).querySelectorAll('[tabindex="0"]')).toHaveLength(0)
+    expect(graph(container).querySelectorAll('circle')).toHaveLength(puntos.filter((item) => item.valor !== null).length)
   })
 
-  it('no mezcla series con distinta unidad', () => {
-    expect(() => render(<SerieTemporal titulo="Inválido" series={[{ id: 'importe', nombre: 'Soles', unidad: 'S/', puntos: [] }, { id: 'cantidad', nombre: 'Unidades', unidad: 'ud', puntos: [] }]} />)).toThrow(/unidad/i)
+  it('reacciona al idioma global sin necesitar un locale pasado por cada consumidor', async () => {
+    const { container } = render(<SerieTemporal titulo="Trend" series={serie([punto('Jan', null)])} />)
+    await act(async () => i18n.changeLanguage('en'))
+    expect(container.textContent).toContain('No data to display.')
+    expect(container.textContent).toContain('Data points')
+    expect(container.textContent).toContain('No data')
+    expect(container.textContent).not.toContain('Sin dato')
+  })
+
+  it('permite locale explícito y conserva el formato exacto de decimales', () => {
+    const { container } = render(<SerieTemporal titulo="Trend" locale="en-GB" series={serie([punto('Jan', 1234.5)])} />)
+    fireEvent.keyDown(graph(container), { key: 'ArrowRight' })
+    expect(container.querySelector('.rv-detail').textContent).toContain('1,234.5')
+    expect(container.textContent).toContain('Use the arrow keys')
+  })
+
+  it('no mezcla unidades diferentes en una escala', () => {
+    expect(() => render(<SerieTemporal titulo="Inválido" series={[
+      { id: 'importe', nombre: 'Soles', unidad: 'S/', puntos: [] },
+      { id: 'cantidad', nombre: 'Unidades', unidad: 'ud', puntos: [] },
+    ]} />)).toThrow(/unidad/i)
+  })
+
+  it('presenta barras firmadas con una línea base cero compartida', () => {
+    const onSelect = vi.fn()
+    const { container } = render(<BarrasComparativas titulo="Comparativa" unidad="S/" onSelect={onSelect} items={[
+      { id: 'a', etiqueta: 'A', valor: -2.75 }, { id: 'b', etiqueta: 'B', valor: 2.75 }, { id: 'c', etiqueta: 'C', valor: null },
+    ]} />)
+    const bars = container.querySelectorAll('.rv-bar-fill')
+    expect(bars[0].style.left).toBe('0%')
+    expect(bars[0].style.width).toBe('50%')
+    expect(bars[1].style.left).toBe('50%')
+    expect(bars[1].style.width).toBe('50%')
+    expect(bars[2].style.width).toBe('0%')
+    fireEvent.click(screen.getByRole('button', { name: /A: S\/ -2.75/ }))
+    expect(onSelect).toHaveBeenCalledWith({ id: 'a', etiqueta: 'A', valor: -2.75, unidad: 'S/' })
+  })
+
+  it('actualiza detalle de barras con valores vigentes y lo elimina si ya no existe el elemento', () => {
+    const { container, rerender } = render(<BarrasComparativas titulo="Ranking" items={[{ id: 'a', etiqueta: 'A', valor: 100 }]} />)
+    fireEvent.click(screen.getByRole('button', { name: /A: 100/ }))
+    rerender(<BarrasComparativas titulo="Ranking" items={[{ id: 'a', etiqueta: 'A', valor: 9 }]} />)
+    expect(container.querySelector('.rv-detail').textContent).toBe('A: 9')
+    rerender(<BarrasComparativas titulo="Ranking" items={[]} />)
+    expect(container.querySelector('.rv-detail')).toBeNull()
+  })
+
+  it('conserva cada valor de composición, con proporciones válidas y sin aporte ficticio para cero/null', () => {
+    const { container } = render(<Composicion titulo="Composición" partes={[
+      { id: 'a', etiqueta: 'A', valor: 25 }, { id: 'b', etiqueta: 'B', valor: 75 },
+      { id: 'c', etiqueta: 'C', valor: 0 }, { id: 'd', etiqueta: 'D', valor: null },
+    ]} />)
+    const slices = container.querySelectorAll('.rv-composition__strip span')
+    expect([...slices].map((slice) => slice.style.flexGrow)).toEqual(['25', '75', '0', '0'])
+    expect(screen.getByText('Sin dato')).toBeTruthy()
+    expect(screen.getByText('25')).toBeTruthy()
+    expect(screen.getByText('75')).toBeTruthy()
+  })
+
+  it('no normaliza valores negativos como partes de un total positivo', () => {
+    const { container } = render(<Composicion titulo="Firmados" partes={[{ id: 'a', etiqueta: 'A', valor: -2 }, { id: 'b', etiqueta: 'B', valor: 3 }]} />)
+    expect(container.querySelector('.rv-composition__strip')).toBeNull()
+    expect(screen.getByText('-2')).toBeTruthy()
+    expect(screen.getByText(/no son partes de un total/)).toBeTruthy()
+  })
+
+  it('incluye movimiento reducido e impresión de gráficos sin expandir una lista redundante de controles', () => {
+    const css = readFileSync('src/components/reportes-visuales/ReportesVisuales.css', 'utf8')
+    expect(css).toMatch(/prefers-reduced-motion:\s*reduce/)
+    expect(css).toContain('@media print')
+    expect(css).toMatch(/\.rv-help, \.rv-points \{ display: none;/)
+    expect(css).toContain('flex-basis: 0')
+    expect(css).not.toMatch(/flex:\s*var\(--rv-share/)
   })
 })
