@@ -172,7 +172,7 @@ export function miHistorial({ desde, hasta, tipo } = {}) {
  */
 export function auditoria({ pagina, ...filtro } = {}) {
   const q = new URLSearchParams()
-  for (const campo of ['desde', 'hasta', 'usuario', 'rol', 'accion', 'entidad', 'resultado']) {
+  for (const campo of ['desde', 'hasta', 'usuario', 'rol', 'accion', 'entidad', 'resultado', 'actor', 'ubicacion', 'referencia']) {
     const valor = filtro[campo]?.trim?.() ?? filtro[campo]
     if (valor) q.set(campo, valor)
   }

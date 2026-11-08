@@ -5007,7 +5007,26 @@
       "TARIFA_ENVIO": "Shipping rate",
       "CAPACIDAD_ENTREGA": "Delivery capacity",
       "COBERTURA_ENTREGA": "Coverage zone",
-      "MOVIMIENTO": "Stock movement"
+      "MOVIMIENTO": "Stock movement",
+      "UNIDAD": "Unit",
+      "COMISION": "Commission",
+      "PARAMETRO": "Parameter",
+      "MOTIVO_MERMA": "Loss reason",
+      "TRANSFERENCIA": "Transfer",
+      "CALIFICACION": "Rating",
+      "SOLICITUD_UNIDAD": "Unit request",
+      "ANALISIS": "Analysis",
+      "CUENTA_BANCARIA": "Bank account",
+      "TIENDA": "Store",
+      "DIRECCION": "Address",
+      "INTERES": "Interest",
+      "SESION": "Session",
+      "SEGURIDAD": "Security",
+      "REPORTE": "Report",
+      "AVISO": "Notice",
+      "CARRITO": "Cart",
+      "TRADUCCION": "Translation",
+      "IMAGEN": "Image"
     },
     "resultado": {
       "EXITOSA": "Successful",
@@ -5020,7 +5039,17 @@
     "sistema": "System",
     "vacio": "No operations match the filters in this period.",
     "error": "We couldn't load the audit",
-    "inalterable": "Unalterable record. Corrections are recorded as new operations."
+    "inalterable": "Unalterable record. Corrections are recorded as new operations.",
+    "actor": "Actor",
+    "actorTipo": {
+      "USUARIO": "User",
+      "SISTEMA": "System",
+      "ANONIMO": "Anonymous"
+    },
+    "ubicacion": "Location (ID)",
+    "referencia": "Reference",
+    "decision": "Decision",
+    "correlacion": "Correlation"
   },
   "cumplimiento": {
     "titulo": "Origin and sustainability rules",

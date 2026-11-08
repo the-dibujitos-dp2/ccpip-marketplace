@@ -134,6 +134,24 @@ describe('Auditoría de operaciones sensibles (CCPIP-97)', () => {
     expect(llamadas(fetchMock, `GET ${RUTA}?${PERIODO}&entidad=MOVIMIENTO`)).toHaveLength(1)
   })
 
+  it('CCPIP-509: filtros de actor, ubicación y referencia más trazabilidad', async () => {
+    const ampliado = { ...copia(AUDITORIA), registros: [{ ...copia(AUDITORIA.registros[0]), actor: 'USUARIO', ubicacionId: 12, referencia: 'PEDIDO-40', correlacion: 'corr-abc', decision: 'RECHAZADO' }] }
+    const fetchMock = comoSuper({ [`GET ${RUTA}?${PERIODO}&actor=USUARIO&ubicacion=12&referencia=PEDIDO-40`]: [200, ampliado] })
+    const user = userEvent.setup()
+    abrirEn('/admin/auditoria')
+    await filas()
+    await user.selectOptions(screen.getByLabelText('Actor'), 'USUARIO')
+    await user.type(screen.getByLabelText('Ubicación (ID)'), '12')
+    await user.type(screen.getByLabelText('Referencia'), 'PEDIDO-40')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+    const [fila] = await filas()
+    expect(llamadas(fetchMock, `GET ${RUTA}?${PERIODO}&actor=USUARIO&ubicacion=12&referencia=PEDIDO-40`)).toHaveLength(1)
+    expect(within(fila).getByText(/corr-abc/)).toBeInTheDocument()
+    expect(within(fila).getByText(/PEDIDO-40/)).toBeInTheDocument()
+    expect(within(fila).getByText(/12/)).toBeInTheDocument()
+    expect(within(fila).getAllByText(/Rechazado/)).toHaveLength(2)
+  })
+
   it('pagina en el servidor', async () => {
     const pagina2 = { ...copia(AUDITORIA), pagina: 1, total: 30, totalPaginas: 2, registros: [copia(AUDITORIA.registros[3])] }
     const fetchMock = comoSuper({
@@ -184,5 +202,28 @@ describe('Auditoría de operaciones sensibles (CCPIP-97)', () => {
     expect(within(pago).getByText('Attempted a payment')).toBeInTheDocument()
     expect(within(pago).getByText('Declined')).toBeInTheDocument()
     expect(within(pago).getByText('Order')).toBeInTheDocument()
+  })
+
+  it('CCPIP-509: traduce filtros, entidad nueva y trazabilidad al inglés', async () => {
+    await i18n.changeLanguage('en')
+    const registro = { ...copia(AUDITORIA.registros[0]), entidad: 'CUENTA_BANCARIA', actor: 'ANONIMO',
+      referencia: 'BANK-7', ubicacionId: 12, correlacion: 'trace-en', decision: 'APROBADO' }
+    const respuesta = { ...copia(AUDITORIA), registros: [registro] }
+    const fetchMock = comoSuper({
+      [`GET ${RUTA}`]: [200, respuesta],
+      [`GET ${RUTA}?${PERIODO}&actor=ANONIMO&ubicacion=12&referencia=BANK-7`]: [200, respuesta],
+    })
+    const user = userEvent.setup()
+    abrirEn('/admin/auditoria')
+    const [fila] = await filas('Audit of sensitive operations')
+    expect(within(fila).getByText('Bank account')).toBeInTheDocument()
+    await user.selectOptions(screen.getByLabelText('Actor'), 'Anonymous')
+    await user.type(screen.getByLabelText('Location (ID)'), '12')
+    await user.type(screen.getByLabelText('Reference'), 'BANK-7')
+    await user.click(screen.getByRole('button', { name: 'Search' }))
+    expect(llamadas(fetchMock, `GET ${RUTA}?${PERIODO}&actor=ANONIMO&ubicacion=12&referencia=BANK-7`)).toHaveLength(1)
+    const [filtrada] = await filas('Audit of sensitive operations')
+    expect(within(filtrada).getByText(/trace-en/)).toBeInTheDocument()
+    expect(within(filtrada).getByText(/Approved/)).toBeInTheDocument()
   })
 })

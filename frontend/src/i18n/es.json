@@ -5007,7 +5007,26 @@
       "TARIFA_ENVIO": "Tarifa de envío",
       "CAPACIDAD_ENTREGA": "Capacidad de entrega",
       "COBERTURA_ENTREGA": "Zona de cobertura",
-      "MOVIMIENTO": "Movimiento de inventario"
+      "MOVIMIENTO": "Movimiento de inventario",
+      "UNIDAD": "Unidad",
+      "COMISION": "Comisión",
+      "PARAMETRO": "Parámetro",
+      "MOTIVO_MERMA": "Motivo de merma",
+      "TRANSFERENCIA": "Transferencia",
+      "CALIFICACION": "Calificación",
+      "SOLICITUD_UNIDAD": "Solicitud de unidad",
+      "ANALISIS": "Análisis",
+      "CUENTA_BANCARIA": "Cuenta bancaria",
+      "TIENDA": "Tienda",
+      "DIRECCION": "Dirección",
+      "INTERES": "Interés",
+      "SESION": "Sesión",
+      "SEGURIDAD": "Seguridad",
+      "REPORTE": "Reporte",
+      "AVISO": "Aviso",
+      "CARRITO": "Carrito",
+      "TRADUCCION": "Traducción",
+      "IMAGEN": "Imagen"
     },
     "resultado": {
       "EXITOSA": "Exitosa",
@@ -5020,7 +5039,17 @@
     "sistema": "Sistema",
     "vacio": "No hay operaciones que coincidan con los filtros en este periodo.",
     "error": "No pudimos cargar la auditoría",
-    "inalterable": "Registro inalterable. Las correcciones se registran como nuevas operaciones."
+    "inalterable": "Registro inalterable. Las correcciones se registran como nuevas operaciones.",
+    "actor": "Actor",
+    "actorTipo": {
+      "USUARIO": "Usuario",
+      "SISTEMA": "Sistema",
+      "ANONIMO": "Anónimo"
+    },
+    "ubicacion": "Ubicación (ID)",
+    "referencia": "Referencia",
+    "decision": "Decisión",
+    "correlacion": "Correlación"
   },
   "cumplimiento": {
     "titulo": "Reglas de origen y sostenibilidad",
