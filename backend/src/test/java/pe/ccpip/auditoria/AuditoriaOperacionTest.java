@@ -3,10 +3,12 @@ package pe.ccpip.auditoria;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 import pe.ccpip.support.IntegrationTest;
 
 class AuditoriaOperacionTest extends IntegrationTest {
     @Test
+    @Transactional
     void movimientoNuevoRegistraEventoConActorSnapshotYNoDuplica() {
         long producto = productoConLote("Auditoria operativa", "PUBLICADO", "PUNTO_ACOPIO", java.time.LocalDate.now().plusDays(30));
         Long ubicacion = jdbc.queryForObject("SELECT ubicacion_id FROM lote WHERE producto_id=?", Long.class, producto);
