@@ -19,9 +19,9 @@ const URL_AUDITORIA = '/api/admin/auditoria'
 
 async function ingresar(page, correo, clave = CLAVE) {
   await page.goto('/ingresar')
-  await page.getByLabel(/Correo electrónico|Email address/).fill(correo)
+  await page.getByLabel(/Correo electrónico|Email address|^Email$/).fill(correo)
   await page.getByLabel(/^(Contraseña|Password)$/).fill(clave)
-  await page.getByRole('button', { name: /^(Iniciar sesión|Sign in)$/ }).click()
+  await page.getByRole('button', { name: /^(Iniciar sesión|Sign in|Log in)$/ }).click()
   await expect(page).not.toHaveURL(/\/ingresar/)
 }
 
