@@ -150,6 +150,42 @@ describe('fundación de visualizaciones para reportes', () => {
     expect(container.querySelector('.rv-detail')).toBeNull()
   })
 
+  it('comparte el cero entre barras apiladas positivas y una fila firmada negativa', () => {
+    const { container } = render(<BarrasComparativas titulo="Mixto" items={[
+      { id: 'n', etiqueta: 'Negativo', valor: -100 },
+      { id: 'p', etiqueta: 'Positivo', valor: 100, segmentos: [{ id: 'a', etiqueta: 'A', valor: 25 }, { id: 'b', etiqueta: 'B', valor: 75 }] },
+    ]} />)
+    const track = container.querySelectorAll('.rv-bar-track')[1]
+    const parts = track.querySelectorAll('.rv-bar-fill')
+    expect(track.style.getPropertyValue('--rv-zero')).toBe('50%')
+    expect(parts[0].style.left).toBe('50%')
+    expect(parts[1].style.left).toBe('62.5%')
+    expect(parts[0].style.width).toBe('12.5%')
+    expect(parts[1].style.width).toBe('37.5%')
+  })
+
+  it('deriva la leyenda visible de los segmentos recibidos, sin inventar nombres de canales', () => {
+    render(<BarrasComparativas titulo="Canales" items={[{ id: 'p', etiqueta: 'P', valor: 4, segmentos: [
+      { id: 'a', etiqueta: 'Minorista', valor: 1 }, { id: 'b', etiqueta: 'Mayorista', valor: 3 },
+    ] }]} />)
+    expect(screen.getByText('Minorista')).toBeTruthy()
+    expect(screen.getByText('Mayorista')).toBeTruthy()
+    expect(screen.queryByText('B2C')).toBeNull()
+  })
+
+  it('conserva el desglose incompatible accesible sin apilar contribuciones falsas', () => {
+    const onSelect = vi.fn()
+    const { container } = render(<BarrasComparativas titulo="Ausente" onSelect={onSelect} items={[{ id: 'p', etiqueta: 'P', valor: 10, segmentos: [
+      { id: 'a', etiqueta: 'A', valor: 20 }, { id: 'b', etiqueta: 'B', valor: null },
+    ] }]} />)
+    expect(container.querySelectorAll('.rv-bar-fill')).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: /^P:/ }))
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ segmentos: [
+      { id: 'a', etiqueta: 'A', valor: 20 }, { id: 'b', etiqueta: 'B', valor: null },
+    ] }))
+    expect(container.querySelector('.rv-detail').textContent).toContain('B: Sin dato')
+  })
+
   it('apila segmentos B2C/B2B dentro del total y expone valores exactos accesibles', () => {
     const onSelect = vi.fn()
     render(<BarrasComparativas titulo="Ranking" unidad="S/" onSelect={onSelect} items={[{

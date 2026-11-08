@@ -153,10 +153,10 @@ export function BarrasComparativas({ titulo, items = [], unidad = '', onSelect, 
   const [selection, setSelection] = useState(null)
   const normal = items.map((item) => {
     const valor = numero(item.valor)
-    const segmentos = Array.isArray(item.segmentos) ? item.segmentos.map((segmento) => ({ ...segmento, valor: numero(segmento.valor) })) : null
+    const segmentos = Array.isArray(item.segmentos) && item.segmentos.length ? item.segmentos.map((segmento) => ({ ...segmento, valor: numero(segmento.valor) })) : null
     const suma = segmentos?.reduce((total, segmento) => total + (segmento.valor ?? 0), 0)
     const apilable = segmentos?.length > 0 && valor !== null && valor >= 0 && segmentos.every((segmento) => segmento.valor !== null && segmento.valor >= 0) && Math.abs(suma - valor) < 0.000001
-    return { ...item, valor, segmentos: apilable ? segmentos : null }
+    return { ...item, valor, segmentos, apilable }
   })
   const keyFor = (item) => item.id ?? item.etiqueta
   const selected = normal.find((item) => keyFor(item) === selection)
@@ -164,6 +164,9 @@ export function BarrasComparativas({ titulo, items = [], unidad = '', onSelect, 
   const upper = Math.max(0, ...normal.map((item) => item.valor ?? 0)) || (lower < 0 ? 0 : 1)
   const position = (value) => (value - lower) / (upper - lower) * 100
   const zero = position(0)
+  const leyenda = new Map(normal.filter((item) => item.apilable).flatMap((item) => item.segmentos.map((segmento, index) => [
+    segmento.id ?? segmento.etiqueta, { ...segmento, color: color(index) },
+  ])))
   return <section className={`rv rv-bars ${className}`} aria-labelledby={`${uid}-title`}>
     <h3 id={`${uid}-title`}>{titulo}</h3>
     {!items.length ? <p className="rv-empty">{textos(locale).empty}</p> : <ul>{normal.map((item, index) => <li key={keyFor(item)}>
@@ -172,13 +175,13 @@ export function BarrasComparativas({ titulo, items = [], unidad = '', onSelect, 
         onSelect?.({ id: item.id, etiqueta: item.etiqueta, valor: item.valor, unidad, ...(item.segmentos ? { segmentos: item.segmentos } : {}) })
       }}>
         <span>{item.etiqueta}</span>
-        <span className="rv-bar-track" aria-hidden="true" style={{ '--rv-zero': `${zero}%` }}>{item.segmentos
-          ? item.segmentos.map((segmento, segmentIndex) => <span key={segmento.id ?? segmentIndex} className="rv-bar-fill" style={{ left: `${segmentIndex ? item.segmentos.slice(0, segmentIndex).reduce((sum, part) => sum + part.valor, 0) / (upper - lower) * 100 : 0}%`, width: `${upper === 0 ? 0 : segmento.valor / (upper - lower) * 100}%`, background: segmentIndex === 0 ? 'var(--editorial-forest, #163d2c)' : 'var(--editorial-focus, #8a6421)' }} />)
+        <span className="rv-bar-track" aria-hidden="true" style={{ '--rv-zero': `${zero}%` }}>{item.apilable
+          ? item.segmentos.map((segmento, segmentIndex) => <span key={segmento.id ?? segmentIndex} className="rv-bar-fill" style={{ left: `${zero + item.segmentos.slice(0, segmentIndex).reduce((sum, part) => sum + part.valor, 0) / (upper - lower) * 100}%`, width: `${segmento.valor / (upper - lower) * 100}%`, background: color(segmentIndex) }} />)
           : <span className="rv-bar-fill" style={{ left: `${Math.min(zero, position(item.valor ?? 0))}%`, width: `${Math.abs(position(item.valor ?? 0) - zero)}%`, background: color(index) }} />}</span>
         <strong>{formato(item.valor, unidad, locale)}</strong>
       </button>
     </li>)}</ul>}
-    {normal.some((item) => item.segmentos) && <ul className="rv-legend rv-bars__legend" aria-label="B2C/B2B"><li><span className="rv-swatch" style={{ '--rv-swatch': 'var(--editorial-forest, #163d2c)' }} />B2C</li><li><span className="rv-swatch" style={{ '--rv-swatch': 'var(--editorial-focus, #8a6421)' }} />B2B</li></ul>}
+    {leyenda.size > 0 && <ul className="rv-legend rv-bars__legend" aria-label={textos(locale).series}>{[...leyenda.values()].map((segmento) => <li key={segmento.id ?? segmento.etiqueta}><span className="rv-swatch" style={{ '--rv-swatch': segmento.color }} />{segmento.etiqueta}</li>)}</ul>}
     {selected && <p className="rv-detail" aria-live="polite">{selected.etiqueta}: {formato(selected.valor, unidad, locale)}{selected.segmentos?.map((segmento) => ` · ${segmento.etiqueta}: ${formato(segmento.valor, unidad, locale)}`)}</p>}
   </section>
 }
