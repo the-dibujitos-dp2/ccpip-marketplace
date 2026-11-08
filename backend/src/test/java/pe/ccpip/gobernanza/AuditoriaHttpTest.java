@@ -15,10 +15,11 @@ class AuditoriaHttpTest extends IntegrationTest {
     void denegadoConservaActorSinRegistrarNavegacionOrdinaria() throws Exception {
         var comprador=loginAs("consumidor@ccpip.test");
         long uid=jdbc.queryForObject("SELECT id FROM usuario WHERE correo='consumidor@ccpip.test'",Long.class);
+        long anteriores=jdbc.queryForObject("SELECT count(*) FROM auditoria_evento WHERE accion='ACCESO_DENEGADO' AND usuario_id=?",Long.class,uid);
         mockMvc.perform(get("/api/admin/auditoria").cookie(comprador)).andExpect(status().isForbidden());
-        assertThat(jdbc.queryForObject("SELECT count(*) FROM auditoria_evento WHERE accion='ACCESO_DENEGADO' AND usuario_id=?",Long.class,uid)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM auditoria_evento WHERE accion='ACCESO_DENEGADO' AND usuario_id=?",Long.class,uid)).isEqualTo(anteriores+1);
         mockMvc.perform(get("/api/auth/me").cookie(comprador)).andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT count(*) FROM auditoria_evento WHERE accion='ACCESO_DENEGADO' AND usuario_id=?",Long.class,uid)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM auditoria_evento WHERE accion='ACCESO_DENEGADO' AND usuario_id=?",Long.class,uid)).isEqualTo(anteriores+1);
     }
     @Test
     void recuperacionInexistenteNoEnumeraCuentaNiGuardaCorreo() throws Exception {
