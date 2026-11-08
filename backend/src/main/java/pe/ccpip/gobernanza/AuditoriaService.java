@@ -53,8 +53,9 @@ public class AuditoriaService {
             JOIN producto p ON p.id = a.producto_id
             UNION ALL
             SELECT 'CM-' || c.id, c.registrado_en, c.usuario_id, 'CATALOGO_' || c.accion,
-                   CASE c.entidad WHEN 'LINEA' THEN 'LINEA_MAESTRA' ELSE 'PRODUCTO_MAESTRO' END, c.entidad_id,
+                   CASE c.entidad WHEN 'LINEA' THEN 'LINEA_MAESTRA' WHEN 'UNIDAD' THEN 'UNIDAD' ELSE 'PRODUCTO_MAESTRO' END, c.entidad_id,
                    CASE c.entidad WHEN 'LINEA' THEN (SELECT l.nombre FROM linea_producto l WHERE l.id = c.entidad_id)
+                                  WHEN 'UNIDAD' THEN (SELECT um.nombre FROM unidad_medida um WHERE um.id = c.entidad_id)
                                   ELSE (SELECT m.nombre FROM producto_maestro m WHERE m.id = c.entidad_id) END,
                    'EXITOSA'
             FROM catalogo_maestro_auditoria c
@@ -91,6 +92,23 @@ public class AuditoriaService {
             JOIN cobertura_entrega c ON c.id = z.cobertura_id
             JOIN ubicacion u ON u.id = c.ubicacion_id
             JOIN ubigeo g ON g.codigo = c.ubigeo
+            UNION ALL
+            SELECT 'CC-' || c.id, c.registrado_en, c.registrado_por, 'COMISION_PROGRAMADA', 'COMISION', c.id,
+                   c.porcentaje::text || '%% · ' || c.motivo, 'EXITOSA'
+            FROM comision_configuracion c
+            UNION ALL
+            SELECT 'CCX-' || c.id, c.cancelado_en, c.cancelado_por, 'COMISION_CANCELADA', 'COMISION', c.id,
+                   c.porcentaje::text || '%% · ' || c.motivo, 'EXITOSA'
+            FROM comision_configuracion c
+            WHERE c.cancelado_en IS NOT NULL
+            UNION ALL
+            SELECT 'PP-' || p.id, p.registrado_en, p.registrado_por, 'PARAMETRO_CAMBIADO', 'PARAMETRO', p.id,
+                   p.clave || ' · ' || p.valor::text, 'EXITOSA'
+            FROM parametro_plataforma p
+            UNION ALL
+            SELECT 'MM-' || m.id, m.registrado_en, m.registrado_por, 'MOTIVO_MERMA_' || m.accion,
+                   'MOTIVO_MERMA', m.motivo_id, m.nombre, 'EXITOSA'
+            FROM motivo_merma_cambio m
             UNION ALL
             SELECT 'MI-' || m.id, m.registrado_en, m.usuario_id, 'MOVIMIENTO_' || m.tipo, 'MOVIMIENTO', m.id,
                    pr.nombre || coalesce(' · lote ' || l.codigo, '') || ' · ' || trim(to_char(m.cantidad, 'FM999999990.###'))

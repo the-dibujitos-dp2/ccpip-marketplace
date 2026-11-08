@@ -27,6 +27,14 @@ public final class AuditoriaModelos {
         CAPACIDAD_ENTREGA,
         /** CCPIP-496, 498: una zona de cobertura (distrito de entrega) de un punto de acopio. */
         COBERTURA_ENTREGA,
+        /** CCPIP-509: configuracion historica de comisiones. */
+        COMISION,
+        /** CCPIP-509: parametros configurables de la plataforma. */
+        PARAMETRO,
+        /** CCPIP-509: catalogo de causas de merma. */
+        MOTIVO_MERMA,
+        /** CCPIP-509: una unidad del catalogo de medidas. */
+        UNIDAD,
         /** CCPIP-504: un movimiento de inventario que registro el administrador de un punto de acopio. */
         MOVIMIENTO
     }
