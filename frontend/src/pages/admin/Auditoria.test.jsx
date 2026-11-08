@@ -163,6 +163,24 @@ describe('Auditoría de operaciones sensibles (CCPIP-97)', () => {
     expect(within(fila).getByText('Rechazado')).toBeInTheDocument()
   })
 
+  it.each([
+    ['es', 'Auditoría de operaciones sensibles', 'Inició sesión', 'Cantidad: 3', 'Decisión: Revocada'],
+    ['en', 'Audit of sensitive operations', 'Signed in', 'Quantity: 3', 'Decision: Revoked'],
+  ])('CCPIP-509: acciones nuevas y metadatos legibles sin JSON en %s', async (idioma, titulo, accion, cantidad, decision) => {
+    await i18n.changeLanguage(idioma)
+    const registro = { ...copia(AUDITORIA.registros[0]), accion: 'LOGIN_EXITOSO', entidad: 'SEGURIDAD',
+      detalle: JSON.stringify({ cantidad: 3, productoId: 17, cuentaBancaria: 'NO-MOSTRAR', estadoNuevo: 'ACTIVA' }), decision: 'REVOCADA' }
+    comoSuper({ [`GET ${RUTA}`]: [200, { ...copia(AUDITORIA), acciones: ['LOGIN_EXITOSO'], registros: [registro] }] })
+    abrirEn('/admin/auditoria')
+    const [fila] = await filas(titulo)
+    expect(within(fila).getByText(accion)).toBeInTheDocument()
+    expect(within(fila).getByText(cantidad)).toBeInTheDocument()
+    expect(within(fila).getByText(decision)).toBeInTheDocument()
+    expect(fila).not.toHaveTextContent('LOGIN_EXITOSO')
+    expect(fila).not.toHaveTextContent('{')
+    expect(fila).not.toHaveTextContent('NO-MOSTRAR')
+  })
+
   it('pagina en el servidor', async () => {
     const pagina2 = { ...copia(AUDITORIA), pagina: 1, total: 30, totalPaginas: 2, registros: [copia(AUDITORIA.registros[3])] }
     const fetchMock = comoSuper({

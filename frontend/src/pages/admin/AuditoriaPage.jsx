@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoCandado from '../../assets/icons/candado.svg'
 import { auditoria } from '../../api/admin.js'
+import { detalleAuditoria } from './AuditoriaDetalle.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
@@ -127,7 +128,7 @@ export default function AuditoriaPage({ path }) {
               <span className="tabla__celda auditoria__accion body-s" role="cell">{nombreAccion(r.accion)}</span>
               <span className="tabla__celda tabla__celda--flex auditoria__entidad" role="cell">
                 <span className="body-s">{t(`auditoria.entidad.${r.entidad}`)}</span>
-                {r.detalle && <span className="caption">{r.detalle}</span>}
+                {detalleAuditoria(r.detalle, t).map((texto, indice) => <span key={indice} className="caption">{texto}</span>)}
                 {r.referencia && <span className="caption">{t('auditoria.referencia')}: {r.referencia}</span>}
                 {r.ubicacionId != null && <span className="caption">{t('auditoria.ubicacion')}: {r.ubicacionId}</span>}
                 {r.decision && <span className="caption">{t('auditoria.decision')}: {t(`auditoria.decisionValor.${r.decision}`)}</span>}
