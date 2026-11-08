@@ -134,6 +134,16 @@ describe('Auditoría de operaciones sensibles (CCPIP-97)', () => {
     expect(llamadas(fetchMock, `GET ${RUTA}?${PERIODO}&entidad=MOVIMIENTO`)).toHaveLength(1)
   })
 
+  it('CCPIP-509: diferencia actor anónimo, valida ubicación positiva y traduce decisiones', async () => {
+    const ampliado = { ...copia(AUDITORIA), registros: [{ ...copia(AUDITORIA.registros[0]), usuario: null, correo: null, actor: 'ANONIMO', ubicacionId: 12, referencia: 'PEDIDO-40', correlacion: 'corr-abc', decision: 'APROBADA' }] }
+    comoSuper({ [`GET ${RUTA}`]: [200, ampliado] })
+    abrirEn('/admin/auditoria')
+    const [fila] = await filas()
+    expect(within(fila).getByText('Anónimo')).toBeInTheDocument()
+    expect(within(fila).getByText('Decisión: Aprobada')).toBeInTheDocument()
+    expect(screen.getByLabelText('Ubicación (ID)')).toHaveAttribute('min', '1')
+  })
+
   it('CCPIP-509: filtros de actor, ubicación y referencia más trazabilidad', async () => {
     const ampliado = { ...copia(AUDITORIA), registros: [{ ...copia(AUDITORIA.registros[0]), actor: 'USUARIO', ubicacionId: 12, referencia: 'PEDIDO-40', correlacion: 'corr-abc', decision: 'RECHAZADO' }] }
     const fetchMock = comoSuper({ [`GET ${RUTA}?${PERIODO}&actor=USUARIO&ubicacion=12&referencia=PEDIDO-40`]: [200, ampliado] })
@@ -149,7 +159,8 @@ describe('Auditoría de operaciones sensibles (CCPIP-97)', () => {
     expect(within(fila).getByText(/corr-abc/)).toBeInTheDocument()
     expect(within(fila).getByText(/PEDIDO-40/)).toBeInTheDocument()
     expect(within(fila).getByText(/12/)).toBeInTheDocument()
-    expect(within(fila).getAllByText(/Rechazado/)).toHaveLength(2)
+    expect(within(fila).getByText(/Decisión/)).toHaveTextContent('Rechazado')
+    expect(within(fila).getByText('Rechazado')).toBeInTheDocument()
   })
 
   it('pagina en el servidor', async () => {

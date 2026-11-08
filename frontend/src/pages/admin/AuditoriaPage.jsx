@@ -78,7 +78,7 @@ export default function AuditoriaPage({ path }) {
           placeholder={t('auditoria.usuarioAyuda')} onChange={cambiar('usuario')} />
         <Campo etiqueta={t('auditoria.actor')} tipo="selector" placeholder={t('auditoria.todos')} value={filtro.actor}
           onChange={cambiar('actor')} opciones={opciones(['USUARIO', 'SISTEMA', 'ANONIMO'], 'auditoria.actorTipo')} />
-        <Campo etiqueta={t('auditoria.ubicacion')} type="number" min="0" step="1" value={filtro.ubicacion} onChange={cambiar('ubicacion')} />
+        <Campo etiqueta={t('auditoria.ubicacion')} type="number" min="1" step="1" value={filtro.ubicacion} onChange={cambiar('ubicacion')} />
         <Campo etiqueta={t('auditoria.referencia')} maxLength={120} value={filtro.referencia} onChange={cambiar('referencia')} />
         <Campo etiqueta={t('auditoria.rol')} tipo="selector" placeholder={t('auditoria.todos')} value={filtro.rol}
           onChange={cambiar('rol')} opciones={opciones(ROLES, 'roles')} />
@@ -120,7 +120,7 @@ export default function AuditoriaPage({ path }) {
                     <span className="caption">{r.correo}</span>
                   </>
                 ) : (
-                  <span className="body-s">{t('auditoria.sistema')}</span>
+                  <span className="body-s">{r.actor ? t(`auditoria.actorTipo.${r.actor}`) : t('auditoria.sistema')}</span>
                 )}
               </span>
               <span className="tabla__celda auditoria__rol body-s" role="cell">{r.rol ? t(`roles.${r.rol}`) : '—'}</span>
@@ -130,7 +130,7 @@ export default function AuditoriaPage({ path }) {
                 {r.detalle && <span className="caption">{r.detalle}</span>}
                 {r.referencia && <span className="caption">{t('auditoria.referencia')}: {r.referencia}</span>}
                 {r.ubicacionId != null && <span className="caption">{t('auditoria.ubicacion')}: {r.ubicacionId}</span>}
-                {r.decision && <span className="caption">{t('auditoria.decision')}: {t(`auditoria.resultado.${r.decision}`)}</span>}
+                {r.decision && <span className="caption">{t('auditoria.decision')}: {t(`auditoria.decisionValor.${r.decision}`)}</span>}
                 {r.correlacion && <span className="caption">{t('auditoria.correlacion')}: {r.correlacion}</span>}
               </span>
               <span className="tabla__celda auditoria__resultado" role="cell">

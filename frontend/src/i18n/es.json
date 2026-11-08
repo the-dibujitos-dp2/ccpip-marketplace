@@ -4990,7 +4990,14 @@
       "PRODUCTO_MALOGRADO_FALTANTE": "Registró producto malogrado sin reemplazo",
       "REVISION_MERMA_SOLICITADA": "Pidió revisar una merma",
       "REVISION_MERMA_APROBADA": "Aprobó la revisión de una merma",
-      "REVISION_MERMA_RECHAZADA": "Rechazó la revisión de una merma"
+      "REVISION_MERMA_RECHAZADA": "Rechazó la revisión de una merma",
+      "COMISION_PROGRAMADA": "Programó una comisión",
+      "COMISION_CANCELADA": "Canceló una comisión",
+      "PARAMETRO_CAMBIADO": "Cambió un parámetro",
+      "MOTIVO_MERMA_CREADO": "Creó un motivo de merma",
+      "MOTIVO_MERMA_MODIFICADO": "Modificó un motivo de merma",
+      "MOTIVO_MERMA_DESACTIVADO": "Desactivó un motivo de merma",
+      "MOTIVO_MERMA_ACTIVADO": "Activó un motivo de merma"
     },
     "entidad": {
       "AUTORIZACION": "Autorización",
@@ -5049,7 +5056,13 @@
     "ubicacion": "Ubicación (ID)",
     "referencia": "Referencia",
     "decision": "Decisión",
-    "correlacion": "Correlación"
+    "correlacion": "Correlación",
+    "decisionValor": {
+      "APROBADA": "Aprobada",
+      "RECHAZADA": "Rechazada",
+      "APROBADO": "Aprobado",
+      "RECHAZADO": "Rechazado"
+    }
   },
   "cumplimiento": {
     "titulo": "Reglas de origen y sostenibilidad",

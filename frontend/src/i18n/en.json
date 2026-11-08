@@ -4990,7 +4990,14 @@
       "PRODUCTO_MALOGRADO_FALTANTE": "Recorded damaged product without replacement",
       "REVISION_MERMA_SOLICITADA": "Requested a loss review",
       "REVISION_MERMA_APROBADA": "Approved a loss review",
-      "REVISION_MERMA_RECHAZADA": "Rejected a loss review"
+      "REVISION_MERMA_RECHAZADA": "Rejected a loss review",
+      "COMISION_PROGRAMADA": "Scheduled a commission",
+      "COMISION_CANCELADA": "Canceled a commission",
+      "PARAMETRO_CAMBIADO": "Changed a parameter",
+      "MOTIVO_MERMA_CREADO": "Created a shrinkage reason",
+      "MOTIVO_MERMA_MODIFICADO": "Modified a shrinkage reason",
+      "MOTIVO_MERMA_DESACTIVADO": "Deactivated a shrinkage reason",
+      "MOTIVO_MERMA_ACTIVADO": "Activated a shrinkage reason"
     },
     "entidad": {
       "AUTORIZACION": "Authorization",
@@ -5049,7 +5056,13 @@
     "ubicacion": "Location (ID)",
     "referencia": "Reference",
     "decision": "Decision",
-    "correlacion": "Correlation"
+    "correlacion": "Correlation",
+    "decisionValor": {
+      "APROBADA": "Approved",
+      "RECHAZADA": "Declined",
+      "APROBADO": "Approved",
+      "RECHAZADO": "Declined"
+    }
   },
   "cumplimiento": {
     "titulo": "Origin and sustainability rules",
