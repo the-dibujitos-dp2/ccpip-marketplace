@@ -91,6 +91,26 @@
 .layout-tienda .tienda-publica__galeria img,
 .layout-tienda .tienda-publica__videos video { border-radius: 0; }
 
+/* Estados vacíos de carrito, pedidos y cuenta: plan editorial, scoped al consumidor. */
+.layout-tienda .estado-vacio {
+  border-color: var(--color-border-default);
+  border-radius: var(--editorial-radius);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  box-shadow: none;
+}
+.layout-tienda .estado-vacio__icono {
+  border-radius: var(--editorial-radius);
+  background: var(--color-bg-brand-subtle);
+  color: var(--color-text-brand);
+}
+.layout-tienda .estado-vacio__titulo {
+  color: var(--color-text-primary);
+  font-family: var(--consumer-serif, 'Fraunces', Georgia, serif);
+  font-weight: 400;
+}
+.layout-tienda .estado-vacio__descripcion { color: var(--color-text-secondary); }
+
 /* Carrito, pago, pedidos y cuenta: mismos controles y estados, misma gramatica visual. */
 .layout-tienda .carrito__grupo,
 .layout-tienda .carrito__resumen,
