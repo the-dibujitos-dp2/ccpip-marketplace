@@ -29,7 +29,11 @@ export function GraficaAdmin({ tipo, datos, titulo }) {
   const opciones = finanzas ? ['desglose', 'b2c', 'b2b', 'total'] : ['ventas', 'pedidos', 'productores', 'productos', 'compradores']
   const dataset = JSON.stringify([datos?.clave, datos?.aplicado, datos?.desde, datos?.hasta, datos?.agrupacion])
   const [magnitud, setMagnitud] = useState(finanzas ? 'desglose' : 'ventas')
-  useEffect(() => setMagnitud(finanzas ? 'desglose' : 'ventas'), [dataset, finanzas])
+  const [dimension, setDimension] = useState('destino')
+  useEffect(() => {
+    setMagnitud(finanzas ? 'desglose' : 'ventas')
+    setDimension('destino')
+  }, [dataset, finanzas])
   const campo = opciones.includes(magnitud) ? magnitud : opciones[0]
   const periodos = datos?.periodos ?? []
   const camposApi = { ventas: 'ventas', pedidos: 'pedidos', productores: 'productoresConVentas', productos: 'productosNuevos', compradores: 'compradores' }
@@ -94,11 +98,15 @@ export function GraficaAdmin({ tipo, datos, titulo }) {
       ['productor', texto.productoresOrigen, datos.porProductor ?? [], (fila) => fila.nombre],
       ['ruta', texto.rutas, datos.rutas ?? [], (fila) => `${fila.punto} — ${fila.destino ?? texto.sinDireccion}`],
     ]
+    const [id, label, filas, nombre] = dimensiones.find(([key]) => key === dimension) ?? dimensiones[0]
     return <section className="reportes-visual" key={dataset} aria-label={titulo}>
-      {dimensiones.map(([id, label, filas, nombre]) => (
-        <BarrasComparativas key={`${id}-${dataset}`} titulo={label} unidad="S/"
-          items={filas.map((fila, indice) => ({ id: `${id}-${indice}`, etiqueta: nombre(fila), valor: numero(fila.total) }))} />
-      ))}
+      <div className="reportes-visual__controls" role="group" aria-label={titulo}>
+        {dimensiones.map(([key, textoDimension]) => (
+          <button key={key} type="button" aria-pressed={id === key} onClick={() => setDimension(key)}>{textoDimension}</button>
+        ))}
+      </div>
+      <BarrasComparativas key={`${id}-${dataset}`} titulo={label} unidad="S/"
+        items={filas.map((fila, indice) => ({ id: `${id}-${indice}`, etiqueta: nombre(fila), valor: numero(fila.total) }))} />
     </section>
   }
   return null

@@ -72,8 +72,14 @@ describe('gráficas administrativas con respuestas reales de pruebas', () => {
   })
   it('origen-destino usa campos reales de origen/destino/ruta y sin labels undefined', () => {
     render(<GraficaAdmin tipo="origen-destino" datos={origenDestino} titulo="Destinos" />)
-    for (const nombre of ['Satipo', 'Tienda Asháninka', 'Lima', 'Satipo — Lima', 'Oxapampa — Sin dirección registrada']) {
-      expect(screen.getByText(nombre)).toBeInTheDocument()
+    expect(screen.getByText('Lima')).toBeInTheDocument()
+    for (const [dimension, nombres] of [
+      ['Por punto de acopio', ['Satipo']],
+      ['Por productor', ['Tienda Asháninka']],
+      ['Rutas', ['Satipo — Lima', 'Oxapampa — Sin dirección registrada']],
+    ]) {
+      fireEvent.click(screen.getByRole('button', { name: dimension, exact: true }))
+      for (const nombre of nombres) expect(screen.getByText(nombre)).toBeInTheDocument()
     }
     expect(screen.queryByText('undefined')).not.toBeInTheDocument()
     expect(screen.queryByText(/Sin datos para mostrar/)).not.toBeInTheDocument()
