@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoAlmacen from '../../../assets/icons/almacen.svg'
 import iconoMovimientos from '../../../assets/icons/movimientos.svg'
@@ -17,16 +18,28 @@ export default function Inventario({ datos }) {
   const { t, i18n } = useTranslation()
   const titulo = (es, en) => (i18n.resolvedLanguage || '').startsWith('es') ? es : en
   const { totales } = datos
+  const [seleccion, setSeleccion] = useState(null)
+  const periodo = datos.periodos.find((fila) => fila.inicio === seleccion)
+  const dataset = JSON.stringify([datos.clave, datos.aplicado, datos.desde, datos.hasta, datos.agrupacion, datos.periodos.map((fila) => fila.inicio)])
   const col = columnas(t, datos.agrupacion)
   const und = (v) => t('comun.und', { cantidad: unidades(v) })
   const variacion = { entradas: unidades(totales.entradas), salidas: unidades(totales.salidas) }
   return (
     <>
-      <SerieTemporal titulo={titulo('Evolución de inventario', 'Inventory trend')} unidad="und" series={[
+      <SerieTemporal key={dataset} onSelect={(detalle) => setSeleccion(detalle.etiqueta)} titulo={titulo('Evolución de inventario', 'Inventory trend')} unidad="und" series={[
         ...['saldoInicial', 'entradas', 'salidas', 'saldoFinal'].map((id) => ({
           id, nombre: t(`acopio.reportes.col.${id}`), unidad: 'und', puntos: datos.periodos.map((p) => ({ etiqueta: p.inicio, valor: p[id] })),
         })),
       ]} />
+      {periodo && <section className="productor__seccion" aria-label={titulo('Detalle del período', 'Period detail')}>
+        <h3>{titulo('Detalle del período', 'Period detail')} · {periodo.inicio}</h3>
+        <dl className="acopio-inventario__puente">
+          {['saldoInicial', 'entradas', 'salidas', 'saldoFinal'].map((campo) => <div key={campo}>
+            <dt>{t(`acopio.reportes.col.${campo}`)}</dt>
+            <dd>{periodo[campo] == null ? titulo('Sin dato', 'No data') : und(periodo[campo])}</dd>
+          </div>)}
+        </dl>
+      </section>}
       <Kpis textos="acopio.reportes.inventario" tarjetas={[
         { clave: 'saldoInicial', valor: und(totales.saldoInicial), icono: iconoAlmacen, detalle: 'alInicio' },
         { clave: 'movimiento', valor: und(Number(totales.entradas) - Number(totales.salidas)), icono: iconoMovimientos, vars: variacion },

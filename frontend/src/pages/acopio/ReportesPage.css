@@ -18,4 +18,9 @@
 /* Las series ocupan el primer plano; detalle tabular permanece íntegro debajo. */
 .acopio-visualizaciones { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr); gap: 20px; margin: 0 0 28px; }
 .acopio-visualizaciones > .rv { min-width: 0; }
+.acopio-visualizaciones__controles { margin-bottom: .75rem; }
+.acopio-inventario__puente { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin: 1rem 0; }
+.acopio-inventario__puente dt { color: var(--editorial-muted); font-size: .875rem; }
+.acopio-inventario__puente dd { margin: .3rem 0 0; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+@media (max-width: 720px) { .acopio-inventario__puente { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .acopio-visualizaciones { grid-template-columns: minmax(0, 1fr); } }
