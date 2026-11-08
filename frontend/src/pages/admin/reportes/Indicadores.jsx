@@ -62,6 +62,7 @@ export default function Indicadores({ datos }) {
   const mayor = Math.max(...datos.periodos.map((p) => Number(p.ventas)), 0)
   return (
     <>
+      <GraficaAdmin tipo="indicadores" datos={datos} titulo={t(`${TEXTOS}.porPeriodo`)} />
       <p className="caption">{t(`${TEXTOS}.frente`, {
         desde: fecha(datos.desde), hasta: fecha(datos.hasta), anteriorDesde: fecha(datos.anteriorDesde), anteriorHasta: fecha(datos.anteriorHasta),
       })}</p>
@@ -90,7 +91,6 @@ export default function Indicadores({ datos }) {
         // Mas denuncias es peor
         { clave: 'denuncias', valor: unidades(actividad.denuncias.valor), icono: iconoAlerta, ...variacion(actividad.denuncias, true) },
       ]} />
-      <GraficaAdmin tipo="indicadores" datos={datos} titulo={t(`${TEXTOS}.porPeriodo`)} />
       <TablaReporte id="indicadores-periodos" titulo={t(`${TEXTOS}.porPeriodo`)} filas={datos.periodos} clave={(p) => p.inicio}
         nota={t(`${TEXTOS}.nota`)}
         columnas={[

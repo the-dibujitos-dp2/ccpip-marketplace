@@ -23,6 +23,7 @@ export default function Puntos({ datos }) {
   const conVentas = datos.puntos.filter((p) => Number(p.total) > 0).length
   return (
     <>
+      <GraficaAdmin tipo="puntos" datos={datos} titulo={t(`${TEXTOS}.tabla`)} />
       <Kpis textos={TEXTOS} tarjetas={[
         { clave: 'ventas', valor: precio(datos.totales.total), icono: iconoGrafico, vars: rango(datos) },
         { clave: 'pedidos', valor: unidades(datos.pedidos), icono: iconoPaquete },
@@ -30,7 +31,6 @@ export default function Puntos({ datos }) {
         { clave: 'denuncias', valor: unidades(datos.denuncias.total), icono: iconoAlerta, vars: datos.denuncias,
           tono: datos.denuncias.abiertas > 0 ? 'aviso' : 'neutro' },
       ]} />
-      <GraficaAdmin tipo="puntos" datos={datos} titulo={t(`${TEXTOS}.tabla`)} />
       <TablaReporte id="reportes-puntos" titulo={t(`${TEXTOS}.tabla`)} filas={datos.puntos} clave={(p) => p.puntoId}
         vacio={t(`${TEXTOS}.vacio`)} nota={`${t(`${TEXTOS}.nota`)} ${t(`${TEXTOS}.notaDenuncias`)}`}
         columnas={[

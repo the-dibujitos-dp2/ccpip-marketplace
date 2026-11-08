@@ -30,6 +30,7 @@ export default function OrigenDestino({ datos }) {
   const destinos = datos.porDestino.filter((d) => d.departamento != null).length
   return (
     <>
+      <GraficaAdmin tipo="origen-destino" datos={datos} titulo={t(`${TEXTOS}.porDestino`)} />
       <Kpis textos={TEXTOS} tarjetas={[
         { clave: 'ventas', valor: precio(datos.total), icono: iconoGrafico, vars: rango(datos) },
         { clave: 'pedidos', valor: unidades(datos.pedidos), icono: iconoPaquete },
@@ -37,7 +38,6 @@ export default function OrigenDestino({ datos }) {
         { clave: 'envios', valor: unidades(suma(datos.porDestino, 'envios')), icono: iconoCamion,
           vars: { recojos: suma(datos.porDestino, 'recojos') } },
       ]} />
-      <GraficaAdmin tipo="origen-destino" datos={datos} titulo={t(`${TEXTOS}.porDestino`)} />
       <TablaReporte id="reportes-origen-punto" titulo={t(`${TEXTOS}.porPunto`)} filas={datos.porPunto} clave={claveOrigen}
         vacio={t(`${TEXTOS}.vacio`)} columnas={origen('punto', 'departamento')} />
       <TablaReporte id="reportes-origen-productor" titulo={t(`${TEXTOS}.porProductor`)} filas={datos.porProductor} clave={claveOrigen}

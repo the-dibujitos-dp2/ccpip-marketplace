@@ -19,6 +19,7 @@ export default function Productores({ datos }) {
   const [lider] = datos.productores
   return (
     <>
+      <GraficaAdmin tipo="productores" datos={datos} titulo={t(`${TEXTOS}.tabla`)} />
       <Kpis textos={TEXTOS} tarjetas={[
         { clave: 'ventas', valor: precio(datos.totales.total), icono: iconoGrafico, vars: rango(datos) },
         { clave: 'conVentas', valor: unidades(datos.productoresConVentas), icono: iconoComunidad, vars: { limite: datos.limite } },
@@ -26,7 +27,6 @@ export default function Productores({ datos }) {
           ? { clave: 'lider', valor: porcentaje(lider.participacion), icono: iconoPorcentaje, vars: { productor: lider.productor } }
           : { clave: 'lider', valor: '—', icono: iconoPorcentaje, detalle: 'sinLider' },
       ]} />
-      <GraficaAdmin tipo="productores" datos={datos} titulo={t(`${TEXTOS}.tabla`)} />
       <TablaReporte id="reportes-productores" titulo={t(`${TEXTOS}.tabla`)} filas={datos.productores}
         clave={(p) => p.productorId} vacio={t(`${TEXTOS}.vacio`)} nota={t(`${TEXTOS}.nota`, { limite: datos.limite })}
         columnas={[

@@ -35,6 +35,7 @@ export default function Calificaciones({ datos }) {
   const enCaida = datos.productos.filter((p) => p.tendencia === 'BAJA').length
   return (
     <>
+      <GraficaAdmin tipo="calificaciones" datos={datos} titulo={t(`${TEXTOS}.distribucion`)} />
       <Kpis textos={TEXTOS} tarjetas={[
         resumen.promedio == null
           ? { clave: 'promedio', valor: '—', icono: iconoEstrella, detalle: 'sinPromedio', vars: { minimo } }
@@ -42,7 +43,6 @@ export default function Calificaciones({ datos }) {
         { clave: 'resenas', valor: unidades(resumen.resenas), icono: iconoUsuario, vars: rango(datos) },
         { clave: 'enCaida', valor: unidades(enCaida), icono: iconoAlerta, vars: anterior, tono: enCaida > 0 ? 'aviso' : 'neutro' },
       ]} />
-      <GraficaAdmin tipo="calificaciones" datos={datos} titulo={t(`${TEXTOS}.distribucion`)} />
       <TablaReporte id="reportes-distribucion" titulo={t(`${TEXTOS}.distribucion`)} filas={resumen.distribucion}
         clave={(e) => e.estrellas}
         columnas={[
