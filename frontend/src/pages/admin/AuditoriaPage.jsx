@@ -124,13 +124,17 @@ export default function AuditoriaPage({ path }) {
                   <span className="body-s">{r.actor ? t(`auditoria.actorTipo.${r.actor}`) : t('auditoria.sistema')}</span>
                 )}
               </span>
-              <span className="tabla__celda auditoria__rol body-s" role="cell">{r.rol ? t(`roles.${r.rol}`) : '—'}</span>
+              <span className="tabla__celda auditoria__rol body-s" role="cell">
+                {r.rol ? t(`roles.${r.rol}`) : '—'}
+                {r.rol && r.rolHistorico === false && <span className="caption">{t('auditoria.rolNoHistorico')}</span>}
+              </span>
               <span className="tabla__celda auditoria__accion body-s" role="cell">{nombreAccion(r.accion)}</span>
               <span className="tabla__celda tabla__celda--flex auditoria__entidad" role="cell">
                 <span className="body-s">{t(`auditoria.entidad.${r.entidad}`)}</span>
                 {r.metadatos && r.detalle && !r.detalle.trim().startsWith('{') && r.entidad !== 'PARAMETRO'
                   && <span className="caption">{r.detalle}</span>}
                 {detalleAuditoria(r.metadatos ?? r.detalle, t).map((texto, indice) => <span key={indice} className="caption">{texto}</span>)}
+                {r.motivo && <span className="caption">{t('auditoria.motivo')}: {r.motivo}</span>}
                 {r.referencia && <span className="caption">{t('auditoria.referencia')}: {r.referencia}</span>}
                 {r.ubicacionId != null && <span className="caption">{t('auditoria.ubicacion')}: {r.ubicacionId}</span>}
                 {r.decision && <span className="caption">{t('auditoria.decision')}: {t(`auditoria.decisionValor.${r.decision}`)}</span>}

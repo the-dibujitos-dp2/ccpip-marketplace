@@ -165,12 +165,14 @@ describe('Auditoría de operaciones sensibles (CCPIP-97)', () => {
 
   it('CCPIP-509: conserva contexto humano y metadatos del mismo evento', async () => {
     const registro = { ...copia(AUDITORIA.registros[1]), detalle: 'Miel de abeja nativa',
-      metadatos: JSON.stringify({ cantidad: 4, productoId: 17 }) }
+      metadatos: JSON.stringify({ cantidad: 4, productoId: 17 }), motivo: 'Verificación de origen', rolHistorico: false }
     comoSuper({ [`GET ${RUTA}`]: [200, { ...copia(AUDITORIA), registros: [registro] }] })
     abrirEn('/admin/auditoria')
     const [fila] = await filas()
     expect(within(fila).getByText('Miel de abeja nativa')).toBeInTheDocument()
     expect(within(fila).getByText('Cantidad: 4')).toBeInTheDocument()
+    expect(within(fila).getByText('Motivo: Verificación de origen')).toBeInTheDocument()
+    expect(within(fila).getByText('Rol actual; no registrado al realizar la acción')).toBeInTheDocument()
   })
 
   it.each(['es', 'en'])('CCPIP-509: catálogo de nuevas acciones traducido en %s', async (idioma) => {

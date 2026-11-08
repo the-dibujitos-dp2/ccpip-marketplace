@@ -77,6 +77,15 @@ class AuditoriaFuentesTest extends IntegrationTest {
                 .andExpect(jsonPath("$.registros[?(@.clave == 'PP-" + id + "')].metadatos").value(hasItem(org.hamcrest.Matchers.containsString("CARRITO_VIGENCIA_HORAS"))));
     }
 
+    @Test
+    void exponeMotivoDeDecisionSinDatosDeContacto() throws Exception {
+        long productor=jdbc.queryForObject("SELECT id FROM productor LIMIT 1",Long.class);
+        long id=jdbc.queryForObject("INSERT INTO productor_decision(productor_id,decision,motivo,decidido_por) VALUES (?,'HABILITAR_TIENDA','Motivo trazable contacto@correo.test 987654321',?) RETURNING id",Long.class,productor,usuario("sub_admin@ccpip.test"));
+        mockMvc.perform(get("/api/admin/auditoria?accion=HABILITAR_TIENDA").cookie(loginAs("sudo@ccpip.test")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.registros[?(@.clave == 'PD-"+id+"')].motivo").value(hasItem("Motivo trazable [oculto] [oculto]")));
+    }
+
     private long usuario(String correo) {
         return jdbc.queryForObject("SELECT id FROM usuario WHERE correo = ?", Long.class, correo);
     }

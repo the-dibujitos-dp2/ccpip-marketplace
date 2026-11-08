@@ -4898,6 +4898,8 @@
       "motivo": "Reason"
     },
     "accion": {
+      "ANALISIS_SOLICITADO": "Requested evidence analysis",
+      "ANALISIS_RESULTADO": "Recorded analysis result",
       "AUTORIZACION_APROBADA": "Approved authorization",
       "AUTORIZACION_RECHAZADA": "Rejected authorization",
       "AUTORIZACION_REVOCADA": "Revoked authorization",
@@ -5182,6 +5184,8 @@
       "true": "Yes",
       "false": "No"
     },
+    "motivo": "Reason",
+    "rolNoHistorico": "Current role; not recorded at the time of the action",
     "datoRegistrado": "Recorded value",
     "campoRegistrado": "Changed field",
     "decisionValor": {

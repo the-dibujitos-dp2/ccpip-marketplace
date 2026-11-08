@@ -14,26 +14,27 @@ BEGIN
   ent:='VIDEO'; ref:=NEW.id::text;
   IF TG_OP='INSERT' THEN uid:=NEW.subido_por; fecha:=NEW.subido_en; accion:=CASE WHEN NEW.reemplaza_a IS NULL THEN 'VIDEO_SUBIDO' ELSE 'VIDEO_REEMPLAZADO' END; clave:='VS-'||NEW.id;
   ELSIF OLD.retirado_en IS NULL AND NEW.retirado_en IS NOT NULL THEN uid:=NEW.retirado_por; fecha:=NEW.retirado_en; accion:='VIDEO_RETIRADO'; clave:='VR-'||NEW.id;
-  ELSIF OLD.estado IS DISTINCT FROM NEW.estado THEN uid:=NEW.decidido_por; fecha:=NEW.decidido_en; accion:='VIDEO_DECIDIDO'; clave:='MV-'||NEW.id; det:=jsonb_build_object('estado',NEW.estado);
+  ELSIF OLD.estado IS DISTINCT FROM NEW.estado THEN uid:=NEW.decidido_por; fecha:=NEW.decidido_en; accion:=CASE NEW.estado WHEN 'PUBLICADO' THEN 'VIDEO_PUBLICADO' WHEN 'RECHAZADO' THEN 'VIDEO_RECHAZADO' ELSE 'VIDEO_DECIDIDO' END; clave:='MV-'||NEW.id; det:=jsonb_build_object('decision',NEW.estado);
   ELSE RETURN NEW; END IF;
  ELSIF TG_TABLE_NAME='imagen' THEN
   IF NEW.producto_id IS NOT NULL THEN RETURN NEW; END IF;
   ent:='IMAGEN'; ref:=NEW.id::text;
   IF TG_OP='INSERT' THEN uid:=NEW.subida_por; fecha:=NEW.subida_en; accion:='GALERIA_IMAGEN_SUBIDA'; clave:='IMGS-'||NEW.id;
-  ELSIF OLD.retirada_en IS NULL AND NEW.retirada_en IS NOT NULL THEN uid:=NEW.retirada_por; fecha:=NEW.retirada_en; accion:=CASE WHEN NEW.reemplazada_por IS NULL THEN 'GALERIA_IMAGEN_RETIRADA' ELSE 'GALERIA_IMAGEN_REEMPLAZADA' END; clave:='IMGR-'||NEW.id;
+  ELSIF OLD.retirada_en IS NULL AND NEW.retirada_en IS NOT NULL THEN uid:=NEW.retirada_por; fecha:=NEW.retirada_en; accion:='GALERIA_IMAGEN_RETIRADA'; clave:='IMGR-'||NEW.id;
+  ELSIF OLD.reemplazada_por IS NULL AND NEW.reemplazada_por IS NOT NULL THEN uid:=NEW.retirada_por; fecha:=now(); accion:='GALERIA_IMAGEN_REEMPLAZADA'; clave:='IMGRP-'||NEW.id||'-'||NEW.reemplazada_por;
   ELSE RETURN NEW; END IF;
   det:=jsonb_build_object('tipo',NEW.tipo,'ancho',NEW.ancho,'alto',NEW.alto);
  ELSIF TG_TABLE_NAME='producto' THEN
   IF OLD.destacado_tienda IS NOT DISTINCT FROM NEW.destacado_tienda THEN RETURN NEW; END IF;
   SELECT usuario_id INTO uid FROM productor WHERE id=NEW.productor_id;
-  ent:='PRODUCTO'; ref:=NEW.id::text; fecha:=NEW.actualizado_en; accion:='TIENDA_DESTACADO_CAMBIADO'; det:=jsonb_build_object('destacado',NEW.destacado_tienda); clave:='PD-'||NEW.id||'-'||NEW.destacado_tienda;
+  ent:='PRODUCTO'; ref:=NEW.id::text; fecha:=now(); accion:='TIENDA_DESTACADO_CAMBIADO'; det:=jsonb_build_object('destacado',NEW.destacado_tienda); clave:='PD-'||NEW.id||'-'||nextval('auditoria_evento_id_seq');
  ELSIF TG_TABLE_NAME='traduccion' THEN
   IF NEW.entidad NOT IN ('PRODUCTO','HISTORIA','TIENDA','COMUNIDAD') THEN RETURN NEW; END IF;
-  IF NOT (TG_OP='UPDATE' AND NEW.estado='APROBADA' AND (OLD.estado IS DISTINCT FROM NEW.estado OR OLD.texto IS DISTINCT FROM NEW.texto)) THEN RETURN NEW; END IF;
+  IF NOT (NEW.estado='APROBADA' AND (TG_OP='INSERT' OR OLD.estado IS DISTINCT FROM NEW.estado OR OLD.texto IS DISTINCT FROM NEW.texto)) THEN RETURN NEW; END IF;
   IF NEW.entidad IN ('PRODUCTO','HISTORIA') THEN SELECT pr.usuario_id INTO uid FROM producto p JOIN productor pr ON pr.id=p.productor_id WHERE p.id=NEW.clave::bigint;
   ELSE SELECT usuario_id INTO uid FROM productor WHERE id=NEW.clave::bigint; END IF;
   IF uid IS NULL THEN RETURN NEW; END IF;
-  ent:=NEW.entidad; ref:=NEW.id::text; fecha:=NEW.aprobada_en; accion:='TRADUCCION_APROBADA'; det:=jsonb_build_object('tipo',NEW.entidad,'idioma',NEW.idioma,'versionOriginal',NEW.version_original); clave:='TR-'||NEW.id||'-'||NEW.version_original;
+  ent:='TRADUCCION'; ref:=NEW.id::text; fecha:=NEW.aprobada_en; accion:='TRADUCCION_APROBADA'; det:=jsonb_build_object('tipo',NEW.entidad,'origen',NEW.origen,'idioma',NEW.idioma,'versionOriginal',NEW.version_original); clave:='TR-'||NEW.id||'-'||nextval('auditoria_evento_id_seq');
  ELSIF TG_TABLE_NAME='solicitud_unidad_medida' THEN
   ent:='SOLICITUD_UNIDAD'; ref:=NEW.id::text;
   IF TG_OP='INSERT' THEN uid:=NEW.solicitada_por; fecha:=NEW.creada_en; accion:='SOLICITUD_UNIDAD_CREADA'; clave:='SU-'||NEW.id;

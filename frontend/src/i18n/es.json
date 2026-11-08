@@ -4898,6 +4898,8 @@
       "motivo": "Motivo"
     },
     "accion": {
+      "ANALISIS_SOLICITADO": "Solicitó análisis de evidencias",
+      "ANALISIS_RESULTADO": "Registró resultado del análisis",
       "AUTORIZACION_APROBADA": "Aprobó autorización",
       "AUTORIZACION_RECHAZADA": "Rechazó autorización",
       "AUTORIZACION_REVOCADA": "Revocó autorización",
@@ -5182,6 +5184,8 @@
       "true": "Sí",
       "false": "No"
     },
+    "motivo": "Motivo",
+    "rolNoHistorico": "Rol actual; no registrado al realizar la acción",
     "datoRegistrado": "Dato registrado",
     "campoRegistrado": "Campo modificado",
     "decisionValor": {

@@ -15,7 +15,7 @@ class AuditoriaContenidoTest extends IntegrationTest {
         long id = productoConLote("Producto destacado audit-test", "PUBLICADO", "PUNTO_ACOPIO", java.time.LocalDate.now().plusMonths(3));
         long actor = jdbc.queryForObject("SELECT pr.usuario_id FROM producto p JOIN productor pr ON pr.id=p.productor_id WHERE p.id=?", Long.class, id);
         jdbc.update("UPDATE producto SET destacado_tienda=true WHERE id=?", id);
-        var evento = jdbc.queryForMap("SELECT * FROM auditoria_evento WHERE clave_evento=?", "PD-" + id + "-true");
+        var evento = jdbc.queryForMap("SELECT * FROM auditoria_evento WHERE accion='TIENDA_DESTACADO_CAMBIADO' AND entidad='PRODUCTO' AND referencia=?", String.valueOf(id));
         assertEquals("TIENDA_DESTACADO_CAMBIADO", evento.get("accion"));
         assertEquals(actor, ((Number) evento.get("usuario_id")).longValue());
     }

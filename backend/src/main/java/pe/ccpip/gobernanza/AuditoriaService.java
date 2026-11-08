@@ -201,8 +201,10 @@ public class AuditoriaService {
 
     private static final String DESDE_REGISTROS = """
             FROM (%s) AS r
+            LEFT JOIN (%s) AS razones (clave, fecha, autor, tipo, accion, sobre, detalle, objeto, objeto_id, motivo)
+                ON razones.clave=r.clave
             WHERE %s BETWEEN :desde AND :hasta
-            """.formatted(REGISTROS_INTEGRADOS, FECHA_LIMA.formatted("r.fecha"));
+            """.formatted(REGISTROS_INTEGRADOS, HistorialGobernanzaService.ACCIONES, FECHA_LIMA.formatted("r.fecha"));
 
     private static final String FILTROS = """
               AND (CAST(:usuario AS text) IS NULL
@@ -245,7 +247,7 @@ public class AuditoriaService {
 
         Long total = jdbc.queryForObject("SELECT count(*) " + DESDE_REGISTROS + FILTROS, p, Long.class);
         List<Registro> registros = jdbc.query("""
-                SELECT r.*, r.actor_nombre AS usuario, r.actor_correo AS correo, r.actor_rol AS rol
+                SELECT r.*, r.actor_nombre AS usuario, r.actor_correo AS correo, r.actor_rol AS rol, razones.motivo
                 %s%s
                 ORDER BY r.fecha DESC, r.clave DESC
                 LIMIT :tamano OFFSET :desplazamiento""".formatted(DESDE_REGISTROS, FILTROS), p,
@@ -255,12 +257,18 @@ public class AuditoriaService {
                         Entidad.valueOf(rs.getString("entidad")), rs.getLong("entidad_id"), rs.getString("detalle"),
                         Resultado.valueOf(rs.getString("resultado")), Actor.valueOf(rs.getString("actor_tipo")),
                         rs.getObject("ubicacion_id", Long.class), rs.getString("referencia"), rs.getString("correlacion"),
-                        rs.getString("decision"), rs.getBoolean("rol_historico"), rs.getString("metadatos")));
+                        rs.getString("decision"), rs.getBoolean("rol_historico"), rs.getString("metadatos"), motivoSeguro(rs.getString("motivo"))));
         List<String> acciones = jdbc.queryForList(
                 "SELECT DISTINCT r.accion " + DESDE_REGISTROS + "ORDER BY r.accion", p, String.class);
         long cuantos = total == null ? 0 : total;
         int totalPaginas = (int) Math.max(1, (cuantos + TAMANO - 1) / TAMANO);
         return new PaginaAuditoria(rango.desde(), rango.hasta(), registros, pagina, TAMANO, cuantos, totalPaginas,
                 acciones);
+    }
+
+    private static String motivoSeguro(String texto) {
+        if (texto == null) return null;
+        return texto.replaceAll("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}", "[oculto]")
+                .replaceAll("(?:\\+?[0-9][ .-]?){7,}", "[oculto]").strip();
     }
 }
