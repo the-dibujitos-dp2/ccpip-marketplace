@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -149,6 +150,25 @@ public class CatalogoRepository {
                 JOIN linea_producto lp ON lp.id = pl.linea_id
                 WHERE p.estado""") + where(f.sinFacetas(), p) + " GROUP BY lp.codigo, lp.nombre, lp.orden ORDER BY lp.orden",
                 p, (rs, row) -> new Faceta(rs.getString("codigo"), rs.getString("nombre"), rs.getLong("total")));
+    }
+
+    /**
+     * CCPIP-127: por cada linea, la foto principal vigente de una oferta visible de esa linea. Primero
+     * las ofertas cuya linea principal es esa y, entre ellas, la mas antigua, para que la foto no
+     * cambie con cada publicacion. Una linea sin ofertas con foto no aparece.
+     */
+    public Map<String, String> fotosLineas() {
+        Map<String, String> fotos = new LinkedHashMap<>();
+        jdbc.query("""
+                SELECT DISTINCT ON (lp.codigo) lp.codigo, i.id AS imagen
+                """ + VISIBLE.replace("WHERE p.estado", """
+                JOIN producto_linea pl ON pl.producto_id = p.id
+                JOIN linea_producto lp ON lp.id = pl.linea_id
+                JOIN imagen i ON i.producto_id = p.id AND i.principal AND i.retirada_en IS NULL
+                WHERE p.estado""") + " ORDER BY lp.codigo, (p.linea_id = lp.id) DESC, p.id",
+                (RowCallbackHandler) rs -> fotos.put(rs.getString("codigo"),
+                        ImagenService.urlMiniatura(rs.getObject("imagen", UUID.class))));
+        return fotos;
     }
 
     public List<Faceta> facetaModalidades(Filtro f) {

@@ -1,0 +1,34 @@
+/* Productor: lenguaje editorial operativo compartido, sin alterar contratos ni estados. */
+.layout-productor .tarjeta-panel,
+.layout-productor .formulario-lote,
+.layout-productor .cuenta-bancaria__yape,
+.layout-productor .transferencias__lista,
+.layout-productor .nueva-transferencia__tipo,
+.layout-productor .evidencias__item,
+.layout-productor .evidencias__formulario,
+.layout-productor .tienda-editor__destacados,
+.layout-productor .tienda-editor__fotos li,
+.layout-productor .videos-tienda__item,
+.layout-productor .pedidos-productor__detalle {
+  border-radius: var(--editorial-radius-large);
+  box-shadow: none;
+}
+.layout-productor .tabla { border-radius: var(--editorial-radius-large); border-color: var(--editorial-line); background: var(--editorial-white); }
+.layout-productor .tabla__fila { border-color: var(--editorial-line); }
+.layout-productor .tabla__fila--encabezado { background: var(--editorial-sage); color: var(--editorial-ink); }
+.layout-productor .productor__nota { color: var(--editorial-muted); }
+.layout-productor .productor__seccion { min-width: 0; }
+.layout-productor .tarjeta-kpi__valor { font-family: var(--editorial-serif); font-weight: 400; font-variant-numeric: tabular-nums; }
+.layout-productor :is(.productos__buscador, .productos__icono-boton, .tienda-editor__chip, .editor__miniatura, .transferencias__lista, .evidencias__formulario, .nueva-transferencia__tipo, .cuenta-bancaria__icono, .cuenta-bancaria__consecuencias, .almacen__subtabla, .lotes__selector, .tienda-editor__destacados) { border-radius: var(--editorial-radius-large); }
+.layout-productor .productos__buscador { border-color: var(--editorial-line); background: var(--editorial-white); }
+.layout-productor :is(.productos__buscador:focus-within, .pedidos-productor__fila:focus-visible, .editor__ia-foto:focus) { outline-color: var(--editorial-focus); }
+.layout-productor :is(.evidencias__lateral, .panel__intereses) { border-radius: var(--editorial-radius-large); }
+@media (max-width: 600px) {
+  .layout-productor .tabla { max-width: 100%; }
+  .layout-productor .editor__fila,
+  .layout-productor .formulario-lote__fila,
+  .layout-productor .cuenta-bancaria__campos,
+  .layout-productor .tienda-editor__fila { grid-template-columns: minmax(0, 1fr); }
+  .layout-productor .pedidos-productor__detalle,
+  .layout-productor .tarjeta-panel { padding: 16px; }
+}

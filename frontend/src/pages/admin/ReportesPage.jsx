@@ -18,6 +18,7 @@ import { precio } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import '../productor/productor.css'
 import './admin.css'
+import '../productor/ReportesPage.css'
 import './ReportesPage.css'
 import Calificaciones from './reportes/Calificaciones.jsx'
 import { rango } from './reportes/comun.jsx'
@@ -143,7 +144,7 @@ function Resultado({ datos }) {
       ]} />
       <section className="productor__seccion" aria-labelledby="reportes-tabla">
         <h2 id="reportes-tabla" className="heading-h3">{t(`${clave}.tabla`)}</h2>
-        <div className="tabla" role="table" aria-labelledby="reportes-tabla">
+        <div className="tabla" role="table" aria-labelledby="reportes-tabla" tabIndex={0}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             <span className="tabla__celda reportes__periodo" role="columnheader">{t('admin.reportes.col.periodo')}</span>
             <span className="tabla__celda tabla__celda--flex" role="columnheader">{t('admin.reportes.col.barra')}</span>

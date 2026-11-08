@@ -159,7 +159,8 @@ public class CatalogoController {
     public Inicio inicio(@RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
                          HttpServletResponse response) {
         Filtro todos = new Filtro(null, List.of(), null, List.of(), null, null, null, true);
-        Inicio inicio = new Inicio(tiendas.listar(3), catalogo.facetaLineas(todos), catalogo.destacados(8));
+        Inicio inicio = new Inicio(tiendas.listar(3), catalogo.facetaLineas(todos), catalogo.destacados(8),
+                catalogo.fotosLineas());
         return traductor.inicio(inicio, idioma(acceptLanguage, response));
     }
 

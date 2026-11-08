@@ -1,8 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import LayoutTienda from './LayoutTienda.jsx'
-import botanicaIzquierda from './botanica-izquierda.svg'
-import botanicaDerecha from './botanica-derecha.svg'
 
 vi.mock('../../sesion.js', () => ({
   useSesion: () => ({ user: null, cerrarSesion: vi.fn(), cerrando: false }),
@@ -10,15 +8,13 @@ vi.mock('../../sesion.js', () => ({
 vi.mock('./CabeceraTienda.jsx', () => ({ default: () => <header>Cabecera</header> }))
 vi.mock('./PieDePagina.jsx', () => ({ default: () => <footer>Pie</footer> }))
 
-describe('decoración botánica de la tienda', () => {
-  it('se sitúa tras el contenido sin interceptar interacción ni tomar foco', () => {
-    render(<LayoutTienda><main>Contenido</main></LayoutTienda>)
-    const decor = screen.getByTestId('decoracion-botanica')
-    expect(decor).toHaveAttribute('aria-hidden', 'true')
-    expect(decor).toHaveStyle({ pointerEvents: 'none' })
-    expect(decor.querySelectorAll('a, button, input, [tabindex]')).toHaveLength(0)
-    expect(decor.querySelector('main')).toBeNull()
+describe('shell editorial de la tienda aprobado en CCPIP-127', () => {
+  it('conserva cabecera, contenido y pie sin montar la decoración lateral anterior', () => {
+    const { container } = render(<LayoutTienda><main>Contenido</main></LayoutTienda>)
+    expect(screen.getByRole('banner')).toHaveTextContent('Cabecera')
     expect(screen.getByRole('main')).toHaveTextContent('Contenido')
-    expect([botanicaIzquierda, botanicaDerecha]).toContain(decor.querySelector('img').getAttribute('src'))
+    expect(screen.getByRole('contentinfo')).toHaveTextContent('Pie')
+    expect(screen.queryByTestId('decoracion-botanica')).not.toBeInTheDocument()
+    expect(container.querySelector('[class*="botanica"]')).toBeNull()
   })
 })

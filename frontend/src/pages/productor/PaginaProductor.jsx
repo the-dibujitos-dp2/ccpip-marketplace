@@ -1,6 +1,7 @@
 import { useTiendaActual } from '../../api/tiendaActual.js'
 import LayoutProductor from '../../components/layout/LayoutProductor.jsx'
 import { useSesion } from '../../sesion.js'
+import './ProductorEditorial.css'
 
 /** Envoltura de toda pantalla del productor: barra lateral con su tienda y cierre de sesion. */
 export default function PaginaProductor({ path, seccion, titulo, acciones, children }) {

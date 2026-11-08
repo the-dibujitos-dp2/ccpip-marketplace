@@ -1,0 +1,66 @@
+/* CCPIP-127 · Presentación de la operación; mantener los estados y sus etiquetas. */
+.layout-productor {
+  --radius-m: var(--editorial-radius);
+  --radius-l: var(--editorial-radius-large);
+  --radius-xl: var(--editorial-radius-large);
+  --shadow-menu: none;
+  --shadow-tarjeta: none;
+  --color-bg-surface-alt: var(--editorial-paper);
+  --color-bg-sand: var(--editorial-paper);
+  --color-bg-subtle: var(--editorial-sage);
+  --color-bg-inverse: var(--editorial-deep);
+  --color-bg-accent: var(--editorial-seed);
+  --color-bg-accent-subtle: var(--editorial-warning-bg);
+  --color-text-accent: var(--editorial-warning);
+  --color-text-on-brand: var(--editorial-white);
+  --color-border-brand: var(--editorial-forest);
+  --color-border-focus: var(--editorial-focus);
+  --color-border-error: var(--editorial-error);
+  --color-status-info-bg: var(--editorial-sage);
+  --color-status-info-fg: var(--editorial-forest);
+  --color-status-success-bg: var(--editorial-sage);
+  --color-status-success-fg: var(--editorial-forest);
+  --color-status-warning-bg: var(--editorial-warning-bg);
+  --color-status-warning-fg: var(--editorial-warning);
+  --borde: var(--editorial-line);
+  --radio-lg: var(--editorial-radius-large);
+  --superficie: var(--editorial-white);
+  --texto-secundario: var(--editorial-muted);
+}
+.layout-productor :is(.tarjeta-panel, .tabla, .alertas__lista, .cobertura401__punto,
+  .permisos-configurables__lista, .tarifas-envio__lista, .estado-vacio) {
+  border-color: var(--editorial-line);
+  border-radius: var(--editorial-radius-large);
+  box-shadow: none;
+}
+.layout-productor .tabla__fila--encabezado { background: var(--editorial-sage); color: var(--editorial-ink); }
+.layout-productor .tabla__fila { border-color: var(--editorial-line); }
+.layout-productor .tarjeta-kpi__valor { font-family: var(--editorial-serif); font-weight: 400; font-variant-numeric: tabular-nums; }
+.layout-productor :is(.chip, .selector-idioma__boton, .buscador, .restringido__chip) { border-radius: var(--editorial-radius); }
+.layout-productor .chip--activo { background: var(--editorial-forest); color: var(--editorial-white); }
+.layout-productor :is(.admin__pista, .admin__relleno) { border-radius: 0; }
+.layout-productor .admin__pista { background: var(--editorial-sage); }
+.layout-productor .admin__relleno { background: var(--editorial-forest); }
+.layout-productor :is(.alertas__icono, .ubicaciones__lugar, .estado-vacio__icono) { border-radius: var(--editorial-radius-large); }
+.layout-productor .estado-vacio__titulo { font-family: var(--editorial-serif); font-weight: 400; font-size: 24px; line-height: 1.25; }
+.layout-productor :is(.mis-entregas__tabla, .pedidos-disponibles__tabla) { border-collapse: collapse; }
+.layout-productor :is(.mis-entregas__tabla, .pedidos-disponibles__tabla) thead th { background: var(--editorial-sage); color: var(--editorial-ink); }
+.layout-productor :is(.merma__col-cantidad, .pedidos__col-total, .inventario__col-numero) { text-align: right; font-variant-numeric: tabular-nums; }
+.layout-productor .productor__seccion { min-width: 0; }
+.layout-productor :is(.barra-filtros, .movimientos__filtros, .merma__filtros, .cuentas__filtros, .catalogo-maestro__barra) { border-block-end: 1px solid var(--editorial-line); padding-block-end: 16px; }
+@media (max-width: 600px) {
+  .layout-productor .tarjeta-panel { padding: 16px; }
+  .layout-productor :is(.comision__acciones, .cuentas__acciones, .mis-entregas__acciones) { flex-wrap: wrap; }
+}
+@media print {
+  .layout-productor { display: block; color: var(--editorial-ink); background: var(--editorial-white); }
+  .layout-productor__sidebar, .layout-productor__menu, .layout-productor__barra .selector-idioma { display: none !important; }
+  .layout-productor__principal { margin: 0; width: 100%; min-width: 0; }
+  .layout-productor__barra { position: static; height: auto; padding: 0 0 16px; border-bottom: 1px solid var(--editorial-line); }
+  .layout-productor__contenido { padding: 16px 0; overflow: visible; }
+  .layout-productor :is(.tabla, table) { max-width: none; overflow: visible; }
+  .layout-productor .tabla__fila { min-width: 0; padding-inline: 4px; gap: 4px; font-size: 9pt; }
+  .layout-productor .tabla__celda { flex-shrink: 1; min-width: 0; overflow-wrap: anywhere; }
+  .layout-productor .tabla__fila--encabezado { position: static; }
+  .layout-productor :is(.tarjeta-panel, .tarjeta-kpi, tr) { break-inside: avoid; }
+}

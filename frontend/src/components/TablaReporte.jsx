@@ -29,7 +29,7 @@ export default function TablaReporte({ id, titulo, columnas, filas, clave, vacio
       {filas.length === 0 ? (
         <EstadoVacio titulo={vacio} descripcion={vacioTexto} />
       ) : (
-        <div className="tabla" role="table" aria-labelledby={id}>
+        <div className="tabla" role="table" aria-labelledby={id} tabIndex={0}>
           <div className="tabla__fila tabla__fila--encabezado" role="row">
             {columnas.map((c) => (
               <span key={c.clave} className={clase(c)} role="columnheader">{c.etiqueta}</span>

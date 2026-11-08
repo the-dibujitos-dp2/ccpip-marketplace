@@ -181,7 +181,7 @@ public class TraductorCatalogo {
         i.destacados().forEach(c::resumen);
         Textos t = cargar(c, idioma);
         return new Inicio(i.tiendas().stream().map(t::tarjeta).toList(), t.facetas(Entidad.LINEA, i.lineas()),
-                i.destacados().stream().map(t::resumen).toList());
+                i.destacados().stream().map(t::resumen).toList(), i.fotosLineas());
     }
 
     public Catalogos catalogos(Catalogos k, Idioma idioma) {
