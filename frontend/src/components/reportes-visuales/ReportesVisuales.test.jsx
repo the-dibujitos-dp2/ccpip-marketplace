@@ -63,6 +63,30 @@ describe('fundación de visualizaciones para reportes', () => {
     expect(graph(container).querySelectorAll('circle')).toHaveLength(2)
   })
 
+  it('ordena etiquetas ISO lexicográficamente entre años y meses y alinea valores por fecha', () => {
+    const onSelect = vi.fn()
+    const { container } = render(<SerieTemporal titulo="Fechas ordenadas" onSelect={onSelect} series={[
+      { id: 'a', nombre: 'A', puntos: [punto('2025-12-01', 12), punto('2026-02-01', 2)] },
+      { id: 'b', nombre: 'B', puntos: [punto('2026-01-01', 1), punto('2025-12-01', 120)] },
+    ]} />)
+    const chart = graph(container)
+    const labels = [...chart.querySelectorAll('text.rv-label')].filter((label) => /^\d{4}-\d{2}-\d{2}$/.test(label.textContent))
+    expect(labels.map((label) => label.textContent)).toEqual(['2025-12-01', '2026-01-01', '2026-02-01'])
+    const positions = Object.fromEntries(labels.map((label) => [label.textContent, Number(label.getAttribute('x'))]))
+    expect(positions['2025-12-01']).toBeLessThan(positions['2026-01-01'])
+    expect(positions['2026-01-01']).toBeLessThan(positions['2026-02-01'])
+    for (const [serieId, serie, etiqueta, valor] of [
+      ['a', 'A', '2025-12-01', 12], ['a', 'A', '2026-02-01', 2],
+      ['b', 'B', '2026-01-01', 1], ['b', 'B', '2025-12-01', 120],
+    ]) {
+      const mark = within(chart).getByRole('button', { name: `${serie}, ${etiqueta}: ${valor}` })
+      expect(Number(mark.getAttribute('cx'))).toBe(positions[etiqueta])
+      fireEvent.click(mark)
+      expect(onSelect).toHaveBeenLastCalledWith({ serieId, serie, etiqueta, valor, unidad: '' })
+      expect(container.querySelector('.rv-detail').textContent).toBe(`${serie}: ${etiqueta} — ${valor}`)
+    }
+  })
+
   it('alinea fechas entre series y no conecta períodos omitidos', () => {
     const { container } = render(<SerieTemporal titulo="Fechas" series={[
       { id: 'a', nombre: 'A', puntos: [punto('2026-01-01', 1), punto('2026-03-01', 2)] },

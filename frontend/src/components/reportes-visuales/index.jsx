@@ -70,7 +70,12 @@ export function SerieTemporal({ titulo, series = [], unidad, onSelect, seleccion
     }))
   }, [series, unidad])
   const labels = [...new Set(normal.flatMap((serie) => serie.puntos.map((point) => point.etiqueta)))]
-  if (labels.every((label) => /^\d{4}-\d{2}-\d{2}/.test(label))) labels.sort()
+  if (labels.every((label) => /^\d{4}-\d{2}-\d{2}/.test(label))) labels.sort((a, b) => {
+    const first = String(a)
+    const second = String(b)
+    if (first === second) return 0
+    return first < second ? -1 : 1
+  })
   const marks = normal.flatMap((serie) => serie.puntos.filter((point) => point.valor !== null).map((point) => ({
     serieId: serie.id, serie: serie.nombre, etiqueta: point.etiqueta, valor: point.valor, unidad: serie.unidad,
   })))
