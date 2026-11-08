@@ -137,7 +137,7 @@ describe('fundación de visualizaciones para reportes', () => {
     expect(bars[1].style.left).toBe('50%')
     expect(bars[1].style.width).toBe('50%')
     expect(bars[2].style.width).toBe('0%')
-    fireEvent.click(screen.getByRole('button', { name: /A: S\/ -2.75/ }))
+    fireEvent.click(screen.getByRole('button', { name: /A: -S\/\s*2.75/ }))
     expect(onSelect).toHaveBeenCalledWith({ id: 'a', etiqueta: 'A', valor: -2.75, unidad: 'S/' })
   })
 
@@ -167,6 +167,13 @@ describe('fundación de visualizaciones para reportes', () => {
     expect(container.querySelector('.rv-composition__strip')).toBeNull()
     expect(screen.getByText('-2')).toBeTruthy()
     expect(screen.getByText(/no son partes de un total/)).toBeTruthy()
+  })
+
+  it('preserva los tres decimales de stock y el formato monetario ya definido por la aplicación', () => {
+    const { rerender } = render(<BarrasComparativas titulo="Stock" unidad="und" items={[{ id: 'a', etiqueta: 'A', valor: 1.125 }]} />)
+    expect(screen.getByRole('button', { name: /1\.125/ })).toBeTruthy()
+    rerender(<BarrasComparativas titulo="Importe" unidad="S/" items={[{ id: 'a', etiqueta: 'A', valor: 0 }]} />)
+    expect(screen.getByRole('button', { name: /S\/\s*0\.00/ })).toBeTruthy()
   })
 
   it('incluye movimiento reducido e impresión de gráficos sin expandir una lista redundante de controles', () => {

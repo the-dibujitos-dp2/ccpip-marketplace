@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { precio, unidades } from '../../formato.js'
 import './ReportesVisuales.css'
 
 const numero = (value) => {
@@ -29,8 +30,9 @@ function textos(locale) {
 
 function formato(value, unit, locale) {
   if (value == null) return textos(locale).missing
+  if (unit === 'S/') return precio(value).replace(/\u00a0/g, ' ')
   const label = ['und', 'ud'].includes(unit) ? textos(locale).units : unit
-  return `${label ? `${label} ` : ''}${new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(value)}`
+  return `${label ? `${label} ` : ''}${unidades(value)}`
 }
 
 function useChartWidth() {
