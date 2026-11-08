@@ -9,7 +9,7 @@ DECLARE v_nombre text; v_rol text;
 BEGIN
     IF p_usuario IS NOT NULL THEN
         SELECT u.nombre, r.codigo INTO STRICT v_nombre, v_rol
-        FROM usuario u JOIN rol r ON r.id=u.rol_id WHERE u.id=p_usuario;
+        FROM usuario u JOIN rol r ON r.id=u.rol_id WHERE u.id=p_usuario FOR SHARE OF u;
     END IF;
     INSERT INTO auditoria_evento (usuario_id,usuario_nombre,rol,actor_tipo,clave_evento,accion,entidad,
         referencia,registrado_en,ubicacion_id,correlacion,detalle,resultado)
@@ -17,6 +17,13 @@ BEGIN
         p_clave,p_accion,p_entidad,p_referencia,coalesce(p_fecha,now()),p_ubicacion,p_correlacion,
         jsonb_strip_nulls(p_detalle),p_resultado)
     ON CONFLICT (clave_evento) DO NOTHING;
+    IF NOT FOUND AND NOT EXISTS (
+        SELECT 1 FROM auditoria_evento e WHERE e.clave_evento=p_clave
+          AND e.usuario_id IS NOT DISTINCT FROM p_usuario
+          AND e.accion=p_accion AND e.entidad=p_entidad AND e.referencia=p_referencia
+          AND e.resultado=p_resultado AND e.ubicacion_id IS NOT DISTINCT FROM p_ubicacion
+          AND e.correlacion IS NOT DISTINCT FROM p_correlacion AND e.detalle=jsonb_strip_nulls(p_detalle)
+    ) THEN RAISE EXCEPTION 'Colision de clave de auditoria: %', p_clave; END IF;
 END;
 $$;
 

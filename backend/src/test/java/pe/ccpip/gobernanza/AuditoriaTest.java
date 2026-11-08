@@ -90,10 +90,10 @@ class AuditoriaTest extends IntegrationTest {
                 .andExpect(campo("PA-" + edicion, "resultado").value(hasItem("EXITOSA")));
 
         auditoria("?accion=PAGO&resultado=RECHAZADO&usuario=consumidor")
-                .andExpect(campo("PG-" + pagoRechazado, "rol").value(hasItem("CONSUMIDOR")))
-                .andExpect(campo("PG-" + pagoRechazado, "entidad").value(hasItem("PEDIDO")))
-                .andExpect(campo("PG-" + pagoRechazado, "detalle").value(hasItem(numeroPedido)))
-                .andExpect(campo("PG-" + pagoRechazado, "resultado").value(hasItem("RECHAZADO")));
+                .andExpect(campo("PG-" + pagoRechazado + "-RECHAZADO", "rol").value(hasItem("CONSUMIDOR")))
+                .andExpect(campo("PG-" + pagoRechazado + "-RECHAZADO", "entidad").value(hasItem("PEDIDO")))
+                .andExpect(campo("PG-" + pagoRechazado + "-RECHAZADO", "detalle").value(hasItem(numeroPedido)))
+                .andExpect(campo("PG-" + pagoRechazado + "-RECHAZADO", "resultado").value(hasItem("RECHAZADO")));
 
         auditoria("?entidad=PRODUCTOR&rol=SUB_ADMIN")
                 .andExpect(campo("PD-" + decision, "accion").value(hasItem("HABILITAR_TIENDA")))

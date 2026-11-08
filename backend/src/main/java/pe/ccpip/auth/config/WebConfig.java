@@ -10,13 +10,16 @@ import pe.ccpip.auth.access.AccessInterceptor;
 public class WebConfig implements WebMvcConfigurer {
 
     private final AccessInterceptor accessInterceptor;
+    private final pe.ccpip.auth.access.AuditoriaHttpInterceptor auditoria;
 
-    public WebConfig(AccessInterceptor accessInterceptor) {
+    public WebConfig(AccessInterceptor accessInterceptor, pe.ccpip.auth.access.AuditoriaHttpInterceptor auditoria) {
         this.accessInterceptor = accessInterceptor;
+        this.auditoria = auditoria;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(auditoria).addPathPatterns("/api/**");
         registry.addInterceptor(accessInterceptor).addPathPatterns("/api/**");
     }
 }

@@ -188,10 +188,14 @@ public class AuditoriaService {
             UNION ALL
             SELECT coalesce(e.clave_evento, 'AE-' || e.id), e.registrado_en, e.usuario_id, e.accion,
                    e.entidad, CASE WHEN e.referencia ~ '^[0-9]{1,18}$' THEN e.referencia::bigint ELSE e.id END,
-                   e.detalle::text, e.resultado, e.actor_tipo, e.ubicacion_id, e.referencia,
-                   e.correlacion, e.detalle ->> 'decision', true, e.usuario_nombre, e.rol, NULL::text
+                   coalesce(contexto.detalle, e.detalle::text), e.resultado, e.actor_tipo, e.ubicacion_id, e.referencia,
+                   e.correlacion, e.detalle ->> 'decision', true, e.usuario_nombre, e.rol, eu.correo
             FROM auditoria_evento e
-            """.formatted(REGISTROS);
+            LEFT JOIN usuario eu ON eu.id = e.usuario_id
+            LEFT JOIN (%s) AS contexto (clave, fecha, usuario_id, accion, entidad, entidad_id, detalle, resultado)
+                ON contexto.clave = e.clave_evento
+                    OR (contexto.clave LIKE 'PG-%%' AND e.clave_evento LIKE contexto.clave || '-%%')
+            """.formatted(REGISTROS, REGISTROS);
 
     private static final String DESDE_REGISTROS = """
             FROM (%s) AS r

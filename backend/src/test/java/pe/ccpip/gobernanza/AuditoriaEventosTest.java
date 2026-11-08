@@ -31,7 +31,7 @@ class AuditoriaEventosTest extends IntegrationTest {
     void nullEsSistemaYAnonimoEsDistinto() {
         auditoria.registrar(null, "A", "E", "1", "OK", Map.of());
         auditoria.anonimo("A", "E", "2", "OK", Map.of());
-        assertThat(jdbc.queryForList("SELECT actor_tipo FROM auditoria_evento ORDER BY id", String.class))
+        assertThat(jdbc.queryForList("SELECT actor_tipo FROM auditoria_evento WHERE entidad='E' ORDER BY id", String.class))
                 .containsExactly("SISTEMA", "ANONIMO");
     }
 
@@ -40,14 +40,28 @@ class AuditoriaEventosTest extends IntegrationTest {
     void detalleRechazaDatosPrivadosSinPersistirlos(String clavePrivada) {
         assertThatThrownBy(() -> auditoria.anonimo("A", "E", "3", "OK", Map.of(clavePrivada, "secreto")))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThat(jdbc.queryForObject("SELECT count(*) FROM auditoria_evento", Long.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM auditoria_evento WHERE entidad='E'", Long.class)).isZero();
     }
 
     @Test
     void claveEventoDeduplica() {
         auditoria.registrar(null, "A", "E", "4", "OK", 8L, "corr", "una-clave", Map.of());
         auditoria.registrar(null, "A", "E", "4", "OK", 8L, "corr", "una-clave", Map.of());
-        assertThat(jdbc.queryForObject("SELECT count(*) FROM auditoria_evento", Long.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM auditoria_evento WHERE entidad='E'", Long.class)).isEqualTo(1);
+    }
+
+    @Test
+    void claveReutilizadaParaOtroHechoEsErrorNoPerdidaSilenciosa() {
+        auditoria.registrar(null, "A", "E", "4", "OK", 8L, "corr", "colision", Map.of());
+        assertThatThrownBy(() -> auditoria.registrar(null, "B", "E", "4", "OK", 8L, "corr", "colision", Map.of()))
+                .isInstanceOf(IllegalStateException.class).hasMessageContaining("colisión");
+    }
+
+    @Test
+    void decimalFinitoNoSeConvierteADoubleParaValidar() {
+        auditoria.registrar(null, "DECIMAL", "E", "9", "OK", Map.of("monto", new java.math.BigDecimal("1e400")));
+        assertThat(jdbc.queryForObject("SELECT detalle->>'monto' FROM auditoria_evento WHERE accion='DECIMAL'", String.class))
+                .hasSizeGreaterThan(400);
     }
 
     @Test
