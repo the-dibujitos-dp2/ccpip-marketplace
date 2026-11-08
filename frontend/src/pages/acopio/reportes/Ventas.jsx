@@ -11,22 +11,24 @@ import { columnas, Kpis, pendiente, Tablas } from './comun.jsx'
  * entregar (pagados), unidades e importes B2C (minorista) y B2B (mayorista). Sin datos de los compradores.
  */
 export default function Ventas({ datos }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const titulo = (es, en) => (i18n.resolvedLanguage || '').startsWith('es') ? es : en
   const { totales } = datos
   const col = columnas(t, datos.agrupacion)
   const resumen = { unidades: unidades(totales.unidades), b2c: precio(totales.b2c), b2b: precio(totales.b2b) }
   return (
     <>
-      <Kpis textos="acopio.reportes.ventas" tarjetas={[
-        { clave: 'total', valor: precio(totales.total), icono: iconoGrafico, vars: resumen },
-        { clave: 'atendidos', valor: unidades(totales.pedidosAtendidos), icono: iconoCaja, tono: 'exito', vars: { count: totales.pedidos } },
-        { clave: 'porEntregar', valor: unidades(totales.pedidosPorEntregar), icono: iconoReloj, tono: pendiente(totales.pedidosPorEntregar) },
-      ]} />
-      <SerieTemporal titulo={t('acopio.reportes.ventas.total')} unidad="S/" series={[
+      <SerieTemporal titulo={titulo('Evolución de ventas', 'Sales trend')} unidad="S/" series={[
         { id: 'b2c', nombre: t('acopio.reportes.col.b2c'), unidad: 'S/', puntos: datos.periodos.map((p) => ({ etiqueta: p.inicio, valor: p.b2c })) },
         { id: 'b2b', nombre: t('acopio.reportes.col.b2b'), unidad: 'S/', puntos: datos.periodos.map((p) => ({ etiqueta: p.inicio, valor: p.b2b })) },
         { id: 'total', nombre: t('acopio.reportes.col.total'), unidad: 'S/', puntos: datos.periodos.map((p) => ({ etiqueta: p.inicio, valor: p.total })) },
         { id: 'acumulado', nombre: t('acopio.reportes.col.acumulado'), unidad: 'S/', puntos: datos.periodos.map((p) => ({ etiqueta: p.inicio, valor: p.acumulado })) },
+      ]} />
+
+      <Kpis textos="acopio.reportes.ventas" tarjetas={[
+        { clave: 'total', valor: precio(totales.total), icono: iconoGrafico, vars: resumen },
+        { clave: 'atendidos', valor: unidades(totales.pedidosAtendidos), icono: iconoCaja, tono: 'exito', vars: { count: totales.pedidos } },
+        { clave: 'porEntregar', valor: unidades(totales.pedidosPorEntregar), icono: iconoReloj, tono: pendiente(totales.pedidosPorEntregar) },
       ]} />
       <Tablas id="ventas" textos="acopio.reportes.ventas" datos={datos} estrecha={{ periodo: true }}
         porPeriodo={[col.periodo, ...['pedidos', 'pedidosAtendidos', 'pedidosPorEntregar', 'unidades'].map((c) => col.cantidad(c)),
