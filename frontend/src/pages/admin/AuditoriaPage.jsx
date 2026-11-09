@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import iconoCandado from '../../assets/icons/candado.svg'
 import { auditoria } from '../../api/admin.js'
+import { detalleAuditoria } from './AuditoriaDetalle.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
@@ -20,11 +21,11 @@ import './AuditoriaPage.css'
 const ROLES = ['CONSUMIDOR', 'PRODUCTOR', 'ADMIN_PUNTO', 'SUB_ADMIN', 'SUPER_ADMIN', 'DISTRIBUIDOR']
 const ENTIDADES = ['AUTORIZACION', 'MODERACION', 'VIDEO', 'PRODUCTOR', 'DENUNCIAS', 'CUENTA', 'PRODUCTO',
   'LINEA_MAESTRA', 'PRODUCTO_MAESTRO', 'PEDIDO', 'PERMISO', 'TARIFA_ENVIO', 'CAPACIDAD_ENTREGA',
-  'COBERTURA_ENTREGA', 'MOVIMIENTO']
+  'COBERTURA_ENTREGA', 'MOVIMIENTO', 'UNIDAD', 'COMISION', 'PARAMETRO', 'MOTIVO_MERMA', 'TRANSFERENCIA', 'CALIFICACION', 'SOLICITUD_UNIDAD', 'ANALISIS', 'CUENTA_BANCARIA', 'TIENDA', 'DIRECCION', 'INTERES', 'SESION', 'SEGURIDAD', 'REPORTE', 'AVISO', 'CARRITO', 'TRADUCCION', 'IMAGEN']
 const RESULTADOS = ['EXITOSA', 'APROBADO', 'RECHAZADO', 'ERROR', 'PENDIENTE', 'ANULADO']
 const TONO_RESULTADO = { EXITOSA: 'exito', APROBADO: 'exito', RECHAZADO: 'error', ERROR: 'error', PENDIENTE: 'aviso' }
 
-const VACIO = { desde: '', hasta: '', usuario: '', rol: '', accion: '', entidad: '', resultado: '' }
+const VACIO = { desde: '', hasta: '', usuario: '', rol: '', accion: '', entidad: '', resultado: '', actor: '', ubicacion: '', referencia: '' }
 
 /**
  * Auditoria de operaciones sensibles (CCPIP-97, RF-84): quien (usuario y rol), que accion, sobre que
@@ -56,7 +57,7 @@ export default function AuditoriaPage({ path }) {
   const cambiar = (campo) => (e) => {
     const nuevo = { ...filtro, [campo]: e.target.value }
     setFiltro(nuevo)
-    if (campo !== 'usuario' && nuevo.desde && nuevo.hasta) void consultar(nuevo)
+    if (!['usuario', 'actor', 'ubicacion', 'referencia'].includes(campo) && nuevo.desde && nuevo.hasta) void consultar(nuevo)
   }
 
   const buscar = (e) => {
@@ -76,6 +77,10 @@ export default function AuditoriaPage({ path }) {
         <Campo etiqueta={t('auditoria.hasta')} type="date" value={filtro.hasta} min={filtro.desde || undefined} onChange={cambiar('hasta')} />
         <Campo etiqueta={t('auditoria.usuario')} value={filtro.usuario} maxLength={120}
           placeholder={t('auditoria.usuarioAyuda')} onChange={cambiar('usuario')} />
+        <Campo etiqueta={t('auditoria.actor')} tipo="selector" placeholder={t('auditoria.todos')} value={filtro.actor}
+          onChange={cambiar('actor')} opciones={opciones(['USUARIO', 'SISTEMA', 'ANONIMO'], 'auditoria.actorTipo')} />
+        <Campo etiqueta={t('auditoria.ubicacion')} type="number" min="1" step="1" value={filtro.ubicacion} onChange={cambiar('ubicacion')} />
+        <Campo etiqueta={t('auditoria.referencia')} maxLength={120} value={filtro.referencia} onChange={cambiar('referencia')} />
         <Campo etiqueta={t('auditoria.rol')} tipo="selector" placeholder={t('auditoria.todos')} value={filtro.rol}
           onChange={cambiar('rol')} opciones={opciones(ROLES, 'roles')} />
         <Campo etiqueta={t('auditoria.accionFiltro')} tipo="selector" placeholder={t('auditoria.todas')} value={filtro.accion}
@@ -116,14 +121,24 @@ export default function AuditoriaPage({ path }) {
                     <span className="caption">{r.correo}</span>
                   </>
                 ) : (
-                  <span className="body-s">{t('auditoria.sistema')}</span>
+                  <span className="body-s">{r.actor ? t(`auditoria.actorTipo.${r.actor}`) : t('auditoria.sistema')}</span>
                 )}
               </span>
-              <span className="tabla__celda auditoria__rol body-s" role="cell">{r.rol ? t(`roles.${r.rol}`) : '—'}</span>
+              <span className="tabla__celda auditoria__rol body-s" role="cell">
+                {r.rol ? t(`roles.${r.rol}`) : '—'}
+                {r.rol && r.rolHistorico === false && <span className="caption">{t('auditoria.rolNoHistorico')}</span>}
+              </span>
               <span className="tabla__celda auditoria__accion body-s" role="cell">{nombreAccion(r.accion)}</span>
               <span className="tabla__celda tabla__celda--flex auditoria__entidad" role="cell">
                 <span className="body-s">{t(`auditoria.entidad.${r.entidad}`)}</span>
-                {r.detalle && <span className="caption">{r.detalle}</span>}
+                {r.metadatos && r.detalle && !r.detalle.trim().startsWith('{') && r.entidad !== 'PARAMETRO'
+                  && <span className="caption">{r.detalle}</span>}
+                {detalleAuditoria(r.metadatos ?? r.detalle, t).map((texto, indice) => <span key={indice} className="caption">{texto}</span>)}
+                {r.motivo && <span className="caption">{t('auditoria.motivo')}: {r.motivo}</span>}
+                {r.referencia && <span className="caption">{t('auditoria.referencia')}: {r.referencia}</span>}
+                {r.ubicacionId != null && <span className="caption">{t('auditoria.ubicacion')}: {r.ubicacionId}</span>}
+                {r.decision && <span className="caption">{t('auditoria.decision')}: {t(`auditoria.decisionValor.${r.decision}`)}</span>}
+                {r.correlacion && <span className="caption">{t('auditoria.correlacion')}: {r.correlacion}</span>}
               </span>
               <span className="tabla__celda auditoria__resultado" role="cell">
                 <Badge tono={TONO_RESULTADO[r.resultado] ?? 'neutro'}>{t(`auditoria.resultado.${r.resultado}`)}</Badge>

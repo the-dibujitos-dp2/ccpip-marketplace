@@ -134,6 +134,86 @@ describe('Auditoría de operaciones sensibles (CCPIP-97)', () => {
     expect(llamadas(fetchMock, `GET ${RUTA}?${PERIODO}&entidad=MOVIMIENTO`)).toHaveLength(1)
   })
 
+  it('CCPIP-509: diferencia actor anónimo, valida ubicación positiva y traduce decisiones', async () => {
+    const ampliado = { ...copia(AUDITORIA), registros: [{ ...copia(AUDITORIA.registros[0]), usuario: null, correo: null, actor: 'ANONIMO', ubicacionId: 12, referencia: 'PEDIDO-40', correlacion: 'corr-abc', decision: 'APROBADA' }] }
+    comoSuper({ [`GET ${RUTA}`]: [200, ampliado] })
+    abrirEn('/admin/auditoria')
+    const [fila] = await filas()
+    expect(within(fila).getByText('Anónimo')).toBeInTheDocument()
+    expect(within(fila).getByText('Decisión: Aprobada')).toBeInTheDocument()
+    expect(screen.getByLabelText('Ubicación (ID)')).toHaveAttribute('min', '1')
+  })
+
+  it('CCPIP-509: filtros de actor, ubicación y referencia más trazabilidad', async () => {
+    const ampliado = { ...copia(AUDITORIA), registros: [{ ...copia(AUDITORIA.registros[0]), actor: 'USUARIO', ubicacionId: 12, referencia: 'PEDIDO-40', correlacion: 'corr-abc', decision: 'RECHAZADO' }] }
+    const fetchMock = comoSuper({ [`GET ${RUTA}?${PERIODO}&actor=USUARIO&ubicacion=12&referencia=PEDIDO-40`]: [200, ampliado] })
+    const user = userEvent.setup()
+    abrirEn('/admin/auditoria')
+    await filas()
+    await user.selectOptions(screen.getByLabelText('Actor'), 'USUARIO')
+    await user.type(screen.getByLabelText('Ubicación (ID)'), '12')
+    await user.type(screen.getByLabelText('Referencia'), 'PEDIDO-40')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+    const [fila] = await filas()
+    expect(llamadas(fetchMock, `GET ${RUTA}?${PERIODO}&actor=USUARIO&ubicacion=12&referencia=PEDIDO-40`)).toHaveLength(1)
+    expect(within(fila).getByText(/corr-abc/)).toBeInTheDocument()
+    expect(within(fila).getByText(/PEDIDO-40/)).toBeInTheDocument()
+    expect(within(fila).getByText(/12/)).toBeInTheDocument()
+    expect(within(fila).getByText(/Decisión/)).toHaveTextContent('Rechazado')
+    expect(within(fila).getByText('Rechazado')).toBeInTheDocument()
+  })
+
+  it('CCPIP-509: conserva contexto humano y metadatos del mismo evento', async () => {
+    const registro = { ...copia(AUDITORIA.registros[1]), detalle: 'Miel de abeja nativa',
+      metadatos: JSON.stringify({ cantidad: 4, productoId: 17 }), motivo: 'Verificación de origen', rolHistorico: false }
+    comoSuper({ [`GET ${RUTA}`]: [200, { ...copia(AUDITORIA), registros: [registro] }] })
+    abrirEn('/admin/auditoria')
+    const [fila] = await filas()
+    expect(within(fila).getByText('Miel de abeja nativa')).toBeInTheDocument()
+    expect(within(fila).getByText('Cantidad: 4')).toBeInTheDocument()
+    expect(within(fila).getByText('Motivo: Verificación de origen')).toBeInTheDocument()
+    expect(within(fila).getByText('Rol actual; no registrado al realizar la acción')).toBeInTheDocument()
+  })
+
+  it.each(['es', 'en'])('CCPIP-509: catálogo de nuevas acciones traducido en %s', async (idioma) => {
+    await i18n.changeLanguage(idioma)
+    const acciones = ['LOGIN_EXITOSO', 'LOGIN_FALLIDO', 'LOGIN_BLOQUEADO', 'LOGIN_DENEGADO', 'LOGOUT',
+      'SESION_INVALIDADA', 'CONTRASENA_RESTABLECIDA', 'RECUPERACION_SOLICITADA', 'ACCESO_DENEGADO',
+      'REPORTE_DESCARGADO', 'CUENTA_BANCARIA_CREADA', 'CUENTA_BANCARIA_ACTUALIZADA',
+      'CUENTA_BANCARIA_DESACTIVADA', 'CUENTA_BANCARIA_REACTIVADA', 'PERFIL_ACTUALIZADO',
+      'DIRECCION_CREADA', 'DIRECCION_ACTUALIZADA', 'DIRECCION_RETIRADA', 'INTERES_REGISTRADO',
+      'INTERES_ACTUALIZADO', 'INTERES_RETIRADO', 'TIENDA_PUBLICADA', 'TIENDA_ACTUALIZADA',
+      'TIENDA_DESTACADO_CAMBIADO', 'TRADUCCION_APROBADA', 'VIDEO_SUBIDO', 'VIDEO_REEMPLAZADO',
+      'VIDEO_RETIRADO', 'GALERIA_IMAGEN_SUBIDA', 'GALERIA_IMAGEN_RETIRADA', 'GALERIA_IMAGEN_REEMPLAZADA',
+      'DENUNCIA_REGISTRADA', 'DENUNCIA_RESPONDIDA', 'CALIFICACION_REGISTRADA', 'SOLICITUD_UNIDAD_CREADA',
+      'SOLICITUD_UNIDAD_DECIDIDA', 'ANALISIS_SOLICITADO', 'ANALISIS_RESULTADO', 'TRANSFERENCIA_INICIADA',
+      'TRANSFERENCIA_SOLICITADA', 'TRANSFERENCIA_PREPARADA', 'TRANSFERENCIA_DESPACHADA', 'TRANSFERENCIA_RECIBIDA',
+      'MOVIMIENTO_SALIDA_VENTA', 'CARRITO_VENCIDO', 'AVISO_PENDIENTE', 'AVISO_ENVIADO', 'AVISO_FALLIDO',
+      'ALERTA_PENDIENTE', 'ALERTA_ENVIADO', 'ALERTA_FALLIDO', 'ALERTA_NO_APLICA', 'ALERTA_RESUELTA']
+    for (const accion of acciones) {
+      expect(i18n.exists(`auditoria.accion.${accion}`)).toBe(true)
+      expect(i18n.t(`auditoria.accion.${accion}`)).not.toContain(accion)
+    }
+  })
+
+  it.each([
+    ['es', 'Auditoría de operaciones sensibles', 'Inició sesión', 'Cantidad: 3', 'Decisión: Revocada'],
+    ['en', 'Audit of sensitive operations', 'Signed in', 'Quantity: 3', 'Decision: Revoked'],
+  ])('CCPIP-509: acciones nuevas y metadatos legibles sin JSON en %s', async (idioma, titulo, accion, cantidad, decision) => {
+    await i18n.changeLanguage(idioma)
+    const registro = { ...copia(AUDITORIA.registros[0]), accion: 'LOGIN_EXITOSO', entidad: 'SEGURIDAD',
+      detalle: JSON.stringify({ cantidad: 3, productoId: 17, cuentaBancaria: 'NO-MOSTRAR', estadoNuevo: 'ACTIVA' }), decision: 'REVOCADA' }
+    comoSuper({ [`GET ${RUTA}`]: [200, { ...copia(AUDITORIA), acciones: ['LOGIN_EXITOSO'], registros: [registro] }] })
+    abrirEn('/admin/auditoria')
+    const [fila] = await filas(titulo)
+    expect(within(fila).getByText(accion)).toBeInTheDocument()
+    expect(within(fila).getByText(cantidad)).toBeInTheDocument()
+    expect(within(fila).getByText(decision)).toBeInTheDocument()
+    expect(fila).not.toHaveTextContent('LOGIN_EXITOSO')
+    expect(fila).not.toHaveTextContent('{')
+    expect(fila).not.toHaveTextContent('NO-MOSTRAR')
+  })
+
   it('pagina en el servidor', async () => {
     const pagina2 = { ...copia(AUDITORIA), pagina: 1, total: 30, totalPaginas: 2, registros: [copia(AUDITORIA.registros[3])] }
     const fetchMock = comoSuper({
@@ -184,5 +264,28 @@ describe('Auditoría de operaciones sensibles (CCPIP-97)', () => {
     expect(within(pago).getByText('Attempted a payment')).toBeInTheDocument()
     expect(within(pago).getByText('Declined')).toBeInTheDocument()
     expect(within(pago).getByText('Order')).toBeInTheDocument()
+  })
+
+  it('CCPIP-509: traduce filtros, entidad nueva y trazabilidad al inglés', async () => {
+    await i18n.changeLanguage('en')
+    const registro = { ...copia(AUDITORIA.registros[0]), entidad: 'CUENTA_BANCARIA', actor: 'ANONIMO',
+      referencia: 'BANK-7', ubicacionId: 12, correlacion: 'trace-en', decision: 'APROBADO' }
+    const respuesta = { ...copia(AUDITORIA), registros: [registro] }
+    const fetchMock = comoSuper({
+      [`GET ${RUTA}`]: [200, respuesta],
+      [`GET ${RUTA}?${PERIODO}&actor=ANONIMO&ubicacion=12&referencia=BANK-7`]: [200, respuesta],
+    })
+    const user = userEvent.setup()
+    abrirEn('/admin/auditoria')
+    const [fila] = await filas('Audit of sensitive operations')
+    expect(within(fila).getByText('Bank account')).toBeInTheDocument()
+    await user.selectOptions(screen.getByLabelText('Actor'), 'Anonymous')
+    await user.type(screen.getByLabelText('Location (ID)'), '12')
+    await user.type(screen.getByLabelText('Reference'), 'BANK-7')
+    await user.click(screen.getByRole('button', { name: 'Search' }))
+    expect(llamadas(fetchMock, `GET ${RUTA}?${PERIODO}&actor=ANONIMO&ubicacion=12&referencia=BANK-7`)).toHaveLength(1)
+    const [filtrada] = await filas('Audit of sensitive operations')
+    expect(within(filtrada).getByText(/trace-en/)).toBeInTheDocument()
+    expect(within(filtrada).getByText(/Approved/)).toBeInTheDocument()
   })
 })

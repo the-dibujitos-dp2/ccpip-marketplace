@@ -90,10 +90,10 @@ class AuditoriaTest extends IntegrationTest {
                 .andExpect(campo("PA-" + edicion, "resultado").value(hasItem("EXITOSA")));
 
         auditoria("?accion=PAGO&resultado=RECHAZADO&usuario=consumidor")
-                .andExpect(campo("PG-" + pagoRechazado, "rol").value(hasItem("CONSUMIDOR")))
-                .andExpect(campo("PG-" + pagoRechazado, "entidad").value(hasItem("PEDIDO")))
-                .andExpect(campo("PG-" + pagoRechazado, "detalle").value(hasItem(numeroPedido)))
-                .andExpect(campo("PG-" + pagoRechazado, "resultado").value(hasItem("RECHAZADO")));
+                .andExpect(campo("PG-" + pagoRechazado + "-RECHAZADO", "rol").value(hasItem("CONSUMIDOR")))
+                .andExpect(campo("PG-" + pagoRechazado + "-RECHAZADO", "entidad").value(hasItem("PEDIDO")))
+                .andExpect(campo("PG-" + pagoRechazado + "-RECHAZADO", "detalle").value(hasItem(numeroPedido)))
+                .andExpect(campo("PG-" + pagoRechazado + "-RECHAZADO", "resultado").value(hasItem("RECHAZADO")));
 
         auditoria("?entidad=PRODUCTOR&rol=SUB_ADMIN")
                 .andExpect(campo("PD-" + decision, "accion").value(hasItem("HABILITAR_TIENDA")))
@@ -154,8 +154,10 @@ class AuditoriaTest extends IntegrationTest {
                 .andExpect(campo("PH-" + entrego, "accion").value(hasItem("PEDIDO_ENTREGADO")))
                 .andExpect(campo("PH-" + entrego, "usuario").value(hasItem(org.hamcrest.Matchers.notNullValue())))
                 .andExpect(jsonPath("$.registros[*].clave", not(hasItem("PH-" + preparo))));
-        auditoria("?entidad=PEDIDO")
-                .andExpect(jsonPath("$.registros[*].clave", not(hasItem("PH-" + delComprador))));
+        // CCPIP-509 incluye también la operación del comprador, sin atribuirla a los roles operativos.
+        auditoria("?entidad=PEDIDO&rol=CONSUMIDOR")
+                .andExpect(campo("PH-" + delComprador, "accion").value(hasItem("PEDIDO_CONFIRMADO")))
+                .andExpect(jsonPath("$.registros[*].clave", not(hasItem("PH-" + preparo))));
         auditoria("?accion=MOVIMIENTO_ENTRADA&entidad=MOVIMIENTO")
                 .andExpect(jsonPath("$.registros[*].clave", hasItem("MI-" + entrada)));
         auditoria("").andExpect(jsonPath("$.acciones", hasItems("MOVIMIENTO_ENTRADA", "PEDIDO_EN_PREPARACION",

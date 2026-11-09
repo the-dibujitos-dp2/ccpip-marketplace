@@ -15,6 +15,7 @@ import pe.ccpip.gobernanza.AuditoriaModelos.Entidad;
 import pe.ccpip.gobernanza.AuditoriaModelos.Filtro;
 import pe.ccpip.gobernanza.AuditoriaModelos.PaginaAuditoria;
 import pe.ccpip.gobernanza.AuditoriaModelos.Resultado;
+import pe.ccpip.gobernanza.AuditoriaModelos.Actor;
 
 /**
  * CCPIP-97 (RF-84): el superadministrador consulta y filtra la auditoria de operaciones sensibles: quien
@@ -39,7 +40,10 @@ public class AuditoriaController {
                                      @RequestParam(required = false) Rol rol,
                                      @RequestParam(required = false) @Size(max = 60) String accion,
                                      @RequestParam(required = false) Entidad entidad,
-                                     @RequestParam(required = false) Resultado resultado) {
-        return service.consultar(new Filtro(desde, hasta, usuario, rol, accion, entidad, resultado), pagina);
+                                     @RequestParam(required = false) Resultado resultado,
+                                     @RequestParam(required = false) Actor actor,
+                                     @RequestParam(required = false) @Min(1) Long ubicacion,
+                                     @RequestParam(required = false) @Size(max = 120) String referencia) {
+        return service.consultar(new Filtro(desde, hasta, usuario, rol, accion, entidad, resultado, actor, ubicacion, referencia), pagina);
     }
 }

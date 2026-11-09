@@ -27,8 +27,17 @@ public final class AuditoriaModelos {
         CAPACIDAD_ENTREGA,
         /** CCPIP-496, 498: una zona de cobertura (distrito de entrega) de un punto de acopio. */
         COBERTURA_ENTREGA,
+        /** CCPIP-509: configuracion historica de comisiones. */
+        COMISION,
+        /** CCPIP-509: parametros configurables de la plataforma. */
+        PARAMETRO,
+        /** CCPIP-509: catalogo de causas de merma. */
+        MOTIVO_MERMA,
+        /** CCPIP-509: una unidad del catalogo de medidas. */
+        UNIDAD,
         /** CCPIP-504: un movimiento de inventario que registro el administrador de un punto de acopio. */
-        MOVIMIENTO
+        MOVIMIENTO, CUENTA_BANCARIA, TIENDA, DIRECCION, INTERES, SESION, SEGURIDAD, REPORTE, AVISO, CARRITO,
+        TRADUCCION, IMAGEN, ANALISIS, CALIFICACION, TRANSFERENCIA, SOLICITUD_UNIDAD
     }
 
     /**
@@ -36,6 +45,7 @@ public final class AuditoriaModelos {
      * completan ({@code EXITOSA}); un pago registra tambien los intentos rechazados o con error.
      */
     public enum Resultado { EXITOSA, APROBADO, RECHAZADO, ERROR, PENDIENTE, ANULADO }
+    public enum Actor { USUARIO, SISTEMA, ANONIMO }
 
     /**
      * Un registro. {@code clave} es unica (tabla de origen e id). {@code usuario} y {@code rol} son de
@@ -43,12 +53,14 @@ public final class AuditoriaModelos {
      * {@code detalle}, el nombre de lo afectado (producto, numero de pedido, organizacion).
      */
     public record Registro(String clave, Instant fecha, Long usuarioId, String usuario, String correo, Rol rol,
-                           String accion, Entidad entidad, long entidadId, String detalle, Resultado resultado) {
+                           String accion, Entidad entidad, long entidadId, String detalle, Resultado resultado,
+                           Actor actor, Long ubicacionId, String referencia, String correlacion, String decision,
+                           boolean rolHistorico, String metadatos, String motivo) {
     }
 
     /** Filtros, todos opcionales y combinables. {@code usuario} busca en el nombre y el correo. */
     public record Filtro(LocalDate desde, LocalDate hasta, String usuario, Rol rol, String accion, Entidad entidad,
-                         Resultado resultado) {
+                         Resultado resultado, Actor actor, Long ubicacion, String referencia) {
     }
 
     /** Una pagina de la auditoria del periodo (dias de Lima, inclusive), la mas reciente primero. */

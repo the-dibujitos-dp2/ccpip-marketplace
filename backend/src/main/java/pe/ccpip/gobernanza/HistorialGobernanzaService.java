@@ -75,6 +75,18 @@ public class HistorialGobernanzaService {
             JOIN usuario u ON u.id = h.usuario_id
             """;
 
+    // Solo la consulta de historial propio añade los análisis: Auditoría global ya lee AS/AN del ledger.
+    private static final String ACCIONES_PROPIAS = ACCIONES + """
+            UNION ALL
+            SELECT v.prefijo || a.id, a.solicitado_en, a.solicitado_por, 'AUTORIZACIONES', v.accion,
+                   coalesce(pr.nombre_tienda, pr.comunidad), p.nombre, 'AUTORIZACION', a.autorizacion_id, NULL::text
+            FROM analisis_evidencias a
+            JOIN autorizacion_producto au ON au.id=a.autorizacion_id
+            JOIN producto p ON p.id=au.producto_id
+            JOIN productor pr ON pr.id=au.productor_id
+            CROSS JOIN (VALUES ('AS-', 'ANALISIS_SOLICITADO'), ('AN-', 'ANALISIS_RESULTADO')) AS v(prefijo,accion)
+            """;
+
     private final NamedParameterJdbcTemplate jdbc;
 
     public HistorialGobernanzaService(NamedParameterJdbcTemplate jdbc) {
@@ -97,7 +109,7 @@ public class HistorialGobernanzaService {
                 WHERE %s BETWEEN :desde AND :hasta
                   AND (CAST(:autor AS bigint) IS NULL OR x.autor = :autor)
                   AND (CAST(:tipo AS text) IS NULL OR x.tipo = :tipo)
-                ORDER BY x.fecha DESC, x.clave DESC""".formatted(ACCIONES, FECHA_LIMA.formatted("x.fecha")), p,
+                ORDER BY x.fecha DESC, x.clave DESC""".formatted(ACCIONES_PROPIAS, FECHA_LIMA.formatted("x.fecha")), p,
                 (rs, row) -> new Accion(rs.getString("clave"), rs.getTimestamp("fecha").toInstant(),
                         Tipo.valueOf(rs.getString("tipo")), rs.getString("accion"), rs.getString("sobre"),
                         rs.getString("detalle"), Objeto.valueOf(rs.getString("objeto")), rs.getLong("objeto_id"),
