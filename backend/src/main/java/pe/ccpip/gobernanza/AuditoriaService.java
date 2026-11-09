@@ -268,7 +268,63 @@ public class AuditoriaService {
 
     private static String motivoSeguro(String texto) {
         if (texto == null) return null;
-        return texto.replaceAll("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}", "[oculto]")
-                .replaceAll("(?:\\+?[0-9][ .-]?){7,}", "[oculto]").strip();
+        String correos = enmascaraCorreos(texto);
+        return correos.replaceAll("(?:\\+?+[0-9][ .-]?+){7,}+", "[oculto]").strip();
+    }
+
+    /** Scans each local/domain candidate at most twice, without recursive regex backtracking. */
+    private static String enmascaraCorreos(String texto) {
+        StringBuilder resultado = new StringBuilder(texto.length());
+        int i = 0;
+        int copiado = 0;
+        while (i < texto.length()) {
+            int inicio = i;
+            while (i < texto.length() && esCaracterCorreo(texto.charAt(i))) i++;
+            if (i == inicio) {
+                i++;
+                continue;
+            }
+            if (i == texto.length() || texto.charAt(i) != '@') continue;
+            int dominio = i + 1;
+            int fin = finCorreo(texto, dominio);
+            if (fin >= 0) {
+                resultado.append(texto, copiado, inicio).append("[oculto]");
+                copiado = fin;
+                i = fin;
+            } else {
+                i = dominio;
+            }
+        }
+        return copiado == 0 ? texto : resultado.append(texto, copiado, texto.length()).toString();
+    }
+
+    /** Last valid ASCII suffix, preserving punctuation and partial matches of the legacy pattern. */
+    private static int finCorreo(String texto, int dominio) {
+        int fin = -1;
+        int letrasSufijo = -1;
+        for (int i = dominio; i < texto.length() && esCaracterDominio(texto.charAt(i)); i++) {
+            char c = texto.charAt(i);
+            if (c == '.') {
+                letrasSufijo = i > dominio ? 0 : -1;
+            } else if (esLetraAscii(c) && letrasSufijo >= 0) {
+                letrasSufijo++;
+                if (letrasSufijo >= 2) fin = i + 1;
+            } else {
+                letrasSufijo = -1;
+            }
+        }
+        return fin;
+    }
+
+    private static boolean esCaracterCorreo(char c) {
+        return esLetraAscii(c) || (c >= '0' && c <= '9') || "._%+-".indexOf(c) >= 0;
+    }
+
+    private static boolean esCaracterDominio(char c) {
+        return esLetraAscii(c) || (c >= '0' && c <= '9') || c == '-' || c == '.';
+    }
+
+    private static boolean esLetraAscii(char c) {
+        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
     }
 }
