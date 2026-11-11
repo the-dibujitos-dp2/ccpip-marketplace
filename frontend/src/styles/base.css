@@ -135,10 +135,10 @@ button { font: inherit; }
 /* CCPIP-454: los valores negativos (perdidas, salidas) se ven en rojo; el signo sigue en el texto */
 .valor-negativo { color: var(--color-status-error-fg); }
 
-/* CCPIP-510: animaciones compartidas. Entradas de 8 px y opacidad (sin escalar desde cero ni desenfocar) */
+/* CCPIP-510: las entradas compartidas desplazan 8 px sin atenuar texto y reducir contraste. */
 @keyframes entrada {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: none; }
+  from { transform: translateY(8px); }
+  to { transform: none; }
 }
 @keyframes aparecer {
   from { opacity: 0; }
