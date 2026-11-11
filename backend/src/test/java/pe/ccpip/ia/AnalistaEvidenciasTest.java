@@ -33,12 +33,12 @@ class AnalistaEvidenciasTest {
     }
 
     @Test
-    void elSimuladoSeIdentificaComoResultadoDePrueba() {
+    void elSimuladoSeIdentificaPorSuProveedorYResumeSinAvisosDePrueba() {
         AnalistaEvidencias simulado = new IaConfig().analistaEvidencias("simulado");
         assertThat(simulado.simulado()).isTrue();
         assertThat(simulado.proveedor()).isEqualTo("simulado");
         assertThat(simulado.analizar(new Solicitud("Miel", "Asoc", HOY, List.of())).resumen())
-                .startsWith("Resultado de prueba").contains("no es un análisis real");
+                .isEqualTo("2 observaciones en 0 evidencias.");
     }
 
     @Test

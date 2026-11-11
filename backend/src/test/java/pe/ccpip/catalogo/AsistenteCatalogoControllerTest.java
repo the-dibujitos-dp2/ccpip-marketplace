@@ -125,7 +125,7 @@ class AsistenteCatalogoControllerTest extends IntegrationTest {
     void respondeEnElIdiomaPedido() throws Exception {
         preguntar("café", "en-US,en;q=0.9")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.texto", Matchers.startsWith("Test answer")));
+                .andExpect(jsonPath("$.texto", Matchers.startsWith("These catalog products")));
     }
 
     @Test

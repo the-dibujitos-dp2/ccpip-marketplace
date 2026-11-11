@@ -25,7 +25,7 @@ export default function MapaPunto({ punto, compacto = false }) {
   return (
     <figure className={`mapa-punto${compacto ? ' mapa-punto--compacto' : ''}`}>
       <iframe
-        className="mapa-punto__plano mapa-punto__zona"
+        className="mapa-punto__plano"
         src={urlMapaIncrustado(punto)}
         title={t('mapaPunto.plano', { nombre: punto.nombre, direccion })}
         loading="lazy"

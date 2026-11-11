@@ -64,9 +64,9 @@ describe('PW-04 Validacion de fotos con IA (CCPIP-144, 168, 364)', () => {
     expect(screen.getByText('Corresponde a la categoría Superfrutos.')).toBeInTheDocument()
     expect(screen.getByText('Foto 2 · Posible imagen incorrecta')).toBeInTheDocument()
     expect(screen.getByText('Parece de la categoría Artesanías, no de Superfrutos. Revísala antes de publicar.')).toBeInTheDocument()
-    // RF-137: solo recomienda, y el simulador se presenta como tal
+    // RF-137: solo recomienda. Sin avisos de "validación de prueba" (CCPIP-511)
     expect(screen.getByText('Es solo una recomendación: puedes publicar con esta foto.')).toBeInTheDocument()
-    expect(screen.getAllByText('Validación de prueba')).toHaveLength(2)
+    expect(screen.queryByText('Validación de prueba')).not.toBeInTheDocument()
 
     // El chip sobre la miniatura lleva al aviso
     await user.click(screen.getByRole('button', { name: 'Revisar' }))
@@ -180,8 +180,8 @@ describe('PW-04 Validacion de fotos con IA (CCPIP-144, 168, 364)', () => {
     expect(screen.getByRole('button', { name: 'Review' })).toBeInTheDocument()
     expect(screen.getByText('Replace image')).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Enhance with AI' })).toHaveLength(2)
-    // Solo la validacion simulada lleva el aviso de prueba
-    expect(screen.getAllByText('Test check')).toHaveLength(1)
+    // CCPIP-511: sin aviso de validacion de prueba
+    expect(screen.queryByText('Test check')).not.toBeInTheDocument()
   })
 })
 
@@ -210,7 +210,7 @@ describe('PW-04 Mejora opcional con IA (CCPIP-176, 272, 281, 282)', () => {
     expect(dialogo.getByAltText('Foto original')).toHaveAttribute('src', `/api/imagenes/${A}`)
     expect(dialogo.getByAltText('Foto mejorada')).toHaveAttribute('src', '/api/productor/mejoras/m1')
     expect(dialogo.getByText(/no se agrega nada a tu producto/)).toBeInTheDocument()
-    expect(dialogo.getByText(/Mejora de prueba/)).toBeInTheDocument()
+    expect(dialogo.queryByText(/Mejora de prueba/)).not.toBeInTheDocument()
     // Hasta elegir, la ficha sigue con la original
     expect(screen.getByAltText('Foto del producto')).toHaveAttribute('src', `/api/imagenes/${A}?tam=min`)
 

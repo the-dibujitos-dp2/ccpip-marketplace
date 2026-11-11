@@ -2,6 +2,7 @@ package pe.ccpip.autorizacion;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -407,7 +408,7 @@ class EvidenciasRevisionTest extends IntegrationTest {
                 .andExpect(jsonPath("$.simulado").value(true))
                 .andExpect(jsonPath("$.proveedor").value("simulado"))
                 .andExpect(jsonPath("$.recomendacion").value("REVISAR"))
-                .andExpect(jsonPath("$.resumen").value(startsWith("Resultado de prueba")))
+                .andExpect(jsonPath("$.resumen").value(endsWith("evidencias.")))
                 .andExpect(jsonPath("$.desactualizado").value(false))
                 .andExpect(jsonPath("$.hallazgos[?(@.evidenciaId == '%s')].tipo".formatted(bueno)).value("CONFORME"))
                 .andExpect(jsonPath("$.hallazgos[?(@.evidenciaId == '%s')].tipo".formatted(ajeno)).value("INCONSISTENCIA"))

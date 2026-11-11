@@ -49,28 +49,43 @@ function reparto(entregas, respuestas = {}) {
 const comoDistribuidor = (rutas) => ({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_DISTRIBUIDOR], ...rutas })
 const tarjeta = (numero) => screen.getByRole('article', { name: new RegExp(`^${numero} ·`) })
 
-describe('CCPIP-499 mapa con el destino en las ubicaciones', () => {
-  it('muestra la salida y la entrega en un mapa y abre la ruta aparte', async () => {
-    const rutas = reparto([entrega('MC-11003', 'Surco', '150140', 'RETIRADA')])
-    rutas['GET /api/distribuidor/pedidos/MC-11003/ubicaciones'] = () => [200, {
-      numero: 'MC-11003',
+describe('CCPIP-511 abrir el destino en Waze o Google Maps', () => {
+  it('el destino ofrece Waze y Google Maps con la dirección de entrega, en otra pestaña; el origen no', async () => {
+    const rutas = reparto([entrega('MC-11004', 'Surco', '150140', 'EN_CAMINO')])
+    rutas['GET /api/distribuidor/pedidos/MC-11004/ubicaciones'] = () => [200, {
+      numero: 'MC-11004',
       origen: { id: 1, nombre: 'Centro Nacional Lima', distrito: 'Lima', direccion: 'Sede central CCPIP' },
-      destino: { territorio: { ubigeo: '150140', departamento: 'Lima', provincia: 'Lima', distrito: 'Surco' }, direccion: 'Av. Primavera 120', referencia: null },
+      destino: { territorio: { ubigeo: '150140', departamento: 'Lima', provincia: 'Lima', distrito: 'Surco' }, direccion: 'Av. Primavera 120', referencia: 'Frente al parque' },
     }]
     servidor(comoDistribuidor(rutas))
     const user = userEvent.setup()
     abrirEn('/distribuidor/entregas')
-    await user.click(within(await screen.findByRole('article', { name: /^MC-11003/ })).getByRole('button', { name: 'Ver ubicaciones' }))
+    await user.click(within(await screen.findByRole('article', { name: /^MC-11004/ })).getByRole('button', { name: 'Ver ubicaciones' }))
     const dialogo = within(await screen.findByRole('dialog'))
-    expect(await dialogo.findByRole('img', {
-      name: 'Mapa referencial de la ruta: sale de Centro Nacional Lima, Sede central CCPIP, Lima y llega a Av. Primavera 120, Surco, Lima',
-    })).toBeInTheDocument()
-    const ruta = dialogo.getByRole('link', { name: 'Ver la ruta en Google Maps (se abre en otra pestaña)' })
-    expect(ruta).toHaveAttribute('target', '_blank')
-    const url = new URL(ruta.getAttribute('href'))
-    expect(url.origin + url.pathname).toBe('https://www.google.com/maps/dir/')
-    expect(url.searchParams.get('origin')).toBe('Sede central CCPIP, Lima, Perú')
-    expect(url.searchParams.get('destination')).toBe('Av. Primavera 120, Surco, Lima, Lima, Perú')
+    const destino = within(await dialogo.findByRole('region', { name: 'Destino' }))
+    const apps = within(destino.getByRole('group', { name: 'Abrir el destino en' }))
+
+    const direccion = 'Av. Primavera 120, Surco, Lima, Lima, Perú'
+    const waze = apps.getByRole('link', { name: 'Abrir el destino en Waze (se abre en otra pestaña)' })
+    expect(waze).toHaveTextContent('Waze')
+    expect(waze).toHaveAttribute('target', '_blank')
+    expect(waze).toHaveAttribute('rel', 'noopener noreferrer')
+    const urlWaze = new URL(waze.getAttribute('href'))
+    expect(urlWaze.origin + urlWaze.pathname).toBe('https://waze.com/ul')
+    expect(urlWaze.searchParams.get('q')).toBe(direccion)
+    expect(urlWaze.searchParams.get('navigate')).toBe('yes')
+
+    const google = apps.getByRole('link', { name: 'Abrir el destino en Google Maps (se abre en otra pestaña)' })
+    expect(google).toHaveAttribute('target', '_blank')
+    const urlGoogle = new URL(google.getAttribute('href'))
+    expect(urlGoogle.origin + urlGoogle.pathname).toBe('https://www.google.com/maps/search/')
+    expect(urlGoogle.searchParams.get('query')).toBe(direccion)
+
+    // El punto de acopio (origen) no lleva estos botones
+    expect(within(dialogo.getByRole('region', { name: 'Origen' })).queryByRole('link')).not.toBeInTheDocument()
+    // Sin el plano referencial de la ruta (CCPIP-499): el destino se abre en la app de mapas
+    expect(dialogo.queryByRole('img', { name: /Mapa referencial de la ruta/ })).not.toBeInTheDocument()
+    expect(dialogo.queryByRole('link', { name: /Ver la ruta en Google Maps/ })).not.toBeInTheDocument()
   })
 })
 

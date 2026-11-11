@@ -33,12 +33,14 @@
 .layout-productor ::selection { background: var(--editorial-forest); color: var(--editorial-white); }
 .layout-productor :is(table) { border-collapse: collapse; background: var(--editorial-white); }
 .layout-productor :is(th) {
-  background: var(--editorial-sage);
   color: var(--editorial-ink);
   font-family: var(--editorial-sans);
   font-weight: 600;
   text-align: left;
 }
+/* CCPIP-511: solo los encabezados de columna van en verde; el de cada fila (p. ej. el numero de pedido) sigue el
+   fondo blanco de su fila */
+.layout-productor :is(thead th, th[scope='col']) { background: var(--editorial-sage); }
 .layout-productor :is(td, th) { border-bottom: 1px solid var(--editorial-line); }
 .layout-productor :is(.boton, button[class*='boton']) { border-radius: var(--editorial-radius); box-shadow: none; }
 .layout-productor :is(.boton--primario, .boton--primary) {

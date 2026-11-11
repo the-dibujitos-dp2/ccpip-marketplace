@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next'
 import iconoCaja from '../../assets/icons/caja.svg'
 import iconoAlmacen from '../../assets/icons/almacen.svg'
 import iconoCheck from '../../assets/icons/check.svg'
+import iconoGoogleMaps from '../../assets/icons/google-maps.svg'
 import iconoUsuario from '../../assets/icons/usuario.svg'
+import iconoWaze from '../../assets/icons/waze.svg'
 import { consultarUbicaciones, listarMisEntregas, registrarEnCamino, registrarEntrega, retirarEntrega } from '../../api/distribucion.js'
 import { useConsulta } from '../../api/useConsulta.js'
 import Alerta from '../../components/Alerta.jsx'
@@ -14,9 +16,9 @@ import EstadoVacio from '../../components/EstadoVacio.jsx'
 import Icono from '../../components/Icono.jsx'
 import Pasos from '../../components/Pasos.jsx'
 import LayoutDistribuidor from '../../components/layout/LayoutDistribuidor.jsx'
-import MapaRuta from '../../components/MapaRuta.jsx'
 import Paginacion from '../../components/Paginacion.jsx'
 import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
+import { urlDestinoGoogleMaps, urlDestinoWaze } from '../../destinoMapas.js'
 import { diaMesHora, hora } from '../../formato.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { navigate, RUTAS } from '../../router.js'
@@ -114,18 +116,42 @@ function DialogoUbicaciones({ numero, onCerrar }) {
               <Dato etiqueta={u('departamento')} valor={datos.destino.territorio.departamento} />
               <Dato etiqueta={u('referencia')} valor={datos.destino.referencia} />
             </dl>
+            <AbrirDestino destino={{ direccion: datos.destino.direccion, ...datos.destino.territorio }} />
           </section>
         </div>
       )}
-      {/* CCPIP-499: el punto de salida y la direccion de entrega en un mapa, con la ruta para abrir aparte */}
-      {datos && (
-        <MapaRuta
-          origen={datos.origen}
-          destino={{ direccion: datos.destino.direccion, ...datos.destino.territorio }}
-        />
-      )}
     </dialog>
   )
+}
+
+/** CCPIP-511: las apps con las que el distribuidor navega hasta el destino. */
+const APPS_DESTINO = [
+  { clave: 'waze', icono: iconoWaze, url: urlDestinoWaze },
+  { clave: 'googleMaps', icono: iconoGoogleMaps, url: urlDestinoGoogleMaps },
+]
+
+/** CCPIP-511: abre la direccion de entrega en Waze o en Google Maps, en otra pestana (o en la app del celular). */
+function AbrirDestino({ destino }) {
+  const { t } = useTranslation()
+  const u = (k, v) => t(`distribuidor.entregas.ubicaciones.${k}`, v)
+  return (
+    <div className="ubicaciones__abrir" role="group" aria-label={u('abrirEn')}>
+      {APPS_DESTINO.map((app) => (
+        <a key={app.clave} className="boton boton--secundario boton--S ubicaciones__app" href={app.url(destino)} target="_blank" rel="noopener noreferrer"
+          aria-label={`${u('abrirEnApp', { app: u(`apps.${app.clave}`) })} ${t('mapaPunto.nuevaPestana')}`}>
+          <img src={app.icono} width="18" height="18" alt="" />
+          {u(`apps.${app.clave}`)}
+        </a>
+      ))}
+    </div>
+  )
+}
+
+/** El siguiente paso que registra el distribuidor segun el estado de la entrega (textos de distribuidor.entregas). */
+const ACCION = {
+  ASIGNADA: { etiqueta: 'retirar', ocupado: 'retirando', icono: iconoCheck },
+  RETIRADA: { etiqueta: 'registrarEnCamino', ocupado: 'registrandoEnCamino' },
+  EN_CAMINO: { etiqueta: 'registrarEntrega', ocupado: 'registrandoEntrega' },
 }
 
 /** Color del estado de la entrega: siempre con su texto (Badge). */
@@ -202,6 +228,11 @@ export default function MisEntregasPage({ path }) {
     recargar()
   }
 
+  // Que entrega se esta registrando en cada paso y como se avanza; mientras una se registra, las demas esperan
+  const registrandoPor = { ASIGNADA: retirando, RETIRADA: enCaminoActualizando, EN_CAMINO: entregaActualizando }
+  const avanzarPor = { ASIGNADA: retirar, RETIRADA: avanzarEnCamino, EN_CAMINO: finalizarEntrega }
+  const registrandoAlguna = retirando !== null || enCaminoActualizando !== null || entregaActualizando !== null
+
   const titulo = t('distribuidor.entregas.titulo')
   return (
     <LayoutDistribuidor path={path} titulo={titulo}>
@@ -238,32 +269,23 @@ export default function MisEntregasPage({ path }) {
                     {[e.origen.direccion, e.origen.distrito].filter(Boolean).join(', ')}
                   </p>
                   <p className="caption">{t('distribuidor.entregas.destino', { provincia: e.destino.provincia, departamento: e.destino.departamento })}</p>
-                  <div className="mis-entregas__acciones"><Boton tamano="S" tipo="secundario" onClick={() => setUbicaciones(e.numero)}>{t('distribuidor.entregas.ubicaciones.accion')}</Boton></div>
-                  <Pasos pasos={pasos} actual={PASO[e.estado] ?? 0} etiqueta={t('distribuidor.entregas.pasos.etiqueta', { numero: e.numero })} />
-                  <Momentos entrega={e} />
-                  {e.estado === 'ASIGNADA' && (
-                    <div className="mis-entregas__acciones">
-                      <Boton
-                        tamano="M"
-                        icono={iconoCheck}
-                        cargando={retirando === e.numero}
-                        disabled={retirando !== null || enCaminoActualizando !== null || entregaActualizando !== null}
-                        onClick={() => void retirar(e.numero)}
-                      >
-                        {retirando === e.numero ? t('distribuidor.entregas.retirando') : t('distribuidor.entregas.retirar')}
-                      </Boton>
+                  {/* CCPIP-511: a la derecha "Ver ubicaciones" y debajo el paso que sigue; a la izquierda, centrado en
+                      la altura de esos botones, el seguimiento con sus momentos */}
+                  <div className="mis-entregas__avance">
+                    <div className="mis-entregas__seguimiento">
+                      <Pasos pasos={pasos} actual={PASO[e.estado] ?? 0} etiqueta={t('distribuidor.entregas.pasos.etiqueta', { numero: e.numero })} />
+                      <Momentos entrega={e} />
                     </div>
-                  )}
-                  {e.estado === 'RETIRADA' && (
                     <div className="mis-entregas__acciones">
-                      <Boton tamano="M" cargando={enCaminoActualizando === e.numero} disabled={retirando !== null || enCaminoActualizando !== null || entregaActualizando !== null} onClick={() => void avanzarEnCamino(e.numero)}>{enCaminoActualizando === e.numero ? t('distribuidor.entregas.registrandoEnCamino') : t('distribuidor.entregas.registrarEnCamino')}</Boton>
+                      <Boton tamano="M" tipo="secundario" onClick={() => setUbicaciones(e.numero)}>{t('distribuidor.entregas.ubicaciones.accion')}</Boton>
+                      {ACCION[e.estado] && (
+                        <Boton tamano="M" icono={ACCION[e.estado].icono} cargando={registrandoPor[e.estado] === e.numero}
+                          disabled={registrandoAlguna} onClick={() => void avanzarPor[e.estado](e.numero)}>
+                          {t(`distribuidor.entregas.${registrandoPor[e.estado] === e.numero ? ACCION[e.estado].ocupado : ACCION[e.estado].etiqueta}`)}
+                        </Boton>
+                      )}
                     </div>
-                  )}
-                  {e.estado === 'EN_CAMINO' && (
-                    <div className="mis-entregas__acciones">
-                      <Boton tamano="M" cargando={entregaActualizando === e.numero} disabled={retirando !== null || enCaminoActualizando !== null || entregaActualizando !== null} onClick={() => void finalizarEntrega(e.numero)}>{entregaActualizando === e.numero ? t('distribuidor.entregas.registrandoEntrega') : t('distribuidor.entregas.registrarEntrega')}</Boton>
-                    </div>
-                  )}
+                  </div>
                 </article>
               ))}
             </div>

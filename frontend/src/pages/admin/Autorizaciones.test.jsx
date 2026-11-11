@@ -129,20 +129,20 @@ describe('S-02 Expediente: análisis preliminar y decisión (CCPIP-50, CCPIP-174
     expect(decision().getByRole('button', { name: 'Aprobar autorización' })).toBeEnabled()
   })
 
-  it('el análisis simulado se muestra como resultado de prueba, ligado a cada certificado, y no decide', async () => {
+  it('el análisis simulado se muestra ligado a cada certificado, sin avisos de prueba, y no decide', async () => {
     const fetchMock = comoSub({ [`POST ${EXPEDIENTE}/analisis`]: () => [200, copia(DATOS.analisisSimulado)] })
     abrirEn('/admin/autorizaciones/41')
     await userEvent.click(await screen.findByRole('button', { name: 'Pedir análisis preliminar' }))
 
-    expect(await screen.findByText('Resultado de prueba, no es un análisis real')).toBeInTheDocument()
-    expect(decision().getByText(/no leyó los archivos/)).toBeInTheDocument()
-    expect(decision().getByText('Con observaciones')).toBeInTheDocument()
+    expect(await decision().findByText('Con observaciones')).toBeInTheDocument()
+    expect(screen.queryByText(/Resultado de prueba/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/no leyó los archivos/)).not.toBeInTheDocument()
     expect(decision().getByText('Faltan fotos o registros del proceso de elaboración.')).toBeInTheDocument()
     expect(decision().getByText('Análisis preliminar disponible')).toBeInTheDocument()
     expect(decision().getByText(/proveedor: simulado/)).toBeInTheDocument()
 
     const registro = evidencia('Registro sanitario de cacao')
-    expect(registro.getByText(/Resultado de prueba \(sugerencia simulada\)/)).toBeInTheDocument()
+    expect(registro.getByText(/Revisión preliminar asistida \(sugerencia\)/)).toBeInTheDocument()
     expect(registro.getByText('Revisar')).toBeInTheDocument()
     expect(registro.getByText(/El título no menciona/)).toBeInTheDocument()
     expect(evidencia('Certificado orgánico de camu camu').getByText('Conforme')).toBeInTheDocument()
@@ -247,12 +247,12 @@ describe('S-02 Expediente: análisis preliminar y decisión (CCPIP-50, CCPIP-174
     expect(screen.getByRole('link', { name: 'Volver a autorizaciones' })).toHaveAttribute('href', '/admin/autorizaciones')
   })
 
-  it('en inglés el resultado simulado también se marca como prueba', async () => {
+  it('en inglés el resultado simulado tampoco lleva aviso de prueba', async () => {
     await i18n.changeLanguage('en')
     comoSub({ [`GET ${EXPEDIENTE}`]: [200, { ...copia(DATOS.expedienteAdmin), analisis: copia(DATOS.analisisSimulado) }] })
     abrirEn('/admin/autorizaciones/41')
-    expect(await screen.findByText('Test result, not a real analysis')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Approve authorization' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Approve authorization' })).toBeInTheDocument()
+    expect(screen.queryByText('Test result, not a real analysis')).not.toBeInTheDocument()
     expect(screen.getByText('The AI neither approves nor rejects. Its findings are suggestions for your review.')).toBeInTheDocument()
   })
 })

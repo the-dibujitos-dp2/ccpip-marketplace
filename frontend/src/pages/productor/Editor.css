@@ -82,7 +82,6 @@
 .editor__ia-foto--aviso .editor__ia-foto-titulo { color: var(--color-status-warning-fg); }
 .editor__ia-foto--error .editor__ia-foto-titulo { color: var(--color-status-error-fg); }
 .editor__ia-foto--info .editor__ia-foto-titulo { color: var(--color-status-info-fg); }
-.editor__ia-prueba { padding: 1px 8px; border: 1px solid var(--color-border-default); border-radius: var(--radius-pill); background: var(--color-bg-surface); font-weight: 500; font-size: 11px; color: var(--color-text-secondary); }
 .editor__ia-foto-acciones { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 4px; }
 .editor__ia-enlace { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font-weight: 600; font-size: 14px; color: var(--color-text-brand); text-decoration: underline; cursor: pointer; }
 .editor__ia-enlace:disabled, .editor__ia-enlace--ocupado { opacity: 0.6; cursor: progress; }

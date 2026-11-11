@@ -574,11 +574,6 @@ export default function CompraPage() {
                     inputMode="numeric" autoComplete="cc-csc" maxLength={largoCvv(marcaTarjeta)}
                     placeholder={'•'.repeat(largoCvv(marcaTarjeta))} />
                 </div>
-                <Alerta
-                  tono="info"
-                  titulo={t('compra.pruebas')}
-                  descripcion={t('compra.pruebasTexto')}
-                />
               </section>
             </div>
 
