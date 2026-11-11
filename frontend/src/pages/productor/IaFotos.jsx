@@ -11,7 +11,6 @@ import Giro from '../../components/Giro.jsx'
 import Icono from '../../components/Icono.jsx'
 
 /** El proveedor simulado no es IA real: la interfaz lo dice en vez de afirmar un resultado. */
-const esPrueba = (proveedor) => proveedor === 'simulado'
 
 /**
  * CCPIP-144 y CCPIP-168: la ultima validacion de cada foto, con las que se piden desde aqui.
@@ -112,9 +111,6 @@ export function AvisosFotos({ imagenes, porFoto, nombreLinea, lineaActual, onVal
             <div className="editor__ia-foto-texto">
               <p className="editor__ia-foto-titulo">
                 {a.titulo}
-                {esPrueba(v?.proveedor) && (
-                  <span className="editor__ia-prueba" title={t('productor.datos.iaFotos.pruebaAyuda')}>{t('productor.datos.iaFotos.prueba')}</span>
-                )}
               </p>
               <p className="body-s">{a.texto}</p>
               {v?.estado === 'SOSPECHOSA' && <p className="caption">{t('productor.datos.iaFotos.noBloquea')}</p>}
@@ -188,7 +184,6 @@ export function ComparacionMejora({ comparacion, decidiendo = null, onUsar, onCo
       {comparacion && (
         <>
           <p>{t('productor.datos.mejora.texto')}</p>
-          {esPrueba(comparacion.proveedor) && <p className="caption">{t('productor.datos.mejora.prueba')}</p>}
           <div className="editor__comparacion">
             <figure>
               <img src={comparacion.original.url} alt={t('productor.datos.mejora.altOriginal')} />

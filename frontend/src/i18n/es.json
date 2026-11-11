@@ -637,16 +637,13 @@
         "validar": "Validar foto",
         "validarOtraVez": "Validar otra vez",
         "reemplazar": "Reemplazar imagen",
-        "revisar": "Revisar",
-        "prueba": "Validación de prueba",
-        "pruebaAyuda": "Resultado de un simulador de demostración, no de un modelo de IA. Tómalo solo como referencia."
+        "revisar": "Revisar"
       },
       "mejora": {
         "mejorar": "Mejorar con IA",
         "preparando": "Preparando la mejora…",
         "titulo": "Compara la foto mejorada",
         "texto": "Solo se ajustan la luz, el contraste y la nitidez: no se agrega nada a tu producto. Tu foto original no cambia hasta que elijas.",
-        "prueba": "Mejora de prueba: la hace un simulador de demostración, no un modelo de IA.",
         "original": "Original",
         "mejorada": "Mejorada",
         "altOriginal": "Foto original",
@@ -1153,7 +1150,13 @@
         "destino": "Destino",
         "provincia": "Provincia",
         "departamento": "Departamento",
-        "referencia": "Referencia"
+        "referencia": "Referencia",
+        "abrirEn": "Abrir el destino en",
+        "abrirEnApp": "Abrir el destino en {{app}}",
+        "apps": {
+          "waze": "Waze",
+          "googleMaps": "Google Maps"
+        }
       },
       "enCaminoEn": "Salió en camino el {{fecha}}",
       "entregadaEn": "Lo entregaste el {{fecha}}",
@@ -3035,8 +3038,6 @@
     "mes": "Mes",
     "anio": "Año",
     "anioPlaceholder": "AAAA",
-    "pruebas": "Ambiente de pruebas: no se hace ningún cobro real",
-    "pruebasTexto": "Usa 4111 1111 1111 1111 para aprobar el pago o 4000 0000 0000 0002 para ver un rechazo.",
     "recojo": "Recojo en punto de acopio",
     "recojoTexto": "Te avisamos cuando esté listo.",
     "sinCosto": "Sin costo",
@@ -3746,9 +3747,6 @@
       "analizando": "Analizando…",
       "noDecide": "La IA no aprueba ni rechaza. Sus observaciones son sugerencias para tu revisión.",
       "sugerencia": "Revisión preliminar asistida (sugerencia)",
-      "sugerenciaPrueba": "Resultado de prueba (sugerencia simulada)",
-      "simuladoTitulo": "Resultado de prueba, no es un análisis real",
-      "simuladoTexto": "Lo generó el analista simulado con reglas fijas sobre lo declarado; no leyó los archivos. Se reemplazará al conectar el proveedor de IA definitivo.",
       "recomendacion": "Recomendación:",
       "faltantes": "Lo que falta",
       "pedido": "Pedido el {{fecha}} · proveedor: {{proveedor}}",
@@ -5340,12 +5338,5 @@
     "sufijo": "por {{unidad}}",
     "und": "{{cantidad}} und",
     "unidad": "unidad"
-  },
-  "mapaRuta": {
-    "plano": "Mapa referencial de la ruta: sale de {{salida}} y llega a {{llegada}}",
-    "salida": "Salida",
-    "destino": "Entrega",
-    "verRuta": "Ver la ruta en Google Maps",
-    "referencial": "Mapa referencial. Abre la ruta para ver cómo llegar."
   }
 }

@@ -16,10 +16,28 @@
 }
 .mis-entregas__tarjeta .caption { margin: 0; color: var(--color-text-secondary); }
 .mis-entregas__tarjeta .pasos { flex-wrap: wrap; }
+/* CCPIP-511: el seguimiento de la tarjeta, compacto para que sus tres pasos entren en una linea junto a los botones;
+   las lineas entre pasos se encogen antes que los nombres */
+.mis-entregas__tarjeta .mis-entregas__seguimiento .pasos { flex-wrap: nowrap; gap: 6px; }
+.mis-entregas__tarjeta .mis-entregas__seguimiento .pasos__item { gap: 6px; min-width: 0; }
+.mis-entregas__tarjeta .mis-entregas__seguimiento .pasos__item:not(:first-child) { flex: 1 1 auto; }
+.mis-entregas__tarjeta .mis-entregas__seguimiento .pasos__linea { flex: 1 1 28px; width: auto; min-width: 8px; }
+.mis-entregas__tarjeta .mis-entregas__seguimiento .pasos__boton { gap: 6px; font-size: 13px; line-height: 18px; white-space: nowrap; }
+.mis-entregas__tarjeta .mis-entregas__seguimiento .pasos__circulo { width: 24px; height: 24px; font-size: 12px; }
 .mis-entregas__cabecera { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .mis-entregas__cabecera h3 { margin: 0; font-size: 18px; line-height: 26px; }
 .mis-entregas__momentos { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .mis-entregas__acciones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
+/* CCPIP-511: seguimiento a la izquierda, centrado en la altura de los botones; los botones apilados a la derecha */
+.mis-entregas__avance { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px 24px; }
+.mis-entregas__seguimiento { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.mis-entregas__avance .mis-entregas__acciones { flex-direction: column; align-items: stretch; gap: 8px; }
+/* Solo si la tarjeta es muy angosta el seguimiento va arriba y los botones, juntos, debajo a la derecha */
+.mis-entregas__tarjeta { container-type: inline-size; }
+@container (max-width: 440px) {
+  .mis-entregas__avance { grid-template-columns: minmax(0, 1fr); }
+  .mis-entregas__avance .mis-entregas__acciones { justify-self: end; }
+}
 
 .mis-entregas__nada { margin: 0; color: var(--color-text-secondary); }
 .mis-entregas__tabla {
@@ -44,6 +62,9 @@
 @media (max-width: 520px) {
   .mis-entregas__tarjeta { padding: 16px; }
   .mis-entregas__acciones .boton { flex: 1; }
+  .mis-entregas__avance { grid-template-columns: minmax(0, 1fr); }
+  .mis-entregas__avance .mis-entregas__acciones { justify-self: stretch; }
+  .mis-entregas__avance .mis-entregas__acciones .boton { flex: none; }
 }
 
 /* CCPIP-110: ubicaciones del pedido, origen y destino lado a lado con una flecha entre ellos */
@@ -72,6 +93,10 @@
 .ubicaciones__lugar dl { display: flex; flex-direction: column; gap: 10px; margin: 0; }
 .ubicaciones__dato dt { font-size: 12px; line-height: 16px; color: var(--color-text-secondary); }
 .ubicaciones__dato dd { margin: 0; font-weight: 600; font-size: 15px; line-height: 22px; overflow-wrap: anywhere; }
+/* CCPIP-511: Waze y Google Maps, bajo la direccion de destino */
+.ubicaciones__abrir { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--color-border-default); }
+.ubicaciones__app { gap: 6px; background: var(--color-bg-surface); }
+.ubicaciones__app img { flex: none; }
 .ubicaciones__flecha { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--color-bg-brand); color: var(--color-text-on-brand); font-size: 20px; }
 @media (max-width: 600px) {
   .ubicaciones__ruta { grid-template-columns: minmax(0, 1fr); }

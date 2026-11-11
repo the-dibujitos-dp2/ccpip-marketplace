@@ -637,16 +637,13 @@
         "validar": "Check photo",
         "validarOtraVez": "Check again",
         "reemplazar": "Replace image",
-        "revisar": "Review",
-        "prueba": "Test check",
-        "pruebaAyuda": "Result from a demo simulator, not an AI model. Use it only as a reference."
+        "revisar": "Review"
       },
       "mejora": {
         "mejorar": "Enhance with AI",
         "preparando": "Preparing the enhancement…",
         "titulo": "Compare the enhanced photo",
         "texto": "Only light, contrast and sharpness are adjusted: nothing is added to your product. Your original photo doesn't change until you choose.",
-        "prueba": "Test enhancement: made by a demo simulator, not an AI model.",
         "original": "Original",
         "mejorada": "Enhanced",
         "altOriginal": "Original photo",
@@ -1153,7 +1150,13 @@
         "destino": "Destination",
         "provincia": "Province",
         "departamento": "Department",
-        "referencia": "Reference"
+        "referencia": "Reference",
+        "abrirEn": "Open the destination in",
+        "abrirEnApp": "Open the destination in {{app}}",
+        "apps": {
+          "waze": "Waze",
+          "googleMaps": "Google Maps"
+        }
       },
       "enCaminoEn": "Left for delivery on {{fecha}}",
       "entregadaEn": "You delivered it on {{fecha}}",
@@ -3035,8 +3038,6 @@
     "mes": "Month",
     "anio": "Year",
     "anioPlaceholder": "YYYY",
-    "pruebas": "Test environment: no real charge is made",
-    "pruebasTexto": "Use 4111 1111 1111 1111 to approve the payment or 4000 0000 0000 0002 to see a decline.",
     "recojo": "Pickup at collection point",
     "recojoTexto": "We'll let you know when it's ready.",
     "sinCosto": "No cost",
@@ -3746,9 +3747,6 @@
       "analizando": "Analyzing…",
       "noDecide": "The AI neither approves nor rejects. Its findings are suggestions for your review.",
       "sugerencia": "Assisted preliminary review (suggestion)",
-      "sugerenciaPrueba": "Test result (simulated suggestion)",
-      "simuladoTitulo": "Test result, not a real analysis",
-      "simuladoTexto": "It was produced by the simulated analyzer with fixed rules on the declared data; it did not read the files. It will be replaced when the definitive AI provider is connected.",
       "recomendacion": "Recommendation:",
       "faltantes": "What is missing",
       "pedido": "Requested on {{fecha}} · provider: {{proveedor}}",
@@ -5340,12 +5338,5 @@
     "sufijo": "per {{unidad}}",
     "und": "{{cantidad}} units",
     "unidad": "unit"
-  },
-  "mapaRuta": {
-    "plano": "Reference map of the route: leaves from {{salida}} and arrives at {{llegada}}",
-    "salida": "Departure",
-    "destino": "Delivery",
-    "verRuta": "See the route in Google Maps",
-    "referencial": "Reference map. Open the route to get directions."
   }
 }

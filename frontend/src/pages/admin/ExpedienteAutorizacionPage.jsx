@@ -126,7 +126,7 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
                       <Icono src={iconoIa} tamano={16} />
                       <div>
                         <p className="caption">
-                          {analisis.simulado ? t('autorizaciones.analisis.sugerenciaPrueba') : t('autorizaciones.analisis.sugerencia')}
+                          {t('autorizaciones.analisis.sugerencia')}
                           {' · '}
                           <Badge tono={TONO_HALLAZGO[h.tipo]}>{t(`autorizaciones.hallazgo.${h.tipo}`)}</Badge>
                         </p>
@@ -187,7 +187,6 @@ export default function ExpedienteAutorizacionPage({ path, id }) {
 
           {completado && (
             <section className="expediente__analisis" aria-label={t('autorizaciones.analisis.titulo')}>
-              {analisis.simulado && <Alerta tono="aviso" titulo={t('autorizaciones.analisis.simuladoTitulo')} descripcion={t('autorizaciones.analisis.simuladoTexto')} />}
               <p className="label-m">{t('autorizaciones.analisis.recomendacion')} <BadgeAnalisis recomendacion={analisis.recomendacion} /></p>
               <p className="body-s">{analisis.resumen}</p>
               {faltantes.length > 0 && (

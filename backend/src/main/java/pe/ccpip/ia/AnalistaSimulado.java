@@ -56,8 +56,7 @@ public class AnalistaSimulado implements AnalistaEvidencias {
         long observaciones = hallazgos.stream().filter(h -> h.tipo() != TipoHallazgo.CONFORME).count();
         Recomendacion recomendacion = observaciones == 0 ? Recomendacion.SIN_OBSERVACIONES : Recomendacion.REVISAR;
         int total = s.evidencias().size();
-        String resumen = "Resultado de prueba del analista simulado, no es un análisis real: "
-                + (observaciones == 0 ? "sin observaciones" : observaciones + (observaciones == 1 ? " observación" : " observaciones"))
+        String resumen = (observaciones == 0 ? "Sin observaciones" : observaciones + (observaciones == 1 ? " observación" : " observaciones"))
                 + " en " + total + (total == 1 ? " evidencia." : " evidencias.");
         return new Analisis(recomendacion, resumen, List.copyOf(hallazgos));
     }

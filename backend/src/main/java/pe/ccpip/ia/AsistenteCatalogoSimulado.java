@@ -33,8 +33,8 @@ public class AsistenteCatalogoSimulado implements AsistenteCatalogo {
     @Override
     public Respuesta responder(String pregunta, List<Candidato> candidatos, boolean ingles) {
         String texto = ingles
-                ? "Test answer: these catalog products match your question."
-                : "Respuesta de prueba: estos productos del catálogo coinciden con tu pregunta.";
+                ? "These catalog products match your question."
+                : "Estos productos del catálogo coinciden con tu pregunta.";
         return new Respuesta(texto, candidatos.stream().map(Candidato::id).toList());
     }
 
