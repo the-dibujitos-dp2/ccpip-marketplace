@@ -798,6 +798,11 @@ describe('PW-04 Datos del producto (CCPIP-40, 45, 132, 143, 44, 48)', () => {
     expect(await screen.findAllByText('Escribe el nombre del producto antes de agregar fotos')).toHaveLength(2)
     expect(screen.getByLabelText('Nombre del producto')).toHaveAttribute('aria-invalid', 'true')
     expect(llamadas(fetchMock, 'POST /api/productor/imagenes')).toHaveLength(0)
+
+    // CCPIP-510: al escribir el nombre el aviso y el error del campo se van
+    await user.type(screen.getByLabelText('Nombre del producto'), 'Canchita serrana')
+    expect(screen.queryByText('Escribe el nombre del producto antes de agregar fotos')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Nombre del producto')).not.toHaveAttribute('aria-invalid', 'true')
   })
 
   it('la primera foto crea el borrador y se ve al terminar de subir, sin perder lo escrito', async () => {
@@ -1166,7 +1171,7 @@ describe('PW-08 Editar mi tienda (CCPIP-30, 153, 154)', () => {
     await user.click(screen.getByRole('button', { name: 'Publicar tienda' }))
     expect(await screen.findByText('¡Tu tienda está publicada!')).toBeInTheDocument()
     expect(cuerpo(fetchMock, 'PUT /api/productor/tienda')).toMatchObject({ nombreTienda: 'Comunidad Kukama', pueblo: 'Kukama', socios: 18 })
-    expect(screen.getByRole('link', { name: 'Ver tienda publicada' })).toHaveAttribute('href', `/tiendas/${DATOS.tiendaProductor.id}`)
+    expect(screen.getByRole('link', { name: 'Ver tienda publicada' })).toHaveAttribute('href', `/tiendas/${DATOS.tiendaProductor.id}?vista=propia`)
   })
 
   it('si falta algo para publicar el servidor lo explica', async () => {

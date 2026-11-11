@@ -1,0 +1,30 @@
+/* CCPIP-510: la denuncia, en un recuadro propio con el tono de error, sin el peso de una alerta */
+.denuncia-producto {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--color-border-default);
+  border-left: 4px solid var(--color-status-error-fg);
+  border-radius: var(--radius-l);
+  background: var(--color-bg-surface);
+}
+.denuncia-producto__icono {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-status-error-bg);
+  color: var(--color-status-error-fg);
+}
+.denuncia-producto__texto { display: flex; flex-direction: column; gap: 2px; }
+.denuncia-producto__texto h2 { margin: 0; }
+.denuncia-producto__texto .body-s { color: var(--color-text-secondary); }
+.denuncia-producto__enviada { grid-column: 1 / -1; }
+
+@media (max-width: 600px) {
+  .denuncia-producto { grid-template-columns: auto minmax(0, 1fr); }
+  .denuncia-producto > .boton { grid-column: 1 / -1; justify-self: start; }
+}

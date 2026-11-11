@@ -535,7 +535,9 @@ export default function CompraPage() {
                   error={errores.celular}
                   inputMode="numeric"
                   autoComplete="tel-national"
-                  placeholder="987654321"
+                  // CCPIP-510: un ejemplo que se lee como ejemplo, no como un numero ya escrito
+                  placeholder={t('compra.celularEjemplo')}
+                  className="campo--ejemplo"
                 />
               </section>
 
@@ -612,10 +614,13 @@ export default function CompraPage() {
                     </dd>
                   </div>
                 )}
-                <div>
-                  <dt>{t('compra.entrega')}</dt>
-                  <dd>{t(aDomicilio ? 'compra.domicilio.resumen' : 'compra.recojoResumen')}</dd>
-                </div>
+                {/* CCPIP-510: en el recojo ya se ve el punto arriba; la fila de entrega solo para el envio a domicilio */}
+                {aDomicilio && (
+                  <div>
+                    <dt>{t('compra.entrega')}</dt>
+                    <dd>{t('compra.domicilio.resumen')}</dd>
+                  </div>
+                )}
                 <div>
                   <dt>{t('compra.productos')}</dt>
                   <dd>{precio(carrito.total)}</dd>
@@ -637,7 +642,6 @@ export default function CompraPage() {
               <Boton tipo="acento" anchoCompleto type="submit" cargando={enviando} disabled={noFactible}>
                 {enviando ? t('compra.procesando') : t('compra.pagar', { monto: precio(aPagar) })}
               </Boton>
-              <p className="caption compra__nota">{t('compra.notaStock')}</p>
               {/* CCPIP-178/370: solo en el Peru y en soles (decision del cliente del 05/11/2026) */}
               <p className="caption compra__nota">{t('compra.enSoles')}</p>
             </aside>

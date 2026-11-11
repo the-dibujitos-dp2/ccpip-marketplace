@@ -15,7 +15,7 @@
   box-shadow: var(--shadow-menu);
   font-size: 14px;
   line-height: 20px;
-  animation: aviso-lateral-entrar 0.3s ease-out;
+  animation: aviso-lateral-entrar var(--duracion-entrada) var(--ease-salida);
 }
 
 .aviso-lateral__texto { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }

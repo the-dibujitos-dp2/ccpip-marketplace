@@ -134,3 +134,26 @@ button { font: inherit; }
 
 /* CCPIP-454: los valores negativos (perdidas, salidas) se ven en rojo; el signo sigue en el texto */
 .valor-negativo { color: var(--color-status-error-fg); }
+
+/* CCPIP-510: animaciones compartidas. Entradas de 8 px y opacidad (sin escalar desde cero ni desenfocar) */
+@keyframes entrada {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes aparecer {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Quien pide menos movimiento ve los cambios al instante: sin entradas, transiciones ni desplazamiento suave */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

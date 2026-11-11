@@ -183,17 +183,17 @@ export default function VideosTienda() {
           <Campo etiqueta={t('productor.videos.nombre')} value={titulo} maxLength={120} error={errores.titulo}
             placeholder={t('productor.videos.nombreEjemplo')} onChange={(e) => setTitulo(e.target.value)} />
           <div className="videos-tienda__archivo">
-            <label className="boton boton--secundario boton--M videos-tienda__elegir">
+            <label className="boton boton--secundario boton--L videos-tienda__elegir">
               <Icono src={iconoSubir} tamano={16} />
               {archivo ? t('productor.videos.cambiar') : t('productor.videos.elegir')}
               <input className="visually-hidden" type="file" accept={TIPOS_VIDEO.join(',')} aria-describedby="videos-elegido"
                 onChange={(e) => { setArchivo(e.target.files?.[0] ?? null); setErrores({ ...errores, archivo: undefined }); e.target.value = '' }} />
             </label>
-            <span id="videos-elegido" className={errores.archivo ? 'campo__ayuda campo__ayuda--error' : 'caption'} role={errores.archivo ? 'alert' : undefined}>
+            <span id="videos-elegido" className={`videos-tienda__ayuda ${errores.archivo ? 'campo__ayuda campo__ayuda--error' : 'caption'}`} role={errores.archivo ? 'alert' : undefined}>
               {errores.archivo ?? (archivo ? t('productor.videos.elegido', { nombre: archivo.name, mb: megas(archivo.size) }) : t('productor.videos.ninguno'))}
             </span>
           </div>
-          <Boton tamano="M" type="submit" disabled={subiendo}>
+          <Boton tamano="L" type="submit" disabled={subiendo} className="videos-tienda__subir">
             {subiendo ? t('productor.videos.subiendo') : t('productor.videos.subir')}
           </Boton>
         </form>

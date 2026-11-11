@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import App from '../../App.jsx'
@@ -23,7 +23,20 @@ const comoComprador = (rutas = {}) => ({
   ...rutas,
 })
 
-const seccion = async () => within(await screen.findByRole('region', { name: 'Calificaciones' }))
+// La seccion aparece cuando llega el resumen: con la suite completa en paralelo puede tardar mas de 1 s
+const ESPERA = { timeout: 4000 }
+const seccion = async () => within(await screen.findByRole('region', { name: 'Calificaciones' }, ESPERA))
+// CCPIP-510: la denuncia va en su propio recuadro, fuera de las calificaciones
+const denuncia = async () => within(await screen.findByRole('complementary', { name: '¿Algo no corresponde con este producto?' }, ESPERA))
+const SIN_CALIFICACIONES = { productoId: 1, total: 0, minimo: 3, suficiente: false, resenas: [] }
+
+/** Espera el resumen y confirma que, sin calificaciones, la seccion no se muestra. */
+async function sinSeccion(fetchMock) {
+  expect(await screen.findByRole('heading', { level: 1, name: DATOS.detalle.nombre })).toBeInTheDocument()
+  await waitFor(() => expect(llamadas(fetchMock, 'GET /api/productos/1/calificaciones')).toHaveLength(1))
+  await act(() => Promise.resolve())
+  expect(screen.queryByRole('region', { name: /^(Calificaciones|Ratings)$/ })).not.toBeInTheDocument()
+}
 
 describe('CW-03 Calificaciones de la oferta (CCPIP-82)', () => {
   afterEach(() => i18n.changeLanguage('es'))
@@ -42,48 +55,48 @@ describe('CW-03 Calificaciones de la oferta (CCPIP-82)', () => {
     expect(within(opiniones[0]).getByText('Llegó fresco y bien envasado.')).toBeInTheDocument()
     expect(within(opiniones[0]).getByText('Compra verificada · 12 oct 2026')).toBeInTheDocument()
     // Un visitante puede ingresar para denunciar, sin perder la ficha
-    expect(s.getByRole('link', { name: 'Ingresa para denunciar este producto' }))
+    expect((await denuncia()).getByRole('link', { name: 'Ingresa para denunciar este producto' }))
       .toHaveAttribute('href', `/ingresar?volver=${encodeURIComponent('/productos/1')}`)
   })
 
-  it('sin suficiente evidencia no muestra promedio, y sin calificaciones tampoco un cero', async () => {
+  it('sin suficiente evidencia no muestra promedio, sino cuántas hay', async () => {
     servidor(comoVisitante({ 'GET /api/productos/1/calificaciones': [200, { productoId: 1, total: 2, minimo: 3, suficiente: false }] }))
-    const { unmount } = abrirEn('/productos/1')
-    let s = await seccion()
+    abrirEn('/productos/1')
+    const s = await seccion()
     expect(await s.findByText('Hay 2 calificaciones. Mostraremos el promedio cuando haya al menos 3.')).toBeInTheDocument()
     expect(s.queryByRole('img', { name: /de 5 estrellas/ })).not.toBeInTheDocument()
-    unmount()
-
-    servidor(comoVisitante({ 'GET /api/productos/1/calificaciones': [200, { productoId: 1, total: 0, minimo: 3, suficiente: false }] }))
-    abrirEn('/productos/1')
-    s = await seccion()
-    expect(await s.findByText('Aún no tiene reseñas. Si lo compras, puedes ser la primera persona en valorarlo.')).toBeInTheDocument()
-    expect(s.queryByText('0')).not.toBeInTheDocument()
   })
 
-  // CCPIP-409: sin resenas, un mensaje amable en lugar de un bloque vacio
-  it('sin resenas invita a ser la primera persona en valorarlo, sin lista vacia ni promedio', async () => {
-    servidor(comoVisitante({ 'GET /api/productos/1/calificaciones': [200, { productoId: 1, total: 0, minimo: 3, suficiente: false, resenas: [] }] }))
+  // CCPIP-510: sin calificaciones la seccion no se muestra (ni un cero ni un bloque vacio); denunciar sigue a mano
+  it('sin calificaciones no muestra la sección, en español y en inglés, y la denuncia sigue disponible', async () => {
+    let fetchMock = servidor(comoVisitante({ 'GET /api/productos/1/calificaciones': [200, copia(SIN_CALIFICACIONES)] }))
     const { unmount } = abrirEn('/productos/1')
-    let s = await seccion()
-    expect(await s.findByText('Aún no tiene reseñas. Si lo compras, puedes ser la primera persona en valorarlo.')).toBeInTheDocument()
-    expect(s.queryByRole('list', { name: 'Opiniones de compradores' })).not.toBeInTheDocument()
-    expect(s.queryByRole('img', { name: /de 5 estrellas/ })).not.toBeInTheDocument()
+    await sinSeccion(fetchMock)
+    expect(screen.queryByText(/Aún no tiene reseñas/)).not.toBeInTheDocument()
+    expect((await denuncia()).getByRole('link', { name: 'Ingresa para denunciar este producto' })).toBeInTheDocument()
     unmount()
 
     await i18n.changeLanguage('en')
-    servidor(comoVisitante({ 'GET /api/productos/1/calificaciones': [200, { productoId: 1, total: 0, minimo: 3, suficiente: false, resenas: [] }] }))
+    fetchMock = servidor(comoVisitante({ 'GET /api/productos/1/calificaciones': [200, copia(SIN_CALIFICACIONES)] }))
     abrirEn('/productos/1')
-    s = within(await screen.findByRole('region', { name: 'Ratings' }))
-    expect(await s.findByText('No reviews yet. If you buy it, you can be the first person to rate it.')).toBeInTheDocument()
+    await sinSeccion(fetchMock)
   })
 
-  it('si el resumen falla, la ficha se ve igual', async () => {
-    servidor(comoVisitante({ 'GET /api/productos/1/calificaciones': new TypeError('Failed to fetch') }))
+  it('sin calificaciones, quien lo recibió igual ve la sección para ser la primera persona en calificarlo', async () => {
+    servidor(comoComprador({
+      'GET /api/productos/1/calificaciones': [200, copia(SIN_CALIFICACIONES)],
+      'GET /api/productos/1/calificaciones/mia': [200, { productoId: 1, estado: 'PUEDE_CALIFICAR', pedidoId: 60, numeroPedido: 'CCP-000060', itemId: 601 }],
+    }))
     abrirEn('/productos/1')
     const s = await seccion()
-    expect(await screen.findByRole('heading', { level: 1, name: DATOS.detalle.nombre })).toBeInTheDocument()
-    expect(s.queryByText(/Basado en/)).not.toBeInTheDocument()
+    expect(await s.findByRole('group', { name: 'Califica este producto' })).toBeInTheDocument()
+    expect(s.getByText('Aún no tiene reseñas. Si lo compras, puedes ser la primera persona en valorarlo.')).toBeInTheDocument()
+  })
+
+  it('si el resumen falla, la ficha se ve igual, sin la sección', async () => {
+    const fetchMock = servidor(comoVisitante({ 'GET /api/productos/1/calificaciones': new TypeError('Failed to fetch') }))
+    abrirEn('/productos/1')
+    await sinSeccion(fetchMock)
   })
 
   it('en inglés', async () => {
@@ -104,7 +117,7 @@ describe('Denunciar una oferta (CCPIP-83)', () => {
     }))
     const user = userEvent.setup()
     abrirEn('/productos/1')
-    const s = await seccion()
+    const s = await denuncia()
     await user.click(await s.findByRole('button', { name: 'Denunciar este producto' }))
 
     const dialogo = within(screen.getByRole('dialog'))
@@ -130,7 +143,7 @@ describe('Denunciar una oferta (CCPIP-83)', () => {
     }))
     const user = userEvent.setup()
     abrirEn('/productos/1')
-    await user.click(await (await seccion()).findByRole('button', { name: 'Denunciar este producto' }))
+    await user.click(await (await denuncia()).findByRole('button', { name: 'Denunciar este producto' }))
     const dialogo = within(screen.getByRole('dialog'))
     await user.selectOptions(dialogo.getByLabelText('Motivo'), 'Otro motivo')
     await user.type(dialogo.getByLabelText('Descripción'), 'Vuelvo a denunciar lo mismo.')

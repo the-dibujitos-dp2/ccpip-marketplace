@@ -174,7 +174,7 @@ export default function TiendaEditorPage({ path }) {
         <div className="productor__acciones-barra">
           {tienda.publicada ? (
             <>
-              <Boton tipo="secundario" tamano="M" icono={iconoOjo} to={`/tiendas/${tienda.id}`}>{t('productor.tienda.verPublicada')}</Boton>
+              <Boton tipo="secundario" tamano="M" icono={iconoOjo} to={`/tiendas/${tienda.id}?vista=propia`}>{t('productor.tienda.verPublicada')}</Boton>
               <Boton tamano="M" onClick={guardar} cargando={ocupado}>{t('productor.datos.guardarCambios')}</Boton>
             </>
           ) : (

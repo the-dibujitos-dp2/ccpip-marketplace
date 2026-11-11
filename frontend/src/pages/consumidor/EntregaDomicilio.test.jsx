@@ -544,7 +544,10 @@ describe('CW-05 Entrega a domicilio (CCPIP-59)', () => {
     await usuario.click(screen.getByRole('radio', { name: /^Recojo en punto de acopio/ }))
     expect(screen.getByRole('radio', { name: /Sin costo/ })).toBeChecked()
     expect(screen.getByLabelText('Otra persona recogerá el pedido')).toBeInTheDocument()
-    expect(within(screen.getByRole('complementary', { name: 'Resumen del pedido' })).getByText('Recojo en el punto')).toBeInTheDocument()
+    // CCPIP-510: en el recojo el resumen no repite una fila de entrega; el punto ya se ve en "Recoges en"
+    const resumen = within(screen.getByRole('complementary', { name: 'Resumen del pedido' }))
+    expect(resumen.queryByText('Entrega')).not.toBeInTheDocument()
+    expect(resumen.queryByText('Recojo en el punto')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Celular de contacto')).toBeInTheDocument()
   })
 })

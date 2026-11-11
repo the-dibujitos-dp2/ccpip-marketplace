@@ -9,12 +9,20 @@
 .tienda-publica__avatar-img { width: 100%; height: 100%; object-fit: cover; }
 .tienda-publica__identidad { display: flex; flex: 1; min-width: 240px; flex-direction: column; align-items: flex-start; gap: 6px; }
 
-.tienda-publica__cifras { display: flex; gap: 32px; margin: 0 0 0 auto; padding: 12px 24px; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); background: var(--color-bg-surface); }
+/* CCPIP-510: cifras y botones en un mismo bloque; los botones toman la altura del recuadro de cifras */
+.tienda-publica__resumen { display: flex; flex-wrap: wrap; align-items: stretch; gap: 12px; margin-left: auto; }
+.tienda-publica__cifras { display: flex; align-items: center; gap: 32px; margin: 0; padding: 10px 24px; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); background: var(--color-bg-surface); }
 .tienda-publica__cifras div { display: flex; flex-direction: column-reverse; align-items: center; }
 .tienda-publica__cifras dd { margin: 0; font-weight: 600; font-size: 16px; }
 .tienda-publica__cifras dt { font-size: 12px; color: var(--color-text-tertiary); }
 /* CCPIP-368 y CCPIP-369: guardar el productor o su comunidad, junto a compartir */
-.tienda-publica__acciones { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+.tienda-publica__acciones { display: flex; flex-wrap: wrap; align-items: stretch; gap: 12px; }
+.tienda-publica__acciones > .boton,
+.tienda-publica__acciones .boton-favorito .boton { height: 100%; min-height: 40px; }
+
+/* CCPIP-510: aviso al productor que mira su propia tienda, con el regreso al editor */
+.tienda-publica__vista-propia { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; margin-bottom: -16px; padding: 12px 16px; border: 1px solid var(--color-border-default); border-left: 4px solid var(--color-border-brand); border-radius: var(--radius-l); background: var(--color-bg-brand-subtle); animation: entrada var(--duracion-entrada) var(--ease-salida) backwards; }
+.tienda-publica__vista-propia .body-s { color: var(--color-text-primary); }
 .tienda-publica__compartir { display: grid; }
 .tienda-publica__compartir > span { grid-area: 1 / 1; text-align: center; }
 .tienda-publica__compartir > [aria-hidden='true'] { visibility: hidden; }

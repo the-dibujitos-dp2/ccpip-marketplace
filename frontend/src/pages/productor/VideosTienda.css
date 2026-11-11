@@ -1,12 +1,26 @@
 /* CCPIP-118: videos de la tienda en Mi tienda; mismo lenguaje que la galeria */
 .videos-tienda { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; }
-.videos-tienda__formulario { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; gap: 12px; }
-.videos-tienda__archivo { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+/* CCPIP-510: titulo, "Elegir video" y "Subir video" en una sola linea, con los botones al ras del campo; lo
+   elegido (o el error) va debajo del boton sin empujarlo hacia arriba */
+.videos-tienda__formulario {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: 'titulo elegir subir' '. ayuda .';
+  align-items: end;
+  column-gap: 12px;
+  row-gap: 4px;
+}
+.videos-tienda__formulario > .campo { grid-area: titulo; }
+.videos-tienda__archivo { display: contents; }
+.videos-tienda__elegir { grid-area: elegir; }
+.videos-tienda__ayuda { grid-area: ayuda; max-width: 260px; }
+.videos-tienda__subir { grid-area: subir; }
 .videos-tienda__elegir { cursor: pointer; }
 .videos-tienda__elegir:focus-within { outline: 2px solid var(--color-border-focus); outline-offset: 2px; }
 
 @media (max-width: 720px) {
-  .videos-tienda__formulario { grid-template-columns: 1fr; align-items: stretch; }
+  .videos-tienda__formulario { grid-template-columns: 1fr; grid-template-areas: 'titulo' 'elegir' 'ayuda' 'subir'; align-items: stretch; row-gap: 8px; }
+  .videos-tienda__ayuda { max-width: none; }
 }
 
 /* CCPIP-390: sus videos con el estado de su revision */

@@ -209,7 +209,8 @@ describe('CW-03 Ficha del producto (CCPIP-53, 152)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Ver foto 2' }))
     expect(screen.getByText('2 / 2')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Para compras por volumen' })).toBeInTheDocument()
+    // CCPIP-510: el mayorista ya esta en las tarjetas de precio; no se repite en un recuadro de volumen
+    expect(screen.queryByRole('heading', { name: 'Para compras por volumen' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'También de cacao y chocolates' })).toBeInTheDocument()
   })
 
@@ -232,7 +233,8 @@ describe('CW-03 Ficha del producto (CCPIP-53, 152)', () => {
     antes(productor, screen.getByRole('radiogroup', { name: 'Precio según modalidad' }))
     antes(productor, screen.getByText(conTodo.descripcion))
     antes(productor, screen.getByRole('region', { name: 'Del bosque a tu mesa' }))
-    antes(productor, screen.getByRole('heading', { name: 'Para compras por volumen' }))
+    // CCPIP-510: la descripcion se ve bajo la galeria, pero en el DOM sigue despues de la compra
+    antes(screen.getByRole('radiogroup', { name: 'Precio según modalidad' }), screen.getByRole('region', { name: 'Sobre este producto' }))
     // Un solo bloque del productor: ya no se repite "Elaborado por" en los datos de la galeria
     expect(screen.queryByText('Elaborado por')).not.toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: /Conoce la tienda/ })).toHaveLength(1)
@@ -364,6 +366,21 @@ describe('CW-04 Tienda de la comunidad (CCPIP-56, 154)', () => {
     const linea = DATOS.tienda.lineas[0]
     await user.click(screen.getByRole('tab', { name: `${linea.nombre} (${linea.total})` }))
     expect(within(lista).getAllByRole('listitem')).toHaveLength(linea.total)
+  })
+
+  // CCPIP-510: desde "Ver tienda publicada" el productor ve un aviso con el regreso a "Editar mi tienda"
+  it('el productor que llega desde su editor puede volver a editar la tienda; el comprador no ve ese aviso', async () => {
+    servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION_PRODUCTOR], 'GET /api/tiendas/2': [200, copia(DATOS.tienda)] })
+    const { unmount } = abrirEn('/tiendas/2?vista=propia')
+    expect(await screen.findByRole('heading', { level: 1, name: DATOS.tienda.nombre })).toBeInTheDocument()
+    expect(screen.getByText('Estás viendo tu tienda como la ven los compradores.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Volver a editar mi tienda/ })).toHaveAttribute('href', '/productor/tienda')
+    unmount()
+
+    servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION], 'GET /api/tiendas/2': [200, copia(DATOS.tienda)] })
+    abrirEn('/tiendas/2?vista=propia')
+    expect(await screen.findByRole('heading', { level: 1, name: DATOS.tienda.nombre })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Volver a editar mi tienda/ })).not.toBeInTheDocument()
   })
 
   it('compartir copia el enlace cuando no hay menu nativo', async () => {

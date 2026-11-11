@@ -52,4 +52,12 @@
   --shadow-tarjeta: 0 1px 1.5px rgba(31, 23, 18, 0.08), 0 1px 1px rgba(31, 23, 18, 0.06);
   --radius-xl: 16px;
   --contenedor: 1216px;
+
+  /* Movimiento (CCPIP-510, principios de design-motion-principles): corto, con salida suave y sin rebote.
+     Entrar con ease-out, cambiar de estado rapido; nada escala desde cero */
+  --ease-salida: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-estado: cubic-bezier(0.4, 0, 0.2, 1);
+  --duracion-rapida: 140ms;
+  --duracion-media: 220ms;
+  --duracion-entrada: 380ms;
 }

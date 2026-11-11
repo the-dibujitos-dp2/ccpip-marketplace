@@ -106,6 +106,35 @@ describe('Inicio de sesion (CCPIP-27)', () => {
     expect(screen.getByRole('button', { name: 'Mi cuenta' })).toBeInTheDocument()
   })
 
+  // CCPIP-510: la pantalla de acceso es de una sola pantalla, sin el pie de la tienda
+  it('la pantalla de acceso no muestra el pie de página', async () => {
+    servidor({ ...PUBLICAS, 'GET /api/auth/me': SIN_SESION })
+    abrirEn('/ingresar')
+    expect(await screen.findByLabelText('Contraseña')).toBeInTheDocument()
+    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
+  })
+
+  // CCPIP-510: al iniciar sesion un aviso lo confirma, ya en la pagina de destino
+  it('al iniciar sesión avisa que ingresó, con su nombre', async () => {
+    let conSesion = false
+    servidor({
+      ...PUBLICAS,
+      'GET /api/auth/me': () => (conSesion ? [200, SESION] : SIN_SESION),
+      'POST /api/auth/login': () => {
+        conSesion = true
+        return [200, SESION]
+      },
+    })
+    const user = userEvent.setup()
+    abrirEn('/ingresar')
+    await ingresar(user)
+    const aviso = await screen.findByRole('status', { name: '' })
+    expect(aviso).toHaveTextContent(`Hola, ${SESION.user.fullName}. Iniciaste sesión.`)
+    expect(window.location.pathname).toBe('/')
+    await user.click(screen.getByRole('button', { name: 'Cerrar aviso' }))
+    expect(screen.queryByText(/Iniciaste sesión/)).not.toBeInTheDocument()
+  })
+
   it('el administrador de acopio entra directo a Pedidos desde login', async () => {
     let conSesion = false
     const fetchMock = servidor({ ...PUBLICAS, 'GET /api/auth/me': () => (conSesion ? [200, SESION_ACOPIO] : SIN_SESION), 'POST /api/auth/login': () => { conSesion = true; return [200, SESION_ACOPIO] }, 'GET /api/acopio/pedidos': () => [200, copia(DATOS.pedidos)] })

@@ -1,4 +1,6 @@
 .alerta {
+  /* CCPIP-510: el aviso entra corto desde arriba, para que se note que acaba de llegar */
+  animation: entrada var(--duracion-media) var(--ease-salida);
   display: flex;
   align-items: flex-start;
   gap: 12px;
