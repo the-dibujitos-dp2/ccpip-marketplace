@@ -9,10 +9,10 @@ function abrirEn(ruta) {
   return render(<App />)
 }
 
-function calificacionesDirectamenteDespuesDe(certificacion) {
-  const calificaciones = certificacion.nextElementSibling
-  expect(calificaciones).toHaveRole('region')
-  expect(calificaciones).toHaveAccessibleName('Calificaciones')
+// CCPIP-510: la seccion aparece cuando llega el resumen (y solo si hay calificaciones)
+async function calificacionesDirectamenteDespuesDe(certificacion) {
+  const calificaciones = await screen.findByRole('region', { name: 'Calificaciones' })
+  expect(certificacion.nextElementSibling).toBe(calificaciones)
   return calificaciones
 }
 
@@ -64,7 +64,7 @@ describe('CCPIP-365 Evidencias publicas de certificacion (CW-03)', () => {
     abrirEn('/productos/1')
 
     const certificacion = await screen.findByRole('region', { name: 'Certificación del producto' })
-    calificacionesDirectamenteDespuesDe(certificacion)
+    await calificacionesDirectamenteDespuesDe(certificacion)
   })
 
   it('con el certificado vencido no dice verificado', async () => {
@@ -115,21 +115,25 @@ describe('CCPIP-365 Evidencias publicas de certificacion (CW-03)', () => {
 
 describe('CCPIP-406 Calificaciones despues de las certificaciones', () => {
   it('el bloque de calificaciones sigue inmediatamente al de certificaciones', async () => {
-    servidor({ ...sinSesion, 'GET /api/productos/1/certificacion': () => [200, copia(VERIFICADA)] })
+    servidor({
+      ...sinSesion,
+      'GET /api/productos/1/certificacion': () => [200, copia(VERIFICADA)],
+      'GET /api/productos/1/calificaciones': () => [200, copia(DATOS.calificacionesProducto)],
+    })
     abrirEn('/productos/1')
     const certificacion = await screen.findByRole('region', { name: 'Certificación del producto' })
-    calificacionesDirectamenteDespuesDe(certificacion)
+    await calificacionesDirectamenteDespuesDe(certificacion)
     // Y la confianza (con la cosecha) queda antes de ambos
     const confianza = screen.getByRole('region', { name: 'Por qué puedes confiar en este producto' })
     expect(confianza.compareDocumentPosition(certificacion) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   it('en movil ninguna regla CSS reordena estas secciones', () => {
-    // El orden visual es el del DOM: solo los datos de la galeria usan order (CCPIP-411)
+    // El orden visual es el del DOM: solo los datos de la galeria (CCPIP-411) y la descripcion (CCPIP-510) usan order
     const conOrder = /[{;\s]order\s*:/
     expect(css('./CertificacionProducto.css')).not.toMatch(conOrder)
     expect(css('./Valoraciones.css')).not.toMatch(conOrder)
     const reglasConOrder = css('./ProductoPage.css').match(/[^{}]+\{[^}]*[{;\s]order\s*:[^}]*\}/g) ?? []
-    expect(reglasConOrder.map((r) => r.split('{')[0].trim())).toEqual(['.ficha__datos'])
+    expect(reglasConOrder.map((r) => r.split('{')[0].trim())).toEqual(['.ficha__datos', '.ficha__descripcion'])
   })
 })

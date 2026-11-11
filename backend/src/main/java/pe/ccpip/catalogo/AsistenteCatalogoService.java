@@ -101,8 +101,16 @@ public class AsistenteCatalogoService {
 
         List<ProductoResumen> encontrados = buscar(i, i.terminos());
         if (encontrados.isEmpty() && !i.terminos().isEmpty() && !i.lineas().isEmpty()) {
-            // Las palabras no coinciden con ningun nombre, pero la linea si: se busca solo por la linea
-            encontrados = buscar(i, List.of());
+            // CCPIP-510: el nombre manda. Si la IA supuso una linea que no es la del producto ("aguaje" como
+            // superfruto, cuando lo que hay es aceite de aguaje), las palabras se buscan en todas las lineas
+            Interpretacion sinLineas = new Interpretacion(i.terminos(), List.of(), i.regiones(), i.modalidad(), i.precioMax(), false);
+            encontrados = buscar(sinLineas, i.terminos());
+            if (!encontrados.isEmpty()) {
+                i = sinLineas;
+            } else {
+                // Las palabras no coinciden con ningun nombre, pero la linea si: se busca solo por la linea
+                encontrados = buscar(i, List.of());
+            }
         }
         Consulta consulta = new Consulta(i.terminos().isEmpty() ? null : i.terminos().get(0), i.lineas(), i.regiones(),
                 i.modalidad(), i.precioMax());

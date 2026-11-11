@@ -19,7 +19,8 @@ import './PedidoPage.css'
 
 const PASOS = ['carrito', 'entrega', 'confirmacion']
 
-const DE_LA_COMPRA = ['PENDIENTE_PAGO', 'CONFIRMADO', 'CANCELADO']
+// CCPIP-510: con "¡Gracias por tu compra!" (CONFIRMADO) la compra ya termino y los pasos sobran
+const DE_LA_COMPRA = ['PENDIENTE_PAGO', 'CANCELADO']
 
 const TONO_PAGO = { APROBADO: 'exito', RECHAZADO: 'error', ERROR: 'error', PENDIENTE: 'aviso', ANULADO: 'neutro' }
 
@@ -46,7 +47,7 @@ export default function PedidoPage({ id }) {
   return (
     <LayoutTienda>
       <main className="contenedor pedido" aria-busy={!pedido && !error}>
-        {/* Los pasos de la compra solo tienen sentido hasta la confirmacion; despues, el seguimiento (CCPIP-70) */}
+        {/* Los pasos de la compra solo tienen sentido antes de confirmarla; despues, el seguimiento (CCPIP-70) */}
         {(!pedido || DE_LA_COMPRA.includes(pedido.estado)) && (
           <Pasos pasos={PASOS.map((p) => t(`carrito.pasos.${p}`))} actual={pedido?.estado === 'PENDIENTE_PAGO' ? 1 : 2} etiqueta={t('carrito.pasos.etiqueta')} />
         )}

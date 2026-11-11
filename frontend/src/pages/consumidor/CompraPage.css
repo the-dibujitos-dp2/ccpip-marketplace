@@ -81,5 +81,9 @@
 }
 
 /* CCPIP-443: el punto de recojo elegido, con su direccion */
-.compra__cifras .compra__recojo-en dd { display: flex; flex-direction: column; gap: 2px; }
+/* CCPIP-510: "Recoges en" arriba y el punto con su mapa debajo, a todo el ancho del resumen (el mapa no se
+   arrincona a la derecha) */
+.compra__cifras .compra__recojo-en { flex-direction: column; gap: 6px; }
+.compra__cifras .compra__recojo-en dd { display: flex; flex-direction: column; gap: 2px; text-align: left; }
+.compra__recojo-en .mapa-punto { width: 100%; }
 .compra__mayorista { display: block; color: var(--color-text-brand); font-weight: 600; }

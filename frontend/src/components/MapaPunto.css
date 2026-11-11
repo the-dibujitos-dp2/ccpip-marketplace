@@ -1,4 +1,5 @@
-/* CCPIP-444: plano referencial del punto de acopio (RNF-31: mapas simulados) */
+/* CCPIP-444: donde queda el punto de acopio. CCPIP-510: el del punto es el mapa real de su zona (iframe); el de la
+   ruta del distribuidor (CCPIP-499) sigue siendo un plano referencial */
 .mapa-punto { margin: 12px 0 0; }
 .mapa-punto__plano {
   display: block;
@@ -9,6 +10,8 @@
   overflow: hidden;
 }
 .mapa-punto--compacto .mapa-punto__plano { height: 112px; }
+.mapa-punto__zona { height: 220px; background: var(--color-bg-surface-alt); }
+.mapa-punto--compacto .mapa-punto__zona { height: 170px; }
 .mapa-punto__fondo { fill: var(--color-bg-surface-alt); }
 .mapa-punto__rio { fill: none; stroke: color-mix(in srgb, var(--color-border-focus) 35%, transparent); stroke-width: 12; stroke-linecap: round; }
 .mapa-punto__parque { fill: color-mix(in srgb, var(--color-status-success-fg) 18%, transparent); }

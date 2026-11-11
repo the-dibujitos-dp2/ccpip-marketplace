@@ -27,6 +27,8 @@
   color: var(--color-text-tertiary);
   opacity: 1;
 }
+/* CCPIP-510: un ejemplo ("Ej.: ...") mas tenue y en cursiva, para que no parezca un dato ya escrito */
+.campo--ejemplo .campo__control::placeholder { font-style: italic; opacity: 0.7; }
 
 /* Foco: borde verde de 2px. Se compensa el padding para que el texto no salte. */
 .campo__control:focus {

@@ -14,6 +14,7 @@ import SelloOrigen from '../../components/SelloOrigen.jsx'
 import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { RUTAS } from '../../router.js'
+import { useSesion } from '../../sesion.js'
 import { idiomaSegun, textoSegun } from '../../traduccion.js'
 import './TiendaPage.css'
 
@@ -24,8 +25,11 @@ const CAMPOS_TIENDA = ['nombre', 'descripcion', 'historia', 'cita']
  * CW-04: tienda de la comunidad (CCPIP-154, CCPIP-56). Publica, sin sesion. En ingles, la historia
  * traducida lleva su etiqueta y "Ver original" (CCPIP-171).
  */
-export default function TiendaPage({ id }) {
+export default function TiendaPage({ id, search = '' }) {
   const { t } = useTranslation()
+  const { user } = useSesion()
+  // CCPIP-510: el productor que llega desde "Ver tienda publicada" puede volver a editarla
+  const vistaPropia = user?.role === 'PRODUCTOR' && new URLSearchParams(search).get('vista') === 'propia'
   const [tienda, setTienda] = useState(null)
   const [error, setError] = useState(null)
   const [linea, setLinea] = useState('TODOS')
@@ -98,6 +102,14 @@ export default function TiendaPage({ id }) {
           <ImagenProducto url={tienda.portada} linea="PORTADA" alt={t('tienda.portada', { nombre: tienda.nombre })} className="tienda-publica__portada-img" />
         </div>
         <div className="contenedor tienda-publica__contenido">
+          {vistaPropia && (
+            <div className="tienda-publica__vista-propia" role="status">
+              <p className="body-s">{t('productor.tienda.vistaPropia')}</p>
+              <Boton tipo="secundario" tamano="S" to={RUTAS.productorTienda}>
+                <span aria-hidden="true">←</span> {t('productor.tienda.volverEditar')}
+              </Boton>
+            </div>
+          )}
           <header className="tienda-publica__cabecera">
             <span className="tienda-publica__avatar">
               <ImagenProducto linea="COMUNIDAD" className="tienda-publica__avatar-img" />
@@ -111,6 +123,8 @@ export default function TiendaPage({ id }) {
                   .join(' · ')}
               </p>
             </div>
+            {/* CCPIP-510: las cifras y los botones, juntos y de la misma altura */}
+            <div className="tienda-publica__resumen">
             <dl className="tienda-publica__cifras">
               <div>
                 <dt>{t('tienda.cifraProductos')}</dt>
@@ -134,6 +148,7 @@ export default function TiendaPage({ id }) {
                   <span aria-hidden={!copiado}>{t('tienda.copiado')}</span>
                 </span>
               </Boton>
+            </div>
             </div>
           </header>
 

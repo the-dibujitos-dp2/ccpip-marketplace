@@ -61,7 +61,7 @@ export default function MapaRuta({ origen, destino }) {
           <span className="mapa-ruta__clave"><span className="mapa-ruta__marca mapa-ruta__marca--salida" aria-hidden="true" />{t('mapaRuta.salida')}</span>
           <span className="mapa-ruta__clave"><span className="mapa-ruta__marca mapa-ruta__marca--destino" aria-hidden="true" />{t('mapaRuta.destino')}</span>
         </span>
-        <span className="caption mapa-ruta__nota">{t('mapaPunto.referencial')}</span>
+        <span className="caption mapa-ruta__nota">{t('mapaRuta.referencial')}</span>
         <a className="mapa-punto__enlace" href={urlRuta(origen, destino)} target="_blank" rel="noopener noreferrer">
           {t('mapaRuta.verRuta')}{' '}
           <span className="visually-hidden">{t('mapaPunto.nuevaPestana')}</span>

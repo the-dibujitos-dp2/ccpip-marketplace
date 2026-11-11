@@ -103,10 +103,12 @@ describe('CW-05 Entrega y pago (CCPIP-157, CCPIP-62) y confirmación (CCPIP-64)'
     expect(resumen.getByText('Recoges en')).toBeInTheDocument()
     expect(resumen.getByText('Centro Regional Cusco')).toBeInTheDocument()
     expect(resumen.getByText('Av. de la Cultura 1234 · Wanchaq · Cusco')).toBeInTheDocument()
-    // CCPIP-444: el plano del punto elegido y como llegar
-    expect(resumen.getByRole('img', { name: 'Mapa referencial: Centro Regional Cusco, Av. de la Cultura 1234, Wanchaq, Cusco, Cusco' })).toBeInTheDocument()
-    expect(resumen.getByRole('link', { name: /Cómo llegar en Google Maps/ })).toHaveAttribute('href',
-      'https://www.google.com/maps/search/?api=1&query=Centro%20Regional%20Cusco%2C%20Av.%20de%20la%20Cultura%201234%2C%20Wanchaq%2C%20Cusco%2C%20Cusco%2C%20Per%C3%BA')
+    // CCPIP-444: el mapa del punto elegido. CCPIP-510: el mapa real de su zona, centrado en su direccion; como llegar
+    // se abre desde el mismo mapa, sin un enlace aparte
+    const mapa = resumen.getByTitle('Mapa de la zona: Centro Regional Cusco, Av. de la Cultura 1234, Wanchaq, Cusco, Cusco')
+    expect(mapa.tagName).toBe('IFRAME')
+    expect(mapa).toHaveAttribute('src', 'https://maps.google.com/maps?q=Centro%20Regional%20Cusco%2C%20Av.%20de%20la%20Cultura%201234%2C%20Wanchaq%2C%20Cusco%2C%20Cusco%2C%20Per%C3%BA&z=15&output=embed')
+    expect(resumen.queryByRole('link', { name: /Cómo llegar en Google Maps/ })).not.toBeInTheDocument()
   })
 
   it('el carrito lleva a entrega y pago', async () => {
@@ -278,17 +280,18 @@ describe('CW-05 Entrega y pago (CCPIP-157, CCPIP-62) y confirmación (CCPIP-64)'
     )
     abrirEn('/pedidos/77')
     expect(await screen.findByRole('heading', { name: '¡Gracias por tu compra!' })).toBeInTheDocument()
+    // CCPIP-510: con la compra confirmada ya no se muestran los pasos (Carrito, Entrega y pago, Confirmación)
+    expect(screen.queryByRole('list', { name: 'Pasos de la compra' })).not.toBeInTheDocument()
     expect(screen.getByRole('cell', { name: /Aceite de aguaje 250 ml/ })).toBeInTheDocument()
     expect(screen.getByText('Rosa Quispe')).toBeInTheDocument()
     expect(screen.getByText('Sede central CCPIP · Lima · Lima')).toBeInTheDocument()
 
-    // CCPIP-444: en el recojo, el mapa del punto y el enlace para llegar, que se abre aparte
+    // CCPIP-444: en el recojo, el mapa de la zona del punto (CCPIP-510: sin enlace aparte, se abre desde el mapa)
     const recojo = within(screen.getByRole('region', { name: 'Recojo' }))
-    expect(recojo.getByRole('img', { name: /^Mapa referencial: Centro Nacional Lima, Sede central CCPIP/ })).toBeInTheDocument()
-    const enlace = recojo.getByRole('link', { name: 'Cómo llegar en Google Maps (se abre en otra pestaña)' })
-    expect(enlace).toHaveAttribute('target', '_blank')
-    expect(enlace).toHaveAttribute('rel', 'noopener noreferrer')
-    expect(enlace.getAttribute('href')).toContain('query=Centro%20Nacional%20Lima%2C%20Sede%20central%20CCPIP')
+    const mapa = recojo.getByTitle(/^Mapa de la zona: Centro Nacional Lima, Sede central CCPIP/)
+    expect(mapa).toHaveAttribute('loading', 'lazy')
+    expect(mapa.getAttribute('src')).toContain('q=Centro%20Nacional%20Lima%2C%20Sede%20central%20CCPIP')
+    expect(recojo.queryByRole('link', { name: /Cómo llegar en Google Maps/ })).not.toBeInTheDocument()
 
     const intentos = within(screen.getByRole('list', { name: 'Intentos de pago' })).getAllByRole('listitem')
     expect(intentos).toHaveLength(2)

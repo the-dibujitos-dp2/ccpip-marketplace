@@ -30,6 +30,10 @@
     "sesionCerrada": {
       "titulo": "Cerraste sesión",
       "descripcion": "Vuelve cuando quieras."
+    },
+    "sesionIniciada": {
+      "titulo": "Iniciaste sesión",
+      "conNombre": "Hola, {{nombre}}. Iniciaste sesión."
     }
   },
   "marca": {
@@ -824,7 +828,9 @@
       "ventaBloqueada": "La Cámara bloqueó las ventas de tu organización",
       "ventaBloqueadaTexto": "Motivo: «{{motivo}}». Tus productos siguen visibles, pero no se pueden comprar mientras dure el bloqueo. Los pedidos confirmados se atienden con normalidad.",
       "sinHabilitar": "Tu tienda aún no está habilitada",
-      "sinHabilitarTexto": "Puedes armarla y guardarla. La Cámara la habilita y te avisaremos por correo para que la publiques."
+      "sinHabilitarTexto": "Puedes armarla y guardarla. La Cámara la habilita y te avisaremos por correo para que la publiques.",
+      "vistaPropia": "Estás viendo tu tienda como la ven los compradores.",
+      "volverEditar": "Volver a editar mi tienda"
     },
     "videos": {
       "titulo": "Videos",
@@ -2853,12 +2859,6 @@
     "sinSellos": "Este producto todavía no tiene un origen verificado ni certificados vigentes que mostrar. Eso no significa que esté aprobado ni rechazado.",
     "sobreCosecha": "Sobre esta cosecha",
     "consumirAntes": "Consumir antes de",
-    "volumen": {
-      "titulo": "Para compras por volumen",
-      "texto": "Para tiendas, cafeterías y exportadores: la misma historia y el mismo origen verificado.",
-      "minimo": "Pedido mínimo mayorista",
-      "precioUnidad": "Precio por unidad"
-    },
     "tambienDe": "También de {{linea}}",
     "materiaPrima": {
       "materias": "Materia prima de {{linea}}",
@@ -2876,7 +2876,8 @@
       "verAria": "Ver la oferta de {{tienda}}",
       "meInteresa": "Me interesa",
       "meInteresaAria": "Me interesa la oferta de {{tienda}}"
-    }
+    },
+    "sobreProducto": "Sobre este producto"
   },
   "carrito": {
     "agregar": {
@@ -3040,11 +3041,9 @@
     "recojoTexto": "Te avisamos cuando esté listo.",
     "sinCosto": "Sin costo",
     "entrega": "Entrega",
-    "recojoResumen": "Recojo en el punto",
     "gratis": "Gratis",
     "procesando": "Procesando pago…",
     "pagar": "Pagar {{monto}}",
-    "notaStock": "El stock se descuenta recién cuando tu pago se aprueba.",
     "domicilio": {
       "comoRecibir": "1. ¿Cómo quieres recibirlo?",
       "etiquetaModalidad": "Cómo quieres recibir tu pedido",
@@ -3093,7 +3092,8 @@
     "productos": "Productos",
     "envio": "Envío",
     "recogesEn": "Recoges en",
-    "enSoles": "Pagas en soles (S/). Por ahora vendemos y entregamos solo dentro del Perú."
+    "enSoles": "Pagas en soles (S/). Por ahora vendemos y entregamos solo dentro del Perú.",
+    "celularEjemplo": "Ej.: 987 654 321"
   },
   "pedido": {
     "noEncontrado": "No encontramos ese pedido",
@@ -4526,7 +4526,9 @@
       "todos": "Todos",
       "desde": "Desde",
       "hasta": "Hasta"
-    }
+    },
+    "algoNoCorresponde": "¿Algo no corresponde con este producto?",
+    "algoNoCorrespondeTexto": "Si ves información falsa o un producto en mal estado, avísale a la Cámara. El productor no sabrá quién lo reportó."
   },
   "denunciasProductor": {
     "titulo": "Denuncias recibidas",
@@ -5329,9 +5331,8 @@
     "verDetalle": "Ver detalle"
   },
   "mapaPunto": {
-    "plano": "Mapa referencial: {{nombre}}, {{direccion}}",
-    "referencial": "Mapa referencial. Abre la dirección para ver cómo llegar.",
-    "comoLlegar": "Cómo llegar en Google Maps",
+    "plano": "Mapa de la zona: {{nombre}}, {{direccion}}",
+    "referencial": "Zona del punto de acopio. Ábrelo en Maps desde el mapa para ver cómo llegar.",
     "nuevaPestana": "(se abre en otra pestaña)"
   },
   "precioUnidad": {
@@ -5344,6 +5345,7 @@
     "plano": "Mapa referencial de la ruta: sale de {{salida}} y llega a {{llegada}}",
     "salida": "Salida",
     "destino": "Entrega",
-    "verRuta": "Ver la ruta en Google Maps"
+    "verRuta": "Ver la ruta en Google Maps",
+    "referencial": "Mapa referencial. Abre la ruta para ver cómo llegar."
   }
 }

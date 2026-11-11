@@ -5,6 +5,7 @@ import { olvidarUnidadesCarrito } from './api/carrito.js'
 import { armIdleTimer, disarmIdleTimer, onSessionLost } from './api/http.js'
 import { invalidarTiendaActual } from './api/tiendaActual.js'
 import { aplicarIdiomaDeSesion, olvidarIdiomaDeSesion } from './i18n/preferencia.js'
+import AvisoLateral from './components/AvisoLateral.jsx'
 import LayoutTienda from './components/layout/LayoutTienda.jsx'
 import CuentaPage from './pages/CuentaPage.jsx'
 import AccesoRestringidoPage from './pages/admin/AccesoRestringidoPage.jsx'
@@ -144,6 +145,9 @@ export default function App() {
   const [sesion, setSesion] = useState(null) // { user, expiresInSeconds }
   const [cargando, setCargando] = useState(true)
   const [aviso, setAviso] = useState(null)
+  // CCPIP-510: confirma que se inicio sesion; sigue visible al pasar a la pagina de destino
+  const [bienvenida, setBienvenida] = useState(null)
+  const cerrarBienvenida = useCallback(() => setBienvenida(null), [])
   const [cerrando, setCerrando] = useState(false)
   // CCPIP-26 y CCPIP-328: correo de la cuenta recien creada o verificada, para no volver a escribirlo
   const [correoConocido, setCorreoConocido] = useState('')
@@ -279,6 +283,7 @@ export default function App() {
           setAviso(null)
           void aplicarIdiomaDeSesion(nueva?.user)
           setSesion(nueva)
+          setBienvenida(nueva?.user?.fullName ? t('app.sesionIniciada.conNombre', { nombre: nueva.user.fullName }) : t('app.sesionIniciada.titulo'))
         }}
       />
     )
@@ -404,7 +409,7 @@ export default function App() {
   } else if (RUTA_PRODUCTO.test(path)) {
     pagina = <ProductoPage id={path.match(RUTA_PRODUCTO)[1]} />
   } else if (RUTA_TIENDA.test(path)) {
-    pagina = <TiendaPage id={path.match(RUTA_TIENDA)[1]} />
+    pagina = <TiendaPage id={path.match(RUTA_TIENDA)[1]} search={search} />
   } else if (/^\/productores\/(\d+)$/.test(path)) {
     // Enlace antiguo al perfil del productor: ahora es la tienda de la comunidad
     navigate(path.replace('/productores/', '/tiendas/'), { replace: true })
@@ -421,6 +426,7 @@ export default function App() {
   return (
     <SesionContexto.Provider value={contexto}>
       <Fragment key={delCatalogo ? i18n.resolvedLanguage : 'pagina'}>{pagina}</Fragment>
+      {bienvenida && sesion && <AvisoLateral titulo={bienvenida} onCerrar={cerrarBienvenida} />}
     </SesionContexto.Provider>
   )
 }

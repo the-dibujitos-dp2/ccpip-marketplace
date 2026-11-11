@@ -7,3 +7,11 @@
 .dialogo__cerrar { position: absolute; top: 16px; right: 16px; display: flex; padding: 6px; border: 0; border-radius: 50%; background: none; cursor: pointer; }
 .dialogo__cerrar:focus-visible { outline: 2px solid var(--color-border-focus); }
 .dialogo__contenido:has(.dialogo__cerrar) > h2 { padding-right: 36px; }
+
+/* CCPIP-510: el dialogo entra desde un poco mas pequeno (no desde cero) y el fondo se oscurece suave */
+.dialogo[open] { animation: dialogo-entrar var(--duracion-media) var(--ease-salida); }
+.dialogo[open]::backdrop { animation: aparecer var(--duracion-media) var(--ease-estado); }
+@keyframes dialogo-entrar {
+  from { opacity: 0; transform: translateY(6px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}

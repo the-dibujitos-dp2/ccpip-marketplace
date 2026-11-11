@@ -38,9 +38,10 @@ export function esFavorito(favoritos, tipo, id) {
 /**
  * Corazon para guardar o retirar un favorito: un producto (CCPIP-177, CCPIP-396), un productor (CCPIP-368,
  * CCPIP-397) o la comunidad de una tienda (CCPIP-369, CCPIP-398). No reserva ni registra cantidad.
- * `estado`: lo que devuelve useFavoritos() en la pagina.
+ * `estado`: lo que devuelve useFavoritos() en la pagina. `soloIcono` (CCPIP-510): solo el corazon, con el
+ * texto como nombre accesible y como ayuda al pasar el puntero (junto al titulo de la ficha).
  */
-export default function BotonFavorito({ tipo, id, estado, tamano = 'M' }) {
+export default function BotonFavorito({ tipo, id, estado, tamano = 'M', soloIcono = false }) {
   const { t } = useTranslation()
   const { favoritos, setFavoritos, aplica, conSesion } = estado
   const [enviando, setEnviando] = useState(false)
@@ -67,17 +68,22 @@ export default function BotonFavorito({ tipo, id, estado, tamano = 'M' }) {
     }
   }
 
+  const texto = t(`favoritos.boton.${tipo}.${guardado ? 'guardado' : 'guardar'}`)
   return (
-    <div className="boton-favorito">
+    <div className={`boton-favorito${soloIcono ? ' boton-favorito--icono' : ''}`}>
       <Boton
+        // Al cambiar de estado el corazon entra de nuevo (latido); ver BotonFavorito.css
+        key={guardado ? 'guardado' : 'guardar'}
         tipo="secundario"
         tamano={tamano}
         icono={guardado ? iconoCorazonLleno : iconoCorazon}
         aria-pressed={guardado}
+        aria-label={soloIcono ? texto : undefined}
+        title={soloIcono ? texto : undefined}
         cargando={enviando}
         onClick={alternar}
       >
-        {t(`favoritos.boton.${tipo}.${guardado ? 'guardado' : 'guardar'}`)}
+        {!soloIcono && texto}
       </Boton>
       {error && <p className="caption boton-favorito__error" role="alert">{error}</p>}
     </div>

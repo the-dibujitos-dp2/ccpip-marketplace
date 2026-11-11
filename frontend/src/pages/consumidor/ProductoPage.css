@@ -1,8 +1,33 @@
 .ficha { display: flex; flex-direction: column; gap: 48px; padding-top: 28px; padding-bottom: 72px; }
 
-.ficha__principal { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+/* CCPIP-510: la descripcion va bajo la galeria y la foto toma el alto que sobra, para que la descripcion termine
+   al mismo nivel que la tarjeta de compra, sin hueco bajo la foto */
+.ficha__principal {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas: 'galeria info' 'descripcion info';
+  column-gap: 48px;
+  row-gap: 16px;
+  align-items: start;
+}
+.ficha__galeria { grid-area: galeria; display: flex; flex-direction: column; gap: 12px; }
+.ficha__info { grid-area: info; }
+.ficha__descripcion { grid-area: descripcion; align-self: stretch; display: flex; flex-direction: column; gap: 8px; padding: 20px 24px; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); background: var(--color-bg-surface); }
+.ficha__descripcion h2 { margin: 0; }
+@media (min-width: 901px) {
+  .ficha__principal > .ficha__galeria { align-self: stretch; }
+  .ficha__principal .ficha__galeria .ficha__foto { flex: 1 1 auto; aspect-ratio: auto; min-height: 320px; }
+  /* La foto llena su recuadro sin que su tamano original estire la columna */
+  .ficha__principal .ficha__foto-img { position: absolute; inset: 0; }
+}
 
-.ficha__galeria { display: flex; flex-direction: column; gap: 12px; }
+/* Entrada de la ficha: galeria, compra y descripcion en ese orden, cortas y sin escalar */
+.ficha__principal > * { animation: entrada var(--duracion-entrada) var(--ease-salida) backwards; }
+.ficha__principal > .ficha__info { animation-delay: 70ms; }
+.ficha__principal > .ficha__descripcion { animation-delay: 140ms; }
+/* Al cambiar de foto, la nueva aparece sin salto */
+.ficha__foto-img { animation: aparecer var(--duracion-media) var(--ease-salida); }
 .ficha__foto { position: relative; aspect-ratio: 5 / 4; overflow: hidden; border-radius: var(--radius-xl); background: var(--color-bg-surface-alt); }
 .ficha__foto-img { width: 100%; height: 100%; object-fit: cover; }
 .ficha__contador { position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: var(--radius-pill); background: rgba(8, 38, 23, 0.75); color: var(--color-text-on-brand); font-size: 12px; font-weight: 600; }
@@ -12,12 +37,16 @@
 .ficha__miniatura img { width: 100%; height: 100%; object-fit: cover; }
 .ficha__miniatura--activa { border-color: var(--color-border-brand); }
 
-.ficha__datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 4px 0 0; }
-.ficha__datos div { padding: 12px 14px; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); background: var(--color-bg-surface); }
-.ficha__datos dt { font-size: 12px; color: var(--color-text-tertiary); }
-.ficha__datos dd { margin: 2px 0 0; font-weight: 600; font-size: 14px; }
+/* CCPIP-510: origen, cosecha y presentacion con su icono, en el verde suave de la marca */
+.ficha__datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 4px 0 0; }
+.ficha__dato { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 12px; padding: 14px 16px; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); background: var(--color-bg-brand-subtle); }
+.ficha__dato dt { display: contents; }
+.ficha__dato-icono { grid-row: span 2; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--color-bg-surface); color: var(--color-text-brand); box-shadow: inset 0 0 0 1px var(--color-border-default); }
+.ficha__dato dt > span:last-child { align-self: end; font-size: 12px; line-height: 16px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--color-text-tertiary); }
+.ficha__dato dd { align-self: start; margin: 2px 0 0; font-weight: 600; font-size: 15px; line-height: 20px; color: var(--color-text-primary); overflow-wrap: break-word; }
 
 .ficha__info { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.ficha__encabezado { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; width: 100%; }
 .ficha__titulo { font-family: var(--font-display); font-weight: 600; font-size: 36px; line-height: 44px; letter-spacing: -0.5px; }
 /* CCPIP-411: el productor, destacado bajo el titulo y antes del panel de compra */
 .ficha__productor { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; width: 100%; padding: 16px 18px; border: 1px solid var(--color-border-default); border-left: 4px solid var(--color-border-brand); border-radius: var(--radius-l); background: var(--color-bg-brand-subtle); }
@@ -39,8 +68,6 @@
 div.ficha__precio { cursor: default; }
 .ficha__precio--activo { border: 2px solid var(--color-border-brand); padding: 11px 13px; background: var(--color-bg-brand-subtle); }
 .ficha__monto { font-family: var(--font-display); font-weight: 600; font-size: 24px; line-height: 32px; }
-
-.ficha__descripcion { margin-top: 4px; }
 
 .historia {
   display: grid;
@@ -67,35 +94,30 @@ div.ficha__precio { cursor: default; }
 .historia__relato { font-size: 17px; line-height: 27px; opacity: 0.92; }
 .historia__nota { display: flex; align-items: center; gap: 6px; font-size: 12px; opacity: 0.75; }
 
-.ficha__confianza { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 24px; align-items: start; }
+/* CCPIP-510: los dos recuadros de "Por que puedes confiar" con la misma altura */
+.ficha__confianza { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 24px; align-items: stretch; }
 /* CCPIP-407: "Sobre esta cosecha" y el sello de "Por que puedes confiar" en un tono mas claro (superficie
    blanca con borde); el texto conserva contraste AA (secundario 8.1:1, marca 8.2:1 sobre blanco) */
 .ficha__cosecha { padding: 20px 24px; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
 .ficha__confianza .sello--completo { background: var(--color-bg-surface); }
-.ficha__cosecha dl, .ficha__volumen dl { display: grid; gap: 10px; margin: 12px 0 0; }
-.ficha__cosecha dl div, .ficha__volumen dl div { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--color-border-default); font-size: 14px; }
-.ficha__cosecha dt, .ficha__volumen dt { color: var(--color-text-secondary); }
-.ficha__cosecha dd, .ficha__volumen dd { margin: 0; font-weight: 600; }
+.ficha__cosecha dl { display: grid; gap: 10px; margin: 12px 0 0; }
+.ficha__cosecha dl div { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--color-border-default); font-size: 14px; }
+.ficha__cosecha dt { color: var(--color-text-secondary); }
+.ficha__cosecha dd { margin: 0; font-weight: 600; }
 
-.ficha__volumen { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 720px; padding: 24px; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
-.ficha__volumen dl { width: 100%; }
-
-/* CCPIP-42, Figma CW-03 "Volumen y otras ofertas": volumen a la izquierda y los demas productores en 420px */
-.ficha__volumen-ofertas { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: stretch; }
-.ficha__volumen-ofertas:has(.ficha__volumen):has(.otras-ofertas) { grid-template-columns: minmax(0, 1fr) 420px; }
-.ficha__volumen-ofertas:has(.otras-ofertas) .ficha__volumen { max-width: none; }
-.ficha__volumen-ofertas > .otras-ofertas:only-child { max-width: 420px; }
+/* CCPIP-42: los demas productores del mismo producto */
+.ficha > .otras-ofertas { max-width: 520px; }
 
 @media (max-width: 900px) {
-  .ficha__volumen-ofertas:has(.ficha__volumen):has(.otras-ofertas) { grid-template-columns: minmax(0, 1fr); }
-  .ficha__volumen-ofertas > .otras-ofertas:only-child { max-width: none; }
+  .ficha > .otras-ofertas { max-width: none; }
   .historia, .ficha__confianza { grid-template-columns: minmax(0, 1fr); }
   .historia { padding: 28px; }
   /* CCPIP-411: en una columna, foto, titulo y productor primero; los datos de un vistazo al final */
   .ficha__principal { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
   .ficha__galeria, .ficha__info { display: contents; }
-  .ficha__foto, .ficha__miniaturas, .ficha__datos { width: 100%; }
+  .ficha__foto, .ficha__miniaturas, .ficha__datos, .ficha__descripcion { width: 100%; }
   .ficha__datos { order: 1; }
+  .ficha__descripcion { order: 2; }
 }
 
 @media (max-width: 520px) {
@@ -103,4 +125,6 @@ div.ficha__precio { cursor: default; }
   .historia { padding: 20px; border-radius: 20px; }
   .historia__titulo { font-size: 26px; line-height: 34px; }
   .ficha__miniaturas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* CCPIP-510: en el telefono, un dato por fila para que ningun valor se corte a media palabra */
+  .ficha__datos { grid-template-columns: minmax(0, 1fr); }
 }

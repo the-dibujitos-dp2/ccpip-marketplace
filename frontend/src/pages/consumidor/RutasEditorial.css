@@ -46,12 +46,15 @@
 .layout-tienda .tarjeta-tienda__cita { color: var(--color-text-secondary); font-size: 15px; }
 .layout-tienda .tarjeta-tienda__enlace { margin-top: 10px; padding-top: 12px; width: 100%; border-top: 1px solid #cbd3bf; font-size: 13px; font-weight: 500; text-decoration: none; }
 .layout-tienda .boton--secundario { border-color: var(--color-border-brand); background: transparent; color: var(--color-text-brand); }
+/* CCPIP-510: los botones de quitar o denunciar conservan su rojo tambien en la tienda editorial */
+.layout-tienda .boton--secundario.boton--peligro { border-color: var(--color-status-error-fg); color: var(--color-status-error-fg); }
 .layout-tienda .boton--terciario { color: var(--color-text-brand); }
 .layout-tienda .boton--destructivo { background: #8a3025; color: #fffef9; }
 
 /* Ficha: campos de compra y orden de foco intactos; el bloque de origen gana protagonismo. */
 .layout-tienda .ficha { gap: 42px; }
-.layout-tienda .ficha__principal { grid-template-columns: minmax(0, 1.12fr) minmax(340px, .88fr); gap: clamp(28px, 4vw, 60px); }
+/* Solo entre columnas: entre la galeria y la descripcion queda el espacio corto de ProductoPage.css (CCPIP-510) */
+.layout-tienda .ficha__principal { grid-template-columns: minmax(0, 1.12fr) minmax(340px, .88fr); column-gap: clamp(28px, 4vw, 60px); }
 .layout-tienda .ficha__foto { aspect-ratio: 4 / 3; border-radius: 0; background: var(--color-bg-surface-alt); }
 .layout-tienda .ficha__miniatura { border-radius: 0; }
 .layout-tienda .ficha__contador { border-radius: 2px; }
@@ -61,12 +64,15 @@
 .layout-tienda .ficha__productor-relato { color: #193529; -webkit-line-clamp: unset; line-clamp: unset; }
 .layout-tienda .ficha__cita { border-left: 2px solid #ebc66b; border-radius: 0; background: #eeecdf; }
 .layout-tienda .ficha__cita p { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); color: #193529; }
-.layout-tienda .ficha__datos div,
+.layout-tienda .ficha__dato,
 .layout-tienda .ficha__compra,
 .layout-tienda .ficha__precio,
 .layout-tienda .ficha__cosecha,
-.layout-tienda .ficha__volumen { border-radius: 2px; box-shadow: none; }
-.layout-tienda .ficha__datos div { background: transparent; }
+.layout-tienda .ficha__descripcion { border-radius: 2px; box-shadow: none; }
+/* CCPIP-510: los datos de la foto en el tono del productor, con su icono sobre el verde de la marca */
+.layout-tienda .ficha__dato { border: 0; border-top: 3px solid #ebc66b; background: #eeecdf; }
+.layout-tienda .ficha__dato-icono { background: #163d2c; color: #fffef9; box-shadow: none; }
+.layout-tienda .ficha__dato dd { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-size: 17px; font-weight: 400; color: #193529; }
 .layout-tienda .ficha__compra { border-color: var(--color-border-default); background: var(--color-bg-surface); }
 .layout-tienda .ficha__monto { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-weight: 400; }
 .layout-tienda .historia { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(28px, 4vw, 56px); padding: clamp(28px, 5vw, 64px); border-radius: 2px; background: #163d2c; }
@@ -76,8 +82,7 @@
 .layout-tienda .historia__paso:nth-child(2) { background: #28533e; }
 .layout-tienda .historia__relato { font-family: var(--consumer-serif, 'Fraunces', Georgia, serif); font-size: 19px; line-height: 1.55; }
 .layout-tienda .ficha__confianza { gap: 24px; }
-.layout-tienda .ficha__cosecha,
-.layout-tienda .ficha__volumen { background: var(--color-bg-surface); }
+.layout-tienda .ficha__cosecha { background: var(--color-bg-surface); }
 
 /* Community/store profiles: use real API photography and existing story only. */
 .layout-tienda .tienda-publica__portada { background: #163d2c; }

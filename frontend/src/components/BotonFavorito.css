@@ -7,3 +7,15 @@
 .boton-favorito__error {
   color: var(--color-status-error-fg);
 }
+
+/* CCPIP-510: solo el corazon, cuadrado y del alto del tamano elegido */
+.boton-favorito--icono { align-items: flex-end; }
+.boton-favorito--icono .boton { aspect-ratio: 1; padding: 0; border-radius: 50%; }
+.boton-favorito--icono .boton-favorito__error { max-width: 220px; text-align: right; }
+
+/* Guardado: el corazon lleno entra con un latido corto (sin escala desde cero) */
+.boton-favorito .boton[aria-pressed='true'] .icono { animation: favorito-latido var(--duracion-media) var(--ease-salida); }
+@keyframes favorito-latido {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}

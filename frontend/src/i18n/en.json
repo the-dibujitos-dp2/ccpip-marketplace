@@ -30,6 +30,10 @@
     "sesionCerrada": {
       "titulo": "You logged out",
       "descripcion": "Come back anytime."
+    },
+    "sesionIniciada": {
+      "titulo": "You signed in",
+      "conNombre": "Hi, {{nombre}}. You signed in."
     }
   },
   "marca": {
@@ -824,7 +828,9 @@
       "ventaBloqueada": "The Chamber blocked your organization's sales",
       "ventaBloqueadaTexto": "Reason: «{{motivo}}». Your products are still visible but cannot be purchased while the block lasts. Confirmed orders are fulfilled as usual.",
       "sinHabilitar": "Your store is not enabled yet",
-      "sinHabilitarTexto": "You can build and save it. The Chamber enables it and we will email you so you can publish it."
+      "sinHabilitarTexto": "You can build and save it. The Chamber enables it and we will email you so you can publish it.",
+      "vistaPropia": "You are seeing your store as buyers see it.",
+      "volverEditar": "Back to editing my store"
     },
     "videos": {
       "titulo": "Videos",
@@ -2853,12 +2859,6 @@
     "sinSellos": "This product has no verified origin or valid certificates to show yet. That does not mean it is approved or rejected.",
     "sobreCosecha": "About this harvest",
     "consumirAntes": "Best before",
-    "volumen": {
-      "titulo": "For volume purchases",
-      "texto": "For stores, cafés and exporters: the same story and the same verified origin.",
-      "minimo": "Minimum wholesale order",
-      "precioUnidad": "Price per unit"
-    },
     "tambienDe": "More {{linea}}",
     "materiaPrima": {
       "materias": "Raw materials: {{linea}}",
@@ -2876,7 +2876,8 @@
       "verAria": "View the offer from {{tienda}}",
       "meInteresa": "I'm interested",
       "meInteresaAria": "I'm interested in the offer from {{tienda}}"
-    }
+    },
+    "sobreProducto": "About this product"
   },
   "carrito": {
     "agregar": {
@@ -3040,11 +3041,9 @@
     "recojoTexto": "We'll let you know when it's ready.",
     "sinCosto": "No cost",
     "entrega": "Delivery",
-    "recojoResumen": "Pickup at the point",
     "gratis": "Free",
     "procesando": "Processing payment…",
     "pagar": "Pay {{monto}}",
-    "notaStock": "Stock is only deducted once your payment is approved.",
     "domicilio": {
       "comoRecibir": "1. How do you want to receive it?",
       "etiquetaModalidad": "How you want to receive your order",
@@ -3093,7 +3092,8 @@
     "productos": "Products",
     "envio": "Shipping",
     "recogesEn": "You pick it up at",
-    "enSoles": "You pay in Peruvian soles (S/). For now we only sell and deliver within Peru."
+    "enSoles": "You pay in Peruvian soles (S/). For now we only sell and deliver within Peru.",
+    "celularEjemplo": "E.g.: 987 654 321"
   },
   "pedido": {
     "noEncontrado": "We couldn't find that order",
@@ -4526,7 +4526,9 @@
       "todos": "All",
       "desde": "From",
       "hasta": "To"
-    }
+    },
+    "algoNoCorresponde": "Is something wrong with this product?",
+    "algoNoCorrespondeTexto": "If you see false information or a product in poor condition, let the Chamber know. The producer will not know who reported it."
   },
   "denunciasProductor": {
     "titulo": "Reports received",
@@ -5329,9 +5331,8 @@
     "verDetalle": "See details"
   },
   "mapaPunto": {
-    "plano": "Reference map: {{nombre}}, {{direccion}}",
-    "referencial": "Reference map. Open the address to get directions.",
-    "comoLlegar": "Directions in Google Maps",
+    "plano": "Area map: {{nombre}}, {{direccion}}",
+    "referencial": "Collection point area. Open it in Maps from the map to get directions.",
     "nuevaPestana": "(opens in a new tab)"
   },
   "precioUnidad": {
@@ -5344,6 +5345,7 @@
     "plano": "Reference map of the route: leaves from {{salida}} and arrives at {{llegada}}",
     "salida": "Departure",
     "destino": "Delivery",
-    "verRuta": "See the route in Google Maps"
+    "verRuta": "See the route in Google Maps",
+    "referencial": "Reference map. Open the route to get directions."
   }
 }

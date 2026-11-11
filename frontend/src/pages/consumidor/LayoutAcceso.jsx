@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import Enlace from '../../components/Enlace.jsx'
 import CabeceraTienda from '../../components/layout/CabeceraTienda.jsx'
-import PieDePagina from '../../components/layout/PieDePagina.jsx'
 import { useSesion } from '../../sesion.js'
 import { RUTAS } from '../../router.js'
 import './IngresarPage.css'
@@ -9,7 +8,10 @@ import './ConsumerEditorial.css'
 import './AccesoEditorial.css'
 import retrato from '../../assets/editorial/retrato.jpg'
 
-/** Marco de acceso (CW-08, CW-14): foto documental y formulario real; registro, verificacion y recuperacion intactos. */
+/**
+ * Marco de acceso (CW-08, CW-14): foto documental y formulario real; registro, verificacion y recuperacion intactos.
+ * CCPIP-510: ocupa justo la pantalla (100vh) y sin pie de pagina; si el formulario no entra, se desplaza el formulario.
+ */
 export default function LayoutAcceso({ bajada, etiqueta, children }) {
   const { t } = useTranslation('accessEditorial')
   const { user, cerrarSesion, cerrando } = useSesion()
@@ -35,7 +37,6 @@ export default function LayoutAcceso({ bajada, etiqueta, children }) {
           </div>
         </main>
       </div>
-      <PieDePagina />
     </div>
   )
 }

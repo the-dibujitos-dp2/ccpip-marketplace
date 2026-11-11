@@ -10,7 +10,11 @@
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
+  /* CCPIP-510: el color cambia rapido al pasar el puntero y el boton cede un poco al presionarlo */
+  transition: background-color var(--duracion-rapida) var(--ease-estado), border-color var(--duracion-rapida) var(--ease-estado),
+    color var(--duracion-rapida) var(--ease-estado), transform var(--duracion-rapida) var(--ease-salida);
 }
+.boton:not(:disabled):active { transform: scale(0.97); }
 
 .boton--L { height: 48px; padding: 0 24px; font-size: 16px; line-height: 24px; }
 .boton--M { height: 40px; padding: 0 20px; font-size: 14px; line-height: 20px; }

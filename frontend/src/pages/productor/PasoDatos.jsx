@@ -128,6 +128,16 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
   const enRevision = producto?.estado === 'EN_MODERACION'
   const set = (campo) => (e) => setD({ ...d, [campo]: e?.target ? (e.target.type === 'checkbox' ? e.target.checked : e.target.value) : e })
 
+  // CCPIP-510: el aviso de "escribe el nombre antes de agregar fotos" se va en cuanto hay nombre o las fotos suben
+  function quitarAvisoFotos() {
+    setErrores((e) => (e.nombre ? { ...e, nombre: undefined } : e))
+    setAlerta((a) => (a?.deFotos ? null : a))
+  }
+  function cambiarNombre(e) {
+    set('nombre')(e)
+    if (e.target.value.trim()) quitarAvisoFotos()
+  }
+
   function elegirLineas(lineas) {
     const primera = catalogos.lineas.find((l) => l.codigo === lineas[0])
     // CCPIP-45: la linea sugiere la unidad, si el productor aun no eligio una
@@ -167,9 +177,10 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
       id = await asegurarProducto(aCuerpo(d))
     } catch (err) {
       setErrores({ nombre: t('productor.editor.nombreAntesFotos') })
-      setAlerta({ tono: 'error', titulo: err instanceof ApiError ? mensajeError(err) : (err.message ?? t('productor.datos.guardaAntesFotos')) })
+      setAlerta({ tono: 'error', deFotos: true, titulo: err instanceof ApiError ? mensajeError(err) : (err.message ?? t('productor.datos.guardaAntesFotos')) })
       return
     }
+    quitarAvisoFotos()
     const libres = MAX_FOTOS - imagenes.length - subidas.filter((s) => s.estado !== 'error').length
     const tomados = archivos.slice(0, Math.max(0, libres))
     if (archivos.length > tomados.length) {
@@ -351,7 +362,7 @@ export default function PasoDatos({ producto, tienda, asegurarProducto, onGuarda
         {alerta && <Alerta {...alerta} onCerrar={() => setAlerta(null)} />}
 
         {/* CCPIP-488: de lo general a lo particular: nombre, linea y despues las fotos */}
-        <Campo etiqueta={t('productor.datos.nombre')} value={d.nombre} onChange={set('nombre')} error={errores.nombre} maxLength={200} placeholder={t('productor.datos.nombreEjemplo')} />
+        <Campo etiqueta={t('productor.datos.nombre')} value={d.nombre} onChange={cambiarNombre} error={errores.nombre} maxLength={200} placeholder={t('productor.datos.nombreEjemplo')} />
 
         <Chips
           etiqueta={t('buscar.linea')}

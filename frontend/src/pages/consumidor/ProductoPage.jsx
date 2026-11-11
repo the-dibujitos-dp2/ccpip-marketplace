@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import iconoCaja from '../../assets/icons/caja.svg'
+import iconoCalendario from '../../assets/icons/calendario.svg'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
+import iconoGlobo from '../../assets/icons/globo.svg'
 import iconoIa from '../../assets/icons/ia.svg'
 import { obtenerProducto } from '../../api/catalogo.js'
 import AvisoTraduccion from '../../components/AvisoTraduccion.jsx'
@@ -15,7 +18,7 @@ import SelloOrigen from '../../components/SelloOrigen.jsx'
 import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { capital, fecha, mesAnio, precio, primeraOracion } from '../../formato.js'
-import { porUnidad, precioPorUnidad, unidadDeVenta } from '../../precioUnidad.js'
+import { porUnidad, unidadDeVenta } from '../../precioUnidad.js'
 import { RUTAS } from '../../router.js'
 import { desplazarHasta } from '../../desplazar.js'
 import { idiomaSegun, textoSegun } from '../../traduccion.js'
@@ -24,6 +27,7 @@ import AgregarAlCarrito from './AgregarAlCarrito.jsx'
 import BotonFavorito, { useFavoritos } from '../../components/BotonFavorito.jsx'
 import CalificacionesProducto from './CalificacionesProducto.jsx'
 import CertificacionProducto from './CertificacionProducto.jsx'
+import DenunciaProducto from './DenunciaProducto.jsx'
 import PremiosProducto from './PremiosProducto.jsx'
 import MeInteresa from './MeInteresa.jsx'
 import SellosProducto from './SellosProducto.jsx'
@@ -116,6 +120,13 @@ export default function ProductoPage({ id }) {
   const conMayorista = producto.modalidad !== 'MINORISTA'
   const conMinorista = producto.modalidad !== 'MAYORISTA'
   const unidad = producto.contenido || producto.unidad ? unidadDeVenta(t, producto) : null
+  const lugar = [tienda.localidad, tienda.region].filter(Boolean).join(', ')
+  // CCPIP-510: los datos de un vistazo bajo la foto, cada uno con su icono
+  const datos = [
+    { clave: 'origen', icono: iconoGlobo, valor: lugar },
+    cosecha?.produccion && { clave: 'cosecha', icono: iconoCalendario, valor: capital(mesAnio(cosecha.produccion)) },
+    unidad && { clave: 'presentacion', icono: iconoCaja, valor: capital(unidad) },
+  ].filter(Boolean)
   // CCPIP-134 (Figma CW-03c): desde el minimo el mayorista se aplica solo, aunque se haya elegido el minorista
   const activa = resolverTarifa(producto, cantidad).tarifa === 'MAYORISTA' ? 'MAYORISTA' : modo
   function elegirMinorista() {
@@ -165,28 +176,27 @@ export default function ProductoPage({ id }) {
               </ul>
             )}
             <dl className="ficha__datos">
-              <div>
-                <dt>{t('producto.origen')}</dt>
-                <dd>{[tienda.localidad, tienda.region].filter(Boolean).join(', ')}</dd>
-              </div>
-              {cosecha?.produccion && (
-                <div>
-                  <dt>{t('producto.cosecha')}</dt>
-                  <dd>{capital(mesAnio(cosecha.produccion))}</dd>
+              {datos.map((dato) => (
+                <div key={dato.clave} className="ficha__dato">
+                  <dt>
+                    <span className="ficha__dato-icono">
+                      <Icono src={dato.icono} tamano={18} />
+                    </span>
+                    <span>{t(`producto.${dato.clave}`)}</span>
+                  </dt>
+                  <dd>{dato.valor}</dd>
                 </div>
-              )}
-              {unidad && (
-                <div>
-                  <dt>{t('producto.presentacion')}</dt>
-                  <dd>{capital(unidad)}</dd>
-                </div>
-              )}
+              ))}
             </dl>
           </div>
 
           <div className="ficha__info">
             <p className="overline">{[producto.linea?.nombre, tienda.region].filter(Boolean).join(' · ')}</p>
-            <h1 className="ficha__titulo" lang={idiomaSegun(traducciones, 'nombre', originalFicha)}>{ficha('nombre', producto.nombre)}</h1>
+            {/* CCPIP-510: guardar en favoritos, como corazon junto al titulo (CCPIP-177 y CCPIP-396: no reserva) */}
+            <div className="ficha__encabezado">
+              <h1 className="ficha__titulo" lang={idiomaSegun(traducciones, 'nombre', originalFicha)}>{ficha('nombre', producto.nombre)}</h1>
+              <BotonFavorito tipo="productos" id={producto.id} estado={favoritos} tamano="L" soloIcono />
+            </div>
             <AvisoTraduccion traducciones={traducciones} campos={CAMPOS_FICHA} verOriginal={originalFicha} onAlternar={() => setOriginalFicha((v) => !v)} />
             {/* CCPIP-411: quien lo hace, junto al titulo y antes de la compra, sin bajar hasta el final */}
             <ProductorDestacado tienda={tienda} relato={partes?.comunidad} lang={idiomaHistoria} />
@@ -231,16 +241,19 @@ export default function ProductoPage({ id }) {
               </p>
               <AgregarAlCarrito key={producto.id} producto={producto} cantidad={cantidad} onCantidad={setCantidad} modo={activa} />
               <MeInteresa key={`interes-${producto.id}`} producto={producto} />
-              {/* CCPIP-177 y CCPIP-396: guardarlo no reserva ni registra cantidad */}
-              <BotonFavorito tipo="productos" id={producto.id} estado={favoritos} />
             </div>
+          </div>
 
-            {producto.descripcion && (
-              <p className="body-m ficha__descripcion" lang={idiomaSegun(traducciones, 'descripcion', originalFicha)}>
+          {/* CCPIP-510: la descripcion, bajo los datos de la foto, equilibra las dos columnas; en el DOM y en
+              una columna va despues de la compra */}
+          {producto.descripcion && (
+            <section className="ficha__descripcion" aria-labelledby="titulo-descripcion">
+              <h2 id="titulo-descripcion" className="overline">{t('producto.sobreProducto')}</h2>
+              <p className="body-m" lang={idiomaSegun(traducciones, 'descripcion', originalFicha)}>
                 {ficha('descripcion', producto.descripcion)}
               </p>
-            )}
-          </div>
+            </section>
+          )}
         </div>
 
         {historia && (
@@ -290,7 +303,7 @@ export default function ProductoPage({ id }) {
                   )}
                   <div>
                     <dt>{t('producto.origen')}</dt>
-                    <dd>{[tienda.localidad, tienda.region].filter(Boolean).join(', ')}</dd>
+                    <dd>{lugar}</dd>
                   </div>
                   {cosecha.consumirAntesDe && (
                     <div>
@@ -308,33 +321,14 @@ export default function ProductoPage({ id }) {
 
         {/* CCPIP-406: las calificaciones van justo despues de las certificaciones, tambien en movil */}
         <CalificacionesProducto producto={producto} />
+        <DenunciaProducto producto={producto} />
 
         {/* CCPIP-169: los premios declarados por el productor, despues de lo que certifica la Camara y las calificaciones */}
         <PremiosProducto productoId={id} />
 
-        {/* Figma CW-03 "Volumen y otras ofertas": la compra por volumen y, al lado, los demas productores (CCPIP-42) */}
-        {(conMayorista || otrasOfertas.length > 0) && (
-          <div className="ficha__volumen-ofertas">
-            {conMayorista && (
-              <section className="ficha__volumen" aria-labelledby="titulo-volumen">
-                <span className="etiqueta-producto etiqueta-producto--info">{t('modalidad.MAYORISTA')}</span>
-                <h2 id="titulo-volumen" className="heading-h2">{t('producto.volumen.titulo')}</h2>
-                <p className="body-s">{t('producto.volumen.texto')}</p>
-                <dl>
-                  <div>
-                    <dt>{t('producto.volumen.minimo')}</dt>
-                    <dd>{t('producto.unidades', { count: producto.cantidadMinimaMayorista })}</dd>
-                  </div>
-                  <div>
-                    <dt>{t('producto.volumen.precioUnidad')}</dt>
-                    <dd>{precioPorUnidad(t, producto.precioMayorista, producto)}</dd>
-                  </div>
-                </dl>
-              </section>
-            )}
-            {otrasOfertas.length > 0 && <OfertasMaestro maestro={producto.maestro} ofertas={otrasOfertas} />}
-          </div>
-        )}
+        {/* CCPIP-42: los demas productores del mismo producto. CCPIP-510: sin el recuadro de compra por volumen,
+            que repetia el precio mayorista de las tarjetas de precio */}
+        {otrasOfertas.length > 0 && <OfertasMaestro maestro={producto.maestro} ofertas={otrasOfertas} />}
 
         {/* CCPIP-55: de un terminado, las materias primas de su linea; de una materia prima, lo terminado */}
         {producto.porMateriaPrima?.length > 0 && (

@@ -1,13 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { miCalificacionProducto, resumenCalificaciones } from '../../api/valoracion.js'
-import Alerta from '../../components/Alerta.jsx'
 import Boton from '../../components/Boton.jsx'
-import Cargando from '../../components/Cargando.jsx'
-import DialogoDenuncia from '../../components/DialogoDenuncia.jsx'
 import Estrellas from '../../components/Estrellas.jsx'
 import { diaMes, fecha, unidades } from '../../formato.js'
-import { RUTAS } from '../../router.js'
 import { useSesion } from '../../sesion.js'
 import { FormularioCalificacion } from './CalificarPedido.jsx'
 import './Valoraciones.css'
@@ -20,31 +16,30 @@ const NIVELES = [
   ['uno', 1],
 ]
 
+/** Lo que el comprador puede hacer aqui aunque nadie haya calificado aun: calificar o saber cuando podra. */
+const CON_OPCION = ['PUEDE_CALIFICAR', 'YA_CALIFICADO', 'PEDIDO_EN_CURSO']
+
 /**
  * CW-03, seccion "Calificaciones". CCPIP-82 (RF-89): el promedio solo con suficiente evidencia (el
  * umbral lo fija el servidor); sin ella no se muestra un promedio, y menos un cero. Las resenas no
- * llevan el nombre de quien califico. CCPIP-83: el comprador puede denunciar la oferta desde aqui.
- * CCPIP-412: y calificarla, solo si la recibio en un pedido; si no, la opcion explica por que no.
+ * llevan el nombre de quien califico. CCPIP-412: el comprador la califica solo si la recibio en un
+ * pedido; si no, la opcion explica por que no. CCPIP-510: sin calificaciones (y sin nada que el comprador
+ * pueda hacer) la seccion no se muestra; la denuncia va aparte, en DenunciaProducto.
  */
 export default function CalificacionesProducto({ producto }) {
   const { t } = useTranslation()
   const { user } = useSesion()
   const [resumen, setResumen] = useState(null)
-  const [cargando, setCargando] = useState(true)
   const [mia, setMia] = useState(null)
   const [version, setVersion] = useState(0)
-  const [denunciando, setDenunciando] = useState(false)
-  const [enviada, setEnviada] = useState(false)
   const comprador = user?.role === 'CONSUMIDOR'
 
   useEffect(() => {
     let vigente = true
-    setCargando(true)
     // Sin resumen (error de red), la ficha se ve igual, sin esta seccion
     resumenCalificaciones(producto.id)
       .then((r) => vigente && setResumen(r))
       .catch(() => {})
-      .finally(() => vigente && setCargando(false))
     return () => {
       vigente = false
     }
@@ -60,12 +55,13 @@ export default function CalificacionesProducto({ producto }) {
     }
   }, [producto.id, comprador, version])
 
+  const conOpcion = comprador && CON_OPCION.includes(mia?.estado)
+  if (!resumen || (resumen.total === 0 && !conOpcion)) return null
+
   return (
     <section className="seccion valoraciones" aria-labelledby="titulo-calificaciones">
       <h2 id="titulo-calificaciones" className="seccion__titulo">{t('calificaciones.titulo')}</h2>
-      {/* CCPIP-413: mientras llega el primer resumen, el indicador en lugar de una seccion vacia */}
-      {cargando && !resumen && <Cargando />}
-      {resumen?.suficiente && (
+      {resumen.suficiente && (
         <div className="valoraciones__resumen">
           <div className="valoraciones__promedio">
             <span className="valoraciones__numero">{unidades(resumen.promedio)}</span>
@@ -85,7 +81,7 @@ export default function CalificacionesProducto({ producto }) {
           </ul>
         </div>
       )}
-      {resumen && !resumen.suficiente && (
+      {!resumen.suficiente && (
         <p className="body-m">
           {/* CCPIP-409: sin resenas, un mensaje amable en lugar de un bloque vacio */}
           {resumen.total === 0
@@ -93,7 +89,7 @@ export default function CalificacionesProducto({ producto }) {
             : t('calificaciones.insuficiente', { count: resumen.total, minimo: resumen.minimo })}
         </p>
       )}
-      {resumen?.resenas?.length > 0 && (
+      {resumen.resenas?.length > 0 && (
         <ul className="valoraciones__resenas" aria-label={t('calificaciones.resenas')}>
           {resumen.resenas.map((r, i) => (
             <li key={`${r.fecha}-${i}`} className="valoraciones__resena">
@@ -106,25 +102,6 @@ export default function CalificacionesProducto({ producto }) {
       )}
       {comprador && mia && <CalificarDesdeFicha mia={mia} onCalificada={() => setVersion((v) => v + 1)} />}
 
-      <div className="valoraciones__denuncia">
-        {enviada && <Alerta tono="exito" titulo={t('denuncia.enviada')} descripcion={t('denuncia.enviadaTexto')} onCerrar={() => setEnviada(false)} />}
-        {comprador && (
-          <Boton tipo="terciario" tamano="S" peligro onClick={() => setDenunciando(true)}>{t('denuncia.denunciarProducto')}</Boton>
-        )}
-        {!user && (
-          <Boton tipo="terciario" tamano="S" to={`${RUTAS.ingresar}?volver=${encodeURIComponent(`/productos/${producto.id}`)}`}>
-            {t('denuncia.ingresaParaDenunciar')}
-          </Boton>
-        )}
-      </div>
-      {comprador && (
-        <DialogoDenuncia abierto={denunciando} objetivo={{ ids: { productoId: producto.id }, nombre: producto.nombre }}
-          onCerrar={() => setDenunciando(false)}
-          onEnviada={() => {
-            setDenunciando(false)
-            setEnviada(true)
-          }} />
-      )}
     </section>
   )
 }
