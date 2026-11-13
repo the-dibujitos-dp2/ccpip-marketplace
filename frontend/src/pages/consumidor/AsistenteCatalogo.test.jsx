@@ -93,6 +93,23 @@ describe('Asistente de catálogo (CCPIP-51, CCPIP-175)', () => {
     expect(screen.getByRole('list', { name: 'Productos' })).toBeInTheDocument()
   })
 
+  it('CCPIP-513: Rocco piensa mientras la IA responde y se va al llegar la respuesta', async () => {
+    let responder
+    servidor({
+      ...sinSesion,
+      'POST /api/asistente/catalogo': () => new Promise((r) => { responder = r }),
+    })
+    const user = userEvent.setup()
+    const { container } = abrirEn('/buscar')
+    await preguntar(user, 'cacao para regalar')
+
+    expect(await screen.findByText('Rocco está buscando en el catálogo…')).toBeInTheDocument()
+    expect(container.querySelector('[data-rocco="pensativo"]')).toHaveClass('rocco--animado')
+    responder([200, { texto: 'No encontré productos.', productos: [], busqueda: null, sinResultados: true, fueraDeAlcance: false, proveedor: 'gemini' }])
+    expect(await screen.findByText('No encontré productos.')).toBeInTheDocument()
+    expect(screen.queryByText('Rocco está buscando en el catálogo…')).not.toBeInTheDocument()
+  })
+
   it('una pregunta muy corta no se envia', async () => {
     const fetchMock = servidor(sinSesion)
     const user = userEvent.setup()

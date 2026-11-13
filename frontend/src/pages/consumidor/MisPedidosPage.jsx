@@ -62,13 +62,13 @@ export default function MisPedidosPage() {
 
           <section className="mis-pedidos__contenido" aria-label={t('misPedidos.titulo')} aria-busy={!pedidos && !error}>
             {error && (
-              <EstadoVacio titulo={t('misPedidos.error')} descripcion={t('comun.errorConexion')}>
+              <EstadoVacio titulo={t('misPedidos.error')} descripcion={t('comun.errorConexion')} rocco="triste">
                 <Boton tamano="M" onClick={cargar}>{t('carrito.reintentar')}</Boton>
               </EstadoVacio>
             )}
             {!error && !pedidos && <Cargando />}
             {pedidos?.length === 0 && (
-              <EstadoVacio titulo={t('misPedidos.vacio')} descripcion={t('misPedidos.vacioTexto')}>
+              <EstadoVacio titulo={t('misPedidos.vacio')} descripcion={t('misPedidos.vacioTexto')} rocco="sorprendido">
                 <Boton tamano="M" to={RUTAS.buscar}>{t('misPedidos.explorar')}</Boton>
               </EstadoVacio>
             )}

@@ -8,6 +8,7 @@ import Campo from '../../components/Campo.jsx'
 import Icono from '../../components/Icono.jsx'
 import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import TarjetaTienda from '../../components/TarjetaTienda.jsx'
+import { RoccoDice } from '../../components/Rocco.jsx'
 import './AsistenteCatalogo.css'
 
 const MAXIMO = 300
@@ -65,6 +66,9 @@ export default function AsistenteCatalogo({ onVerEnBusqueda }) {
           {consultando ? t('asistente.consultando') : t('asistente.preguntar')}
         </Boton>
       </form>
+
+      {/* CCPIP-513: Rocco piensa mientras la IA responde */}
+      {consultando && <RoccoDice variante="pensativo" animado>{t('rocco.pensando')}</RoccoDice>}
 
       {error && <Alerta {...error} onCerrar={() => setError(null)} />}
 
