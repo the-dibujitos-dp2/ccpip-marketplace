@@ -274,6 +274,7 @@ export default function BuscarPage({ search }) {
 
             {resultado?.total === 0 && (
               <EstadoVacio
+                rocco="sorprendido"
                 titulo={filtros.q ? t('buscar.sinResultadosPara', { q: filtros.q }) : t('buscar.sinResultados')}
                 descripcion={t('buscar.sugerencia')}
               >

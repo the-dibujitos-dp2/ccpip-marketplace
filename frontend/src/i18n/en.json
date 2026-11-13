@@ -5338,5 +5338,10 @@
     "sufijo": "per {{unidad}}",
     "und": "{{cantidad}} units",
     "unidad": "unit"
+  },
+  "rocco": {
+    "saludo": "Hi! I’m Rocco, the Andean cock-of-the-rock. I’ll help you discover products with a story from Peru’s Indigenous communities.",
+    "pensando": "Rocco is searching the catalog…",
+    "consejoHistoria": "Rocco’s tip: tell who makes the product, how they make it and what it means to your community. Concrete details make the story memorable."
   }
 }

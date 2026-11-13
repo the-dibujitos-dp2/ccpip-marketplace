@@ -16,6 +16,7 @@ import Pestanas from '../../components/Pestanas.jsx'
 import TarjetaProducto from '../../components/TarjetaProducto.jsx'
 import TarjetaTienda from '../../components/TarjetaTienda.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
+import { RoccoDice } from '../../components/Rocco.jsx'
 import { RUTAS } from '../../router.js'
 import './InicioPage.css'
 import fotoArtesana from '../../assets/editorial/artesana.jpg'
@@ -59,6 +60,8 @@ export default function InicioPage() {
               <Boton tipo="acento" to={RUTAS.buscar}>{te('hero.explorar')}</Boton>
               <Enlace to={RUTAS.comunidades} className="hero__enlace">{te('hero.comunidades')}</Enlace>
             </div>
+            {/* CCPIP-513: Rocco da la bienvenida */}
+            <RoccoDice variante="saluda" className="hero__rocco">{t('rocco.saludo')}</RoccoDice>
             <a className="hero__credito" href="https://www.infobae.com/peru/2024/11/27/cacao-cafe-arte-textil-y-mas-emprendedores-indigenas-ofreceran-mas-de-100-productos-libres-de-deforestacion/" target="_blank" rel="noopener noreferrer">
               {te('pie.creditos')} · Infobae · 2024-11-27
             </a>

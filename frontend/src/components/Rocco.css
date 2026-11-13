@@ -1,0 +1,30 @@
+.rocco { display: block; flex: none; max-width: 100%; height: auto; }
+
+.rocco--animado { transform-origin: 50% 90%; animation: rocco-balanceo 1.8s ease-in-out infinite; }
+
+@keyframes rocco-balanceo {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-4deg) translateY(-2px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rocco--animado { animation: none; }
+}
+
+.rocco-dice { display: flex; align-items: flex-end; gap: 12px; }
+
+.rocco-dice__globo {
+  position: relative;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 16px 16px 16px 4px;
+  background: var(--color-bg-surface);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 599px) {
+  .rocco-dice .rocco { width: 56px; }
+}

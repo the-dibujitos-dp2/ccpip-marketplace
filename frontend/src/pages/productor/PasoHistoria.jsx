@@ -9,6 +9,7 @@ import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import Icono from '../../components/Icono.jsx'
+import { RoccoDice } from '../../components/Rocco.jsx'
 import { mensajeError } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import './Editor.css'
@@ -132,6 +133,8 @@ export default function PasoHistoria({ producto, onAprobada, onAtras, onOmitir }
         <div>
           <h2 id="titulo-preguntas" className="heading-h2">{t('productor.historia.cuenta')}</h2>
           <p className="body-s">{t('productor.historia.cuentaTexto')}</p>
+          {/* CCPIP-513: consejo de Rocco */}
+          <RoccoDice variante="guino" tamano={64}>{t('rocco.consejoHistoria')}</RoccoDice>
         </div>
         <ol className="preguntas">
           {PREGUNTAS.map((p, i) => {

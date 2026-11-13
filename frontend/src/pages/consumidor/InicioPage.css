@@ -121,3 +121,6 @@
   .mayorista__texto { padding: 36px 24px 44px; }
   .mas-vendidos__periodo { width: 100%; }
 }
+
+/* CCPIP-513: Rocco da la bienvenida bajo las acciones del inicio */
+.inicio-tienda .hero__rocco { margin-top: 24px; max-width: 440px; }

@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import iconoCheck from '../../assets/icons/check-circulo.svg'
 import { consultarPedido } from '../../api/compra.js'
 import Alerta from '../../components/Alerta.jsx'
 import Badge from '../../components/Badge.jsx'
 import Boton from '../../components/Boton.jsx'
 import Cargando from '../../components/Cargando.jsx'
 import EstadoVacio from '../../components/EstadoVacio.jsx'
-import Icono from '../../components/Icono.jsx'
 import MapaPunto from '../../components/MapaPunto.jsx'
 import Pasos from '../../components/Pasos.jsx'
+import Rocco from '../../components/Rocco.jsx'
 import SeguimientoPedido, { conSeguimiento } from '../../components/SeguimientoPedido.jsx'
 import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { diaMesAnioLargo, diaMesLargoHora, precio, unidades } from '../../formato.js'
@@ -106,7 +105,8 @@ function Detalle({ pedido }) {
     <>
       {confirmado ? (
         <header className="pedido__exito">
-          <Icono src={iconoCheck} tamano={48} className="pedido__exito-icono" />
+          {/* CCPIP-513: Rocco celebra la compra confirmada */}
+          <Rocco variante="emocionado" tamano={96} className="pedido__exito-rocco" />
           <h1 className="pedido__titulo">{t('pedido.gracias')}</h1>
           <p className="pedido__subtitulo">
             <Trans i18nKey={aDomicilio ? 'pedido.confirmadoDomicilio' : 'pedido.confirmado'} values={{ numero: pedido.numero }} components={{ strong: <strong /> }} />

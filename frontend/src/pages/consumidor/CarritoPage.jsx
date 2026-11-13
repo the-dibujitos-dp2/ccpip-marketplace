@@ -118,7 +118,7 @@ export default function CarritoPage() {
           </div>
         )}
         {error && (
-          <EstadoVacio titulo={t('carrito.error')} descripcion={t('comun.errorConexion')}>
+          <EstadoVacio titulo={t('carrito.error')} descripcion={t('comun.errorConexion')} rocco="triste">
             <Boton tamano="M" onClick={cargar}>
               {t('carrito.reintentar')}
             </Boton>
@@ -135,7 +135,7 @@ export default function CarritoPage() {
           </div>
         )}
         {carrito?.items.length === 0 && (
-          <EstadoVacio titulo={t('carrito.vacio')} descripcion={t('carrito.vacioTexto')}>
+          <EstadoVacio titulo={t('carrito.vacio')} descripcion={t('carrito.vacioTexto')} rocco="sorprendido">
             <Boton tamano="M" to={RUTAS.buscar}>
               {t('inicio.hero.explorar')}
             </Boton>

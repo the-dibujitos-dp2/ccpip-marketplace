@@ -5338,5 +5338,10 @@
     "sufijo": "por {{unidad}}",
     "und": "{{cantidad}} und",
     "unidad": "unidad"
+  },
+  "rocco": {
+    "saludo": "¡Hola! Soy Rocco, el gallito de las rocas. Te acompaño a descubrir productos con historia de las comunidades indígenas del Perú.",
+    "pensando": "Rocco está buscando en el catálogo…",
+    "consejoHistoria": "Consejo de Rocco: cuenta quiénes elaboran el producto, cómo lo hacen y qué significa para tu comunidad. Los detalles concretos hacen que la historia se recuerde."
   }
 }
