@@ -336,13 +336,4 @@ class ReportesTest extends IntegrationTest {
         return id;
     }
 
-    private void alCarrito(Cookie comprador, long productoId, int cantidad) throws Exception {
-        mockMvc.perform(post("/api/carrito/items").cookie(comprador).contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("productoId", productoId, "cantidad", cantidad))))
-                .andExpect(status().isOk());
-    }
-
-    private long puntoCusco() {
-        return jdbc.queryForObject("SELECT id FROM ubicacion WHERE nombre = ?", Long.class, CUSCO);
-    }
 }

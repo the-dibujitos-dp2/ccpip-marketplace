@@ -19,6 +19,7 @@ import { mensajeError } from '../../../i18n/errores.js'
 import { RUTAS } from '../../../router.js'
 import '../../productor/productor.css'
 import '../admin.css'
+import CodigosCampana from './CodigosCampana.jsx'
 import { DialogoFinalizar, EstadoCampana, rutaCampana, TEXTOS, textoCondiciones, textoPeriodo, textoRegla, VistaPrevia } from './comun.jsx'
 import './fidelizacion.css'
 
@@ -68,6 +69,7 @@ export default function CampanaPage({ path, id }) {
           {campana.estado === 'CANCELADA' && <Alerta tono="info" titulo={t(`${M}.cancelada`)} descripcion={t(`${M}.canceladaTexto`)} />}
           {!metricas && !error && (campana.estado === 'ACTIVA' || campana.estado === 'FINALIZADA') && <Cargando />}
           {metricas && <Metricas m={metricas} />}
+          {campana.estado !== 'CANCELADA' && <CodigosCampana key={campana.estado} campana={campana} />}
         </>
       )}
       <DialogoFinalizar

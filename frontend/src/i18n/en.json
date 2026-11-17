@@ -1816,7 +1816,8 @@
         "pedidos_one": "{{count}} order",
         "pedidos_other": "{{count}} orders",
         "comision": "Chamber commission",
-        "neto": "Net for producers"
+        "neto": "Net for producers",
+        "descuentos": "{{monto}} in discounts absorbed"
       },
       "sinComision_one": "{{count}} order was confirmed without a commission set",
       "sinComision_other": "{{count}} orders were confirmed without a commission set",
@@ -2436,6 +2437,157 @@
         "puntosPorDia": "Points generated per day",
         "puntosSerie": "Points",
         "productos": "Best-selling products"
+      },
+      "secciones": {
+        "titulo": "Loyalty sections",
+        "campanas": "Campaigns",
+        "beneficios": "Levels and coupons"
+      },
+      "beneficio": {
+        "tipo": "Discount type",
+        "tipos": {
+          "MONTO": "Fixed amount (S/)",
+          "PORCENTAJE": "Percentage (%)"
+        },
+        "valorMonto": "Discount in S/",
+        "valorPorcentaje": "Discount percentage",
+        "montoMinimo": "Minimum purchase in S/ (optional)",
+        "topeDescuento": "Cap in S/ (optional)",
+        "topeAyuda": "The most the percentage can take off.",
+        "validacion": {
+          "valor": "Enter a discount greater than 0, with up to 2 decimals",
+          "porcentaje": "The percentage is 90 % at most",
+          "monto": "Use an amount in soles, with up to 2 decimals"
+        }
+      },
+      "beneficios": {
+        "errorCargar": "We couldn't load levels and coupons",
+        "errorGuardar": "We couldn't save the change",
+        "guardar": "Save",
+        "niveles": {
+          "titulo": "Recurrence levels",
+          "texto": "Returning buyers move up a level by their delivered orders, and each level multiplies the points they earn. Changes apply to upcoming deliveries.",
+          "nuevo": "Add level",
+          "editarTitulo": "Edit level",
+          "vacio": "No levels yet",
+          "vacioTexto": "Without levels, everyone earns with the base rule or the campaign rule.",
+          "col": {
+            "nombre": "Level",
+            "desde": "From",
+            "multiplicador": "Multiplies"
+          },
+          "desdePedidos_one": "{{count}} delivered order",
+          "desdePedidos_other": "{{count}} delivered orders",
+          "retirar": "Retire",
+          "retirarDe": "Retire {{nombre}}",
+          "retirarTitulo": "Retire the level?",
+          "retirarTexto": "“{{nombre}}” will stop multiplying points from now on. Points already earned do not change.",
+          "retirado": "You retired “{{nombre}}”.",
+          "creado": "You added the level.",
+          "editado": "You saved the level changes.",
+          "nombre": "Name",
+          "nombreEjemplo": "E.g.: Silver",
+          "pedidos": "From how many delivered orders",
+          "multiplicador": "Points multiplier",
+          "multiplicadorAyuda": "Between 1.01 and 5; 1.5 gives 50 % more points.",
+          "validacion": {
+            "nombre": "Give the level a name",
+            "pedidos": "Use a whole number from 1",
+            "multiplicador": "Use a number greater than 1 and up to 5"
+          }
+        },
+        "cupones": {
+          "titulo": "Coupons to redeem with points",
+          "texto": "Buyers redeem them with their points in “My points” and use them on a purchase. The Cámara absorbs the discount.",
+          "nuevo": "New coupon",
+          "editarTitulo": "Edit coupon",
+          "vacio": "No coupons yet",
+          "vacioTexto": "Create the first one so points have something to be used on.",
+          "col": {
+            "cupon": "Coupon",
+            "costo": "Costs",
+            "canjes": "Redeemed / used",
+            "descuento": "Discounted"
+          },
+          "vigencia_one": "valid {{count}} day after redeeming",
+          "vigencia_other": "valid {{count}} days after redeeming",
+          "puntos": "{{puntos}} pts",
+          "canjesUsados": "{{canjes}} / {{usados}}",
+          "activar": "Reactivate",
+          "desactivar": "End",
+          "activarDe": "Reactivate {{nombre}}",
+          "desactivarDe": "End {{nombre}}",
+          "activado": "«{{nombre}}» is back in the catalog.",
+          "desactivado": "You ended «{{nombre}}». Coupons already redeemed can still be used.",
+          "creado": "You added the coupon to the catalog.",
+          "editado": "You saved the coupon changes.",
+          "nombre": "Name",
+          "nombreEjemplo": "E.g.: S/ 10 off your next purchase",
+          "descripcion": "Description (optional)",
+          "descripcionAyuda": "Buyers see it in the catalog.",
+          "costo": "Costs (points)",
+          "vigenciaDias": "Valid (days)",
+          "vigenciaAyuda": "Days to use it after redeeming.",
+          "conservan": "Coupons already redeemed keep the discount they were redeemed with.",
+          "validacion": {
+            "nombre": "Give the coupon a name",
+            "costo": "Use a whole number of points from 1",
+            "vigencia": "Between 1 and 365 days",
+            "desde": "Say when it can be redeemed from",
+            "desdePasado": "Choose today or a future date",
+            "hastaAntes": "The end is on the start day or later"
+          },
+          "filtrar": "Filter coupons by status",
+          "filtro": {
+            "TODOS": "All ({{count}})",
+            "ACTIVO": "Active ({{count}})",
+            "PROGRAMADO": "Scheduled ({{count}})",
+            "FINALIZADO": "Ended ({{count}})"
+          },
+          "estado": {
+            "ACTIVO": "Active",
+            "PROGRAMADO": "Scheduled",
+            "FINALIZADO": "Ended"
+          },
+          "sinFiltro": "No coupons with this status.",
+          "desdeSinFin": "From {{fecha}}, no end date",
+          "disponibleDesde": "Available from",
+          "disponibleHasta": "Until (optional)",
+          "disponibleHastaAyuda": "With no date, it can be redeemed until you end it."
+        }
+      },
+      "codigos": {
+        "titulo": "Discount codes",
+        "texto": "To promote the campaign: they are valid while it runs and the Cámara absorbs the discount. A code is not edited: if it changes, deactivate it and create another.",
+        "nuevo": "New code",
+        "crear": "Create code",
+        "vacio": "This campaign has no codes yet.",
+        "errorCargar": "We couldn't load the codes",
+        "errorGuardar": "We couldn't save the code",
+        "col": {
+          "codigo": "Code",
+          "usos": "Uses",
+          "descuento": "Discounted"
+        },
+        "porCliente_one": "{{count}} use per customer",
+        "porCliente_other": "{{count}} uses per customer",
+        "usosDe": "{{usos}} of {{maximo}}",
+        "activo": "Active",
+        "inactivo": "Deactivated",
+        "desactivar": "Deactivate",
+        "desactivarDe": "Deactivate {{codigo}}",
+        "desactivado": "You deactivated {{codigo}}.",
+        "creado": "You created the code {{codigo}}.",
+        "codigo": "Code",
+        "codigoAyuda": "4 to 20 letters or numbers. Saved in uppercase.",
+        "usosMaximos": "Total uses (optional)",
+        "usosMaximosAyuda": "Empty: no limit.",
+        "usosPorCliente": "Uses per customer",
+        "validacion": {
+          "codigo": "4 to 20 letters or numbers, no spaces",
+          "usos": "Use a whole number from 1",
+          "porCliente": "Between 1 and 100"
+        }
       }
     }
   },
@@ -2876,7 +3028,29 @@
     "CAMPANA_MUY_LARGA": "A campaign lasts one year at most.",
     "CAMPANA_NO_MEJORA_BASE": "The campaign must give more points than the base rule (1 point for every S/ 10).",
     "CAMPANA_SE_CRUZA": "It overlaps another campaign. Choose other dates.",
-    "CAMPANA_SIN_METRICAS": "This campaign doesn't have orders yet."
+    "CAMPANA_SIN_METRICAS": "This campaign doesn't have orders yet.",
+    "NIVEL_REPETIDO": "There is already a level with that name or from that number of orders.",
+    "NIVEL_NO_ENCONTRADO": "We couldn't find that level.",
+    "CUPON_NO_ENCONTRADO": "We couldn't find that coupon.",
+    "CUPON_NO_DISPONIBLE": "That coupon is no longer available.",
+    "PUNTOS_INSUFICIENTES": "You don't have enough points for this coupon.",
+    "PORCENTAJE_MUY_ALTO": "The percentage is 90 % at most.",
+    "TOPE_SOLO_PORCENTAJE": "The cap only applies to percentage discounts.",
+    "CODIGO_REPETIDO": "That code already exists. Choose another.",
+    "CODIGO_NO_ENCONTRADO": "We couldn't find that active code.",
+    "CODIGO_NO_VALIDO": "That code doesn't exist or is no longer active.",
+    "CODIGO_FUERA_DE_CAMPANA": "This code isn't valid now: its campaign hasn't started or has ended.",
+    "CODIGO_AGOTADO": "This code has been used as many times as allowed.",
+    "CODIGO_YA_USADO": "You already used this code.",
+    "CUPON_USADO": "You already used this coupon on another purchase.",
+    "CUPON_VENCIDO": "This coupon has expired.",
+    "UN_SOLO_DESCUENTO": "Use a coupon or a code, not both.",
+    "DESCUENTO_BAJO_MINIMO": "Your purchase doesn't reach this discount's minimum.",
+    "DESCUENTO_SIN_MONTO": "Your purchase is too small for this discount.",
+    "SIN_DESCUENTO": "Pick a coupon or enter a code.",
+    "CUPON_INICIO_PASADO": "The coupon is available from today or a future date.",
+    "CUPON_FIN_ANTES_DE_INICIO": "The coupon ends on its start day or later.",
+    "MONTO_INVALIDO": "The purchase amount is not valid."
   },
   "buscar": {
     "comunidad": "Community",
@@ -3275,7 +3449,20 @@
     "envio": "Shipping",
     "recogesEn": "You pick it up at",
     "enSoles": "You pay in Peruvian soles (S/). For now we only sell and deliver within Peru.",
-    "celularEjemplo": "E.g.: 987 654 321"
+    "celularEjemplo": "E.g.: 987 654 321",
+    "descuento": {
+      "titulo": "Have a discount?",
+      "misCupones": "Your coupons",
+      "usar": "Use",
+      "usarDe": "Use {{nombre}}",
+      "codigo": "Discount code",
+      "aplicar": "Apply",
+      "aplicado": "Discount: {{nombre}}",
+      "ahorras": "You save {{monto}}",
+      "quitar": "Remove",
+      "unoPorCompra": "One discount per purchase: a coupon or a code.",
+      "fila": "Discount"
+    }
   },
   "pedido": {
     "noEncontrado": "We couldn't find that order",
@@ -3338,7 +3525,8 @@
       "titulo_other": "You earned {{puntos}} points",
       "campana": "With the “{{campana}}” campaign, when you received your order.",
       "base": "For your purchase, when you received your order."
-    }
+    },
+    "descuento": "Discount ({{nombre}})"
   },
   "misPedidos": {
     "miCuenta": "My account",
@@ -5108,7 +5296,16 @@
       "CUENTA_REACTIVAR": "Reactivated account",
       "CAMPANA_PUNTOS_CREADA": "Scheduled points campaign",
       "CAMPANA_PUNTOS_EDITADA": "Edited points campaign",
-      "CAMPANA_PUNTOS_FINALIZADA": "Ended points campaign"
+      "CAMPANA_PUNTOS_FINALIZADA": "Ended points campaign",
+      "CUPON_CREADO": "Created coupon",
+      "CUPON_EDITADO": "Edited coupon",
+      "CUPON_ACTIVADO": "Showed coupon",
+      "CUPON_DESACTIVADO": "Hid coupon",
+      "CODIGO_CREADO": "Created discount code",
+      "CODIGO_DESACTIVADO": "Deactivated code",
+      "NIVEL_CREADO": "Created level",
+      "NIVEL_EDITADO": "Edited level",
+      "NIVEL_RETIRADO": "Retired level"
     },
     "denuncia": "Report {{numero}}",
     "vacio": "You recorded no actions in this period.",
@@ -5251,7 +5448,16 @@
       "MOTIVO_MERMA_ACTIVADO": "Activated a shrinkage reason",
       "CAMPANA_PUNTOS_CREADA": "Scheduled a points campaign",
       "CAMPANA_PUNTOS_EDITADA": "Edited a points campaign",
-      "CAMPANA_PUNTOS_FINALIZADA": "Ended a points campaign"
+      "CAMPANA_PUNTOS_FINALIZADA": "Ended a points campaign",
+      "CUPON_CREADO": "Created a coupon",
+      "CUPON_EDITADO": "Edited a coupon",
+      "CUPON_ACTIVADO": "Showed a coupon",
+      "CUPON_DESACTIVADO": "Hid a coupon",
+      "CODIGO_CREADO": "Created a discount code",
+      "CODIGO_DESACTIVADO": "Deactivated a discount code",
+      "NIVEL_CREADO": "Created a loyalty level",
+      "NIVEL_EDITADO": "Edited a loyalty level",
+      "NIVEL_RETIRADO": "Retired a loyalty level"
     },
     "entidad": {
       "AUTORIZACION": "Authorization",
@@ -5288,7 +5494,10 @@
       "CARRITO": "Cart",
       "TRADUCCION": "Translation",
       "IMAGEN": "Image",
-      "CAMPANA_PUNTOS": "Points campaign"
+      "CAMPANA_PUNTOS": "Points campaign",
+      "CUPON": "Coupon",
+      "CODIGO_DESCUENTO": "Discount code",
+      "NIVEL_FIDELIZACION": "Loyalty level"
     },
     "resultado": {
       "EXITOSA": "Successful",
@@ -5538,5 +5747,72 @@
     "saludo": "Hi! I’m Rocco, the Andean cock-of-the-rock. I’ll help you discover products with a story from Peru’s Indigenous communities.",
     "pensando": "Rocco is searching the catalog…",
     "consejoHistoria": "Rocco’s tip: tell who makes the product, how they make it and what it means to your community. Concrete details make the story memorable."
+  },
+  "fidelizacion": {
+    "beneficio": {
+      "monto": "{{monto}} off",
+      "porcentaje": "{{valor}} % off",
+      "hasta": ", up to {{monto}}",
+      "desde": " · from {{monto}}"
+    }
+  },
+  "misPuntos": {
+    "titulo": "My points",
+    "error": "We couldn't load your points",
+    "saldo": "Your points",
+    "comoSeGanan": "You earn points every time you receive an order.",
+    "nivel": "Your level",
+    "nivelActual": "{{nombre}} · your points are multiplied ×{{multiplicador}}",
+    "sinNivel": "No level yet",
+    "avance_one": "{{count}} more order to reach {{nombre}}",
+    "avance_other": "{{count}} more orders to reach {{nombre}}",
+    "multiplica": "×{{multiplicador}} points",
+    "pestana": {
+      "canjear": "Redeem",
+      "cupones": "My coupons",
+      "movimientos": "Activity"
+    },
+    "canjear": "Redeem",
+    "canjearDe": "Redeem {{nombre}}",
+    "faltan": "{{puntos}} points short",
+    "puntos": "{{puntos}} points",
+    "vigencia_one": "Valid {{count}} day after redeeming",
+    "vigencia_other": "Valid {{count}} days after redeeming",
+    "catalogoVacio": "No coupons to redeem yet",
+    "catalogoVacioTexto": "Keep earning points: coupons are coming soon.",
+    "confirmarTitulo": "Redeem your points?",
+    "confirmar": "Redeem",
+    "confirmarTexto": "You will use {{puntos}} points on “{{nombre}}”. You will have {{saldo}} left.",
+    "canjeado": "You redeemed “{{nombre}}”: your code is {{codigo}}",
+    "canjeadoTexto": "Find it in My coupons and pick it at checkout.",
+    "errorCanjear": "We couldn't redeem the coupon",
+    "sinCupones": "You haven't redeemed coupons yet",
+    "sinCuponesTexto": "Redeem your points for a discount in the Redeem tab.",
+    "usadoEn": "Used on order {{pedido}}",
+    "vence": "Expires on {{fecha}}",
+    "estado": {
+      "DISPONIBLE": "Available",
+      "EN_USO": "In use",
+      "USADO": "Used",
+      "VENCIDO": "Expired"
+    },
+    "comoUsar": "Pick your coupon at checkout, in the order summary.",
+    "irCarrito": "Go to cart",
+    "sinMovimientos": "No activity yet",
+    "movimiento": {
+      "ACUMULACION": "Order {{referencia}}",
+      "CANJE": "Redeemed: {{referencia}}"
+    },
+    "conCampana": "campaign {{campana}}",
+    "conNivel": "level {{nivel}}"
+  },
+  "puntosPorGanar": {
+    "etiqueta": "Points you would earn with this purchase",
+    "carrito_one": "You would earn <strong>{{puntos}} point</strong> with this purchase!",
+    "carrito_other": "You would earn <strong>{{puntos}} points</strong> with this purchase!",
+    "campana": "Includes the «{{campana}}» campaign. Added to your balance when you receive your order.",
+    "base": "Added to your balance when you receive your order.",
+    "linea_one": "You will earn <strong>{{puntos}} point</strong> when you receive your order",
+    "linea_other": "You will earn <strong>{{puntos}} points</strong> when you receive your order"
   }
 }

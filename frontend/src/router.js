@@ -17,6 +17,8 @@ export const RUTAS = {
   misDatos: '/cuenta/datos',
   misDirecciones: '/cuenta/direcciones',
   misFavoritos: '/cuenta/favoritos',
+  // CCPIP-173, 374, 88 y 89: saldo, movimientos, nivel y canje de puntos
+  misPuntos: '/cuenta/puntos',
   productor: '/productor',
   productorTienda: '/productor/tienda',
   productorProductos: '/productor/productos',
@@ -70,6 +72,8 @@ export const RUTAS = {
   // CCPIP-86: campanas de puntos del sub administrador y sus metricas
   adminFidelizacion: '/admin/fidelizacion',
   adminCampanaNueva: '/admin/fidelizacion/nueva',
+  // CCPIP-88/89: niveles por recurrencia y cupones que se canjean con puntos
+  adminFidelizacionBeneficios: '/admin/fidelizacion/beneficios',
   adminCatalogo: '/admin/catalogo',
   adminExistencias: '/admin/existencias',
   adminCuentas: '/admin/cuentas',

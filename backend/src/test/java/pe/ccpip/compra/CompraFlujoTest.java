@@ -97,9 +97,6 @@ class CompraFlujoTest extends IntegrationTest {
                 .andExpect(status().isOk());
     }
 
-    private long puntoCusco() {
-        return jdbc.queryForObject("SELECT id FROM ubicacion WHERE nombre = ?", Long.class, CUSCO);
-    }
 
     private ResultActions confirmar(long puntoId, String celular) throws Exception {
         return mockMvc.perform(post("/api/pedidos").cookie(comprador).contentType(MediaType.APPLICATION_JSON)

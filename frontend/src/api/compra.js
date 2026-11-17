@@ -27,14 +27,18 @@ export const consultarFactibilidad = (puntoId, ubigeo) =>
 /**
  * Crea el pedido en espera de pago. No descuenta stock hasta que el pago se aprueba. Con `entrega`
  * (CCPIP-59) es a domicilio: { ubigeo, direccion, referencia, contactoNombre, contactoCelular }; sin
- * ella es recojo, con persona autorizada y celular de contacto.
+ * ella es recojo, con persona autorizada y celular de contacto. CCPIP-88/89: un solo descuento, `cuponId` o `codigo`.
  */
-export const confirmarCompra = ({ puntoId, personaAutorizada, celularContacto, entrega }) =>
+export const confirmarCompra = ({ puntoId, personaAutorizada, celularContacto, entrega, cuponId, codigo }) =>
   apiFetch('/api/pedidos', {
     method: 'POST',
-    body: entrega
-      ? { puntoId: Number(puntoId), modalidad: 'ENVIO', entrega }
-      : { puntoId: Number(puntoId), personaAutorizada, celularContacto },
+    body: {
+      ...(entrega
+        ? { puntoId: Number(puntoId), modalidad: 'ENVIO', entrega }
+        : { puntoId: Number(puntoId), personaAutorizada, celularContacto }),
+      ...(cuponId ? { cuponId } : {}),
+      ...(codigo ? { codigo } : {}),
+    },
   })
 
 /**

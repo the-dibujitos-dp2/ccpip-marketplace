@@ -76,6 +76,24 @@ describe('CW-05 Carrito (CCPIP-155)', () => {
     expect(screen.getByRole('link', { name: 'Carrito · 16' })).toHaveAttribute('href', '/carrito')
   })
 
+  it('CCPIP-86/88: Rocco aparece sobre el resumen con los puntos que ganaría la compra', async () => {
+    const fetchMock = servidor({ ...conSesion(), 'GET /api/puntos/estimacion': [200, { puntos: 162, campana: 'Semana del cacao' }] })
+    abrirEn('/carrito')
+    const rocco = await screen.findByRole('region', { name: 'Puntos que ganarías con esta compra' })
+    expect(rocco).toHaveTextContent('¡Con esta compra ganarías 162 puntos!')
+    expect(rocco).toHaveTextContent('Incluye la campaña «Semana del cacao». Se suman a tu saldo al recibir tu pedido.')
+    expect(fetchMock.mock.calls.map(([url]) => url)).toContain('/api/puntos/estimacion?monto=812')
+    // Va a la par del titulo, fuera de la columna del resumen (que queda alineado con la lista)
+    expect(rocco.previousElementSibling).toBe(screen.getByRole('heading', { level: 1, name: 'Tu carrito' }))
+  })
+
+  it('sin puntos por ganar, o si la consulta falla, Rocco no aparece', async () => {
+    servidor({ ...conSesion(), 'GET /api/puntos/estimacion': [200, { puntos: 0, campana: null }] })
+    abrirEn('/carrito')
+    expect(await screen.findByRole('complementary', { name: 'Resumen del pedido' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('region', { name: 'Puntos que ganarías con esta compra' })).not.toBeInTheDocument())
+  })
+
   it('sin lotes vendibles no hay cosecha que mostrar', async () => {
     const carrito = copia(DATOS.carrito)
     carrito.items[0] = { ...carrito.items[0], cosecha: null }

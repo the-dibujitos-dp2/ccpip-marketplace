@@ -22,7 +22,9 @@ import { mensajeError } from '../../i18n/errores.js'
 import i18n from '../../i18n/index.js'
 import { navigate, RUTAS } from '../../router.js'
 import { digitos, formatear, largoCvv, marca, nombreMarca, numeroValido, vencimientoValido } from '../../tarjeta.js'
+import DescuentoCompra from './DescuentoCompra.jsx'
 import EntregaDomicilio from './EntregaDomicilio.jsx'
+import { LineaPuntos, usePuntosPorGanar } from './PuntosPorGanar.jsx'
 import './CompraPage.css'
 
 const PASOS = ['carrito', 'entrega', 'confirmacion']
@@ -139,6 +141,8 @@ export default function CompraPage() {
   const [errores, setErrores] = useState({})
   const [aviso, setAviso] = useState(null)
   const [enviando, setEnviando] = useState(false)
+  // CCPIP-88/89: { solicitud, descuento } del cupon o codigo elegido
+  const [descuento, setDescuento] = useState(null)
   // Pedido ya creado y con que datos de recojo: si no cambian, un reintento de pago usa el mismo
   const pedido = useRef(null)
   // Clave del intento de pago en curso: si la respuesta no llega (corte de red), se reenvia la misma
@@ -295,6 +299,7 @@ export default function CompraPage() {
             personaAutorizada: form.recogeOtro ? form.personaAutorizada.trim() : null,
             celularContacto: form.celular,
           }
+      Object.assign(recojo, descuento?.solicitud)
       const firma = JSON.stringify(recojo)
       if (pedido.current?.firma !== firma) {
         const nuevo = await confirmarCompra(recojo)
@@ -399,7 +404,9 @@ export default function CompraPage() {
   // El envio se suma a lo que se paga; la comision sigue siendo solo sobre los productos
   const envio = aDomicilio ? envioDe(distritos, form.ubigeo) : 0
   const envioMinimo = distritos.length ? Math.min(...distritos.map((d) => Number(d.envio ?? 0))) : null
-  const aPagar = carrito ? centimos(Number(carrito.total) + (envio ?? 0)) : 0
+  const aPagar = carrito ? centimos(Number(carrito.total) + (envio ?? 0) - Number(descuento?.descuento.monto ?? 0)) : 0
+  // CCPIP-88: los puntos se ganan sobre lo que se paga por los productos, sin envio y ya con el descuento
+  const puntosPorGanar = usePuntosPorGanar(carrito ? centimos(Number(carrito.total) - Number(descuento?.descuento.monto ?? 0)) : 0)
 
   return (
     <LayoutTienda>
@@ -592,6 +599,7 @@ export default function CompraPage() {
                   </li>
                 ))}
               </ul>
+              <DescuentoCompra aplicado={descuento} onAplicar={setDescuento} onQuitar={() => setDescuento(null)} />
               <dl className="compra__cifras">
                 <div>
                   <dt>{t('comunidades.titulo')}</dt>
@@ -624,11 +632,18 @@ export default function CompraPage() {
                   <dt>{t('compra.envio')}</dt>
                   <dd>{envio == null ? t('compra.domicilio.envioSinDistrito') : precio(envio)}</dd>
                 </div>
+                {descuento && (
+                  <div className="compra__fila-descuento">
+                    <dt>{t('compra.descuento.fila')}</dt>
+                    <dd>−{precio(descuento.descuento.monto)}</dd>
+                  </div>
+                )}
               </dl>
               <p className="compra__total">
                 <span>{t('carrito.total')}</span>
                 <strong>{precio(aPagar)}</strong>
               </p>
+              {puntosPorGanar && <LineaPuntos puntos={puntosPorGanar} className="compra__puntos" />}
               {aviso && (
                 <div ref={refAviso} className="compra__aviso">
                   <Alerta {...aviso} onCerrar={() => setAviso(null)} />

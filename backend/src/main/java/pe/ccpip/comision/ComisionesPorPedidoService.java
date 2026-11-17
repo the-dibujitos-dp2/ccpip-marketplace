@@ -91,18 +91,19 @@ public class ComisionesPorPedidoService {
         p.addValue("limite", TAMANO).addValue("salto", (long) pagina * TAMANO);
         List<Fila> filas = jdbc.query("""
                 SELECT pe.id, pe.numero, pe.estado, pe.confirmado_en, pe.total - %s AS total, pe.comision_porcentaje,
-                       pe.comision_monto - %s AS comision_monto
+                       pe.comision_monto - %s AS comision_monto, pe.descuento_monto
                 FROM pedido pe
                 WHERE %s
                 ORDER BY pe.confirmado_en DESC, pe.id DESC
                 LIMIT :limite OFFSET :salto""".formatted(REEMBOLSADO, ANULADA, donde), p, (rs, row) -> new Fila(rs.getLong("id"),
                 rs.getString("numero"), rs.getString("estado"), rs.getTimestamp("confirmado_en"), rs.getBigDecimal("total"),
-                rs.getBigDecimal("comision_porcentaje"), rs.getBigDecimal("comision_monto")));
+                rs.getBigDecimal("comision_porcentaje"), rs.getBigDecimal("comision_monto"), rs.getBigDecimal("descuento_monto")));
 
         Map<Long, List<ParteProductor>> partes = partes(filas);
         List<PedidoComision> pedidos = filas.stream().map(f -> new PedidoComision(f.id(), f.numero(), f.estado(),
                 f.confirmadoEn().toInstant(), f.venta(), f.porcentaje(), f.monto(),
-                f.monto() == null ? null : f.venta().subtract(f.monto()), partes.getOrDefault(f.id(), List.of()))).toList();
+                f.monto() == null ? null : f.venta().subtract(f.monto()), partes.getOrDefault(f.id(), List.of()),
+                f.descuento())).toList();
 
         return new ComisionesPorPedido(inicio, fin, productor, estadoFiltro, resumen, pedidos, pagina, TAMANO,
                 resumen.pedidos(), totalPaginas, productores(inicio, fin));
@@ -115,10 +116,12 @@ public class ComisionesPorPedidoService {
                        coalesce(sum(pe.total - %1$s), 0) AS ventas,
                        coalesce(sum(pe.comision_monto - %2$s), 0) AS comision,
                        coalesce(sum((pe.total - %1$s) - (pe.comision_monto - %2$s)) FILTER (WHERE pe.comision_monto IS NOT NULL), 0) AS neto,
-                       count(*) FILTER (WHERE pe.comision_monto IS NULL) AS sin_comision
+                       count(*) FILTER (WHERE pe.comision_monto IS NULL) AS sin_comision,
+                       coalesce(sum(pe.descuento_monto), 0) AS descuentos
                 FROM pedido pe
                 WHERE %3$s""".formatted(REEMBOLSADO, ANULADA, donde), p, (rs, row) -> new Resumen(rs.getInt("pedidos"),
-                rs.getBigDecimal("ventas"), rs.getBigDecimal("comision"), rs.getBigDecimal("neto"), rs.getInt("sin_comision")));
+                rs.getBigDecimal("ventas"), rs.getBigDecimal("comision"), rs.getBigDecimal("neto"), rs.getInt("sin_comision"),
+                rs.getBigDecimal("descuentos")));
     }
 
     /** Lo de cada productor, solo para los pedidos de la pagina. */
@@ -158,6 +161,6 @@ public class ComisionesPorPedidoService {
     }
 
     private record Fila(long id, String numero, String estado, Timestamp confirmadoEn, BigDecimal venta,
-                        BigDecimal porcentaje, BigDecimal monto) {
+                        BigDecimal porcentaje, BigDecimal monto, BigDecimal descuento) {
     }
 }

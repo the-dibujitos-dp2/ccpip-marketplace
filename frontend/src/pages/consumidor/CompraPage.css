@@ -65,6 +65,7 @@
 
 .compra__total { display: flex; align-items: baseline; justify-content: space-between; margin: 0; font-weight: 600; font-size: 18px; }
 .compra__total strong { font-family: var(--font-display); font-size: 32px; line-height: 40px; }
+.compra__puntos { margin-top: -8px; font-size: 14px; line-height: 20px; }
 .compra__aviso { scroll-margin: 24px; }
 .compra__nota { margin: -8px 0 0; color: var(--color-text-secondary); text-align: center; }
 
@@ -87,3 +88,16 @@
 .compra__cifras .compra__recojo-en dd { display: flex; flex-direction: column; gap: 2px; text-align: left; }
 .compra__recojo-en .mapa-punto { width: 100%; }
 .compra__mayorista { display: block; color: var(--color-text-brand); font-weight: 600; }
+
+/* CCPIP-88/89: un cupon canjeado o un codigo de campana */
+.compra__descuento { display: flex; flex-direction: column; gap: 10px; padding: 14px 0; border-top: 1px solid var(--color-border-default); }
+.compra__descuento h3, .compra__descuento p { margin: 0; }
+.compra__descuento .caption { color: var(--color-text-secondary); }
+.compra__descuento--aplicado { flex-direction: row; align-items: center; justify-content: space-between; padding: 12px 14px; border: 1px solid var(--color-border-brand); border-radius: var(--radius-l); background: var(--color-bg-brand-subtle); }
+.compra__descuento--aplicado > span { display: flex; flex-direction: column; gap: 2px; }
+.compra__cupones { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.compra__cupones li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--color-border-default); border-radius: var(--radius-l); }
+.compra__cupones li > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.compra__codigo { display: flex; align-items: flex-end; gap: 8px; }
+.compra__codigo .campo { flex: 1; }
+.compra__fila-descuento dd { color: var(--color-status-success-fg); font-weight: 600; }

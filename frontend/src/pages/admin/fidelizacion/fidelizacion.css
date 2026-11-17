@@ -31,6 +31,8 @@
 .fidelizacion__tabla .admin__num { flex-basis: 100px; }
 .fidelizacion__col-acciones { flex: 0 0 140px; display: flex; justify-content: flex-end; gap: 4px; }
 .fidelizacion__sin-filtro { margin: 0; color: var(--color-text-secondary); }
+.fidelizacion__nota-seccion { margin: 4px 0 0; max-width: 72ch; color: var(--color-text-secondary); }
+.fidelizacion__codigo { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600; letter-spacing: 0.04em; color: var(--color-text-primary); }
 
 /* Formulario y vista previa */
 .fidelizacion__formulario-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; gap: 24px; }

@@ -20,6 +20,7 @@ import TarifasEnvioPage from './pages/admin/TarifasEnvioPage.jsx'
 import CapacidadEntregaPage from './pages/admin/CapacidadEntregaPage.jsx'
 import ReportesPage from './pages/admin/ReportesPage.jsx'
 import MiHistorialPage from './pages/admin/MiHistorialPage.jsx'
+import BeneficiosPage from './pages/admin/fidelizacion/BeneficiosPage.jsx'
 import CampanaFormPage from './pages/admin/fidelizacion/CampanaFormPage.jsx'
 import CampanaPage from './pages/admin/fidelizacion/CampanaPage.jsx'
 import FidelizacionPage from './pages/admin/fidelizacion/FidelizacionPage.jsx'
@@ -61,6 +62,7 @@ import MisPedidosPage from './pages/consumidor/MisPedidosPage.jsx'
 import MisDatosPage from './pages/consumidor/MisDatosPage.jsx'
 import MisDireccionesPage from './pages/consumidor/MisDireccionesPage.jsx'
 import MisFavoritosPage from './pages/consumidor/MisFavoritosPage.jsx'
+import MisPuntosPage from './pages/consumidor/MisPuntosPage.jsx'
 import PedidoPage from './pages/consumidor/PedidoPage.jsx'
 import RecuperarContrasenaPage from './pages/consumidor/RecuperarContrasenaPage.jsx'
 import RestablecerContrasenaPage from './pages/consumidor/RestablecerContrasenaPage.jsx'
@@ -118,6 +120,7 @@ const delModuloSub = (path) =>
   || path === RUTAS.adminModeracionVideos || RUTA_VIDEO.test(path) || path === RUTAS.adminCertificados
   || path === RUTAS.adminRevisionesMerma
   || path === RUTAS.adminFidelizacion || path === RUTAS.adminCampanaNueva || RUTA_CAMPANA.test(path) || RUTA_EDITAR_CAMPANA.test(path)
+  || path === RUTAS.adminFidelizacionBeneficios
 
 /** CCPIP-84: denuncias contra productores; el sub administrador las gestiona y el super las consulta. */
 const deDenuncias = (path) => path === RUTAS.adminDenuncias || RUTA_DENUNCIAS_PRODUCTOR.test(path)
@@ -204,7 +207,7 @@ export default function App() {
 
   // "/productores/1" (enlace antiguo) no es del panel: se compara por segmento
   const delProductor = path === RUTAS.productor || path.startsWith(`${RUTAS.productor}/`)
-  const delComprador = path === RUTAS.carrito || path === RUTAS.compra || path === RUTAS.misPedidos || path === RUTAS.misDatos || path === RUTAS.misDirecciones || path === RUTAS.misFavoritos || RUTA_PEDIDO.test(path)
+  const delComprador = path === RUTAS.carrito || path === RUTAS.compra || path === RUTAS.misPedidos || path === RUTAS.misDatos || path === RUTAS.misDirecciones || path === RUTAS.misFavoritos || path === RUTAS.misPuntos || RUTA_PEDIDO.test(path)
   const delAcopio = path === RUTAS.acopio || path.startsWith(`${RUTAS.acopio}/`)
   const delDistribuidor = path === RUTAS.distribuidor || path.startsWith(`${RUTAS.distribuidor}/`)
   const delAdmin = path === RUTAS.admin || path.startsWith(`${RUTAS.admin}/`)
@@ -341,6 +344,7 @@ export default function App() {
     else if (path === RUTAS.adminMiHistorial) pagina = <MiHistorialPage path={path} />
     else if (path === RUTAS.adminFidelizacion) pagina = <FidelizacionPage path={path} />
     else if (path === RUTAS.adminCampanaNueva) pagina = <CampanaFormPage path={RUTAS.adminFidelizacion} />
+    else if (path === RUTAS.adminFidelizacionBeneficios) pagina = <BeneficiosPage path={path} />
     else if (RUTA_EDITAR_CAMPANA.test(path)) pagina = <CampanaFormPage path={RUTAS.adminFidelizacion} id={path.match(RUTA_EDITAR_CAMPANA)[1]} />
     else if (RUTA_CAMPANA.test(path)) pagina = <CampanaPage path={RUTAS.adminFidelizacion} id={path.match(RUTA_CAMPANA)[1]} />
     else if (RUTA_DENUNCIAS_PRODUCTOR.test(path)) pagina = <ExpedienteDenunciasPage path={RUTAS.adminDenuncias} productorId={path.match(RUTA_DENUNCIAS_PRODUCTOR)[1]} />
@@ -383,6 +387,7 @@ export default function App() {
     else if (path === RUTAS.misDatos) pagina = <MisDatosPage />
     else if (path === RUTAS.misDirecciones) pagina = <MisDireccionesPage />
     else if (path === RUTAS.misFavoritos) pagina = <MisFavoritosPage />
+    else if (path === RUTAS.misPuntos) pagina = <MisPuntosPage />
     else if (RUTA_PEDIDO.test(path)) pagina = <PedidoPage id={path.match(RUTA_PEDIDO)[1]} />
     else pagina = <CarritoPage />
   } else if (delAcopio) {

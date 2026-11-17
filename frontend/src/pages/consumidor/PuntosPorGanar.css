@@ -1,0 +1,42 @@
+/*
+ * CCPIP-86/88: Rocco aparece en el carrito a la par del titulo, sobre el resumen. Ocupa el alto que ya tiene
+ * el titulo, asi que no mueve nada: sale de la nada, sin rebote (los tokens de movimiento).
+ */
+.rocco-puntos {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  animation: rocco-puntos-entrada 560ms var(--ease-salida) 250ms both;
+}
+.rocco-puntos__rocco {
+  flex-shrink: 0;
+  transform-origin: 50% 90%;
+  animation: rocco-puntos-saludo 700ms var(--ease-salida) 650ms both;
+}
+.rocco-puntos__globo {
+  position: relative;
+  flex: 1;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border-brand);
+  border-radius: 16px 16px 16px 4px;
+  background: var(--color-bg-brand-subtle);
+}
+.rocco-puntos__globo p { margin: 0; }
+.rocco-puntos__titulo { font-size: 16px; line-height: 24px; }
+.rocco-puntos__titulo strong { color: var(--color-text-brand); }
+.rocco-puntos__detalle { margin-top: 2px; color: var(--color-text-secondary); }
+
+@keyframes rocco-puntos-entrada {
+  from { opacity: 0; transform: translateY(12px) scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes rocco-puntos-saludo {
+  0% { transform: rotate(0deg); }
+  40% { transform: rotate(-6deg) translateY(-3px); }
+  100% { transform: none; }
+}
+
+.puntos-linea { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--color-text-secondary); }
+.puntos-linea strong { color: var(--color-text-brand); }
+.puntos-linea .icono { flex-shrink: 0; }

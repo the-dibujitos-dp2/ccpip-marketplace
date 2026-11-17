@@ -1,5 +1,6 @@
 /* CW-05 · Carrito (Figma 70:2823) */
 .carrito { padding-top: 32px; padding-bottom: 64px; }
+.carrito__cabecera { display: grid; grid-template-columns: minmax(0, 1fr) 400px; align-items: center; gap: 0 32px; }
 .carrito__titulo { margin: 24px 0; font-family: var(--font-display); font-weight: 600; font-size: 36px; line-height: 44px; }
 
 .carrito__cuerpo { display: grid; grid-template-columns: minmax(0, 1fr) 400px; align-items: start; gap: 32px; }
@@ -110,6 +111,8 @@
 
 @media (max-width: 960px) {
   .carrito__cuerpo { grid-template-columns: minmax(0, 1fr); }
+  .carrito__cabecera { grid-template-columns: minmax(0, 1fr); }
+  .carrito__cabecera .rocco-puntos { margin-bottom: 16px; }
   .carrito__resumen { position: static; }
 }
 

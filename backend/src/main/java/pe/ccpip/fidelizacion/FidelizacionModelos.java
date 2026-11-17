@@ -83,13 +83,18 @@ public final class FidelizacionModelos {
      * anterior de igual duracion ({@code anteriorDesde}..{@code anteriorHasta}) con el mismo pedido minimo.
      * {@code puntosPorAcreditar}: los que daran los pedidos de la campana aun no entregados.
      * {@code clientesNuevos}: sin compras antes de la campana; {@code clientesRecurrentes}: con 2 o mas pedidos en ella.
-     * {@code pedidosBajoMinimo}: del periodo, por debajo del minimo (ganaron con la regla base).
+     * {@code pedidosBajoMinimo}: del periodo, por debajo del minimo (ganaron con la regla base). Los puntos y el minimo
+ * se cuentan sobre lo pagado por los productos despues del descuento; {@code codigos}: el uso de sus codigos.
      */
     public record Metricas(Campana campana, LocalDate desde, LocalDate hasta, LocalDate anteriorDesde,
                            LocalDate anteriorHasta, Indicador pedidos, Indicador ventas, Indicador ticketPromedio,
                            Indicador clientes, long puntosOtorgados, long puntosPorAcreditar, int pedidosEntregados,
                            int pedidosPorEntregar, int pedidosBajoMinimo, int clientesNuevos,
-                           int clientesRecurrentes, List<Dia> dias, List<ProductoTop> productos) {
+                           int clientesRecurrentes, List<Dia> dias, List<ProductoTop> productos, UsoCodigos codigos) {
+    }
+
+    /** Compras pagadas con los codigos de descuento de la campana y lo que descontaron. */
+    public record UsoCodigos(int usos, BigDecimal descuento) {
     }
 
     /** CCPIP-86: los puntos que gano un pedido entregado; {@code campana} es nula si fue con la regla base. */

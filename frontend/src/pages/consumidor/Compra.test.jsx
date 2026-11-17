@@ -10,6 +10,9 @@ function abrirEn(ruta) {
 }
 
 // El precio usa espacio no separable (Intl): el nombre accesible del boton no lo normaliza
+// Intl separa la moneda con un espacio no separable (U+00A0)
+const normal = (texto) => texto.replace(/ /g, ' ')
+
 const PAGAR = /^Pagar S\/\s812\.00$/
 
 const PUNTO = { id: 1, nombre: 'Centro Nacional Lima', departamento: 'Lima', provincia: 'Lima', distrito: 'Lima', direccion: 'Sede central CCPIP' }
@@ -116,6 +119,55 @@ describe('CW-05 Entrega y pago (CCPIP-157, CCPIP-62) y confirmación (CCPIP-64)'
     abrirEn('/carrito')
     const continuar = await screen.findByRole('link', { name: 'Continuar con la entrega y pago' })
     expect(continuar).toHaveAttribute('href', '/compra')
+  })
+
+  it('CCPIP-88/89: aplica un código de campaña, paga el total con descuento y el pedido lo muestra', async () => {
+    const cupon = { id: 11, codigo: 'PTSABCD234', nombre: 'S/ 5 de regalo', tipo: 'MONTO', valor: 5, montoMinimo: 0, topeDescuento: null, estado: 'DISPONIBLE' }
+    const descuento = { origen: 'CODIGO', cuponId: null, codigoId: 7, nombre: 'CACAO10 · Semana del cacao', monto: 10 }
+    const conDescuento = {
+      ...CONFIRMADO, descuento: { origen: 'CODIGO', nombre: 'CACAO10', monto: 10 }, totalAPagar: 802, totalFinal: 802,
+      puntosPorGanar: { puntos: 80, campana: 'Semana del cacao' },
+    }
+    const fetchMock = servidor(rutas({
+      // Como el servidor: 1 punto por cada S/ 10 de productos
+      'GET /api/puntos/estimacion': (o, url) => [200, { puntos: Math.floor(Number(new URL(url, 'http://x').searchParams.get('monto')) / 10), campana: null }],
+      'GET /api/puntos': [200, { saldo: 0, nivel: { pedidosEntregados: 0 }, niveles: [], movimientos: [], catalogo: [], cupones: [cupon] }],
+      'POST /api/compra/descuento': [200, descuento],
+      'POST /api/pedidos/77/pagos': [200, { estado: 'APROBADO', mensaje: 'Pago aprobado.', pedido: conDescuento }],
+      'GET /api/pedidos/77': [200, conDescuento],
+    }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    const resumen = within(await screen.findByRole('complementary', { name: 'Resumen del pedido' }))
+    // Sus cupones canjeados aparecen para usarlos; aqui escribe un codigo de campana
+    expect(await resumen.findByRole('button', { name: 'Usar S/ 5 de regalo' })).toBeInTheDocument()
+    const puntos = () => resumen.getByText(/al recibir tu pedido/).closest('p')
+    await waitFor(() => expect(puntos()).toHaveTextContent('Ganarás 81 puntos al recibir tu pedido'))
+    await usuario.type(resumen.getByLabelText('Código de descuento'), 'CACAO10')
+    await usuario.click(resumen.getByRole('button', { name: 'Aplicar' }))
+
+    expect(await resumen.findByText('Descuento: CACAO10 · Semana del cacao')).toBeInTheDocument()
+    expect(normal(resumen.getByText('Descuento', { selector: 'dt' }).nextSibling.textContent)).toBe('−S/ 10.00')
+    expect(JSON.parse(llamadas(fetchMock, 'POST /api/compra/descuento')[0][1].body)).toEqual({ codigo: 'CACAO10' })
+    // Los puntos se ganan sobre lo que se paga por los productos, ya con el descuento
+    await waitFor(() => expect(puntos()).toHaveTextContent('Ganarás 80 puntos al recibir tu pedido'))
+
+    await usuario.type(screen.getByLabelText('Celular de contacto'), '987 654 321')
+    await usuario.type(screen.getByLabelText('Número de tarjeta'), '4111 1111 1111 1111')
+    await usuario.type(screen.getByLabelText('Nombre del titular'), 'Ana Quispe')
+    await usuario.selectOptions(screen.getByLabelText('Mes'), '12')
+    await usuario.selectOptions(screen.getByLabelText('Año'), String(new Date().getFullYear() + 2))
+    await usuario.type(screen.getByLabelText('CVV'), '123')
+    await usuario.click(screen.getByRole('button', { name: /^Pagar S\/\s802\.00$/ }))
+
+    expect(await screen.findByRole('heading', { name: '¡Gracias por tu compra!' })).toBeInTheDocument()
+    expect(JSON.parse(llamadas(fetchMock, 'POST /api/pedidos')[0][1].body)).toEqual({
+      puntoId: 1, personaAutorizada: null, celularContacto: '987654321', codigo: 'CACAO10',
+    })
+    expect(normal(screen.getByText('Descuento (CACAO10)').nextSibling.textContent)).toBe('−S/ 10.00')
+    // CCPIP-86/88: el agradecimiento y el resumen del pedido dicen cuántos puntos dará al recibirlo
+    expect(screen.getByRole('heading', { name: '¡Gracias por tu compra!' }).parentElement).toHaveTextContent('Ganarás 80 puntos al recibir tu pedido')
+    expect(screen.queryByRole('region', { name: 'Ganarás 80 puntos' })).not.toBeInTheDocument()
   })
 
   it('con un pago aprobado crea el pedido, paga y muestra la confirmación', async () => {

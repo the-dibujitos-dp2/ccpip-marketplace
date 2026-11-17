@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import iconoCaja from '../../assets/icons/caja.svg'
 import iconoCamion from '../../assets/icons/camion.svg'
 import iconoCorazon from '../../assets/icons/corazon.svg'
+import iconoEstrella from '../../assets/icons/estrella.svg'
 import iconoSalir from '../../assets/icons/salir.svg'
 import iconoUsuario from '../../assets/icons/usuario.svg'
 import Avatar from '../../components/Avatar.jsx'
@@ -11,7 +12,7 @@ import { RUTAS } from '../../router.js'
 import { useSesion } from '../../sesion.js'
 import './MisPedidosPage.css'
 
-/** Solo lo que ya existe del menu de CW-09/CW-13: intereses y puntos llegan con sus historias. */
+/** Solo lo que ya existe del menu de CW-09/CW-13: los intereses llegan con su historia. */
 const SECCIONES = [
   { clave: 'pedidos', to: RUTAS.misPedidos, icono: iconoCaja, texto: 'misPedidos.titulo' },
   { clave: 'datos', to: RUTAS.misDatos, icono: iconoUsuario, texto: 'misDatos.titulo' },
@@ -19,6 +20,8 @@ const SECCIONES = [
   { clave: 'direcciones', to: RUTAS.misDirecciones, icono: iconoCamion, texto: 'misDirecciones.titulo' },
   // CCPIP-327, CCPIP-385 y CCPIP-386: productos, productores y comunidades guardados
   { clave: 'favoritos', to: RUTAS.misFavoritos, icono: iconoCorazon, texto: 'favoritos.titulo' },
+  // CCPIP-173, 374, 88 y 89: saldo, nivel, movimientos y canje de cupones
+  { clave: 'puntos', to: RUTAS.misPuntos, icono: iconoEstrella, texto: 'misPuntos.titulo' },
 ]
 
 /** El menu lateral de "Mi cuenta" del consumidor. `activo`: la seccion abierta. */
