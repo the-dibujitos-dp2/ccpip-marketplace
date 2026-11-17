@@ -201,7 +201,7 @@ public class CuponesService {
                 rs -> null);
         record Catalogo(String nombre, int costo, int vigencia) {
         }
-        Catalogo cupon = jdbc.query("SELECT nombre, costo_puntos, vigencia_dias FROM cupon c WHERE id = :id AND " + CANJEABLE,
+        Catalogo cupon = jdbc.query("SELECT nombre, costo_puntos, vigencia_dias FROM cupon c WHERE id = :id AND " + CANJEABLE + " FOR UPDATE",
                         new MapSqlParameterSource("id", cuponId),
                         (rs, row) -> new Catalogo(rs.getString("nombre"), rs.getInt("costo_puntos"), rs.getInt("vigencia_dias")))
                 .stream().findFirst()

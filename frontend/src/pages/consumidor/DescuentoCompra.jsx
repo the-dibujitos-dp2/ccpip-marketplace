@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { misPuntos, previsualizarDescuento } from '../../api/fidelizacion.js'
 import Boton from '../../components/Boton.jsx'
@@ -20,6 +20,7 @@ export default function DescuentoCompra({ aplicado, onAplicar, onQuitar }) {
   const [codigo, setCodigo] = useState('')
   const [error, setError] = useState(null)
   const [aplicando, setAplicando] = useState(false)
+  const aplicandoRef = useRef(false)
 
   useEffect(() => {
     // Sin sus cupones igual puede escribir un codigo: no es un error de la compra
@@ -27,6 +28,8 @@ export default function DescuentoCompra({ aplicado, onAplicar, onQuitar }) {
   }, [])
 
   async function aplicar(solicitud) {
+    if (aplicandoRef.current) return
+    aplicandoRef.current = true
     setError(null)
     setAplicando(true)
     try {
@@ -35,6 +38,7 @@ export default function DescuentoCompra({ aplicado, onAplicar, onQuitar }) {
     } catch (e) {
       setError(mensajeError(e))
     } finally {
+      aplicandoRef.current = false
       setAplicando(false)
     }
   }
