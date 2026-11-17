@@ -1,6 +1,7 @@
 package pe.ccpip.reportes.gestion;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -142,6 +143,13 @@ public final class GestionModelos {
      * porcentaje, con un decimal; nula si el anterior fue cero.
      */
     public record Indicador(BigDecimal valor, BigDecimal anterior, BigDecimal variacion) {
+
+        /** El indicador con su variacion porcentual frente al anterior (nula si el anterior fue cero). */
+        public static Indicador comparar(BigDecimal valor, BigDecimal anterior) {
+            BigDecimal variacion = anterior.signum() == 0 ? null
+                    : valor.subtract(anterior).multiply(BigDecimal.valueOf(100)).divide(anterior, 1, RoundingMode.HALF_UP);
+            return new Indicador(valor, anterior, variacion);
+        }
     }
 
     /**

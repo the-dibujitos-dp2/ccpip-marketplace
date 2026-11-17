@@ -57,6 +57,7 @@ class DistribucionEntregarConcurrenciaTest extends IntegrationTest {
     void limpiarFixtureConfirmado() {
         transaccion.executeWithoutResult(t -> {
             jdbc.execute("SET LOCAL session_replication_role = replica");
+            jdbc.update("DELETE FROM movimiento_puntos WHERE pedido_id=?", pedido);
             jdbc.update("DELETE FROM entrega WHERE pedido_id=?", pedido);
             jdbc.update("DELETE FROM pedido_estado_historial WHERE pedido_id=?", pedido);
             jdbc.update("DELETE FROM item_pedido WHERE pedido_id=?", pedido);
