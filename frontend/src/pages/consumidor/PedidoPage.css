@@ -26,6 +26,10 @@
   background: var(--color-bg-surface);
 }
 .pedido__tarjeta-titulo { margin: 0; font-weight: 600; font-size: 20px; line-height: 28px; }
+/* CCPIP-86: los puntos que dio el pedido entregado */
+.pedido__puntos { flex-direction: row; align-items: center; gap: 12px; border-color: var(--color-border-brand); background: var(--color-bg-brand-subtle); }
+.pedido__puntos .body-s { margin: 4px 0 0; color: var(--color-text-secondary); }
+.pedido__puntos-rocco { flex-shrink: 0; }
 
 .pedido__tabla { width: 100%; border-collapse: collapse; }
 .pedido__tabla th { padding: 0 0 12px; font-weight: 600; font-size: 14px; color: var(--color-text-secondary); text-align: right; }

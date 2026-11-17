@@ -42,6 +42,7 @@ import pe.ccpip.entrega.EntregaModelos.Cobertura;
 import pe.ccpip.entrega.EntregaModelos.Destino;
 import pe.ccpip.entrega.EntregaModelos.DestinoCubierto;
 import pe.ccpip.entrega.EntregaService;
+import pe.ccpip.fidelizacion.PuntosService;
 
 /**
  * CCPIP-157: confirmar la compra para recojo en un punto de acopio con existencias elegibles,
@@ -58,11 +59,14 @@ public class CompraService {
     private final NamedParameterJdbcTemplate jdbc;
     private final CarritoService carrito;
     private final EntregaService entregas;
+    private final PuntosService puntos;
 
-    public CompraService(NamedParameterJdbcTemplate jdbc, CarritoService carrito, EntregaService entregas) {
+    public CompraService(NamedParameterJdbcTemplate jdbc, CarritoService carrito, EntregaService entregas,
+                         PuntosService puntos) {
         this.jdbc = jdbc;
         this.carrito = carrito;
         this.entregas = entregas;
+        this.puntos = puntos;
     }
 
     /**
@@ -259,7 +263,7 @@ public class CompraService {
                         entregas.delPedido(pedidoId).orElse(null), rs.getBigDecimal("costo_envio"),
                         rs.getBigDecimal("total").add(rs.getBigDecimal("costo_envio")), incidencias(pedidoId),
                         reembolsado(pedidoId), rs.getBigDecimal("total").add(rs.getBigDecimal("costo_envio"))
-                                .subtract(reembolsado(pedidoId)), rs.getString("moneda")));
+                                .subtract(reembolsado(pedidoId)), rs.getString("moneda"), puntos.delPedido(pedidoId).orElse(null)));
         return encontrados.stream().findFirst()
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "No encontramos ese pedido."));
     }

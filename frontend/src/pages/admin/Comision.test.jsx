@@ -314,7 +314,7 @@ describe('Comisión por pedido (CCPIP-91)', () => {
     expect(screen.queryByText('No hay pedidos confirmados en estas fechas.')).not.toBeInTheDocument()
   })
 
-  it('el sub administrador ingresa a autorizaciones y solo ve sus módulos (autorizaciones, productores, vigencia de certificados, denuncias, comisión por pedido, cuentas y su historial)', async () => {
+  it('el sub administrador ingresa a autorizaciones y solo ve sus módulos (autorizaciones, productores, vigencia de certificados, denuncias, comisión por pedido, cuentas, fidelización y su historial)', async () => {
     let conSesion = false
     servidor(comoSub({
       'GET /api/auth/me': () => (conSesion ? [200, SESION_SUB] : SIN_SESION),
@@ -330,7 +330,7 @@ describe('Comisión por pedido (CCPIP-91)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Autorizaciones de productos' })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/admin/autorizaciones')
     const nav = within(screen.getByRole('navigation', { name: 'Sub administrador' }))
-    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Autorizaciones', 'Moderación', 'Productores', 'Vigencia de certificados', 'Revisión de merma', 'Denuncias', 'Comisión por pedido', 'Cuentas', 'Mi historial'])
+    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['Autorizaciones', 'Moderación', 'Productores', 'Vigencia de certificados', 'Revisión de merma', 'Denuncias', 'Comisión por pedido', 'Cuentas', 'Fidelización', 'Mi historial'])
     await userEvent.click(nav.getByRole('link', { name: 'Comisión por pedido' }))
     expect(await screen.findByRole('heading', { level: 1, name: 'Comisión por pedido' })).toBeInTheDocument()
   })

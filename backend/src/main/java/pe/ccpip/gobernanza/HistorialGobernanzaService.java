@@ -18,7 +18,7 @@ import pe.ccpip.gobernanza.GobernanzaModelos.Tipo;
  * Historial de acciones de gobernanza (CCPIP-126, RF-85; Figma S-05). Junta, con UNION ALL, lo que cada
  * modulo ya registra con su autor: decisiones sobre autorizaciones (CCPIP-174, 284, 39), solicitudes de
  * renovacion (CCPIP-321), moderacion de publicaciones (CCPIP-331, 332) y de videos (CCPIP-118), decisiones sobre el productor (CCPIP-291, 330, 85, 322), cambios de estado de
- * denuncias (CCPIP-84) y suspension o reactivacion de cuentas (CCPIP-124).
+ * denuncias (CCPIP-84), suspension o reactivacion de cuentas (CCPIP-124) y campanas de puntos (CCPIP-86).
  *
  * <p>Solo lee: no hay tabla propia ni copia, asi que nada de esto se puede alterar desde aqui, y una
  * accion nueva de esos modulos aparece sola. {@code autor} nulo trae las de todos, para la auditoria
@@ -75,7 +75,8 @@ public class HistorialGobernanzaService {
             JOIN usuario u ON u.id = h.usuario_id
             """;
 
-    // Solo la consulta de historial propio añade los análisis: Auditoría global ya lee AS/AN del ledger.
+    // Solo la consulta de historial propio añade los análisis y las campañas de puntos: Auditoría global ya los lee
+    // del ledger. Cada creación, edición y fin de una campaña es un evento del ledger (CCPIP-86).
     private static final String ACCIONES_PROPIAS = ACCIONES + """
             UNION ALL
             SELECT v.prefijo || a.id, a.solicitado_en, a.solicitado_por, 'AUTORIZACIONES', v.accion,
@@ -85,6 +86,12 @@ public class HistorialGobernanzaService {
             JOIN producto p ON p.id=au.producto_id
             JOIN productor pr ON pr.id=au.productor_id
             CROSS JOIN (VALUES ('AS-', 'ANALISIS_SOLICITADO'), ('AN-', 'ANALISIS_RESULTADO')) AS v(prefijo,accion)
+            UNION ALL
+            SELECT e.clave_evento, e.registrado_en, e.usuario_id, 'FIDELIZACION', e.accion,
+                   c.nombre, NULL::text, 'CAMPANA', c.id, NULL::text
+            FROM auditoria_evento e
+            JOIN campana_puntos c ON c.id = CAST(e.referencia AS bigint)
+            WHERE e.entidad = 'CAMPANA_PUNTOS'
             """;
 
     private final NamedParameterJdbcTemplate jdbc;

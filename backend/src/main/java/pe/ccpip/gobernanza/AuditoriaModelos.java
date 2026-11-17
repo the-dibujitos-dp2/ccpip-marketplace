@@ -37,6 +37,8 @@ public final class AuditoriaModelos {
         UNIDAD,
         /** CCPIP-504: un movimiento de inventario que registro el administrador de un punto de acopio. */
         MOVIMIENTO, CUENTA_BANCARIA, TIENDA, DIRECCION, INTERES, SESION, SEGURIDAD, REPORTE, AVISO, CARRITO,
+        /** CCPIP-86: una campana de puntos que programo, edito o termino el sub administrador. */
+        CAMPANA_PUNTOS,
         TRADUCCION, IMAGEN, ANALISIS, CALIFICACION, TRANSFERENCIA, SOLICITUD_UNIDAD
     }
 
