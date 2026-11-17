@@ -11,22 +11,47 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.LockSupport;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 
 import pe.ccpip.support.IntegrationTest;
 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 /** Real PostgreSQL scheduling regression. The subclass only pauses at a domain seam. */
 class CuponCanjeConcurrenciaTest extends IntegrationTest {
+    private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17-alpine")
+            .withDatabaseName("ccpip_320_concurrency");
+
+    static {
+        POSTGRES.start();
+    }
+
+    @DynamicPropertySource
+    static void datasourceProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
+        registry.add("spring.datasource.username", POSTGRES::getUsername);
+        registry.add("spring.datasource.password", POSTGRES::getPassword);
+    }
+
+    @AfterAll
+    static void stopPostgres() {
+        POSTGRES.stop();
+    }
     @Autowired NamedParameterJdbcTemplate namedJdbc;
     @Autowired NivelesService niveles;
     @Autowired PlatformTransactionManager transactions;
 
     @Test
     void editarCatalogoNoDesalineaElCostoDelCuponYElDebito() throws Exception {
+        assertThat(jdbc.queryForObject("SELECT current_database()", String.class)).isEqualTo("ccpip_320_concurrency");
         String unique = UUID.randomUUID().toString().substring(0, 12);
         long buyer = jdbc.queryForObject("""
                 INSERT INTO usuario (correo, contrasena_hash, nombre, rol_id, correo_confirmado)
