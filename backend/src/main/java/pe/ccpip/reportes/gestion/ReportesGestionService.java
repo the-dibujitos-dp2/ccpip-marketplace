@@ -409,21 +409,21 @@ public class ReportesGestionService {
         Actividad actual = actividad(rango);
         Actividad previa = actividad(anterior);
         IndicadoresVentas ventas = new IndicadoresVentas(
-                comparar(actual.ventas().total(), previa.ventas().total()),
-                comparar(BigDecimal.valueOf(actual.pedidos()), BigDecimal.valueOf(previa.pedidos())),
-                comparar(actual.ticketPromedio(), previa.ticketPromedio()), actual.ventas());
+                Indicador.comparar(actual.ventas().total(), previa.ventas().total()),
+                Indicador.comparar(BigDecimal.valueOf(actual.pedidos()), BigDecimal.valueOf(previa.pedidos())),
+                Indicador.comparar(actual.ticketPromedio(), previa.ticketPromedio()), actual.ventas());
         String nuevosProductores = "SELECT count(*) FROM productor WHERE (creado_en AT TIME ZONE 'America/Lima')::date "
                 + "BETWEEN :desde AND :hasta";
         IndicadoresProductores productores = new IndicadoresProductores(
                 jdbc.getJdbcTemplate().queryForObject("SELECT count(*) FROM productor WHERE activo", Long.class),
-                comparar(BigDecimal.valueOf(actual.productores()), BigDecimal.valueOf(previa.productores())),
-                comparar(contar(nuevosProductores, rango), contar(nuevosProductores, anterior)));
+                Indicador.comparar(BigDecimal.valueOf(actual.productores()), BigDecimal.valueOf(previa.productores())),
+                Indicador.comparar(contar(nuevosProductores, rango), contar(nuevosProductores, anterior)));
         String nuevosProductos = "SELECT count(*) FROM producto WHERE " + PUBLICADO_EN_RANGO;
         Map<String, List<ProductoPublicado>> productosPorLinea = productosPublicadosPorLinea();
         IndicadoresProductos productos = new IndicadoresProductos(
                 jdbc.getJdbcTemplate().queryForObject("SELECT count(*) FROM producto WHERE estado = 'PUBLICADO'", Long.class),
-                comparar(contar(nuevosProductos, rango), contar(nuevosProductos, anterior)),
-                comparar(BigDecimal.valueOf(actual.productos()), BigDecimal.valueOf(previa.productos())),
+                Indicador.comparar(contar(nuevosProductos, rango), contar(nuevosProductos, anterior)),
+                Indicador.comparar(BigDecimal.valueOf(actual.productos()), BigDecimal.valueOf(previa.productos())),
                 jdbc.query("""
                         SELECT l.codigo, l.nombre, count(p.id) AS publicados
                         FROM linea_producto l
@@ -439,10 +439,10 @@ public class ReportesGestionService {
         String calificaciones = "SELECT count(*) FROM calificacion c WHERE " + CALIFICADA_EN_RANGO;
         String denuncias = "SELECT count(*) FROM denuncia d WHERE " + DENUNCIA_EN_RANGO;
         IndicadoresActividad actividad = new IndicadoresActividad(
-                comparar(BigDecimal.valueOf(actual.compradores()), BigDecimal.valueOf(previa.compradores())),
-                comparar(contar(registros, rango), contar(registros, anterior)),
-                comparar(contar(calificaciones, rango), contar(calificaciones, anterior)),
-                comparar(contar(denuncias, rango), contar(denuncias, anterior)));
+                Indicador.comparar(BigDecimal.valueOf(actual.compradores()), BigDecimal.valueOf(previa.compradores())),
+                Indicador.comparar(contar(registros, rango), contar(registros, anterior)),
+                Indicador.comparar(contar(calificaciones, rango), contar(calificaciones, anterior)),
+                Indicador.comparar(contar(denuncias, rango), contar(denuncias, anterior)));
 
         int n = tramos.cantidad();
         BigDecimal[] ventasPorPeriodo = new BigDecimal[n];
@@ -500,13 +500,6 @@ public class ReportesGestionService {
     /** Un conteo de {@code sql} (con {@code :desde} y {@code :hasta}) en el rango. */
     private BigDecimal contar(String sql, RangoFechas rango) {
         return BigDecimal.valueOf(jdbc.queryForObject(sql, parametros(rango), Long.class));
-    }
-
-    /** Un indicador con su variacion porcentual frente al anterior (nula si el anterior fue cero). */
-    static Indicador comparar(BigDecimal valor, BigDecimal anterior) {
-        BigDecimal variacion = anterior.signum() == 0 ? null
-                : valor.subtract(anterior).multiply(BigDecimal.valueOf(100)).divide(anterior, 1, RoundingMode.HALF_UP);
-        return new Indicador(valor, anterior, variacion);
     }
 
     /** La unidad de {@code date_trunc} de una agrupacion: la semana de Postgres empieza el lunes, como ISO 8601. */

@@ -20,6 +20,9 @@ import TarifasEnvioPage from './pages/admin/TarifasEnvioPage.jsx'
 import CapacidadEntregaPage from './pages/admin/CapacidadEntregaPage.jsx'
 import ReportesPage from './pages/admin/ReportesPage.jsx'
 import MiHistorialPage from './pages/admin/MiHistorialPage.jsx'
+import CampanaFormPage from './pages/admin/fidelizacion/CampanaFormPage.jsx'
+import CampanaPage from './pages/admin/fidelizacion/CampanaPage.jsx'
+import FidelizacionPage from './pages/admin/fidelizacion/FidelizacionPage.jsx'
 import ModeracionPage from './pages/admin/ModeracionPage.jsx'
 import DetalleCuentaPage from './pages/admin/DetalleCuentaPage.jsx'
 import ExistenciasPage from './pages/admin/ExistenciasPage.jsx'
@@ -99,17 +102,22 @@ const RUTA_FICHA_PRODUCTOR = /^\/admin\/productores\/(\d+)$/
 const RUTA_EXISTENCIAS_PUNTO = /^\/admin\/existencias\/(\d+)$/
 const RUTA_DENUNCIAS_PRODUCTOR = /^\/admin\/denuncias\/productores\/(\d+)$/
 const RUTA_CUENTA = /^\/admin\/cuentas\/(\d+)$/
+// CCPIP-86: una campana de puntos (sus metricas) y su edicion
+const RUTA_CAMPANA = /^\/admin\/fidelizacion\/campanas\/(\d+)$/
+const RUTA_EDITAR_CAMPANA = /^\/admin\/fidelizacion\/campanas\/(\d+)\/editar$/
 
 /**
  * Rutas del modulo del sub administrador: autorizaciones de productos (S-01, S-02) y su expediente, la
  * moderacion de publicaciones y videos (CCPIP-46, CCPIP-118), los productores con los productos que pueden vender (CCPIP-292,
- * CCPIP-291, CCPIP-330), la vigencia de los certificados (CCPIP-184) y el historial de sus propias acciones (CCPIP-126).
+ * CCPIP-291, CCPIP-330), la vigencia de los certificados (CCPIP-184), el historial de sus propias acciones (CCPIP-126)
+ * y la fidelizacion: campanas de puntos y sus metricas (CCPIP-86).
  */
 const delModuloSub = (path) =>
   path === RUTAS.adminAutorizaciones || RUTA_EXPEDIENTE.test(path) || path === RUTAS.adminProductores || RUTA_FICHA_PRODUCTOR.test(path)
   || path === RUTAS.adminMiHistorial || path === RUTAS.adminModeracion || RUTA_MODERACION.test(path)
   || path === RUTAS.adminModeracionVideos || RUTA_VIDEO.test(path) || path === RUTAS.adminCertificados
   || path === RUTAS.adminRevisionesMerma
+  || path === RUTAS.adminFidelizacion || path === RUTAS.adminCampanaNueva || RUTA_CAMPANA.test(path) || RUTA_EDITAR_CAMPANA.test(path)
 
 /** CCPIP-84: denuncias contra productores; el sub administrador las gestiona y el super las consulta. */
 const deDenuncias = (path) => path === RUTAS.adminDenuncias || RUTA_DENUNCIAS_PRODUCTOR.test(path)
@@ -331,6 +339,10 @@ export default function App() {
     else if (RUTA_FICHA_PRODUCTOR.test(path)) pagina = <FichaProductorPage path={RUTAS.adminProductores} id={path.match(RUTA_FICHA_PRODUCTOR)[1]} />
     else if (path === RUTAS.adminDenuncias) pagina = <DenunciasAdminPage path={path} />
     else if (path === RUTAS.adminMiHistorial) pagina = <MiHistorialPage path={path} />
+    else if (path === RUTAS.adminFidelizacion) pagina = <FidelizacionPage path={path} />
+    else if (path === RUTAS.adminCampanaNueva) pagina = <CampanaFormPage path={RUTAS.adminFidelizacion} />
+    else if (RUTA_EDITAR_CAMPANA.test(path)) pagina = <CampanaFormPage path={RUTAS.adminFidelizacion} id={path.match(RUTA_EDITAR_CAMPANA)[1]} />
+    else if (RUTA_CAMPANA.test(path)) pagina = <CampanaPage path={RUTAS.adminFidelizacion} id={path.match(RUTA_CAMPANA)[1]} />
     else if (RUTA_DENUNCIAS_PRODUCTOR.test(path)) pagina = <ExpedienteDenunciasPage path={RUTAS.adminDenuncias} productorId={path.match(RUTA_DENUNCIAS_PRODUCTOR)[1]} />
     else if (path === RUTAS.adminCuentas) pagina = <CuentasPage path={path} />
     else if (path === RUTAS.adminCuentaNueva) pagina = <NuevaCuentaPage path={RUTAS.adminCuentas} />

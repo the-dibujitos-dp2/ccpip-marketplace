@@ -22,6 +22,7 @@ import pe.ccpip.entrega.EntregaModelos.LoteAsignado;
 import pe.ccpip.entrega.EntregaModelos.PedidoPunto;
 import pe.ccpip.entrega.EntregaModelos.PedidosPunto;
 import pe.ccpip.entrega.EntregaModelos.Reparto;
+import pe.ccpip.fidelizacion.PuntosService;
 
 /**
  * Pedidos del punto de acopio, para recoger o para despachar a domicilio (Figma A-05, ADR-17). Cada administrador opera solo
@@ -43,10 +44,12 @@ public class PedidosPuntoService {
 
     private final NamedParameterJdbcTemplate jdbc;
     private final PuntosDeAcopio puntos;
+    private final PuntosService fidelizacion;
 
-    public PedidosPuntoService(NamedParameterJdbcTemplate jdbc, PuntosDeAcopio puntos) {
+    public PedidosPuntoService(NamedParameterJdbcTemplate jdbc, PuntosDeAcopio puntos, PuntosService fidelizacion) {
         this.jdbc = jdbc;
         this.puntos = puntos;
+        this.fidelizacion = fidelizacion;
     }
 
     /** Pedidos activos del punto y entregados hoy (hora de Lima). */
@@ -199,6 +202,8 @@ public class PedidosPuntoService {
         // Despues del cambio de estado: la base solo admite quien recogio en un pedido ENTREGADO
         jdbc.update("UPDATE pedido SET recogido_por = :por, recogido_celular = :celular WHERE id = :id",
                 new MapSqlParameterSource("por", recoge).addValue("celular", celularDado).addValue("id", pedido.id()));
+        // CCPIP-86: el recojo completa la entrega y da los puntos al comprador
+        fidelizacion.acreditarEntrega(pedido.id());
         return pedidos(List.of(pedido.id())).get(0);
     }
 

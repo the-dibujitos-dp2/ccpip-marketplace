@@ -67,6 +67,9 @@ export const RUTAS = {
   adminCertificados: '/admin/certificados',
   adminDenuncias: '/admin/denuncias',
   adminMiHistorial: '/admin/mi-historial',
+  // CCPIP-86: campanas de puntos del sub administrador y sus metricas
+  adminFidelizacion: '/admin/fidelizacion',
+  adminCampanaNueva: '/admin/fidelizacion/nueva',
   adminCatalogo: '/admin/catalogo',
   adminExistencias: '/admin/existencias',
   adminCuentas: '/admin/cuentas',

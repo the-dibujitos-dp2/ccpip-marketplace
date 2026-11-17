@@ -71,6 +71,22 @@ export default function PedidoPage({ id }) {
   )
 }
 
+/** CCPIP-86: los puntos que gano el pedido al completarse su entrega, con la campana que los dio si la hubo. */
+function PuntosGanados({ puntos }) {
+  const { t } = useTranslation()
+  return (
+    <section className="pedido__tarjeta pedido__puntos" aria-labelledby="pedido-puntos">
+      <Rocco variante="feliz" tamano={56} className="pedido__puntos-rocco" />
+      <div>
+        <h2 id="pedido-puntos" className="pedido__tarjeta-titulo">
+          {t('pedido.puntos.titulo', { count: puntos.puntos, puntos: unidades(puntos.puntos) })}
+        </h2>
+        <p className="body-s">{puntos.campana ? t('pedido.puntos.campana', { campana: puntos.campana }) : t('pedido.puntos.base')}</p>
+      </div>
+    </section>
+  )
+}
+
 /**
  * CCPIP-167 (RF-136) y CCPIP-441: la comision de la Camara que quedo fijada al confirmar, dentro del
  * bloque de pago. Va incluida en el total (no se suma); cambios posteriores no alteran este pedido.
@@ -227,6 +243,7 @@ function Detalle({ pedido }) {
         </div>
 
         <aside className="pedido__lateral">
+          {pedido.puntos && <PuntosGanados puntos={pedido.puntos} />}
           <section className="pedido__tarjeta" aria-labelledby="pedido-recojo">
             <h2 id="pedido-recojo" className="pedido__tarjeta-titulo">{t(aDomicilio ? 'pedido.domicilio.titulo' : 'pedido.recojo')}</h2>
             <dl className="pedido__datos">
