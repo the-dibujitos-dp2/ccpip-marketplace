@@ -1611,7 +1611,8 @@
       "miHistorial": "Mi historial",
       "tarifasEnvio": "Tarifas de envío",
       "capacidadEntrega": "Capacidad de entrega",
-      "revisionesMerma": "Revisión de merma"
+      "revisionesMerma": "Revisión de merma",
+      "fidelizacion": "Fidelización"
     },
     "permisos": {
       "titulo": "Permisos por rol"
@@ -2265,6 +2266,177 @@
       "rechazadaOk": "Revisión del lote {{lote}} rechazada",
       "reintegradas": "Volvieron {{cantidad}} al lote",
       "resolvio": "{{nombre}} · {{fecha}}"
+    },
+    "fidelizacion": {
+      "titulo": "Fidelización",
+      "intro": "Programa campañas de puntos por un periodo para premiar a quienes compran, y mide su efecto en las ventas.",
+      "nueva": "Nueva campaña",
+      "errorCargar": "No pudimos cargar la fidelización",
+      "errorFinalizar": "No pudimos terminar la campaña",
+      "regla_one": "{{count}} punto por cada {{monto}}",
+      "regla_other": "{{count}} puntos por cada {{monto}}",
+      "periodo": "Del {{desde}} al {{hasta}}",
+      "minimo": "Pedido mínimo {{monto}}",
+      "sinMinimo": "Sin pedido mínimo",
+      "tope_one": "Tope de {{puntos}} punto por pedido",
+      "tope_other": "Tope de {{puntos}} puntos por pedido",
+      "sinTope": "Sin tope",
+      "estado": {
+        "ACTIVA": "Activa",
+        "PROGRAMADA": "Programada",
+        "FINALIZADA": "Finalizada",
+        "CANCELADA": "Cancelada"
+      },
+      "kpi": {
+        "puntos": "Puntos otorgados",
+        "deCampanas": "{{porcentaje}} % por campañas",
+        "clientes": "Clientes con puntos",
+        "clientesDetalle": "Compradores que ya ganaron puntos",
+        "pedidos": "Pedidos con puntos",
+        "pedidosDetalle": "Entregas completas que dieron puntos",
+        "activa": "Campaña activa",
+        "ninguna": "Ninguna",
+        "sinCampana": "Hoy rige la regla base",
+        "hasta": "Hasta el {{fecha}}",
+        "proxima": "Próxima: {{nombre}}, desde el {{fecha}}"
+      },
+      "activaAhora": "Activa ahora",
+      "verMetricas": "Ver métricas",
+      "avance": "Día {{dia}} de {{total}}",
+      "campanas": "Campañas",
+      "filtrar": "Filtrar campañas",
+      "filtro": {
+        "TODAS": "Todas ({{count}})",
+        "ACTIVA": "Activas ({{count}})",
+        "PROGRAMADA": "Programadas ({{count}})",
+        "FINALIZADA": "Finalizadas ({{count}})"
+      },
+      "vacio": {
+        "titulo": "Aún no hay campañas",
+        "texto": "Programa la primera para premiar con más puntos durante un periodo, por ejemplo una semana del cacao o Fiestas Patrias."
+      },
+      "sinFiltro": "No hay campañas en este estado.",
+      "col": {
+        "campana": "Campaña",
+        "periodo": "Periodo",
+        "estado": "Estado",
+        "pedidos": "Pedidos",
+        "ventas": "Ventas",
+        "puntos": "Puntos otorgados",
+        "acciones": "Acciones"
+      },
+      "editar": "Editar",
+      "editarDe": "Editar {{nombre}}",
+      "finalizar": {
+        "boton": "Finalizar",
+        "de": "Finalizar {{nombre}}",
+        "titulo": "¿Finalizar la campaña?",
+        "confirmar": "Finalizar ahora",
+        "texto": "«{{nombre}}» dejará de regir desde este momento. Los pedidos ya confirmados conservan su regla de campaña.",
+        "listo": "Finalizaste «{{nombre}}»."
+      },
+      "cancelar": {
+        "boton": "Cancelar",
+        "de": "Cancelar {{nombre}}",
+        "titulo": "¿Cancelar la campaña?",
+        "confirmar": "Cancelar campaña",
+        "texto": "«{{nombre}}» aún no empieza. Si la cancelas, no regirá para ningún pedido.",
+        "listo": "Cancelaste «{{nombre}}»."
+      },
+      "detalle": "Detalle de la campaña",
+      "registradaPor": "Programada por {{nombre}}",
+      "finalizadaPor": "terminada por {{nombre}}",
+      "volver": "Volver a campañas",
+      "previa": {
+        "titulo": "Vista previa",
+        "pedido": "Pedido",
+        "base": "Regla base",
+        "campana": "Campaña",
+        "nota": "Puntos por el total de productos, sin envío. Debajo del pedido mínimo rige la regla base."
+      },
+      "form": {
+        "tituloNueva": "Nueva campaña",
+        "tituloEditar": "Editar campaña",
+        "datos": "Datos",
+        "nombre": "Nombre",
+        "nombreEjemplo": "Ej.: Semana del cacao",
+        "descripcion": "Descripción (opcional)",
+        "descripcionAyuda": "Para recordar el objetivo de la campaña. No la ven los compradores.",
+        "periodo": "Periodo",
+        "desde": "Desde",
+        "hasta": "Hasta",
+        "reglaTitulo": "Regla de puntos",
+        "atajos": "Reglas frecuentes",
+        "atajo": {
+          "doble": "Doble (2 por S/ 10)",
+          "triple": "Triple (3 por S/ 10)",
+          "quintuple": "×5 (5 por S/ 10)",
+          "diezPorSol": "10 por S/ 1"
+        },
+        "puntos": "Puntos que gana",
+        "cadaSoles": "Por cada S/",
+        "veces": "{{veces}} veces la regla base",
+        "montoMinimo": "Pedido mínimo en S/ (opcional)",
+        "montoMinimoAyuda": "Debajo de este monto rige la regla base.",
+        "topePuntos": "Tope por pedido (opcional)",
+        "topePuntosAyuda": "Máximo de puntos que puede ganar un pedido.",
+        "programar": "Programar campaña",
+        "guardar": "Guardar cambios",
+        "resumenPeriodo": "Regirá del {{desde}} al {{hasta}}, según el día en que se confirme cada pedido.",
+        "conservan": "Los pedidos confirmados durante la campaña ganan con su regla aunque se entreguen después.",
+        "errorGuardar": "No pudimos guardar la campaña",
+        "error": {
+          "cargar": "No pudimos cargar la campaña",
+          "noEditable": "Esta campaña ya empezó y no se puede editar",
+          "noEncontrada": "No encontramos esa campaña"
+        },
+        "validacion": {
+          "nombre": "Ponle un nombre a la campaña",
+          "desde": "Indica desde cuándo rige",
+          "desdePasado": "La campaña empieza hoy o en una fecha futura",
+          "hasta": "Indica hasta cuándo rige",
+          "hastaAntes": "Termina el mismo día que empieza o después",
+          "puntos": "Entre 1 y 1000 puntos",
+          "cadaSoles": "Desde S/ 1, con hasta 2 decimales",
+          "mejorQueBase": "La campaña debe dar más puntos que la regla base (1 punto por cada S/ 10)",
+          "monto": "Usa un monto en soles, con hasta 2 decimales",
+          "tope": "Usa un número entero de puntos"
+        }
+      },
+      "metricas": {
+        "error": "No pudimos cargar las métricas",
+        "programada": "Empieza el {{fecha}}",
+        "programadaTexto": "Sus métricas aparecerán desde ese día. Mientras tanto, puedes editarla o cancelarla.",
+        "cancelada": "Se canceló antes de empezar",
+        "canceladaTexto": "No rigió para ningún pedido.",
+        "resultados": "Resultados",
+        "comparacion": "Del {{desde}} al {{hasta}}, frente al periodo anterior ({{anteriorDesde}} – {{anteriorHasta}}) con el mismo pedido mínimo.",
+        "pedidos": "Pedidos",
+        "ventas": "Ventas",
+        "ticket": "Ticket promedio",
+        "clientes": "Clientes",
+        "variacion": "{{valor}} frente al periodo anterior",
+        "sinAnterior": "Sin pedidos en el periodo anterior",
+        "puntosTitulo": "Puntos",
+        "otorgados": "Puntos otorgados",
+        "otorgadosDetalle_one": "De {{count}} pedido entregado",
+        "otorgadosDetalle_other": "De {{count}} pedidos entregados",
+        "porAcreditar": "Por acreditar",
+        "porAcreditarDetalle_one": "Cuando se entregue {{count}} pedido",
+        "porAcreditarDetalle_other": "Cuando se entreguen {{count}} pedidos",
+        "nuevos": "Clientes nuevos",
+        "nuevosDetalle": "Su primera compra fue en la campaña",
+        "recurrentes": "Clientes recurrentes",
+        "recurrentesDetalle": "Compraron 2 veces o más en la campaña",
+        "bajoMinimo_one": "{{count}} pedido no llegó al mínimo de {{monto}}",
+        "bajoMinimo_other": "{{count}} pedidos no llegaron al mínimo de {{monto}}",
+        "bajoMinimoTexto": "Ganaron con la regla base. Si son muchos, considera un mínimo más bajo en la próxima campaña.",
+        "evolucion": "Evolución por día",
+        "ventasPorDia": "Ventas por día",
+        "puntosPorDia": "Puntos generados por día",
+        "puntosSerie": "Puntos",
+        "productos": "Productos más vendidos"
+      }
     }
   },
   "sello": {
@@ -2695,7 +2867,16 @@
     "REVISION_EXISTENTE": "Esta merma ya tiene una revisión pendiente o aprobada.",
     "MERMA_AUTOMATICA": "La merma por vencimiento la registra el sistema: no se revisa.",
     "REVISION_RESUELTA": "Esta revisión ya se resolvió.",
-    "SUPERA_LOTE": "Con esa cantidad el lote superaría lo que ingresó."
+    "SUPERA_LOTE": "Con esa cantidad el lote superaría lo que ingresó.",
+    "CAMPANA_NO_ENCONTRADA": "No encontramos esa campaña.",
+    "CAMPANA_NO_EDITABLE": "Solo se puede editar una campaña que aún no empieza.",
+    "CAMPANA_YA_TERMINO": "Esta campaña ya terminó.",
+    "CAMPANA_INICIO_PASADO": "La campaña empieza hoy o en una fecha futura.",
+    "CAMPANA_FIN_ANTES_DE_INICIO": "La campaña termina el mismo día que empieza o después.",
+    "CAMPANA_MUY_LARGA": "Una campaña dura como máximo un año.",
+    "CAMPANA_NO_MEJORA_BASE": "La campaña debe dar más puntos que la regla base (1 punto por cada S/ 10).",
+    "CAMPANA_SE_CRUZA": "Se cruza con otra campaña. Elige otras fechas.",
+    "CAMPANA_SIN_METRICAS": "Esta campaña no tiene pedidos todavía."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -3151,7 +3332,13 @@
       "totalFinal": "Total pagado"
     },
     "precioMayorista": "Precio mayorista",
-    "enSoles": "Montos en soles (S/). Por ahora vendemos y entregamos solo dentro del Perú."
+    "enSoles": "Montos en soles (S/). Por ahora vendemos y entregamos solo dentro del Perú.",
+    "puntos": {
+      "titulo_one": "Ganaste {{puntos}} punto",
+      "titulo_other": "Ganaste {{puntos}} puntos",
+      "campana": "Con la campaña «{{campana}}», al recibir tu pedido.",
+      "base": "Por tu compra, al recibir tu pedido."
+    }
   },
   "misPedidos": {
     "miCuenta": "Mi cuenta",
@@ -4889,7 +5076,8 @@
       "MODERACION": "Moderación",
       "PRODUCTORES": "Productores",
       "DENUNCIAS": "Denuncias",
-      "CUENTAS": "Cuentas"
+      "CUENTAS": "Cuentas",
+      "FIDELIZACION": "Fidelización"
     },
     "col": {
       "fecha": "Fecha y hora",
@@ -4917,7 +5105,10 @@
       "DENUNCIA_RESUELTA": "Resolvió denuncia",
       "DENUNCIA_DESESTIMADA": "Desestimó denuncia",
       "CUENTA_SUSPENDER": "Suspendió cuenta",
-      "CUENTA_REACTIVAR": "Reactivó cuenta"
+      "CUENTA_REACTIVAR": "Reactivó cuenta",
+      "CAMPANA_PUNTOS_CREADA": "Programó campaña de puntos",
+      "CAMPANA_PUNTOS_EDITADA": "Editó campaña de puntos",
+      "CAMPANA_PUNTOS_FINALIZADA": "Terminó campaña de puntos"
     },
     "denuncia": "Denuncia {{numero}}",
     "vacio": "No registraste acciones en este periodo.",
@@ -5057,7 +5248,10 @@
       "MOTIVO_MERMA_CREADO": "Creó un motivo de merma",
       "MOTIVO_MERMA_MODIFICADO": "Modificó un motivo de merma",
       "MOTIVO_MERMA_DESACTIVADO": "Desactivó un motivo de merma",
-      "MOTIVO_MERMA_ACTIVADO": "Activó un motivo de merma"
+      "MOTIVO_MERMA_ACTIVADO": "Activó un motivo de merma",
+      "CAMPANA_PUNTOS_CREADA": "Programó una campaña de puntos",
+      "CAMPANA_PUNTOS_EDITADA": "Editó una campaña de puntos",
+      "CAMPANA_PUNTOS_FINALIZADA": "Terminó una campaña de puntos"
     },
     "entidad": {
       "AUTORIZACION": "Autorización",
@@ -5093,7 +5287,8 @@
       "AVISO": "Aviso",
       "CARRITO": "Carrito",
       "TRADUCCION": "Traducción",
-      "IMAGEN": "Imagen"
+      "IMAGEN": "Imagen",
+      "CAMPANA_PUNTOS": "Campaña de puntos"
     },
     "resultado": {
       "EXITOSA": "Exitosa",

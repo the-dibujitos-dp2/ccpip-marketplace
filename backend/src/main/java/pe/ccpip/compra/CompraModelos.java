@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import pe.ccpip.comision.ComisionModelos.ComisionPedido;
 import pe.ccpip.entrega.EntregaModelos.Distrito;
 import pe.ccpip.entrega.EntregaModelos.Entrega;
+import pe.ccpip.fidelizacion.FidelizacionModelos.PuntosPedido;
 
 /**
  * Respuestas del flujo de compra: recojo (CCPIP-157), pago (CCPIP-62, CCPIP-163), confirmacion (CCPIP-64)
@@ -105,13 +106,14 @@ public final class CompraModelos {
      * CCPIP-485/486: {@code incidencias}, lo que se malogro antes de la entrega; {@code reembolsado}, lo que
      * se devolvio por ello, y {@code totalFinal}, lo que el comprador termina pagando. {@code moneda}: ISO
      * 4217 de todos los montos; solo PEN, porque esta version vende solo en Peru (CCPIP-178, CCPIP-370).
+     * {@code puntos} (CCPIP-86): los que gano al completarse su entrega; nulo mientras no se entregue o si no le dio.
      */
     public record Pedido(long id, String numero, String estado, String modalidad, BigDecimal total, Instant creadoEn,
                          Instant confirmadoEn, PuntoRecojo punto, String personaAutorizada, String celularContacto,
                          List<LineaPedido> lineas, List<IntentoPago> pagos, List<EventoPedido> historial,
                          ComisionPedido comision, Entrega entrega, BigDecimal costoEnvio, BigDecimal totalAPagar,
                          List<IncidenciaPedido> incidencias, BigDecimal reembolsado, BigDecimal totalFinal,
-                         String moneda) {
+                         String moneda, PuntosPedido puntos) {
     }
 
     /**
