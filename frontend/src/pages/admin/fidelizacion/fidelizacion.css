@@ -25,7 +25,8 @@
 /* Ancho fijo: las filas de .tabla miden su contenido, y la regla larga no debe empujar a las demas columnas */
 .fidelizacion__col-campana { display: flex; flex-direction: column; gap: 2px; flex: 1 0 240px; width: 240px; min-width: 0; }
 .fidelizacion__col-campana .caption { color: var(--color-text-secondary); }
-.fidelizacion__nombre { font-weight: 600; }
+.fidelizacion__nombre { font-weight: 600; text-decoration: none; }
+.fidelizacion__nombre:hover { color: var(--color-text-brand); }
 .fidelizacion__col-periodo { flex: 0 0 170px; }
 .fidelizacion__col-estado { flex: 0 0 100px; }
 .fidelizacion__tabla .admin__num { flex-basis: 100px; }

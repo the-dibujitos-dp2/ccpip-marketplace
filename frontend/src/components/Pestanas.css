@@ -15,6 +15,7 @@
   line-height: 20px;
   color: var(--color-text-secondary);
   white-space: nowrap;
+  text-decoration: none;
   cursor: pointer;
 }
 
