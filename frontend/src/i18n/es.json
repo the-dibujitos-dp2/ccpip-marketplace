@@ -1816,7 +1816,8 @@
         "pedidos_one": "{{count}} pedido",
         "pedidos_other": "{{count}} pedidos",
         "comision": "Comisión de la Cámara",
-        "neto": "Neto para productores"
+        "neto": "Neto para productores",
+        "descuentos": "{{monto}} en descuentos asumidos"
       },
       "sinComision_one": "{{count}} pedido se confirmó sin comisión configurada",
       "sinComision_other": "{{count}} pedidos se confirmaron sin comisión configurada",
@@ -2436,6 +2437,157 @@
         "puntosPorDia": "Puntos generados por día",
         "puntosSerie": "Puntos",
         "productos": "Productos más vendidos"
+      },
+      "secciones": {
+        "titulo": "Secciones de fidelización",
+        "campanas": "Campañas",
+        "beneficios": "Niveles y cupones"
+      },
+      "beneficio": {
+        "tipo": "Tipo de descuento",
+        "tipos": {
+          "MONTO": "Monto fijo (S/)",
+          "PORCENTAJE": "Porcentaje (%)"
+        },
+        "valorMonto": "Descuento en S/",
+        "valorPorcentaje": "Porcentaje de descuento",
+        "montoMinimo": "Compra mínima en S/ (opcional)",
+        "topeDescuento": "Tope en S/ (opcional)",
+        "topeAyuda": "Lo máximo que descuenta el porcentaje.",
+        "validacion": {
+          "valor": "Indica un descuento mayor que 0, con hasta 2 decimales",
+          "porcentaje": "El porcentaje es como máximo 90 %",
+          "monto": "Usa un monto en soles, con hasta 2 decimales"
+        }
+      },
+      "beneficios": {
+        "errorCargar": "No pudimos cargar los niveles y cupones",
+        "errorGuardar": "No pudimos guardar el cambio",
+        "guardar": "Guardar",
+        "niveles": {
+          "titulo": "Niveles por recurrencia",
+          "texto": "Quienes vuelven a comprar suben de nivel según sus pedidos entregados, y cada nivel multiplica los puntos que ganan. Los cambios rigen para las próximas entregas.",
+          "nuevo": "Agregar nivel",
+          "editarTitulo": "Editar nivel",
+          "vacio": "Aún no hay niveles",
+          "vacioTexto": "Sin niveles, todos ganan con la regla base o con la de la campaña.",
+          "col": {
+            "nombre": "Nivel",
+            "desde": "Desde",
+            "multiplicador": "Multiplica"
+          },
+          "desdePedidos_one": "{{count}} pedido entregado",
+          "desdePedidos_other": "{{count}} pedidos entregados",
+          "retirar": "Retirar",
+          "retirarDe": "Retirar {{nombre}}",
+          "retirarTitulo": "¿Retirar el nivel?",
+          "retirarTexto": "«{{nombre}}» dejará de multiplicar los puntos desde ahora. Los puntos ya ganados no cambian.",
+          "retirado": "Retiraste «{{nombre}}».",
+          "creado": "Agregaste el nivel.",
+          "editado": "Guardaste los cambios del nivel.",
+          "nombre": "Nombre",
+          "nombreEjemplo": "Ej.: Plata",
+          "pedidos": "Desde cuántos pedidos entregados",
+          "multiplicador": "Multiplicador de puntos",
+          "multiplicadorAyuda": "Entre 1.01 y 5; 1.5 da 50 % más puntos.",
+          "validacion": {
+            "nombre": "Ponle un nombre al nivel",
+            "pedidos": "Usa un número entero desde 1",
+            "multiplicador": "Usa un número mayor que 1 y hasta 5"
+          }
+        },
+        "cupones": {
+          "titulo": "Cupones para canjear con puntos",
+          "texto": "Los compradores los canjean con sus puntos en «Mis puntos» y los usan en una compra. El descuento lo asume la Cámara.",
+          "nuevo": "Nuevo cupón",
+          "editarTitulo": "Editar cupón",
+          "vacio": "Aún no hay cupones",
+          "vacioTexto": "Crea el primero para que los puntos tengan en qué usarse.",
+          "col": {
+            "cupon": "Cupón",
+            "costo": "Cuesta",
+            "canjes": "Canjes / usados",
+            "descuento": "Descontado"
+          },
+          "vigencia_one": "vale {{count}} día tras canjearlo",
+          "vigencia_other": "vale {{count}} días tras canjearlo",
+          "puntos": "{{puntos}} pts",
+          "canjesUsados": "{{canjes}} / {{usados}}",
+          "activar": "Reactivar",
+          "desactivar": "Finalizar",
+          "activarDe": "Reactivar {{nombre}}",
+          "desactivarDe": "Finalizar {{nombre}}",
+          "activado": "«{{nombre}}» vuelve a estar en el catálogo.",
+          "desactivado": "Finalizaste «{{nombre}}». Los ya canjeados se pueden seguir usando.",
+          "creado": "Agregaste el cupón al catálogo.",
+          "editado": "Guardaste los cambios del cupón.",
+          "nombre": "Nombre",
+          "nombreEjemplo": "Ej.: S/ 10 en tu próxima compra",
+          "descripcion": "Descripción (opcional)",
+          "descripcionAyuda": "La ven los compradores en el catálogo.",
+          "costo": "Cuesta (puntos)",
+          "vigenciaDias": "Vale (días)",
+          "vigenciaAyuda": "Días para usarlo después de canjearlo.",
+          "conservan": "Los cupones ya canjeados conservan el descuento con que se canjearon.",
+          "validacion": {
+            "nombre": "Ponle un nombre al cupón",
+            "costo": "Usa un número entero de puntos desde 1",
+            "vigencia": "Entre 1 y 365 días",
+            "desde": "Indica desde cuándo se puede canjear",
+            "desdePasado": "Elige hoy o una fecha futura",
+            "hastaAntes": "El fin es el mismo día del inicio o después"
+          },
+          "filtrar": "Filtrar cupones por estado",
+          "filtro": {
+            "TODOS": "Todos ({{count}})",
+            "ACTIVO": "Activos ({{count}})",
+            "PROGRAMADO": "Programados ({{count}})",
+            "FINALIZADO": "Finalizados ({{count}})"
+          },
+          "estado": {
+            "ACTIVO": "Activo",
+            "PROGRAMADO": "Programado",
+            "FINALIZADO": "Finalizado"
+          },
+          "sinFiltro": "No hay cupones en este estado.",
+          "desdeSinFin": "Desde el {{fecha}}, sin fecha de fin",
+          "disponibleDesde": "Disponible desde",
+          "disponibleHasta": "Hasta (opcional)",
+          "disponibleHastaAyuda": "Sin fecha, se puede canjear hasta que lo finalices."
+        }
+      },
+      "codigos": {
+        "titulo": "Códigos de descuento",
+        "texto": "Para difundir la campaña: valen mientras rige y el descuento lo asume la Cámara. Un código no se edita: si cambia, desactívalo y crea otro.",
+        "nuevo": "Nuevo código",
+        "crear": "Crear código",
+        "vacio": "Esta campaña aún no tiene códigos.",
+        "errorCargar": "No pudimos cargar los códigos",
+        "errorGuardar": "No pudimos guardar el código",
+        "col": {
+          "codigo": "Código",
+          "usos": "Usos",
+          "descuento": "Descontado"
+        },
+        "porCliente_one": "{{count}} uso por cliente",
+        "porCliente_other": "{{count}} usos por cliente",
+        "usosDe": "{{usos}} de {{maximo}}",
+        "activo": "Activo",
+        "inactivo": "Desactivado",
+        "desactivar": "Desactivar",
+        "desactivarDe": "Desactivar {{codigo}}",
+        "desactivado": "Desactivaste {{codigo}}.",
+        "creado": "Creaste el código {{codigo}}.",
+        "codigo": "Código",
+        "codigoAyuda": "De 4 a 20 letras o números. Se guarda en mayúsculas.",
+        "usosMaximos": "Usos en total (opcional)",
+        "usosMaximosAyuda": "Vacío: sin límite.",
+        "usosPorCliente": "Usos por cliente",
+        "validacion": {
+          "codigo": "De 4 a 20 letras o números, sin espacios",
+          "usos": "Usa un número entero desde 1",
+          "porCliente": "Entre 1 y 100"
+        }
       }
     }
   },
@@ -2876,7 +3028,29 @@
     "CAMPANA_MUY_LARGA": "Una campaña dura como máximo un año.",
     "CAMPANA_NO_MEJORA_BASE": "La campaña debe dar más puntos que la regla base (1 punto por cada S/ 10).",
     "CAMPANA_SE_CRUZA": "Se cruza con otra campaña. Elige otras fechas.",
-    "CAMPANA_SIN_METRICAS": "Esta campaña no tiene pedidos todavía."
+    "CAMPANA_SIN_METRICAS": "Esta campaña no tiene pedidos todavía.",
+    "NIVEL_REPETIDO": "Ya hay un nivel con ese nombre o desde esa cantidad de pedidos.",
+    "NIVEL_NO_ENCONTRADO": "No encontramos ese nivel.",
+    "CUPON_NO_ENCONTRADO": "No encontramos ese cupón.",
+    "CUPON_NO_DISPONIBLE": "Ese cupón ya no está disponible.",
+    "PUNTOS_INSUFICIENTES": "No te alcanzan los puntos para este cupón.",
+    "PORCENTAJE_MUY_ALTO": "El porcentaje es como máximo 90 %.",
+    "TOPE_SOLO_PORCENTAJE": "El tope solo aplica a los descuentos en porcentaje.",
+    "CODIGO_REPETIDO": "Ese código ya existe. Elige otro.",
+    "CODIGO_NO_ENCONTRADO": "No encontramos ese código activo.",
+    "CODIGO_NO_VALIDO": "Ese código no existe o ya no está activo.",
+    "CODIGO_FUERA_DE_CAMPANA": "Este código no está vigente: su campaña aún no empieza o ya terminó.",
+    "CODIGO_AGOTADO": "Este código ya se usó todas las veces posibles.",
+    "CODIGO_YA_USADO": "Ya usaste este código.",
+    "CUPON_USADO": "Ya usaste este cupón en otra compra.",
+    "CUPON_VENCIDO": "Este cupón ya venció.",
+    "UN_SOLO_DESCUENTO": "Usa un cupón o un código, no los dos.",
+    "DESCUENTO_BAJO_MINIMO": "Tu compra no llega al mínimo de este descuento.",
+    "DESCUENTO_SIN_MONTO": "Tu compra es muy pequeña para este descuento.",
+    "SIN_DESCUENTO": "Elige un cupón o escribe un código.",
+    "CUPON_INICIO_PASADO": "El cupón está disponible desde hoy o una fecha futura.",
+    "CUPON_FIN_ANTES_DE_INICIO": "El cupón termina el mismo día que empieza o después.",
+    "MONTO_INVALIDO": "El monto de la compra no es válido."
   },
   "buscar": {
     "comunidad": "Comunidad",
@@ -3275,7 +3449,20 @@
     "envio": "Envío",
     "recogesEn": "Recoges en",
     "enSoles": "Pagas en soles (S/). Por ahora vendemos y entregamos solo dentro del Perú.",
-    "celularEjemplo": "Ej.: 987 654 321"
+    "celularEjemplo": "Ej.: 987 654 321",
+    "descuento": {
+      "titulo": "¿Tienes un descuento?",
+      "misCupones": "Tus cupones",
+      "usar": "Usar",
+      "usarDe": "Usar {{nombre}}",
+      "codigo": "Código de descuento",
+      "aplicar": "Aplicar",
+      "aplicado": "Descuento: {{nombre}}",
+      "ahorras": "Ahorras {{monto}}",
+      "quitar": "Quitar",
+      "unoPorCompra": "Un descuento por compra: un cupón o un código.",
+      "fila": "Descuento"
+    }
   },
   "pedido": {
     "noEncontrado": "No encontramos ese pedido",
@@ -3338,7 +3525,8 @@
       "titulo_other": "Ganaste {{puntos}} puntos",
       "campana": "Con la campaña «{{campana}}», al recibir tu pedido.",
       "base": "Por tu compra, al recibir tu pedido."
-    }
+    },
+    "descuento": "Descuento ({{nombre}})"
   },
   "misPedidos": {
     "miCuenta": "Mi cuenta",
@@ -5108,7 +5296,16 @@
       "CUENTA_REACTIVAR": "Reactivó cuenta",
       "CAMPANA_PUNTOS_CREADA": "Programó campaña de puntos",
       "CAMPANA_PUNTOS_EDITADA": "Editó campaña de puntos",
-      "CAMPANA_PUNTOS_FINALIZADA": "Terminó campaña de puntos"
+      "CAMPANA_PUNTOS_FINALIZADA": "Terminó campaña de puntos",
+      "CUPON_CREADO": "Creó cupón",
+      "CUPON_EDITADO": "Editó cupón",
+      "CUPON_ACTIVADO": "Mostró cupón",
+      "CUPON_DESACTIVADO": "Ocultó cupón",
+      "CODIGO_CREADO": "Creó código de descuento",
+      "CODIGO_DESACTIVADO": "Desactivó código",
+      "NIVEL_CREADO": "Creó nivel",
+      "NIVEL_EDITADO": "Editó nivel",
+      "NIVEL_RETIRADO": "Retiró nivel"
     },
     "denuncia": "Denuncia {{numero}}",
     "vacio": "No registraste acciones en este periodo.",
@@ -5251,7 +5448,16 @@
       "MOTIVO_MERMA_ACTIVADO": "Activó un motivo de merma",
       "CAMPANA_PUNTOS_CREADA": "Programó una campaña de puntos",
       "CAMPANA_PUNTOS_EDITADA": "Editó una campaña de puntos",
-      "CAMPANA_PUNTOS_FINALIZADA": "Terminó una campaña de puntos"
+      "CAMPANA_PUNTOS_FINALIZADA": "Terminó una campaña de puntos",
+      "CUPON_CREADO": "Creó un cupón",
+      "CUPON_EDITADO": "Editó un cupón",
+      "CUPON_ACTIVADO": "Mostró un cupón",
+      "CUPON_DESACTIVADO": "Ocultó un cupón",
+      "CODIGO_CREADO": "Creó un código de descuento",
+      "CODIGO_DESACTIVADO": "Desactivó un código de descuento",
+      "NIVEL_CREADO": "Creó un nivel de fidelización",
+      "NIVEL_EDITADO": "Editó un nivel de fidelización",
+      "NIVEL_RETIRADO": "Retiró un nivel de fidelización"
     },
     "entidad": {
       "AUTORIZACION": "Autorización",
@@ -5288,7 +5494,10 @@
       "CARRITO": "Carrito",
       "TRADUCCION": "Traducción",
       "IMAGEN": "Imagen",
-      "CAMPANA_PUNTOS": "Campaña de puntos"
+      "CAMPANA_PUNTOS": "Campaña de puntos",
+      "CUPON": "Cupón",
+      "CODIGO_DESCUENTO": "Código de descuento",
+      "NIVEL_FIDELIZACION": "Nivel de fidelización"
     },
     "resultado": {
       "EXITOSA": "Exitosa",
@@ -5538,5 +5747,72 @@
     "saludo": "¡Hola! Soy Rocco, el gallito de las rocas. Te acompaño a descubrir productos con historia de las comunidades indígenas del Perú.",
     "pensando": "Rocco está buscando en el catálogo…",
     "consejoHistoria": "Consejo de Rocco: cuenta quiénes elaboran el producto, cómo lo hacen y qué significa para tu comunidad. Los detalles concretos hacen que la historia se recuerde."
+  },
+  "fidelizacion": {
+    "beneficio": {
+      "monto": "{{monto}} de descuento",
+      "porcentaje": "{{valor}} % de descuento",
+      "hasta": ", hasta {{monto}}",
+      "desde": " · desde {{monto}}"
+    }
+  },
+  "misPuntos": {
+    "titulo": "Mis puntos",
+    "error": "No pudimos cargar tus puntos",
+    "saldo": "Tus puntos",
+    "comoSeGanan": "Ganas puntos cada vez que recibes un pedido.",
+    "nivel": "Tu nivel",
+    "nivelActual": "{{nombre}} · tus puntos se multiplican ×{{multiplicador}}",
+    "sinNivel": "Aún sin nivel",
+    "avance_one": "Te falta {{count}} pedido para {{nombre}}",
+    "avance_other": "Te faltan {{count}} pedidos para {{nombre}}",
+    "multiplica": "×{{multiplicador}} puntos",
+    "pestana": {
+      "canjear": "Canjear",
+      "cupones": "Mis cupones",
+      "movimientos": "Movimientos"
+    },
+    "canjear": "Canjear",
+    "canjearDe": "Canjear {{nombre}}",
+    "faltan": "Te faltan {{puntos}} puntos",
+    "puntos": "{{puntos}} puntos",
+    "vigencia_one": "Vale {{count}} día después de canjearlo",
+    "vigencia_other": "Vale {{count}} días después de canjearlo",
+    "catalogoVacio": "Todavía no hay cupones para canjear",
+    "catalogoVacioTexto": "Sigue sumando puntos: pronto habrá cupones.",
+    "confirmarTitulo": "¿Canjear tus puntos?",
+    "confirmar": "Canjear",
+    "confirmarTexto": "Usarás {{puntos}} puntos en «{{nombre}}». Te quedarán {{saldo}}.",
+    "canjeado": "Canjeaste «{{nombre}}»: tu código es {{codigo}}",
+    "canjeadoTexto": "Lo encuentras en Mis cupones y lo eliges al pagar.",
+    "errorCanjear": "No pudimos canjear el cupón",
+    "sinCupones": "Aún no canjeaste cupones",
+    "sinCuponesTexto": "Canjea tus puntos por un descuento en la pestaña Canjear.",
+    "usadoEn": "Usado en el pedido {{pedido}}",
+    "vence": "Vence el {{fecha}}",
+    "estado": {
+      "DISPONIBLE": "Disponible",
+      "EN_USO": "En uso",
+      "USADO": "Usado",
+      "VENCIDO": "Vencido"
+    },
+    "comoUsar": "Elige tu cupón al pagar, en el resumen de la compra.",
+    "irCarrito": "Ir al carrito",
+    "sinMovimientos": "Aún no tienes movimientos",
+    "movimiento": {
+      "ACUMULACION": "Pedido {{referencia}}",
+      "CANJE": "Canje: {{referencia}}"
+    },
+    "conCampana": "campaña {{campana}}",
+    "conNivel": "nivel {{nivel}}"
+  },
+  "puntosPorGanar": {
+    "etiqueta": "Puntos que ganarías con esta compra",
+    "carrito_one": "¡Con esta compra ganarías <strong>{{puntos}} punto</strong>!",
+    "carrito_other": "¡Con esta compra ganarías <strong>{{puntos}} puntos</strong>!",
+    "campana": "Incluye la campaña «{{campana}}». Se suman a tu saldo al recibir tu pedido.",
+    "base": "Se suman a tu saldo al recibir tu pedido.",
+    "linea_one": "Ganarás <strong>{{puntos}} punto</strong> al recibir tu pedido",
+    "linea_other": "Ganarás <strong>{{puntos}} puntos</strong> al recibir tu pedido"
   }
 }

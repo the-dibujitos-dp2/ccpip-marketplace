@@ -29,6 +29,7 @@ import pe.ccpip.carrito.Tarifas.Tarifa;
 import pe.ccpip.comision.ComisionModelos.ComisionPedido;
 import pe.ccpip.comun.ErrorNegocio;
 import pe.ccpip.compra.CompraModelos.AdvertenciaPerecible;
+import pe.ccpip.compra.CompraModelos.DescuentoPedido;
 import pe.ccpip.compra.CompraModelos.DistritoConPuntos;
 import pe.ccpip.compra.CompraModelos.EventoPedido;
 import pe.ccpip.compra.CompraModelos.Factibilidad;
@@ -42,6 +43,10 @@ import pe.ccpip.entrega.EntregaModelos.Cobertura;
 import pe.ccpip.entrega.EntregaModelos.Destino;
 import pe.ccpip.entrega.EntregaModelos.DestinoCubierto;
 import pe.ccpip.entrega.EntregaService;
+import pe.ccpip.fidelizacion.BeneficiosModelos.DescuentoAplicado;
+import pe.ccpip.fidelizacion.BeneficiosModelos.Origen;
+import pe.ccpip.fidelizacion.BeneficiosModelos.SolicitudDescuento;
+import pe.ccpip.fidelizacion.DescuentosService;
 import pe.ccpip.fidelizacion.PuntosService;
 
 /**
@@ -55,18 +60,35 @@ import pe.ccpip.fidelizacion.PuntosService;
 public class CompraService {
 
     static final String HOY = "(now() AT TIME ZONE 'America/Lima')::date";
+    /** Lo que se cobra por el pedido {@code pe}: productos y envio, menos su descuento (CCPIP-88/89), que asume la Camara. */
+    static final String A_PAGAR = "(pe.total + pe.costo_envio - pe.descuento_monto)";
 
     private final NamedParameterJdbcTemplate jdbc;
     private final CarritoService carrito;
     private final EntregaService entregas;
     private final PuntosService puntos;
+    private final DescuentosService descuentos;
 
     public CompraService(NamedParameterJdbcTemplate jdbc, CarritoService carrito, EntregaService entregas,
-                         PuntosService puntos) {
+                         PuntosService puntos, DescuentosService descuentos) {
         this.jdbc = jdbc;
         this.carrito = carrito;
         this.entregas = entregas;
         this.puntos = puntos;
+        this.descuentos = descuentos;
+    }
+
+    /**
+     * CCPIP-88/89: lo que descontaria un cupon o un codigo sobre los productos del carrito, sin confirmar nada. No es
+     * de solo lectura: revisa el cupon o el codigo como lo hara la compra (bloqueandolo un instante).
+     */
+    @Transactional
+    public DescuentoAplicado descuento(long usuarioId, SolicitudDescuento solicitud) {
+        if (solicitud == null || solicitud.vacia()) {
+            throw ErrorNegocio.invalido("SIN_DESCUENTO", "Elige un cupón o escribe un código.");
+        }
+        BigDecimal productos = comprables(usuarioId).stream().map(Item::subtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return descuentos.resolver(usuarioId, solicitud, productos);
     }
 
     /**
@@ -185,7 +207,8 @@ public class CompraService {
      * total sigue siendo la suma de los productos, base de la comision, y el comprador paga total + envio.
      */
     @Transactional
-    public Pedido confirmar(long usuarioId, long puntoId, Destino destino, String personaAutorizada, String celular) {
+    public Pedido confirmar(long usuarioId, long puntoId, Destino destino, String personaAutorizada, String celular,
+                            SolicitudDescuento descuento) {
         boolean aDomicilio = destino != null;
         String celularContacto = aDomicilio ? null : EntregaService.celularDeContacto(celular);
         String celularEntrega = aDomicilio ? EntregaService.celularDeContacto(destino.contactoCelular()) : null;
@@ -218,15 +241,22 @@ public class CompraService {
 
         long id = jdbc.getJdbcTemplate().queryForObject("SELECT nextval(pg_get_serial_sequence('pedido', 'id'))", Long.class);
         BigDecimal total = items.stream().map(Item::subtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        // CCPIP-88/89: despues de liberar sus pedidos sin pagar, que un cupon reservado por ellos vuelva a valer
+        DescuentoAplicado aplicado = descuento == null || descuento.vacia() ? null
+                : descuentos.resolver(usuarioId, descuento, total);
+        p.addValue("descuento", aplicado == null ? BigDecimal.ZERO : aplicado.monto())
+                .addValue("cupon", aplicado == null ? null : aplicado.cuponId())
+                .addValue("codigo", aplicado == null ? null : aplicado.codigoId());
         p.addValue("id", id).addValue("numero", "CCP-%06d".formatted(id)).addValue("punto", puntoId)
                 .addValue("total", total).addValue("autorizada", autorizada).addValue("celular", celularContacto)
                 .addValue("modalidad", aDomicilio ? "ENVIO" : "RECOJO")
                 .addValue("envio", aDomicilio ? cubierto.envio() : BigDecimal.ZERO);
         jdbc.update("""
                 INSERT INTO pedido (id, numero, usuario_id, modalidad, ubicacion_origen_id, estado, total, confirmado_en,
-                                    persona_autorizada, celular_contacto, costo_envio)
+                                    persona_autorizada, celular_contacto, costo_envio, descuento_monto, cupon_cliente_id,
+                                    codigo_descuento_id)
                 VALUES (:id, :numero, :usuario, :modalidad, :punto, 'PENDIENTE_PAGO', :total, NULL, :autorizada, :celular,
-                        :envio)""", p);
+                        :envio, :descuento, :cupon, :codigo)""", p);
         for (Item item : items) {
             jdbc.update("""
                     INSERT INTO item_pedido (pedido_id, producto_id, productor_id, cantidad, precio_unitario, subtotal, tarifa)
@@ -252,18 +282,21 @@ public class CompraService {
                 SELECT pe.id, pe.numero, pe.estado, pe.modalidad, pe.total, pe.costo_envio, pe.moneda, pe.creado_en,
                        pe.confirmado_en, pe.persona_autorizada, pe.celular_contacto,
                        pe.comision_porcentaje, pe.comision_base, pe.comision_monto,
+                       %s AS a_pagar, pe.descuento_monto, cc.nombre AS cupon, cd.codigo,
                        u.id AS u_id, u.nombre AS u_nombre, u.departamento, u.provincia, u.distrito, u.direccion
                 FROM pedido pe JOIN ubicacion u ON u.id = pe.ubicacion_origen_id
-                WHERE pe.id = :id AND pe.usuario_id = :usuario""", p,
+                LEFT JOIN cupon_cliente cc ON cc.id = pe.cupon_cliente_id
+                LEFT JOIN codigo_descuento cd ON cd.id = pe.codigo_descuento_id
+                WHERE pe.id = :id AND pe.usuario_id = :usuario""".formatted(A_PAGAR), p,
                 (rs, row) -> new Pedido(rs.getLong("id"), rs.getString("numero"), rs.getString("estado"),
                         rs.getString("modalidad"), rs.getBigDecimal("total"), instante(rs, "creado_en"),
                         instante(rs, "confirmado_en"), punto(rs, "u_"), rs.getString("persona_autorizada"),
                         rs.getString("celular_contacto"), lineas(pedidoId), pagos(pedidoId),
                         historial(List.of(pedidoId)).getOrDefault(pedidoId, List.of()), comision(rs),
                         entregas.delPedido(pedidoId).orElse(null), rs.getBigDecimal("costo_envio"),
-                        rs.getBigDecimal("total").add(rs.getBigDecimal("costo_envio")), incidencias(pedidoId),
-                        reembolsado(pedidoId), rs.getBigDecimal("total").add(rs.getBigDecimal("costo_envio"))
-                                .subtract(reembolsado(pedidoId)), rs.getString("moneda"), puntos.delPedido(pedidoId).orElse(null)));
+                        rs.getBigDecimal("a_pagar"), incidencias(pedidoId), reembolsado(pedidoId),
+                        rs.getBigDecimal("a_pagar").subtract(reembolsado(pedidoId)), rs.getString("moneda"),
+                        puntos.delPedido(pedidoId).orElse(null), descuento(rs), puntos.porGanar(pedidoId).orElse(null)));
         return encontrados.stream().findFirst()
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "No encontramos ese pedido."));
     }
@@ -276,6 +309,7 @@ public class CompraService {
     public List<ResumenPedido> misPedidos(long usuarioId) {
         List<ResumenPedido> sinHistorial = jdbc.query("""
                 SELECT pe.id, pe.numero, pe.estado, pe.modalidad, pe.total, pe.costo_envio, pe.creado_en, pe.confirmado_en,
+                       %s AS a_pagar,
                        u.id AS u_id, u.nombre AS u_nombre, u.departamento, u.provincia, u.distrito, u.direccion,
                        (SELECT count(*) FROM item_pedido i WHERE i.pedido_id = pe.id) AS productos,
                        (SELECT count(DISTINCT i.productor_id) FROM item_pedido i WHERE i.pedido_id = pe.id) AS comunidades,
@@ -283,12 +317,12 @@ public class CompraService {
                         WHERE i.pedido_id = pe.id ORDER BY i.id LIMIT 1) AS primer_producto
                 FROM pedido pe JOIN ubicacion u ON u.id = pe.ubicacion_origen_id
                 WHERE pe.usuario_id = :usuario
-                ORDER BY pe.creado_en DESC, pe.id DESC""", new MapSqlParameterSource("usuario", usuarioId),
+                ORDER BY pe.creado_en DESC, pe.id DESC""".formatted(A_PAGAR), new MapSqlParameterSource("usuario", usuarioId),
                 (rs, row) -> new ResumenPedido(rs.getLong("id"), rs.getString("numero"), rs.getString("estado"),
                         rs.getString("modalidad"), rs.getBigDecimal("total"), instante(rs, "creado_en"),
                         instante(rs, "confirmado_en"), punto(rs, "u_"), rs.getInt("productos"),
                         rs.getInt("comunidades"), List.of(), rs.getBigDecimal("costo_envio"),
-                        rs.getBigDecimal("total").add(rs.getBigDecimal("costo_envio")), rs.getString("primer_producto")));
+                        rs.getBigDecimal("a_pagar"), rs.getString("primer_producto")));
         if (sinHistorial.isEmpty()) {
             return sinHistorial;
         }
@@ -296,6 +330,17 @@ public class CompraService {
         return sinHistorial.stream().map(r -> new ResumenPedido(r.id(), r.numero(), r.estado(), r.modalidad(), r.total(),
                 r.creadoEn(), r.confirmadoEn(), r.punto(), r.productos(), r.comunidades(),
                 historiales.getOrDefault(r.id(), List.of()), r.costoEnvio(), r.totalAPagar(), r.primerProducto())).toList();
+    }
+
+    /** CCPIP-88/89: el descuento del pedido, si tuvo: de un cupon canjeado o de un codigo de campana. */
+    private static DescuentoPedido descuento(ResultSet rs) throws SQLException {
+        BigDecimal monto = rs.getBigDecimal("descuento_monto");
+        if (monto.signum() == 0) {
+            return null;
+        }
+        String cupon = rs.getString("cupon");
+        return cupon != null ? new DescuentoPedido(Origen.CUPON, cupon, monto)
+                : new DescuentoPedido(Origen.CODIGO, rs.getString("codigo"), monto);
     }
 
     /** CCPIP-340: los estados de cada pedido en orden cronologico, sin quien los registro. */

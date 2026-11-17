@@ -182,10 +182,10 @@ public class PagoService {
         MapSqlParameterSource p = new MapSqlParameterSource("id", pedidoId).addValue("usuario", usuarioId);
         record Pagable(String numero, String estado, BigDecimal total, String moneda) {
         }
-        // CCPIP-483: se cobran los productos y el envio copiado al pedido (0 en recojo)
+        // CCPIP-483: se cobran los productos y el envio copiado al pedido (0 en recojo), menos su descuento (CCPIP-88/89)
         Pagable pedido = jdbc.query("""
-                        SELECT numero, estado, total + costo_envio AS total, moneda FROM pedido
-                        WHERE id = :id AND usuario_id = :usuario FOR UPDATE""", p,
+                        SELECT pe.numero, pe.estado, %s AS total, pe.moneda FROM pedido pe
+                        WHERE pe.id = :id AND pe.usuario_id = :usuario FOR UPDATE""".formatted(CompraService.A_PAGAR), p,
                         (rs, row) -> new Pagable(rs.getString("numero"), rs.getString("estado"), rs.getBigDecimal("total"),
                                 rs.getString("moneda")))
                 .stream().findFirst()

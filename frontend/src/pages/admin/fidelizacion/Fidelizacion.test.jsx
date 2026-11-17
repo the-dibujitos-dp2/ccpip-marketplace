@@ -47,6 +47,8 @@ const comoSub = (rutas = {}) => ({
   'GET /api/admin/autorizaciones': [200, { items: [], conteo: {} }],
   [`GET ${BASE}`]: () => [200, copia(PANEL)],
   [`GET ${BASE}/campanas/2/metricas`]: () => [200, copia(METRICAS)],
+  [`GET ${BASE}/campanas/2/codigos`]: () => [200, []],
+  [`GET ${BASE}/campanas/3/codigos`]: () => [200, []],
   ...rutas,
 })
 

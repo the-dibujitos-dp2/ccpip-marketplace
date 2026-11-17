@@ -43,7 +43,6 @@ class ComisionTest extends IntegrationTest {
     private static final String SUPER = "sudo@ccpip.test";
     private static final String SUB = "sub_admin@ccpip.test";
     private static final String COMPRADOR = "comprador.comision@ccpip.test";
-    private static final String CUSCO = "Centro Regional Cusco";
     private static final String HOY = "(now() AT TIME ZONE 'America/Lima')::date";
 
     @Autowired
@@ -469,35 +468,6 @@ class ComisionTest extends IntegrationTest {
                 SELECT ?, contrasena_hash, 'Comprador de Prueba', 1, true FROM usuario
                 WHERE correo = 'consumidor@ccpip.test' ON CONFLICT (correo) DO NOTHING""", COMPRADOR);
         return loginAs(COMPRADOR);
-    }
-
-    private long productoEnCusco(String nombre, String precio, String correoProductor) {
-        Long id = jdbc.queryForObject("""
-                INSERT INTO producto (productor_id, nombre, descripcion, linea_id, unidad_medida_id, precio, estado, publicado_en)
-                SELECT p.id, ?, 'Producto de prueba', (SELECT id FROM linea_producto WHERE codigo = 'ARTESANIA'),
-                       (SELECT id FROM unidad_medida WHERE codigo = 'UNIDAD'), ?, 'PUBLICADO', now()
-                FROM productor p JOIN usuario u ON u.id = p.usuario_id WHERE u.correo = ?
-                RETURNING id""", Long.class, nombre + " " + UUID.randomUUID(), new BigDecimal(precio), correoProductor);
-        jdbc.update("INSERT INTO producto_linea (producto_id, linea_id) SELECT ?, linea_id FROM producto WHERE id = ?", id, id);
-        jdbc.update("""
-                INSERT INTO autorizacion_producto (productor_id, producto_id, estado, decidido_en)
-                SELECT productor_id, id, 'APROBADA', now() FROM producto WHERE id = ?""", id);
-        jdbc.update("""
-                INSERT INTO lote (producto_id, ubicacion_id, codigo, cantidad_inicial, cantidad_actual, fecha_produccion)
-                SELECT ?, u.id, 'L-K' || ?, 5, 5, current_date - 10 FROM ubicacion u WHERE u.nombre = ?""", id, id, CUSCO);
-        jdbc.update("INSERT INTO stock (producto_id, ubicacion_id, cantidad) SELECT ?, id, 5 FROM ubicacion WHERE nombre = ?",
-                id, CUSCO);
-        return id;
-    }
-
-    private void alCarrito(Cookie comprador, long productoId, int cantidad) throws Exception {
-        mockMvc.perform(post("/api/carrito/items").cookie(comprador).contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("productoId", productoId, "cantidad", cantidad))))
-                .andExpect(status().isOk());
-    }
-
-    private long puntoCusco() {
-        return jdbc.queryForObject("SELECT id FROM ubicacion WHERE nombre = ?", Long.class, CUSCO);
     }
 
     private String numero(long pedido) {

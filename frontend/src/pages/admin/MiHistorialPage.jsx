@@ -28,7 +28,8 @@ const TONO = {
   AUTORIZACION_RECHAZADA: 'error', AUTORIZACION_REVOCADA: 'error', REVOCAR_VENTA: 'error', BLOQUEAR_VENTA: 'error',
   CUENTA_SUSPENDER: 'error', PUBLICACION_RECHAZADA: 'error', VIDEO_RECHAZADO: 'error',
   RENOVACION_SOLICITADA: 'aviso', DENUNCIA_EN_REVISION: 'aviso',
-  CAMPANA_PUNTOS_CREADA: 'exito', CAMPANA_PUNTOS_EDITADA: 'info',
+  CAMPANA_PUNTOS_CREADA: 'exito', CAMPANA_PUNTOS_EDITADA: 'info', CUPON_CREADO: 'exito', CODIGO_CREADO: 'exito', NIVEL_CREADO: 'exito',
+  CUPON_DESACTIVADO: 'aviso', CODIGO_DESACTIVADO: 'aviso', NIVEL_RETIRADO: 'aviso',
 }
 
 /** Pantalla a la que lleva "Sobre". */
@@ -41,6 +42,9 @@ const DESTINO = {
   CUENTA: (id) => `${RUTAS.adminCuentas}/${id}`,
   // CCPIP-86: la campana de puntos, con sus metricas
   CAMPANA: (id) => `${RUTAS.adminFidelizacion}/campanas/${id}`,
+  // CCPIP-88/89: los cupones y niveles estan en Beneficios
+  CUPON: () => RUTAS.adminFidelizacionBeneficios,
+  NIVEL: () => RUTAS.adminFidelizacionBeneficios,
 }
 
 /**

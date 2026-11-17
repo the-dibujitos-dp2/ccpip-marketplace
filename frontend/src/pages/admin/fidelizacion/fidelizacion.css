@@ -25,12 +25,15 @@
 /* Ancho fijo: las filas de .tabla miden su contenido, y la regla larga no debe empujar a las demas columnas */
 .fidelizacion__col-campana { display: flex; flex-direction: column; gap: 2px; flex: 1 0 240px; width: 240px; min-width: 0; }
 .fidelizacion__col-campana .caption { color: var(--color-text-secondary); }
-.fidelizacion__nombre { font-weight: 600; }
+.fidelizacion__nombre { font-weight: 600; text-decoration: none; }
+.fidelizacion__nombre:hover { color: var(--color-text-brand); }
 .fidelizacion__col-periodo { flex: 0 0 170px; }
 .fidelizacion__col-estado { flex: 0 0 100px; }
 .fidelizacion__tabla .admin__num { flex-basis: 100px; }
 .fidelizacion__col-acciones { flex: 0 0 140px; display: flex; justify-content: flex-end; gap: 4px; }
 .fidelizacion__sin-filtro { margin: 0; color: var(--color-text-secondary); }
+.fidelizacion__nota-seccion { margin: 4px 0 0; max-width: 72ch; color: var(--color-text-secondary); }
+.fidelizacion__codigo { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600; letter-spacing: 0.04em; color: var(--color-text-primary); }
 
 /* Formulario y vista previa */
 .fidelizacion__formulario-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; gap: 24px; }

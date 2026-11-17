@@ -159,7 +159,7 @@ public class ProductoMalogradoService {
     private record Candidato(long id, long productoId, long ubicacionId, BigDecimal disponible, boolean vencido) {
     }
 
-    private record Cobro(long id, String referencia) {
+    private record Cobro(long id, String referencia, BigDecimal monto) {
     }
 
     /** Lo que se devolvera: el monto de la linea, la comision anulada, si se anula el pedido y a que pago. */
@@ -255,12 +255,16 @@ public class ProductoMalogradoService {
                 SELECT coalesce(sum(i.cantidad - a.cantidad_faltante), 0) FROM item_pedido i
                 JOIN ajuste_item_pedido a ON a.item_pedido_id = i.id WHERE i.pedido_id = :pedido""", p, BigDecimal.class);
         boolean anula = porEntregar.subtract(cantidad).signum() == 0;
-        BigDecimal devolver = anula ? monto.add(pedido.costoEnvio()) : monto;
         Cobro pago = jdbc.query("""
-                SELECT id, referencia_pasarela FROM pago WHERE pedido_id = :pedido AND estado = 'APROBADO' FOR UPDATE""", p,
-                (rs, row) -> new Cobro(rs.getLong("id"), rs.getString("referencia_pasarela"))).stream().findFirst()
+                SELECT id, referencia_pasarela, monto FROM pago WHERE pedido_id = :pedido AND estado = 'APROBADO' FOR UPDATE""", p,
+                (rs, row) -> new Cobro(rs.getLong("id"), rs.getString("referencia_pasarela"), rs.getBigDecimal("monto")))
+                .stream().findFirst()
                 .orElseThrow(() -> new ErrorNegocio(HttpStatus.CONFLICT, "SIN_PAGO_APROBADO",
                         "Este pedido no tiene un pago aprobado que reembolsar."));
+        // CCPIP-88/89: con descuento se pago menos que la suma de las lineas; nunca se devuelve mas de lo pagado
+        BigDecimal porDevolver = pago.monto().subtract(jdbc.queryForObject(
+                "SELECT coalesce(sum(monto), 0) FROM reembolso WHERE pedido_id = :pedido", p, BigDecimal.class));
+        BigDecimal devolver = anula ? porDevolver : monto.min(porDevolver);
         return new Plan(monto, comision, anula, devolver, pago);
     }
 

@@ -1,3 +1,5 @@
+import { precio, unidades } from './formato.js'
+
 // CCPIP-86: el calculo de puntos de un pedido, igual que ReglaPuntos del servidor, para la vista previa de una
 // campana. El servidor es el que acredita: aqui solo se anticipa lo que dara una regla.
 
@@ -22,4 +24,13 @@ export function multiplicador(regla, base) {
 export function puntosEnCampana(monto, campana, base) {
   const llega = Number(monto) >= Number(campana.montoMinimo || 0)
   return llega ? puntosDe(monto, { ...campana, tope: campana.topePuntos }) : puntosDe(monto, base)
+}
+
+/** "S/ 10.00 de descuento · desde S/ 30.00" o "10 % de descuento, hasta S/ 8.00" (cupones y codigos, CCPIP-88/89). */
+export function textoBeneficio(t, { tipo, valor, montoMinimo, topeDescuento }) {
+  const B = 'fidelizacion.beneficio'
+  let texto = tipo === 'PORCENTAJE' ? t(`${B}.porcentaje`, { valor: unidades(valor) }) : t(`${B}.monto`, { monto: precio(valor) })
+  if (topeDescuento) texto += t(`${B}.hasta`, { monto: precio(topeDescuento) })
+  if (Number(montoMinimo) > 0) texto += t(`${B}.desde`, { monto: precio(montoMinimo) })
+  return texto
 }

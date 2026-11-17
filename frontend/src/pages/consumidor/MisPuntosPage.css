@@ -1,0 +1,23 @@
+/* Mi cuenta › Mis puntos (CCPIP-173, 374, 88, 89) */
+.mis-puntos__resumen { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding: 20px 24px; border: 1px solid var(--color-border-brand); border-radius: var(--radius-xl); background: var(--color-bg-brand-subtle); }
+.mis-puntos__resumen p { margin: 0; }
+.mis-puntos__rocco { flex-shrink: 0; }
+.mis-puntos__saldo { display: flex; flex-direction: column; gap: 2px; flex: 1 1 200px; }
+.mis-puntos__saldo .body-s, .mis-puntos__resumen .caption { color: var(--color-text-secondary); }
+.mis-puntos__numero { font-family: var(--font-display); font-weight: 600; font-size: 40px; line-height: 44px; color: var(--color-text-brand); font-variant-numeric: tabular-nums; }
+.mis-puntos__nivel { display: flex; flex-direction: column; gap: 6px; flex: 1 1 240px; }
+.mis-puntos__barra { height: 8px; border-radius: var(--radius-pill); background: var(--color-bg-surface); overflow: hidden; }
+.mis-puntos__barra span { display: block; height: 100%; border-radius: inherit; background: var(--color-bg-brand); }
+.mis-puntos__cupon p { margin: 0; }
+.mis-puntos__costo { font-weight: 700; color: var(--color-text-brand); }
+.mis-puntos__lista { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
+.mis-puntos__fila { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 20px; border-bottom: 1px solid var(--color-border-default); }
+.mis-puntos__fila:last-child { border-bottom: 0; }
+.mis-puntos__fila p { margin: 0; }
+.mis-puntos__fila .body-s, .mis-puntos__fila .caption { color: var(--color-text-secondary); }
+.mis-puntos__fila-fin { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.mis-puntos__codigo { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600; letter-spacing: 0.04em; }
+.mis-puntos__puntos { font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
+.mis-puntos__puntos--mas { color: var(--color-status-success-fg); }
+.mis-puntos__puntos--menos { color: var(--color-text-secondary); }
+.mis-puntos__ayuda { padding: 12px 20px; color: var(--color-text-secondary); }

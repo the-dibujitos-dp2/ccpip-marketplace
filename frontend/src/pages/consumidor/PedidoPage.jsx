@@ -14,6 +14,7 @@ import LayoutTienda from '../../components/layout/LayoutTienda.jsx'
 import { diaMesAnioLargo, diaMesLargoHora, precio, unidades } from '../../formato.js'
 import { RUTAS } from '../../router.js'
 import CalificarPedido from './CalificarPedido.jsx'
+import { LineaPuntos } from './PuntosPorGanar.jsx'
 import './PedidoPage.css'
 
 const PASOS = ['carrito', 'entrega', 'confirmacion']
@@ -127,6 +128,7 @@ function Detalle({ pedido }) {
           <p className="pedido__subtitulo">
             <Trans i18nKey={aDomicilio ? 'pedido.confirmadoDomicilio' : 'pedido.confirmado'} values={{ numero: pedido.numero }} components={{ strong: <strong /> }} />
           </p>
+          {pedido.puntosPorGanar && <LineaPuntos puntos={pedido.puntosPorGanar} className="pedido__exito-puntos" />}
         </header>
       ) : (
         <>
@@ -180,16 +182,25 @@ function Detalle({ pedido }) {
               </tbody>
             </table>
             {/* CCPIP-483: a domicilio, el envio que copio el pedido va aparte de los productos y se suma al total */}
-            {pedido.modalidad === 'ENVIO' && pedido.costoEnvio != null && (
+            {/* CCPIP-88/89: el descuento del cupon o del codigo, que ya resta el total */}
+            {((pedido.modalidad === 'ENVIO' && pedido.costoEnvio != null) || pedido.descuento) && (
               <dl className="pedido__cifras">
                 <div>
                   <dt>{t('compra.productos')}</dt>
                   <dd>{precio(pedido.total)}</dd>
                 </div>
-                <div>
-                  <dt>{t('compra.envio')}</dt>
-                  <dd>{precio(pedido.costoEnvio)}</dd>
-                </div>
+                {pedido.modalidad === 'ENVIO' && (
+                  <div>
+                    <dt>{t('compra.envio')}</dt>
+                    <dd>{precio(pedido.costoEnvio)}</dd>
+                  </div>
+                )}
+                {pedido.descuento && (
+                  <div className="pedido__descuento">
+                    <dt>{t('pedido.descuento', { nombre: pedido.descuento.nombre })}</dt>
+                    <dd>−{precio(pedido.descuento.monto)}</dd>
+                  </div>
+                )}
               </dl>
             )}
             <p className="pedido__total">

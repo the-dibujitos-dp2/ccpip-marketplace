@@ -64,19 +64,22 @@ public final class ComisionModelos {
     }
 
     /**
-     * CCPIP-91: un pedido confirmado con su comision y el neto para los productores. {@code porcentaje},
+     * CCPIP-91: un pedido confirmado con su comision y el neto para los productores. {@code descuento}: el de su cupon
+     * o codigo, que asume la Camara (CCPIP-88/89). {@code porcentaje},
      * {@code comision} y {@code neto} son nulos si se confirmo sin comision configurada.
      */
     public record PedidoComision(long id, String numero, String estado, Instant confirmadoEn, BigDecimal venta,
                                  BigDecimal porcentaje, BigDecimal comision, BigDecimal neto,
-                                 List<ParteProductor> productores) {
+                                 List<ParteProductor> productores, BigDecimal descuento) {
     }
 
     /**
      * Totales de todo lo que cumple los filtros, no solo de la pagina mostrada (CCPIP-431).
-     * {@code sinComision}: pedidos confirmados sin comision copiada.
+     * {@code sinComision}: pedidos confirmados sin comision copiada. {@code descuentos} (CCPIP-88/89): lo que la Camara
+     * asumio de cupones y codigos; no cambia el neto de los productores.
      */
-    public record Resumen(int pedidos, BigDecimal ventas, BigDecimal comision, BigDecimal neto, int sinComision) {
+    public record Resumen(int pedidos, BigDecimal ventas, BigDecimal comision, BigDecimal neto, int sinComision,
+                          BigDecimal descuentos) {
     }
 
     /** CCPIP-431: un productor que se puede elegir en el filtro. */

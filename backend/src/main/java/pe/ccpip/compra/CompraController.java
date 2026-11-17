@@ -32,6 +32,8 @@ import pe.ccpip.compra.CompraModelos.PuntoRecojo;
 import pe.ccpip.compra.CompraModelos.ResultadoPago;
 import pe.ccpip.compra.CompraModelos.ResumenPedido;
 import pe.ccpip.entrega.EntregaModelos.Destino;
+import pe.ccpip.fidelizacion.BeneficiosModelos.DescuentoAplicado;
+import pe.ccpip.fidelizacion.BeneficiosModelos.SolicitudDescuento;
 import pe.ccpip.pago.Tarjeta;
 
 /**
@@ -49,13 +51,19 @@ public class CompraController {
      * Datos de la entrega. Por defecto es recojo (CCPIP-157): sin persona autorizada, recoge el mismo
      * comprador, y el celular de contacto es obligatorio. Con {@code modalidad} ENVIO (CCPIP-59) se indica
      * el {@code entrega} a domicilio, con su propio contacto, y no hay persona autorizada ni celular de recojo.
+     * CCPIP-88/89: un solo descuento, de un cupon canjeado ({@code cuponId}) o de un codigo de campana ({@code codigo}).
      */
     public record Recojo(@NotNull(message = "Elige un punto de acopio") Long puntoId,
                          @Pattern(regexp = "RECOJO|ENVIO", message = "La modalidad de entrega no es válida") String modalidad,
                          @Size(max = 160, message = "El nombre es demasiado largo")
                          @Pattern(regexp = NOMBRE, message = "Usa solo letras en el nombre de quien recoge") String personaAutorizada,
                          @Size(max = 20, message = "El celular es demasiado largo") String celularContacto,
-                         @Valid Destino entrega) {
+                         @Valid Destino entrega, Long cuponId,
+                         @Size(max = 20, message = "El código es demasiado largo") String codigo) {
+        SolicitudDescuento descuento() {
+            return new SolicitudDescuento(cuponId, codigo);
+        }
+
         @AssertTrue(message = "Indica un celular de contacto")
         boolean isCelularDeRecojoCompleto() {
             return "ENVIO".equals(modalidad) || (celularContacto != null && !celularContacto.isBlank());
@@ -135,7 +143,14 @@ public class CompraController {
     public Pedido confirmar(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
                             @Valid @RequestBody Recojo recojo) {
         return compra.confirmar(s.userId(), recojo.puntoId(), "ENVIO".equals(recojo.modalidad()) ? recojo.entrega() : null,
-                recojo.personaAutorizada(), recojo.celularContacto());
+                recojo.personaAutorizada(), recojo.celularContacto(), recojo.descuento());
+    }
+
+    /** CCPIP-88/89: cuanto descuenta un cupon o un codigo sobre el carrito actual, antes de confirmar. */
+    @PostMapping("/api/compra/descuento")
+    public DescuentoAplicado descuento(@RequestAttribute(SessionAuthFilter.SESSION_ATTRIBUTE) AuthenticatedSession s,
+                                       @RequestBody SolicitudDescuento solicitud) {
+        return compra.descuento(s.userId(), solicitud);
     }
 
     /** CCPIP-62: paga el pedido con tarjeta. Aprobado: el pedido queda confirmado y el stock descontado. */

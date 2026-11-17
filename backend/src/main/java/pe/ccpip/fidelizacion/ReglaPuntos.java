@@ -17,11 +17,20 @@ public record ReglaPuntos(int puntos, BigDecimal cadaSoles, Integer tope) {
 
     /** Los puntos de un pedido de {@code monto} soles en productos. */
     public int puntosDe(BigDecimal monto) {
+        return puntosDe(monto, BigDecimal.ONE);
+    }
+
+    /**
+     * CCPIP-88: los puntos con el multiplicador del nivel del comprador, redondeados hacia abajo. El tope de la
+     * campana limita el resultado final.
+     */
+    public int puntosDe(BigDecimal monto, BigDecimal multiplicador) {
         if (monto == null || monto.signum() <= 0) {
             return 0;
         }
         long veces = monto.divideToIntegralValue(cadaSoles).longValue();
-        long total = Math.min(veces * puntos, Integer.MAX_VALUE);
+        long total = BigDecimal.valueOf(veces * puntos).multiply(multiplicador).setScale(0, RoundingMode.DOWN)
+                .min(BigDecimal.valueOf(Integer.MAX_VALUE)).longValue();
         return (int) (tope == null ? total : Math.min(total, tope));
     }
 

@@ -18,7 +18,8 @@ import pe.ccpip.gobernanza.GobernanzaModelos.Tipo;
  * Historial de acciones de gobernanza (CCPIP-126, RF-85; Figma S-05). Junta, con UNION ALL, lo que cada
  * modulo ya registra con su autor: decisiones sobre autorizaciones (CCPIP-174, 284, 39), solicitudes de
  * renovacion (CCPIP-321), moderacion de publicaciones (CCPIP-331, 332) y de videos (CCPIP-118), decisiones sobre el productor (CCPIP-291, 330, 85, 322), cambios de estado de
- * denuncias (CCPIP-84), suspension o reactivacion de cuentas (CCPIP-124) y campanas de puntos (CCPIP-86).
+ * denuncias (CCPIP-84), suspension o reactivacion de cuentas (CCPIP-124), campanas de puntos (CCPIP-86) y sus codigos,
+ * cupones y niveles (CCPIP-88/89).
  *
  * <p>Solo lee: no hay tabla propia ni copia, asi que nada de esto se puede alterar desde aqui, y una
  * accion nueva de esos modulos aparece sola. {@code autor} nulo trae las de todos, para la auditoria
@@ -88,10 +89,16 @@ public class HistorialGobernanzaService {
             CROSS JOIN (VALUES ('AS-', 'ANALISIS_SOLICITADO'), ('AN-', 'ANALISIS_RESULTADO')) AS v(prefijo,accion)
             UNION ALL
             SELECT e.clave_evento, e.registrado_en, e.usuario_id, 'FIDELIZACION', e.accion,
-                   c.nombre, NULL::text, 'CAMPANA', c.id, NULL::text
+                   coalesce(c.nombre, cd.codigo, cu.nombre, n.nombre), cc.nombre,
+                   CASE e.entidad WHEN 'CUPON' THEN 'CUPON' WHEN 'NIVEL_FIDELIZACION' THEN 'NIVEL' ELSE 'CAMPANA' END,
+                   coalesce(c.id, cd.campana_id, cu.id, n.id), NULL::text
             FROM auditoria_evento e
-            JOIN campana_puntos c ON c.id = CAST(e.referencia AS bigint)
-            WHERE e.entidad = 'CAMPANA_PUNTOS'
+            LEFT JOIN campana_puntos c ON e.entidad = 'CAMPANA_PUNTOS' AND c.id = CAST(e.referencia AS bigint)
+            LEFT JOIN codigo_descuento cd ON e.entidad = 'CODIGO_DESCUENTO' AND cd.id = CAST(e.referencia AS bigint)
+            LEFT JOIN campana_puntos cc ON cc.id = cd.campana_id
+            LEFT JOIN cupon cu ON e.entidad = 'CUPON' AND cu.id = CAST(e.referencia AS bigint)
+            LEFT JOIN nivel_fidelizacion n ON e.entidad = 'NIVEL_FIDELIZACION' AND n.id = CAST(e.referencia AS bigint)
+            WHERE e.entidad IN ('CAMPANA_PUNTOS', 'CODIGO_DESCUENTO', 'CUPON', 'NIVEL_FIDELIZACION')
             """;
 
     private final NamedParameterJdbcTemplate jdbc;

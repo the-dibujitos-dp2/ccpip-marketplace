@@ -18,9 +18,10 @@ public final class GobernanzaModelos {
 
     /**
      * A que pantalla lleva "Sobre": la autorizacion, la moderacion de una oferta o de un video, el productor, sus
-     * denuncias, la cuenta o una campana de puntos (CCPIP-86).
+     * denuncias, la cuenta, una campana de puntos (CCPIP-86, tambien por sus codigos de descuento) o los beneficios: un
+     * cupon o un nivel (CCPIP-88/89).
      */
-    public enum Objeto { AUTORIZACION, MODERACION, VIDEO, PRODUCTOR, DENUNCIAS, CUENTA, CAMPANA }
+    public enum Objeto { AUTORIZACION, MODERACION, VIDEO, PRODUCTOR, DENUNCIAS, CUENTA, CAMPANA, CUPON, NIVEL }
 
     /**
      * Una accion. {@code clave} es unica en la lista (tabla de origen e id). {@code accion} es el codigo

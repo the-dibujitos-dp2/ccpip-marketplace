@@ -23,6 +23,7 @@ import { fechaHoraLarga, mesAnio, precio } from '../../formato.js'
 import { precioPorUnidad } from '../../precioUnidad.js'
 import { mensajeError } from '../../i18n/errores.js'
 import { RUTAS } from '../../router.js'
+import RoccoPuntos, { usePuntosPorGanar } from './PuntosPorGanar.jsx'
 import './CarritoPage.css'
 
 const PASOS = ['carrito', 'entrega', 'confirmacion']
@@ -60,6 +61,7 @@ export default function CarritoPage() {
   const [carrito, setCarrito] = useState(null)
   const [error, setError] = useState(null)
   const [aviso, setAviso] = useState(null)
+  const puntos = usePuntosPorGanar(carrito?.items.length ? Number(carrito.total) : 0)
 
   const cargar = useCallback(() => {
     setError(null)
@@ -111,7 +113,11 @@ export default function CarritoPage() {
       <main className="contenedor carrito" aria-busy={!carrito && !error}>
         {/* Los pasos de la compra solo tienen sentido si hay algo que comprar */}
         {carrito?.items.length > 0 && <Pasos pasos={PASOS.map((p) => t(`carrito.pasos.${p}`))} actual={0} etiqueta={t('carrito.pasos.etiqueta')} />}
-        <h1 className="carrito__titulo">{t('carrito.titulo')}</h1>
+        {/* CCPIP-86/88: Rocco va a la par del titulo, sobre el resumen, que queda alineado con la lista */}
+        <div className="carrito__cabecera">
+          <h1 className="carrito__titulo">{t('carrito.titulo')}</h1>
+          {puntos && <RoccoPuntos puntos={puntos} />}
+        </div>
         {aviso && (
           <div className="carrito__aviso">
             <Alerta {...aviso} onCerrar={() => setAviso(null)} />

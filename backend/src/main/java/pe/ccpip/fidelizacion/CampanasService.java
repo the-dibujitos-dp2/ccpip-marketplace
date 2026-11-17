@@ -210,7 +210,7 @@ public class CampanasService {
                                count(DISTINCT p.usuario_id) AS clientes,
                                (SELECT coalesce(sum(m.puntos), 0) FROM movimiento_puntos m WHERE m.campana_id = c.id) AS puntos
                         FROM campana_puntos c
-                        LEFT JOIN pedido p ON p.estado <> 'CANCELADO' AND p.total >= c.monto_minimo AND %s
+                        LEFT JOIN pedido p ON p.estado <> 'CANCELADO' AND p.total - p.descuento_monto >= c.monto_minimo AND %s
                         GROUP BY c.id""".formatted(EN_CAMPANA), new MapSqlParameterSource(),
                         (rs, row) -> new Fila(rs.getLong("id"), new Resumen(rs.getInt("pedidos"),
                                 rs.getBigDecimal("ventas"), rs.getInt("clientes"), rs.getLong("puntos"))))
@@ -244,7 +244,7 @@ public class CampanasService {
                 resumenes.getOrDefault(id, new Resumen(0, BigDecimal.ZERO, 0, 0)));
     }
 
-    private static Instant instante(ResultSet rs, String columna) throws SQLException {
+    static Instant instante(ResultSet rs, String columna) throws SQLException {
         Timestamp t = rs.getTimestamp(columna);
         return t == null ? null : t.toInstant();
     }

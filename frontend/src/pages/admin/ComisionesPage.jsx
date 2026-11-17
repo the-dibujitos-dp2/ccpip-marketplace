@@ -77,7 +77,10 @@ function Resultado({ datos, filtrado, onPagina }) {
     <>
       <div className="productor__kpis">
         <TarjetaKpi titulo={t('admin.comisiones.kpi.ventas')} valor={precio(resumen.ventas)} detalle={t('admin.comisiones.kpi.pedidos', { count: resumen.pedidos })} tono="neutro" icono={iconoGrafico} />
-        <TarjetaKpi titulo={t('admin.comisiones.kpi.comision')} valor={precio(resumen.comision)} icono={iconoPorcentaje} />
+        {/* CCPIP-88/89: los cupones y codigos de descuento los asume la Camara */}
+        <TarjetaKpi titulo={t('admin.comisiones.kpi.comision')} valor={precio(resumen.comision)} icono={iconoPorcentaje}
+          tono={Number(resumen.descuentos) > 0 ? 'aviso' : 'exito'}
+          detalle={Number(resumen.descuentos) > 0 ? t('admin.comisiones.kpi.descuentos', { monto: precio(resumen.descuentos) }) : undefined} />
         <TarjetaKpi titulo={t('admin.comisiones.kpi.neto')} valor={precio(resumen.neto)} icono={iconoBillete} />
       </div>
       {resumen.sinComision > 0 && (

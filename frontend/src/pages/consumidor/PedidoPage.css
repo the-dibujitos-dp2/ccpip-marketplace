@@ -4,6 +4,15 @@
 
 .pedido__exito { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 32px 0; text-align: center; }
 .pedido__exito .pedido__titulo { margin: 12px 0 4px; }
+/* CCPIP-86/88: los puntos que dara la compra, debajo del agradecimiento */
+.pedido__exito-puntos {
+  margin-top: 12px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--color-bg-brand-subtle);
+  color: var(--color-text-primary);
+  animation: aparecer var(--duracion-entrada) var(--ease-salida) 200ms both, entrada var(--duracion-entrada) var(--ease-salida) 200ms both;
+}
 .pedido__subtitulo { margin: 0; max-width: 560px; font-size: 18px; line-height: 26px; color: var(--color-text-secondary); }
 .pedido__subtitulo strong { color: var(--color-text-primary); }
 
@@ -75,3 +84,4 @@
 .pedido__incidencias li { display: flex; flex-direction: column; gap: 2px; }
 .pedido__mayorista { display: block; color: var(--color-text-brand); font-weight: 600; }
 .pedido__moneda { margin: 8px 0 0; color: var(--color-text-secondary); }
+.pedido__descuento dd { color: var(--color-status-success-fg); font-weight: 600; }

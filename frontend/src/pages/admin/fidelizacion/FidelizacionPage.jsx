@@ -12,18 +12,18 @@ import Cargando from '../../../components/Cargando.jsx'
 import Enlace from '../../../components/Enlace.jsx'
 import EstadoVacio from '../../../components/EstadoVacio.jsx'
 import LayoutAdmin from '../../../components/layout/LayoutAdmin.jsx'
-import Pestanas from '../../../components/Pestanas.jsx'
 import TarjetaKpi from '../../../components/TarjetaKpi.jsx'
 import { fecha, precio, unidades } from '../../../formato.js'
 import { mensajeError } from '../../../i18n/errores.js'
 import { RUTAS } from '../../../router.js'
 import '../../productor/productor.css'
 import '../admin.css'
-import { DialogoFinalizar, EstadoCampana, rutaCampana, TEXTOS, textoCondiciones, textoPeriodo, textoRegla } from './comun.jsx'
+import {
+  DialogoFinalizar, EstadoCampana, enFiltro, FILTROS_CAMPANAS, PestanasEstado, rutaCampana, SeccionesFidelizacion, TEXTOS, textoCondiciones,
+  textoPeriodo, textoRegla,
+} from './comun.jsx'
 import './fidelizacion.css'
 
-const FILTROS = ['TODAS', 'ACTIVA', 'PROGRAMADA', 'FINALIZADA']
-const enFiltro = (filtro) => (c) => filtro === 'TODAS' || c.estado === filtro || (filtro === 'FINALIZADA' && c.estado === 'CANCELADA')
 
 /**
  * CCPIP-86: la seccion Fidelizacion del sub administrador. Explica la regla base, resume lo que acumularon los
@@ -50,6 +50,7 @@ export default function FidelizacionPage({ path }) {
 
   return (
     <LayoutAdmin path={path} migas={t('admin.nav.fidelizacion')} titulo={t(`${TEXTOS}.titulo`)}>
+      <SeccionesFidelizacion activa="campanas" />
       <div className="fidelizacion__cabecera">
         <p className="body-m">{t(`${TEXTOS}.intro`)}</p>
         <Boton to={RUTAS.adminCampanaNueva} tamano="M" icono={iconoMas}>{t(`${TEXTOS}.nueva`)}</Boton>
@@ -71,13 +72,9 @@ export default function FidelizacionPage({ path }) {
               </EstadoVacio>
             ) : (
               <>
-                <Pestanas
-                  etiqueta={t(`${TEXTOS}.filtrar`)}
-                  valor={filtro}
-                  onCambiar={setFiltro}
-                  opciones={FILTROS.map((f) => ({ valor: f, etiqueta: t(`${TEXTOS}.filtro.${f}`, { count: datos.campanas.filter(enFiltro(f)).length }) }))}
-                />
-                <TablaCampanas campanas={datos.campanas.filter(enFiltro(filtro))} onFinalizar={setAFinalizar} />
+                <PestanasEstado etiqueta={t(`${TEXTOS}.filtrar`)} filtros={FILTROS_CAMPANAS} items={datos.campanas} valor={filtro}
+                  onCambiar={setFiltro} textos={`${TEXTOS}.filtro`} />
+                <TablaCampanas campanas={datos.campanas.filter(enFiltro(FILTROS_CAMPANAS, filtro))} onFinalizar={setAFinalizar} />
               </>
             )}
           </section>

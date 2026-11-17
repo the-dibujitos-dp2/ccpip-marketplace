@@ -23,6 +23,7 @@ import pe.ccpip.fidelizacion.FidelizacionModelos.Dia;
 import pe.ccpip.fidelizacion.FidelizacionModelos.EstadoCampana;
 import pe.ccpip.fidelizacion.FidelizacionModelos.Metricas;
 import pe.ccpip.fidelizacion.FidelizacionModelos.ProductoTop;
+import pe.ccpip.fidelizacion.FidelizacionModelos.UsoCodigos;
 import pe.ccpip.reportes.gestion.GestionModelos.Indicador;
 
 /**
@@ -43,8 +44,11 @@ public class MetricasCampanaService {
         this.campanas = campanas;
     }
 
-    /** Un pedido confirmado del periodo. {@code nuevo}: su comprador no habia comprado antes del periodo. */
-    private record Pedido(long usuarioId, BigDecimal total, boolean entregado, LocalDate dia, boolean nuevo) {
+    /**
+     * Un pedido confirmado del periodo. {@code total}: sus productos; {@code base}: lo pagado por ellos despues del
+     * descuento, sobre lo que se ganan los puntos. {@code nuevo}: su comprador no habia comprado antes del periodo.
+     */
+    private record Pedido(long usuarioId, BigDecimal total, BigDecimal base, boolean entregado, LocalDate dia, boolean nuevo) {
     }
 
     /** Lo que suman unos pedidos: cuantos, cuanto, ticket promedio y compradores distintos. */
@@ -90,15 +94,26 @@ public class MetricasCampanaService {
                 Indicador.comparar(actual.clientes(), previa.clientes()),
                 campana.resumen().puntosOtorgados(), puntos(porEntregar, regla),
                 enCampana.size() - porEntregar.size(), porEntregar.size(), periodo.size() - enCampana.size(),
-                nuevos, recurrentes, dias(enCampana, desde, hasta, regla), productos(id));
+                nuevos, recurrentes, dias(enCampana, desde, hasta, regla), productos(id), codigos(id));
     }
 
     private static boolean llega(Pedido p, Campana c) {
-        return p.total().compareTo(c.montoMinimo()) >= 0;
+        return p.base().compareTo(c.montoMinimo()) >= 0;
     }
 
+    /** Sin el multiplicador de cada nivel: es una estimacion de lo que se acreditara. */
     private static long puntos(List<Pedido> pedidos, ReglaPuntos regla) {
-        return pedidos.stream().mapToLong(p -> regla.puntosDe(p.total())).sum();
+        return pedidos.stream().mapToLong(p -> regla.puntosDe(p.base())).sum();
+    }
+
+    /** Cuantas compras pagadas usaron los codigos de la campana y cuanto descontaron (lo asume la Camara). */
+    private UsoCodigos codigos(long campanaId) {
+        return jdbc.queryForObject("""
+                SELECT count(*) AS usos, coalesce(sum(pe.descuento_monto), 0) AS descuento
+                FROM pedido pe JOIN codigo_descuento d ON d.id = pe.codigo_descuento_id
+                WHERE d.campana_id = :campana AND pe.estado NOT IN ('CANCELADO', 'PENDIENTE_PAGO')""",
+                new MapSqlParameterSource("campana", campanaId),
+                (rs, row) -> new UsoCodigos(rs.getInt("usos"), rs.getBigDecimal("descuento")));
     }
 
     /** Cada dia del periodo, tambien los que no tuvieron pedidos. */
@@ -115,7 +130,7 @@ public class MetricasCampanaService {
     private List<Pedido> pedidos(LocalDate desde, LocalDate hasta, Instant corte) {
         String enPeriodo = CampanasService.enPeriodo(":desde", ":hasta", "CAST(:corte AS timestamptz)");
         return jdbc.query("""
-                        SELECT p.usuario_id, p.total, p.estado = 'ENTREGADO' AS entregado,
+                        SELECT p.usuario_id, p.total, p.total - p.descuento_monto AS base, p.estado = 'ENTREGADO' AS entregado,
                                (p.confirmado_en AT TIME ZONE 'America/Lima')::date AS dia,
                                NOT EXISTS (SELECT 1 FROM pedido q
                                            WHERE q.usuario_id = p.usuario_id AND q.estado <> 'CANCELADO'
@@ -125,7 +140,8 @@ public class MetricasCampanaService {
                         WHERE p.estado <> 'CANCELADO' AND %s""".formatted(enPeriodo),
                 new MapSqlParameterSource("desde", desde).addValue("hasta", hasta)
                         .addValue("corte", corte == null ? null : Timestamp.from(corte)),
-                (rs, row) -> new Pedido(rs.getLong("usuario_id"), rs.getBigDecimal("total"), rs.getBoolean("entregado"),
+                (rs, row) -> new Pedido(rs.getLong("usuario_id"), rs.getBigDecimal("total"), rs.getBigDecimal("base"),
+                        rs.getBoolean("entregado"),
                         rs.getObject("dia", LocalDate.class), rs.getBoolean("nuevo")));
     }
 
@@ -135,7 +151,7 @@ public class MetricasCampanaService {
                         SELECT pr.id, pr.nombre, coalesce(pd.nombre_tienda, pd.comunidad) AS comunidad,
                                sum(i.cantidad) AS unidades, sum(i.subtotal) AS ventas
                         FROM campana_puntos c
-                        JOIN pedido p ON p.estado <> 'CANCELADO' AND p.total >= c.monto_minimo AND %s
+                        JOIN pedido p ON p.estado <> 'CANCELADO' AND p.total - p.descuento_monto >= c.monto_minimo AND %s
                         JOIN item_pedido i ON i.pedido_id = p.id
                         JOIN producto pr ON pr.id = i.producto_id
                         JOIN productor pd ON pd.id = i.productor_id
