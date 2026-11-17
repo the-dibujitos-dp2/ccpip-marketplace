@@ -43,7 +43,7 @@ export default function CampanaPage({ path, id }) {
     return null
   }).catch(setError)
   useEffect(() => {
-    cargar()
+    void cargar()
   }, [id])
 
   const campana = panel?.campanas.find((c) => String(c.id) === String(id))
@@ -76,7 +76,7 @@ export default function CampanaPage({ path, id }) {
           setFinalizar(false)
           setMetricas(null)
           setAviso({ tono: 'exito', titulo: t(`${TEXTOS}.${c.estado === 'CANCELADA' ? 'cancelar' : 'finalizar'}.listo`, { nombre: c.nombre }) })
-          cargar()
+          void cargar()
         }}
         onError={(descripcion) => {
           setFinalizar(false)

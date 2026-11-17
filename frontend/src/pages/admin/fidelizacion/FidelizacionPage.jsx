@@ -39,13 +39,13 @@ export default function FidelizacionPage({ path }) {
 
   const cargar = () => obtenerFidelizacion().then(setDatos).catch(setError)
   useEffect(() => {
-    cargar()
+    void cargar()
   }, [])
 
   const finalizada = (campana) => {
     setAFinalizar(null)
     setAviso({ tono: 'exito', titulo: t(`${TEXTOS}.${campana.estado === 'CANCELADA' ? 'cancelar' : 'finalizar'}.listo`, { nombre: campana.nombre }) })
-    cargar()
+    void cargar()
   }
 
   return (
