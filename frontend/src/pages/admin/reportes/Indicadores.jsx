@@ -8,28 +8,13 @@ import iconoGrafico from '../../../assets/icons/grafico.svg'
 import iconoPaquete from '../../../assets/icons/paquete.svg'
 import iconoTienda from '../../../assets/icons/tienda.svg'
 import iconoUsuario from '../../../assets/icons/usuario.svg'
-import { Barra, Kpis, nombrePeriodo } from '../../../components/TablaReporte.jsx'
+import { Barra, Kpis, nombrePeriodo, variacion } from '../../../components/TablaReporte.jsx'
 import { fecha, precio, unidades } from '../../../formato.js'
 import { columnas, TablaReporte } from './comun.jsx'
 import './Indicadores.css'
 import { GraficaAdmin } from './GraficaAdmin.jsx'
 
 const TEXTOS = 'admin.reportes.indicadores'
-
-/**
- * Detalle de una tarjeta frente al periodo anterior: el cambio con su signo. Una caida (negativa) va
- * siempre en rojo (CCPIP-454); una subida, en verde, o en rojo si subir es malo (`inverso`). Sin anterior
- * (cero) no hay variacion.
- */
-function variacion({ variacion: cambio }, inverso = false) {
-  if (cambio == null) return { detalle: 'sinAnterior' }
-  const valor = Number(cambio)
-  const signo = valor > 0 ? '+' : ''
-  let tono = 'neutro'
-  if (valor < 0) tono = 'error'
-  else if (valor > 0) tono = inverso ? 'error' : 'exito'
-  return { detalle: 'variacion', vars: { valor: `${signo}${unidades(valor)}%` }, tono }
-}
 
 /**
  * Un grupo de tarjetas con su titulo `{TEXTOS}.{id}.titulo`. `desglose` es una segunda fila (B2C y B2B), para

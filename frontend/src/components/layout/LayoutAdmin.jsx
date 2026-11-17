@@ -6,6 +6,7 @@ import iconoCamion from '../../assets/icons/camion.svg'
 import iconoComunidad from '../../assets/icons/comunidad.svg'
 import iconoEtiqueta from '../../assets/icons/etiqueta.svg'
 import iconoEscudo from '../../assets/icons/escudo-check.svg'
+import iconoEstrella from '../../assets/icons/estrella.svg'
 import iconoGrafico from '../../assets/icons/grafico.svg'
 import iconoMerma from '../../assets/icons/merma.svg'
 import iconoPorcentaje from '../../assets/icons/porcentaje.svg'
@@ -50,6 +51,8 @@ const NAV = [
   { to: RUTAS.adminCuentas, clave: 'cuentas', icono: iconoUsuario, roles: ['SUPER_ADMIN', 'SUB_ADMIN'], prefijo: true },
   // CCPIP-77, 298, 299 y 300: catalogo de causas de merma
   { to: RUTAS.adminMotivosMerma, clave: 'motivosMerma', icono: iconoMerma, roles: ['SUPER_ADMIN'] },
+  // CCPIP-86: campanas de puntos para los compradores y sus metricas
+  { to: RUTAS.adminFidelizacion, clave: 'fidelizacion', icono: iconoEstrella, roles: ['SUB_ADMIN'], prefijo: true },
   // S-05 (CCPIP-126): las acciones de gobernanza propias del sub administrador
   { to: RUTAS.adminMiHistorial, clave: 'miHistorial', icono: iconoReloj, roles: ['SUB_ADMIN'] },
 ]

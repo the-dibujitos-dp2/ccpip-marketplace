@@ -1,0 +1,73 @@
+/* CCPIP-86: seccion Fidelizacion del sub administrador (campanas de puntos y sus metricas) */
+
+.fidelizacion__cabecera { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.fidelizacion__cabecera .body-m { flex: 1 1 360px; margin: 0; color: var(--color-text-secondary); }
+
+/* La campana que rige hoy */
+.fidelizacion__activa { display: flex; flex-direction: column; gap: 16px; padding: 24px; border: 1px solid var(--color-border-brand); border-radius: var(--radius-xl); background: var(--color-bg-brand-subtle); }
+.fidelizacion__activa-cabecera { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.fidelizacion__activa-cabecera .heading-h3, .fidelizacion__activa-cabecera .body-s { margin: 0; }
+.fidelizacion__activa-cabecera .body-s { color: var(--color-text-secondary); }
+.fidelizacion__activa-etiqueta { margin: 0 0 4px; color: var(--color-text-brand); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.fidelizacion__avance { display: flex; flex-direction: column; gap: 6px; }
+.fidelizacion__avance .caption { margin: 0; color: var(--color-text-secondary); }
+.fidelizacion__barra { height: 8px; border-radius: var(--radius-pill); background: var(--color-bg-surface); overflow: hidden; }
+.fidelizacion__barra span { display: block; height: 100%; border-radius: inherit; background: var(--color-bg-brand); }
+.fidelizacion__cifras { display: flex; flex-wrap: wrap; gap: 32px; margin: 0; }
+.fidelizacion__cifras div { display: flex; flex-direction: column; gap: 2px; }
+.fidelizacion__cifras dt { color: var(--color-text-secondary); font-size: 13px; }
+.fidelizacion__cifras dd { margin: 0; font-size: 22px; font-weight: 600; color: var(--color-text-primary); font-variant-numeric: tabular-nums; }
+
+.fidelizacion__acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.fidelizacion__acciones--fin { justify-content: flex-end; gap: 12px; }
+
+/* Tabla de campanas */
+/* Ancho fijo: las filas de .tabla miden su contenido, y la regla larga no debe empujar a las demas columnas */
+.fidelizacion__col-campana { display: flex; flex-direction: column; gap: 2px; flex: 1 0 240px; width: 240px; min-width: 0; }
+.fidelizacion__col-campana .caption { color: var(--color-text-secondary); }
+.fidelizacion__nombre { font-weight: 600; }
+.fidelizacion__col-periodo { flex: 0 0 170px; }
+.fidelizacion__col-estado { flex: 0 0 100px; }
+.fidelizacion__tabla .admin__num { flex-basis: 100px; }
+.fidelizacion__col-acciones { flex: 0 0 140px; display: flex; justify-content: flex-end; gap: 4px; }
+.fidelizacion__sin-filtro { margin: 0; color: var(--color-text-secondary); }
+
+/* Formulario y vista previa */
+.fidelizacion__formulario-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; gap: 24px; }
+.fidelizacion__formulario { gap: 24px; }
+.fidelizacion__grupo { display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.fidelizacion__grupo legend { margin: 0 0 12px; padding: 0; }
+.fidelizacion__fila { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.fidelizacion__veces { margin: -4px 0 0; color: var(--color-text-brand); font-weight: 600; }
+.fidelizacion__lateral { display: flex; flex-direction: column; gap: 14px; padding: 24px; border: 1px solid var(--color-border-default); border-radius: var(--radius-xl); background: var(--color-bg-surface); }
+.fidelizacion__lateral p { margin: 0; }
+.fidelizacion__lateral .caption { color: var(--color-text-secondary); }
+.fidelizacion__previa { display: flex; flex-direction: column; gap: 12px; }
+.fidelizacion__previa .heading-h4 { margin: 0; }
+.fidelizacion__previa .caption { margin: 0; color: var(--color-text-secondary); }
+.fidelizacion__previa-tabla { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.fidelizacion__previa-tabla :is(th, td) { padding: 8px 0; border-bottom: 1px solid var(--color-border-default); text-align: right; font-size: 15px; }
+.fidelizacion__previa-tabla :is(thead th, tbody th) { text-align: left; }
+.fidelizacion__previa-tabla thead th { color: var(--color-text-secondary); font-size: 13px; font-weight: 500; }
+.fidelizacion__previa-tabla thead th:not(:first-child) { text-align: right; }
+/* La vista previa va toda en blanco: sin el fondo de los encabezados de tabla del panel */
+.fidelizacion__lateral .fidelizacion__previa-tabla :is(thead th, th[scope='col']) { background: transparent; }
+.fidelizacion__previa-campana { font-weight: 600; color: var(--color-text-brand); }
+
+/* Detalle de una campana */
+.fidelizacion__cabecera-fila { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.fidelizacion__cabecera-datos { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.fidelizacion__cabecera-datos p { margin: 0; }
+.fidelizacion__cabecera-datos :is(.body-s, .caption) { color: var(--color-text-secondary); }
+.fidelizacion__descripcion { max-width: 70ch; }
+.fidelizacion__nota { margin: -8px 0 0; color: var(--color-text-secondary); }
+.fidelizacion__graficos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+
+@media (max-width: 1100px) {
+  .fidelizacion__formulario-grid, .fidelizacion__graficos { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 720px) {
+  .fidelizacion__fila { grid-template-columns: minmax(0, 1fr); }
+  .fidelizacion__col-periodo, .fidelizacion__col-estado, .fidelizacion__col-acciones { flex-basis: auto; }
+}

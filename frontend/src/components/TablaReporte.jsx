@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import usePaginacionLocal from '../hooks/usePaginacionLocal.js'
 import Paginacion from './Paginacion.jsx'
-import { capital, claseSigno, fecha, mesAnio } from '../formato.js'
+import { capital, claseSigno, fecha, mesAnio, unidades } from '../formato.js'
 import EstadoVacio from './EstadoVacio.jsx'
 import TarjetaKpi from './TarjetaKpi.jsx'
 import './TablaReporte.css'
@@ -72,6 +72,21 @@ export function nombrePeriodo(p, agrupacion, t, semana) {
  */
 export const fabricaColumnas = (t, prefijo) => (formato, opciones = {}) => (clave, mas = {}) =>
   ({ clave, etiqueta: t(`${prefijo}.${clave}`), valor: (f) => formato(f[clave]), ...opciones, ...mas })
+
+/**
+ * Detalle de una tarjeta frente al periodo anterior: el cambio con su signo. Una caida (negativa) va
+ * siempre en rojo (CCPIP-454); una subida, en verde, o en rojo si subir es malo (`inverso`). Sin anterior
+ * (cero) no hay variacion.
+ */
+export function variacion({ variacion: cambio }, inverso = false) {
+  if (cambio == null) return { detalle: 'sinAnterior' }
+  const valor = Number(cambio)
+  const signo = valor > 0 ? '+' : ''
+  let tono = 'neutro'
+  if (valor < 0) tono = 'error'
+  else if (valor > 0) tono = inverso ? 'error' : 'exito'
+  return { detalle: 'variacion', vars: { valor: `${signo}${unidades(valor)}%` }, tono }
+}
 
 /**
  * Las tarjetas de un reporte. Cada una es `{ clave, valor, icono, tono, vars, detalle }`: el titulo es
