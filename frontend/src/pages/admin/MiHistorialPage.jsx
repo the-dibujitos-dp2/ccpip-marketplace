@@ -19,7 +19,7 @@ import './MiHistorialPage.css'
 import usePaginacionLocal from '../../hooks/usePaginacionLocal.js'
 import Paginacion from '../../components/Paginacion.jsx'
 
-const TIPOS = ['AUTORIZACIONES', 'MODERACION', 'PRODUCTORES', 'DENUNCIAS', 'CUENTAS']
+const TIPOS = ['AUTORIZACIONES', 'MODERACION', 'PRODUCTORES', 'DENUNCIAS', 'CUENTAS', 'FIDELIZACION']
 
 /** Color de la insignia de cada accion; lo que no esta aqui va en neutro. */
 const TONO = {
@@ -28,6 +28,7 @@ const TONO = {
   AUTORIZACION_RECHAZADA: 'error', AUTORIZACION_REVOCADA: 'error', REVOCAR_VENTA: 'error', BLOQUEAR_VENTA: 'error',
   CUENTA_SUSPENDER: 'error', PUBLICACION_RECHAZADA: 'error', VIDEO_RECHAZADO: 'error',
   RENOVACION_SOLICITADA: 'aviso', DENUNCIA_EN_REVISION: 'aviso',
+  CAMPANA_PUNTOS_CREADA: 'exito', CAMPANA_PUNTOS_EDITADA: 'info',
 }
 
 /** Pantalla a la que lleva "Sobre". */
@@ -38,6 +39,8 @@ const DESTINO = {
   PRODUCTOR: (id) => `${RUTAS.adminProductores}/${id}`,
   DENUNCIAS: (id) => `${RUTAS.adminDenuncias}/productores/${id}`,
   CUENTA: (id) => `${RUTAS.adminCuentas}/${id}`,
+  // CCPIP-86: la campana de puntos, con sus metricas
+  CAMPANA: (id) => `${RUTAS.adminFidelizacion}/campanas/${id}`,
 }
 
 /**

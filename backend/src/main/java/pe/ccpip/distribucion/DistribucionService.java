@@ -25,6 +25,7 @@ import pe.ccpip.distribucion.DistribucionModelos.PuntoConPedidos;
 import pe.ccpip.distribucion.DistribucionUbicacionesModelos.UbicacionesPedido;
 import pe.ccpip.distribucion.DistribucionUbicacionesModelos.UbicacionDestino;
 import pe.ccpip.entrega.EntregaModelos.Distrito;
+import pe.ccpip.fidelizacion.PuntosService;
 
 /**
  * CCPIP-107 (RF-54): los pedidos preparados que un distribuidor puede asumir. Es elegible el pedido a domicilio
@@ -63,9 +64,11 @@ public class DistribucionService {
               AND e.estado = 'DISPONIBLE' AND e.distribuidor_id IS NULL AND u.activo""";
 
     private final NamedParameterJdbcTemplate jdbc;
+    private final PuntosService puntos;
 
-    public DistribucionService(NamedParameterJdbcTemplate jdbc) {
+    public DistribucionService(NamedParameterJdbcTemplate jdbc, PuntosService puntos) {
         this.jdbc = jdbc;
+        this.puntos = puntos;
     }
 
     /** Una pagina de los elegibles, el que lleva mas esperando primero. {@code punto} (opcional) deja solo los de ese punto. */
@@ -238,6 +241,8 @@ public class DistribucionService {
         jdbc.update("UPDATE entrega SET estado='ENTREGADA', entregada_en=now() WHERE pedido_id=:pedido", new MapSqlParameterSource("pedido", entrega.pedidoId()));
         jdbc.update("INSERT INTO pedido_estado_historial (pedido_id, estado, usuario_id) VALUES (:pedido, 'ENTREGADO', :usuario)",
                 new MapSqlParameterSource("pedido", entrega.pedidoId()).addValue("usuario", distribuidorId));
+        // CCPIP-86: la entrega completa da los puntos al comprador
+        puntos.acreditarEntrega(entrega.pedidoId());
         return entregaDe(entrega.pedidoId());
     }
 
