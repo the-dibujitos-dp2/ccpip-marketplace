@@ -1611,7 +1611,8 @@
       "miHistorial": "My history",
       "tarifasEnvio": "Shipping rates",
       "capacidadEntrega": "Delivery capacity",
-      "revisionesMerma": "Loss reviews"
+      "revisionesMerma": "Loss reviews",
+      "fidelizacion": "Loyalty"
     },
     "permisos": {
       "titulo": "Permissions by role"
@@ -2265,6 +2266,177 @@
       "rechazadaOk": "Review for batch {{lote}} rejected",
       "reintegradas": "{{cantidad}} returned to the batch",
       "resolvio": "{{nombre}} · {{fecha}}"
+    },
+    "fidelizacion": {
+      "titulo": "Loyalty",
+      "intro": "Schedule points campaigns for a period to reward buyers, and measure their effect on sales.",
+      "nueva": "New campaign",
+      "errorCargar": "We couldn't load loyalty",
+      "errorFinalizar": "We couldn't end the campaign",
+      "regla_one": "{{count}} point for every {{monto}}",
+      "regla_other": "{{count}} points for every {{monto}}",
+      "periodo": "From {{desde}} to {{hasta}}",
+      "minimo": "Minimum order {{monto}}",
+      "sinMinimo": "No minimum order",
+      "tope_one": "Cap of {{puntos}} point per order",
+      "tope_other": "Cap of {{puntos}} points per order",
+      "sinTope": "No cap",
+      "estado": {
+        "ACTIVA": "Active",
+        "PROGRAMADA": "Scheduled",
+        "FINALIZADA": "Ended",
+        "CANCELADA": "Cancelled"
+      },
+      "kpi": {
+        "puntos": "Points awarded",
+        "deCampanas": "{{porcentaje}} % from campaigns",
+        "clientes": "Customers with points",
+        "clientesDetalle": "Buyers who already earned points",
+        "pedidos": "Orders with points",
+        "pedidosDetalle": "Completed deliveries that earned points",
+        "activa": "Active campaign",
+        "ninguna": "None",
+        "sinCampana": "The base rule applies today",
+        "hasta": "Until {{fecha}}",
+        "proxima": "Next: {{nombre}}, from {{fecha}}"
+      },
+      "activaAhora": "Active now",
+      "verMetricas": "View metrics",
+      "avance": "Day {{dia}} of {{total}}",
+      "campanas": "Campaigns",
+      "filtrar": "Filter campaigns",
+      "filtro": {
+        "TODAS": "All ({{count}})",
+        "ACTIVA": "Active ({{count}})",
+        "PROGRAMADA": "Scheduled ({{count}})",
+        "FINALIZADA": "Ended ({{count}})"
+      },
+      "vacio": {
+        "titulo": "No campaigns yet",
+        "texto": "Schedule the first one to reward more points during a period, for example a cocoa week or national holidays."
+      },
+      "sinFiltro": "There are no campaigns in this state.",
+      "col": {
+        "campana": "Campaign",
+        "periodo": "Period",
+        "estado": "Status",
+        "pedidos": "Orders",
+        "ventas": "Sales",
+        "puntos": "Points awarded",
+        "acciones": "Actions"
+      },
+      "editar": "Edit",
+      "editarDe": "Edit {{nombre}}",
+      "finalizar": {
+        "boton": "End",
+        "de": "End {{nombre}}",
+        "titulo": "End the campaign?",
+        "confirmar": "End now",
+        "texto": "“{{nombre}}” will stop applying from now on. Orders already confirmed keep their campaign rule.",
+        "listo": "You ended “{{nombre}}”."
+      },
+      "cancelar": {
+        "boton": "Cancel",
+        "de": "Cancel {{nombre}}",
+        "titulo": "Cancel the campaign?",
+        "confirmar": "Cancel campaign",
+        "texto": "“{{nombre}}” hasn't started yet. If you cancel it, it won't apply to any order.",
+        "listo": "You cancelled “{{nombre}}”."
+      },
+      "detalle": "Campaign details",
+      "registradaPor": "Scheduled by {{nombre}}",
+      "finalizadaPor": "ended by {{nombre}}",
+      "volver": "Back to campaigns",
+      "previa": {
+        "titulo": "Preview",
+        "pedido": "Order",
+        "base": "Base rule",
+        "campana": "Campaign",
+        "nota": "Points on the products total, without shipping. Below the minimum order the base rule applies."
+      },
+      "form": {
+        "tituloNueva": "New campaign",
+        "tituloEditar": "Edit campaign",
+        "datos": "Details",
+        "nombre": "Name",
+        "nombreEjemplo": "E.g.: Cocoa week",
+        "descripcion": "Description (optional)",
+        "descripcionAyuda": "To remember the campaign's goal. Buyers don't see it.",
+        "periodo": "Period",
+        "desde": "From",
+        "hasta": "To",
+        "reglaTitulo": "Points rule",
+        "atajos": "Common rules",
+        "atajo": {
+          "doble": "Double (2 per S/ 10)",
+          "triple": "Triple (3 per S/ 10)",
+          "quintuple": "×5 (5 per S/ 10)",
+          "diezPorSol": "10 per S/ 1"
+        },
+        "puntos": "Points earned",
+        "cadaSoles": "For every S/",
+        "veces": "{{veces}} times the base rule",
+        "montoMinimo": "Minimum order in S/ (optional)",
+        "montoMinimoAyuda": "Below this amount the base rule applies.",
+        "topePuntos": "Cap per order (optional)",
+        "topePuntosAyuda": "Maximum points an order can earn.",
+        "programar": "Schedule campaign",
+        "guardar": "Save changes",
+        "resumenPeriodo": "It will apply from {{desde}} to {{hasta}}, by the day each order is confirmed.",
+        "conservan": "Orders confirmed during the campaign earn with its rule even if they are delivered later.",
+        "errorGuardar": "We couldn't save the campaign",
+        "error": {
+          "cargar": "We couldn't load the campaign",
+          "noEditable": "This campaign already started and cannot be edited",
+          "noEncontrada": "We couldn't find that campaign"
+        },
+        "validacion": {
+          "nombre": "Give the campaign a name",
+          "desde": "Enter when it starts",
+          "desdePasado": "The campaign starts today or on a future date",
+          "hasta": "Enter when it ends",
+          "hastaAntes": "It ends on the same day it starts or later",
+          "puntos": "Between 1 and 1000 points",
+          "cadaSoles": "From S/ 1, with up to 2 decimals",
+          "mejorQueBase": "The campaign must give more points than the base rule (1 point for every S/ 10)",
+          "monto": "Use an amount in soles, with up to 2 decimals",
+          "tope": "Use a whole number of points"
+        }
+      },
+      "metricas": {
+        "error": "We couldn't load the metrics",
+        "programada": "Starts on {{fecha}}",
+        "programadaTexto": "Its metrics will appear from that day. Meanwhile, you can edit or cancel it.",
+        "cancelada": "Cancelled before starting",
+        "canceladaTexto": "It did not apply to any order.",
+        "resultados": "Results",
+        "comparacion": "From {{desde}} to {{hasta}}, compared with the previous period ({{anteriorDesde}} – {{anteriorHasta}}) with the same minimum order.",
+        "pedidos": "Orders",
+        "ventas": "Sales",
+        "ticket": "Average ticket",
+        "clientes": "Customers",
+        "variacion": "{{valor}} vs. the previous period",
+        "sinAnterior": "No orders in the previous period",
+        "puntosTitulo": "Points",
+        "otorgados": "Points awarded",
+        "otorgadosDetalle_one": "From {{count}} delivered order",
+        "otorgadosDetalle_other": "From {{count}} delivered orders",
+        "porAcreditar": "To be credited",
+        "porAcreditarDetalle_one": "When {{count}} order is delivered",
+        "porAcreditarDetalle_other": "When {{count}} orders are delivered",
+        "nuevos": "New customers",
+        "nuevosDetalle": "Their first purchase was in the campaign",
+        "recurrentes": "Returning customers",
+        "recurrentesDetalle": "Bought 2 or more times in the campaign",
+        "bajoMinimo_one": "{{count}} order didn't reach the {{monto}} minimum",
+        "bajoMinimo_other": "{{count}} orders didn't reach the {{monto}} minimum",
+        "bajoMinimoTexto": "They earned with the base rule. If there are many, consider a lower minimum in the next campaign.",
+        "evolucion": "Daily evolution",
+        "ventasPorDia": "Sales per day",
+        "puntosPorDia": "Points generated per day",
+        "puntosSerie": "Points",
+        "productos": "Best-selling products"
+      }
     }
   },
   "sello": {
@@ -2695,7 +2867,16 @@
     "REVISION_EXISTENTE": "This loss already has a pending or approved review.",
     "MERMA_AUTOMATICA": "Expiry losses are recorded by the system and cannot be reviewed.",
     "REVISION_RESUELTA": "This review has already been resolved.",
-    "SUPERA_LOTE": "With that amount the batch would exceed what came in."
+    "SUPERA_LOTE": "With that amount the batch would exceed what came in.",
+    "CAMPANA_NO_ENCONTRADA": "We couldn't find that campaign.",
+    "CAMPANA_NO_EDITABLE": "Only a campaign that hasn't started can be edited.",
+    "CAMPANA_YA_TERMINO": "This campaign already ended.",
+    "CAMPANA_INICIO_PASADO": "The campaign starts today or on a future date.",
+    "CAMPANA_FIN_ANTES_DE_INICIO": "The campaign ends on the same day it starts or later.",
+    "CAMPANA_MUY_LARGA": "A campaign lasts one year at most.",
+    "CAMPANA_NO_MEJORA_BASE": "The campaign must give more points than the base rule (1 point for every S/ 10).",
+    "CAMPANA_SE_CRUZA": "It overlaps another campaign. Choose other dates.",
+    "CAMPANA_SIN_METRICAS": "This campaign doesn't have orders yet."
   },
   "buscar": {
     "comunidad": "Community",
@@ -3151,7 +3332,13 @@
       "totalFinal": "Total paid"
     },
     "precioMayorista": "Wholesale price",
-    "enSoles": "Amounts in Peruvian soles (S/). For now we only sell and deliver within Peru."
+    "enSoles": "Amounts in Peruvian soles (S/). For now we only sell and deliver within Peru.",
+    "puntos": {
+      "titulo_one": "You earned {{puntos}} point",
+      "titulo_other": "You earned {{puntos}} points",
+      "campana": "With the “{{campana}}” campaign, when you received your order.",
+      "base": "For your purchase, when you received your order."
+    }
   },
   "misPedidos": {
     "miCuenta": "My account",
@@ -4889,7 +5076,8 @@
       "MODERACION": "Moderation",
       "PRODUCTORES": "Producers",
       "DENUNCIAS": "Reports",
-      "CUENTAS": "Accounts"
+      "CUENTAS": "Accounts",
+      "FIDELIZACION": "Loyalty"
     },
     "col": {
       "fecha": "Date and time",
@@ -4917,7 +5105,10 @@
       "DENUNCIA_RESUELTA": "Resolved report",
       "DENUNCIA_DESESTIMADA": "Dismissed report",
       "CUENTA_SUSPENDER": "Suspended account",
-      "CUENTA_REACTIVAR": "Reactivated account"
+      "CUENTA_REACTIVAR": "Reactivated account",
+      "CAMPANA_PUNTOS_CREADA": "Scheduled points campaign",
+      "CAMPANA_PUNTOS_EDITADA": "Edited points campaign",
+      "CAMPANA_PUNTOS_FINALIZADA": "Ended points campaign"
     },
     "denuncia": "Report {{numero}}",
     "vacio": "You recorded no actions in this period.",
@@ -5057,7 +5248,10 @@
       "MOTIVO_MERMA_CREADO": "Created a shrinkage reason",
       "MOTIVO_MERMA_MODIFICADO": "Modified a shrinkage reason",
       "MOTIVO_MERMA_DESACTIVADO": "Deactivated a shrinkage reason",
-      "MOTIVO_MERMA_ACTIVADO": "Activated a shrinkage reason"
+      "MOTIVO_MERMA_ACTIVADO": "Activated a shrinkage reason",
+      "CAMPANA_PUNTOS_CREADA": "Scheduled a points campaign",
+      "CAMPANA_PUNTOS_EDITADA": "Edited a points campaign",
+      "CAMPANA_PUNTOS_FINALIZADA": "Ended a points campaign"
     },
     "entidad": {
       "AUTORIZACION": "Authorization",
@@ -5093,7 +5287,8 @@
       "AVISO": "Notice",
       "CARRITO": "Cart",
       "TRADUCCION": "Translation",
-      "IMAGEN": "Image"
+      "IMAGEN": "Image",
+      "CAMPANA_PUNTOS": "Points campaign"
     },
     "resultado": {
       "EXITOSA": "Successful",
