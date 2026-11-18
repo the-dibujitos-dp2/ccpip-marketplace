@@ -1,0 +1,48 @@
+/*
+ * CCPIP-435 · Herbario. El contenido de la tienda llega a 1440px (ConsumerEditorial.css): las ramas viven
+ * solo en el margen que queda fuera de él, con 24px de aire, y se ocultan cuando ese margen no alcanza.
+ * El ancho se calcula sobre la capa fija (100%), que a diferencia de 100vw no incluye la barra de scroll.
+ * A cada lado: 12px al borde de la ventana + la rama + 24px de aire hasta el contenido.
+ * La tienda es su propio contexto de apilamiento y las ramas van detrás de todo lo que tiene fondo, así
+ * que nunca tapan cabecera, contenido, menús, avisos ni pie; tampoco suman scroll.
+ */
+.layout-tienda {
+  isolation: isolate;
+}
+
+.decoracion-botanica {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.decoracion-botanica__rama {
+  position: absolute;
+  top: 50%;
+  width: min(240px, calc((100% - 1440px) / 2 - 36px));
+  height: auto;
+  max-height: calc(100vh - 48px);
+  object-fit: contain;
+  opacity: 0.8;
+  transform: translateY(-50%);
+}
+
+.decoracion-botanica__rama--izquierda {
+  left: 12px;
+  object-position: left center;
+}
+
+.decoracion-botanica__rama--derecha {
+  right: 12px;
+  object-position: right center;
+}
+
+/* Con ramas de menos de ~96px serían ruido: se ocultan (laptops, tablet y móvil incluidos) */
+@media (max-width: 1719px) {
+  .decoracion-botanica {
+    display: none;
+  }
+}
