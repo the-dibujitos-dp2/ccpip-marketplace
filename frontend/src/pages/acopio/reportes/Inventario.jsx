@@ -15,8 +15,7 @@ const SALDOS = ['saldoInicial', 'entradas', 'salidas']
  * entrega: ya no esta en el saldo, pero si en el almacen.
  */
 export default function Inventario({ datos }) {
-  const { t, i18n } = useTranslation()
-  const titulo = (es, en) => (i18n.resolvedLanguage || '').startsWith('es') ? es : en
+  const { t } = useTranslation()
   const { totales } = datos
   const [seleccion, setSeleccion] = useState(null)
   const periodo = datos.periodos.find((fila) => fila.inicio === seleccion)
@@ -26,17 +25,17 @@ export default function Inventario({ datos }) {
   const variacion = { entradas: unidades(totales.entradas), salidas: unidades(totales.salidas) }
   return (
     <>
-      <SerieTemporal key={dataset} onSelect={(detalle) => setSeleccion(detalle.etiqueta)} titulo={titulo('Evolución de inventario', 'Inventory trend')} unidad="und" series={[
+      <SerieTemporal key={dataset} onSelect={(detalle) => setSeleccion(detalle.etiqueta)} titulo={t('acopio.reportes.grafica.evolucionInventario')} unidad="und" series={[
         ...['saldoInicial', 'entradas', 'salidas', 'saldoFinal'].map((id) => ({
           id, nombre: t(`acopio.reportes.col.${id}`), unidad: 'und', puntos: datos.periodos.map((p) => ({ etiqueta: p.inicio, valor: p[id] })),
         })),
       ]} />
-      {periodo && <section className="productor__seccion" aria-label={titulo('Detalle del período', 'Period detail')}>
-        <h3>{titulo('Detalle del período', 'Period detail')} · {periodo.inicio}</h3>
+      {periodo && <section className="productor__seccion" aria-label={t('acopio.reportes.grafica.detallePeriodo')}>
+        <h3>{t('acopio.reportes.grafica.detallePeriodo')} · {periodo.inicio}</h3>
         <dl className="acopio-inventario__puente">
           {['saldoInicial', 'entradas', 'salidas', 'saldoFinal'].map((campo) => <div key={campo}>
             <dt>{t(`acopio.reportes.col.${campo}`)}</dt>
-            <dd>{periodo[campo] == null ? titulo('Sin dato', 'No data') : und(periodo[campo])}</dd>
+            <dd>{periodo[campo] == null ? t('acopio.reportes.grafica.sinDato') : und(periodo[campo])}</dd>
           </div>)}
         </dl>
       </section>}

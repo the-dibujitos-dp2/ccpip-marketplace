@@ -1501,6 +1501,24 @@
         "porProducto": "Inventory by product",
         "vacio": "No stock in this period",
         "nota": "Based on your point's batch movements: closing balance = opening balance + in − out. Transfers do count here, because they change what's at the point. Units sold but not yet delivered are already out of the balance, but stay in the warehouse until delivery."
+      },
+      "grafica": {
+        "evolucionEntradas": "Stock-in trend",
+        "composicionRecibida": "Received composition",
+        "evolucionInventario": "Inventory trend",
+        "detallePeriodo": "Period detail",
+        "sinDato": "No data",
+        "evolucionSalidas": "Stock-out trend",
+        "desglose": "B2C/B2B breakdown",
+        "pedidos": "Orders",
+        "todosEstados": "All statuses",
+        "totalPedidos": "Total orders",
+        "atendidos": "Fulfilled",
+        "porEntregar": "Awaiting fulfillment",
+        "magnitud": "Chart measure",
+        "estadoPedidos": "Chart order status",
+        "evolucionPedidos": "Order trend",
+        "evolucionVentas": "Sales trend"
       }
     },
     "cobertura401": {
@@ -2047,6 +2065,26 @@
         "sinDireccion": "No address on record",
         "vacio": "There were no sales in this period",
         "nota": "Each order ships from a collection point. The destination is the department of the delivery address for a home delivery, or of the point where it is picked up. Aggregated figures only: no addresses or buyers."
+      },
+      "grafica": {
+        "b2c": "B2C",
+        "b2b": "B2B",
+        "total": "Total",
+        "desglose": "B2C/B2B breakdown",
+        "ventas": "Sales",
+        "pedidos": "Orders",
+        "productores": "Producers with sales",
+        "productos": "New products",
+        "compradores": "Buyers",
+        "distribucion": "Rating distribution",
+        "productosTitulo": "Ratings by product",
+        "puntos": "By collection point",
+        "productoresOrigen": "By producer",
+        "destinos": "By destination",
+        "rutas": "Routes",
+        "sinDireccion": "Address not registered",
+        "estrellas_one": "{{count}} star",
+        "estrellas_other": "{{count}} stars"
       }
     },
     "parametros": {
@@ -5814,5 +5852,15 @@
     "base": "Added to your balance when you receive your order.",
     "linea_one": "You will earn <strong>{{puntos}} point</strong> when you receive your order",
     "linea_other": "You will earn <strong>{{puntos}} points</strong> when you receive your order"
+  },
+  "graficas": {
+    "vacio": "No data to display.",
+    "sinDato": "No data",
+    "puntos": "Data points",
+    "teclado": "Select a point for its exact value. Use the arrow keys to explore the chart.",
+    "negativos": "Negative values are shown separately; they are not parts of a whole.",
+    "grafico": "Interactive chart",
+    "unidades": "units",
+    "series": "Series"
   }
 }

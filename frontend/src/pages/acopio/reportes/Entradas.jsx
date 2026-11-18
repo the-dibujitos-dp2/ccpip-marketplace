@@ -10,8 +10,7 @@ import { Barra, columnas, Kpis, pendiente, Tablas } from './comun.jsx'
  * no atendido, las transferencias hacia sus puntos que aun no llegan.
  */
 export default function Entradas({ datos }) {
-  const { t, i18n } = useTranslation()
-  const titulo = (es, en) => (i18n.resolvedLanguage || '').startsWith('es') ? es : en
+  const { t } = useTranslation()
   const { totales, periodos } = datos
   const col = columnas(t, datos.agrupacion)
   const mayor = Math.max(...periodos.map((p) => Number(p.total)), 0)
@@ -20,11 +19,11 @@ export default function Entradas({ datos }) {
   return (
     <>
       <div className="acopio-visualizaciones">
-        <SerieTemporal titulo={titulo('Evolución de entradas', 'Stock-in trend')} unidad="und" series={[
+        <SerieTemporal titulo={t('acopio.reportes.grafica.evolucionEntradas')} unidad="und" series={[
           { id: 'recepcion', nombre: t('acopio.reportes.col.recepcion'), unidad: 'und', puntos: periodos.map((p) => ({ etiqueta: p.inicio, valor: p.recepcion })) },
           { id: 'transferencias', nombre: t('acopio.reportes.col.transferencias'), unidad: 'und', puntos: periodos.map((p) => ({ etiqueta: p.inicio, valor: p.transferencias })) },
         ]} />
-        <Composicion titulo={titulo('Composición recibida', 'Received composition')} unidad="und" partes={[
+        <Composicion titulo={t('acopio.reportes.grafica.composicionRecibida')} unidad="und" partes={[
           { id: 'recepcion', etiqueta: t('acopio.reportes.col.recepcion'), valor: totales.recepcion },
           { id: 'transferencias', etiqueta: t('acopio.reportes.col.transferencias'), valor: totales.transferencias },
         ]} />

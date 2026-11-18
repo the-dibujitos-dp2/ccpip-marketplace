@@ -99,6 +99,20 @@ describe('formato', () => {
     })
   })
 
+  describe('en portugués (CCPIP-512)', () => {
+    it('mantiene los soles y escribe las fechas como en Brasil', async () => {
+      await i18n.changeLanguage('pt')
+      expect(normal(precio(1234.5))).toBe('S/ 1,234.50')
+      expect(mesAnio('2026-10-04')).toBe('outubro de 2026')
+      expect(fecha('2026-10-04')).toBe('4 de out de 2026')
+      expect(fechaCorta('2026-11-20')).toBe('20/11/2026')
+      expect(fechaHoraLarga('2026-10-17T19:30:00Z')).toBe('17 de outubro, 14:30')
+      expect(diaMesLargoHora('2026-10-30T01:35:00Z')).toBe('29 de outubro 20:35')
+      expect(diaMesAnioLargo('2026-12-03T15:00:00Z')).toBe('3 de dezembro de 2026')
+      expect(mesAnterior('2026-10')).toBe('setembro')
+    })
+  })
+
   describe('en inglés (CCPIP-98)', () => {
     it('mantiene los soles y escribe las fechas en inglés', async () => {
       await i18n.changeLanguage('en')

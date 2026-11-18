@@ -1,5 +1,6 @@
 import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
+import { idiomaContenido } from '../i18n/index.js'
 import './DescargasReporte.css'
 
 /**
@@ -9,9 +10,9 @@ import './DescargasReporte.css'
  * para no descargar un periodo distinto al que se ve.
  */
 export default function DescargasReporte({ formatos, url, etiqueta, className = '', disponible = true, cargando = false }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const aviso = useId()
-  const idioma = i18n.resolvedLanguage === 'en' ? 'en' : 'es'
+  const idioma = idiomaContenido()
   return (
     <div className={`descargas-reporte ${className}`}>
       {formatos.map((f) => (disponible ? (

@@ -5,6 +5,7 @@ import iconoCandado from '../assets/icons/candado.svg'
 import { listarCausas } from '../api/merma.js'
 import { unidades } from '../formato.js'
 import { erroresPorCampo, mensajeError } from '../i18n/errores.js'
+import { idiomaContenido } from '../i18n/index.js'
 import { nuevaClave } from '../movimientos.js'
 import Alerta from './Alerta.jsx'
 import Campo from './Campo.jsx'
@@ -15,8 +16,8 @@ import './DialogoMerma.css'
 const CANTIDAD = /^\d{1,9}(\.\d{1,3})?$/
 
 /** El nombre de la causa en el idioma de la pantalla. */
-export function nombreCausa(causa, i18n) {
-  return i18n.resolvedLanguage === 'en' ? causa.nombreEn ?? causa.motivoEn : causa.nombre ?? causa.motivo
+export function nombreCausa(causa) {
+  return idiomaContenido() === 'en' ? causa.nombreEn ?? causa.motivoEn : causa.nombre ?? causa.motivo
 }
 
 /**
@@ -28,7 +29,7 @@ export function nombreCausa(causa, i18n) {
  * - `marcar(datos)` llama al API; `onMarcada(respuesta)` recibe la merma y el saldo del lote.
  */
 export default function DialogoMerma({ lote, marcar, onMarcada, onCancelar }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [causas, setCausas] = useState(null)
   const [errorCausas, setErrorCausas] = useState(null)
   const [cantidad, setCantidad] = useState('')
@@ -95,7 +96,7 @@ export default function DialogoMerma({ lote, marcar, onMarcada, onCancelar }) {
           <p>
             {t('merma.confirmar.resumen', {
               cantidad: unidades(cantidad), producto: lote.producto, lote: lote.codigo, detalle: lote.detalle,
-              causa: nombreCausa(causa, i18n), antes: unidades(lote.stock), despues: unidades(resultante),
+              causa: nombreCausa(causa), antes: unidades(lote.stock), despues: unidades(resultante),
             })}
           </p>
           <p className="dialogo-merma__irreversible">
@@ -143,7 +144,7 @@ export default function DialogoMerma({ lote, marcar, onMarcada, onCancelar }) {
                 checked={String(c.id) === causaId}
                 onChange={() => { setCausaId(String(c.id)); setErrores((x) => ({ ...x, motivoId: undefined, detalle: undefined })) }}
               />
-              {c.requiereDetalle ? t('merma.especificar', { causa: nombreCausa(c, i18n) }) : nombreCausa(c, i18n)}
+              {c.requiereDetalle ? t('merma.especificar', { causa: nombreCausa(c) }) : nombreCausa(c)}
             </label>
           ))}
           {errores.motivoId && <p className="campo__ayuda campo__ayuda--error">{errores.motivoId}</p>}

@@ -7,10 +7,10 @@ import Boton from '../../components/Boton.jsx'
 import Campo from '../../components/Campo.jsx'
 import Interruptor from '../../components/Interruptor.jsx'
 import { fechaHora } from '../../formato.js'
-import i18n from '../../i18n/index.js'
+import { idiomaContenido } from '../../i18n/index.js'
 import { mensajeError } from '../../i18n/errores.js'
 
-const enIngles = () => i18n.resolvedLanguage === 'en'
+const enIngles = () => idiomaContenido() === 'en'
 
 /**
  * CCPIP-34 (RF-11): el productor declara, para este producto, cuales reglas de origen y sostenibilidad de

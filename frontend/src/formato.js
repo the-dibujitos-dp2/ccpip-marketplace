@@ -18,6 +18,9 @@ const OPCIONES = {
   diaMesAnioLargo: { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Lima' },
 }
 
+/** Lo que Intl pone entre la fecha y la hora: "a las" (es), "at" (en), "às" (pt). */
+const CONECTOR_HORA = / (a las|at|às) /
+
 // Crear un Intl.*Format es costoso: se guarda uno por formato y locale
 const cache = new Map()
 function formato(nombre) {
@@ -117,12 +120,12 @@ export function diaMesHora(instante) {
  * se guarda el carrito, CCPIP-142)
  */
 export function fechaHoraLarga(instante) {
-  return instante ? formato('fechaHoraLarga').format(new Date(instante)).replace(' a las ', ', ').replace(' at ', ', ') : ''
+  return instante ? formato('fechaHoraLarga').format(new Date(instante)).replace(CONECTOR_HORA, ', ') : ''
 }
 
 /** "2026-10-30T01:35:00Z" -> "29 de octubre 20:35" · "29 October 20:35", en hora de Lima (historial del pedido, CCPIP-445) */
 export function diaMesLargoHora(instante) {
-  return instante ? formato('fechaHoraLarga').format(new Date(instante)).replace(' a las ', ' ').replace(' at ', ' ') : ''
+  return instante ? formato('fechaHoraLarga').format(new Date(instante)).replace(CONECTOR_HORA, ' ') : ''
 }
 
 /** "2026-12-03T15:00:00Z" -> "3 de diciembre de 2026" · "3 December 2026", en hora de Lima (pago del pedido, CCPIP-440) */

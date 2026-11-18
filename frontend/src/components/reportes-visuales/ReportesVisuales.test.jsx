@@ -140,7 +140,16 @@ describe('fundación de visualizaciones para reportes', () => {
     const { container } = render(<SerieTemporal titulo="Trend" locale="en-GB" series={serie([punto('Jan', 1234.5)])} />)
     fireEvent.keyDown(graph(container), { key: 'ArrowRight' })
     expect(container.querySelector('.rv-detail').textContent).toContain('1,234.5')
-    expect(container.textContent).toContain('Use the arrow keys')
+    // El locale solo formatea los números: los textos siguen el idioma de la interfaz
+    expect(container.textContent).toContain('Usa las flechas')
+  })
+
+  it('CCPIP-512: los textos de la gráfica siguen el idioma de la interfaz, también en portugués', async () => {
+    await act(async () => i18n.changeLanguage('pt'))
+    const { container } = render(<Composicion titulo="Composição" partes={[]} />)
+    expect(container.textContent).toContain('Sem dados para mostrar.')
+    render(<SerieTemporal titulo="Tendência" series={serie([punto('Jan', 1)])} />)
+    expect(screen.getByText(/Use as setas para percorrer o gráfico/)).toBeInTheDocument()
   })
 
   it('no mezcla unidades diferentes en una escala', () => {
