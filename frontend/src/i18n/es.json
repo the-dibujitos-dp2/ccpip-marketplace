@@ -1501,6 +1501,24 @@
         "porProducto": "Inventario por producto",
         "vacio": "No hubo existencias en este período",
         "nota": "Sale de los movimientos de los lotes de su punto: saldo final = saldo inicial + entradas − salidas. Aquí las transferencias sí cuentan, porque cambian lo que hay en el punto. Lo vendido aún por entregar ya salió del saldo, pero sigue en el almacén hasta que se entrega."
+      },
+      "grafica": {
+        "evolucionEntradas": "Evolución de entradas",
+        "composicionRecibida": "Composición recibida",
+        "evolucionInventario": "Evolución de inventario",
+        "detallePeriodo": "Detalle del período",
+        "sinDato": "Sin dato",
+        "evolucionSalidas": "Evolución de salidas",
+        "desglose": "Desglose B2C/B2B",
+        "pedidos": "Pedidos",
+        "todosEstados": "Todos los estados",
+        "totalPedidos": "Total de pedidos",
+        "atendidos": "Atendidos",
+        "porEntregar": "Por entregar",
+        "magnitud": "Magnitud del gráfico",
+        "estadoPedidos": "Estado de los pedidos del gráfico",
+        "evolucionPedidos": "Evolución de pedidos",
+        "evolucionVentas": "Evolución de ventas"
       }
     },
     "cobertura401": {
@@ -2047,6 +2065,26 @@
         "sinDireccion": "Sin dirección registrada",
         "vacio": "No hubo ventas en este período",
         "nota": "Cada pedido sale de un punto de acopio. El destino es el departamento de la dirección de entrega en un envío, o el del punto donde se recoge. Solo cifras agregadas: ninguna dirección ni comprador."
+      },
+      "grafica": {
+        "b2c": "B2C",
+        "b2b": "B2B",
+        "total": "Total",
+        "desglose": "Desglose B2C/B2B",
+        "ventas": "Ventas",
+        "pedidos": "Pedidos",
+        "productores": "Productores con ventas",
+        "productos": "Productos nuevos",
+        "compradores": "Compradores",
+        "distribucion": "Distribución de calificaciones",
+        "productosTitulo": "Calificaciones por producto",
+        "puntos": "Por punto de acopio",
+        "productoresOrigen": "Por productor",
+        "destinos": "Por destino",
+        "rutas": "Rutas",
+        "sinDireccion": "Sin dirección registrada",
+        "estrellas_one": "{{count}} estrella",
+        "estrellas_other": "{{count}} estrellas"
       }
     },
     "parametros": {
@@ -5814,5 +5852,15 @@
     "base": "Se suman a tu saldo al recibir tu pedido.",
     "linea_one": "Ganarás <strong>{{puntos}} punto</strong> al recibir tu pedido",
     "linea_other": "Ganarás <strong>{{puntos}} puntos</strong> al recibir tu pedido"
+  },
+  "graficas": {
+    "vacio": "Sin datos para mostrar.",
+    "sinDato": "Sin dato",
+    "puntos": "Puntos de la serie",
+    "teclado": "Selecciona un punto para ver su valor exacto. Usa las flechas para recorrer el gráfico.",
+    "negativos": "Los valores negativos se muestran por separado; no son partes de un total.",
+    "grafico": "Gráfico interactivo",
+    "unidades": "und",
+    "series": "Series"
   }
 }

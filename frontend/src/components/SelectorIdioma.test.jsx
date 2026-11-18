@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../App.jsx'
-import i18n, { idiomaGuardado } from '../i18n/index.js'
+import i18n, { guardarIdioma, idiomaGuardado } from '../i18n/index.js'
 import { copia, DATOS, llamadas, PUBLICAS, servidor, SESION, SESION_PRODUCTOR, SIN_SESION } from '../test/servidor.js'
 
 // CCPIP-265 (RF-135): elegir espanol o ingles y conservar la preferencia
@@ -32,6 +32,38 @@ describe('Selector de idioma (CCPIP-265)', () => {
     expect(document.documentElement.lang).toBe('en')
     expect(idiomaGuardado()).toBe('en')
     // Sin sesion no hay cuenta donde guardarlo
+    expect(llamadas(fetchMock, IDIOMA)).toHaveLength(0)
+  })
+
+  it('CCPIP-512: ofrece PT · Português y lo recuerda en el navegador', async () => {
+    const fetchMock = servidor(sinSesion)
+    const user = userEvent.setup()
+    abrirEn('/')
+    await elegir(user, 'Português')
+    expect(await screen.findByRole('button', { name: 'Idioma: Português. Mudar idioma' })).toHaveTextContent('PT · Português')
+    expect(screen.getByRole('link', { name: 'Carrinho' })).toBeInTheDocument()
+    expect(document.documentElement.lang).toBe('pt')
+    expect(idiomaGuardado()).toBe('pt')
+    expect(llamadas(fetchMock, IDIOMA)).toHaveLength(0)
+  })
+
+  it('CCPIP-512: con sesión, el portugués se queda en el navegador y no cambia la cuenta', async () => {
+    const fetchMock = servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, SESION], [IDIOMA]: [204, null] })
+    const user = userEvent.setup()
+    abrirEn('/')
+    await elegir(user, 'Português')
+    expect(await screen.findByRole('button', { name: 'Idioma: Português. Mudar idioma' })).toBeInTheDocument()
+    expect(idiomaGuardado()).toBe('pt')
+    expect(llamadas(fetchMock, IDIOMA)).toHaveLength(0)
+  })
+
+  it('CCPIP-512: al volver con sesión, el portugués elegido en este navegador no lo reemplaza la cuenta', async () => {
+    await i18n.changeLanguage('pt')
+    guardarIdioma('pt')
+    const fetchMock = servidor({ ...PUBLICAS, 'GET /api/auth/me': [200, { ...SESION, user: { ...SESION.user, language: 'en' } }] })
+    abrirEn('/')
+    expect(await screen.findByRole('button', { name: 'Idioma: Português. Mudar idioma' })).toBeInTheDocument()
+    expect(i18n.resolvedLanguage).toBe('pt')
     expect(llamadas(fetchMock, IDIOMA)).toHaveLength(0)
   })
 

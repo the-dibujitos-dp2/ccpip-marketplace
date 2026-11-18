@@ -1,7 +1,7 @@
 // Merma (CCPIP-75, CCPIP-76; Figma A-04 y A-07) y catalogo de causas (CCPIP-77, 298, 299 y 300).
 // El servidor limita al punto a sus lotes y al productor a su almacen (RNF-05).
 import { apiFetch, idRuta } from './http.js'
-import i18n from '../i18n/index.js'
+import { idiomaContenido } from '../i18n/index.js'
 
 /** Las causas activas que ofrece "Marcar como merma": [{ id, nombre, nombreEn, requiereDetalle }]. */
 export const listarCausas = () => apiFetch('/api/merma/causas')
@@ -14,7 +14,7 @@ function rutaReporte(base, sufijo = '', pagina = null, filtros = {}) {
     if (filtros[campo]?.trim()) p.set(campo, filtros[campo].trim())
   }
   // Una descarga por enlace no permite añadir Accept-Language; el único idioma admitido viaja explícitamente como `lang`.
-  if (sufijo) p.set('lang', i18n.resolvedLanguage === 'en' ? 'en' : 'es')
+  if (sufijo) p.set('lang', idiomaContenido())
   return `${base}${sufijo}${p.size ? `?${p}` : ''}`
 }
 

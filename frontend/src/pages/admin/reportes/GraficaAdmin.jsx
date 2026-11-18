@@ -4,27 +4,11 @@ import { BarrasComparativas, SerieTemporal } from '../../../components/reportes-
 import './GraficaAdmin.css'
 
 const numero = (valor) => valor == null || !Number.isFinite(Number(valor)) ? null : Number(valor)
-const idiomas = {
-  es: {
-    b2c: 'B2C', b2b: 'B2B', total: 'Total', desglose: 'Desglose B2C/B2B', ventas: 'Ventas', pedidos: 'Pedidos',
-    productores: 'Productores con ventas', productos: 'Productos nuevos', compradores: 'Compradores',
-    distribucion: 'Distribución de calificaciones', productosTitulo: 'Calificaciones por producto',
-    puntos: 'Por punto de acopio', productoresOrigen: 'Por productor', destinos: 'Por destino', rutas: 'Rutas',
-    sinDireccion: 'Sin dirección registrada', estrellas: (n) => `${n} ${n === 1 ? 'estrella' : 'estrellas'}`,
-  },
-  en: {
-    b2c: 'B2C', b2b: 'B2B', total: 'Total', desglose: 'B2C/B2B breakdown', ventas: 'Sales', pedidos: 'Orders',
-    productores: 'Producers with sales', productos: 'New products', compradores: 'Buyers',
-    distribucion: 'Rating distribution', productosTitulo: 'Ratings by product',
-    puntos: 'By collection point', productoresOrigen: 'By producer', destinos: 'By destination', rutas: 'Routes',
-    sinDireccion: 'Address not registered', estrellas: (n) => `${n} ${n === 1 ? 'star' : 'stars'}`,
-  },
-}
 
 /** Presenta exclusivamente campos de la respuesta agregada ya cargada. */
 export function GraficaAdmin({ tipo, datos, titulo }) {
-  const { i18n } = useTranslation()
-  const texto = idiomas[i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'es']
+  const { t } = useTranslation()
+  const texto = t('admin.reportes.grafica', { returnObjects: true })
   const finanzas = tipo === 'finanzas'
   const opciones = finanzas ? ['desglose', 'b2c', 'b2b', 'total'] : ['ventas', 'pedidos', 'productores', 'productos', 'compradores']
   const dataset = JSON.stringify([datos?.clave, datos?.aplicado, datos?.desde, datos?.hasta, datos?.agrupacion])
@@ -84,7 +68,7 @@ export function GraficaAdmin({ tipo, datos, titulo }) {
 
   if (tipo === 'calificaciones') {
     const distribucion = (datos.resumen?.distribucion ?? []).map((fila) => ({
-      id: fila.estrellas, etiqueta: texto.estrellas(fila.estrellas), valor: numero(fila.cantidad),
+      id: fila.estrellas, etiqueta: t('admin.reportes.grafica.estrellas', { count: fila.estrellas }), valor: numero(fila.cantidad),
     }))
     const productos = (datos.productos ?? []).filter((fila) => fila.promedio != null).map((fila) => ({
       id: fila.productoId, etiqueta: fila.producto, valor: numero(fila.promedio),

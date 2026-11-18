@@ -1,7 +1,14 @@
-// CCPIP-265 (RF-135): elegir espanol o ingles y conservar la preferencia. El visitante la guarda
-// en su navegador; con sesion tambien en su cuenta, para que lo siga en otro dispositivo.
+// CCPIP-265 (RF-135): elegir el idioma y conservar la preferencia. El visitante la guarda en su
+// navegador; con sesion tambien en su cuenta, para que lo siga en otro dispositivo.
 import { guardarIdiomaCuenta } from '../api/auth.js'
 import i18n, { guardarIdioma, IDIOMAS } from './index.js'
+
+/**
+ * Los idiomas que la cuenta guarda (CCPIP-265: espanol e ingles). El portugues solo traduce la
+ * interfaz y se recuerda en el navegador (CCPIP-512).
+ */
+const IDIOMAS_CUENTA = ['es', 'en']
+const enCuenta = (idioma) => IDIOMAS_CUENTA.includes(idioma)
 
 // Idioma elegido sin sesion en esta visita: al ingresar se lleva a la cuenta en vez de
 // reemplazarlo por el de la cuenta (el visitante acaba de decidirlo).
@@ -21,6 +28,7 @@ export async function cambiarIdioma(idioma, user) {
     return
   }
   aplicadoA = user.id
+  if (!enCuenta(idioma)) return
   try {
     await guardarIdiomaCuenta(idioma)
   } catch {
@@ -30,7 +38,8 @@ export async function cambiarIdioma(idioma, user) {
 
 /**
  * Al confirmar una sesion (inicio de sesion o recarga): si el visitante eligio idioma antes de
- * ingresar, esa eleccion pasa a la cuenta; si no, se usa el idioma guardado en la cuenta.
+ * ingresar, esa eleccion pasa a la cuenta; si no, se usa el idioma guardado en la cuenta. Un idioma
+ * que la cuenta no guarda (portugues) se conserva: lo eligio en este navegador.
  */
 export async function aplicarIdiomaDeSesion(user) {
   if (!user || aplicadoA === user.id) return
@@ -38,7 +47,7 @@ export async function aplicarIdiomaDeSesion(user) {
   if (elegidoSinSesion) {
     const idioma = elegidoSinSesion
     elegidoSinSesion = null
-    if (idioma !== user.language) {
+    if (enCuenta(idioma) && idioma !== user.language) {
       try {
         await guardarIdiomaCuenta(idioma)
       } catch {
@@ -47,6 +56,7 @@ export async function aplicarIdiomaDeSesion(user) {
     }
     return
   }
+  if (!enCuenta(i18n.resolvedLanguage)) return
   if (IDIOMAS.includes(user.language) && user.language !== i18n.resolvedLanguage) {
     await i18n.changeLanguage(user.language)
     guardarIdioma(user.language)

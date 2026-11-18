@@ -11,15 +11,14 @@ import { columnas, Kpis, pendiente, Tablas } from './comun.jsx'
  * (atendidas) y pagadas aun por entregar (no atendidas); aparte, transferencias, devoluciones y merma.
  */
 export default function Salidas({ datos }) {
-  const { t, i18n } = useTranslation()
-  const titulo = (es, en) => (i18n.resolvedLanguage || '').startsWith('es') ? es : en
+  const { t } = useTranslation()
   const { totales } = datos
   const col = columnas(t, datos.agrupacion)
   const und = (v) => t('comun.und', { cantidad: unidades(v) })
   const detalle = { transferencias: unidades(totales.transferencias), devoluciones: unidades(totales.devoluciones), merma: unidades(totales.merma) }
   return (
     <>
-      <SerieTemporal titulo={titulo('Evolución de salidas', 'Stock-out trend')} unidad="und" series={[
+      <SerieTemporal titulo={t('acopio.reportes.grafica.evolucionSalidas')} unidad="und" series={[
         ...['ventasEntregadas', 'ventasPorEntregar', 'transferencias', 'devoluciones', 'merma'].map((id) => ({
           id, nombre: t(`acopio.reportes.col.${id}`), unidad: 'und', puntos: datos.periodos.map((p) => ({ etiqueta: p.inicio, valor: p[id] })),
         })),

@@ -32,6 +32,8 @@ class IdiomaTest {
         assertThat(Idioma.deCabecera(null)).isEqualTo(Idioma.ES);
         assertThat(Idioma.deCabecera("")).isEqualTo(Idioma.ES);
         assertThat(Idioma.deCabecera("fr")).isEqualTo(Idioma.ES);
+        // CCPIP-512: la interfaz en portugues pide el contenido en espanol, su idioma original
+        assertThat(Idioma.deCabecera("pt")).isEqualTo(Idioma.ES);
         assertThat(Idioma.deCabecera("en;q=0")).isEqualTo(Idioma.ES);
         assertThat(Idioma.deCabecera("no es una cabecera ;;;")).isEqualTo(Idioma.ES);
     }

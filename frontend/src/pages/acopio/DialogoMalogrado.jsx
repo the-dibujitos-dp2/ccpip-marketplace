@@ -44,7 +44,7 @@ function textoLote(t, lote, cantidad) {
  * avisa que el pedido cambio mientras tanto (409 de estado) o ya no esta en el punto (404).
  */
 export default function DialogoMalogrado({ pedido, linea, onCancelar, onRegistrado, onDesactualizado }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [opciones, setOpciones] = useState(null)
   const [causas, setCausas] = useState(null)
   const [errorCarga, setErrorCarga] = useState(null)
@@ -139,7 +139,7 @@ export default function DialogoMalogrado({ pedido, linea, onCancelar, onRegistra
           <Campo tipo="selector" etiqueta={t('merma.causa')} placeholder={t('acopio.malogrado.elegir')}
             value={motivoId} error={errores.motivoId}
             onChange={(e) => { setMotivoId(e.target.value); limpiar('motivoId') }}
-            opciones={causas.map((c) => ({ valor: String(c.id), etiqueta: nombreCausa(c, i18n) }))} />
+            opciones={causas.map((c) => ({ valor: String(c.id), etiqueta: nombreCausa(c) }))} />
           {causa?.requiereDetalle && (
             <Campo etiqueta={t('merma.detalle')} value={detalle} maxLength={200} error={errores.detalle}
               onChange={(e) => { setDetalle(e.target.value); limpiar('detalle') }} />
