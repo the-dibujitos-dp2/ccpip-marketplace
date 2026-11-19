@@ -27,7 +27,7 @@ const SIN_FILTROS = { desde: '', hasta: '', lote: '', producto: '', ubicacion: '
  * manual y la pide si se registro por error.
  */
 export default function ListaMerma({ consultar, exportar, conUbicacion = false, conProductor = false, ir, irTexto, onDatos, revision }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [pagina, setPagina] = useState(0)
   const [escritos, setEscritos] = useState(SIN_FILTROS)
   const [filtros, setFiltros] = useState(escritos)
@@ -96,7 +96,7 @@ export default function ListaMerma({ consultar, exportar, conUbicacion = false, 
                 {conProductor && <span className="tabla__celda merma__col-productor" role="cell">{m.productor ?? '—'}</span>}
                 {conUbicacion && <span className="tabla__celda merma__col-ubicacion" role="cell">{m.ubicacion}</span>}
                 <span className="tabla__celda merma__col-causa" role="cell">
-                  {m.automatica ? t('merma.lista.automaticaCausa', { causa: nombreCausa(m, i18n) }) : nombreCausa(m, i18n)}
+                  {m.automatica ? t('merma.lista.automaticaCausa', { causa: nombreCausa(m) }) : nombreCausa(m)}
                   {m.detalle && <span className="caption merma__detalle">{m.detalle}</span>}
                 </span>
                 <span className="tabla__celda merma__col-cantidad" role="cell">{`−${unidades(m.cantidad)}`}</span>

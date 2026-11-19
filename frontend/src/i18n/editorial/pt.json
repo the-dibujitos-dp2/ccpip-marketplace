@@ -1,0 +1,39 @@
+{
+  "fotoArtesana": "Fotografia documental de uma artesã indígena trabalhando em uma feira de bioempreendimentos; imagem ilustrativa, não representa uma produtora da plataforma.",
+  "hero": {
+    "linea1": "Tudo tem",
+    "linea2": "uma",
+    "origen": "origem.",
+    "descripcion": "Cada produto guarda uma história de território, trabalho e cuidado. Descubra o que nasce de comunidades amazônicas.",
+    "explorar": "Explorar produtos",
+    "comunidades": "Conhecer comunidades"
+  },
+  "categorias": {
+    "titulo": "Da terra para suas mãos",
+    "referencia": "Fotografia ilustrativa",
+    "CACAO": {
+      "foto": "Fotografia ilustrativa de cacau, não atribuída a uma comunidade."
+    },
+    "CAFE": {
+      "foto": "Fotografia ilustrativa de café, não atribuída a uma comunidade."
+    },
+    "SUPERFRUTOS": {
+      "foto": "Fotografia ilustrativa da Amazônia, não atribuída a uma comunidade."
+    }
+  },
+  "relato": {
+    "titulo": "Uma história a partir da comunidade",
+    "sinCita": "Conheça mais sobre esta comunidade e seu trabalho.",
+    "conocer": "Conhecer a comunidade",
+    "fotoTienda": "Fotografia da loja {{nombre}}"
+  },
+  "pie": {
+    "creditos": "Fotografias e fontes",
+    "fotosDocumentales": "Fotografias documentais: Infobae, «Cacao, café, arte textil y más» (27-11-2024). São referências visuais e não identificam produtores do mercado. Permissões para uso comercial pendentes.",
+    "fotosReferencia": "Fotografias de referência por linha: Unsplash (Ly Le Minh, Ryan Zamboni, Denise Chan, Boshoku) e Wikimedia Commons (Luke Hancock, CC0; LeRoc, CC BY-SA 3.0). Não são fotos das ofertas.",
+    "tipografias": "Tipografias DM Sans e Fraunces (Google Fonts). Logotipo CCPIP publicado por Amanatari."
+  },
+  "origen": {
+    "titulo": "O valor está na origem."
+  }
+}

@@ -10,6 +10,8 @@ Logotipo `logo-ccpip.png`: marca publicada por Amanatari, referencia institucion
 
 Fuentes `fonts/`: DM Sans y Fraunces, descargadas de Google Fonts: https://fonts.google.com/specimen/DM+Sans y https://fonts.google.com/specimen/Fraunces. Verificar licencia y metadatos antes de redistribución comercial.
 
+Ilustraciones `botanica/izquierda.svg` y `botanica/derecha.svg`: follaje original de la propuesta 02 · Herbario (CCPIP-435), en tinta tenue verde y arena, sin mensajes comerciales, certificaciones, símbolos de pueblos ni productos (alcance aprobado en la historia). Solo decoran los márgenes exteriores de la tienda en escritorio.
+
 ## Fotografías de referencia por línea (no son fotos de ofertas ni de comunidades)
 
 Se muestran solo en la vista del consumidor cuando la oferta no trae foto propia, siempre con leyenda visible de «referencial». Las fotos de la API tienen prioridad; los demás roles conservan el marcador SVG.

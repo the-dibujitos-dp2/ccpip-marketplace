@@ -9,24 +9,23 @@ import { columnas, Kpis, pendiente, Tablas } from './comun.jsx'
 
 /** CCPIP-342: importes y pedidos de sus puntos, con estados separados y sin datos de compradores. */
 export default function Ventas({ datos }) {
-  const { t, i18n } = useTranslation()
-  const texto = (es, en) => (i18n.resolvedLanguage || '').startsWith('en') ? en : es
+  const { t } = useTranslation()
   const [vista, setVista] = useState('desglose')
   const [estado, setEstado] = useState('todos')
   const { totales, periodos } = datos
   const col = columnas(t, datos.agrupacion)
   const resumen = { unidades: unidades(totales.unidades), b2c: precio(totales.b2c), b2b: precio(totales.b2b) }
   const modos = [
-    ['desglose', texto('Desglose B2C/B2B', 'B2C/B2B breakdown')],
+    ['desglose', t('acopio.reportes.grafica.desglose')],
     ['total', t('acopio.reportes.col.total')],
     ['acumulado', t('acopio.reportes.col.acumulado')],
-    ['pedidos', texto('Pedidos', 'Orders')],
+    ['pedidos', t('acopio.reportes.grafica.pedidos')],
   ]
   const estados = [
-    ['todos', texto('Todos los estados', 'All statuses')],
-    ['pedidos', texto('Total de pedidos', 'Total orders')],
-    ['pedidosAtendidos', texto('Atendidos', 'Fulfilled')],
-    ['pedidosPorEntregar', texto('Por entregar', 'Awaiting fulfillment')],
+    ['todos', t('acopio.reportes.grafica.todosEstados')],
+    ['pedidos', t('acopio.reportes.grafica.totalPedidos')],
+    ['pedidosAtendidos', t('acopio.reportes.grafica.atendidos')],
+    ['pedidosPorEntregar', t('acopio.reportes.grafica.porEntregar')],
   ]
   const campos = vista === 'pedidos'
     ? estado === 'todos' ? ['pedidos', 'pedidosAtendidos', 'pedidosPorEntregar'] : [estado]
@@ -39,13 +38,13 @@ export default function Ventas({ datos }) {
   const dataset = JSON.stringify([datos.clave, datos.aplicado, datos.desde, datos.hasta, datos.agrupacion, periodos.map((periodo) => periodo.inicio)])
   return (
     <>
-      <div className="chips__lista acopio-visualizaciones__controles" role="group" aria-label={texto('Magnitud del gráfico', 'Chart measure')}>
+      <div className="chips__lista acopio-visualizaciones__controles" role="group" aria-label={t('acopio.reportes.grafica.magnitud')}>
         {modos.map(([id, label]) => <button key={id} type="button" className={`chip${vista === id ? ' chip--activo' : ''}`} aria-pressed={vista === id} onClick={() => setVista(id)}>{label}</button>)}
       </div>
-      {vista === 'pedidos' && <div className="chips__lista acopio-visualizaciones__controles" role="group" aria-label={texto('Estado de los pedidos del gráfico', 'Chart order status')}>
+      {vista === 'pedidos' && <div className="chips__lista acopio-visualizaciones__controles" role="group" aria-label={t('acopio.reportes.grafica.estadoPedidos')}>
         {estados.map(([id, label]) => <button key={id} type="button" className={`chip${estado === id ? ' chip--activo' : ''}`} aria-pressed={estado === id} onClick={() => setEstado(id)}>{label}</button>)}
       </div>}
-      <SerieTemporal key={`${dataset}-${vista}-${estado}`} titulo={vista === 'pedidos' ? texto('Evolución de pedidos', 'Order trend') : texto('Evolución de ventas', 'Sales trend')} unidad={unidad} series={series} />
+      <SerieTemporal key={`${dataset}-${vista}-${estado}`} titulo={vista === 'pedidos' ? t('acopio.reportes.grafica.evolucionPedidos') : t('acopio.reportes.grafica.evolucionVentas')} unidad={unidad} series={series} />
       <Kpis textos="acopio.reportes.ventas" tarjetas={[
         { clave: 'total', valor: precio(totales.total), icono: iconoGrafico, vars: resumen },
         { clave: 'atendidos', valor: unidades(totales.pedidosAtendidos), icono: iconoCaja, tono: 'exito', vars: { count: totales.pedidos } },

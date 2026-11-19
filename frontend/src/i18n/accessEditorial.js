@@ -15,4 +15,12 @@ export default {
     altRetrato: 'Documentary portrait published about the indigenous enterprise fair; not a portrait of a particular seller.',
     volver: 'Back to the market',
   },
+  pt: {
+    titulo: 'Que bom encontrar você aqui',
+    titularFoto: 'O que você escolhe nos aproxima.',
+    bajadaFoto: 'Pessoas, territórios e histórias. A origem de cada encontro no mercado.',
+    creditoFoto: 'Fotografia documental publicada pelo Infobae · Feira de empreendimentos indígenas',
+    altRetrato: 'Retrato documental publicado sobre a feira de empreendimentos indígenas; não representa um produtor específico.',
+    volver: 'Voltar ao mercado',
+  },
 }

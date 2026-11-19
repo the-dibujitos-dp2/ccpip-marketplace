@@ -2,9 +2,14 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import PieDePagina from '../components/layout/PieDePagina.jsx'
 import SelloOrigen from '../components/SelloOrigen.jsx'
+import imagenReferencial from '../components/imagenProductoI18n.js'
+import accessEditorial from './accessEditorial.js'
+import editorialEs from './editorial/es.json'
+import editorialPt from './editorial/pt.json'
 import en from './en.json'
 import es from './es.json'
-import i18n, { guardarIdioma, idiomaGuardado, localeFechas } from './index.js'
+import pt from './pt.json'
+import i18n, { guardarIdioma, idiomaContenido, idiomaGuardado, localeFechas } from './index.js'
 
 /** Todas las claves de un diccionario, como rutas "a.b.c". */
 function claves(objeto, prefijo = '') {
@@ -16,20 +21,33 @@ function claves(objeto, prefijo = '') {
 /** Variables {{x}} de un texto, para comparar que ambos idiomas usen las mismas. */
 const variables = (texto) => [...texto.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1]).sort()
 
-describe('i18n (CCPIP-98)', () => {
-  it('español e inglés tienen exactamente las mismas claves', () => {
-    expect(claves(en).sort()).toEqual(claves(es).sort())
+/** Las etiquetas <strong> de un texto con Trans: la traduccion debe conservarlas. */
+const etiquetas = (texto) => [...texto.matchAll(/<\/?\w+>/g)].map((m) => m[0]).sort()
+const plano = (o) => Object.fromEntries(claves(o).map((c) => [c, c.split('.').reduce((a, k) => a[k], o)]))
+
+// CCPIP-98 (ingles) y CCPIP-512 (portugues): cada traduccion frente al espanol original
+describe.each([['inglés', en], ['portugués', pt]])('i18n en %s', (idioma, traduccion) => {
+  it(`español e ${idioma} tienen exactamente las mismas claves`, () => {
+    expect(claves(traduccion).sort()).toEqual(claves(es).sort())
   })
 
-  it('ningún texto queda vacío y ambos idiomas usan las mismas variables', () => {
-    const plano = (o) => Object.fromEntries(claves(o).map((c) => [c, c.split('.').reduce((a, k) => a[k], o)]))
+  it('ningún texto queda vacío y usa las mismas variables y etiquetas que el español', () => {
     const textosEs = plano(es)
-    const textosEn = plano(en)
+    const textos = plano(traduccion)
     for (const clave of Object.keys(textosEs)) {
       expect(textosEs[clave].trim(), clave).not.toBe('')
-      expect(textosEn[clave].trim(), clave).not.toBe('')
-      expect(variables(textosEn[clave]), clave).toEqual(variables(textosEs[clave]))
+      expect(textos[clave].trim(), clave).not.toBe('')
+      expect(variables(textos[clave]), clave).toEqual(variables(textosEs[clave]))
+      expect(etiquetas(textos[clave]), clave).toEqual(etiquetas(textosEs[clave]))
     }
+  })
+})
+
+describe('i18n (CCPIP-98)', () => {
+  it('los textos del rediseño editorial también están en portugués (CCPIP-512)', () => {
+    expect(claves(editorialPt).sort()).toEqual(claves(editorialEs).sort())
+    expect(Object.keys(accessEditorial.pt).sort()).toEqual(Object.keys(accessEditorial.es).sort())
+    expect(Object.keys(imagenReferencial.pt).sort()).toEqual(Object.keys(imagenReferencial.es).sort())
   })
 
   it('arranca en español y marca el idioma del documento', () => {
@@ -54,11 +72,40 @@ describe('i18n (CCPIP-98)', () => {
     expect(i18n.t('prueba.soloEspanol')).toBe('Solo en español')
   })
 
+  it('CCPIP-512: en portugués traduce la interfaz, marca el idioma y usa fechas de Brasil', async () => {
+    await i18n.changeLanguage('pt')
+    const sellos = [{ tipo: 'ORIGEN_VERIFICADO', titulo: 'Comunidad Shipibo Konibo', emisor: 'Ucayali', desde: null, hasta: null }]
+    render(<><PieDePagina /><SelloOrigen variante="completo" sellos={sellos} /></>)
+    expect(screen.getByText('Explorar produtos')).toBeInTheDocument()
+    expect(screen.getByText('Origem verificada pela CCPIP')).toBeInTheDocument()
+    expect(document.documentElement.lang).toBe('pt')
+    expect(localeFechas()).toBe('pt-BR')
+    expect(idiomaContenido()).toBe('es')
+  })
+
+  it('CCPIP-512: sin traducción al portugués se ve en español, nunca como la clave', async () => {
+    await i18n.changeLanguage('pt')
+    i18n.addResource('es', 'translation', 'prueba.soloEspanolPt', 'Solo en español')
+    expect(i18n.t('prueba.soloEspanolPt')).toBe('Solo en español')
+  })
+
+  it('el contenido del servidor se pide en inglés solo con la interfaz en inglés', async () => {
+    await i18n.changeLanguage('en')
+    expect(idiomaContenido()).toBe('en')
+    await i18n.changeLanguage('es')
+    expect(idiomaContenido()).toBe('es')
+  })
+
   describe('preferencia en el navegador', () => {
     it('guarda y lee el idioma elegido', () => {
       expect(idiomaGuardado()).toBeNull()
       guardarIdioma('en')
       expect(idiomaGuardado()).toBe('en')
+    })
+
+    it('recuerda el portugués (CCPIP-512)', () => {
+      guardarIdioma('pt')
+      expect(idiomaGuardado()).toBe('pt')
     })
 
     it('ignora un valor que no es un idioma de la plataforma', () => {

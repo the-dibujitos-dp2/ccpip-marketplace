@@ -9,12 +9,12 @@ import { useSesion } from '../sesion.js'
 import Icono from './Icono.jsx'
 import './SelectorIdioma.css'
 
-/** Nombre de cada idioma en su propio idioma, como en el Figma ("ES · Español", "EN · English"). */
-const NOMBRES = { es: 'Español', en: 'English' }
+/** Nombre de cada idioma en su propio idioma, como en el Figma ("ES · Español", "EN · English", "PT · Português"). */
+const NOMBRES = { es: 'Español', en: 'English', pt: 'Português' }
 
 /**
  * Selector de idioma del Figma (componente "Selector de idioma", CCPIP-265): pastilla con el idioma
- * actual y un menu con las dos opciones. Va en la barra superior de la tienda, en los paneles y en el
+ * actual y un menu con los idiomas de la plataforma. Va en la barra superior de la tienda, en los paneles y en el
  * inicio de sesion, para que todo el flujo critico se pueda usar en ambos idiomas.
  */
 export default function SelectorIdioma({ className = '' }) {
