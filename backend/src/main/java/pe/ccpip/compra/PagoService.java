@@ -50,7 +50,8 @@ public class PagoService {
 
     private static final Logger log = LoggerFactory.getLogger(PagoService.class);
 
-    private record Intento(long id, long pedidoId, String numero, BigDecimal monto, String moneda) {
+    /** {@code repetido}: la clave ya tenia este intento; no se cobra otra vez. */
+    private record Intento(long id, long pedidoId, String numero, BigDecimal monto, String moneda, boolean repetido) {
     }
 
     private final NamedParameterJdbcTemplate jdbc;
@@ -90,6 +91,9 @@ public class PagoService {
         exigirAutorizados(usuarioId, pedidoId);
         exigirFactible(usuarioId, pedidoId);
         Intento intento = tx.execute(s -> registrar(usuarioId, pedidoId, clave, marca));
+        if (intento.repetido()) {
+            return resultado(usuarioId, pedidoId, intento.id());
+        }
 
         ResultadoCobro cobro;
         try {
@@ -124,6 +128,10 @@ public class PagoService {
      * controla de nuevo al pagar, que es cuando la compra se concreta. Si una autorizacion se revoco o
      * vencio despues de crear el pedido, no se cobra: el pedido se cancela y el comprador vuelve a su
      * carrito, donde ese producto aparece como "Venta pausada".
+     *
+     * <p>CCPIP-252: lo mismo si un producto dejo de estar a la venta (el productor lo despublico, se
+     * retiro o su tienda ya no esta publicada). El catalogo ya no lo devuelve, y antes eso se tomaba
+     * como "nada que revisar": se cobraba y se confirmaba una venta que ya no existia.
      */
     private void exigirAutorizados(long usuarioId, long pedidoId) {
         MapSqlParameterSource p = new MapSqlParameterSource("id", pedidoId).addValue("usuario", usuarioId);
@@ -131,7 +139,12 @@ public class PagoService {
                 SELECT ip.producto_id FROM item_pedido ip JOIN pedido pe ON pe.id = ip.pedido_id
                 WHERE pe.id = :id AND pe.usuario_id = :usuario AND pe.estado = 'PENDIENTE_PAGO'""", p, Long.class);
         Map<Long, Vendible> vendibles = catalogo.vendibles(productos);
-        boolean pausado = productos.stream().map(vendibles::get).anyMatch(v -> v != null && !v.habilitada());
+        if (productos.stream().anyMatch(id -> !vendibles.containsKey(id))) {
+            cancelarSinCobro(p);
+            throw new ErrorNegocio(HttpStatus.CONFLICT, "NO_DISPONIBLE",
+                    "Un producto de tu pedido ya no está a la venta. No se hizo ningún cobro; vuelve a tu carrito para revisarlo.");
+        }
+        boolean pausado = productos.stream().map(vendibles::get).anyMatch(v -> !v.habilitada());
         if (!pausado) {
             return;
         }
@@ -190,6 +203,16 @@ public class PagoService {
                                 rs.getString("moneda")))
                 .stream().findFirst()
                 .orElseThrow(() -> ErrorNegocio.noEncontrado("PEDIDO_NO_ENCONTRADO", "No encontramos ese pedido."));
+        // CCPIP-252: despues del bloqueo, un envio simultaneo con la misma clave (doble clic, reintento por corte de
+        // red) ya ve el intento del primero y responde con el. Si llegara a insertar, esperaria a que el primero
+        // confirme, y la confirmacion espera este mismo bloqueo del pedido: la base abortaba uno por deadlock.
+        Intento previo = intentoPorClave(clave);
+        if (previo != null) {
+            if (previo.pedidoId() != pedidoId) {
+                throw new ErrorNegocio(HttpStatus.CONFLICT, "CLAVE_REUTILIZADA", "Este intento de pago pertenece a otro pedido.");
+            }
+            return previo;
+        }
         if (!"PENDIENTE_PAGO".equals(pedido.estado())) {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "PEDIDO_NO_PAGABLE", switch (pedido.estado()) {
                 case "CANCELADO" -> "Este pedido fue cancelado. Vuelve a tu carrito para comprar otra vez.";
@@ -202,7 +225,7 @@ public class PagoService {
             long pagoId = jdbc.queryForObject("""
                     INSERT INTO pago (pedido_id, clave_idempotencia, monto, pasarela, marca_tarjeta, moneda)
                     VALUES (:id, :clave, :monto, :pasarela, :marca, :moneda) RETURNING id""", p, Long.class);
-            return new Intento(pagoId, pedidoId, pedido.numero(), pedido.total(), pedido.moneda());
+            return new Intento(pagoId, pedidoId, pedido.numero(), pedido.total(), pedido.moneda(), false);
         } catch (DuplicateKeyException e) {
             throw new ErrorNegocio(HttpStatus.CONFLICT, "PAGO_EN_CURSO",
                     "Ya hay un pago en curso para este pedido. Espera su resultado antes de reintentar.");
@@ -250,7 +273,7 @@ public class PagoService {
                 SELECT pa.id, pa.pedido_id, pe.numero, pa.monto, pa.moneda FROM pago pa JOIN pedido pe ON pe.id = pa.pedido_id
                 WHERE pa.clave_idempotencia = :clave""", new MapSqlParameterSource("clave", clave),
                 (rs, row) -> new Intento(rs.getLong("id"), rs.getLong("pedido_id"), rs.getString("numero"),
-                        rs.getBigDecimal("monto"), rs.getString("moneda"))).stream().findFirst().orElse(null);
+                        rs.getBigDecimal("monto"), rs.getString("moneda"), true)).stream().findFirst().orElse(null);
     }
 
     /** El intento y el pedido como quedaron. Solo del comprador: un pedido ajeno no existe (RNF-05). */
