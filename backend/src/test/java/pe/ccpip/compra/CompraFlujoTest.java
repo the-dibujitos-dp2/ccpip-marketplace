@@ -13,13 +13,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -40,6 +50,9 @@ class CompraFlujoTest extends IntegrationTest {
     private static final String FONDOS_INSUFICIENTES = "4000000000000002";
 
     private static final String COMPRADOR = "comprador.flujo@ccpip.test";
+
+    @Autowired
+    private PlatformTransactionManager transacciones;
 
     private Cookie comprador;
     private final List<Long> creados = new ArrayList<>();
@@ -313,6 +326,105 @@ class CompraFlujoTest extends IntegrationTest {
         confirmar(puntoCusco(), "987 654 321")
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("CARRITO_CON_PROBLEMAS"));
+    }
+
+    @Test
+    void si_el_productor_despublica_el_producto_antes_de_pagar_no_se_cobra_y_el_pedido_se_cancela() throws Exception {
+        long producto = productoEnCusco("Canasta", 5);
+        long pedido = pedidoPendiente(producto, 1);
+        // CCPIP-252: entre crear el pedido y pagarlo, el productor saca el producto del catalogo
+        mockMvc.perform(post("/api/productor/productos/{id}/retirar", producto).cookie(loginAs("productor@ccpip.test")))
+                .andExpect(status().isOk());
+
+        pagar(pedido, UUID.randomUUID(), APROBADA, "123")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("NO_DISPONIBLE"));
+
+        assertThat(stock(producto)).isEqualByComparingTo("5");
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM pago WHERE pedido_id = ?", Integer.class, pedido)).isZero();
+        assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id = ?", String.class, pedido)).isEqualTo("CANCELADO");
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM movimiento_inventario WHERE pedido_id = ?", Integer.class, pedido))
+                .isZero();
+    }
+
+    @Test
+    void si_la_tienda_deja_de_estar_publicada_antes_de_pagar_no_se_cobra_y_el_pedido_se_cancela() throws Exception {
+        long producto = productoEnCusco("Canasta", 5);
+        long pedido = pedidoPendiente(producto, 1);
+        long productor = jdbc.queryForObject("SELECT productor_id FROM producto WHERE id = ?", Long.class, producto);
+        // La base es compartida por la suite: la tienda vuelve a quedar publicada al terminar
+        jdbc.update("UPDATE productor SET tienda_publicada = false WHERE id = ?", productor);
+        try {
+            pagar(pedido, UUID.randomUUID(), APROBADA, "123")
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.code").value("NO_DISPONIBLE"));
+        } finally {
+            jdbc.update("UPDATE productor SET tienda_publicada = true WHERE id = ?", productor);
+        }
+
+        assertThat(stock(producto)).isEqualByComparingTo("5");
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM pago WHERE pedido_id = ?", Integer.class, pedido)).isZero();
+        assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id = ?", String.class, pedido)).isEqualTo("CANCELADO");
+    }
+
+    @Test
+    void la_misma_clave_enviada_dos_veces_a_la_vez_responde_el_mismo_intento() throws Exception {
+        long producto = productoEnCusco("Canasta", 5);
+        long pedido = pedidoPendiente(producto, 1);
+        UUID clave = UUID.randomUUID();
+
+        // CCPIP-252: los dos envios pasan la revision de la clave antes de que el primero registre su intento. Se
+        // retiene el pedido hasta que ambos esperan su bloqueo; al soltarlo, uno registra y cobra, y el otro ya ve
+        // ese intento. Antes, el segundo insertaba otro intento y la base abortaba uno de los dos por deadlock
+        ExecutorService envios = Executors.newFixedThreadPool(3);
+        try {
+            CountDownLatch bloqueado = new CountDownLatch(1);
+            CountDownLatch soltar = new CountDownLatch(1);
+            Future<?> retencion = envios.submit(() -> new TransactionTemplate(transacciones).executeWithoutResult(s -> {
+                jdbc.queryForObject("SELECT id FROM pedido WHERE id = ? FOR UPDATE", Long.class, pedido);
+                bloqueado.countDown();
+                try {
+                    assertThat(soltar.await(20, TimeUnit.SECONDS)).isTrue();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new AssertionError(e);
+                }
+            }));
+            assertThat(bloqueado.await(10, TimeUnit.SECONDS)).isTrue();
+            Future<MvcResult> primero = envios.submit(() -> pagar(pedido, clave, APROBADA, "123").andReturn());
+            Future<MvcResult> segundo = envios.submit(() -> pagar(pedido, clave, APROBADA, "123").andReturn());
+            esperarBloqueados(2);
+            soltar.countDown();
+            retencion.get(20, TimeUnit.SECONDS);
+
+            List<String> estados = new ArrayList<>();
+            for (MvcResult r : List.of(primero.get(20, TimeUnit.SECONDS), segundo.get(20, TimeUnit.SECONDS))) {
+                assertThat(r.getResponse().getStatus()).isEqualTo(200);
+                estados.add(objectMapper.readTree(r.getResponse().getContentAsString()).get("estado").asText());
+            }
+            // El que cobro responde APROBADO; el otro, ese mismo intento como estaba (aun cobrandose o ya aprobado)
+            assertThat(estados).contains("APROBADO").allMatch(e -> e.equals("APROBADO") || e.equals("PENDIENTE"));
+        } finally {
+            envios.shutdownNow();
+        }
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM pago WHERE pedido_id = ?", Long.class, pedido)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT estado FROM pedido WHERE id = ?", String.class, pedido)).isEqualTo("CONFIRMADO");
+        assertThat(stock(producto)).isEqualByComparingTo("4");
+    }
+
+    /** Espera a que {@code cuantas} conexiones de la base esten esperando un bloqueo. */
+    private void esperarBloqueados(int cuantas) {
+        long limite = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (System.nanoTime() < limite) {
+            Integer esperando = jdbc.queryForObject(
+                    "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock'",
+                    Integer.class);
+            if (esperando != null && esperando >= cuantas) {
+                return;
+            }
+            LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(20));
+        }
+        throw new AssertionError("Los dos envios no llegaron a esperar el bloqueo del pedido");
     }
 
     @Test
