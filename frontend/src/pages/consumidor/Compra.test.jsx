@@ -408,6 +408,25 @@ describe('CCPIP-60 Factibilidad de la entrega antes de pagar', () => {
     expect(within(alerta).getByText('Tu carrito cambió')).toBeInTheDocument()
     expect(llamadas(fetchMock, 'GET /api/compra/puntos').length).toBeGreaterThanOrEqual(2)
   })
+
+  it.each([
+    ['NO_DISPONIBLE', 'Un producto de tu pedido ya no está a la venta. No se hizo ningún cobro; vuelve a tu carrito para revisarlo.'],
+    ['VENTA_PAUSADA', 'La venta de un producto de tu pedido se pausó. No se hizo ningún cobro; vuelve a tu carrito para revisarlo.'],
+  ])('CCPIP-252: si al pagar responde %s, no hubo cobro: avisa, recarga el carrito y no reintenta el pedido cancelado', { timeout: 15_000 }, async (code, error) => {
+    const fetchMock = servidor(rutas({ 'POST /api/pedidos/77/pagos': [409, { code, error }] }))
+    const usuario = userEvent.setup()
+    abrirEn('/compra')
+    await screen.findByRole('button', { name: PAGAR })
+    await llenarYPagar(usuario)
+
+    const alerta = await screen.findByRole('alert')
+    expect(within(alerta).getByText('Tu carrito cambió')).toBeInTheDocument()
+    await waitFor(() => expect(llamadas(fetchMock, 'GET /api/carrito').length).toBeGreaterThanOrEqual(2))
+
+    // El siguiente intento crea un pedido nuevo: el cancelado ya no se paga
+    await usuario.click(await screen.findByRole('button', { name: PAGAR }))
+    await waitFor(() => expect(llamadas(fetchMock, 'POST /api/pedidos')).toHaveLength(2))
+  })
 })
 
 describe('CCPIP-295 Advertencias de perecibilidad al elegir el punto', () => {
