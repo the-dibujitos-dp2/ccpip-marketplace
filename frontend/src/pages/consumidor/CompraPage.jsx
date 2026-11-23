@@ -382,6 +382,10 @@ export default function CompraPage() {
       case 'PUNTO_SIN_EXISTENCIAS':
       case 'CARRITO_CON_PROBLEMAS':
       case 'PEDIDO_NO_PAGABLE':
+      // CCPIP-252: un producto dejo de estar a la venta o se pauso antes de cobrar. El servidor ya cancelo el pedido
+      // sin cobrar: se olvida, para que el siguiente intento no vuelva a pagar ese pedido cancelado
+      case 'NO_DISPONIBLE':
+      case 'VENTA_PAUSADA':
         pedido.current = null
         setAviso({ tono: 'error', titulo: t('compra.carritoCambio'), descripcion: mensajeError(err) })
         cargar()
